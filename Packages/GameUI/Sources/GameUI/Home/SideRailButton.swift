@@ -38,9 +38,10 @@ struct SideRailButton: View {
                     .overlay {
                         if locked {
                             ZStack {
-                                Image(systemName: "lock.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.white)
+                                Image("lockpic")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 24, height: 24)
                             }
                         }
                     }

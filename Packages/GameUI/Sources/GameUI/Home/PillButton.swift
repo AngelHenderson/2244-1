@@ -25,7 +25,7 @@ struct PillButton: View {
                     startPoint: .topLeading, 
                     endPoint: .bottomTrailing
                 ),
-                in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
             )
             .shadow(color: .green.opacity(0.3), radius: 8, y: 4)
         }

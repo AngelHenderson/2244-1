@@ -22,9 +22,10 @@ struct TileView: View {
                             .font(.system(size: fontSize, weight: .bold, design: .rounded))
                             .foregroundColor(textColor.opacity(0.5))
                             .minimumScaleFactor(0.5)
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: fontSize * 0.4, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.9))
+                        Image("lockpic")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 32, height: 32)
                     }
                 } else if case .bomb(let turns) = tile.type {
                     ZStack {

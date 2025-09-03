@@ -76,9 +76,10 @@ private struct MilestonePreviewTile: View {
                         .fill(Color.gray.opacity(0.2))
                         .frame(width: 52, height: 52)
                         .overlay(
-                            Image(systemName: "lock.fill")
-                                .font(.title3)
-                                .foregroundStyle(.tertiary)
+                            Image("lockpic")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 32, height: 32)
                         )
                 }
                 

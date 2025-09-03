@@ -27,9 +27,11 @@ struct TileBadge: View {
 
                 if style == .locked {
                     VStack{
-                        Image(systemName: "lock.fill")
-                            .foregroundStyle(.white.opacity(0.95))
-                            .font(.caption)
+                        Image("lockpic")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 22, height: 22)
+                            .padding(.top, 4)
 
                         Spacer()
                     }

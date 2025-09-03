@@ -13,7 +13,7 @@ public struct HomeView: View {
         ZStack {
             // Background gradient
             LinearGradient(
-                colors: [Color.black, Color.indigo.opacity(0.4)],
+                colors: [Color.indigo.opacity(1.0)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -200,7 +200,7 @@ public struct HomeView: View {
                 PillButton(title: "Play", icon: "play.fill") { 
                     actions.play() 
                 }
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 80)
                 .padding(.vertical, 20)
 
                 // Bottom dock
@@ -245,7 +245,7 @@ public struct HomeView: View {
 
     private func dockItem(system: String, title: String, badge: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            ZStack(alignment: .topTrailing) {
+            ZStack{
                 VStack(spacing: 4) {
                     // Prefer asset with same semantic name if available
                     let asset = assetName(for: title)
@@ -253,19 +253,19 @@ public struct HomeView: View {
                         Image(asset)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 24, height: 24)
+                            .frame(width: 48, height: 48)
                     } else {
                         Image(systemName: system)
                             .font(.system(size: 24))
                             .foregroundStyle(.white)
                     }
-                    Text(title)
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.8))
+//                    Text(title)
+//                        .font(.caption2)
+//                        .foregroundStyle(.white.opacity(0.8))
                 }
-                .padding(10)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                
+                .padding(4)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+
                 if badge {
                     Circle()
                         .fill(.red)
@@ -279,7 +279,7 @@ public struct HomeView: View {
 
     private func assetName(for title: String) -> String {
         switch title.lowercased() {
-        case "profile": return "leaderboard"
+        case "profile": return "profile"
         case "achievements": return "achievement"
         case "leaderboard": return "leaderboard"
         case "settings": return "settings"

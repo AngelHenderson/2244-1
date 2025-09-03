@@ -131,9 +131,10 @@ private struct MilestoneCard: View {
                         .fontWeight(isCurrent ? .bold : .semibold)
                         .foregroundColor(textColor)
                 } else {
-                    Image(systemName: "lock.fill")
-                        .font(.title2)
-                        .foregroundStyle(.tertiary)
+                    Image("lockpic")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
                 }
             }
             .scaleEffect(isPressed ? 0.95 : 1.0)
