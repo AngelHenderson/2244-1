@@ -35,6 +35,12 @@ public final class GameStore {
         "swap": 2,
         "undo": 1
     ]
+    
+    // JourneyKit integration
+    public let journey = JourneyKit.Store(
+        config: .init(minPower: 9, maxPower: 17) // 512 to 131072
+    )
+    
     public var coins: Int {
         get { state.gems }
         set { 
@@ -67,6 +73,16 @@ public final class GameStore {
         self.state = engine.currentState()
         self.state.gems = UserDefaults.standard.integer(forKey: "coins")
         self.lastDailyDateUTC = UserDefaults.standard.string(forKey: "lastDailyDateUTC")
+        
+        // Sync JourneyKit with initial game state or saved progress
+        // Check for legacy saved highest tile
+        let savedHighest = UserDefaults.standard.integer(forKey: "highestTile")
+        if savedHighest > 0 {
+            journey.didReach(tile: savedHighest)
+            state.highestTile = savedHighest
+        } else if state.highestTile > 0 {
+            journey.didReach(tile: state.highestTile)
+        }
     }
     
     public func beginPath(at position: Position) {
@@ -150,6 +166,15 @@ public final class GameStore {
             return 0
         }()
         lastAddedTileValue = addedValue > 0 ? addedValue : nil
+        
+        // Notify JourneyKit of the new tile value
+        if addedValue > 0 {
+            journey.didReach(tile: addedValue)
+            // Also persist the highest tile to UserDefaults
+            if addedValue > previousHighest {
+                UserDefaults.standard.set(addedValue, forKey: "highestTile")
+            }
+        }
         // Offer to double only if we created a tile that is one below the previous highest
         // or another instance of the previous highest.
         if addedValue > 0 {
@@ -258,6 +283,16 @@ public final class GameStore {
         guard let base = pendingDoubleBase else { return false }
         state = engine.applyDouble(to: position, from: base)
         pendingDoubleBase = nil
+        
+        // Notify JourneyKit if we created a new highest tile  
+        let doubledValue = base * 2
+        journey.didReach(tile: doubledValue)
+        
+        // Persist if this is a new highest tile
+        if doubledValue > state.highestTile {
+            UserDefaults.standard.set(doubledValue, forKey: "highestTile")
+        }
+        
         return true
     }
     
@@ -538,6 +573,12 @@ extension GameStore {
             engine = restoredEngine
             state = restoredEngine.currentState()
         }
+        
+        // IMPORTANT: Sync JourneyKit with the loaded game state
+        if state.highestTile > 0 {
+            journey.didReach(tile: state.highestTile)
+        }
+        
         currentPath = []
         pathValidation = .valid
         movesHistory = []

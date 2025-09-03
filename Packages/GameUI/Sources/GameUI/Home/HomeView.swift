@@ -4,6 +4,7 @@ import GameApp
 public struct HomeView: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
+    @Environment(\.tileJourney) private var journey
 
     public init() {}
     
@@ -74,57 +75,54 @@ public struct HomeView: View {
                         .frame(width: 80)
                         .padding(.top, 20)
 
-                        // Center progression ladder
+                        // Center progression ladder - USING JOURNEYKIT
                         VStack(spacing: 20) {
-                            // Top locked milestones with connecting dots
-                            if state.lockedMilestones.count > 1 {
-                                TileBadge(value: state.lockedMilestones[1], style: .locked)
-                                
-                                // Dotted connector
-                                VStack(spacing: 4) {
-                                    ForEach(0..<3, id: \.self) { _ in
-                                        Circle()
-                                            .fill(.white.opacity(0.3))
-                                            .frame(width: 4, height: 4)
+                            // Get visual journey path (optimized for vertical display)
+                            let journeyPath = journey.visualJourneyPath()
+                            let current = journey.highestTile
+                            
+                            // Show milestones from the journey path (reversed for top-to-bottom display)
+                            ForEach(Array(journeyPath.reversed().enumerated()), id: \.offset) { index, milestone in
+                                VStack(spacing: 0) {
+                                    if milestone > current {
+                                        // Locked future milestone
+                                        TileBadge(value: milestone, style: .locked)
+                                    } else if milestone == current {
+                                        // Current highest tile (hero element)
+                                        VStack(spacing: 8) {
+                                            TileBadge(
+                                                value: milestone, 
+                                                style: .primary,
+                                                showClaimBadge: !journey.claimed.contains(milestone)
+                                            )
+                                            Text("Highest Tile")
+                                                .foregroundStyle(.white.opacity(0.8))
+                                                .font(.subheadline)
+                                        }
+                                    } else {
+                                        // Previously achieved milestone
+                                        TileBadge(
+                                            value: milestone, 
+                                            style: .secondary,
+                                            showClaimBadge: !journey.claimed.contains(milestone) && milestone <= current,
+                                            isClaimed: journey.claimed.contains(milestone)
+                                        )
+                                    }
+                                    
+                                    // Dotted connector (except for last item)
+                                    if index < journeyPath.count - 1 {
+                                        VStack(spacing: 4) {
+                                            ForEach(0..<3, id: \.self) { _ in
+                                                Circle()
+                                                    .fill(.white.opacity(0.3))
+                                                    .frame(width: 4, height: 4)
+                                            }
+                                        }
+                                        .frame(height: 20)
+                                        .padding(.vertical, 4)
                                     }
                                 }
-                                .frame(height: 20)
                             }
-                            
-                            if let first = state.lockedMilestones.first {
-                                TileBadge(value: first, style: .locked)
-                                
-                                // Dotted connector
-                                VStack(spacing: 4) {
-                                    ForEach(0..<3, id: \.self) { _ in
-                                        Circle()
-                                            .fill(.white.opacity(0.3))
-                                            .frame(width: 4, height: 4)
-                                    }
-                                }
-                                .frame(height: 20)
-                            }
-
-                            // Highest tile (hero element)
-                            VStack(spacing: 8) {
-                                TileBadge(value: state.highestTile, style: .primary)
-                                Text("Highest Tile")
-                                    .foregroundStyle(.white.opacity(0.8))
-                                    .font(.subheadline)
-                            }
-                            
-                            // Dotted connector
-                            VStack(spacing: 4) {
-                                ForEach(0..<3, id: \.self) { _ in
-                                    Circle()
-                                        .fill(.white.opacity(0.3))
-                                        .frame(width: 4, height: 4)
-                                }
-                            }
-                            .frame(height: 20)
-
-                            // Below milestone
-                            TileBadge(value: state.milestoneBelow, style: .secondary)
                             
                             Spacer(minLength: 0)
                         }

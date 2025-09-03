@@ -20,12 +20,15 @@ public final class PurchaseService {
     public init() {
         // Defer task setup to avoid referencing actor-isolated 'self' before init completes
         #if os(iOS)
-        Task { [weak self] in
-            await self?.loadProducts()
-            await self?.checkPurchaseStatus()
-        }
-        Task { [weak self] in
-            await self?.observeTransactionUpdates()
+        // Only initialize StoreKit in non-simulator environments to avoid account errors
+        if !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
+            Task { [weak self] in
+                await self?.loadProducts()
+                await self?.checkPurchaseStatus()
+            }
+            Task { [weak self] in
+                await self?.observeTransactionUpdates()
+            }
         }
         #endif
     }
@@ -35,6 +38,12 @@ public final class PurchaseService {
         errorMessage = nil
         
         #if os(iOS)
+        // Skip loading products in simulator to avoid "No active account" errors
+        guard !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") else {
+            isLoading = false
+            return
+        }
+        
         do {
             products = try await Product.products(for: [Self.adFreeProductID])
             isLoading = false
@@ -97,6 +106,12 @@ public final class PurchaseService {
         errorMessage = nil
         
         #if os(iOS)
+        // Skip restore in simulator to avoid "No active account" errors
+        guard !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") else {
+            isLoading = false
+            return
+        }
+        
         do {
             try await AppStore.sync()
             await checkPurchaseStatus()
@@ -112,6 +127,11 @@ public final class PurchaseService {
     
     private func checkPurchaseStatus() async {
         #if os(iOS)
+        // Skip checking entitlements in simulator to avoid "No active account" errors
+        guard !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") else {
+            return
+        }
+        
         for await result in Transaction.currentEntitlements {
             switch result {
             case .verified(let transaction):
@@ -129,6 +149,11 @@ public final class PurchaseService {
     
     private func observeTransactionUpdates() async {
         #if os(iOS)
+        // Skip observing transaction updates in simulator to avoid "No active account" errors
+        guard !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") else {
+            return
+        }
+        
         for await result in Transaction.updates {
             switch result {
             case .verified(let transaction):

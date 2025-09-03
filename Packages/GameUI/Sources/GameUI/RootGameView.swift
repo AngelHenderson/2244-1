@@ -1,12 +1,15 @@
 import SwiftUI
 import GameApp
 import GameCore
+import GameServices
 
 /// Root view that manages the flow between Home and Game screens
 public struct RootGameView: View {
     @State private var homeState = HomeState()
-    @State private var gameStore = GameStore()
+    @Environment(\.gameStore) private var gameStore
+    @Environment(\.tileJourney) private var journey
     @State private var isPlaying = false
+    @State private var hasLoadedInitialState = false
     
     // Progress management
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
@@ -131,6 +134,9 @@ public struct RootGameView: View {
         let bestScore = gameStore.state.score
         let gems = gameStore.coins
         
+        // Also sync the journey highest tile
+        journey.didReach(tile: highestTile)
+        
         Task {
             do {
                 // Update progress with game state
@@ -145,6 +151,8 @@ public struct RootGameView: View {
                 // Update home state
                 await MainActor.run {
                     homeState.apply(progress: progress, planner: planner)
+                    // Ensure journey is synced
+                    journey.didReach(tile: progress.highestTile)
                 }
             } catch {
                 print("Failed to update progress from game: \(error)")
@@ -157,19 +165,43 @@ public struct RootGameView: View {
             // Bootstrap or load existing progress
             let progress = try await progressCoordinator.bootstrap(userIsSignedIn: false)
             
+            // Check if there's any saved game state
+            let finalHighestTile: Int
+            if progress.highestTile > 0 {
+                finalHighestTile = progress.highestTile
+            } else {
+                let storage = UserDefaultsStorageService()
+                if let savedData = await storage.load(slotId: "autosave") {
+                    // Use the highest tile from the saved game
+                    finalHighestTile = savedData.board.max { $0 < $1 } ?? 2
+                } else {
+                    // No saved state, start fresh
+                    finalHighestTile = 2
+                }
+            }
+            
             // Apply to home state
             await MainActor.run {
                 homeState.apply(progress: progress, planner: planner)
                 gameStore.coins = progress.gems
+                
+                // CRITICAL: Sync JourneyKit with the actual highest tile
+                journey.didReach(tile: finalHighestTile)
+                if progress.highestTile == 0 && finalHighestTile > 2 {
+                    homeState.highestTile = finalHighestTile
+                }
+                hasLoadedInitialState = true
             }
         } catch {
             print("Failed to load progress: \(error)")
             // Use defaults if loading fails
             await MainActor.run {
                 homeState.gems = 305
-                homeState.highestTile = 2048
-                homeState.milestoneBelow = 1024
-                homeState.lockedMilestones = [4096, 8192]
+                homeState.highestTile = 2
+                homeState.milestoneBelow = 0
+                homeState.lockedMilestones = [1024, 2048]
+                journey.didReach(tile: 2)
+                hasLoadedInitialState = true
             }
         }
     }

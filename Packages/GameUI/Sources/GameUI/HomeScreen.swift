@@ -10,10 +10,18 @@ public struct HomeScreen: View {
     @State private var isShowingChallenge: Bool = false
     @Environment(\.gameStore) private var gameStore
     @Environment(\.storage) private var storage
+    @Environment(\.tileJourney) private var journey
     @State private var didLoadAutosave: Bool = false
     
     public init(onPlay: @escaping () -> Void) {
         self.onPlay = onPlay
+    }
+    
+    private var hasUnclaimedRewards: Bool {
+        // Check if there are any unlocked but unclaimed milestones
+        journey.milestones().contains { milestone in
+            milestone <= journey.highestTile && !journey.claimed.contains(milestone)
+        }
     }
     
     public var body: some View {
@@ -23,8 +31,30 @@ public struct HomeScreen: View {
                 VStack(spacing: 8) {
                     HStack {
                         Spacer()
-                        let highest = max(2, gameStore.state.highestTile)
-                        TileView(tile: Tile(value: highest), isSelected: false, isValid: true, size: 72)
+                        let highest = max(2, journey.highestTile)
+                        ZStack {
+                            TileView(tile: Tile(value: highest), isSelected: false, isValid: true, size: 72)
+                            
+                            // Unclaimed rewards indicator
+                            if hasUnclaimedRewards {
+                                VStack {
+                                    HStack {
+                                        Spacer()
+                                        Circle()
+                                            .fill(Color.yellow)
+                                            .frame(width: 12, height: 12)
+                                            .overlay(
+                                                Text("!")
+                                                    .font(.system(size: 8, weight: .bold))
+                                                    .foregroundColor(.white)
+                                            )
+                                    }
+                                    Spacer()
+                                }
+                                .padding(4)
+                            }
+                        }
+                        .frame(width: 72, height: 72)
                         Spacer()
                     }
                     HStack {
@@ -32,6 +62,11 @@ public struct HomeScreen: View {
                         Text("Highest Tile")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.primary)
+                        if hasUnclaimedRewards {
+                            Image(systemName: "gift.fill")
+                                .font(.caption)
+                                .foregroundStyle(.yellow)
+                        }
                         Spacer()
                     }
                 }
@@ -101,7 +136,13 @@ public struct HomeScreen: View {
             if !didLoadAutosave {
                 _ = await gameStore.load(from: "autosave", using: storage)
                 didLoadAutosave = true
+                // Sync journey with loaded highest tile
+                journey.didReach(tile: gameStore.state.highestTile)
             }
+        }
+        .onAppear {
+            // Ensure journey is synced with current highest tile
+            journey.didReach(tile: gameStore.state.highestTile)
         }
     }
 }

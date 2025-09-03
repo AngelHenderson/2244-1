@@ -37,7 +37,14 @@ struct game2244App: App {
                 .environment(\.gameCenter, gameCenterService)
                 .environment(\.storage, storageService)
                 .environment(\.currentTheme, themeRegistry.descriptor(for: selectedThemeId))
+                .environment(\.tileJourney, gameStore.journey)
                 .task {
+                    // Suppress simulator-specific warnings in console
+                    if ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
+                        // Running in simulator - some warnings are expected
+                        print("🧪 Running in iOS Simulator - some system warnings are expected")
+                    }
+                    
                     // Honor ad-free state persisted
                     if UserDefaults.standard.bool(forKey: "isAdFreePurchased") {
                         adService.setAdFree(true)

@@ -3,27 +3,78 @@ import SwiftUI
 struct TileBadge: View {
     let value: Int
     let style: Style
+    var showClaimBadge: Bool = false
+    var isClaimed: Bool = false
 
-    enum Style { case primary, secondary, locked }
+    enum Style { 
+        case primary, secondary, locked 
+        
+        var isLocked: Bool {
+            self == .locked
+        }
+    }
 
     var body: some View {
         let size: CGFloat = style == .primary ? 140 : 80
-        VStack {
-            Text("\(value)")
-                .font(.system(size: style == .primary ? 44 : 28, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: size, height: size)
-                .background(background)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay {
-                    if style == .locked {
-                        Image(systemName: "lock.fill")
-                            .foregroundStyle(.white.opacity(0.95))
-                            .font(.title2)
+        ZStack {
+            VStack {
+                Text(formatValue(value))
+                    .font(.system(size: style == .primary ? 44 : 28, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: size, height: size)
+                    .background(background)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay {
+                        if style == .locked {
+                            Image(systemName: "lock.fill")
+                                .foregroundStyle(.white.opacity(0.95))
+                                .font(.title2)
+                        }
                     }
+            }
+            
+            // Claim indicator badge
+            if showClaimBadge && !style.isLocked {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Circle()
+                            .fill(Color.yellow)
+                            .frame(width: 16, height: 16)
+                            .overlay(
+                                Text("!")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.black)
+                            )
+                    }
+                    Spacer()
                 }
+                .frame(width: size, height: size)
+                .padding(6)
+            }
+            
+            // Claimed checkmark
+            if isClaimed && !style.isLocked {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.green)
+                            .background(Circle().fill(.white))
+                    }
+                    Spacer()
+                }
+                .frame(width: size, height: size)
+                .padding(6)
+            }
         }
         .accessibilityLabel(accessibility)
+    }
+    
+    private func formatValue(_ value: Int) -> String {
+        // Always show exact numeric value (e.g., 1024, 2048), no abbreviations
+        return String(value)
     }
 
     private var background: some ShapeStyle {
