@@ -267,10 +267,10 @@ public struct HomeView: View {
 
     private func assetName(for title: String) -> String {
         switch title.lowercased() {
-        case "profile": return "Icons/leaderboard"
-        case "achievements": return "Icons/achievement"
-        case "leaderboard": return "Icons/leaderboard"
-        case "settings": return "Icons/settings"
+        case "profile": return "leaderboard"
+        case "achievements": return "achievement"
+        case "leaderboard": return "leaderboard"
+        case "settings": return "settings"
         default: return ""
         }
     }
