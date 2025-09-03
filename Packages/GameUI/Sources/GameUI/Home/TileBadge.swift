@@ -17,22 +17,29 @@ struct TileBadge: View {
     var body: some View {
         let size: CGFloat = style == .primary ? 140 : 80
         ZStack {
-            VStack {
+            ZStack {
                 Text(formatValue(value))
                     .font(.system(size: style == .primary ? 44 : 28, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: size, height: size)
                     .background(background)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .overlay {
-                        if style == .locked {
-                            Image(systemName: "lock.fill")
-                                .foregroundStyle(.white.opacity(0.95))
-                                .font(.title2)
-                        }
+
+                if style == .locked {
+                    VStack{
+                        Image(systemName: "lock.fill")
+                            .foregroundStyle(.white.opacity(0.95))
+                            .font(.caption)
+
+                        Spacer()
                     }
+                    .frame(width: size, height: size)
+
+                }
             }
-            
+
+
+
             // Claim indicator badge
             if showClaimBadge && !style.isLocked {
                 VStack {

@@ -38,7 +38,7 @@ public final class GameStore {
     
     // JourneyKit integration
     public let journey = JourneyKit.Store(
-        config: .init(minPower: 9, maxPower: 17) // 512 to 131072
+        config: .init(minPower: 8, maxPower: 17) // 256 to 131072
     )
     
     public var coins: Int {

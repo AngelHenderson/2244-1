@@ -5,6 +5,7 @@ public struct HomeView: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
+    @State private var isShowingJourney: Bool = false
 
     public init() {}
     
@@ -30,7 +31,7 @@ public struct HomeView: View {
                         VStack(spacing: 20) {
                             SideRailButton(
                                 systemImage: nil,
-                                customImage: "ads", // using available icon set
+                                customImage: "dailypic", // using available icon set
                                 title: "DAILY",
                                 badge: state.hasDailyBadge,
                                 action: { actions.openDaily() }
@@ -38,7 +39,7 @@ public struct HomeView: View {
                             
                             SideRailButton(
                                 systemImage: nil,
-                                customImage: "ads",
+                                customImage: "spinthewheel",
                                 title: "FREE SPIN",
                                 badge: state.hasFreeSpinBadge,
                                 action: { actions.openFreeSpin() }
@@ -54,14 +55,14 @@ public struct HomeView: View {
                             
                             SideRailButton(
                                 systemImage: nil,
-                                customImage: "restart",
+                                customImage: "soundeffect",
                                 title: "MUSIC",
                                 action: { actions.openMusic() }
                             )
                             
                             SideRailButton(
                                 systemImage: nil,
-                                customImage: "gift",
+                                customImage: "salesoffer",
                                 title: "SALE OFFER",
                                 badge: true,
                                 action: { actions.openSaleOffer() }
@@ -88,17 +89,20 @@ public struct HomeView: View {
                                         // Locked future milestone
                                         TileBadge(value: milestone, style: .locked)
                                     } else if milestone == current {
-                                        // Current highest tile (hero element)
-                                        VStack(spacing: 8) {
-                                            TileBadge(
-                                                value: milestone, 
-                                                style: .primary,
-                                                showClaimBadge: !journey.claimed.contains(milestone)
-                                            )
-                                            Text("Highest Tile")
-                                                .foregroundStyle(.white.opacity(0.8))
-                                                .font(.subheadline)
+                                        // Current highest tile (hero element) — tap to open Journey
+                                        Button(action: { isShowingJourney = true }) {
+                                            VStack(spacing: 8) {
+                                                TileBadge(
+                                                    value: milestone, 
+                                                    style: .primary,
+                                                    showClaimBadge: !journey.claimed.contains(milestone)
+                                                )
+                                                Text("Highest Tile")
+                                                    .foregroundStyle(.white.opacity(0.8))
+                                                    .font(.subheadline)
+                                            }
                                         }
+                                        .buttonStyle(.plain)
                                     } else {
                                         // Previously achieved milestone
                                         TileBadge(
@@ -133,7 +137,7 @@ public struct HomeView: View {
                         VStack(spacing: 20) {
                             SideRailButton(
                                 systemImage: nil,
-                                customImage: "hammer",
+                                customImage: "createagame",
                                 title: "CREATE",
                                 locked: state.isCreateLocked,
                                 action: { actions.openCreate() }
@@ -226,6 +230,16 @@ public struct HomeView: View {
                 }
                 .padding(.bottom, 16)
             }
+        }
+        // Journey sheet
+        .sheet(isPresented: $isShowingJourney) {
+            VStack(spacing: 16) {
+                JourneyHeader()
+                JourneyPanel(showAll: true)
+                    .padding(.horizontal)
+            }
+            .padding(.top, 12)
+            .presentationDetents([.medium, .large])
         }
     }
 

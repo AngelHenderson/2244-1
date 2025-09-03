@@ -23,7 +23,7 @@ struct SideRailButton: View {
                             Image(customImage)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 36, height: 36)
+                                .frame(width: 56, height: 56)
                                 .accessibilityHidden(true)
                         }
                         
@@ -38,8 +38,6 @@ struct SideRailButton: View {
                     .overlay {
                         if locked {
                             ZStack {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(.black.opacity(0.5))
                                 Image(systemName: "lock.fill")
                                     .font(.caption)
                                     .foregroundStyle(.white)
@@ -58,7 +56,8 @@ struct SideRailButton: View {
                 }
                 
                 Text(title)
-                    .font(.caption)
+                    .font(.caption2)
+                    .fontWeight(.heavy)
                     .foregroundStyle(.white.opacity(0.9))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
