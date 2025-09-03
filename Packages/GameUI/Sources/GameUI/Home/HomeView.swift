@@ -116,13 +116,13 @@ public struct HomeView: View {
                                     // Dotted connector (except for last item)
                                     if index < journeyPath.count - 1 {
                                         VStack(spacing: 4) {
-                                            ForEach(0..<3, id: \.self) { _ in
+                                            ForEach(0..<6, id: \.self) { _ in
                                                 Circle()
                                                     .fill(.white.opacity(0.3))
                                                     .frame(width: 4, height: 4)
                                             }
                                         }
-                                        .frame(height: 20)
+//                                        .frame(height: 20)
                                         .padding(.vertical, 4)
                                     }
                                 }
@@ -200,7 +200,7 @@ public struct HomeView: View {
                 PillButton(title: "Play", icon: "play.fill") { 
                     actions.play() 
                 }
-                .padding(.horizontal, 80)
+                .padding(.horizontal, 40)
                 .padding(.vertical, 20)
 
                 // Bottom dock
