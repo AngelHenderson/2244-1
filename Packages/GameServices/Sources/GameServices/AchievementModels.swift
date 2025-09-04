@@ -7,12 +7,19 @@ public struct AchievementDef: Codable, Identifiable, Hashable {
         public let value: Double?
     }
     
+    public struct Rewards: Codable, Hashable {
+        public let gems: Int?
+        public let spins: Int?
+        public let hammers: Int?
+        public let magnets: Int?
+    }
+    
     public let id: String
     public let gcIdentifier: String?
     public let title: String
     public let description: String
     public let category: String
-    public let points: Int
+    public let rewards: Rewards?
     public let hidden: Bool
     public let conditionExpr: String
     public let conditions: [Condition]

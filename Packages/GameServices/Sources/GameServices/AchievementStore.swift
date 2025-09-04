@@ -47,12 +47,17 @@ public final class AchievementStore {
         }
     }
     
-    public func evaluate(snapshot: GameSnapshot, reportToGameCenter: Bool = true) async {
+    public func evaluate(snapshot: GameSnapshot, reportToGameCenter: Bool = true, onReward: ((AchievementDef.Rewards) -> Void)? = nil) async {
         lastEvaluatedSnapshot = snapshot
         for def in catalog {
             guard unlocks[def.id]?.unlocked != true else { continue }
             if matches(def: def, snapshot: snapshot) {
                 unlocks[def.id] = .init(unlocked: true, unlockedAt: Date())
+                
+                // Award rewards
+                if let rewards = def.rewards {
+                    onReward?(rewards)
+                }
                 
                 if reportToGameCenter,
                    GKLocalPlayer.local.isAuthenticated {

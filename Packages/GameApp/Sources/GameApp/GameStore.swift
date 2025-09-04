@@ -37,6 +37,10 @@ public final class GameStore {
         "undo": 1
     ]
     
+    public func addPowerUp(_ type: String, count: Int) {
+        powerUpInventory[type, default: 0] += count
+    }
+    
     // JourneyKit integration
     public let journey = JourneyKit.Store(
         config: .init(minPower: 8, maxPower: 22) // 256 to 4,194,304

@@ -35,6 +35,36 @@ public struct AchievementsView: View {
     }
 }
 
+private struct RewardsView: View {
+    let rewards: AchievementDef.Rewards
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            if let gems = rewards.gems, gems > 0 {
+                Label("\(gems)", systemImage: "diamond.fill")
+                    .font(.caption)
+                    .foregroundStyle(.cyan)
+            }
+            if let spins = rewards.spins, spins > 0 {
+                Label("\(spins)", systemImage: "arrow.trianglehead.2.clockwise")
+                    .font(.caption)
+                    .foregroundStyle(.purple)
+            }
+            if let hammers = rewards.hammers, hammers > 0 {
+                Label("\(hammers)", systemImage: "hammer.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+            if let magnets = rewards.magnets, magnets > 0 {
+                Label("\(magnets)", systemImage: "magnifyingglass")
+                    .font(.caption)
+                    .foregroundStyle(.mint)
+            }
+        }
+        .labelStyle(.iconOnly)
+    }
+}
+
 private struct AchievementRow: View {
     let definition: AchievementDef
     let isUnlocked: Bool
@@ -82,9 +112,9 @@ private struct AchievementRow: View {
                     
                     Spacer()
                     
-                    Text("\(definition.points) pts")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                    if let rewards = definition.rewards {
+                        RewardsView(rewards: rewards)
+                    }
                 }
             }
             

@@ -5,15 +5,11 @@
     "title": "Welcome Aboard",
     "description": "Complete the tutorial or your first full game.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 50 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "games_played",
-        "op": ">=",
-        "value": 1
-      }
+      { "field": "games_played", "op": ">=", "value": 1 }
     ]
   },
   {
@@ -22,15 +18,11 @@
     "title": "First Merge",
     "description": "Perform your first merge.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 25 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "merges_total",
-        "op": ">=",
-        "value": 1
-      }
+      { "field": "merges_total", "op": ">=", "value": 1 }
     ]
   },
   {
@@ -39,15 +31,11 @@
     "title": "Two of a Kind",
     "description": "Make 2 merges in a single turn.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 40, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "merges_in_single_turn",
-        "op": ">=",
-        "value": 2
-      }
+      { "field": "merges_in_single_turn", "op": ">=", "value": 2 }
     ]
   },
   {
@@ -56,15 +44,11 @@
     "title": "Triple Threat",
     "description": "Make 3 merges in a single turn.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 50, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "merges_in_single_turn",
-        "op": ">=",
-        "value": 3
-      }
+      { "field": "merges_in_single_turn", "op": ">=", "value": 3 }
     ]
   },
   {
@@ -73,15 +57,11 @@
     "title": "Chain Reaction",
     "description": "Create a chain of 4+ in one sequence.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 75 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 4
-      }
+      { "field": "max_chain", "op": ">=", "value": 4 }
     ]
   },
   {
@@ -90,15 +70,11 @@
     "title": "On the Board",
     "description": "Reach a score of 500 in a run.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 100, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 500
-      }
+      { "field": "score", "op": ">=", "value": 500 }
     ]
   },
   {
@@ -107,15 +83,11 @@
     "title": "Corner Start",
     "description": "Make a merge in any corner cell.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 30 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "merge_in_corner",
-        "op": ">=",
-        "value": 1
-      }
+      { "field": "merge_in_corner", "op": ">=", "value": 1 }
     ]
   },
   {
@@ -124,15 +96,11 @@
     "title": "Edge Case",
     "description": "Make a merge along the board edge.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 30 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "merge_on_edge",
-        "op": ">=",
-        "value": 1
-      }
+      { "field": "merge_on_edge", "op": ">=", "value": 1 }
     ]
   },
   {
@@ -141,15 +109,11 @@
     "title": "Fast Learner",
     "description": "Make 4 merges within your first 10 moves.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 80, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "merges_first_10",
-        "op": ">=",
-        "value": 4
-      }
+      { "field": "merges_first_10", "op": ">=", "value": 4 }
     ]
   },
   {
@@ -158,32 +122,25 @@
     "title": "Learner’s Luck",
     "description": "Reach your first core target tile.",
     "category": "Onboarding",
-    "points": 10,
+    "rewards": { "gems": 150, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "reached_core_target",
-        "op": "==",
-        "value": 1
-      }
+      { "field": "reached_core_target", "op": "==", "value": 1 }
     ]
   },
+
   {
     "id": "score_1000",
     "gcIdentifier": "score_1000",
     "title": "Four Digits",
     "description": "Score 1,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 100, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 1000
-      }
+      { "field": "score", "op": ">=", "value": 1000 }
     ]
   },
   {
@@ -192,32 +149,24 @@
     "title": "High Five",
     "description": "Score 5,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 150, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 5000
-      }
+      { "field": "score", "op": ">=", "value": 5000 }
     ]
   },
   {
     "id": "score_10000",
     "gcIdentifier": "score_10000",
-    "title": "Ten‑K",
+    "title": "Ten-K",
     "description": "Score 10,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 250, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 10000
-      }
+      { "field": "score", "op": ">=", "value": 10000 }
     ]
   },
   {
@@ -226,15 +175,11 @@
     "title": "Quarter Stack",
     "description": "Score 25,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 400, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 25000
-      }
+      { "field": "score", "op": ">=", "value": 25000 }
     ]
   },
   {
@@ -243,32 +188,24 @@
     "title": "Half Stack",
     "description": "Score 50,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 600, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 50000
-      }
+      { "field": "score", "op": ">=", "value": 50000 }
     ]
   },
   {
     "id": "score_75000",
     "gcIdentifier": "score_75000",
-    "title": "Seventy‑Fiver",
+    "title": "Seventy-Fiver",
     "description": "Score 75,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 800, "hammers": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 75000
-      }
+      { "field": "score", "op": ">=", "value": 75000 }
     ]
   },
   {
@@ -277,32 +214,24 @@
     "title": "Century Mark",
     "description": "Score 100,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 1000, "spins": 1, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 100000
-      }
+      { "field": "score", "op": ">=", "value": 100000 }
     ]
   },
   {
     "id": "score_150000",
     "gcIdentifier": "score_150000",
-    "title": "One‑Fifty Club",
+    "title": "One-Fifty Club",
     "description": "Score 150,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 1200, "spins": 2, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 150000
-      }
+      { "field": "score", "op": ">=", "value": 150000 }
     ]
   },
   {
@@ -311,15 +240,11 @@
     "title": "Double Century",
     "description": "Score 200,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 1500, "spins": 2, "hammers": 1, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 200000
-      }
+      { "field": "score", "op": ">=", "value": 200000 }
     ]
   },
   {
@@ -328,15 +253,11 @@
     "title": "Quarter Million",
     "description": "Score 250,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 1800, "spins": 2, "hammers": 2, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 250000
-      }
+      { "field": "score", "op": ">=", "value": 250000 }
     ]
   },
   {
@@ -345,15 +266,11 @@
     "title": "Three Hundred K",
     "description": "Score 300,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 2000, "spins": 3, "hammers": 2, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 300000
-      }
+      { "field": "score", "op": ">=", "value": 300000 }
     ]
   },
   {
@@ -362,15 +279,11 @@
     "title": "Four Hundred K",
     "description": "Score 400,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 2300, "spins": 3, "hammers": 2, "magnets": 3 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 400000
-      }
+      { "field": "score", "op": ">=", "value": 400000 }
     ]
   },
   {
@@ -379,32 +292,24 @@
     "title": "Half Million",
     "description": "Score 500,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 2600, "spins": 3, "hammers": 3, "magnets": 3 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 500000
-      }
+      { "field": "score", "op": ">=", "value": 500000 }
     ]
   },
   {
     "id": "score_750000",
     "gcIdentifier": "score_750000",
-    "title": "Three‑Quarter Million",
+    "title": "Three-Quarter Million",
     "description": "Score 750,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 3200, "spins": 4, "hammers": 3, "magnets": 4 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 750000
-      }
+      { "field": "score", "op": ">=", "value": 750000 }
     ]
   },
   {
@@ -413,32 +318,25 @@
     "title": "Seven Figures",
     "description": "Score 1,000,000+ in a run.",
     "category": "Score",
-    "points": 10,
+    "rewards": { "gems": 4000, "spins": 5, "hammers": 4, "magnets": 5 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 1000000
-      }
+      { "field": "score", "op": ">=", "value": 1000000 }
     ]
   },
+
   {
     "id": "tile_64",
     "gcIdentifier": "tile_64",
-    "title": "64‑Bit",
+    "title": "64-Bit",
     "description": "Create a 64 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 50 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 64
-      }
+      { "field": "max_tile", "op": ">=", "value": 64 }
     ]
   },
   {
@@ -447,15 +345,11 @@
     "title": "128 Club",
     "description": "Create a 128 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 75 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 128
-      }
+      { "field": "max_tile", "op": ">=", "value": 128 }
     ]
   },
   {
@@ -464,15 +358,11 @@
     "title": "256 Stack",
     "description": "Create a 256 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 100 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 256
-      }
+      { "field": "max_tile", "op": ">=", "value": 256 }
     ]
   },
   {
@@ -481,15 +371,11 @@
     "title": "512 Peak",
     "description": "Create a 512 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 150, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 512
-      }
+      { "field": "max_tile", "op": ">=", "value": 512 }
     ]
   },
   {
@@ -498,32 +384,24 @@
     "title": "KiloTile",
     "description": "Create a 1,024 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 250, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 1024
-      }
+      { "field": "max_tile", "op": ">=", "value": 1024 }
     ]
   },
   {
     "id": "tile_2048",
     "gcIdentifier": "tile_2048",
-    "title": "Two‑K Legend",
+    "title": "Two-K Legend",
     "description": "Create a 2,048 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 400, "hammers": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 2048
-      }
+      { "field": "max_tile", "op": ">=", "value": 2048 }
     ]
   },
   {
@@ -532,15 +410,11 @@
     "title": "4K Fuser",
     "description": "Create a 4,096 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 700, "spins": 1, "hammers": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 4096
-      }
+      { "field": "max_tile", "op": ">=", "value": 4096 }
     ]
   },
   {
@@ -549,15 +423,11 @@
     "title": "8K Master",
     "description": "Create a 8,192 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 1100, "spins": 2, "hammers": 1, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 8192
-      }
+      { "field": "max_tile", "op": ">=", "value": 8192 }
     ]
   },
   {
@@ -566,15 +436,11 @@
     "title": "16K Architect",
     "description": "Create a 16,384 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 1600, "spins": 2, "hammers": 2, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 16384
-      }
+      { "field": "max_tile", "op": ">=", "value": 16384 }
     ]
   },
   {
@@ -583,15 +449,11 @@
     "title": "32K Strategist",
     "description": "Create a 32,768 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 2200, "spins": 3, "hammers": 2, "magnets": 3 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 32768
-      }
+      { "field": "max_tile", "op": ">=", "value": 32768 }
     ]
   },
   {
@@ -600,15 +462,11 @@
     "title": "64K Sage",
     "description": "Create a 65,536 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 3000, "spins": 3, "hammers": 3, "magnets": 3 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 65536
-      }
+      { "field": "max_tile", "op": ">=", "value": 65536 }
     ]
   },
   {
@@ -617,15 +475,11 @@
     "title": "128K Oracle",
     "description": "Create a 131,072 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 3800, "spins": 4, "hammers": 3, "magnets": 4 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 131072
-      }
+      { "field": "max_tile", "op": ">=", "value": 131072 }
     ]
   },
   {
@@ -634,15 +488,11 @@
     "title": "256K Overmind",
     "description": "Create a 262,144 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 4500, "spins": 5, "hammers": 4, "magnets": 5 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 262144
-      }
+      { "field": "max_tile", "op": ">=", "value": 262144 }
     ]
   },
   {
@@ -651,15 +501,11 @@
     "title": "512K Mythic",
     "description": "Create a 524,288 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 4800, "spins": 6, "hammers": 5, "magnets": 6 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 524288
-      }
+      { "field": "max_tile", "op": ">=", "value": 524288 }
     ]
   },
   {
@@ -668,168 +514,129 @@
     "title": "MegaTile",
     "description": "Create a 1,048,576 tile.",
     "category": "HighestTile",
-    "points": 10,
+    "rewards": { "gems": 5000, "spins": 8, "hammers": 6, "magnets": 8 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile",
-        "op": ">=",
-        "value": 1048576
-      }
+      { "field": "max_tile", "op": ">=", "value": 1048576 }
     ]
   },
+
   {
     "id": "chain_4",
     "gcIdentifier": "chain_4",
-    "title": "Chain‑4",
+    "title": "Chain-4",
     "description": "Perform a chain of 4 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 100 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 4
-      }
+      { "field": "max_chain", "op": ">=", "value": 4 }
     ]
   },
   {
     "id": "chain_6",
     "gcIdentifier": "chain_6",
-    "title": "Chain‑6",
+    "title": "Chain-6",
     "description": "Perform a chain of 6 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 150 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 6
-      }
+      { "field": "max_chain", "op": ">=", "value": 6 }
     ]
   },
   {
     "id": "chain_8",
     "gcIdentifier": "chain_8",
-    "title": "Chain‑8",
+    "title": "Chain-8",
     "description": "Perform a chain of 8 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 200, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 8
-      }
+      { "field": "max_chain", "op": ">=", "value": 8 }
     ]
   },
   {
     "id": "chain_10",
     "gcIdentifier": "chain_10",
-    "title": "Chain‑10",
+    "title": "Chain-10",
     "description": "Perform a chain of 10 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 300, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 10
-      }
+      { "field": "max_chain", "op": ">=", "value": 10 }
     ]
   },
   {
     "id": "chain_12",
     "gcIdentifier": "chain_12",
-    "title": "Chain‑12",
+    "title": "Chain-12",
     "description": "Perform a chain of 12 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 400, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 12
-      }
+      { "field": "max_chain", "op": ">=", "value": 12 }
     ]
   },
   {
     "id": "chain_14",
     "gcIdentifier": "chain_14",
-    "title": "Chain‑14",
+    "title": "Chain-14",
     "description": "Perform a chain of 14 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 500, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 14
-      }
+      { "field": "max_chain", "op": ">=", "value": 14 }
     ]
   },
   {
     "id": "chain_16",
     "gcIdentifier": "chain_16",
-    "title": "Chain‑16",
+    "title": "Chain-16",
     "description": "Perform a chain of 16 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 650, "spins": 1, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 16
-      }
+      { "field": "max_chain", "op": ">=", "value": 16 }
     ]
   },
   {
     "id": "chain_18",
     "gcIdentifier": "chain_18",
-    "title": "Chain‑18",
+    "title": "Chain-18",
     "description": "Perform a chain of 18 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 800, "spins": 2, "hammers": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 18
-      }
+      { "field": "max_chain", "op": ">=", "value": 18 }
     ]
   },
   {
     "id": "chain_20",
     "gcIdentifier": "chain_20",
-    "title": "Chain‑20",
+    "title": "Chain-20",
     "description": "Perform a chain of 20 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 1000, "spins": 2, "hammers": 2, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 20
-      }
+      { "field": "max_chain", "op": ">=", "value": 20 }
     ]
   },
   {
@@ -838,37 +645,26 @@
     "title": "Marathon Chain",
     "description": "Perform a chain of 25 in one sequence.",
     "category": "Combo",
-    "points": 10,
+    "rewards": { "gems": 1500, "spins": 3, "hammers": 2, "magnets": 3 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain",
-        "op": ">=",
-        "value": 25
-      }
+      { "field": "max_chain", "op": ">=", "value": 25 }
     ]
   },
+
   {
     "id": "speedy_strategist",
     "gcIdentifier": "speedy_strategist",
     "title": "Speedy Strategist",
     "description": "Reach your core target tile in ≤150 moves.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 400, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "reached_core_target",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "moves",
-        "op": "<=",
-        "value": 150
-      }
+      { "field": "reached_core_target", "op": "==", "value": 1 },
+      { "field": "moves", "op": "<=", "value": 150 }
     ]
   },
   {
@@ -877,20 +673,12 @@
     "title": "Tight Ship",
     "description": "Reach your core target tile in ≤100 moves.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 700, "spins": 2, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "reached_core_target",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "moves",
-        "op": "<=",
-        "value": 100
-      }
+      { "field": "reached_core_target", "op": "==", "value": 1 },
+      { "field": "moves", "op": "<=", "value": 100 }
     ]
   },
   {
@@ -899,64 +687,40 @@
     "title": "Flawless",
     "description": "Win a run without using Undo.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 300, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "undo_used",
-        "op": "==",
-        "value": 0
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "undo_used", "op": "==", "value": 0 }
     ]
   },
   {
     "id": "purist",
     "gcIdentifier": "purist",
     "title": "Purist",
-    "description": "Win without using any power‑ups.",
+    "description": "Win without using any power-ups.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 600, "hammers": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "powerups_used",
-        "op": "==",
-        "value": 0
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "powerups_used", "op": "==", "value": 0 }
     ]
   },
   {
     "id": "one_take",
     "gcIdentifier": "one_take",
-    "title": "One‑Take",
+    "title": "One-Take",
     "description": "Win in a single uninterrupted session (no pauses).",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 250, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "session_pauses",
-        "op": "==",
-        "value": 0
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "session_pauses", "op": "==", "value": 0 }
     ]
   },
   {
@@ -965,15 +729,11 @@
     "title": "Corner Keeper",
     "description": "Keep your highest tile in a corner for 100 consecutive moves.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 500, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "highest_tile_corner_moves",
-        "op": ">=",
-        "value": 100
-      }
+      { "field": "highest_tile_corner_moves", "op": ">=", "value": 100 }
     ]
   },
   {
@@ -982,20 +742,12 @@
     "title": "Clean Board",
     "description": "Win with 10+ free slots remaining.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 700, "spins": 1, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "free_slots_end",
-        "op": ">=",
-        "value": 10
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "free_slots_end", "op": ">=", "value": 10 }
     ]
   },
   {
@@ -1004,20 +756,12 @@
     "title": "Lean Machine",
     "description": "Score 100,000 with ≤200 moves.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 1000, "spins": 2, "hammers": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 100000
-      },
-      {
-        "field": "moves",
-        "op": "<=",
-        "value": 200
-      }
+      { "field": "score", "op": ">=", "value": 100000 },
+      { "field": "moves", "op": "<=", "value": 200 }
     ]
   },
   {
@@ -1026,20 +770,12 @@
     "title": "No Mistakes",
     "description": "Finish a run with zero invalid moves.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 500, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "run_completed",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "invalid_moves",
-        "op": "==",
-        "value": 0
-      }
+      { "field": "run_completed", "op": "==", "value": 1 },
+      { "field": "invalid_moves", "op": "==", "value": 0 }
     ]
   },
   {
@@ -1048,32 +784,25 @@
     "title": "On a Roll",
     "description": "Make 10 consecutive turns with at least one merge.",
     "category": "Efficiency",
-    "points": 10,
+    "rewards": { "gems": 350, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "consecutive_merge_turns",
-        "op": ">=",
-        "value": 10
-      }
+      { "field": "consecutive_merge_turns", "op": ">=", "value": 10 }
     ]
   },
+
   {
     "id": "quick_start",
     "gcIdentifier": "quick_start",
     "title": "Quick Start",
     "description": "Reach 1,000 score within 60s.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 250, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score_60s",
-        "op": ">=",
-        "value": 1000
-      }
+      { "field": "score_60s", "op": ">=", "value": 1000 }
     ]
   },
   {
@@ -1082,15 +811,11 @@
     "title": "Swift Stack",
     "description": "Reach 10,000 within 180s.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 600, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score_180s",
-        "op": ">=",
-        "value": 10000
-      }
+      { "field": "score_180s", "op": ">=", "value": 10000 }
     ]
   },
   {
@@ -1099,15 +824,11 @@
     "title": "Lightning Tile",
     "description": "Create a 1,024 tile within 120s.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 700, "spins": 1, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_tile_120s",
-        "op": ">=",
-        "value": 1024
-      }
+      { "field": "max_tile_120s", "op": ">=", "value": 1024 }
     ]
   },
   {
@@ -1116,15 +837,11 @@
     "title": "Blitz Builder",
     "description": "Make 5 merges within 10s.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 250, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "merges_10s",
-        "op": ">=",
-        "value": 5
-      }
+      { "field": "merges_10s", "op": ">=", "value": 5 }
     ]
   },
   {
@@ -1133,15 +850,11 @@
     "title": "Rapid Fire",
     "description": "Perform 20 valid moves within 30s.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 300, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "valid_moves_30s",
-        "op": ">=",
-        "value": 20
-      }
+      { "field": "valid_moves_30s", "op": ">=", "value": 20 }
     ]
   },
   {
@@ -1150,20 +863,12 @@
     "title": "Speed Runner",
     "description": "Complete a victory run in <5 minutes.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 900, "spins": 2, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "seconds_elapsed",
-        "op": "<",
-        "value": 300
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "seconds_elapsed", "op": "<", "value": 300 }
     ]
   },
   {
@@ -1172,52 +877,28 @@
     "title": "Photo Finish",
     "description": "Win timed mode with <5s remaining.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 600, "spins": 1, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "timed_mode",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "seconds_left",
-        "op": "<",
-        "value": 5
-      }
+      { "field": "timed_mode", "op": "==", "value": 1 },
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "seconds_left", "op": "<", "value": 5 }
     ]
   },
   {
     "id": "just_in_time",
     "gcIdentifier": "just_in_time",
-    "title": "Just‑in‑Time",
+    "title": "Just-in-Time",
     "description": "Create your core target tile with <10s left (timed mode).",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 700, "spins": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "timed_mode",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "reached_core_target",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "seconds_left",
-        "op": "<",
-        "value": 10
-      }
+      { "field": "timed_mode", "op": "==", "value": 1 },
+      { "field": "reached_core_target", "op": "==", "value": 1 },
+      { "field": "seconds_left", "op": "<", "value": 10 }
     ]
   },
   {
@@ -1226,15 +907,11 @@
     "title": "Blitz Chain",
     "description": "Achieve a 10+ chain within 60s.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 800, "spins": 2, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "max_chain_60s",
-        "op": ">=",
-        "value": 10
-      }
+      { "field": "max_chain_60s", "op": ">=", "value": 10 }
     ]
   },
   {
@@ -1243,37 +920,26 @@
     "title": "Time Lord",
     "description": "Create a 4,096 tile within 5 minutes.",
     "category": "TimeAttack",
-    "points": 10,
+    "rewards": { "gems": 1500, "spins": 3, "hammers": 2, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "timed_mode",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "max_tile_300s",
-        "op": ">=",
-        "value": 4096
-      }
+      { "field": "timed_mode", "op": "==", "value": 1 },
+      { "field": "max_tile_300s", "op": ">=", "value": 4096 }
     ]
   },
+
   {
     "id": "daily_warmup",
     "gcIdentifier": "daily_warmup",
     "title": "Daily Warmup",
     "description": "Complete your first Daily Challenge.",
     "category": "Streaks",
-    "points": 10,
+    "rewards": { "gems": 150, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "daily_completed",
-        "op": ">=",
-        "value": 1
-      }
+      { "field": "daily_completed", "op": ">=", "value": 1 }
     ]
   },
   {
@@ -1282,66 +948,50 @@
     "title": "Hat Trick",
     "description": "Complete 3 Dailies in a row.",
     "category": "Streaks",
-    "points": 10,
+    "rewards": { "gems": 300, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "daily_streak",
-        "op": ">=",
-        "value": 3
-      }
+      { "field": "daily_streak", "op": ">=", "value": 3 }
     ]
   },
   {
     "id": "week_warrior",
     "gcIdentifier": "week_warrior",
     "title": "Week Warrior",
-    "description": "7‑day Daily streak.",
+    "description": "7-day Daily streak.",
     "category": "Streaks",
-    "points": 10,
+    "rewards": { "gems": 600, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "daily_streak",
-        "op": ">=",
-        "value": 7
-      }
+      { "field": "daily_streak", "op": ">=", "value": 7 }
     ]
   },
   {
     "id": "fortnight_focus",
     "gcIdentifier": "fortnight_focus",
     "title": "Fortnight Focus",
-    "description": "14‑day Daily streak.",
+    "description": "14-day Daily streak.",
     "category": "Streaks",
-    "points": 10,
+    "rewards": { "gems": 900, "spins": 1, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "daily_streak",
-        "op": ">=",
-        "value": 14
-      }
+      { "field": "daily_streak", "op": ">=", "value": 14 }
     ]
   },
   {
     "id": "monthly_merge",
     "gcIdentifier": "monthly_merge",
     "title": "Monthly Merge",
-    "description": "30‑day Daily streak.",
+    "description": "30-day Daily streak.",
     "category": "Streaks",
-    "points": 10,
+    "rewards": { "gems": 2000, "spins": 3, "hammers": 2, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "daily_streak",
-        "op": ">=",
-        "value": 30
-      }
+      { "field": "daily_streak", "op": ">=", "value": 30 }
     ]
   },
   {
@@ -1350,15 +1000,11 @@
     "title": "Weekend Winner",
     "description": "Win Dailies on Saturday and Sunday of the same weekend.",
     "category": "Streaks",
-    "points": 10,
+    "rewards": { "gems": 500, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "weekend_back_to_back",
-        "op": "==",
-        "value": 1
-      }
+      { "field": "weekend_back_to_back", "op": "==", "value": 1 }
     ]
   },
   {
@@ -1367,25 +1013,13 @@
     "title": "Comeback Kid",
     "description": "Break a losing streak with a 50,000+ win.",
     "category": "Streaks",
-    "points": 10,
+    "rewards": { "gems": 800, "hammers": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "prev_losing_streak",
-        "op": ">=",
-        "value": 3
-      },
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 50000
-      }
+      { "field": "prev_losing_streak", "op": ">=", "value": 3 },
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "score", "op": ">=", "value": 50000 }
     ]
   },
   {
@@ -1394,32 +1028,25 @@
     "title": "Consistency Is King",
     "description": "Play at least one game a day for 14 days.",
     "category": "Streaks",
-    "points": 10,
+    "rewards": { "gems": 1200, "spins": 2, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "play_streak_days",
-        "op": ">=",
-        "value": 14
-      }
+      { "field": "play_streak_days", "op": ">=", "value": 14 }
     ]
   },
+
   {
     "id": "staying_power",
     "gcIdentifier": "staying_power",
     "title": "Staying Power",
     "description": "Survive 200 moves in a single run.",
     "category": "Survival",
-    "points": 10,
+    "rewards": { "gems": 500, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "moves",
-        "op": ">=",
-        "value": 200
-      }
+      { "field": "moves", "op": ">=", "value": 200 }
     ]
   },
   {
@@ -1428,15 +1055,11 @@
     "title": "Endless Initiate",
     "description": "Reach Endless milestone 10.",
     "category": "Survival",
-    "points": 10,
+    "rewards": { "gems": 350, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "endless_milestone",
-        "op": ">=",
-        "value": 10
-      }
+      { "field": "endless_milestone", "op": ">=", "value": 10 }
     ]
   },
   {
@@ -1445,15 +1068,11 @@
     "title": "Endless Adept",
     "description": "Reach Endless milestone 25.",
     "category": "Survival",
-    "points": 10,
+    "rewards": { "gems": 700, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "endless_milestone",
-        "op": ">=",
-        "value": 25
-      }
+      { "field": "endless_milestone", "op": ">=", "value": 25 }
     ]
   },
   {
@@ -1462,15 +1081,11 @@
     "title": "Endless Expert",
     "description": "Reach Endless milestone 50.",
     "category": "Survival",
-    "points": 10,
+    "rewards": { "gems": 1400, "spins": 2, "magnets": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "endless_milestone",
-        "op": ">=",
-        "value": 50
-      }
+      { "field": "endless_milestone", "op": ">=", "value": 50 }
     ]
   },
   {
@@ -1479,20 +1094,12 @@
     "title": "Edge of Collapse",
     "description": "Play 10 turns with ≤2 free slots and still win.",
     "category": "Survival",
-    "points": 10,
+    "rewards": { "gems": 900, "spins": 2, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "low_free_slots_turns",
-        "op": ">=",
-        "value": 10
-      },
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      }
+      { "field": "low_free_slots_turns", "op": ">=", "value": 10 },
+      { "field": "win", "op": "==", "value": 1 }
     ]
   },
   {
@@ -1501,32 +1108,25 @@
     "title": "Long Haul",
     "description": "Play a single run for 30 minutes.",
     "category": "Survival",
-    "points": 10,
+    "rewards": { "gems": 600, "spins": 1, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "run_minutes",
-        "op": ">=",
-        "value": 30
-      }
+      { "field": "run_minutes", "op": ">=", "value": 30 }
     ]
   },
+
   {
     "id": "monotonic_master",
     "gcIdentifier": "monotonic_master",
     "title": "Monotonic Master",
     "description": "Keep a row or column strictly ordered for 30 consecutive moves.",
     "category": "BoardMastery",
-    "points": 10,
+    "rewards": { "gems": 700, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "monotonic_row_or_col_moves",
-        "op": ">=",
-        "value": 30
-      }
+      { "field": "monotonic_row_or_col_moves", "op": ">=", "value": 30 }
     ]
   },
   {
@@ -1535,15 +1135,11 @@
     "title": "Corner Strategy",
     "description": "Have your top 3 tiles in the same corner quadrant at once.",
     "category": "BoardMastery",
-    "points": 10,
+    "rewards": { "gems": 600, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "top3_same_quadrant",
-        "op": "==",
-        "value": 1
-      }
+      { "field": "top3_same_quadrant", "op": "==", "value": 1 }
     ]
   },
   {
@@ -1552,15 +1148,11 @@
     "title": "Edge Engineer",
     "description": "Fill an entire edge with descending values, no gaps.",
     "category": "BoardMastery",
-    "points": 10,
+    "rewards": { "gems": 900, "hammers": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "edge_descending_no_gaps",
-        "op": "==",
-        "value": 1
-      }
+      { "field": "edge_descending_no_gaps", "op": "==", "value": 1 }
     ]
   },
   {
@@ -1569,15 +1161,11 @@
     "title": "Center Control",
     "description": "Trigger 25 merges from center cells in one run.",
     "category": "BoardMastery",
-    "points": 10,
+    "rewards": { "gems": 500, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "merges_from_center",
-        "op": ">=",
-        "value": 25
-      }
+      { "field": "merges_from_center", "op": ">=", "value": 25 }
     ]
   },
   {
@@ -1586,159 +1174,109 @@
     "title": "Square Dance",
     "description": "Form a 2×2 block of identical tiles valued 256+.",
     "category": "BoardMastery",
-    "points": 10,
+    "rewards": { "gems": 800, "spins": 1, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "square_2x2_identical_value",
-        "op": ">=",
-        "value": 256
-      }
+      { "field": "square_2x2_identical_value", "op": ">=", "value": 256 }
     ]
   },
+
   {
     "id": "tool_time",
     "gcIdentifier": "tool_time",
     "title": "Tool Time",
-    "description": "Use your first power‑up/booster.",
+    "description": "Use your first power-up/booster.",
     "category": "PowerUps",
-    "points": 10,
+    "rewards": { "gems": 100, "spins": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "powerups_used",
-        "op": ">=",
-        "value": 1
-      }
+      { "field": "powerups_used", "op": ">=", "value": 1 }
     ]
   },
   {
     "id": "efficient_engine",
     "gcIdentifier": "efficient_engine",
     "title": "Efficient Engine",
-    "description": "Win using ≤1 power‑up.",
+    "description": "Win using ≤1 power-up.",
     "category": "PowerUps",
-    "points": 10,
+    "rewards": { "gems": 600, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "powerups_used",
-        "op": "<=",
-        "value": 1
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "powerups_used", "op": "<=", "value": 1 }
     ]
   },
   {
     "id": "mix_and_match",
     "gcIdentifier": "mix_and_match",
     "title": "Mix & Match",
-    "description": "Use 3 different power‑ups in one run.",
+    "description": "Use 3 different power-ups in one run.",
     "category": "PowerUps",
-    "points": 10,
+    "rewards": { "gems": 400, "spins": 1, "magnets": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "different_powerups_used",
-        "op": ">=",
-        "value": 3
-      }
+      { "field": "different_powerups_used", "op": ">=", "value": 3 }
     ]
   },
   {
     "id": "hoarder",
     "gcIdentifier": "hoarder",
     "title": "Hoarder",
-    "description": "Win with 3+ power‑ups unused in inventory.",
+    "description": "Win with 3+ power-ups unused in inventory.",
     "category": "PowerUps",
-    "points": 10,
+    "rewards": { "gems": 700, "spins": 1, "hammers": 1 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "powerups_unused",
-        "op": ">=",
-        "value": 3
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "powerups_unused", "op": ">=", "value": 3 }
     ]
   },
   {
     "id": "emergency_brake",
     "gcIdentifier": "emergency_brake",
     "title": "Emergency Brake",
-    "description": "Use a power‑up with ≤1 free slot remaining and still win.",
+    "description": "Use a power-up with ≤1 free slot remaining and still win.",
     "category": "PowerUps",
-    "points": 10,
+    "rewards": { "gems": 800, "spins": 2 },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "free_slots_at_booster_use",
-        "op": "<=",
-        "value": 1
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "free_slots_at_booster_use", "op": "<=", "value": 1 }
     ]
   },
+
   {
     "id": "southpaw",
     "gcIdentifier": "southpaw",
     "title": "Southpaw",
     "description": "Win a run without ever moving right.",
     "category": "Hidden",
-    "points": 10,
+    "rewards": { "gems": 900, "spins": 2 },
     "hidden": true,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "moved_right",
-        "op": "==",
-        "value": 0
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "moved_right", "op": "==", "value": 0 }
     ]
   },
   {
     "id": "right_hand_rule",
     "gcIdentifier": "right_hand_rule",
-    "title": "Right‑Hand Rule",
+    "title": "Right-Hand Rule",
     "description": "Win a run without ever moving left.",
     "category": "Hidden",
-    "points": 10,
+    "rewards": { "gems": 900, "spins": 2 },
     "hidden": true,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "moved_left",
-        "op": "==",
-        "value": 0
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "moved_left", "op": "==", "value": 0 }
     ]
   },
   {
@@ -1747,20 +1285,12 @@
     "title": "Upward Bound",
     "description": "Win a run without ever moving down.",
     "category": "Hidden",
-    "points": 10,
+    "rewards": { "gems": 900, "spins": 2 },
     "hidden": true,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "moved_down",
-        "op": "==",
-        "value": 0
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "moved_down", "op": "==", "value": 0 }
     ]
   },
   {
@@ -1769,20 +1299,12 @@
     "title": "Pacifist",
     "description": "Reach 50,000 score without creating a tile higher than 512.",
     "category": "Hidden",
-    "points": 10,
+    "rewards": { "gems": 5000, "spins": 6, "hammers": 5, "magnets": 6 },
     "hidden": true,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 50000
-      },
-      {
-        "field": "max_tile",
-        "op": "<=",
-        "value": 512
-      }
+      { "field": "score", "op": ">=", "value": 50000 },
+      { "field": "max_tile", "op": "<=", "value": 512 }
     ]
   },
   {
@@ -1791,42 +1313,26 @@
     "title": "Clarity",
     "description": "Finish a winning run with the board strictly monotonic.",
     "category": "Hidden",
-    "points": 10,
+    "rewards": { "gems": 1500, "spins": 3, "hammers": 1 },
     "hidden": true,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "board_monotonic_end",
-        "op": "==",
-        "value": 1
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "board_monotonic_end", "op": "==", "value": 1 }
     ]
   },
   {
     "id": "twenty_two_forty_four",
     "gcIdentifier": "twenty_two_forty_four",
-    "title": "Twenty‑Two Forty‑Four",
-    "description": "Create a 2‑2‑4‑4 square during a winning run.",
+    "title": "Twenty-Two Forty-Four",
+    "description": "Create a 2-2-4-4 square during a winning run.",
     "category": "Hidden",
-    "points": 10,
+    "rewards": { "gems": 1200, "spins": 2, "magnets": 1 },
     "hidden": true,
     "conditionExpr": "",
     "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "made_2244_square",
-        "op": "==",
-        "value": 1
-      }
+      { "field": "win", "op": "==", "value": 1 },
+      { "field": "made_2244_square", "op": "==", "value": 1 }
     ]
   }
 ]

@@ -67,8 +67,24 @@ struct game2244App: App {
                     }
                     await achievementStore.syncWithGameCenter()
                     
-                    // Setup achievement evaluator
+                    // Setup achievement evaluator with reward handler
                     let evaluator = AchievementEvaluator(achievementStore: achievementStore)
+                    evaluator.onReward = { rewards in
+                        // Award gems
+                        if let gems = rewards.gems, gems > 0 {
+                            gameStore.coins += gems
+                            homeState.gems += gems
+                        }
+                        
+                        // Award powerups (simplified - you may want to track these separately)
+                        if let hammers = rewards.hammers, hammers > 0 {
+                            gameStore.addPowerUp("hammer", count: hammers)
+                        }
+                        if let magnets = rewards.magnets, magnets > 0 {
+                            gameStore.addPowerUp("magnet", count: magnets)
+                        }
+                        // Note: spins would need separate tracking for wheel of fortune feature
+                    }
                     gameStore.achievementEvaluator = evaluator
                     
                     // Load initial progress
