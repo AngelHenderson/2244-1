@@ -31,7 +31,7 @@ struct MusicThemesView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
         }
-        .background(Color.black.opacity(0.9).ignoresSafeArea())
+        // Use default sheet/material background
         .onChange(of: selectionIndex) { _ in
             // Placeholder for starting sound immediately when page changes
             // The hosting app can inject real playback via onTry/onPurchase if desired.
@@ -58,7 +58,7 @@ struct MusicThemesView: View {
             // Spacer button to balance layout
             Color.clear.frame(width: 28, height: 28)
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(.primary)
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 8)
@@ -74,7 +74,7 @@ struct MusicThemesView: View {
                             .tag(index)
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
+                .modifier(PagingCompat())
 
                 // Left/Right arrows overlay
                 HStack {
@@ -97,11 +97,11 @@ struct MusicThemesView: View {
 
             Text(instrument.displayName.uppercased())
                 .font(.largeTitle.weight(.heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
 
             Text(instrument.tagline)
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(.secondary)
 
             Spacer(minLength: 0)
 
@@ -174,7 +174,7 @@ struct MusicThemesView: View {
             Image(systemName: direction == .left ? "arrow.left.circle.fill" : "arrow.right.circle.fill")
                 .font(.system(size: 36, weight: .bold))
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.white.opacity(0.95))
+                .foregroundStyle(.secondary)
                 .shadow(radius: 2)
                 .accessibilityLabel(direction == .left ? Text("Previous") : Text("Next"))
         }
@@ -192,6 +192,20 @@ struct MusicThemesView: View {
     }
 }
 
+private struct PagingCompat: ViewModifier {
+    func body(content: Content) -> some View {
+        #if os(iOS)
+        if #available(iOS 14.0, *) {
+            content.tabViewStyle(.page(indexDisplayMode: .never))
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
 private extension Array {
     subscript(safe index: Int) -> Element? {
         guard indices.contains(index) else { return nil }
@@ -201,7 +215,6 @@ private extension Array {
 
 #Preview("Music Themes") {
     MusicThemesView()
-        .background(Color.black)
 }
 
 

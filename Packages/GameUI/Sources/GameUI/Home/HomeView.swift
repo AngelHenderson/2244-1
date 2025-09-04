@@ -200,7 +200,7 @@ public struct HomeView: View {
     }
 
     private func dockItem(system: String, title: String, badge: Bool = false, action: @escaping () -> Void) -> some View {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             return AnyView(
                 Button(action: action) {
                     VStack(spacing: 4) {
@@ -310,7 +310,7 @@ private struct ThemeButton: View {
 public extension View {
     @ViewBuilder
     func glassEffectCompat(cornerRadius: CGFloat = 8) -> some View {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             self.glassEffect(in: .rect(cornerRadius: cornerRadius))
         } else {
             self
