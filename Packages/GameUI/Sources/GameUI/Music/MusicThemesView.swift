@@ -14,7 +14,10 @@ struct MusicThemesView: View {
     var instruments: [Instrument] = [
         .init(id: "piano", displayName: "Piano", tagline: "Merge with Classic Warmth!", assetName: "piano", priceLabel: "$0.99"),
         .init(id: "xylophone", displayName: "Xylophone", tagline: "Merge with Bright Chimes!", assetName: "xylophone", priceLabel: "$0.99"),
-        .init(id: "guitar", displayName: "Guitar", tagline: "Merge with Gentle Resonance!", assetName: "guitar", priceLabel: "$0.99")
+        .init(id: "guitar", displayName: "Guitar", tagline: "Merge with Gentle Resonance!", assetName: "guitar", priceLabel: "$0.99"),
+        .init(id: "kalimba", displayName: "Kalimba", tagline: "Merge with Gentle Resonance!", assetName: "kalimba", priceLabel: "$0.99"),
+        .init(id: "muted-nylon", displayName: "Muted Nylon", tagline: "Merge with Soft Plucks!", assetName: "guitar", priceLabel: "$0.99"),
+        .init(id: "drum", displayName: "Drum", tagline: "Merge with Rhythmic Beats!", assetName: "drum", priceLabel: "$0.99")
     ]
     var onTry: @Sendable (Instrument) -> Void = { _ in }
     var onPurchase: @Sendable (Instrument) -> Void = { _ in }
@@ -31,7 +34,7 @@ struct MusicThemesView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
         }
-        // Use default sheet/material background
+        .background(Color.black.opacity(0.9).ignoresSafeArea())
         .onChange(of: selectionIndex) { _ in
             // Placeholder for starting sound immediately when page changes
             // The hosting app can inject real playback via onTry/onPurchase if desired.
@@ -58,7 +61,7 @@ struct MusicThemesView: View {
             // Spacer button to balance layout
             Color.clear.frame(width: 28, height: 28)
         }
-        .foregroundStyle(.primary)
+        .foregroundStyle(.white)
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 8)
@@ -74,7 +77,7 @@ struct MusicThemesView: View {
                             .tag(index)
                     }
                 }
-                .modifier(PagingCompat())
+                .tabViewStyle(.page(indexDisplayMode: .never))
 
                 // Left/Right arrows overlay
                 HStack {
@@ -97,11 +100,11 @@ struct MusicThemesView: View {
 
             Text(instrument.displayName.uppercased())
                 .font(.largeTitle.weight(.heavy))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
 
             Text(instrument.tagline)
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.9))
 
             Spacer(minLength: 0)
 
@@ -135,7 +138,7 @@ struct MusicThemesView: View {
 
     private func primaryButton(title: String, role: PrimaryRole, action: @escaping () -> Void) -> some View {
         Group {
-            if #available(iOS 26.0, macOS 26.0, *) {
+            if #available(iOS 26.0, *) {
                 Button(action: action) {
                     Text(title)
                         .font(.title3.weight(.bold))
@@ -174,7 +177,7 @@ struct MusicThemesView: View {
             Image(systemName: direction == .left ? "arrow.left.circle.fill" : "arrow.right.circle.fill")
                 .font(.system(size: 36, weight: .bold))
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.95))
                 .shadow(radius: 2)
                 .accessibilityLabel(direction == .left ? Text("Previous") : Text("Next"))
         }
@@ -192,20 +195,6 @@ struct MusicThemesView: View {
     }
 }
 
-private struct PagingCompat: ViewModifier {
-    func body(content: Content) -> some View {
-        #if os(iOS)
-        if #available(iOS 14.0, *) {
-            content.tabViewStyle(.page(indexDisplayMode: .never))
-        } else {
-            content
-        }
-        #else
-        content
-        #endif
-    }
-}
-
 private extension Array {
     subscript(safe index: Int) -> Element? {
         guard indices.contains(index) else { return nil }
@@ -215,6 +204,7 @@ private extension Array {
 
 #Preview("Music Themes") {
     MusicThemesView()
+        .background(Color.black)
 }
 
 
