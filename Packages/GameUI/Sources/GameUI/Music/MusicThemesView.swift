@@ -34,7 +34,7 @@ struct MusicThemesView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
         }
-        .background(Color.black.opacity(0.9).ignoresSafeArea())
+//        .background(Color.black.opacity(0.9).ignoresSafeArea())
         .onChange(of: selectionIndex) { _ in
             // Placeholder for starting sound immediately when page changes
             // The hosting app can inject real playback via onTry/onPurchase if desired.
