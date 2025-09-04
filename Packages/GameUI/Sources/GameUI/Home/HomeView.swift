@@ -209,7 +209,7 @@ public struct HomeView: View {
 
                             SideRailButton(
                                 systemImage: nil,
-                                customImage: "gift",
+                                customImage: "themedefault",
                                 title: "THEME",
                                 action: { actions.openShop() }
                             )

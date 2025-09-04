@@ -22,7 +22,7 @@ struct HomeButton: View {
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
         }
-        .glassEffectCompat(cornerRadius: 8)
+//        .glassEffectCompat(cornerRadius: 8)
         .accessibilityLabel("Home")
     }
 }
