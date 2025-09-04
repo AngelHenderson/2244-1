@@ -90,3 +90,71 @@ extension View {
         #endif
     }
 }
+
+#Preview("HybridGameScreen") {
+    // Local services for preview
+    let gameStore = GameStore()
+    let adService = DummyAdService()
+    let haptics = HapticsService()
+    let gameCenter = DefaultGameCenterService()
+    let storage = UserDefaultsStorageService()
+    let themeRegistry = ThemeRegistry.Default
+    // Note: Rely on default EnvironmentKeys for backgroundThemeRegistry and audio if available.
+    
+    return HybridGameScreen(isPlayingDismiss: {})
+        .environment(\.gameStore, gameStore)
+        .environment(\.adService, adService)
+        .environment(\.hapticsService, haptics)
+        .environment(\.gameCenter, gameCenter)
+        .environment(\.storage, storage)
+        .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
+        .environment(\.tileJourney, gameStore.journey)
+        .environment(\.leaderboardClient, .noop)
+        .previewDisplayName("HybridGameScreen")
+}
+
+#Preview("HomeView") {
+    // Local services for preview
+    let gameStore = GameStore()
+    let homeState = HomeState()
+    let purchaseService = PurchaseService()
+    let adService = DummyAdService()
+    let haptics = HapticsService()
+    let gameCenter = DefaultGameCenterService()
+    let storage = UserDefaultsStorageService()
+    let themeRegistry = ThemeRegistry.Default
+    
+    // Simple HomeActions for preview
+    let actions = HomeActions(
+        play: {},
+        openShop: {},
+        buyGems: {},
+        watchAd: { 50 },
+        openDaily: {},
+        openFreeSpin: {},
+        openMusic: {},
+        openChallenge: {},
+        openCreate: {},
+        openProfile: {},
+        openAchievements: {},
+        openLeaderboard: {},
+        openSettings: {},
+        openThemeLeft: {},
+        openThemeRight: {},
+        openSaleOffer: {}
+    )
+    
+    return HomeView()
+        .environment(homeState)
+        .environment(\.homeActions, actions)
+        .environment(\.gameStore, gameStore)
+        .environment(\.purchaseService, purchaseService)
+        .environment(\.adService, adService)
+        .environment(\.hapticsService, haptics)
+        .environment(\.gameCenter, gameCenter)
+        .environment(\.storage, storage)
+        .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
+        .environment(\.tileJourney, gameStore.journey)
+        .environment(\.leaderboardClient, .noop)
+        .previewDisplayName("HomeView")
+}

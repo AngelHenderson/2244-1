@@ -1,11 +1,12 @@
 import SwiftUI
 import GameApp
+import GameServices
+import GameUI
 
 public struct HomeView: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
-    @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
 
     public init() {}
@@ -98,62 +99,15 @@ public struct HomeView: View {
                         .frame(width: 80)
                         .padding(.top, 20)
 
-                        // Center progression ladder - USING JOURNEYKIT
-                        VStack(spacing: 20) {
-                            // Get visual journey path (optimized for vertical display)
-                            let journeyPath = journey.visualJourneyPath()
-                            let current = journey.currentMilestone()
-                            
-                            // Show milestones from the journey path (reversed for top-to-bottom display)
-                            ForEach(Array(journeyPath.reversed().enumerated()), id: \.offset) { index, milestone in
-                                VStack(spacing: 0) {
-                                    if milestone > current {
-                                        // Locked future milestone
-                                        TileBadge(value: milestone, style: .locked)
-                                    } else if milestone == current {
-                                        // Current highest tile (hero element) — tap to open Journey
-                                        Button(action: { isShowingJourney = true }) {
-                                            VStack(spacing: 8) {
-                                                TileBadge(
-                                                    value: milestone, 
-                                                    style: .primary,
-                                                    showClaimBadge: !journey.claimed.contains(milestone)
-                                                )
-                                                Text("Highest Tile")
-                                                    .foregroundStyle(.white.opacity(0.8))
-                                                    .font(.subheadline)
-                                            }
-                                        }
-                                        .buttonStyle(.plain)
-                                    } else {
-                                        // Previously achieved milestone
-                                        TileBadge(
-                                            value: milestone, 
-                                            style: .secondary,
-                                            showClaimBadge: !journey.claimed.contains(milestone) && milestone <= current,
-                                            isClaimed: journey.claimed.contains(milestone)
-                                        )
-                                    }
-                                    
-                                    // Dotted connector (except for last item)
-                                    if index < journeyPath.count - 1 {
-                                        VStack(spacing: 4) {
-                                            ForEach(0..<6, id: \.self) { _ in
-                                                Circle()
-                                                    .fill(.white.opacity(0.3))
-                                                    .frame(width: 4, height: 4)
-                                            }
-                                        }
-//                                        .frame(height: 20)
-                                        .padding(.vertical, 4)
-                                    }
-                                }
-                            }
-                            
+                        // Center column: Inline Journey view (header + full scroll)
+                        VStack(spacing: 16) {
+//                            JourneyHeader()
+                            JourneyPanel(showAll: true)
+                                .padding(.horizontal)
                             Spacer(minLength: 0)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.top, 40)
+                        .padding(.top, 12)
 
                         // Right rail
                         VStack(spacing: 20) {
@@ -260,16 +214,6 @@ public struct HomeView: View {
                 .padding(.bottom, 16)
 //                .glassOrMaterialBackground(cornerRadius: 8)
             }
-        }
-        // Journey sheet
-        .sheet(isPresented: $isShowingJourney) {
-            VStack(spacing: 16) {
-                JourneyHeader()
-                JourneyPanel(showAll: true)
-                    .padding(.horizontal)
-            }
-            .padding(.top, 12)
-            .presentationDetents([.medium, .large])
         }
         // Leaderboard sheet
         .sheet(isPresented: $isShowingLeaderboard) {
@@ -410,4 +354,58 @@ public extension View {
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
     }
+}
+
+#Preview("HomeView") {
+    // Local services and state for preview
+    let gameStore = GameStore()
+    let homeState = HomeState()
+    let purchaseService = PurchaseService()
+    let adService = DummyAdService()
+    let haptics = HapticsService()
+    let gameCenter = DefaultGameCenterService()
+    let storage = UserDefaultsStorageService()
+    let themeRegistry = ThemeRegistry.Default
+
+    // Seed some demo state for a nicer preview
+    homeState.gems = 305
+    homeState.highestTile = 1024
+    homeState.milestoneBelow = 512
+    homeState.lockedMilestones = [2048, 4096]
+    // Sync journey to highest tile
+    gameStore.journey.didReach(tile: homeState.highestTile)
+
+    // Minimal actions for preview
+    let actions = HomeActions(
+        play: {},
+        openShop: {},
+        buyGems: {},
+        watchAd: { 50 },
+        openDaily: {},
+        openFreeSpin: {},
+        openMusic: {},
+        openChallenge: {},
+        openCreate: {},
+        openProfile: {},
+        openAchievements: {},
+        openLeaderboard: {},
+        openSettings: {},
+        openThemeLeft: {},
+        openThemeRight: {},
+        openSaleOffer: {}
+    )
+
+    return HomeView()
+        .environment(homeState)
+        .environment(\.homeActions, actions)
+        .environment(\.gameStore, gameStore)
+        .environment(\.purchaseService, purchaseService)
+        .environment(\.adService, adService)
+        .environment(\.hapticsService, haptics)
+        .environment(\.gameCenter, gameCenter)
+        .environment(\.storage, storage)
+        .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
+        .environment(\.tileJourney, gameStore.journey)
+        .environment(\.leaderboardClient, .noop)
+        .previewDisplayName("HomeView")
 }
