@@ -13,9 +13,9 @@ struct JourneyPreview: View {
                 ForEach(journey.path().prefix(5), id: \.self) { value in
                     MilestonePreviewTile(
                         value: value,
-                        unlocked: value <= journey.highestTile,
+                        unlocked: value <= journey.currentMilestone(),
                         claimed: journey.claimed.contains(value),
-                        isCurrent: value == journey.highestTile
+                        isCurrent: value == journey.currentMilestone()
                     )
                 }
             }
@@ -31,11 +31,11 @@ struct JourneyPreview: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text("\(Int(journey.progress(toNextFrom: journey.highestTile) * 100))%")
+                        Text("\(Int(journey.progress(toNextFrom: journey.currentMilestone()) * 100))%")
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(.secondary)
                     }
-                    ProgressView(value: journey.progress(toNextFrom: journey.highestTile))
+                    ProgressView(value: journey.progress(toNextFrom: journey.currentMilestone()))
                         .progressViewStyle(.linear)
                         .tint(.green)
                 }
@@ -107,7 +107,7 @@ private struct MilestonePreviewTile: View {
             .frame(width: 52, height: 52)
             
             // Claimable indicator
-            if unlocked && !claimed && value <= journey.highestTile {
+            if unlocked && !claimed && value <= journey.currentMilestone() {
                 Circle()
                     .fill(Color.yellow)
                     .frame(width: 6, height: 6)

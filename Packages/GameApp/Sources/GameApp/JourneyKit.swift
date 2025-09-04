@@ -181,6 +181,8 @@ public enum JourneyKit {
     public func milestones() -> [TileValue] { engine.milestones() }
     public func path() -> [TileValue] { engine.path(around: highestTile) }
     public func nextMilestone() -> TileValue? { engine.nextMilestone(after: highestTile) }
+    /// Current milestone (clamped to the ladder) for UI comparisons
+    public func currentMilestone() -> TileValue { engine.clampToLadder(highestTile) }
     public func progress(toNextFrom currentTile: TileValue) -> Double {
       engine.progressFraction(currentTile: currentTile)
     }

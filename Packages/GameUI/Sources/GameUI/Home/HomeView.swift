@@ -102,7 +102,7 @@ public struct HomeView: View {
                         VStack(spacing: 20) {
                             // Get visual journey path (optimized for vertical display)
                             let journeyPath = journey.visualJourneyPath()
-                            let current = journey.highestTile
+                            let current = journey.currentMilestone()
                             
                             // Show milestones from the journey path (reversed for top-to-bottom display)
                             ForEach(Array(journeyPath.reversed().enumerated()), id: \.offset) { index, milestone in

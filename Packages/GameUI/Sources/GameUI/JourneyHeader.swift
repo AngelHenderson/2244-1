@@ -32,9 +32,9 @@ public struct JourneyHeader: View {
                 ForEach(journey.path(), id: \.self) { value in
                     MilestoneCard(
                         value: value,
-                        unlocked: value <= journey.highestTile,
+                        unlocked: value <= journey.currentMilestone(),
                         claimed: journey.claimed.contains(value),
-                        isCurrent: value == journey.highestTile,
+                        isCurrent: value == journey.currentMilestone(),
                         onClaim: {
                             claimMilestone(value)
                         }
@@ -49,7 +49,7 @@ public struct JourneyHeader: View {
                     Text("Progress to \(next)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                    ProgressView(value: journey.progress(toNextFrom: journey.highestTile))
+                    ProgressView(value: journey.progress(toNextFrom: journey.currentMilestone()))
                         .progressViewStyle(.linear)
                         .frame(maxWidth: 200)
                         .tint(.green)
