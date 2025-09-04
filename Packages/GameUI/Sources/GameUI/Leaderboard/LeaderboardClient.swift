@@ -56,7 +56,7 @@ private struct LeaderboardClientKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    public var leaderboardClient: LeaderboardClient {
+    var leaderboardClient: LeaderboardClient {
         get { self[LeaderboardClientKey.self] }
         set { self[LeaderboardClientKey.self] = newValue }
     }

@@ -25,7 +25,7 @@ public struct PowerOfTwoPlanner: MilestonePlanner {
         let capped = max(h, 2)
         // Find nearest power-of-two boundaries around `h`.
         func nextPow2(_ x: Int) -> Int {
-            var v = max(2, x)
+            let v = max(2, x)
             if v & (v - 1) == 0 { return v }
             var p = 1
             while p < v { p <<= 1 }

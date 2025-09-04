@@ -12,11 +12,9 @@ struct PillButton: View {
                     if let icon = icon {
                         Image(systemName: icon)
                             .imageScale(.large)
-                        //.foregroundStyle(.white)
                     }
                     Text(title)
                         .font(.title3.weight(.bold))
-                    //.foregroundStyle(.white)
                 }
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity)
@@ -29,11 +27,9 @@ struct PillButton: View {
                     if let icon = icon {
                         Image(systemName: icon)
                             .imageScale(.large)
-                        //.foregroundStyle(.white)
                     }
                     Text(title)
                         .font(.title2.weight(.bold))
-                    //.foregroundStyle(.white)
                 }
                 .padding(.vertical, 20)
                 .frame(maxWidth: .infinity)
@@ -56,7 +52,7 @@ struct PillButton: View {
     }
 }
  
-#Preview("PillButton Variants") {
+#Preview("PillButton Variants", traits: .sizeThatFitsLayout) {
     VStack(spacing: 16) {
         PillButton(title: "Continue", icon: "arrow.right") {
             print("Continue tapped")
@@ -69,5 +65,4 @@ struct PillButton: View {
         }
     }
     .padding()
-    .previewLayout(.sizeThatFits)
 }

@@ -110,7 +110,6 @@ extension View {
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
-        .previewDisplayName("HybridGameScreen")
 }
 
 #Preview("HomeView") {
@@ -156,5 +155,4 @@ extension View {
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
-        .previewDisplayName("HomeView")
 }

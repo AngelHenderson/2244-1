@@ -1,7 +1,6 @@
 import SwiftUI
 import GameApp
 import GameServices
-import GameUI
 
 public struct HomeView: View {
     @Environment(HomeState.self) private var state
@@ -15,35 +14,6 @@ public struct HomeView: View {
     
     public var body: some View {
         ZStack {
-//            // Background gradient
-//            LinearGradient(
-//                colors: [Color.init(hex: "EBEBEB")],
-//                startPoint: .top,
-//                endPoint: .bottom
-//            )
-//            .ignoresSafeArea()
-
-//            ZStack {
-//                Image("redflower")
-//                    .resizable()
-//                    .scaledToFill()
-//                    .clipped()
-//
-//            }
-//            .frame(maxWidth: .infinity, maxHeight: .infinity)
-//
-//            .ignoresSafeArea()
-
-//            //Background image taht fills the screen but clips the side
-//            GeometryReader { geo in
-//                Image("redflower")
-//                    .resizable()
-//                    .scaledToFill()
-//                    .frame(width: geo.size.width * 1.05,
-//                           height: geo.size.height * 1.05)
-//                    .clipped()
-//            }
-
             VStack(spacing: 0) {
                 // Top HUD
                 HUDTopBar()
@@ -94,16 +64,12 @@ public struct HomeView: View {
                             )
                             
                             Spacer(minLength: 0)
-                            
-                            // Theme selector (left)
-//                            ThemeButton(name: state.themesLeftName, action: { actions.openThemeLeft() })
                         }
                         .frame(width: 80)
                         .padding(.top, 20)
 
                         // Center column: Inline Journey view (header + full scroll)
                         VStack(spacing: 16) {
-//                            JourneyHeader()
                             JourneyPanel(showAll: true)
                                 .padding(.horizontal)
                             Spacer(minLength: 0)
@@ -171,9 +137,6 @@ public struct HomeView: View {
                             )
 
                             Spacer(minLength: 0)
-                            
-                            // Theme selector (right)
-//                            ThemeButton(name: state.themesRightName, action: { actions.openThemeRight() })
                         }
                         .frame(width: 80)
                         .padding(.top, 20)
@@ -214,7 +177,6 @@ public struct HomeView: View {
                     )
                 }
                 .padding(.bottom, 16)
-//                .glassOrMaterialBackground(cornerRadius: 8)
             }
 
         }
@@ -239,11 +201,7 @@ public struct HomeView: View {
                         } else {
                             Image(systemName: system)
                                 .font(.system(size: 24))
-                            //.foregroundStyle(.white)
                         }
-                        //                    Text(title)
-                        //                        .font(.caption2)
-                        //                        .foregroundStyle(.white.opacity(0.8))
                     }
                     .padding(4)
                 }
@@ -253,7 +211,6 @@ public struct HomeView: View {
             return AnyView(
                 Button(action: action) {
                     VStack(spacing: 4) {
-                        // Prefer asset with same semantic name if available
                         let asset = assetName(for: title)
                         if !asset.isEmpty {
                             Image(asset)
@@ -263,11 +220,7 @@ public struct HomeView: View {
                         } else {
                             Image(systemName: system)
                                 .font(.system(size: 24))
-                            //.foregroundStyle(.white)
                         }
-                        //                    Text(title)
-                        //                        .font(.caption2)
-                        //                        .foregroundStyle(.white.opacity(0.8))
                     }
                     .padding(4)
                 }
@@ -285,13 +238,8 @@ public struct HomeView: View {
         default: return ""
         }
     }
-
-
 }
 
- 
-
-// Theme button component
 private struct ThemeButton: View {
     let name: String
     let action: () -> Void
@@ -305,7 +253,6 @@ private struct ThemeButton: View {
                     .overlay {
                         Image(systemName: themeIcon)
                             .font(.title2)
-                            //.foregroundStyle(.white)
                     }
                 Text(name)
                     .font(.caption2)
@@ -359,7 +306,7 @@ public extension View {
     }
 }
 
-#Preview("HomeView") {
+#Preview("Home - Default") {
     // Local services and state for preview
     let gameStore = GameStore()
     let homeState = HomeState()
@@ -410,5 +357,56 @@ public extension View {
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
-        .previewDisplayName("HomeView")
+}
+
+#Preview("Home - Best Offer") {
+    // Local services and state for preview
+    let gameStore = GameStore()
+    let homeState = HomeState()
+    let purchaseService = PurchaseService()
+    let adService = DummyAdService()
+    let haptics = HapticsService()
+    let gameCenter = DefaultGameCenterService()
+    let storage = UserDefaultsStorageService()
+    let themeRegistry = ThemeRegistry.Default
+
+    // Seed demo state with an active best offer
+    homeState.gems = 520
+    homeState.highestTile = 2048
+    homeState.milestoneBelow = 1024
+    homeState.lockedMilestones = [4096, 8192]
+    homeState.bestOfferDeadline = Date().addingTimeInterval(60 * 30) // 30 minutes remaining
+    gameStore.journey.didReach(tile: homeState.highestTile)
+
+    let actions = HomeActions(
+        play: {},
+        openShop: {},
+        buyGems: {},
+        watchAd: { 50 },
+        openDaily: {},
+        openFreeSpin: {},
+        openMusic: {},
+        openChallenge: {},
+        openCreate: {},
+        openProfile: {},
+        openAchievements: {},
+        openLeaderboard: {},
+        openSettings: {},
+        openThemeLeft: {},
+        openThemeRight: {},
+        openSaleOffer: {}
+    )
+
+    return HomeView()
+        .environment(homeState)
+        .environment(\.homeActions, actions)
+        .environment(\.gameStore, gameStore)
+        .environment(\.purchaseService, purchaseService)
+        .environment(\.adService, adService)
+        .environment(\.hapticsService, haptics)
+        .environment(\.gameCenter, gameCenter)
+        .environment(\.storage, storage)
+        .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
+        .environment(\.tileJourney, gameStore.journey)
+        .environment(\.leaderboardClient, .noop)
 }

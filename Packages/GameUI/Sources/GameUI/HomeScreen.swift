@@ -206,7 +206,7 @@ private struct CreateChallengeSheet: View {
             VStack(spacing: 16) {
                 header
                 targetRow
-                .onChange(of: settings.target) { _ in
+                .onChange(of: settings.target) { _, _ in
                     updateTilesForTarget()
                 }
                 controlsRow
@@ -289,12 +289,12 @@ private struct CreateChallengeSheet: View {
             .background(Color(white: 0.15), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             //.foregroundStyle(.white)
         }
-        .onChange(of: settings.time) { _ in updateReward() }
-        .onChange(of: settings.minTile) { _ in updateReward(); updateTilesForTarget() }
-        .onChange(of: settings.levels) { _ in updateReward(); updateTilesForTarget() }
-        .onChange(of: settings.leftTiles) { _ in updateReward() }
-        .onChange(of: settings.middleTiles) { _ in updateReward() }
-        .onChange(of: settings.rightTiles) { _ in updateReward() }
+        .onChange(of: settings.time) { _, _ in updateReward() }
+        .onChange(of: settings.minTile) { _, _ in updateReward(); updateTilesForTarget() }
+        .onChange(of: settings.levels) { _, _ in updateReward(); updateTilesForTarget() }
+        .onChange(of: settings.leftTiles) { _, _ in updateReward() }
+        .onChange(of: settings.middleTiles) { _, _ in updateReward() }
+        .onChange(of: settings.rightTiles) { _, _ in updateReward() }
         // Intentionally NOT listening to target; reward shouldn't change with target per spec
     }
     
@@ -426,7 +426,6 @@ private struct CreateChallengeSheet: View {
         let shifted = shiftTiles(seeds, by: shift)
 
         // Split across columns roughly like before
-        let split = max(1, min(shifted.count, 5))
         settings.leftTiles = Array(shifted.prefix(min(4, shifted.count)))
         settings.middleTiles = shifted.count > 4 ? [shifted[4]] : []
         settings.rightTiles = shifted.count > 5 ? Array(shifted.suffix(from: 5).prefix(4)) : []

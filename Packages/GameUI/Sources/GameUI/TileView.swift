@@ -63,13 +63,10 @@ struct TileView: View {
         }
         
         ZStack {
-            // Calculate appropriate corner radius based on tile size
-            // Never exceed 20% of tile size to prevent circular appearance
-            let maxRadius = size * 0.15 // 15% of tile size for rounded squares
+            let maxRadius = size * 0.15
             
             if theme?.tileStyle == .raised3D {
-                // Use 3D style
-                let radius = min(12, maxRadius) // Cap at smaller of 12 or 15% of size
+                let radius = min(12, maxRadius)
                 RoundedRectangle(cornerRadius: radius)
                     .fill(Color.clear)
                     .modifier(Tile3DStyle(
@@ -80,7 +77,6 @@ struct TileView: View {
                     ))
                     .overlay(content)
             } else {
-                // Use flat style (original)
                 let radius: CGFloat = {
                     let baseRadius: CGFloat
                     switch theme?.tileShape {
@@ -89,7 +85,7 @@ struct TileView: View {
                     case .rounded, .none:
                         baseRadius = 12
                     }
-                    return min(baseRadius, maxRadius) // Cap radius to prevent circular tiles
+                    return min(baseRadius, maxRadius)
                 }()
                 RoundedRectangle(cornerRadius: radius)
                     .fill(backgroundColor)
@@ -101,7 +97,7 @@ struct TileView: View {
                     .overlay(content)
             }
         }
-        .frame(width: max(0, isFinite(size)), height: max(0, isFinite(size)))
+        .frame(width: max(CGFloat(0), isFinite(size)), height: max(CGFloat(0), isFinite(size)))
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: tile?.value)
         .animation(.easeInOut(duration: 0.1), value: isSelected)
     }
@@ -133,7 +129,6 @@ struct TileView: View {
         guard let tile = tile else { return size * 0.4 }
         let label = TileLabelFormatter.format(tile.value)
         let digitCount = label.count
-        // Scale via tokens for consistency
         if digitCount <= 2 { return size * 0.40 }
         if digitCount == 3 { return size * 0.36 }
         if digitCount == 4 { return size * 0.32 }
