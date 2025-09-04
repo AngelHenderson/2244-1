@@ -38,6 +38,7 @@ struct game2244App: App {
                 .environment(\.storage, storageService)
                 .environment(\.currentTheme, themeRegistry.descriptor(for: selectedThemeId))
                 .environment(\.tileJourney, gameStore.journey)
+                .environment(\.leaderboardClient, LeaderboardClient.gameCenter())
                 .task {
                     // Suppress simulator-specific warnings in console
                     if ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {

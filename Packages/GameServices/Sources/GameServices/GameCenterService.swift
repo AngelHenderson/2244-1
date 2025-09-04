@@ -5,6 +5,7 @@ public protocol GameCenterServiceProtocol: Sendable {
     func submit(score: Int, leaderboard: String) async throws
 }
 
+// Keep the default service for testing
 public actor DefaultGameCenterService: GameCenterServiceProtocol, Sendable {
     public private(set) var lastSubmitted: (score: Int, leaderboard: String)?
     

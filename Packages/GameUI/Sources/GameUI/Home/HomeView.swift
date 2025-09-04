@@ -6,6 +6,7 @@ public struct HomeView: View {
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
     @State private var isShowingJourney: Bool = false
+    @State private var isShowingLeaderboard: Bool = false
 
     public init() {}
     
@@ -220,7 +221,7 @@ public struct HomeView: View {
                     dockItem(
                         system: "trophy.circle.fill",
                         title: "Leaderboard",
-                        action: { actions.openLeaderboard() }
+                        action: { isShowingLeaderboard = true }
                     )
                     dockItem(
                         system: "gearshape.fill",
@@ -240,6 +241,10 @@ public struct HomeView: View {
             }
             .padding(.top, 12)
             .presentationDetents([.medium, .large])
+        }
+        // Leaderboard sheet
+        .sheet(isPresented: $isShowingLeaderboard) {
+            LeaderboardView()
         }
     }
 
