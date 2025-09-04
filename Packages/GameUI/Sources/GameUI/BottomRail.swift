@@ -11,7 +11,7 @@ struct BottomRail: View {
                     .shadow(radius: 6, y: 3)
                 Text(reserveLabel)
                     .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    //.foregroundStyle(.white)
                 Image(systemName: "crown.fill")
                     .font(.system(size: 16))
                     .foregroundStyle(.yellow)

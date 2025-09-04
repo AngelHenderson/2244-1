@@ -27,7 +27,7 @@ struct RightToolbar: View {
                 }
                 .font(.system(size: 22, weight: .bold))
                 .frame(width: Tokens.Size.toolbarButton, height: Tokens.Size.toolbarButton)
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
                 .background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
                 if count > 0 {
@@ -35,7 +35,7 @@ struct RightToolbar: View {
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .padding(6)
                         .background(Color.blue, in: Circle())
-                        .foregroundStyle(.white)
+                        //.foregroundStyle(.white)
                         .offset(x: 8, y: -8)
                 }
             }

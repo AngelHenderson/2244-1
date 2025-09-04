@@ -18,7 +18,7 @@ struct SideRailButton: View {
                         if let systemImage = systemImage {
                             Image(systemName: systemImage)
                                 .font(.system(size: 24, weight: .semibold))
-                                .foregroundStyle(.white)
+                                //.foregroundStyle(.white)
                         } else if let customImage = customImage {
                             Image(customImage)
                                 .resizable()
@@ -30,11 +30,11 @@ struct SideRailButton: View {
                         if let specialLabel = specialLabel {
                             Text(specialLabel)
                                 .font(.caption.bold())
-                                .foregroundStyle(.white)
+                                //.foregroundStyle(.white)
                         }
                     }
                     .frame(width: 56, height: 56)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .overlay {
                         if locked {
                             ZStack {
@@ -59,7 +59,7 @@ struct SideRailButton: View {
                 Text(title)
                     .font(.caption2)
                     .fontWeight(.heavy)
-                    .foregroundStyle(.white.opacity(0.9))
+                    //.foregroundStyle(.white.opacity(0.9))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }

@@ -13,7 +13,7 @@ public struct HomeView: View {
         ZStack {
             // Background gradient
             LinearGradient(
-                colors: [Color.indigo.opacity(1.0)],
+                colors: [Color.init(hex: "EBEBEB")],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -257,14 +257,14 @@ public struct HomeView: View {
                     } else {
                         Image(systemName: system)
                             .font(.system(size: 24))
-                            .foregroundStyle(.white)
+                            //.foregroundStyle(.white)
                     }
 //                    Text(title)
 //                        .font(.caption2)
 //                        .foregroundStyle(.white.opacity(0.8))
                 }
                 .padding(4)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 if badge {
                     Circle()
@@ -302,7 +302,7 @@ private struct ThemeButton: View {
                     .overlay {
                         Image(systemName: themeIcon)
                             .font(.title2)
-                            .foregroundStyle(.white)
+                            //.foregroundStyle(.white)
                     }
                 Text(name)
                     .font(.caption2)
@@ -321,7 +321,7 @@ private struct ThemeButton: View {
             )
         case "aqua":
             return LinearGradient(
-                colors: [Color.cyan, Color.blue],
+                colors: [Color.init(hex: "EBEBEB")],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )

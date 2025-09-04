@@ -10,9 +10,9 @@ struct HUDTopBar: View {
             // Rank badge
             Text("Rank: \(state.rank)")
                 .font(.headline)
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
                 .padding(.horizontal, 12).padding(.vertical, 6)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12.0))
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12.0))
                 .accessibilityLabel("Rank \(state.rank)")
 
             Spacer()
@@ -25,7 +25,7 @@ struct HUDTopBar: View {
                     .frame(width: 28, height: 28)
                 Text("\(state.gems)")
                     .font(.title3.monospacedDigit())
-                    .foregroundStyle(.white)
+                    //.foregroundStyle(.white)
                 Button(action: { actions.buyGems() }) {
                     Image(systemName: "plus.circle.fill")
                         .imageScale(.medium)
@@ -34,7 +34,7 @@ struct HUDTopBar: View {
                 .accessibilityLabel("Buy gems")
             }
             .padding(.horizontal, 12).padding(.vertical, 6)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12.0))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12.0))
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Gems \(state.gems). Buy more.")
         }

@@ -10,7 +10,7 @@ struct PlayButton: View {
             VStack(spacing: 8) {
                 Image(systemName: "play.fill")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(.white)
+                    //.foregroundStyle(.white)
                     .frame(width: 72, height: 72)
                     .background(Color.green, in: Circle())
                 Text("Play")
@@ -19,7 +19,7 @@ struct PlayButton: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Play")

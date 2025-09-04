@@ -76,7 +76,7 @@ public struct ModernGameScreen: View {
                     Spacer(minLength: 0)
                     Text("\(currentLabel) >> \(nextLabel)")
                         .font(.title3.weight(.black))
-                        .foregroundStyle(.white)
+                        //.foregroundStyle(.white)
                         .padding(.vertical, 8)
                         .padding(.horizontal, 14)
                         .background(.black.opacity(0.45), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -206,7 +206,7 @@ struct ModernHUDBar: View {
             // Center: Score (hero metric)
             Text(gameStore.state.score.formatted(.number.grouping(.automatic)))
                 .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
 
             Spacer()
 
@@ -235,7 +235,7 @@ struct ModernHUDBar: View {
                         .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
-                .background(.ultraThinMaterial.opacity(0.3), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .background(.regularMaterial.opacity(0.3), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                 .foregroundStyle(.white.opacity(0.8))
             }
         }
@@ -361,7 +361,7 @@ struct ModernPowerupDock: View {
                             .font(.system(size: 10, weight: .bold))
                     }
                     .frame(width: 48, height: 48)
-                    .foregroundStyle(.white)
+                    //.foregroundStyle(.white)
                     .background(.green, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
@@ -372,7 +372,7 @@ struct ModernPowerupDock: View {
                     Image(systemName: "house.fill")
                         .imageScale(.medium)
                         .frame(width: 48, height: 48)
-                        .foregroundStyle(.white)
+                        //.foregroundStyle(.white)
                         .background(ModernTheme.boardPlate, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
@@ -410,7 +410,7 @@ struct ModernPowerupDock: View {
                     .overlay {
                         Image(systemName: powerUp.systemImage)
                             .imageScale(.medium)
-                            .foregroundStyle(.white)
+                            //.foregroundStyle(.white)
                     }
 
                 // Cost badge (always show cost for power-ups)
@@ -423,7 +423,7 @@ struct ModernPowerupDock: View {
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(.black.opacity(0.8), in: Capsule())
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
                 .offset(x: 6, y: -6)
             }
         }

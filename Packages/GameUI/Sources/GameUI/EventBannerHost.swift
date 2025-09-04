@@ -68,7 +68,7 @@ public struct EventBannerHost<Content: View>: View {
             Text(text)
                 .font(.system(.body, design: .rounded))
                 .fontWeight(.semibold)
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
                 .multilineTextAlignment(.leading)
@@ -82,7 +82,7 @@ public struct EventBannerHost<Content: View>: View {
             }) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.9))
+                    //.foregroundStyle(.white.opacity(0.9))
                     .accessibilityLabel("Dismiss")
             }
             .buttonStyle(.plain)

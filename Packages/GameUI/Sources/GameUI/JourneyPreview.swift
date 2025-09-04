@@ -21,7 +21,7 @@ struct JourneyPreview: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             
             // Progress indicator to next milestone
             if let next = journey.nextMilestone() {

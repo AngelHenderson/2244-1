@@ -11,11 +11,11 @@ struct PillButton: View {
                 if let icon = icon { 
                     Image(systemName: icon)
                         .imageScale(.large)
-                        .foregroundStyle(.white)
+                        //.foregroundStyle(.white)
                 }
                 Text(title)
                     .font(.title2.weight(.bold))
-                    .foregroundStyle(.white)
+                    //.foregroundStyle(.white)
             }
             .padding(.vertical, 20)
             .frame(maxWidth: .infinity)

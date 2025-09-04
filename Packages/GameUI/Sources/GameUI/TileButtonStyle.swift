@@ -66,7 +66,7 @@ struct TileButtonStyle: ButtonStyle {
                 .overlay(
                     configuration.label
                         .font(font)
-                        .foregroundStyle(.white)
+                        //.foregroundStyle(.white)
                         .shadow(radius: pressed ? 0 : 1.5)
                         .animation(.default, value: pressed)
                 )

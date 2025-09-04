@@ -20,7 +20,7 @@ struct TileBadge: View {
             ZStack {
                 Text(formatValue(value))
                     .font(.system(size: style == .primary ? 44 : 28, weight: .bold))
-                    .foregroundStyle(.white)
+                    //.foregroundStyle(.white)
                     .frame(width: size, height: size)
                     .background(background)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))

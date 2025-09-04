@@ -49,7 +49,7 @@ public struct GameScreen: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: Tokens.Radius.frame, style: .continuous)
                                 .fill(.black.opacity(0.35))
-                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Tokens.Radius.frame, style: .continuous))
+                                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Tokens.Radius.frame, style: .continuous))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: Tokens.Radius.frame, style: .continuous)
                                         .strokeBorder(.white.opacity(0.08), lineWidth: 1)
@@ -111,7 +111,7 @@ public struct GameScreen: View {
                     Spacer(minLength: 0)
                     Text("\(currentLabel) >> \(nextLabel)")
                         .font(.title3.weight(.black))
-                        .foregroundStyle(.white)
+                        //.foregroundStyle(.white)
                         .padding(.vertical, 8)
                         .padding(.horizontal, 14)
                         .background(.black.opacity(0.45), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -211,7 +211,7 @@ private struct HUDBar: View {
                     .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .accessibilityLabel("Pause")
             
             Spacer(minLength: Tokens.Spacing.lg)
@@ -235,7 +235,7 @@ private struct HUDBar: View {
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(.ultraThinMaterial, in: Capsule())
+                .background(.regularMaterial, in: Capsule())
                 
                 HStack(spacing: Tokens.Spacing.xs) {
                     Image(systemName: "diamond.fill")
@@ -244,7 +244,7 @@ private struct HUDBar: View {
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(.ultraThinMaterial, in: Capsule())
+                .background(.regularMaterial, in: Capsule())
                 
                 Button(action: onBuy) {
                     Image(systemName: "plus")
@@ -274,7 +274,7 @@ private struct PowerupToolbar: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(.ultraThinMaterial)
+        .background(.regularMaterial)
     }
     
     @ViewBuilder

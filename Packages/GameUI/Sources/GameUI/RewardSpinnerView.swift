@@ -32,7 +32,7 @@ struct RewardSpinnerView: View {
                 }
             }
             .padding()
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             
             ZStack {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -44,7 +44,7 @@ struct RewardSpinnerView: View {
                             .font(.title3.weight(.bold))
                             .frame(width: 60, height: 60)
                             .background(selectedMultiplier == m ? Color.green : Color.orange, in: Circle())
-                            .foregroundStyle(.white)
+                            //.foregroundStyle(.white)
                             .scaleEffect(selectedMultiplier == m ? 1.1 : 1.0)
                             .animation(.spring(response: 0.35, dampingFraction: 0.7), value: selectedMultiplier)
                     }

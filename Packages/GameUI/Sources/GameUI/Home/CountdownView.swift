@@ -9,7 +9,7 @@ struct CountdownView: View {
         Text(timeString)
             .monospacedDigit()
             .font(.caption.bold())
-            .foregroundStyle(.white)
+            //.foregroundStyle(.white)
             .onAppear { startTimer() }
             .onDisappear { stopTimer() }
     }

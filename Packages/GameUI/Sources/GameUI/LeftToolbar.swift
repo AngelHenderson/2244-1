@@ -31,7 +31,7 @@ struct LeftToolbar: View {
                     .font(.system(size: 10, weight: .semibold, design: .rounded))
             }
             .frame(width: Tokens.Size.toolbarButton, height: Tokens.Size.toolbarButton)
-            .foregroundStyle(.white)
+            //.foregroundStyle(.white)
             .background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
         }

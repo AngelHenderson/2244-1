@@ -390,7 +390,7 @@ struct EnhancedHUDBar: View {
                 // Score (hero metric)
                 Text(gameStore.state.score.formatted(.number.grouping(.automatic)))
                     .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    //.foregroundStyle(.white)
                 
                 Spacer()
                 
@@ -571,7 +571,7 @@ struct ExpandedPowerUpButton: View {
                 if inventoryCount > 0 {
                     Text("\(inventoryCount)")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
+                        //.foregroundStyle(.white)
                         .frame(width: 18, height: 18)
                         .background(Color.blue)
                         .clipShape(Circle())
@@ -611,7 +611,7 @@ struct TopMergeTileView: View {
             Spacer()
             Text("\(currentLabel) >> \(nextLabel)")
                 .font(.title3.weight(.black))
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 14)
                 .background(
@@ -649,7 +649,7 @@ struct ExpandedUtilityButton: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 54)
-            .foregroundStyle(.white)
+            //.foregroundStyle(.white)
         }
         .buttonStyle(.plain)
     }
@@ -665,7 +665,7 @@ struct ExpandedPlainIconButton: View {
                 .font(.system(size: 22, weight: .semibold))
                 .frame(maxWidth: .infinity)
                 .frame(height: 54)
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
         }
         .buttonStyle(.plain)
     }
@@ -706,7 +706,7 @@ struct ModeOverlay: View {
             HStack {
                 Text(modeText)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    //.foregroundStyle(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(modeColor)
@@ -718,7 +718,7 @@ struct ModeOverlay: View {
                     onCancel()
                 }
                 .font(.headline)
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(Color.gray)

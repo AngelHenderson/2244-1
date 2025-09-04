@@ -83,7 +83,7 @@ public struct HomeScreen: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(.ultraThinMaterial, in: Capsule())
+                    .background(.regularMaterial, in: Capsule())
                 }
                 .buttonStyle(.plain)
 
@@ -105,7 +105,7 @@ public struct HomeScreen: View {
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(.ultraThinMaterial, in: Capsule())
+                        .background(.regularMaterial, in: Capsule())
                     }
                     .buttonStyle(.plain)
                     Spacer()
@@ -247,7 +247,7 @@ private struct CreateChallengeSheet: View {
                 .font(.system(size: 28, weight: .heavy, design: .rounded))
                 .frame(width: 120, height: 56)
                 .background(Color.pink, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .foregroundStyle(.white)
+                //.foregroundStyle(.white)
             Button { cycleTarget(1) } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }
                 .buttonStyle(.bordered)
         }
@@ -271,7 +271,7 @@ private struct CreateChallengeSheet: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
     
@@ -287,7 +287,7 @@ private struct CreateChallengeSheet: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(Color(white: 0.15), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .foregroundStyle(.white)
+            //.foregroundStyle(.white)
         }
         .onChange(of: settings.time) { _ in updateReward() }
         .onChange(of: settings.minTile) { _ in updateReward(); updateTilesForTarget() }
@@ -311,7 +311,7 @@ private struct CreateChallengeSheet: View {
                 LinearGradient(colors: [.green, .green.opacity(0.85)], startPoint: .top, endPoint: .bottom),
                 in: RoundedRectangle(cornerRadius: 14, style: .continuous)
             )
-            .foregroundStyle(.white)
+            //.foregroundStyle(.white)
         }
         .padding(.horizontal, 24)
         .padding(.top, 8)
