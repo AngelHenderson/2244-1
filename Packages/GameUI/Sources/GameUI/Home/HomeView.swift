@@ -7,7 +7,9 @@ public struct HomeView: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
+    @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
+    @State private var centeredMilestone: Int? = nil
 
     public init() {}
     
