@@ -185,8 +185,8 @@ public struct HomeView: View {
                 PillButton(title: "Play", icon: "play.fill") { 
                     actions.play() 
                 }
-                .padding(.horizontal, 40)
-                .padding(.vertical, 20)
+                .padding(.horizontal)
+                .padding(.vertical)
 
                 // Bottom dock
                 HStack(spacing: 22) {
@@ -216,6 +216,7 @@ public struct HomeView: View {
                 .padding(.bottom, 16)
 //                .glassOrMaterialBackground(cornerRadius: 8)
             }
+
         }
         // Leaderboard sheet
         .sheet(isPresented: $isShowingLeaderboard) {

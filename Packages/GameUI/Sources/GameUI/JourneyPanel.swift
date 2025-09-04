@@ -69,7 +69,6 @@ struct JourneyPanel: View {
             .padding(.vertical, 12)
             .padding(.horizontal, 8)
         }
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 

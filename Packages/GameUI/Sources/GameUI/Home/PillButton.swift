@@ -15,10 +15,10 @@ struct PillButton: View {
                         //.foregroundStyle(.white)
                     }
                     Text(title)
-                        .font(.title2.weight(.bold))
+                        .font(.title3.weight(.bold))
                     //.foregroundStyle(.white)
                 }
-                .padding(.vertical, 20)
+                .padding(.vertical, 8)
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.glass)
@@ -56,3 +56,18 @@ struct PillButton: View {
     }
 }
  
+#Preview("PillButton Variants") {
+    VStack(spacing: 16) {
+        PillButton(title: "Continue", icon: "arrow.right") {
+            print("Continue tapped")
+        }
+        PillButton(title: "Get Started") {
+            print("Get Started tapped")
+        }
+        PillButton(title: "Download", icon: "square.and.arrow.down") {
+            print("Download tapped")
+        }
+    }
+    .padding()
+    .previewLayout(.sizeThatFits)
+}
