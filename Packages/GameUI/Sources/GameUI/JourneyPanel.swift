@@ -46,7 +46,7 @@ struct JourneyPanel: View {
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            LazyVStack(spacing: 10) {
+            LazyVStack(spacing: 64) {
                 let highest = max(2, gameStore.state.highestTile)
                 let values = journeyValues()
                 // Show higher values toward the top (reverse order)
@@ -56,7 +56,7 @@ struct JourneyPanel: View {
                             tile: tile,
                             isSelected: false,
                             isValid: true,
-                            size: 48
+                            size: 120
                         )
                         if tile.value == highest {
                             Text("Highest Tile")
