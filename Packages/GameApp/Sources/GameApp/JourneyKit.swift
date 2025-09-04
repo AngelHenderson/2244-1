@@ -90,6 +90,8 @@ public enum JourneyKit {
       let lower = clampToLadder(old)
       let upper = clampToLadder(new)
       guard let li = ms.firstIndex(of: lower), let ui = ms.firstIndex(of: upper) else { return [] }
+      // If both clamp to the same milestone (or no gap), nothing was unlocked
+      guard li + 1 <= ui else { return [] }
       return Array(ms[(li + 1)...ui])
     }
 
@@ -163,8 +165,8 @@ public enum JourneyKit {
       self.kv = store
       self.engine = Engine(config: config)
 
-      // Load or seed - use first milestone as default if no saved state
-      let defaultHighest = engine.milestones().first ?? 1024
+      // Load or seed - use 2 as the base if no saved state exists
+      let defaultHighest: TileValue = 2
       let initial: State = Self.load(from: store, key: stateKey)
       ?? State(highestTile: defaultHighest, claimed: [])
       self.highestTile = initial.highestTile

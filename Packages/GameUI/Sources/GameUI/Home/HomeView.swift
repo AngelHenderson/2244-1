@@ -12,13 +12,34 @@ public struct HomeView: View {
     
     public var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
-                colors: [Color.init(hex: "EBEBEB")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+//            // Background gradient
+//            LinearGradient(
+//                colors: [Color.init(hex: "EBEBEB")],
+//                startPoint: .top,
+//                endPoint: .bottom
+//            )
+//            .ignoresSafeArea()
+
+//            ZStack {
+//                Image("redflower")
+//                    .resizable()
+//                    .scaledToFill()
+//                    .clipped()
+//
+//            }
+//            .frame(maxWidth: .infinity, maxHeight: .infinity)
+//
+//            .ignoresSafeArea()
+
+//            //Background image taht fills the screen but clips the side
+//            GeometryReader { geo in
+//                Image("redflower")
+//                    .resizable()
+//                    .scaledToFill()
+//                    .frame(width: geo.size.width * 1.05,
+//                           height: geo.size.height * 1.05)
+//                    .clipped()
+//            }
 
             VStack(spacing: 0) {
                 // Top HUD
@@ -72,7 +93,7 @@ public struct HomeView: View {
                             Spacer(minLength: 0)
                             
                             // Theme selector (left)
-                            ThemeButton(name: state.themesLeftName, action: { actions.openThemeLeft() })
+//                            ThemeButton(name: state.themesLeftName, action: { actions.openThemeLeft() })
                         }
                         .frame(width: 80)
                         .padding(.top, 20)
@@ -185,11 +206,18 @@ public struct HomeView: View {
                                     action: { actions.openShop() }
                                 )
                             }
-                            
+
+                            SideRailButton(
+                                systemImage: nil,
+                                customImage: "gift",
+                                title: "THEME",
+                                action: { actions.openShop() }
+                            )
+
                             Spacer(minLength: 0)
                             
                             // Theme selector (right)
-                            ThemeButton(name: state.themesRightName, action: { actions.openThemeRight() })
+//                            ThemeButton(name: state.themesRightName, action: { actions.openThemeRight() })
                         }
                         .frame(width: 80)
                         .padding(.top, 20)
@@ -230,6 +258,7 @@ public struct HomeView: View {
                     )
                 }
                 .padding(.bottom, 16)
+//                .glassOrMaterialBackground(cornerRadius: 8)
             }
         }
         // Journey sheet
@@ -249,37 +278,54 @@ public struct HomeView: View {
     }
 
     private func dockItem(system: String, title: String, badge: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            ZStack{
-                VStack(spacing: 4) {
-                    // Prefer asset with same semantic name if available
-                    let asset = assetName(for: title)
-                    if !asset.isEmpty {
-                        Image(asset)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 48, height: 48)
-                    } else {
-                        Image(systemName: system)
-                            .font(.system(size: 24))
+        if #available(iOS 26.0, *) {
+            return AnyView(
+                Button(action: action) {
+                    VStack(spacing: 4) {
+                        // Prefer asset with same semantic name if available
+                        let asset = assetName(for: title)
+                        if !asset.isEmpty {
+                            Image(asset)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 48, height: 48)
+                        } else {
+                            Image(systemName: system)
+                                .font(.system(size: 24))
                             //.foregroundStyle(.white)
+                        }
+                        //                    Text(title)
+                        //                        .font(.caption2)
+                        //                        .foregroundStyle(.white.opacity(0.8))
                     }
-//                    Text(title)
-//                        .font(.caption2)
-//                        .foregroundStyle(.white.opacity(0.8))
+                    .padding(4)
                 }
-                .padding(4)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-                if badge {
-                    Circle()
-                        .fill(.red)
-                        .frame(width: 8, height: 8)
-                        .offset(x: 8, y: -6)
+                .buttonStyle(.glass)
+            )
+        } else {
+            return AnyView(
+                Button(action: action) {
+                    VStack(spacing: 4) {
+                        // Prefer asset with same semantic name if available
+                        let asset = assetName(for: title)
+                        if !asset.isEmpty {
+                            Image(asset)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 48, height: 48)
+                        } else {
+                            Image(systemName: system)
+                                .font(.system(size: 24))
+                            //.foregroundStyle(.white)
+                        }
+                        //                    Text(title)
+                        //                        .font(.caption2)
+                        //                        .foregroundStyle(.white.opacity(0.8))
+                    }
+                    .padding(4)
                 }
-            }
+            )
         }
-        .accessibilityLabel("\(title)\(badge ? ", new" : "")")
     }
 
     private func assetName(for title: String) -> String {
@@ -288,10 +334,15 @@ public struct HomeView: View {
         case "achievements": return "achievement"
         case "leaderboard": return "leaderboard"
         case "settings": return "settings"
+        case "theme": return "themedefault"
         default: return ""
         }
     }
+
+
 }
+
+ 
 
 // Theme button component
 private struct ThemeButton: View {
@@ -344,6 +395,19 @@ private struct ThemeButton: View {
         case "beach": return "sun.max.fill"
         case "aqua": return "drop.fill"
         default: return "sparkle"
+        }
+    }
+}
+
+// MARK: - Compatibility glass effect
+public extension View {
+    @ViewBuilder
+    func glassEffectCompat(cornerRadius: CGFloat = 8) -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(in: .rect(cornerRadius: cornerRadius))
+        } else {
+            self
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
     }
 }

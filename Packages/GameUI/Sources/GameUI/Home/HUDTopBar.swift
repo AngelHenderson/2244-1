@@ -8,35 +8,47 @@ struct HUDTopBar: View {
     var body: some View {
         HStack {
             // Rank badge
-            Text("Rank: \(state.rank)")
-                .font(.headline)
-                //.foregroundStyle(.white)
-                .padding(.horizontal, 12).padding(.vertical, 6)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12.0))
-                .accessibilityLabel("Rank \(state.rank)")
+            if #available(iOS 26.0, *) {
+                Button(action: { actions.openLeaderboard() }) {
+                    Text("Rank: \(state.rank)")
+                        .font(.headline)
+                    //.foregroundStyle(.white)
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                    
+                }
+//                .glassEffectCompat(cornerRadius: 8)
+                .buttonStyle(.glass)
+                .accessibilityLabel("Rank \(state.rank). Open leaderboard.")
+            } else {
+                // Fallback on earlier versions
+            }
 
             Spacer()
 
-            // Gems counter with buy button
-            HStack(spacing: 8) {
-                Image("gem")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 28, height: 28)
-                Text("\(state.gems)")
-                    .font(.title3.monospacedDigit())
-                    //.foregroundStyle(.white)
-                Button(action: { actions.buyGems() }) {
-                    Image(systemName: "plus.circle.fill")
-                        .imageScale(.medium)
-                        .foregroundStyle(.green)
+            // Gems counter (tappable) – opens shop
+            if #available(iOS 26.0, *) {
+                Button(action: { actions.openShop() }) {
+                    HStack(spacing: 8) {
+                        Image("gem")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                        Text("\(state.gems)")
+                            .font(.title3.monospacedDigit())
+                        //.foregroundStyle(.white)
+                        Image(systemName: "plus.circle.fill")
+                            .imageScale(.medium)
+                            .foregroundStyle(.green)
+                            .accessibilityHidden(true)
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 6)
                 }
-                .accessibilityLabel("Buy gems")
+//                .glassEffectCompat(cornerRadius: 8)
+                .buttonStyle(.glass)
+                .accessibilityLabel("Gems \(state.gems). Open shop.")
+            } else {
+                // Fallback on earlier versions
             }
-            .padding(.horizontal, 12).padding(.vertical, 6)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12.0))
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("Gems \(state.gems). Buy more.")
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)

@@ -21,12 +21,12 @@ struct HomeButton: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
-        .buttonStyle(.plain)
+        .glassEffectCompat(cornerRadius: 8)
         .accessibilityLabel("Home")
     }
 }
+ 
 
 
 
