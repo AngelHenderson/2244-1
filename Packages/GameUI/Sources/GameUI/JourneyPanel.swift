@@ -46,11 +46,11 @@ struct JourneyPanel: View {
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            LazyVStack(spacing: 64) {
+            LazyVStack(spacing: 0) {
                 let highest = max(2, gameStore.state.highestTile)
-                let values = journeyValues()
-                // Show higher values toward the top (reverse order)
-                ForEach(values.reversed(), id: \.id) { tile in
+                let tiles = Array(journeyValues().reversed())
+                ForEach(tiles.indices, id: \.self) { index in
+                    let tile = tiles[index]
                     VStack(spacing: 4) {
                         TileView(
                             tile: tile,
@@ -64,11 +64,38 @@ struct JourneyPanel: View {
                                 .foregroundStyle(.primary)
                         }
                     }
+                    if index < tiles.count - 1 {
+                        JourneyDotTrail(height: 64, dotCount: 4, dotSize: 6)
+                            .frame(maxWidth: .infinity)
+                            .accessibilityHidden(true)
+                            .padding(.vertical, 8)
+                    }
                 }
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 8)
         }
+    }
+}
+
+private struct JourneyDotTrail: View {
+    let height: CGFloat
+    let dotCount: Int
+    let dotSize: CGFloat
+
+    var body: some View {
+        let clampedCount = max(1, min(dotCount, 4))
+        let totalDotsHeight = CGFloat(clampedCount) * dotSize
+        let spacing = max(4, (height - totalDotsHeight) / CGFloat(clampedCount + 1))
+
+        VStack(spacing: spacing) {
+            ForEach(0..<clampedCount, id: \.self) { _ in
+                Circle()
+                    .frame(width: dotSize, height: dotSize)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(height: height, alignment: .center)
     }
 }
 

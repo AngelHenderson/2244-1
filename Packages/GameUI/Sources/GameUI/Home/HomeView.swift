@@ -8,6 +8,7 @@ public struct HomeView: View {
     @Environment(\.tileJourney) private var journey
     @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
+    @State private var isShowingMusic: Bool = false
     @State private var centeredMilestone: Int? = nil
 
     public init() {}
@@ -52,7 +53,7 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "soundeffect",
                                 title: "MUSIC",
-                                action: { actions.openMusic() }
+                                action: { isShowingMusic = true }
                             )
                             
                             SideRailButton(
@@ -183,6 +184,18 @@ public struct HomeView: View {
         // Leaderboard sheet
         .sheet(isPresented: $isShowingLeaderboard) {
             LeaderboardView()
+        }
+        // Music Themes sheet
+        .sheet(isPresented: $isShowingMusic) {
+            MusicThemesView(
+                onTry: { instrument in
+                    // Placeholder: ad presentation to be implemented by host later
+                    print("Try instrument: \(instrument.id)")
+                },
+                onPurchase: { instrument in
+                    print("Purchase tapped for: \(instrument.id)")
+                }
+            )
         }
     }
 
