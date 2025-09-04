@@ -21,6 +21,9 @@ public final class HomeState {
     public var hasAchievementsBadge = true
     public var isCreateLocked = true
     public var isChallengeLocked = true
+    // Unlock thresholds (power-of-two milestones)
+    public var createUnlockAt: Int = 1_048_576 // 2^20
+    public var challengeUnlockAt: Int = 1_048_576 // 2^20
 
     // Live-ops
     public var adReward: Int = 68

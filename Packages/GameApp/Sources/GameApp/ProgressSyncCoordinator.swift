@@ -167,6 +167,9 @@ extension HomeState {
         highestTile = m.current
         milestoneBelow = m.below ?? milestoneBelow
         lockedMilestones = m.above
+        // Compute locks from thresholds
+        isCreateLocked = highestTile < createUnlockAt
+        isChallengeLocked = highestTile < challengeUnlockAt
         
         // Update theme names based on current theme
         if let currentTheme = p.theme {
