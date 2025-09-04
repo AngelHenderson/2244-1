@@ -1,0 +1,8858 @@
+[
+  {
+    "id": "daily_claim_day_001",
+    "gcIdentifier": "daily_claim_day_001",
+    "title": "Daily Claim \u2014 Day 1",
+    "description": "Claim your Day 1 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 50
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_002",
+    "gcIdentifier": "daily_claim_day_002",
+    "title": "Daily Claim \u2014 Day 2",
+    "description": "Claim your Day 2 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 60
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_003",
+    "gcIdentifier": "daily_claim_day_003",
+    "title": "Daily Claim \u2014 Day 3",
+    "description": "Claim your Day 3 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 70
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_004",
+    "gcIdentifier": "daily_claim_day_004",
+    "title": "Daily Claim \u2014 Day 4",
+    "description": "Claim your Day 4 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 80
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_005",
+    "gcIdentifier": "daily_claim_day_005",
+    "title": "Daily Claim \u2014 Day 5",
+    "description": "Claim your Day 5 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 90
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_006",
+    "gcIdentifier": "daily_claim_day_006",
+    "title": "Daily Claim \u2014 Day 6",
+    "description": "Claim your Day 6 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 100
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 6
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_007",
+    "gcIdentifier": "daily_claim_day_007",
+    "title": "Daily Claim \u2014 Day 7",
+    "description": "Claim your Day 7 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 150,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 7
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_008",
+    "gcIdentifier": "daily_claim_day_008",
+    "title": "Daily Claim \u2014 Day 8",
+    "description": "Claim your Day 8 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 55
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 8
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_009",
+    "gcIdentifier": "daily_claim_day_009",
+    "title": "Daily Claim \u2014 Day 9",
+    "description": "Claim your Day 9 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 65
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 9
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_010",
+    "gcIdentifier": "daily_claim_day_010",
+    "title": "Daily Claim \u2014 Day 10",
+    "description": "Claim your Day 10 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 75
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 10
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_011",
+    "gcIdentifier": "daily_claim_day_011",
+    "title": "Daily Claim \u2014 Day 11",
+    "description": "Claim your Day 11 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 85
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 11
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_012",
+    "gcIdentifier": "daily_claim_day_012",
+    "title": "Daily Claim \u2014 Day 12",
+    "description": "Claim your Day 12 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 95
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 12
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_013",
+    "gcIdentifier": "daily_claim_day_013",
+    "title": "Daily Claim \u2014 Day 13",
+    "description": "Claim your Day 13 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 105
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 13
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_014",
+    "gcIdentifier": "daily_claim_day_014",
+    "title": "Daily Claim \u2014 Day 14",
+    "description": "Claim your Day 14 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 155,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_015",
+    "gcIdentifier": "daily_claim_day_015",
+    "title": "Daily Claim \u2014 Day 15",
+    "description": "Claim your Day 15 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 60
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 15
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_016",
+    "gcIdentifier": "daily_claim_day_016",
+    "title": "Daily Claim \u2014 Day 16",
+    "description": "Claim your Day 16 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 70
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 16
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_017",
+    "gcIdentifier": "daily_claim_day_017",
+    "title": "Daily Claim \u2014 Day 17",
+    "description": "Claim your Day 17 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 80
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 17
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_018",
+    "gcIdentifier": "daily_claim_day_018",
+    "title": "Daily Claim \u2014 Day 18",
+    "description": "Claim your Day 18 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 90
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 18
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_019",
+    "gcIdentifier": "daily_claim_day_019",
+    "title": "Daily Claim \u2014 Day 19",
+    "description": "Claim your Day 19 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 100
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 19
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_020",
+    "gcIdentifier": "daily_claim_day_020",
+    "title": "Daily Claim \u2014 Day 20",
+    "description": "Claim your Day 20 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 110
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 20
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_021",
+    "gcIdentifier": "daily_claim_day_021",
+    "title": "Daily Claim \u2014 Day 21",
+    "description": "Claim your Day 21 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 160,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 21
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_022",
+    "gcIdentifier": "daily_claim_day_022",
+    "title": "Daily Claim \u2014 Day 22",
+    "description": "Claim your Day 22 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 65
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 22
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_023",
+    "gcIdentifier": "daily_claim_day_023",
+    "title": "Daily Claim \u2014 Day 23",
+    "description": "Claim your Day 23 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 75
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 23
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_024",
+    "gcIdentifier": "daily_claim_day_024",
+    "title": "Daily Claim \u2014 Day 24",
+    "description": "Claim your Day 24 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 85
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 24
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_025",
+    "gcIdentifier": "daily_claim_day_025",
+    "title": "Daily Claim \u2014 Day 25",
+    "description": "Claim your Day 25 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 95
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 25
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_026",
+    "gcIdentifier": "daily_claim_day_026",
+    "title": "Daily Claim \u2014 Day 26",
+    "description": "Claim your Day 26 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 105
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 26
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_027",
+    "gcIdentifier": "daily_claim_day_027",
+    "title": "Daily Claim \u2014 Day 27",
+    "description": "Claim your Day 27 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 115
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 27
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_028",
+    "gcIdentifier": "daily_claim_day_028",
+    "title": "Daily Claim \u2014 Day 28",
+    "description": "Claim your Day 28 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 165,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 28
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_029",
+    "gcIdentifier": "daily_claim_day_029",
+    "title": "Daily Claim \u2014 Day 29",
+    "description": "Claim your Day 29 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 70
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 29
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_030",
+    "gcIdentifier": "daily_claim_day_030",
+    "title": "Daily Claim \u2014 Day 30",
+    "description": "Claim your Day 30 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 80,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 30
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_031",
+    "gcIdentifier": "daily_claim_day_031",
+    "title": "Daily Claim \u2014 Day 31",
+    "description": "Claim your Day 31 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 90
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 31
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_032",
+    "gcIdentifier": "daily_claim_day_032",
+    "title": "Daily Claim \u2014 Day 32",
+    "description": "Claim your Day 32 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 100
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 32
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_033",
+    "gcIdentifier": "daily_claim_day_033",
+    "title": "Daily Claim \u2014 Day 33",
+    "description": "Claim your Day 33 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 110
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 33
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_034",
+    "gcIdentifier": "daily_claim_day_034",
+    "title": "Daily Claim \u2014 Day 34",
+    "description": "Claim your Day 34 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 120
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 34
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_035",
+    "gcIdentifier": "daily_claim_day_035",
+    "title": "Daily Claim \u2014 Day 35",
+    "description": "Claim your Day 35 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 170,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 35
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_036",
+    "gcIdentifier": "daily_claim_day_036",
+    "title": "Daily Claim \u2014 Day 36",
+    "description": "Claim your Day 36 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 75
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 36
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_037",
+    "gcIdentifier": "daily_claim_day_037",
+    "title": "Daily Claim \u2014 Day 37",
+    "description": "Claim your Day 37 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 85
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 37
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_038",
+    "gcIdentifier": "daily_claim_day_038",
+    "title": "Daily Claim \u2014 Day 38",
+    "description": "Claim your Day 38 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 95
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 38
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_039",
+    "gcIdentifier": "daily_claim_day_039",
+    "title": "Daily Claim \u2014 Day 39",
+    "description": "Claim your Day 39 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 105
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 39
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_040",
+    "gcIdentifier": "daily_claim_day_040",
+    "title": "Daily Claim \u2014 Day 40",
+    "description": "Claim your Day 40 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 115
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 40
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_041",
+    "gcIdentifier": "daily_claim_day_041",
+    "title": "Daily Claim \u2014 Day 41",
+    "description": "Claim your Day 41 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 125
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 41
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_042",
+    "gcIdentifier": "daily_claim_day_042",
+    "title": "Daily Claim \u2014 Day 42",
+    "description": "Claim your Day 42 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 175,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 42
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_043",
+    "gcIdentifier": "daily_claim_day_043",
+    "title": "Daily Claim \u2014 Day 43",
+    "description": "Claim your Day 43 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 80
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 43
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_044",
+    "gcIdentifier": "daily_claim_day_044",
+    "title": "Daily Claim \u2014 Day 44",
+    "description": "Claim your Day 44 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 90
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 44
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_045",
+    "gcIdentifier": "daily_claim_day_045",
+    "title": "Daily Claim \u2014 Day 45",
+    "description": "Claim your Day 45 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 100
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 45
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_046",
+    "gcIdentifier": "daily_claim_day_046",
+    "title": "Daily Claim \u2014 Day 46",
+    "description": "Claim your Day 46 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 110
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 46
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_047",
+    "gcIdentifier": "daily_claim_day_047",
+    "title": "Daily Claim \u2014 Day 47",
+    "description": "Claim your Day 47 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 120
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 47
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_048",
+    "gcIdentifier": "daily_claim_day_048",
+    "title": "Daily Claim \u2014 Day 48",
+    "description": "Claim your Day 48 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 130
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 48
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_049",
+    "gcIdentifier": "daily_claim_day_049",
+    "title": "Daily Claim \u2014 Day 49",
+    "description": "Claim your Day 49 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 180,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 49
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_050",
+    "gcIdentifier": "daily_claim_day_050",
+    "title": "Daily Claim \u2014 Day 50",
+    "description": "Claim your Day 50 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 85
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 50
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_051",
+    "gcIdentifier": "daily_claim_day_051",
+    "title": "Daily Claim \u2014 Day 51",
+    "description": "Claim your Day 51 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 95
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 51
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_052",
+    "gcIdentifier": "daily_claim_day_052",
+    "title": "Daily Claim \u2014 Day 52",
+    "description": "Claim your Day 52 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 105
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 52
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_053",
+    "gcIdentifier": "daily_claim_day_053",
+    "title": "Daily Claim \u2014 Day 53",
+    "description": "Claim your Day 53 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 115
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 53
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_054",
+    "gcIdentifier": "daily_claim_day_054",
+    "title": "Daily Claim \u2014 Day 54",
+    "description": "Claim your Day 54 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 125
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 54
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_055",
+    "gcIdentifier": "daily_claim_day_055",
+    "title": "Daily Claim \u2014 Day 55",
+    "description": "Claim your Day 55 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 135
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 55
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_056",
+    "gcIdentifier": "daily_claim_day_056",
+    "title": "Daily Claim \u2014 Day 56",
+    "description": "Claim your Day 56 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 185,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 56
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_057",
+    "gcIdentifier": "daily_claim_day_057",
+    "title": "Daily Claim \u2014 Day 57",
+    "description": "Claim your Day 57 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 90
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 57
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_058",
+    "gcIdentifier": "daily_claim_day_058",
+    "title": "Daily Claim \u2014 Day 58",
+    "description": "Claim your Day 58 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 100
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 58
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_059",
+    "gcIdentifier": "daily_claim_day_059",
+    "title": "Daily Claim \u2014 Day 59",
+    "description": "Claim your Day 59 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 110
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 59
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_060",
+    "gcIdentifier": "daily_claim_day_060",
+    "title": "Daily Claim \u2014 Day 60",
+    "description": "Claim your Day 60 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 120,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 60
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_061",
+    "gcIdentifier": "daily_claim_day_061",
+    "title": "Daily Claim \u2014 Day 61",
+    "description": "Claim your Day 61 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 130
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 61
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_062",
+    "gcIdentifier": "daily_claim_day_062",
+    "title": "Daily Claim \u2014 Day 62",
+    "description": "Claim your Day 62 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 140
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 62
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_063",
+    "gcIdentifier": "daily_claim_day_063",
+    "title": "Daily Claim \u2014 Day 63",
+    "description": "Claim your Day 63 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 190,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 63
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_064",
+    "gcIdentifier": "daily_claim_day_064",
+    "title": "Daily Claim \u2014 Day 64",
+    "description": "Claim your Day 64 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 95
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 64
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_065",
+    "gcIdentifier": "daily_claim_day_065",
+    "title": "Daily Claim \u2014 Day 65",
+    "description": "Claim your Day 65 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 105
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 65
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_066",
+    "gcIdentifier": "daily_claim_day_066",
+    "title": "Daily Claim \u2014 Day 66",
+    "description": "Claim your Day 66 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 115
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 66
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_067",
+    "gcIdentifier": "daily_claim_day_067",
+    "title": "Daily Claim \u2014 Day 67",
+    "description": "Claim your Day 67 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 125
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 67
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_068",
+    "gcIdentifier": "daily_claim_day_068",
+    "title": "Daily Claim \u2014 Day 68",
+    "description": "Claim your Day 68 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 135
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 68
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_069",
+    "gcIdentifier": "daily_claim_day_069",
+    "title": "Daily Claim \u2014 Day 69",
+    "description": "Claim your Day 69 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 145
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 69
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_070",
+    "gcIdentifier": "daily_claim_day_070",
+    "title": "Daily Claim \u2014 Day 70",
+    "description": "Claim your Day 70 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 195,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 70
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_071",
+    "gcIdentifier": "daily_claim_day_071",
+    "title": "Daily Claim \u2014 Day 71",
+    "description": "Claim your Day 71 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 100
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 71
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_072",
+    "gcIdentifier": "daily_claim_day_072",
+    "title": "Daily Claim \u2014 Day 72",
+    "description": "Claim your Day 72 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 110
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 72
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_073",
+    "gcIdentifier": "daily_claim_day_073",
+    "title": "Daily Claim \u2014 Day 73",
+    "description": "Claim your Day 73 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 120
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 73
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_074",
+    "gcIdentifier": "daily_claim_day_074",
+    "title": "Daily Claim \u2014 Day 74",
+    "description": "Claim your Day 74 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 130
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 74
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_075",
+    "gcIdentifier": "daily_claim_day_075",
+    "title": "Daily Claim \u2014 Day 75",
+    "description": "Claim your Day 75 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 140
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 75
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_076",
+    "gcIdentifier": "daily_claim_day_076",
+    "title": "Daily Claim \u2014 Day 76",
+    "description": "Claim your Day 76 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 150
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 76
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_077",
+    "gcIdentifier": "daily_claim_day_077",
+    "title": "Daily Claim \u2014 Day 77",
+    "description": "Claim your Day 77 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 200,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 77
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_078",
+    "gcIdentifier": "daily_claim_day_078",
+    "title": "Daily Claim \u2014 Day 78",
+    "description": "Claim your Day 78 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 105
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 78
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_079",
+    "gcIdentifier": "daily_claim_day_079",
+    "title": "Daily Claim \u2014 Day 79",
+    "description": "Claim your Day 79 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 115
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 79
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_080",
+    "gcIdentifier": "daily_claim_day_080",
+    "title": "Daily Claim \u2014 Day 80",
+    "description": "Claim your Day 80 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 125
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 80
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_081",
+    "gcIdentifier": "daily_claim_day_081",
+    "title": "Daily Claim \u2014 Day 81",
+    "description": "Claim your Day 81 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 135
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 81
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_082",
+    "gcIdentifier": "daily_claim_day_082",
+    "title": "Daily Claim \u2014 Day 82",
+    "description": "Claim your Day 82 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 145
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 82
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_083",
+    "gcIdentifier": "daily_claim_day_083",
+    "title": "Daily Claim \u2014 Day 83",
+    "description": "Claim your Day 83 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 155
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 83
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_084",
+    "gcIdentifier": "daily_claim_day_084",
+    "title": "Daily Claim \u2014 Day 84",
+    "description": "Claim your Day 84 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 205,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 84
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_085",
+    "gcIdentifier": "daily_claim_day_085",
+    "title": "Daily Claim \u2014 Day 85",
+    "description": "Claim your Day 85 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 110
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 85
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_086",
+    "gcIdentifier": "daily_claim_day_086",
+    "title": "Daily Claim \u2014 Day 86",
+    "description": "Claim your Day 86 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 120
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 86
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_087",
+    "gcIdentifier": "daily_claim_day_087",
+    "title": "Daily Claim \u2014 Day 87",
+    "description": "Claim your Day 87 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 130
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 87
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_088",
+    "gcIdentifier": "daily_claim_day_088",
+    "title": "Daily Claim \u2014 Day 88",
+    "description": "Claim your Day 88 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 140
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 88
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_089",
+    "gcIdentifier": "daily_claim_day_089",
+    "title": "Daily Claim \u2014 Day 89",
+    "description": "Claim your Day 89 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 150
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 89
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_090",
+    "gcIdentifier": "daily_claim_day_090",
+    "title": "Daily Claim \u2014 Day 90",
+    "description": "Claim your Day 90 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 360,
+      "hammers": 2,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 90
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_091",
+    "gcIdentifier": "daily_claim_day_091",
+    "title": "Daily Claim \u2014 Day 91",
+    "description": "Claim your Day 91 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 210,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 91
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_092",
+    "gcIdentifier": "daily_claim_day_092",
+    "title": "Daily Claim \u2014 Day 92",
+    "description": "Claim your Day 92 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 115
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 92
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_093",
+    "gcIdentifier": "daily_claim_day_093",
+    "title": "Daily Claim \u2014 Day 93",
+    "description": "Claim your Day 93 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 125
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 93
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_094",
+    "gcIdentifier": "daily_claim_day_094",
+    "title": "Daily Claim \u2014 Day 94",
+    "description": "Claim your Day 94 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 135
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 94
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_095",
+    "gcIdentifier": "daily_claim_day_095",
+    "title": "Daily Claim \u2014 Day 95",
+    "description": "Claim your Day 95 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 145
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 95
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_096",
+    "gcIdentifier": "daily_claim_day_096",
+    "title": "Daily Claim \u2014 Day 96",
+    "description": "Claim your Day 96 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 155
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 96
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_097",
+    "gcIdentifier": "daily_claim_day_097",
+    "title": "Daily Claim \u2014 Day 97",
+    "description": "Claim your Day 97 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 165
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 97
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_098",
+    "gcIdentifier": "daily_claim_day_098",
+    "title": "Daily Claim \u2014 Day 98",
+    "description": "Claim your Day 98 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 215,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 98
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_099",
+    "gcIdentifier": "daily_claim_day_099",
+    "title": "Daily Claim \u2014 Day 99",
+    "description": "Claim your Day 99 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 120
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 99
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_100",
+    "gcIdentifier": "daily_claim_day_100",
+    "title": "Daily Claim \u2014 Day 100",
+    "description": "Claim your Day 100 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 130
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 100
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_101",
+    "gcIdentifier": "daily_claim_day_101",
+    "title": "Daily Claim \u2014 Day 101",
+    "description": "Claim your Day 101 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 140
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 101
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_102",
+    "gcIdentifier": "daily_claim_day_102",
+    "title": "Daily Claim \u2014 Day 102",
+    "description": "Claim your Day 102 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 150
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 102
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_103",
+    "gcIdentifier": "daily_claim_day_103",
+    "title": "Daily Claim \u2014 Day 103",
+    "description": "Claim your Day 103 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 160
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 103
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_104",
+    "gcIdentifier": "daily_claim_day_104",
+    "title": "Daily Claim \u2014 Day 104",
+    "description": "Claim your Day 104 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 170
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 104
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_105",
+    "gcIdentifier": "daily_claim_day_105",
+    "title": "Daily Claim \u2014 Day 105",
+    "description": "Claim your Day 105 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 220,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 105
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_106",
+    "gcIdentifier": "daily_claim_day_106",
+    "title": "Daily Claim \u2014 Day 106",
+    "description": "Claim your Day 106 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 125
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 106
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_107",
+    "gcIdentifier": "daily_claim_day_107",
+    "title": "Daily Claim \u2014 Day 107",
+    "description": "Claim your Day 107 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 135
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 107
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_108",
+    "gcIdentifier": "daily_claim_day_108",
+    "title": "Daily Claim \u2014 Day 108",
+    "description": "Claim your Day 108 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 145
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 108
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_109",
+    "gcIdentifier": "daily_claim_day_109",
+    "title": "Daily Claim \u2014 Day 109",
+    "description": "Claim your Day 109 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 155
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 109
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_110",
+    "gcIdentifier": "daily_claim_day_110",
+    "title": "Daily Claim \u2014 Day 110",
+    "description": "Claim your Day 110 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 165
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 110
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_111",
+    "gcIdentifier": "daily_claim_day_111",
+    "title": "Daily Claim \u2014 Day 111",
+    "description": "Claim your Day 111 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 175
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 111
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_112",
+    "gcIdentifier": "daily_claim_day_112",
+    "title": "Daily Claim \u2014 Day 112",
+    "description": "Claim your Day 112 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 225,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 112
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_113",
+    "gcIdentifier": "daily_claim_day_113",
+    "title": "Daily Claim \u2014 Day 113",
+    "description": "Claim your Day 113 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 130
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 113
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_114",
+    "gcIdentifier": "daily_claim_day_114",
+    "title": "Daily Claim \u2014 Day 114",
+    "description": "Claim your Day 114 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 140
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 114
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_115",
+    "gcIdentifier": "daily_claim_day_115",
+    "title": "Daily Claim \u2014 Day 115",
+    "description": "Claim your Day 115 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 150
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 115
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_116",
+    "gcIdentifier": "daily_claim_day_116",
+    "title": "Daily Claim \u2014 Day 116",
+    "description": "Claim your Day 116 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 160
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 116
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_117",
+    "gcIdentifier": "daily_claim_day_117",
+    "title": "Daily Claim \u2014 Day 117",
+    "description": "Claim your Day 117 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 170
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 117
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_118",
+    "gcIdentifier": "daily_claim_day_118",
+    "title": "Daily Claim \u2014 Day 118",
+    "description": "Claim your Day 118 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 180
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 118
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_119",
+    "gcIdentifier": "daily_claim_day_119",
+    "title": "Daily Claim \u2014 Day 119",
+    "description": "Claim your Day 119 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 230,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 119
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_120",
+    "gcIdentifier": "daily_claim_day_120",
+    "title": "Daily Claim \u2014 Day 120",
+    "description": "Claim your Day 120 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 135,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 120
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_121",
+    "gcIdentifier": "daily_claim_day_121",
+    "title": "Daily Claim \u2014 Day 121",
+    "description": "Claim your Day 121 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 145
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 121
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_122",
+    "gcIdentifier": "daily_claim_day_122",
+    "title": "Daily Claim \u2014 Day 122",
+    "description": "Claim your Day 122 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 155
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 122
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_123",
+    "gcIdentifier": "daily_claim_day_123",
+    "title": "Daily Claim \u2014 Day 123",
+    "description": "Claim your Day 123 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 165
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 123
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_124",
+    "gcIdentifier": "daily_claim_day_124",
+    "title": "Daily Claim \u2014 Day 124",
+    "description": "Claim your Day 124 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 175
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 124
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_125",
+    "gcIdentifier": "daily_claim_day_125",
+    "title": "Daily Claim \u2014 Day 125",
+    "description": "Claim your Day 125 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 185
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 125
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_126",
+    "gcIdentifier": "daily_claim_day_126",
+    "title": "Daily Claim \u2014 Day 126",
+    "description": "Claim your Day 126 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 235,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 126
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_127",
+    "gcIdentifier": "daily_claim_day_127",
+    "title": "Daily Claim \u2014 Day 127",
+    "description": "Claim your Day 127 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 140
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 127
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_128",
+    "gcIdentifier": "daily_claim_day_128",
+    "title": "Daily Claim \u2014 Day 128",
+    "description": "Claim your Day 128 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 150
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 128
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_129",
+    "gcIdentifier": "daily_claim_day_129",
+    "title": "Daily Claim \u2014 Day 129",
+    "description": "Claim your Day 129 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 160
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 129
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_130",
+    "gcIdentifier": "daily_claim_day_130",
+    "title": "Daily Claim \u2014 Day 130",
+    "description": "Claim your Day 130 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 170
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 130
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_131",
+    "gcIdentifier": "daily_claim_day_131",
+    "title": "Daily Claim \u2014 Day 131",
+    "description": "Claim your Day 131 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 180
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 131
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_132",
+    "gcIdentifier": "daily_claim_day_132",
+    "title": "Daily Claim \u2014 Day 132",
+    "description": "Claim your Day 132 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 190
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 132
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_133",
+    "gcIdentifier": "daily_claim_day_133",
+    "title": "Daily Claim \u2014 Day 133",
+    "description": "Claim your Day 133 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 240,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 133
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_134",
+    "gcIdentifier": "daily_claim_day_134",
+    "title": "Daily Claim \u2014 Day 134",
+    "description": "Claim your Day 134 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 145
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 134
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_135",
+    "gcIdentifier": "daily_claim_day_135",
+    "title": "Daily Claim \u2014 Day 135",
+    "description": "Claim your Day 135 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 155
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 135
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_136",
+    "gcIdentifier": "daily_claim_day_136",
+    "title": "Daily Claim \u2014 Day 136",
+    "description": "Claim your Day 136 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 165
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 136
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_137",
+    "gcIdentifier": "daily_claim_day_137",
+    "title": "Daily Claim \u2014 Day 137",
+    "description": "Claim your Day 137 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 175
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 137
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_138",
+    "gcIdentifier": "daily_claim_day_138",
+    "title": "Daily Claim \u2014 Day 138",
+    "description": "Claim your Day 138 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 185
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 138
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_139",
+    "gcIdentifier": "daily_claim_day_139",
+    "title": "Daily Claim \u2014 Day 139",
+    "description": "Claim your Day 139 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 195
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 139
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_140",
+    "gcIdentifier": "daily_claim_day_140",
+    "title": "Daily Claim \u2014 Day 140",
+    "description": "Claim your Day 140 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 245,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 140
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_141",
+    "gcIdentifier": "daily_claim_day_141",
+    "title": "Daily Claim \u2014 Day 141",
+    "description": "Claim your Day 141 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 150
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 141
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_142",
+    "gcIdentifier": "daily_claim_day_142",
+    "title": "Daily Claim \u2014 Day 142",
+    "description": "Claim your Day 142 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 160
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 142
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_143",
+    "gcIdentifier": "daily_claim_day_143",
+    "title": "Daily Claim \u2014 Day 143",
+    "description": "Claim your Day 143 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 170
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 143
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_144",
+    "gcIdentifier": "daily_claim_day_144",
+    "title": "Daily Claim \u2014 Day 144",
+    "description": "Claim your Day 144 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 180
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 144
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_145",
+    "gcIdentifier": "daily_claim_day_145",
+    "title": "Daily Claim \u2014 Day 145",
+    "description": "Claim your Day 145 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 190
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 145
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_146",
+    "gcIdentifier": "daily_claim_day_146",
+    "title": "Daily Claim \u2014 Day 146",
+    "description": "Claim your Day 146 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 200
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 146
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_147",
+    "gcIdentifier": "daily_claim_day_147",
+    "title": "Daily Claim \u2014 Day 147",
+    "description": "Claim your Day 147 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 250,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 147
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_148",
+    "gcIdentifier": "daily_claim_day_148",
+    "title": "Daily Claim \u2014 Day 148",
+    "description": "Claim your Day 148 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 155
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 148
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_149",
+    "gcIdentifier": "daily_claim_day_149",
+    "title": "Daily Claim \u2014 Day 149",
+    "description": "Claim your Day 149 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 165
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 149
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_150",
+    "gcIdentifier": "daily_claim_day_150",
+    "title": "Daily Claim \u2014 Day 150",
+    "description": "Claim your Day 150 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 175,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 150
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_151",
+    "gcIdentifier": "daily_claim_day_151",
+    "title": "Daily Claim \u2014 Day 151",
+    "description": "Claim your Day 151 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 185
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 151
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_152",
+    "gcIdentifier": "daily_claim_day_152",
+    "title": "Daily Claim \u2014 Day 152",
+    "description": "Claim your Day 152 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 195
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 152
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_153",
+    "gcIdentifier": "daily_claim_day_153",
+    "title": "Daily Claim \u2014 Day 153",
+    "description": "Claim your Day 153 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 205
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 153
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_154",
+    "gcIdentifier": "daily_claim_day_154",
+    "title": "Daily Claim \u2014 Day 154",
+    "description": "Claim your Day 154 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 255,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 154
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_155",
+    "gcIdentifier": "daily_claim_day_155",
+    "title": "Daily Claim \u2014 Day 155",
+    "description": "Claim your Day 155 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 160
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 155
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_156",
+    "gcIdentifier": "daily_claim_day_156",
+    "title": "Daily Claim \u2014 Day 156",
+    "description": "Claim your Day 156 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 170
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 156
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_157",
+    "gcIdentifier": "daily_claim_day_157",
+    "title": "Daily Claim \u2014 Day 157",
+    "description": "Claim your Day 157 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 180
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 157
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_158",
+    "gcIdentifier": "daily_claim_day_158",
+    "title": "Daily Claim \u2014 Day 158",
+    "description": "Claim your Day 158 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 190
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 158
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_159",
+    "gcIdentifier": "daily_claim_day_159",
+    "title": "Daily Claim \u2014 Day 159",
+    "description": "Claim your Day 159 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 200
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 159
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_160",
+    "gcIdentifier": "daily_claim_day_160",
+    "title": "Daily Claim \u2014 Day 160",
+    "description": "Claim your Day 160 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 210
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 160
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_161",
+    "gcIdentifier": "daily_claim_day_161",
+    "title": "Daily Claim \u2014 Day 161",
+    "description": "Claim your Day 161 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 260,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 161
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_162",
+    "gcIdentifier": "daily_claim_day_162",
+    "title": "Daily Claim \u2014 Day 162",
+    "description": "Claim your Day 162 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 165
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 162
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_163",
+    "gcIdentifier": "daily_claim_day_163",
+    "title": "Daily Claim \u2014 Day 163",
+    "description": "Claim your Day 163 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 175
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 163
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_164",
+    "gcIdentifier": "daily_claim_day_164",
+    "title": "Daily Claim \u2014 Day 164",
+    "description": "Claim your Day 164 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 185
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 164
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_165",
+    "gcIdentifier": "daily_claim_day_165",
+    "title": "Daily Claim \u2014 Day 165",
+    "description": "Claim your Day 165 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 195
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 165
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_166",
+    "gcIdentifier": "daily_claim_day_166",
+    "title": "Daily Claim \u2014 Day 166",
+    "description": "Claim your Day 166 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 205
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 166
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_167",
+    "gcIdentifier": "daily_claim_day_167",
+    "title": "Daily Claim \u2014 Day 167",
+    "description": "Claim your Day 167 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 215
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 167
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_168",
+    "gcIdentifier": "daily_claim_day_168",
+    "title": "Daily Claim \u2014 Day 168",
+    "description": "Claim your Day 168 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 265,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 168
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_169",
+    "gcIdentifier": "daily_claim_day_169",
+    "title": "Daily Claim \u2014 Day 169",
+    "description": "Claim your Day 169 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 170
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 169
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_170",
+    "gcIdentifier": "daily_claim_day_170",
+    "title": "Daily Claim \u2014 Day 170",
+    "description": "Claim your Day 170 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 180
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 170
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_171",
+    "gcIdentifier": "daily_claim_day_171",
+    "title": "Daily Claim \u2014 Day 171",
+    "description": "Claim your Day 171 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 190
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 171
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_172",
+    "gcIdentifier": "daily_claim_day_172",
+    "title": "Daily Claim \u2014 Day 172",
+    "description": "Claim your Day 172 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 200
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 172
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_173",
+    "gcIdentifier": "daily_claim_day_173",
+    "title": "Daily Claim \u2014 Day 173",
+    "description": "Claim your Day 173 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 210
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 173
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_174",
+    "gcIdentifier": "daily_claim_day_174",
+    "title": "Daily Claim \u2014 Day 174",
+    "description": "Claim your Day 174 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 220
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 174
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_175",
+    "gcIdentifier": "daily_claim_day_175",
+    "title": "Daily Claim \u2014 Day 175",
+    "description": "Claim your Day 175 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 270,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 175
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_176",
+    "gcIdentifier": "daily_claim_day_176",
+    "title": "Daily Claim \u2014 Day 176",
+    "description": "Claim your Day 176 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 175
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 176
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_177",
+    "gcIdentifier": "daily_claim_day_177",
+    "title": "Daily Claim \u2014 Day 177",
+    "description": "Claim your Day 177 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 185
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 177
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_178",
+    "gcIdentifier": "daily_claim_day_178",
+    "title": "Daily Claim \u2014 Day 178",
+    "description": "Claim your Day 178 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 195
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 178
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_179",
+    "gcIdentifier": "daily_claim_day_179",
+    "title": "Daily Claim \u2014 Day 179",
+    "description": "Claim your Day 179 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 205
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 179
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_180",
+    "gcIdentifier": "daily_claim_day_180",
+    "title": "Daily Claim \u2014 Day 180",
+    "description": "Claim your Day 180 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 415,
+      "hammers": 2,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 180
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_181",
+    "gcIdentifier": "daily_claim_day_181",
+    "title": "Daily Claim \u2014 Day 181",
+    "description": "Claim your Day 181 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 225
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 181
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_182",
+    "gcIdentifier": "daily_claim_day_182",
+    "title": "Daily Claim \u2014 Day 182",
+    "description": "Claim your Day 182 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 275,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 182
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_183",
+    "gcIdentifier": "daily_claim_day_183",
+    "title": "Daily Claim \u2014 Day 183",
+    "description": "Claim your Day 183 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 180
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 183
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_184",
+    "gcIdentifier": "daily_claim_day_184",
+    "title": "Daily Claim \u2014 Day 184",
+    "description": "Claim your Day 184 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 190
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 184
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_185",
+    "gcIdentifier": "daily_claim_day_185",
+    "title": "Daily Claim \u2014 Day 185",
+    "description": "Claim your Day 185 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 200
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 185
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_186",
+    "gcIdentifier": "daily_claim_day_186",
+    "title": "Daily Claim \u2014 Day 186",
+    "description": "Claim your Day 186 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 210
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 186
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_187",
+    "gcIdentifier": "daily_claim_day_187",
+    "title": "Daily Claim \u2014 Day 187",
+    "description": "Claim your Day 187 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 220
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 187
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_188",
+    "gcIdentifier": "daily_claim_day_188",
+    "title": "Daily Claim \u2014 Day 188",
+    "description": "Claim your Day 188 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 230
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 188
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_189",
+    "gcIdentifier": "daily_claim_day_189",
+    "title": "Daily Claim \u2014 Day 189",
+    "description": "Claim your Day 189 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 280,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 189
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_190",
+    "gcIdentifier": "daily_claim_day_190",
+    "title": "Daily Claim \u2014 Day 190",
+    "description": "Claim your Day 190 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 185
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 190
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_191",
+    "gcIdentifier": "daily_claim_day_191",
+    "title": "Daily Claim \u2014 Day 191",
+    "description": "Claim your Day 191 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 195
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 191
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_192",
+    "gcIdentifier": "daily_claim_day_192",
+    "title": "Daily Claim \u2014 Day 192",
+    "description": "Claim your Day 192 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 205
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 192
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_193",
+    "gcIdentifier": "daily_claim_day_193",
+    "title": "Daily Claim \u2014 Day 193",
+    "description": "Claim your Day 193 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 215
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 193
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_194",
+    "gcIdentifier": "daily_claim_day_194",
+    "title": "Daily Claim \u2014 Day 194",
+    "description": "Claim your Day 194 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 225
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 194
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_195",
+    "gcIdentifier": "daily_claim_day_195",
+    "title": "Daily Claim \u2014 Day 195",
+    "description": "Claim your Day 195 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 235
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 195
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_196",
+    "gcIdentifier": "daily_claim_day_196",
+    "title": "Daily Claim \u2014 Day 196",
+    "description": "Claim your Day 196 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 285,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 196
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_197",
+    "gcIdentifier": "daily_claim_day_197",
+    "title": "Daily Claim \u2014 Day 197",
+    "description": "Claim your Day 197 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 190
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 197
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_198",
+    "gcIdentifier": "daily_claim_day_198",
+    "title": "Daily Claim \u2014 Day 198",
+    "description": "Claim your Day 198 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 200
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 198
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_199",
+    "gcIdentifier": "daily_claim_day_199",
+    "title": "Daily Claim \u2014 Day 199",
+    "description": "Claim your Day 199 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 210
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 199
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_200",
+    "gcIdentifier": "daily_claim_day_200",
+    "title": "Daily Claim \u2014 Day 200",
+    "description": "Claim your Day 200 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 220
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 200
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_201",
+    "gcIdentifier": "daily_claim_day_201",
+    "title": "Daily Claim \u2014 Day 201",
+    "description": "Claim your Day 201 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 230
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 201
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_202",
+    "gcIdentifier": "daily_claim_day_202",
+    "title": "Daily Claim \u2014 Day 202",
+    "description": "Claim your Day 202 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 240
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 202
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_203",
+    "gcIdentifier": "daily_claim_day_203",
+    "title": "Daily Claim \u2014 Day 203",
+    "description": "Claim your Day 203 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 290,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 203
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_204",
+    "gcIdentifier": "daily_claim_day_204",
+    "title": "Daily Claim \u2014 Day 204",
+    "description": "Claim your Day 204 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 195
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 204
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_205",
+    "gcIdentifier": "daily_claim_day_205",
+    "title": "Daily Claim \u2014 Day 205",
+    "description": "Claim your Day 205 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 205
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 205
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_206",
+    "gcIdentifier": "daily_claim_day_206",
+    "title": "Daily Claim \u2014 Day 206",
+    "description": "Claim your Day 206 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 215
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 206
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_207",
+    "gcIdentifier": "daily_claim_day_207",
+    "title": "Daily Claim \u2014 Day 207",
+    "description": "Claim your Day 207 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 225
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 207
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_208",
+    "gcIdentifier": "daily_claim_day_208",
+    "title": "Daily Claim \u2014 Day 208",
+    "description": "Claim your Day 208 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 235
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 208
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_209",
+    "gcIdentifier": "daily_claim_day_209",
+    "title": "Daily Claim \u2014 Day 209",
+    "description": "Claim your Day 209 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 245
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 209
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_210",
+    "gcIdentifier": "daily_claim_day_210",
+    "title": "Daily Claim \u2014 Day 210",
+    "description": "Claim your Day 210 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 295,
+      "spins": 1,
+      "magnets": 1,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 210
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_211",
+    "gcIdentifier": "daily_claim_day_211",
+    "title": "Daily Claim \u2014 Day 211",
+    "description": "Claim your Day 211 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 200
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 211
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_212",
+    "gcIdentifier": "daily_claim_day_212",
+    "title": "Daily Claim \u2014 Day 212",
+    "description": "Claim your Day 212 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 210
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 212
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_213",
+    "gcIdentifier": "daily_claim_day_213",
+    "title": "Daily Claim \u2014 Day 213",
+    "description": "Claim your Day 213 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 220
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 213
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_214",
+    "gcIdentifier": "daily_claim_day_214",
+    "title": "Daily Claim \u2014 Day 214",
+    "description": "Claim your Day 214 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 230
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 214
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_215",
+    "gcIdentifier": "daily_claim_day_215",
+    "title": "Daily Claim \u2014 Day 215",
+    "description": "Claim your Day 215 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 240
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 215
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_216",
+    "gcIdentifier": "daily_claim_day_216",
+    "title": "Daily Claim \u2014 Day 216",
+    "description": "Claim your Day 216 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 250
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 216
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_217",
+    "gcIdentifier": "daily_claim_day_217",
+    "title": "Daily Claim \u2014 Day 217",
+    "description": "Claim your Day 217 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 300,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 217
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_218",
+    "gcIdentifier": "daily_claim_day_218",
+    "title": "Daily Claim \u2014 Day 218",
+    "description": "Claim your Day 218 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 205
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 218
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_219",
+    "gcIdentifier": "daily_claim_day_219",
+    "title": "Daily Claim \u2014 Day 219",
+    "description": "Claim your Day 219 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 215
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 219
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_220",
+    "gcIdentifier": "daily_claim_day_220",
+    "title": "Daily Claim \u2014 Day 220",
+    "description": "Claim your Day 220 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 225
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 220
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_221",
+    "gcIdentifier": "daily_claim_day_221",
+    "title": "Daily Claim \u2014 Day 221",
+    "description": "Claim your Day 221 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 235
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 221
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_222",
+    "gcIdentifier": "daily_claim_day_222",
+    "title": "Daily Claim \u2014 Day 222",
+    "description": "Claim your Day 222 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 245
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 222
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_223",
+    "gcIdentifier": "daily_claim_day_223",
+    "title": "Daily Claim \u2014 Day 223",
+    "description": "Claim your Day 223 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 255
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 223
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_224",
+    "gcIdentifier": "daily_claim_day_224",
+    "title": "Daily Claim \u2014 Day 224",
+    "description": "Claim your Day 224 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 305,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 224
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_225",
+    "gcIdentifier": "daily_claim_day_225",
+    "title": "Daily Claim \u2014 Day 225",
+    "description": "Claim your Day 225 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 210
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 225
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_226",
+    "gcIdentifier": "daily_claim_day_226",
+    "title": "Daily Claim \u2014 Day 226",
+    "description": "Claim your Day 226 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 220
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 226
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_227",
+    "gcIdentifier": "daily_claim_day_227",
+    "title": "Daily Claim \u2014 Day 227",
+    "description": "Claim your Day 227 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 230
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 227
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_228",
+    "gcIdentifier": "daily_claim_day_228",
+    "title": "Daily Claim \u2014 Day 228",
+    "description": "Claim your Day 228 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 240
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 228
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_229",
+    "gcIdentifier": "daily_claim_day_229",
+    "title": "Daily Claim \u2014 Day 229",
+    "description": "Claim your Day 229 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 250
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 229
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_230",
+    "gcIdentifier": "daily_claim_day_230",
+    "title": "Daily Claim \u2014 Day 230",
+    "description": "Claim your Day 230 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 260
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 230
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_231",
+    "gcIdentifier": "daily_claim_day_231",
+    "title": "Daily Claim \u2014 Day 231",
+    "description": "Claim your Day 231 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 310,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 231
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_232",
+    "gcIdentifier": "daily_claim_day_232",
+    "title": "Daily Claim \u2014 Day 232",
+    "description": "Claim your Day 232 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 215
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 232
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_233",
+    "gcIdentifier": "daily_claim_day_233",
+    "title": "Daily Claim \u2014 Day 233",
+    "description": "Claim your Day 233 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 225
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 233
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_234",
+    "gcIdentifier": "daily_claim_day_234",
+    "title": "Daily Claim \u2014 Day 234",
+    "description": "Claim your Day 234 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 235
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 234
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_235",
+    "gcIdentifier": "daily_claim_day_235",
+    "title": "Daily Claim \u2014 Day 235",
+    "description": "Claim your Day 235 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 245
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 235
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_236",
+    "gcIdentifier": "daily_claim_day_236",
+    "title": "Daily Claim \u2014 Day 236",
+    "description": "Claim your Day 236 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 255
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 236
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_237",
+    "gcIdentifier": "daily_claim_day_237",
+    "title": "Daily Claim \u2014 Day 237",
+    "description": "Claim your Day 237 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 265
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 237
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_238",
+    "gcIdentifier": "daily_claim_day_238",
+    "title": "Daily Claim \u2014 Day 238",
+    "description": "Claim your Day 238 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 315,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 238
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_239",
+    "gcIdentifier": "daily_claim_day_239",
+    "title": "Daily Claim \u2014 Day 239",
+    "description": "Claim your Day 239 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 220
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 239
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_240",
+    "gcIdentifier": "daily_claim_day_240",
+    "title": "Daily Claim \u2014 Day 240",
+    "description": "Claim your Day 240 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 230,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 240
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_241",
+    "gcIdentifier": "daily_claim_day_241",
+    "title": "Daily Claim \u2014 Day 241",
+    "description": "Claim your Day 241 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 240
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 241
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_242",
+    "gcIdentifier": "daily_claim_day_242",
+    "title": "Daily Claim \u2014 Day 242",
+    "description": "Claim your Day 242 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 250
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 242
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_243",
+    "gcIdentifier": "daily_claim_day_243",
+    "title": "Daily Claim \u2014 Day 243",
+    "description": "Claim your Day 243 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 260
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 243
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_244",
+    "gcIdentifier": "daily_claim_day_244",
+    "title": "Daily Claim \u2014 Day 244",
+    "description": "Claim your Day 244 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 270
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 244
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_245",
+    "gcIdentifier": "daily_claim_day_245",
+    "title": "Daily Claim \u2014 Day 245",
+    "description": "Claim your Day 245 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 320,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 245
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_246",
+    "gcIdentifier": "daily_claim_day_246",
+    "title": "Daily Claim \u2014 Day 246",
+    "description": "Claim your Day 246 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 225
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 246
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_247",
+    "gcIdentifier": "daily_claim_day_247",
+    "title": "Daily Claim \u2014 Day 247",
+    "description": "Claim your Day 247 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 235
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 247
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_248",
+    "gcIdentifier": "daily_claim_day_248",
+    "title": "Daily Claim \u2014 Day 248",
+    "description": "Claim your Day 248 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 245
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 248
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_249",
+    "gcIdentifier": "daily_claim_day_249",
+    "title": "Daily Claim \u2014 Day 249",
+    "description": "Claim your Day 249 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 255
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 249
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_250",
+    "gcIdentifier": "daily_claim_day_250",
+    "title": "Daily Claim \u2014 Day 250",
+    "description": "Claim your Day 250 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 265
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 250
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_251",
+    "gcIdentifier": "daily_claim_day_251",
+    "title": "Daily Claim \u2014 Day 251",
+    "description": "Claim your Day 251 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 275
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 251
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_252",
+    "gcIdentifier": "daily_claim_day_252",
+    "title": "Daily Claim \u2014 Day 252",
+    "description": "Claim your Day 252 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 325,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 252
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_253",
+    "gcIdentifier": "daily_claim_day_253",
+    "title": "Daily Claim \u2014 Day 253",
+    "description": "Claim your Day 253 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 230
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 253
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_254",
+    "gcIdentifier": "daily_claim_day_254",
+    "title": "Daily Claim \u2014 Day 254",
+    "description": "Claim your Day 254 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 240
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 254
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_255",
+    "gcIdentifier": "daily_claim_day_255",
+    "title": "Daily Claim \u2014 Day 255",
+    "description": "Claim your Day 255 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 250
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 255
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_256",
+    "gcIdentifier": "daily_claim_day_256",
+    "title": "Daily Claim \u2014 Day 256",
+    "description": "Claim your Day 256 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 260
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 256
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_257",
+    "gcIdentifier": "daily_claim_day_257",
+    "title": "Daily Claim \u2014 Day 257",
+    "description": "Claim your Day 257 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 270
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 257
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_258",
+    "gcIdentifier": "daily_claim_day_258",
+    "title": "Daily Claim \u2014 Day 258",
+    "description": "Claim your Day 258 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 280
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 258
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_259",
+    "gcIdentifier": "daily_claim_day_259",
+    "title": "Daily Claim \u2014 Day 259",
+    "description": "Claim your Day 259 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 330,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 259
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_260",
+    "gcIdentifier": "daily_claim_day_260",
+    "title": "Daily Claim \u2014 Day 260",
+    "description": "Claim your Day 260 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 235
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 260
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_261",
+    "gcIdentifier": "daily_claim_day_261",
+    "title": "Daily Claim \u2014 Day 261",
+    "description": "Claim your Day 261 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 245
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 261
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_262",
+    "gcIdentifier": "daily_claim_day_262",
+    "title": "Daily Claim \u2014 Day 262",
+    "description": "Claim your Day 262 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 255
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 262
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_263",
+    "gcIdentifier": "daily_claim_day_263",
+    "title": "Daily Claim \u2014 Day 263",
+    "description": "Claim your Day 263 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 265
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 263
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_264",
+    "gcIdentifier": "daily_claim_day_264",
+    "title": "Daily Claim \u2014 Day 264",
+    "description": "Claim your Day 264 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 275
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 264
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_265",
+    "gcIdentifier": "daily_claim_day_265",
+    "title": "Daily Claim \u2014 Day 265",
+    "description": "Claim your Day 265 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 285
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 265
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_266",
+    "gcIdentifier": "daily_claim_day_266",
+    "title": "Daily Claim \u2014 Day 266",
+    "description": "Claim your Day 266 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 335,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 266
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_267",
+    "gcIdentifier": "daily_claim_day_267",
+    "title": "Daily Claim \u2014 Day 267",
+    "description": "Claim your Day 267 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 240
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 267
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_268",
+    "gcIdentifier": "daily_claim_day_268",
+    "title": "Daily Claim \u2014 Day 268",
+    "description": "Claim your Day 268 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 250
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 268
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_269",
+    "gcIdentifier": "daily_claim_day_269",
+    "title": "Daily Claim \u2014 Day 269",
+    "description": "Claim your Day 269 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 260
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 269
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_270",
+    "gcIdentifier": "daily_claim_day_270",
+    "title": "Daily Claim \u2014 Day 270",
+    "description": "Claim your Day 270 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 470,
+      "hammers": 2,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 270
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_271",
+    "gcIdentifier": "daily_claim_day_271",
+    "title": "Daily Claim \u2014 Day 271",
+    "description": "Claim your Day 271 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 280
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 271
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_272",
+    "gcIdentifier": "daily_claim_day_272",
+    "title": "Daily Claim \u2014 Day 272",
+    "description": "Claim your Day 272 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 290
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 272
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_273",
+    "gcIdentifier": "daily_claim_day_273",
+    "title": "Daily Claim \u2014 Day 273",
+    "description": "Claim your Day 273 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 340,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 273
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_274",
+    "gcIdentifier": "daily_claim_day_274",
+    "title": "Daily Claim \u2014 Day 274",
+    "description": "Claim your Day 274 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 245
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 274
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_275",
+    "gcIdentifier": "daily_claim_day_275",
+    "title": "Daily Claim \u2014 Day 275",
+    "description": "Claim your Day 275 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 255
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 275
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_276",
+    "gcIdentifier": "daily_claim_day_276",
+    "title": "Daily Claim \u2014 Day 276",
+    "description": "Claim your Day 276 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 265
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 276
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_277",
+    "gcIdentifier": "daily_claim_day_277",
+    "title": "Daily Claim \u2014 Day 277",
+    "description": "Claim your Day 277 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 275
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 277
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_278",
+    "gcIdentifier": "daily_claim_day_278",
+    "title": "Daily Claim \u2014 Day 278",
+    "description": "Claim your Day 278 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 285
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 278
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_279",
+    "gcIdentifier": "daily_claim_day_279",
+    "title": "Daily Claim \u2014 Day 279",
+    "description": "Claim your Day 279 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 295
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 279
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_280",
+    "gcIdentifier": "daily_claim_day_280",
+    "title": "Daily Claim \u2014 Day 280",
+    "description": "Claim your Day 280 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 345,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 280
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_281",
+    "gcIdentifier": "daily_claim_day_281",
+    "title": "Daily Claim \u2014 Day 281",
+    "description": "Claim your Day 281 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 250
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 281
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_282",
+    "gcIdentifier": "daily_claim_day_282",
+    "title": "Daily Claim \u2014 Day 282",
+    "description": "Claim your Day 282 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 260
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 282
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_283",
+    "gcIdentifier": "daily_claim_day_283",
+    "title": "Daily Claim \u2014 Day 283",
+    "description": "Claim your Day 283 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 270
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 283
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_284",
+    "gcIdentifier": "daily_claim_day_284",
+    "title": "Daily Claim \u2014 Day 284",
+    "description": "Claim your Day 284 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 280
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 284
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_285",
+    "gcIdentifier": "daily_claim_day_285",
+    "title": "Daily Claim \u2014 Day 285",
+    "description": "Claim your Day 285 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 290
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 285
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_286",
+    "gcIdentifier": "daily_claim_day_286",
+    "title": "Daily Claim \u2014 Day 286",
+    "description": "Claim your Day 286 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 300
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 286
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_287",
+    "gcIdentifier": "daily_claim_day_287",
+    "title": "Daily Claim \u2014 Day 287",
+    "description": "Claim your Day 287 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 350,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 287
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_288",
+    "gcIdentifier": "daily_claim_day_288",
+    "title": "Daily Claim \u2014 Day 288",
+    "description": "Claim your Day 288 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 255
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 288
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_289",
+    "gcIdentifier": "daily_claim_day_289",
+    "title": "Daily Claim \u2014 Day 289",
+    "description": "Claim your Day 289 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 265
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 289
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_290",
+    "gcIdentifier": "daily_claim_day_290",
+    "title": "Daily Claim \u2014 Day 290",
+    "description": "Claim your Day 290 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 275
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 290
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_291",
+    "gcIdentifier": "daily_claim_day_291",
+    "title": "Daily Claim \u2014 Day 291",
+    "description": "Claim your Day 291 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 285
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 291
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_292",
+    "gcIdentifier": "daily_claim_day_292",
+    "title": "Daily Claim \u2014 Day 292",
+    "description": "Claim your Day 292 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 295
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 292
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_293",
+    "gcIdentifier": "daily_claim_day_293",
+    "title": "Daily Claim \u2014 Day 293",
+    "description": "Claim your Day 293 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 305
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 293
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_294",
+    "gcIdentifier": "daily_claim_day_294",
+    "title": "Daily Claim \u2014 Day 294",
+    "description": "Claim your Day 294 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 355,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 294
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_295",
+    "gcIdentifier": "daily_claim_day_295",
+    "title": "Daily Claim \u2014 Day 295",
+    "description": "Claim your Day 295 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 260
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 295
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_296",
+    "gcIdentifier": "daily_claim_day_296",
+    "title": "Daily Claim \u2014 Day 296",
+    "description": "Claim your Day 296 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 270
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 296
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_297",
+    "gcIdentifier": "daily_claim_day_297",
+    "title": "Daily Claim \u2014 Day 297",
+    "description": "Claim your Day 297 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 280
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 297
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_298",
+    "gcIdentifier": "daily_claim_day_298",
+    "title": "Daily Claim \u2014 Day 298",
+    "description": "Claim your Day 298 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 290
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 298
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_299",
+    "gcIdentifier": "daily_claim_day_299",
+    "title": "Daily Claim \u2014 Day 299",
+    "description": "Claim your Day 299 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 300
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 299
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_300",
+    "gcIdentifier": "daily_claim_day_300",
+    "title": "Daily Claim \u2014 Day 300",
+    "description": "Claim your Day 300 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 310,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 300
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_301",
+    "gcIdentifier": "daily_claim_day_301",
+    "title": "Daily Claim \u2014 Day 301",
+    "description": "Claim your Day 301 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 360,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 301
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_302",
+    "gcIdentifier": "daily_claim_day_302",
+    "title": "Daily Claim \u2014 Day 302",
+    "description": "Claim your Day 302 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 265
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 302
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_303",
+    "gcIdentifier": "daily_claim_day_303",
+    "title": "Daily Claim \u2014 Day 303",
+    "description": "Claim your Day 303 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 275
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 303
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_304",
+    "gcIdentifier": "daily_claim_day_304",
+    "title": "Daily Claim \u2014 Day 304",
+    "description": "Claim your Day 304 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 285
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 304
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_305",
+    "gcIdentifier": "daily_claim_day_305",
+    "title": "Daily Claim \u2014 Day 305",
+    "description": "Claim your Day 305 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 295
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 305
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_306",
+    "gcIdentifier": "daily_claim_day_306",
+    "title": "Daily Claim \u2014 Day 306",
+    "description": "Claim your Day 306 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 305
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 306
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_307",
+    "gcIdentifier": "daily_claim_day_307",
+    "title": "Daily Claim \u2014 Day 307",
+    "description": "Claim your Day 307 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 315
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 307
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_308",
+    "gcIdentifier": "daily_claim_day_308",
+    "title": "Daily Claim \u2014 Day 308",
+    "description": "Claim your Day 308 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 365,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 308
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_309",
+    "gcIdentifier": "daily_claim_day_309",
+    "title": "Daily Claim \u2014 Day 309",
+    "description": "Claim your Day 309 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 270
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 309
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_310",
+    "gcIdentifier": "daily_claim_day_310",
+    "title": "Daily Claim \u2014 Day 310",
+    "description": "Claim your Day 310 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 280
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 310
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_311",
+    "gcIdentifier": "daily_claim_day_311",
+    "title": "Daily Claim \u2014 Day 311",
+    "description": "Claim your Day 311 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 290
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 311
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_312",
+    "gcIdentifier": "daily_claim_day_312",
+    "title": "Daily Claim \u2014 Day 312",
+    "description": "Claim your Day 312 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 300
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 312
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_313",
+    "gcIdentifier": "daily_claim_day_313",
+    "title": "Daily Claim \u2014 Day 313",
+    "description": "Claim your Day 313 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 310
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 313
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_314",
+    "gcIdentifier": "daily_claim_day_314",
+    "title": "Daily Claim \u2014 Day 314",
+    "description": "Claim your Day 314 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 320
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 314
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_315",
+    "gcIdentifier": "daily_claim_day_315",
+    "title": "Daily Claim \u2014 Day 315",
+    "description": "Claim your Day 315 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 370,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 315
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_316",
+    "gcIdentifier": "daily_claim_day_316",
+    "title": "Daily Claim \u2014 Day 316",
+    "description": "Claim your Day 316 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 275
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 316
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_317",
+    "gcIdentifier": "daily_claim_day_317",
+    "title": "Daily Claim \u2014 Day 317",
+    "description": "Claim your Day 317 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 285
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 317
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_318",
+    "gcIdentifier": "daily_claim_day_318",
+    "title": "Daily Claim \u2014 Day 318",
+    "description": "Claim your Day 318 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 295
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 318
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_319",
+    "gcIdentifier": "daily_claim_day_319",
+    "title": "Daily Claim \u2014 Day 319",
+    "description": "Claim your Day 319 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 305
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 319
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_320",
+    "gcIdentifier": "daily_claim_day_320",
+    "title": "Daily Claim \u2014 Day 320",
+    "description": "Claim your Day 320 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 315
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 320
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_321",
+    "gcIdentifier": "daily_claim_day_321",
+    "title": "Daily Claim \u2014 Day 321",
+    "description": "Claim your Day 321 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 325
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 321
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_322",
+    "gcIdentifier": "daily_claim_day_322",
+    "title": "Daily Claim \u2014 Day 322",
+    "description": "Claim your Day 322 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 375,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 322
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_323",
+    "gcIdentifier": "daily_claim_day_323",
+    "title": "Daily Claim \u2014 Day 323",
+    "description": "Claim your Day 323 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 280
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 323
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_324",
+    "gcIdentifier": "daily_claim_day_324",
+    "title": "Daily Claim \u2014 Day 324",
+    "description": "Claim your Day 324 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 290
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 324
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_325",
+    "gcIdentifier": "daily_claim_day_325",
+    "title": "Daily Claim \u2014 Day 325",
+    "description": "Claim your Day 325 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 300
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 325
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_326",
+    "gcIdentifier": "daily_claim_day_326",
+    "title": "Daily Claim \u2014 Day 326",
+    "description": "Claim your Day 326 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 310
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 326
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_327",
+    "gcIdentifier": "daily_claim_day_327",
+    "title": "Daily Claim \u2014 Day 327",
+    "description": "Claim your Day 327 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 320
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 327
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_328",
+    "gcIdentifier": "daily_claim_day_328",
+    "title": "Daily Claim \u2014 Day 328",
+    "description": "Claim your Day 328 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 330
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 328
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_329",
+    "gcIdentifier": "daily_claim_day_329",
+    "title": "Daily Claim \u2014 Day 329",
+    "description": "Claim your Day 329 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 380,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 329
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_330",
+    "gcIdentifier": "daily_claim_day_330",
+    "title": "Daily Claim \u2014 Day 330",
+    "description": "Claim your Day 330 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 285,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 330
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_331",
+    "gcIdentifier": "daily_claim_day_331",
+    "title": "Daily Claim \u2014 Day 331",
+    "description": "Claim your Day 331 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 295
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 331
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_332",
+    "gcIdentifier": "daily_claim_day_332",
+    "title": "Daily Claim \u2014 Day 332",
+    "description": "Claim your Day 332 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 305
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 332
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_333",
+    "gcIdentifier": "daily_claim_day_333",
+    "title": "Daily Claim \u2014 Day 333",
+    "description": "Claim your Day 333 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 315
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 333
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_334",
+    "gcIdentifier": "daily_claim_day_334",
+    "title": "Daily Claim \u2014 Day 334",
+    "description": "Claim your Day 334 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 325
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 334
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_335",
+    "gcIdentifier": "daily_claim_day_335",
+    "title": "Daily Claim \u2014 Day 335",
+    "description": "Claim your Day 335 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 335
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 335
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_336",
+    "gcIdentifier": "daily_claim_day_336",
+    "title": "Daily Claim \u2014 Day 336",
+    "description": "Claim your Day 336 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 385,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 336
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_337",
+    "gcIdentifier": "daily_claim_day_337",
+    "title": "Daily Claim \u2014 Day 337",
+    "description": "Claim your Day 337 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 290
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 337
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_338",
+    "gcIdentifier": "daily_claim_day_338",
+    "title": "Daily Claim \u2014 Day 338",
+    "description": "Claim your Day 338 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 300
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 338
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_339",
+    "gcIdentifier": "daily_claim_day_339",
+    "title": "Daily Claim \u2014 Day 339",
+    "description": "Claim your Day 339 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 310
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 339
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_340",
+    "gcIdentifier": "daily_claim_day_340",
+    "title": "Daily Claim \u2014 Day 340",
+    "description": "Claim your Day 340 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 320
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 340
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_341",
+    "gcIdentifier": "daily_claim_day_341",
+    "title": "Daily Claim \u2014 Day 341",
+    "description": "Claim your Day 341 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 330
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 341
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_342",
+    "gcIdentifier": "daily_claim_day_342",
+    "title": "Daily Claim \u2014 Day 342",
+    "description": "Claim your Day 342 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 340
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 342
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_343",
+    "gcIdentifier": "daily_claim_day_343",
+    "title": "Daily Claim \u2014 Day 343",
+    "description": "Claim your Day 343 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 390,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 343
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_344",
+    "gcIdentifier": "daily_claim_day_344",
+    "title": "Daily Claim \u2014 Day 344",
+    "description": "Claim your Day 344 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 295
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 344
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_345",
+    "gcIdentifier": "daily_claim_day_345",
+    "title": "Daily Claim \u2014 Day 345",
+    "description": "Claim your Day 345 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 305
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 345
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_346",
+    "gcIdentifier": "daily_claim_day_346",
+    "title": "Daily Claim \u2014 Day 346",
+    "description": "Claim your Day 346 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 315
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 346
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_347",
+    "gcIdentifier": "daily_claim_day_347",
+    "title": "Daily Claim \u2014 Day 347",
+    "description": "Claim your Day 347 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 325
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 347
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_348",
+    "gcIdentifier": "daily_claim_day_348",
+    "title": "Daily Claim \u2014 Day 348",
+    "description": "Claim your Day 348 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 335
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 348
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_349",
+    "gcIdentifier": "daily_claim_day_349",
+    "title": "Daily Claim \u2014 Day 349",
+    "description": "Claim your Day 349 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 345
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 349
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_350",
+    "gcIdentifier": "daily_claim_day_350",
+    "title": "Daily Claim \u2014 Day 350",
+    "description": "Claim your Day 350 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 395,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 350
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_351",
+    "gcIdentifier": "daily_claim_day_351",
+    "title": "Daily Claim \u2014 Day 351",
+    "description": "Claim your Day 351 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 300
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 351
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_352",
+    "gcIdentifier": "daily_claim_day_352",
+    "title": "Daily Claim \u2014 Day 352",
+    "description": "Claim your Day 352 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 310
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 352
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_353",
+    "gcIdentifier": "daily_claim_day_353",
+    "title": "Daily Claim \u2014 Day 353",
+    "description": "Claim your Day 353 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 320
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 353
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_354",
+    "gcIdentifier": "daily_claim_day_354",
+    "title": "Daily Claim \u2014 Day 354",
+    "description": "Claim your Day 354 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 330
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 354
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_355",
+    "gcIdentifier": "daily_claim_day_355",
+    "title": "Daily Claim \u2014 Day 355",
+    "description": "Claim your Day 355 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 340
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 355
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_356",
+    "gcIdentifier": "daily_claim_day_356",
+    "title": "Daily Claim \u2014 Day 356",
+    "description": "Claim your Day 356 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 350
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 356
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_357",
+    "gcIdentifier": "daily_claim_day_357",
+    "title": "Daily Claim \u2014 Day 357",
+    "description": "Claim your Day 357 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 400,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 357
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_358",
+    "gcIdentifier": "daily_claim_day_358",
+    "title": "Daily Claim \u2014 Day 358",
+    "description": "Claim your Day 358 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 305
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 358
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_359",
+    "gcIdentifier": "daily_claim_day_359",
+    "title": "Daily Claim \u2014 Day 359",
+    "description": "Claim your Day 359 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 315
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 359
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_360",
+    "gcIdentifier": "daily_claim_day_360",
+    "title": "Daily Claim \u2014 Day 360",
+    "description": "Claim your Day 360 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 325,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 360
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_361",
+    "gcIdentifier": "daily_claim_day_361",
+    "title": "Daily Claim \u2014 Day 361",
+    "description": "Claim your Day 361 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 335
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 361
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_362",
+    "gcIdentifier": "daily_claim_day_362",
+    "title": "Daily Claim \u2014 Day 362",
+    "description": "Claim your Day 362 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 345
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 362
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_363",
+    "gcIdentifier": "daily_claim_day_363",
+    "title": "Daily Claim \u2014 Day 363",
+    "description": "Claim your Day 363 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 355
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 363
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_364",
+    "gcIdentifier": "daily_claim_day_364",
+    "title": "Daily Claim \u2014 Day 364",
+    "description": "Claim your Day 364 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 405,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 364
+      }
+    ]
+  },
+  {
+    "id": "daily_claim_day_365",
+    "gcIdentifier": "daily_claim_day_365",
+    "title": "Daily Claim \u2014 Day 365",
+    "description": "Claim your Day 365 daily reward.",
+    "category": "DailyClaim",
+    "rewards": {
+      "gems": 810,
+      "spins": 3,
+      "hammers": 2,
+      "magnets": 3
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claim_available",
+        "op": "==",
+        "value": 1
+      },
+      {
+        "field": "claim_day_index",
+        "op": "==",
+        "value": 365
+      }
+    ]
+  }
+]

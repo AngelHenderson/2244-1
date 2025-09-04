@@ -10,6 +10,9 @@ public struct RootGameView: View {
     @Environment(\.tileJourney) private var journey
     @State private var isPlaying = false
     @State private var hasLoadedInitialState = false
+    @State private var showDailyClaims = false
+    @State private var showDailyStreaks = false
+    @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     
     // Progress management
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
@@ -46,6 +49,16 @@ public struct RootGameView: View {
                     .task {
                         // Load saved progress when Home appears
                         await loadProgressWithCoordinator()
+                        // Update daily claims availability
+                        dailyClaimsStore.updateAvailability()
+                    }
+                    .sheet(isPresented: $showDailyClaims) {
+                        DailyClaimsView()
+                            .environment(dailyClaimsStore)
+                    }
+                    .sheet(isPresented: $showDailyStreaks) {
+                        DailyStreaksView()
+                            .environment(dailyClaimsStore)
                     }
             }
         }
@@ -80,7 +93,7 @@ public struct RootGameView: View {
             },
             openDaily: {
                 print("Open Daily")
-                // TODO: Implement daily rewards
+                showDailyClaims = true
             },
             openFreeSpin: {
                 print("Open Free Spin")

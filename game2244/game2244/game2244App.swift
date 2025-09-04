@@ -26,6 +26,7 @@ struct game2244App: App {
     @State private var isPlaying: Bool = false
     @State private var storageService = UserDefaultsStorageService()
     @State private var achievementStore = AchievementStore()
+    @State private var dailyClaimsStore = DailyClaimsStore()
     
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
@@ -42,6 +43,7 @@ struct game2244App: App {
                 .environment(\.tileJourney, gameStore.journey)
                 .environment(\.leaderboardClient, LeaderboardClient.gameCenter())
                 .environment(achievementStore)
+                .environment(dailyClaimsStore)
                 .task {
                     // Suppress simulator-specific warnings in console
                     if ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
@@ -86,6 +88,27 @@ struct game2244App: App {
                         // Note: spins would need separate tracking for wheel of fortune feature
                     }
                     gameStore.achievementEvaluator = evaluator
+                    
+                    // Setup daily claims reward handler
+                    dailyClaimsStore.onReward = { rewards in
+                        // Award gems
+                        if let gems = rewards.gems, gems > 0 {
+                            gameStore.coins += gems
+                            homeState.gems += gems
+                        }
+                        
+                        // Award powerups
+                        if let hammers = rewards.hammers, hammers > 0 {
+                            gameStore.addPowerUp("hammer", count: hammers)
+                        }
+                        if let magnets = rewards.magnets, magnets > 0 {
+                            gameStore.addPowerUp("magnet", count: magnets)
+                        }
+                        // Note: spins would need separate tracking for wheel of fortune feature
+                    }
+                    
+                    // Load daily claims catalogs
+                    await dailyClaimsStore.loadCatalogs()
                     
                     // Load initial progress
                     loadInitialProgress()

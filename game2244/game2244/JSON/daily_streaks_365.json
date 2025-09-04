@@ -1,0 +1,7036 @@
+[
+  {
+    "id": "daily_streak_day_001",
+    "gcIdentifier": "daily_streak_day_001",
+    "title": "Daily Streak \u2014 Day 1",
+    "description": "Reach a daily streak of 1 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 55
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_002",
+    "gcIdentifier": "daily_streak_day_002",
+    "title": "Daily Streak \u2014 Day 2",
+    "description": "Reach a daily streak of 2 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 60
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_003",
+    "gcIdentifier": "daily_streak_day_003",
+    "title": "Daily Streak \u2014 Day 3",
+    "description": "Reach a daily streak of 3 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 65
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_004",
+    "gcIdentifier": "daily_streak_day_004",
+    "title": "Daily Streak \u2014 Day 4",
+    "description": "Reach a daily streak of 4 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 70
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_005",
+    "gcIdentifier": "daily_streak_day_005",
+    "title": "Daily Streak \u2014 Day 5",
+    "description": "Reach a daily streak of 5 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 75
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_006",
+    "gcIdentifier": "daily_streak_day_006",
+    "title": "Daily Streak \u2014 Day 6",
+    "description": "Reach a daily streak of 6 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 80
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 6
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_007",
+    "gcIdentifier": "daily_streak_day_007",
+    "title": "Daily Streak \u2014 Day 7",
+    "description": "Reach a daily streak of 7 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 85,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 7
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_008",
+    "gcIdentifier": "daily_streak_day_008",
+    "title": "Daily Streak \u2014 Day 8",
+    "description": "Reach a daily streak of 8 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 90
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 8
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_009",
+    "gcIdentifier": "daily_streak_day_009",
+    "title": "Daily Streak \u2014 Day 9",
+    "description": "Reach a daily streak of 9 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 95
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 9
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_010",
+    "gcIdentifier": "daily_streak_day_010",
+    "title": "Daily Streak \u2014 Day 10",
+    "description": "Reach a daily streak of 10 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 100
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 10
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_011",
+    "gcIdentifier": "daily_streak_day_011",
+    "title": "Daily Streak \u2014 Day 11",
+    "description": "Reach a daily streak of 11 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 105
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 11
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_012",
+    "gcIdentifier": "daily_streak_day_012",
+    "title": "Daily Streak \u2014 Day 12",
+    "description": "Reach a daily streak of 12 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 110
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 12
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_013",
+    "gcIdentifier": "daily_streak_day_013",
+    "title": "Daily Streak \u2014 Day 13",
+    "description": "Reach a daily streak of 13 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 115
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 13
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_014",
+    "gcIdentifier": "daily_streak_day_014",
+    "title": "Daily Streak \u2014 Day 14",
+    "description": "Reach a daily streak of 14 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 120,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_015",
+    "gcIdentifier": "daily_streak_day_015",
+    "title": "Daily Streak \u2014 Day 15",
+    "description": "Reach a daily streak of 15 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 125
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 15
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_016",
+    "gcIdentifier": "daily_streak_day_016",
+    "title": "Daily Streak \u2014 Day 16",
+    "description": "Reach a daily streak of 16 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 130
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 16
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_017",
+    "gcIdentifier": "daily_streak_day_017",
+    "title": "Daily Streak \u2014 Day 17",
+    "description": "Reach a daily streak of 17 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 135
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 17
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_018",
+    "gcIdentifier": "daily_streak_day_018",
+    "title": "Daily Streak \u2014 Day 18",
+    "description": "Reach a daily streak of 18 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 140
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 18
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_019",
+    "gcIdentifier": "daily_streak_day_019",
+    "title": "Daily Streak \u2014 Day 19",
+    "description": "Reach a daily streak of 19 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 145
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 19
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_020",
+    "gcIdentifier": "daily_streak_day_020",
+    "title": "Daily Streak \u2014 Day 20",
+    "description": "Reach a daily streak of 20 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 150
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 20
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_021",
+    "gcIdentifier": "daily_streak_day_021",
+    "title": "Daily Streak \u2014 Day 21",
+    "description": "Reach a daily streak of 21 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 155,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 21
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_022",
+    "gcIdentifier": "daily_streak_day_022",
+    "title": "Daily Streak \u2014 Day 22",
+    "description": "Reach a daily streak of 22 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 160
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 22
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_023",
+    "gcIdentifier": "daily_streak_day_023",
+    "title": "Daily Streak \u2014 Day 23",
+    "description": "Reach a daily streak of 23 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 165
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 23
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_024",
+    "gcIdentifier": "daily_streak_day_024",
+    "title": "Daily Streak \u2014 Day 24",
+    "description": "Reach a daily streak of 24 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 170
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 24
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_025",
+    "gcIdentifier": "daily_streak_day_025",
+    "title": "Daily Streak \u2014 Day 25",
+    "description": "Reach a daily streak of 25 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 175
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 25
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_026",
+    "gcIdentifier": "daily_streak_day_026",
+    "title": "Daily Streak \u2014 Day 26",
+    "description": "Reach a daily streak of 26 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 180
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 26
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_027",
+    "gcIdentifier": "daily_streak_day_027",
+    "title": "Daily Streak \u2014 Day 27",
+    "description": "Reach a daily streak of 27 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 185
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 27
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_028",
+    "gcIdentifier": "daily_streak_day_028",
+    "title": "Daily Streak \u2014 Day 28",
+    "description": "Reach a daily streak of 28 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 190,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 28
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_029",
+    "gcIdentifier": "daily_streak_day_029",
+    "title": "Daily Streak \u2014 Day 29",
+    "description": "Reach a daily streak of 29 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 195
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 29
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_030",
+    "gcIdentifier": "daily_streak_day_030",
+    "title": "Daily Streak \u2014 Day 30",
+    "description": "Reach a daily streak of 30 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 200,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 30
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_031",
+    "gcIdentifier": "daily_streak_day_031",
+    "title": "Daily Streak \u2014 Day 31",
+    "description": "Reach a daily streak of 31 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 205
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 31
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_032",
+    "gcIdentifier": "daily_streak_day_032",
+    "title": "Daily Streak \u2014 Day 32",
+    "description": "Reach a daily streak of 32 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 210
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 32
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_033",
+    "gcIdentifier": "daily_streak_day_033",
+    "title": "Daily Streak \u2014 Day 33",
+    "description": "Reach a daily streak of 33 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 215
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 33
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_034",
+    "gcIdentifier": "daily_streak_day_034",
+    "title": "Daily Streak \u2014 Day 34",
+    "description": "Reach a daily streak of 34 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 220
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 34
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_035",
+    "gcIdentifier": "daily_streak_day_035",
+    "title": "Daily Streak \u2014 Day 35",
+    "description": "Reach a daily streak of 35 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 225,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 35
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_036",
+    "gcIdentifier": "daily_streak_day_036",
+    "title": "Daily Streak \u2014 Day 36",
+    "description": "Reach a daily streak of 36 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 230
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 36
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_037",
+    "gcIdentifier": "daily_streak_day_037",
+    "title": "Daily Streak \u2014 Day 37",
+    "description": "Reach a daily streak of 37 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 235
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 37
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_038",
+    "gcIdentifier": "daily_streak_day_038",
+    "title": "Daily Streak \u2014 Day 38",
+    "description": "Reach a daily streak of 38 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 240
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 38
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_039",
+    "gcIdentifier": "daily_streak_day_039",
+    "title": "Daily Streak \u2014 Day 39",
+    "description": "Reach a daily streak of 39 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 245
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 39
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_040",
+    "gcIdentifier": "daily_streak_day_040",
+    "title": "Daily Streak \u2014 Day 40",
+    "description": "Reach a daily streak of 40 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 250
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 40
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_041",
+    "gcIdentifier": "daily_streak_day_041",
+    "title": "Daily Streak \u2014 Day 41",
+    "description": "Reach a daily streak of 41 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 255
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 41
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_042",
+    "gcIdentifier": "daily_streak_day_042",
+    "title": "Daily Streak \u2014 Day 42",
+    "description": "Reach a daily streak of 42 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 260,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 42
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_043",
+    "gcIdentifier": "daily_streak_day_043",
+    "title": "Daily Streak \u2014 Day 43",
+    "description": "Reach a daily streak of 43 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 265
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 43
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_044",
+    "gcIdentifier": "daily_streak_day_044",
+    "title": "Daily Streak \u2014 Day 44",
+    "description": "Reach a daily streak of 44 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 270
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 44
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_045",
+    "gcIdentifier": "daily_streak_day_045",
+    "title": "Daily Streak \u2014 Day 45",
+    "description": "Reach a daily streak of 45 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 275
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 45
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_046",
+    "gcIdentifier": "daily_streak_day_046",
+    "title": "Daily Streak \u2014 Day 46",
+    "description": "Reach a daily streak of 46 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 280
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 46
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_047",
+    "gcIdentifier": "daily_streak_day_047",
+    "title": "Daily Streak \u2014 Day 47",
+    "description": "Reach a daily streak of 47 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 285
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 47
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_048",
+    "gcIdentifier": "daily_streak_day_048",
+    "title": "Daily Streak \u2014 Day 48",
+    "description": "Reach a daily streak of 48 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 290
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 48
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_049",
+    "gcIdentifier": "daily_streak_day_049",
+    "title": "Daily Streak \u2014 Day 49",
+    "description": "Reach a daily streak of 49 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 295,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 49
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_050",
+    "gcIdentifier": "daily_streak_day_050",
+    "title": "Daily Streak \u2014 Day 50",
+    "description": "Reach a daily streak of 50 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 300
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 50
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_051",
+    "gcIdentifier": "daily_streak_day_051",
+    "title": "Daily Streak \u2014 Day 51",
+    "description": "Reach a daily streak of 51 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 305
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 51
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_052",
+    "gcIdentifier": "daily_streak_day_052",
+    "title": "Daily Streak \u2014 Day 52",
+    "description": "Reach a daily streak of 52 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 310
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 52
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_053",
+    "gcIdentifier": "daily_streak_day_053",
+    "title": "Daily Streak \u2014 Day 53",
+    "description": "Reach a daily streak of 53 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 315
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 53
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_054",
+    "gcIdentifier": "daily_streak_day_054",
+    "title": "Daily Streak \u2014 Day 54",
+    "description": "Reach a daily streak of 54 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 320
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 54
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_055",
+    "gcIdentifier": "daily_streak_day_055",
+    "title": "Daily Streak \u2014 Day 55",
+    "description": "Reach a daily streak of 55 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 325
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 55
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_056",
+    "gcIdentifier": "daily_streak_day_056",
+    "title": "Daily Streak \u2014 Day 56",
+    "description": "Reach a daily streak of 56 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 330,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 56
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_057",
+    "gcIdentifier": "daily_streak_day_057",
+    "title": "Daily Streak \u2014 Day 57",
+    "description": "Reach a daily streak of 57 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 335
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 57
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_058",
+    "gcIdentifier": "daily_streak_day_058",
+    "title": "Daily Streak \u2014 Day 58",
+    "description": "Reach a daily streak of 58 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 340
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 58
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_059",
+    "gcIdentifier": "daily_streak_day_059",
+    "title": "Daily Streak \u2014 Day 59",
+    "description": "Reach a daily streak of 59 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 345
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 59
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_060",
+    "gcIdentifier": "daily_streak_day_060",
+    "title": "Daily Streak \u2014 Day 60",
+    "description": "Reach a daily streak of 60 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 350,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 60
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_061",
+    "gcIdentifier": "daily_streak_day_061",
+    "title": "Daily Streak \u2014 Day 61",
+    "description": "Reach a daily streak of 61 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 355
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 61
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_062",
+    "gcIdentifier": "daily_streak_day_062",
+    "title": "Daily Streak \u2014 Day 62",
+    "description": "Reach a daily streak of 62 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 360
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 62
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_063",
+    "gcIdentifier": "daily_streak_day_063",
+    "title": "Daily Streak \u2014 Day 63",
+    "description": "Reach a daily streak of 63 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 365,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 63
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_064",
+    "gcIdentifier": "daily_streak_day_064",
+    "title": "Daily Streak \u2014 Day 64",
+    "description": "Reach a daily streak of 64 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 370
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 64
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_065",
+    "gcIdentifier": "daily_streak_day_065",
+    "title": "Daily Streak \u2014 Day 65",
+    "description": "Reach a daily streak of 65 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 375
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 65
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_066",
+    "gcIdentifier": "daily_streak_day_066",
+    "title": "Daily Streak \u2014 Day 66",
+    "description": "Reach a daily streak of 66 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 380
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 66
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_067",
+    "gcIdentifier": "daily_streak_day_067",
+    "title": "Daily Streak \u2014 Day 67",
+    "description": "Reach a daily streak of 67 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 385
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 67
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_068",
+    "gcIdentifier": "daily_streak_day_068",
+    "title": "Daily Streak \u2014 Day 68",
+    "description": "Reach a daily streak of 68 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 390
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 68
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_069",
+    "gcIdentifier": "daily_streak_day_069",
+    "title": "Daily Streak \u2014 Day 69",
+    "description": "Reach a daily streak of 69 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 395
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 69
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_070",
+    "gcIdentifier": "daily_streak_day_070",
+    "title": "Daily Streak \u2014 Day 70",
+    "description": "Reach a daily streak of 70 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 400,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 70
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_071",
+    "gcIdentifier": "daily_streak_day_071",
+    "title": "Daily Streak \u2014 Day 71",
+    "description": "Reach a daily streak of 71 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 405
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 71
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_072",
+    "gcIdentifier": "daily_streak_day_072",
+    "title": "Daily Streak \u2014 Day 72",
+    "description": "Reach a daily streak of 72 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 410
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 72
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_073",
+    "gcIdentifier": "daily_streak_day_073",
+    "title": "Daily Streak \u2014 Day 73",
+    "description": "Reach a daily streak of 73 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 415
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 73
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_074",
+    "gcIdentifier": "daily_streak_day_074",
+    "title": "Daily Streak \u2014 Day 74",
+    "description": "Reach a daily streak of 74 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 420
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 74
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_075",
+    "gcIdentifier": "daily_streak_day_075",
+    "title": "Daily Streak \u2014 Day 75",
+    "description": "Reach a daily streak of 75 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 425
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 75
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_076",
+    "gcIdentifier": "daily_streak_day_076",
+    "title": "Daily Streak \u2014 Day 76",
+    "description": "Reach a daily streak of 76 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 430
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 76
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_077",
+    "gcIdentifier": "daily_streak_day_077",
+    "title": "Daily Streak \u2014 Day 77",
+    "description": "Reach a daily streak of 77 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 435,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 77
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_078",
+    "gcIdentifier": "daily_streak_day_078",
+    "title": "Daily Streak \u2014 Day 78",
+    "description": "Reach a daily streak of 78 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 440
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 78
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_079",
+    "gcIdentifier": "daily_streak_day_079",
+    "title": "Daily Streak \u2014 Day 79",
+    "description": "Reach a daily streak of 79 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 445
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 79
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_080",
+    "gcIdentifier": "daily_streak_day_080",
+    "title": "Daily Streak \u2014 Day 80",
+    "description": "Reach a daily streak of 80 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 450
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 80
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_081",
+    "gcIdentifier": "daily_streak_day_081",
+    "title": "Daily Streak \u2014 Day 81",
+    "description": "Reach a daily streak of 81 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 455
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 81
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_082",
+    "gcIdentifier": "daily_streak_day_082",
+    "title": "Daily Streak \u2014 Day 82",
+    "description": "Reach a daily streak of 82 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 460
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 82
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_083",
+    "gcIdentifier": "daily_streak_day_083",
+    "title": "Daily Streak \u2014 Day 83",
+    "description": "Reach a daily streak of 83 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 465
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 83
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_084",
+    "gcIdentifier": "daily_streak_day_084",
+    "title": "Daily Streak \u2014 Day 84",
+    "description": "Reach a daily streak of 84 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 470,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 84
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_085",
+    "gcIdentifier": "daily_streak_day_085",
+    "title": "Daily Streak \u2014 Day 85",
+    "description": "Reach a daily streak of 85 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 475
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 85
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_086",
+    "gcIdentifier": "daily_streak_day_086",
+    "title": "Daily Streak \u2014 Day 86",
+    "description": "Reach a daily streak of 86 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 480
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 86
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_087",
+    "gcIdentifier": "daily_streak_day_087",
+    "title": "Daily Streak \u2014 Day 87",
+    "description": "Reach a daily streak of 87 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 485
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 87
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_088",
+    "gcIdentifier": "daily_streak_day_088",
+    "title": "Daily Streak \u2014 Day 88",
+    "description": "Reach a daily streak of 88 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 490
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 88
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_089",
+    "gcIdentifier": "daily_streak_day_089",
+    "title": "Daily Streak \u2014 Day 89",
+    "description": "Reach a daily streak of 89 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 495
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 89
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_090",
+    "gcIdentifier": "daily_streak_day_090",
+    "title": "Daily Streak \u2014 Day 90",
+    "description": "Reach a daily streak of 90 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 500,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 90
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_091",
+    "gcIdentifier": "daily_streak_day_091",
+    "title": "Daily Streak \u2014 Day 91",
+    "description": "Reach a daily streak of 91 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 505,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 91
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_092",
+    "gcIdentifier": "daily_streak_day_092",
+    "title": "Daily Streak \u2014 Day 92",
+    "description": "Reach a daily streak of 92 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 510
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 92
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_093",
+    "gcIdentifier": "daily_streak_day_093",
+    "title": "Daily Streak \u2014 Day 93",
+    "description": "Reach a daily streak of 93 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 515
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 93
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_094",
+    "gcIdentifier": "daily_streak_day_094",
+    "title": "Daily Streak \u2014 Day 94",
+    "description": "Reach a daily streak of 94 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 520
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 94
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_095",
+    "gcIdentifier": "daily_streak_day_095",
+    "title": "Daily Streak \u2014 Day 95",
+    "description": "Reach a daily streak of 95 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 525
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 95
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_096",
+    "gcIdentifier": "daily_streak_day_096",
+    "title": "Daily Streak \u2014 Day 96",
+    "description": "Reach a daily streak of 96 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 530
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 96
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_097",
+    "gcIdentifier": "daily_streak_day_097",
+    "title": "Daily Streak \u2014 Day 97",
+    "description": "Reach a daily streak of 97 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 535
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 97
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_098",
+    "gcIdentifier": "daily_streak_day_098",
+    "title": "Daily Streak \u2014 Day 98",
+    "description": "Reach a daily streak of 98 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 540,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 98
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_099",
+    "gcIdentifier": "daily_streak_day_099",
+    "title": "Daily Streak \u2014 Day 99",
+    "description": "Reach a daily streak of 99 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 545
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 99
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_100",
+    "gcIdentifier": "daily_streak_day_100",
+    "title": "Daily Streak \u2014 Day 100",
+    "description": "Reach a daily streak of 100 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 750,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 100
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_101",
+    "gcIdentifier": "daily_streak_day_101",
+    "title": "Daily Streak \u2014 Day 101",
+    "description": "Reach a daily streak of 101 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 555
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 101
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_102",
+    "gcIdentifier": "daily_streak_day_102",
+    "title": "Daily Streak \u2014 Day 102",
+    "description": "Reach a daily streak of 102 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 560
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 102
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_103",
+    "gcIdentifier": "daily_streak_day_103",
+    "title": "Daily Streak \u2014 Day 103",
+    "description": "Reach a daily streak of 103 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 565
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 103
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_104",
+    "gcIdentifier": "daily_streak_day_104",
+    "title": "Daily Streak \u2014 Day 104",
+    "description": "Reach a daily streak of 104 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 570
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 104
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_105",
+    "gcIdentifier": "daily_streak_day_105",
+    "title": "Daily Streak \u2014 Day 105",
+    "description": "Reach a daily streak of 105 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 575,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 105
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_106",
+    "gcIdentifier": "daily_streak_day_106",
+    "title": "Daily Streak \u2014 Day 106",
+    "description": "Reach a daily streak of 106 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 580
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 106
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_107",
+    "gcIdentifier": "daily_streak_day_107",
+    "title": "Daily Streak \u2014 Day 107",
+    "description": "Reach a daily streak of 107 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 585
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 107
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_108",
+    "gcIdentifier": "daily_streak_day_108",
+    "title": "Daily Streak \u2014 Day 108",
+    "description": "Reach a daily streak of 108 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 590
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 108
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_109",
+    "gcIdentifier": "daily_streak_day_109",
+    "title": "Daily Streak \u2014 Day 109",
+    "description": "Reach a daily streak of 109 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 595
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 109
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_110",
+    "gcIdentifier": "daily_streak_day_110",
+    "title": "Daily Streak \u2014 Day 110",
+    "description": "Reach a daily streak of 110 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 600
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 110
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_111",
+    "gcIdentifier": "daily_streak_day_111",
+    "title": "Daily Streak \u2014 Day 111",
+    "description": "Reach a daily streak of 111 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 605
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 111
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_112",
+    "gcIdentifier": "daily_streak_day_112",
+    "title": "Daily Streak \u2014 Day 112",
+    "description": "Reach a daily streak of 112 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 610,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 112
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_113",
+    "gcIdentifier": "daily_streak_day_113",
+    "title": "Daily Streak \u2014 Day 113",
+    "description": "Reach a daily streak of 113 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 615
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 113
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_114",
+    "gcIdentifier": "daily_streak_day_114",
+    "title": "Daily Streak \u2014 Day 114",
+    "description": "Reach a daily streak of 114 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 620
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 114
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_115",
+    "gcIdentifier": "daily_streak_day_115",
+    "title": "Daily Streak \u2014 Day 115",
+    "description": "Reach a daily streak of 115 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 625
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 115
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_116",
+    "gcIdentifier": "daily_streak_day_116",
+    "title": "Daily Streak \u2014 Day 116",
+    "description": "Reach a daily streak of 116 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 630
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 116
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_117",
+    "gcIdentifier": "daily_streak_day_117",
+    "title": "Daily Streak \u2014 Day 117",
+    "description": "Reach a daily streak of 117 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 635
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 117
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_118",
+    "gcIdentifier": "daily_streak_day_118",
+    "title": "Daily Streak \u2014 Day 118",
+    "description": "Reach a daily streak of 118 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 640
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 118
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_119",
+    "gcIdentifier": "daily_streak_day_119",
+    "title": "Daily Streak \u2014 Day 119",
+    "description": "Reach a daily streak of 119 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 645,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 119
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_120",
+    "gcIdentifier": "daily_streak_day_120",
+    "title": "Daily Streak \u2014 Day 120",
+    "description": "Reach a daily streak of 120 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 650,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 120
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_121",
+    "gcIdentifier": "daily_streak_day_121",
+    "title": "Daily Streak \u2014 Day 121",
+    "description": "Reach a daily streak of 121 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 655
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 121
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_122",
+    "gcIdentifier": "daily_streak_day_122",
+    "title": "Daily Streak \u2014 Day 122",
+    "description": "Reach a daily streak of 122 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 660
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 122
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_123",
+    "gcIdentifier": "daily_streak_day_123",
+    "title": "Daily Streak \u2014 Day 123",
+    "description": "Reach a daily streak of 123 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 665
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 123
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_124",
+    "gcIdentifier": "daily_streak_day_124",
+    "title": "Daily Streak \u2014 Day 124",
+    "description": "Reach a daily streak of 124 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 670
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 124
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_125",
+    "gcIdentifier": "daily_streak_day_125",
+    "title": "Daily Streak \u2014 Day 125",
+    "description": "Reach a daily streak of 125 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 675
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 125
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_126",
+    "gcIdentifier": "daily_streak_day_126",
+    "title": "Daily Streak \u2014 Day 126",
+    "description": "Reach a daily streak of 126 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 680,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 126
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_127",
+    "gcIdentifier": "daily_streak_day_127",
+    "title": "Daily Streak \u2014 Day 127",
+    "description": "Reach a daily streak of 127 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 685
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 127
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_128",
+    "gcIdentifier": "daily_streak_day_128",
+    "title": "Daily Streak \u2014 Day 128",
+    "description": "Reach a daily streak of 128 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 690
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 128
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_129",
+    "gcIdentifier": "daily_streak_day_129",
+    "title": "Daily Streak \u2014 Day 129",
+    "description": "Reach a daily streak of 129 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 695
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 129
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_130",
+    "gcIdentifier": "daily_streak_day_130",
+    "title": "Daily Streak \u2014 Day 130",
+    "description": "Reach a daily streak of 130 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 700
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 130
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_131",
+    "gcIdentifier": "daily_streak_day_131",
+    "title": "Daily Streak \u2014 Day 131",
+    "description": "Reach a daily streak of 131 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 705
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 131
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_132",
+    "gcIdentifier": "daily_streak_day_132",
+    "title": "Daily Streak \u2014 Day 132",
+    "description": "Reach a daily streak of 132 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 710
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 132
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_133",
+    "gcIdentifier": "daily_streak_day_133",
+    "title": "Daily Streak \u2014 Day 133",
+    "description": "Reach a daily streak of 133 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 715,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 133
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_134",
+    "gcIdentifier": "daily_streak_day_134",
+    "title": "Daily Streak \u2014 Day 134",
+    "description": "Reach a daily streak of 134 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 720
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 134
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_135",
+    "gcIdentifier": "daily_streak_day_135",
+    "title": "Daily Streak \u2014 Day 135",
+    "description": "Reach a daily streak of 135 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 725
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 135
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_136",
+    "gcIdentifier": "daily_streak_day_136",
+    "title": "Daily Streak \u2014 Day 136",
+    "description": "Reach a daily streak of 136 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 730
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 136
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_137",
+    "gcIdentifier": "daily_streak_day_137",
+    "title": "Daily Streak \u2014 Day 137",
+    "description": "Reach a daily streak of 137 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 735
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 137
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_138",
+    "gcIdentifier": "daily_streak_day_138",
+    "title": "Daily Streak \u2014 Day 138",
+    "description": "Reach a daily streak of 138 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 740
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 138
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_139",
+    "gcIdentifier": "daily_streak_day_139",
+    "title": "Daily Streak \u2014 Day 139",
+    "description": "Reach a daily streak of 139 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 745
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 139
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_140",
+    "gcIdentifier": "daily_streak_day_140",
+    "title": "Daily Streak \u2014 Day 140",
+    "description": "Reach a daily streak of 140 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 750,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 140
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_141",
+    "gcIdentifier": "daily_streak_day_141",
+    "title": "Daily Streak \u2014 Day 141",
+    "description": "Reach a daily streak of 141 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 755
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 141
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_142",
+    "gcIdentifier": "daily_streak_day_142",
+    "title": "Daily Streak \u2014 Day 142",
+    "description": "Reach a daily streak of 142 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 760
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 142
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_143",
+    "gcIdentifier": "daily_streak_day_143",
+    "title": "Daily Streak \u2014 Day 143",
+    "description": "Reach a daily streak of 143 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 765
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 143
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_144",
+    "gcIdentifier": "daily_streak_day_144",
+    "title": "Daily Streak \u2014 Day 144",
+    "description": "Reach a daily streak of 144 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 770
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 144
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_145",
+    "gcIdentifier": "daily_streak_day_145",
+    "title": "Daily Streak \u2014 Day 145",
+    "description": "Reach a daily streak of 145 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 775
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 145
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_146",
+    "gcIdentifier": "daily_streak_day_146",
+    "title": "Daily Streak \u2014 Day 146",
+    "description": "Reach a daily streak of 146 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 780
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 146
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_147",
+    "gcIdentifier": "daily_streak_day_147",
+    "title": "Daily Streak \u2014 Day 147",
+    "description": "Reach a daily streak of 147 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 785,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 147
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_148",
+    "gcIdentifier": "daily_streak_day_148",
+    "title": "Daily Streak \u2014 Day 148",
+    "description": "Reach a daily streak of 148 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 790
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 148
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_149",
+    "gcIdentifier": "daily_streak_day_149",
+    "title": "Daily Streak \u2014 Day 149",
+    "description": "Reach a daily streak of 149 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 795
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 149
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_150",
+    "gcIdentifier": "daily_streak_day_150",
+    "title": "Daily Streak \u2014 Day 150",
+    "description": "Reach a daily streak of 150 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 800,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 150
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_151",
+    "gcIdentifier": "daily_streak_day_151",
+    "title": "Daily Streak \u2014 Day 151",
+    "description": "Reach a daily streak of 151 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 805
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 151
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_152",
+    "gcIdentifier": "daily_streak_day_152",
+    "title": "Daily Streak \u2014 Day 152",
+    "description": "Reach a daily streak of 152 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 810
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 152
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_153",
+    "gcIdentifier": "daily_streak_day_153",
+    "title": "Daily Streak \u2014 Day 153",
+    "description": "Reach a daily streak of 153 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 815
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 153
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_154",
+    "gcIdentifier": "daily_streak_day_154",
+    "title": "Daily Streak \u2014 Day 154",
+    "description": "Reach a daily streak of 154 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 820,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 154
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_155",
+    "gcIdentifier": "daily_streak_day_155",
+    "title": "Daily Streak \u2014 Day 155",
+    "description": "Reach a daily streak of 155 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 825
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 155
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_156",
+    "gcIdentifier": "daily_streak_day_156",
+    "title": "Daily Streak \u2014 Day 156",
+    "description": "Reach a daily streak of 156 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 830
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 156
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_157",
+    "gcIdentifier": "daily_streak_day_157",
+    "title": "Daily Streak \u2014 Day 157",
+    "description": "Reach a daily streak of 157 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 835
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 157
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_158",
+    "gcIdentifier": "daily_streak_day_158",
+    "title": "Daily Streak \u2014 Day 158",
+    "description": "Reach a daily streak of 158 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 840
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 158
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_159",
+    "gcIdentifier": "daily_streak_day_159",
+    "title": "Daily Streak \u2014 Day 159",
+    "description": "Reach a daily streak of 159 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 845
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 159
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_160",
+    "gcIdentifier": "daily_streak_day_160",
+    "title": "Daily Streak \u2014 Day 160",
+    "description": "Reach a daily streak of 160 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 850
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 160
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_161",
+    "gcIdentifier": "daily_streak_day_161",
+    "title": "Daily Streak \u2014 Day 161",
+    "description": "Reach a daily streak of 161 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 855,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 161
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_162",
+    "gcIdentifier": "daily_streak_day_162",
+    "title": "Daily Streak \u2014 Day 162",
+    "description": "Reach a daily streak of 162 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 860
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 162
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_163",
+    "gcIdentifier": "daily_streak_day_163",
+    "title": "Daily Streak \u2014 Day 163",
+    "description": "Reach a daily streak of 163 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 865
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 163
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_164",
+    "gcIdentifier": "daily_streak_day_164",
+    "title": "Daily Streak \u2014 Day 164",
+    "description": "Reach a daily streak of 164 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 870
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 164
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_165",
+    "gcIdentifier": "daily_streak_day_165",
+    "title": "Daily Streak \u2014 Day 165",
+    "description": "Reach a daily streak of 165 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 875
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 165
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_166",
+    "gcIdentifier": "daily_streak_day_166",
+    "title": "Daily Streak \u2014 Day 166",
+    "description": "Reach a daily streak of 166 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 880
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 166
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_167",
+    "gcIdentifier": "daily_streak_day_167",
+    "title": "Daily Streak \u2014 Day 167",
+    "description": "Reach a daily streak of 167 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 885
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 167
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_168",
+    "gcIdentifier": "daily_streak_day_168",
+    "title": "Daily Streak \u2014 Day 168",
+    "description": "Reach a daily streak of 168 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 890,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 168
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_169",
+    "gcIdentifier": "daily_streak_day_169",
+    "title": "Daily Streak \u2014 Day 169",
+    "description": "Reach a daily streak of 169 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 895
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 169
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_170",
+    "gcIdentifier": "daily_streak_day_170",
+    "title": "Daily Streak \u2014 Day 170",
+    "description": "Reach a daily streak of 170 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 900
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 170
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_171",
+    "gcIdentifier": "daily_streak_day_171",
+    "title": "Daily Streak \u2014 Day 171",
+    "description": "Reach a daily streak of 171 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 905
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 171
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_172",
+    "gcIdentifier": "daily_streak_day_172",
+    "title": "Daily Streak \u2014 Day 172",
+    "description": "Reach a daily streak of 172 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 910
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 172
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_173",
+    "gcIdentifier": "daily_streak_day_173",
+    "title": "Daily Streak \u2014 Day 173",
+    "description": "Reach a daily streak of 173 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 915
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 173
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_174",
+    "gcIdentifier": "daily_streak_day_174",
+    "title": "Daily Streak \u2014 Day 174",
+    "description": "Reach a daily streak of 174 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 920
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 174
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_175",
+    "gcIdentifier": "daily_streak_day_175",
+    "title": "Daily Streak \u2014 Day 175",
+    "description": "Reach a daily streak of 175 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 925,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 175
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_176",
+    "gcIdentifier": "daily_streak_day_176",
+    "title": "Daily Streak \u2014 Day 176",
+    "description": "Reach a daily streak of 176 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 930
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 176
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_177",
+    "gcIdentifier": "daily_streak_day_177",
+    "title": "Daily Streak \u2014 Day 177",
+    "description": "Reach a daily streak of 177 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 935
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 177
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_178",
+    "gcIdentifier": "daily_streak_day_178",
+    "title": "Daily Streak \u2014 Day 178",
+    "description": "Reach a daily streak of 178 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 940
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 178
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_179",
+    "gcIdentifier": "daily_streak_day_179",
+    "title": "Daily Streak \u2014 Day 179",
+    "description": "Reach a daily streak of 179 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 945
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 179
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_180",
+    "gcIdentifier": "daily_streak_day_180",
+    "title": "Daily Streak \u2014 Day 180",
+    "description": "Reach a daily streak of 180 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 950,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 180
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_181",
+    "gcIdentifier": "daily_streak_day_181",
+    "title": "Daily Streak \u2014 Day 181",
+    "description": "Reach a daily streak of 181 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 955
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 181
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_182",
+    "gcIdentifier": "daily_streak_day_182",
+    "title": "Daily Streak \u2014 Day 182",
+    "description": "Reach a daily streak of 182 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 960,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 182
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_183",
+    "gcIdentifier": "daily_streak_day_183",
+    "title": "Daily Streak \u2014 Day 183",
+    "description": "Reach a daily streak of 183 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 965
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 183
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_184",
+    "gcIdentifier": "daily_streak_day_184",
+    "title": "Daily Streak \u2014 Day 184",
+    "description": "Reach a daily streak of 184 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 970
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 184
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_185",
+    "gcIdentifier": "daily_streak_day_185",
+    "title": "Daily Streak \u2014 Day 185",
+    "description": "Reach a daily streak of 185 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 975
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 185
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_186",
+    "gcIdentifier": "daily_streak_day_186",
+    "title": "Daily Streak \u2014 Day 186",
+    "description": "Reach a daily streak of 186 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 980
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 186
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_187",
+    "gcIdentifier": "daily_streak_day_187",
+    "title": "Daily Streak \u2014 Day 187",
+    "description": "Reach a daily streak of 187 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 985
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 187
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_188",
+    "gcIdentifier": "daily_streak_day_188",
+    "title": "Daily Streak \u2014 Day 188",
+    "description": "Reach a daily streak of 188 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 990
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 188
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_189",
+    "gcIdentifier": "daily_streak_day_189",
+    "title": "Daily Streak \u2014 Day 189",
+    "description": "Reach a daily streak of 189 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 995,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 189
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_190",
+    "gcIdentifier": "daily_streak_day_190",
+    "title": "Daily Streak \u2014 Day 190",
+    "description": "Reach a daily streak of 190 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1000
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 190
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_191",
+    "gcIdentifier": "daily_streak_day_191",
+    "title": "Daily Streak \u2014 Day 191",
+    "description": "Reach a daily streak of 191 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1005
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 191
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_192",
+    "gcIdentifier": "daily_streak_day_192",
+    "title": "Daily Streak \u2014 Day 192",
+    "description": "Reach a daily streak of 192 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1010
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 192
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_193",
+    "gcIdentifier": "daily_streak_day_193",
+    "title": "Daily Streak \u2014 Day 193",
+    "description": "Reach a daily streak of 193 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1015
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 193
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_194",
+    "gcIdentifier": "daily_streak_day_194",
+    "title": "Daily Streak \u2014 Day 194",
+    "description": "Reach a daily streak of 194 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1020
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 194
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_195",
+    "gcIdentifier": "daily_streak_day_195",
+    "title": "Daily Streak \u2014 Day 195",
+    "description": "Reach a daily streak of 195 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1025
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 195
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_196",
+    "gcIdentifier": "daily_streak_day_196",
+    "title": "Daily Streak \u2014 Day 196",
+    "description": "Reach a daily streak of 196 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1030,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 196
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_197",
+    "gcIdentifier": "daily_streak_day_197",
+    "title": "Daily Streak \u2014 Day 197",
+    "description": "Reach a daily streak of 197 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1035
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 197
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_198",
+    "gcIdentifier": "daily_streak_day_198",
+    "title": "Daily Streak \u2014 Day 198",
+    "description": "Reach a daily streak of 198 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1040
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 198
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_199",
+    "gcIdentifier": "daily_streak_day_199",
+    "title": "Daily Streak \u2014 Day 199",
+    "description": "Reach a daily streak of 199 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1045
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 199
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_200",
+    "gcIdentifier": "daily_streak_day_200",
+    "title": "Daily Streak \u2014 Day 200",
+    "description": "Reach a daily streak of 200 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1250,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 200
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_201",
+    "gcIdentifier": "daily_streak_day_201",
+    "title": "Daily Streak \u2014 Day 201",
+    "description": "Reach a daily streak of 201 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1055
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 201
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_202",
+    "gcIdentifier": "daily_streak_day_202",
+    "title": "Daily Streak \u2014 Day 202",
+    "description": "Reach a daily streak of 202 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1060
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 202
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_203",
+    "gcIdentifier": "daily_streak_day_203",
+    "title": "Daily Streak \u2014 Day 203",
+    "description": "Reach a daily streak of 203 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1065,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 203
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_204",
+    "gcIdentifier": "daily_streak_day_204",
+    "title": "Daily Streak \u2014 Day 204",
+    "description": "Reach a daily streak of 204 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1070
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 204
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_205",
+    "gcIdentifier": "daily_streak_day_205",
+    "title": "Daily Streak \u2014 Day 205",
+    "description": "Reach a daily streak of 205 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1075
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 205
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_206",
+    "gcIdentifier": "daily_streak_day_206",
+    "title": "Daily Streak \u2014 Day 206",
+    "description": "Reach a daily streak of 206 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1080
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 206
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_207",
+    "gcIdentifier": "daily_streak_day_207",
+    "title": "Daily Streak \u2014 Day 207",
+    "description": "Reach a daily streak of 207 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1085
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 207
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_208",
+    "gcIdentifier": "daily_streak_day_208",
+    "title": "Daily Streak \u2014 Day 208",
+    "description": "Reach a daily streak of 208 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1090
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 208
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_209",
+    "gcIdentifier": "daily_streak_day_209",
+    "title": "Daily Streak \u2014 Day 209",
+    "description": "Reach a daily streak of 209 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1095
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 209
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_210",
+    "gcIdentifier": "daily_streak_day_210",
+    "title": "Daily Streak \u2014 Day 210",
+    "description": "Reach a daily streak of 210 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1100,
+      "spins": 1,
+      "magnets": 1,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 210
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_211",
+    "gcIdentifier": "daily_streak_day_211",
+    "title": "Daily Streak \u2014 Day 211",
+    "description": "Reach a daily streak of 211 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1105
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 211
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_212",
+    "gcIdentifier": "daily_streak_day_212",
+    "title": "Daily Streak \u2014 Day 212",
+    "description": "Reach a daily streak of 212 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1110
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 212
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_213",
+    "gcIdentifier": "daily_streak_day_213",
+    "title": "Daily Streak \u2014 Day 213",
+    "description": "Reach a daily streak of 213 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1115
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 213
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_214",
+    "gcIdentifier": "daily_streak_day_214",
+    "title": "Daily Streak \u2014 Day 214",
+    "description": "Reach a daily streak of 214 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1120
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 214
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_215",
+    "gcIdentifier": "daily_streak_day_215",
+    "title": "Daily Streak \u2014 Day 215",
+    "description": "Reach a daily streak of 215 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1125
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 215
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_216",
+    "gcIdentifier": "daily_streak_day_216",
+    "title": "Daily Streak \u2014 Day 216",
+    "description": "Reach a daily streak of 216 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1130
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 216
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_217",
+    "gcIdentifier": "daily_streak_day_217",
+    "title": "Daily Streak \u2014 Day 217",
+    "description": "Reach a daily streak of 217 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1135,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 217
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_218",
+    "gcIdentifier": "daily_streak_day_218",
+    "title": "Daily Streak \u2014 Day 218",
+    "description": "Reach a daily streak of 218 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1140
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 218
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_219",
+    "gcIdentifier": "daily_streak_day_219",
+    "title": "Daily Streak \u2014 Day 219",
+    "description": "Reach a daily streak of 219 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1145
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 219
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_220",
+    "gcIdentifier": "daily_streak_day_220",
+    "title": "Daily Streak \u2014 Day 220",
+    "description": "Reach a daily streak of 220 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1150
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 220
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_221",
+    "gcIdentifier": "daily_streak_day_221",
+    "title": "Daily Streak \u2014 Day 221",
+    "description": "Reach a daily streak of 221 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1155
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 221
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_222",
+    "gcIdentifier": "daily_streak_day_222",
+    "title": "Daily Streak \u2014 Day 222",
+    "description": "Reach a daily streak of 222 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1160
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 222
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_223",
+    "gcIdentifier": "daily_streak_day_223",
+    "title": "Daily Streak \u2014 Day 223",
+    "description": "Reach a daily streak of 223 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1165
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 223
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_224",
+    "gcIdentifier": "daily_streak_day_224",
+    "title": "Daily Streak \u2014 Day 224",
+    "description": "Reach a daily streak of 224 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1170,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 224
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_225",
+    "gcIdentifier": "daily_streak_day_225",
+    "title": "Daily Streak \u2014 Day 225",
+    "description": "Reach a daily streak of 225 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1175
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 225
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_226",
+    "gcIdentifier": "daily_streak_day_226",
+    "title": "Daily Streak \u2014 Day 226",
+    "description": "Reach a daily streak of 226 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1180
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 226
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_227",
+    "gcIdentifier": "daily_streak_day_227",
+    "title": "Daily Streak \u2014 Day 227",
+    "description": "Reach a daily streak of 227 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1185
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 227
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_228",
+    "gcIdentifier": "daily_streak_day_228",
+    "title": "Daily Streak \u2014 Day 228",
+    "description": "Reach a daily streak of 228 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1190
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 228
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_229",
+    "gcIdentifier": "daily_streak_day_229",
+    "title": "Daily Streak \u2014 Day 229",
+    "description": "Reach a daily streak of 229 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1195
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 229
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_230",
+    "gcIdentifier": "daily_streak_day_230",
+    "title": "Daily Streak \u2014 Day 230",
+    "description": "Reach a daily streak of 230 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1200
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 230
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_231",
+    "gcIdentifier": "daily_streak_day_231",
+    "title": "Daily Streak \u2014 Day 231",
+    "description": "Reach a daily streak of 231 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1205,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 231
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_232",
+    "gcIdentifier": "daily_streak_day_232",
+    "title": "Daily Streak \u2014 Day 232",
+    "description": "Reach a daily streak of 232 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1210
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 232
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_233",
+    "gcIdentifier": "daily_streak_day_233",
+    "title": "Daily Streak \u2014 Day 233",
+    "description": "Reach a daily streak of 233 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1215
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 233
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_234",
+    "gcIdentifier": "daily_streak_day_234",
+    "title": "Daily Streak \u2014 Day 234",
+    "description": "Reach a daily streak of 234 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1220
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 234
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_235",
+    "gcIdentifier": "daily_streak_day_235",
+    "title": "Daily Streak \u2014 Day 235",
+    "description": "Reach a daily streak of 235 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1225
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 235
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_236",
+    "gcIdentifier": "daily_streak_day_236",
+    "title": "Daily Streak \u2014 Day 236",
+    "description": "Reach a daily streak of 236 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1230
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 236
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_237",
+    "gcIdentifier": "daily_streak_day_237",
+    "title": "Daily Streak \u2014 Day 237",
+    "description": "Reach a daily streak of 237 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1235
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 237
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_238",
+    "gcIdentifier": "daily_streak_day_238",
+    "title": "Daily Streak \u2014 Day 238",
+    "description": "Reach a daily streak of 238 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1240,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 238
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_239",
+    "gcIdentifier": "daily_streak_day_239",
+    "title": "Daily Streak \u2014 Day 239",
+    "description": "Reach a daily streak of 239 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1245
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 239
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_240",
+    "gcIdentifier": "daily_streak_day_240",
+    "title": "Daily Streak \u2014 Day 240",
+    "description": "Reach a daily streak of 240 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1250,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 240
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_241",
+    "gcIdentifier": "daily_streak_day_241",
+    "title": "Daily Streak \u2014 Day 241",
+    "description": "Reach a daily streak of 241 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1255
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 241
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_242",
+    "gcIdentifier": "daily_streak_day_242",
+    "title": "Daily Streak \u2014 Day 242",
+    "description": "Reach a daily streak of 242 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1260
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 242
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_243",
+    "gcIdentifier": "daily_streak_day_243",
+    "title": "Daily Streak \u2014 Day 243",
+    "description": "Reach a daily streak of 243 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1265
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 243
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_244",
+    "gcIdentifier": "daily_streak_day_244",
+    "title": "Daily Streak \u2014 Day 244",
+    "description": "Reach a daily streak of 244 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1270
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 244
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_245",
+    "gcIdentifier": "daily_streak_day_245",
+    "title": "Daily Streak \u2014 Day 245",
+    "description": "Reach a daily streak of 245 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1275,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 245
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_246",
+    "gcIdentifier": "daily_streak_day_246",
+    "title": "Daily Streak \u2014 Day 246",
+    "description": "Reach a daily streak of 246 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1280
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 246
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_247",
+    "gcIdentifier": "daily_streak_day_247",
+    "title": "Daily Streak \u2014 Day 247",
+    "description": "Reach a daily streak of 247 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1285
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 247
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_248",
+    "gcIdentifier": "daily_streak_day_248",
+    "title": "Daily Streak \u2014 Day 248",
+    "description": "Reach a daily streak of 248 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1290
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 248
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_249",
+    "gcIdentifier": "daily_streak_day_249",
+    "title": "Daily Streak \u2014 Day 249",
+    "description": "Reach a daily streak of 249 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1295
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 249
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_250",
+    "gcIdentifier": "daily_streak_day_250",
+    "title": "Daily Streak \u2014 Day 250",
+    "description": "Reach a daily streak of 250 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1300
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 250
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_251",
+    "gcIdentifier": "daily_streak_day_251",
+    "title": "Daily Streak \u2014 Day 251",
+    "description": "Reach a daily streak of 251 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1305
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 251
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_252",
+    "gcIdentifier": "daily_streak_day_252",
+    "title": "Daily Streak \u2014 Day 252",
+    "description": "Reach a daily streak of 252 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1310,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 252
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_253",
+    "gcIdentifier": "daily_streak_day_253",
+    "title": "Daily Streak \u2014 Day 253",
+    "description": "Reach a daily streak of 253 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1315
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 253
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_254",
+    "gcIdentifier": "daily_streak_day_254",
+    "title": "Daily Streak \u2014 Day 254",
+    "description": "Reach a daily streak of 254 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1320
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 254
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_255",
+    "gcIdentifier": "daily_streak_day_255",
+    "title": "Daily Streak \u2014 Day 255",
+    "description": "Reach a daily streak of 255 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1325
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 255
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_256",
+    "gcIdentifier": "daily_streak_day_256",
+    "title": "Daily Streak \u2014 Day 256",
+    "description": "Reach a daily streak of 256 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1330
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 256
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_257",
+    "gcIdentifier": "daily_streak_day_257",
+    "title": "Daily Streak \u2014 Day 257",
+    "description": "Reach a daily streak of 257 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1335
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 257
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_258",
+    "gcIdentifier": "daily_streak_day_258",
+    "title": "Daily Streak \u2014 Day 258",
+    "description": "Reach a daily streak of 258 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1340
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 258
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_259",
+    "gcIdentifier": "daily_streak_day_259",
+    "title": "Daily Streak \u2014 Day 259",
+    "description": "Reach a daily streak of 259 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1345,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 259
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_260",
+    "gcIdentifier": "daily_streak_day_260",
+    "title": "Daily Streak \u2014 Day 260",
+    "description": "Reach a daily streak of 260 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1350
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 260
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_261",
+    "gcIdentifier": "daily_streak_day_261",
+    "title": "Daily Streak \u2014 Day 261",
+    "description": "Reach a daily streak of 261 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1355
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 261
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_262",
+    "gcIdentifier": "daily_streak_day_262",
+    "title": "Daily Streak \u2014 Day 262",
+    "description": "Reach a daily streak of 262 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1360
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 262
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_263",
+    "gcIdentifier": "daily_streak_day_263",
+    "title": "Daily Streak \u2014 Day 263",
+    "description": "Reach a daily streak of 263 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1365
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 263
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_264",
+    "gcIdentifier": "daily_streak_day_264",
+    "title": "Daily Streak \u2014 Day 264",
+    "description": "Reach a daily streak of 264 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1370
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 264
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_265",
+    "gcIdentifier": "daily_streak_day_265",
+    "title": "Daily Streak \u2014 Day 265",
+    "description": "Reach a daily streak of 265 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1375
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 265
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_266",
+    "gcIdentifier": "daily_streak_day_266",
+    "title": "Daily Streak \u2014 Day 266",
+    "description": "Reach a daily streak of 266 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1380,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 266
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_267",
+    "gcIdentifier": "daily_streak_day_267",
+    "title": "Daily Streak \u2014 Day 267",
+    "description": "Reach a daily streak of 267 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1385
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 267
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_268",
+    "gcIdentifier": "daily_streak_day_268",
+    "title": "Daily Streak \u2014 Day 268",
+    "description": "Reach a daily streak of 268 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1390
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 268
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_269",
+    "gcIdentifier": "daily_streak_day_269",
+    "title": "Daily Streak \u2014 Day 269",
+    "description": "Reach a daily streak of 269 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1395
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 269
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_270",
+    "gcIdentifier": "daily_streak_day_270",
+    "title": "Daily Streak \u2014 Day 270",
+    "description": "Reach a daily streak of 270 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1400,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 270
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_271",
+    "gcIdentifier": "daily_streak_day_271",
+    "title": "Daily Streak \u2014 Day 271",
+    "description": "Reach a daily streak of 271 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1405
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 271
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_272",
+    "gcIdentifier": "daily_streak_day_272",
+    "title": "Daily Streak \u2014 Day 272",
+    "description": "Reach a daily streak of 272 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1410
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 272
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_273",
+    "gcIdentifier": "daily_streak_day_273",
+    "title": "Daily Streak \u2014 Day 273",
+    "description": "Reach a daily streak of 273 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1415,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 273
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_274",
+    "gcIdentifier": "daily_streak_day_274",
+    "title": "Daily Streak \u2014 Day 274",
+    "description": "Reach a daily streak of 274 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1420
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 274
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_275",
+    "gcIdentifier": "daily_streak_day_275",
+    "title": "Daily Streak \u2014 Day 275",
+    "description": "Reach a daily streak of 275 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1425
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 275
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_276",
+    "gcIdentifier": "daily_streak_day_276",
+    "title": "Daily Streak \u2014 Day 276",
+    "description": "Reach a daily streak of 276 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1430
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 276
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_277",
+    "gcIdentifier": "daily_streak_day_277",
+    "title": "Daily Streak \u2014 Day 277",
+    "description": "Reach a daily streak of 277 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1435
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 277
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_278",
+    "gcIdentifier": "daily_streak_day_278",
+    "title": "Daily Streak \u2014 Day 278",
+    "description": "Reach a daily streak of 278 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1440
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 278
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_279",
+    "gcIdentifier": "daily_streak_day_279",
+    "title": "Daily Streak \u2014 Day 279",
+    "description": "Reach a daily streak of 279 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1445
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 279
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_280",
+    "gcIdentifier": "daily_streak_day_280",
+    "title": "Daily Streak \u2014 Day 280",
+    "description": "Reach a daily streak of 280 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1450,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 280
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_281",
+    "gcIdentifier": "daily_streak_day_281",
+    "title": "Daily Streak \u2014 Day 281",
+    "description": "Reach a daily streak of 281 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1455
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 281
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_282",
+    "gcIdentifier": "daily_streak_day_282",
+    "title": "Daily Streak \u2014 Day 282",
+    "description": "Reach a daily streak of 282 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1460
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 282
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_283",
+    "gcIdentifier": "daily_streak_day_283",
+    "title": "Daily Streak \u2014 Day 283",
+    "description": "Reach a daily streak of 283 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1465
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 283
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_284",
+    "gcIdentifier": "daily_streak_day_284",
+    "title": "Daily Streak \u2014 Day 284",
+    "description": "Reach a daily streak of 284 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1470
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 284
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_285",
+    "gcIdentifier": "daily_streak_day_285",
+    "title": "Daily Streak \u2014 Day 285",
+    "description": "Reach a daily streak of 285 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1475
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 285
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_286",
+    "gcIdentifier": "daily_streak_day_286",
+    "title": "Daily Streak \u2014 Day 286",
+    "description": "Reach a daily streak of 286 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1480
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 286
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_287",
+    "gcIdentifier": "daily_streak_day_287",
+    "title": "Daily Streak \u2014 Day 287",
+    "description": "Reach a daily streak of 287 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1485,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 287
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_288",
+    "gcIdentifier": "daily_streak_day_288",
+    "title": "Daily Streak \u2014 Day 288",
+    "description": "Reach a daily streak of 288 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1490
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 288
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_289",
+    "gcIdentifier": "daily_streak_day_289",
+    "title": "Daily Streak \u2014 Day 289",
+    "description": "Reach a daily streak of 289 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1495
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 289
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_290",
+    "gcIdentifier": "daily_streak_day_290",
+    "title": "Daily Streak \u2014 Day 290",
+    "description": "Reach a daily streak of 290 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1500
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 290
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_291",
+    "gcIdentifier": "daily_streak_day_291",
+    "title": "Daily Streak \u2014 Day 291",
+    "description": "Reach a daily streak of 291 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1505
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 291
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_292",
+    "gcIdentifier": "daily_streak_day_292",
+    "title": "Daily Streak \u2014 Day 292",
+    "description": "Reach a daily streak of 292 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1510
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 292
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_293",
+    "gcIdentifier": "daily_streak_day_293",
+    "title": "Daily Streak \u2014 Day 293",
+    "description": "Reach a daily streak of 293 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1515
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 293
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_294",
+    "gcIdentifier": "daily_streak_day_294",
+    "title": "Daily Streak \u2014 Day 294",
+    "description": "Reach a daily streak of 294 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1520,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 294
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_295",
+    "gcIdentifier": "daily_streak_day_295",
+    "title": "Daily Streak \u2014 Day 295",
+    "description": "Reach a daily streak of 295 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1525
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 295
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_296",
+    "gcIdentifier": "daily_streak_day_296",
+    "title": "Daily Streak \u2014 Day 296",
+    "description": "Reach a daily streak of 296 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1530
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 296
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_297",
+    "gcIdentifier": "daily_streak_day_297",
+    "title": "Daily Streak \u2014 Day 297",
+    "description": "Reach a daily streak of 297 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1535
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 297
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_298",
+    "gcIdentifier": "daily_streak_day_298",
+    "title": "Daily Streak \u2014 Day 298",
+    "description": "Reach a daily streak of 298 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1540
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 298
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_299",
+    "gcIdentifier": "daily_streak_day_299",
+    "title": "Daily Streak \u2014 Day 299",
+    "description": "Reach a daily streak of 299 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1545
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 299
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_300",
+    "gcIdentifier": "daily_streak_day_300",
+    "title": "Daily Streak \u2014 Day 300",
+    "description": "Reach a daily streak of 300 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1750,
+      "hammers": 1,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 300
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_301",
+    "gcIdentifier": "daily_streak_day_301",
+    "title": "Daily Streak \u2014 Day 301",
+    "description": "Reach a daily streak of 301 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1555,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 301
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_302",
+    "gcIdentifier": "daily_streak_day_302",
+    "title": "Daily Streak \u2014 Day 302",
+    "description": "Reach a daily streak of 302 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1560
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 302
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_303",
+    "gcIdentifier": "daily_streak_day_303",
+    "title": "Daily Streak \u2014 Day 303",
+    "description": "Reach a daily streak of 303 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1565
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 303
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_304",
+    "gcIdentifier": "daily_streak_day_304",
+    "title": "Daily Streak \u2014 Day 304",
+    "description": "Reach a daily streak of 304 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1570
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 304
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_305",
+    "gcIdentifier": "daily_streak_day_305",
+    "title": "Daily Streak \u2014 Day 305",
+    "description": "Reach a daily streak of 305 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1575
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 305
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_306",
+    "gcIdentifier": "daily_streak_day_306",
+    "title": "Daily Streak \u2014 Day 306",
+    "description": "Reach a daily streak of 306 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1580
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 306
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_307",
+    "gcIdentifier": "daily_streak_day_307",
+    "title": "Daily Streak \u2014 Day 307",
+    "description": "Reach a daily streak of 307 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1585
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 307
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_308",
+    "gcIdentifier": "daily_streak_day_308",
+    "title": "Daily Streak \u2014 Day 308",
+    "description": "Reach a daily streak of 308 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1590,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 308
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_309",
+    "gcIdentifier": "daily_streak_day_309",
+    "title": "Daily Streak \u2014 Day 309",
+    "description": "Reach a daily streak of 309 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1595
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 309
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_310",
+    "gcIdentifier": "daily_streak_day_310",
+    "title": "Daily Streak \u2014 Day 310",
+    "description": "Reach a daily streak of 310 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1600
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 310
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_311",
+    "gcIdentifier": "daily_streak_day_311",
+    "title": "Daily Streak \u2014 Day 311",
+    "description": "Reach a daily streak of 311 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1605
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 311
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_312",
+    "gcIdentifier": "daily_streak_day_312",
+    "title": "Daily Streak \u2014 Day 312",
+    "description": "Reach a daily streak of 312 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1610
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 312
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_313",
+    "gcIdentifier": "daily_streak_day_313",
+    "title": "Daily Streak \u2014 Day 313",
+    "description": "Reach a daily streak of 313 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1615
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 313
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_314",
+    "gcIdentifier": "daily_streak_day_314",
+    "title": "Daily Streak \u2014 Day 314",
+    "description": "Reach a daily streak of 314 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1620
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 314
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_315",
+    "gcIdentifier": "daily_streak_day_315",
+    "title": "Daily Streak \u2014 Day 315",
+    "description": "Reach a daily streak of 315 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1625,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 315
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_316",
+    "gcIdentifier": "daily_streak_day_316",
+    "title": "Daily Streak \u2014 Day 316",
+    "description": "Reach a daily streak of 316 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1630
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 316
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_317",
+    "gcIdentifier": "daily_streak_day_317",
+    "title": "Daily Streak \u2014 Day 317",
+    "description": "Reach a daily streak of 317 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1635
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 317
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_318",
+    "gcIdentifier": "daily_streak_day_318",
+    "title": "Daily Streak \u2014 Day 318",
+    "description": "Reach a daily streak of 318 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1640
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 318
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_319",
+    "gcIdentifier": "daily_streak_day_319",
+    "title": "Daily Streak \u2014 Day 319",
+    "description": "Reach a daily streak of 319 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1645
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 319
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_320",
+    "gcIdentifier": "daily_streak_day_320",
+    "title": "Daily Streak \u2014 Day 320",
+    "description": "Reach a daily streak of 320 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1650
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 320
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_321",
+    "gcIdentifier": "daily_streak_day_321",
+    "title": "Daily Streak \u2014 Day 321",
+    "description": "Reach a daily streak of 321 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1655
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 321
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_322",
+    "gcIdentifier": "daily_streak_day_322",
+    "title": "Daily Streak \u2014 Day 322",
+    "description": "Reach a daily streak of 322 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1660,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 322
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_323",
+    "gcIdentifier": "daily_streak_day_323",
+    "title": "Daily Streak \u2014 Day 323",
+    "description": "Reach a daily streak of 323 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1665
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 323
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_324",
+    "gcIdentifier": "daily_streak_day_324",
+    "title": "Daily Streak \u2014 Day 324",
+    "description": "Reach a daily streak of 324 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1670
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 324
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_325",
+    "gcIdentifier": "daily_streak_day_325",
+    "title": "Daily Streak \u2014 Day 325",
+    "description": "Reach a daily streak of 325 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1675
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 325
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_326",
+    "gcIdentifier": "daily_streak_day_326",
+    "title": "Daily Streak \u2014 Day 326",
+    "description": "Reach a daily streak of 326 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1680
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 326
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_327",
+    "gcIdentifier": "daily_streak_day_327",
+    "title": "Daily Streak \u2014 Day 327",
+    "description": "Reach a daily streak of 327 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1685
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 327
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_328",
+    "gcIdentifier": "daily_streak_day_328",
+    "title": "Daily Streak \u2014 Day 328",
+    "description": "Reach a daily streak of 328 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1690
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 328
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_329",
+    "gcIdentifier": "daily_streak_day_329",
+    "title": "Daily Streak \u2014 Day 329",
+    "description": "Reach a daily streak of 329 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1695,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 329
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_330",
+    "gcIdentifier": "daily_streak_day_330",
+    "title": "Daily Streak \u2014 Day 330",
+    "description": "Reach a daily streak of 330 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1700,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 330
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_331",
+    "gcIdentifier": "daily_streak_day_331",
+    "title": "Daily Streak \u2014 Day 331",
+    "description": "Reach a daily streak of 331 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1705
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 331
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_332",
+    "gcIdentifier": "daily_streak_day_332",
+    "title": "Daily Streak \u2014 Day 332",
+    "description": "Reach a daily streak of 332 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1710
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 332
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_333",
+    "gcIdentifier": "daily_streak_day_333",
+    "title": "Daily Streak \u2014 Day 333",
+    "description": "Reach a daily streak of 333 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1715
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 333
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_334",
+    "gcIdentifier": "daily_streak_day_334",
+    "title": "Daily Streak \u2014 Day 334",
+    "description": "Reach a daily streak of 334 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1720
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 334
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_335",
+    "gcIdentifier": "daily_streak_day_335",
+    "title": "Daily Streak \u2014 Day 335",
+    "description": "Reach a daily streak of 335 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1725
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 335
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_336",
+    "gcIdentifier": "daily_streak_day_336",
+    "title": "Daily Streak \u2014 Day 336",
+    "description": "Reach a daily streak of 336 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1730,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 336
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_337",
+    "gcIdentifier": "daily_streak_day_337",
+    "title": "Daily Streak \u2014 Day 337",
+    "description": "Reach a daily streak of 337 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1735
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 337
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_338",
+    "gcIdentifier": "daily_streak_day_338",
+    "title": "Daily Streak \u2014 Day 338",
+    "description": "Reach a daily streak of 338 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1740
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 338
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_339",
+    "gcIdentifier": "daily_streak_day_339",
+    "title": "Daily Streak \u2014 Day 339",
+    "description": "Reach a daily streak of 339 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1745
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 339
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_340",
+    "gcIdentifier": "daily_streak_day_340",
+    "title": "Daily Streak \u2014 Day 340",
+    "description": "Reach a daily streak of 340 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1750
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 340
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_341",
+    "gcIdentifier": "daily_streak_day_341",
+    "title": "Daily Streak \u2014 Day 341",
+    "description": "Reach a daily streak of 341 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1755
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 341
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_342",
+    "gcIdentifier": "daily_streak_day_342",
+    "title": "Daily Streak \u2014 Day 342",
+    "description": "Reach a daily streak of 342 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1760
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 342
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_343",
+    "gcIdentifier": "daily_streak_day_343",
+    "title": "Daily Streak \u2014 Day 343",
+    "description": "Reach a daily streak of 343 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1765,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 343
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_344",
+    "gcIdentifier": "daily_streak_day_344",
+    "title": "Daily Streak \u2014 Day 344",
+    "description": "Reach a daily streak of 344 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1770
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 344
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_345",
+    "gcIdentifier": "daily_streak_day_345",
+    "title": "Daily Streak \u2014 Day 345",
+    "description": "Reach a daily streak of 345 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1775
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 345
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_346",
+    "gcIdentifier": "daily_streak_day_346",
+    "title": "Daily Streak \u2014 Day 346",
+    "description": "Reach a daily streak of 346 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1780
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 346
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_347",
+    "gcIdentifier": "daily_streak_day_347",
+    "title": "Daily Streak \u2014 Day 347",
+    "description": "Reach a daily streak of 347 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1785
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 347
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_348",
+    "gcIdentifier": "daily_streak_day_348",
+    "title": "Daily Streak \u2014 Day 348",
+    "description": "Reach a daily streak of 348 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1790
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 348
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_349",
+    "gcIdentifier": "daily_streak_day_349",
+    "title": "Daily Streak \u2014 Day 349",
+    "description": "Reach a daily streak of 349 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1795
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 349
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_350",
+    "gcIdentifier": "daily_streak_day_350",
+    "title": "Daily Streak \u2014 Day 350",
+    "description": "Reach a daily streak of 350 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1800,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 350
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_351",
+    "gcIdentifier": "daily_streak_day_351",
+    "title": "Daily Streak \u2014 Day 351",
+    "description": "Reach a daily streak of 351 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1805
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 351
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_352",
+    "gcIdentifier": "daily_streak_day_352",
+    "title": "Daily Streak \u2014 Day 352",
+    "description": "Reach a daily streak of 352 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1810
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 352
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_353",
+    "gcIdentifier": "daily_streak_day_353",
+    "title": "Daily Streak \u2014 Day 353",
+    "description": "Reach a daily streak of 353 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1815
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 353
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_354",
+    "gcIdentifier": "daily_streak_day_354",
+    "title": "Daily Streak \u2014 Day 354",
+    "description": "Reach a daily streak of 354 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1820
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 354
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_355",
+    "gcIdentifier": "daily_streak_day_355",
+    "title": "Daily Streak \u2014 Day 355",
+    "description": "Reach a daily streak of 355 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1825
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 355
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_356",
+    "gcIdentifier": "daily_streak_day_356",
+    "title": "Daily Streak \u2014 Day 356",
+    "description": "Reach a daily streak of 356 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1830
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 356
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_357",
+    "gcIdentifier": "daily_streak_day_357",
+    "title": "Daily Streak \u2014 Day 357",
+    "description": "Reach a daily streak of 357 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1835,
+      "spins": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 357
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_358",
+    "gcIdentifier": "daily_streak_day_358",
+    "title": "Daily Streak \u2014 Day 358",
+    "description": "Reach a daily streak of 358 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1840
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 358
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_359",
+    "gcIdentifier": "daily_streak_day_359",
+    "title": "Daily Streak \u2014 Day 359",
+    "description": "Reach a daily streak of 359 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1845
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 359
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_360",
+    "gcIdentifier": "daily_streak_day_360",
+    "title": "Daily Streak \u2014 Day 360",
+    "description": "Reach a daily streak of 360 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1850,
+      "hammers": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 360
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_361",
+    "gcIdentifier": "daily_streak_day_361",
+    "title": "Daily Streak \u2014 Day 361",
+    "description": "Reach a daily streak of 361 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1855
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 361
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_362",
+    "gcIdentifier": "daily_streak_day_362",
+    "title": "Daily Streak \u2014 Day 362",
+    "description": "Reach a daily streak of 362 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1860
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 362
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_363",
+    "gcIdentifier": "daily_streak_day_363",
+    "title": "Daily Streak \u2014 Day 363",
+    "description": "Reach a daily streak of 363 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1865
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 363
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_364",
+    "gcIdentifier": "daily_streak_day_364",
+    "title": "Daily Streak \u2014 Day 364",
+    "description": "Reach a daily streak of 364 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 1870,
+      "spins": 1,
+      "magnets": 1
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 364
+      }
+    ]
+  },
+  {
+    "id": "daily_streak_day_365",
+    "gcIdentifier": "daily_streak_day_365",
+    "title": "Daily Streak \u2014 Day 365",
+    "description": "Reach a daily streak of 365 days.",
+    "category": "Streaks",
+    "rewards": {
+      "gems": 2375,
+      "spins": 2,
+      "hammers": 2,
+      "magnets": 3
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_streak",
+        "op": ">=",
+        "value": 365
+      }
+    ]
+  }
+]
