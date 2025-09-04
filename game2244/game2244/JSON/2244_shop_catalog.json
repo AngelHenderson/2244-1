@@ -1,0 +1,407 @@
+{
+  "catalogVersion": "2025-09-04c",
+  "lastUpdated": "2025-09-04T23:33:37",
+  "currency": "USD",
+  "pricingModel": "one_time",
+  "bundles": [
+    {
+      "id": "premium_offer",
+      "title": "Premium Offer",
+      "price": 25.99,
+      "tags": [
+        "Valuable"
+      ],
+      "items": {
+        "gems": 2500,
+        "hammers": 50,
+        "swaps": 50,
+        "magnets": 50
+      }
+    },
+    {
+      "id": "mega_offer",
+      "title": "Mega Offer",
+      "price": 9.99,
+      "tags": [
+        "50% Off"
+      ],
+      "perks": {
+        "noAds": true
+      },
+      "items": {
+        "gems": 5000,
+        "hammers": 30,
+        "swaps": 15,
+        "magnets": 10,
+        "galaxyThemes": 4,
+        "colorWheelThemes": 5,
+        "gridThemes": 4
+      }
+    },
+    {
+      "id": "ultra_offer",
+      "title": "Ultra Offer",
+      "price": 55.9,
+      "tags": [
+        "50% Off"
+      ],
+      "perks": {
+        "noAds": true,
+        "allBeats": true,
+        "allLiveThemes": true
+      },
+      "items": {
+        "gems": 50000,
+        "hammers": 75,
+        "swaps": 75,
+        "magnets": 75
+      }
+    },
+    {
+      "id": "starter_pack",
+      "title": "Starter Pack",
+      "price": 2.99,
+      "tags": [
+        "Starter"
+      ],
+      "items": {
+        "gems": 1500,
+        "hammers": 5,
+        "swaps": 3,
+        "magnets": 2
+      }
+    },
+    {
+      "id": "value_crate",
+      "title": "Value Crate",
+      "price": 4.99,
+      "tags": [
+        "Best Value"
+      ],
+      "items": {
+        "gems": 4000,
+        "hammers": 10,
+        "swaps": 5,
+        "magnets": 5
+      }
+    },
+    {
+      "id": "pro_pack",
+      "title": "Pro Pack",
+      "price": 14.99,
+      "items": {
+        "gems": 15000,
+        "hammers": 40,
+        "swaps": 20,
+        "magnets": 15
+      }
+    },
+    {
+      "id": "festival_bundle",
+      "title": "Festival Bundle",
+      "price": 29.99,
+      "tags": [
+        "Seasonal"
+      ],
+      "perks": {
+        "noAds": true
+      },
+      "items": {
+        "gems": 30000,
+        "liveThemes": 4,
+        "tileBeats": 3,
+        "hammers": 20,
+        "swaps": 20,
+        "magnets": 20
+      }
+    },
+    {
+      "id": "legendary_vault",
+      "title": "Legendary Vault",
+      "price": 99.99,
+      "tags": [
+        "Whale",
+        "Best Value"
+      ],
+      "perks": {
+        "noAds": true,
+        "allBeats": true,
+        "allLiveThemes": true
+      },
+      "items": {
+        "gems": 200000,
+        "hammers": 200,
+        "swaps": 200,
+        "magnets": 200
+      }
+    },
+    {
+      "id": "daily_booster",
+      "title": "Daily Booster",
+      "price": 0.99,
+      "tags": [
+        "Daily Limit"
+      ],
+      "items": {
+        "gems": 300,
+        "hammers": 2,
+        "swaps": 1,
+        "magnets": 1
+      }
+    }
+  ],
+  "gemBundles": [
+    {
+      "id": "gems_300",
+      "gems": 300,
+      "price": 0.99,
+      "tags": [
+        "Micro"
+      ]
+    },
+    {
+      "id": "gems_1000",
+      "gems": 1000,
+      "price": 1.99
+    },
+    {
+      "id": "gems_2500",
+      "gems": 2500,
+      "price": 3.99
+    },
+    {
+      "id": "gems_4000",
+      "gems": 4000,
+      "price": 5.99
+    },
+    {
+      "id": "gems_5000",
+      "gems": 5000,
+      "price": 6.99
+    },
+    {
+      "id": "gems_7500",
+      "gems": 7500,
+      "price": 8.99,
+      "tags": [
+        "Hot Deal"
+      ]
+    },
+    {
+      "id": "gems_12000",
+      "gems": 12000,
+      "price": 12.49
+    },
+    {
+      "id": "gems_15000",
+      "gems": 15000,
+      "price": 14.99
+    },
+    {
+      "id": "gems_25000",
+      "gems": 25000,
+      "price": 19.99,
+      "tags": [
+        "Popular"
+      ]
+    },
+    {
+      "id": "gems_30000",
+      "gems": 30000,
+      "price": 22.99
+    },
+    {
+      "id": "gems_50000",
+      "gems": 50000,
+      "price": 31.99
+    },
+    {
+      "id": "gems_75000",
+      "gems": 75000,
+      "price": 39.99
+    },
+    {
+      "id": "gems_100000",
+      "gems": 100000,
+      "price": 48.99
+    },
+    {
+      "id": "gems_200000",
+      "gems": 200000,
+      "price": 89.99
+    }
+  ],
+  "specialOffers": [
+    {
+      "id": "live_themes",
+      "title": "Live Themes",
+      "price": 10.99,
+      "perks": {
+        "noAds": true
+      },
+      "items": {
+        "liveThemes": 6
+      }
+    },
+    {
+      "id": "melody_beats",
+      "title": "Melody Beats",
+      "price": 4.99,
+      "tags": [
+        "New"
+      ],
+      "items": {
+        "tileBeats": [
+          "Drum",
+          "Guitar",
+          "Kalimba",
+          "Muted Nylon",
+          "Xylophone"
+        ]
+      }
+    },
+    {
+      "id": "live_themes_pack2",
+      "title": "Live Themes Pack 2",
+      "price": 9.99,
+      "items": {
+        "liveThemes": 6
+      }
+    },
+    {
+      "id": "beats_plus",
+      "title": "Beats Plus",
+      "price": 6.99,
+      "items": {
+        "tileBeats": [
+          "Piano",
+          "Marimba",
+          "Steel Drum",
+          "Electric",
+          "808"
+        ]
+      }
+    },
+    {
+      "id": "no_ads_lifetime",
+      "title": "No Ads (Lifetime)",
+      "price": 7.99,
+      "perks": {
+        "noAds": true
+      },
+      "items": {}
+    }
+  ],
+  "perkBundles": [
+    {
+      "id": "hammers_5",
+      "item": "hammer",
+      "quantity": 5,
+      "price": 0.99
+    },
+    {
+      "id": "hammers_15",
+      "item": "hammer",
+      "quantity": 15,
+      "price": 1.99
+    },
+    {
+      "id": "hammers_30",
+      "item": "hammer",
+      "quantity": 30,
+      "price": 2.99
+    },
+    {
+      "id": "hammers_50",
+      "item": "hammer",
+      "quantity": 50,
+      "price": 4.99
+    },
+    {
+      "id": "hammers_100",
+      "item": "hammer",
+      "quantity": 100,
+      "price": 8.99
+    },
+    {
+      "id": "swaps_5",
+      "item": "swap",
+      "quantity": 5,
+      "price": 1.29
+    },
+    {
+      "id": "swaps_15",
+      "item": "swap",
+      "quantity": 15,
+      "price": 2.49
+    },
+    {
+      "id": "swaps_30",
+      "item": "swap",
+      "quantity": 30,
+      "price": 4.49
+    },
+    {
+      "id": "swaps_50",
+      "item": "swap",
+      "quantity": 50,
+      "price": 6.99
+    },
+    {
+      "id": "swaps_100",
+      "item": "swap",
+      "quantity": 100,
+      "price": 12.99
+    },
+    {
+      "id": "magnets_5",
+      "item": "magnet",
+      "quantity": 5,
+      "price": 1.49
+    },
+    {
+      "id": "magnets_15",
+      "item": "magnet",
+      "quantity": 15,
+      "price": 3.49
+    },
+    {
+      "id": "magnets_30",
+      "item": "magnet",
+      "quantity": 30,
+      "price": 5.99
+    },
+    {
+      "id": "magnets_50",
+      "item": "magnet",
+      "quantity": 50,
+      "price": 8.99
+    },
+    {
+      "id": "magnets_100",
+      "item": "magnet",
+      "quantity": 100,
+      "price": 16.99
+    }
+  ],
+  "freePerks": [
+    {
+      "id": "free_hammer_1",
+      "item": "hammer",
+      "quantity": 1,
+      "price": 0.0
+    },
+    {
+      "id": "free_swap_1",
+      "item": "swap",
+      "quantity": 1,
+      "price": 0.0
+    },
+    {
+      "id": "free_magnet_1",
+      "item": "magnet",
+      "quantity": 1,
+      "price": 0.0
+    }
+  ]
+}
