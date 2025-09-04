@@ -6,7 +6,7 @@ struct PillButton: View {
     var action: () -> Void
 
     var body: some View {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             Button(action: action) {
                 HStack(spacing: 12) {
                     if let icon = icon {

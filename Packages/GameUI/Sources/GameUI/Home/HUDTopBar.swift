@@ -8,7 +8,7 @@ struct HUDTopBar: View {
     var body: some View {
         HStack {
             // Rank badge
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, macOS 26.0, *) {
                 Button(action: { actions.openLeaderboard() }) {
                     Text("Rank: \(state.rank)")
                         .font(.headline)
@@ -26,7 +26,7 @@ struct HUDTopBar: View {
             Spacer()
 
             // Gems counter (tappable) – opens shop
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, macOS 26.0, *) {
                 Button(action: { actions.openShop() }) {
                     HStack(spacing: 8) {
                         Image("gem")

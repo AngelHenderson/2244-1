@@ -11,7 +11,7 @@ struct SideRailButton: View {
 
     var body: some View {
         VStack{
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, macOS 26.0, *) {
                 Button(action: { if !locked { action() } }) {
                     VStack(spacing: 6) {
                         ZStack(alignment: .topTrailing) {

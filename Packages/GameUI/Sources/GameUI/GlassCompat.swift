@@ -4,17 +4,12 @@ import SwiftUI
 struct GlassOrMaterialBackground: ViewModifier {
     var cornerRadius: CGFloat = 14
     func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             content
-//                .glassEffect()
-//                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .glassEffect(in: .rect(cornerRadius: cornerRadius))
         } else {
             content
-//                .background(
-//                    .regularMaterial,
-//                    in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-//                )
-//                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
     }
 }

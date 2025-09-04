@@ -22,12 +22,14 @@ public struct LeaderboardView: View {
                 }
             }
             .navigationTitle("Leaderboard")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
+                ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
             }
+            #else
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+            #endif
         }
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
@@ -76,7 +78,11 @@ public struct LeaderboardView: View {
                 .padding(.horizontal)
             }
             .padding(.vertical, 12)
+            #if os(iOS)
             .background(Color(UIColor.secondarySystemBackground))
+            #else
+            .background(Color.secondary.opacity(0.1))
+            #endif
             
             // Stats Bar
             if let total = m.totalPlayers {
@@ -93,7 +99,11 @@ public struct LeaderboardView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
+                #if os(iOS)
                 .background(Color(UIColor.tertiarySystemBackground))
+                #else
+                .background(Color.secondary.opacity(0.08))
+                #endif
             }
             
             // Leaderboard List
@@ -171,7 +181,11 @@ public struct LeaderboardView: View {
                 .foregroundStyle(isSelected ? .white : .primary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
+                #if os(iOS)
                 .background(isSelected ? Color.accentColor : Color(UIColor.tertiarySystemFill))
+                #else
+                .background(isSelected ? Color.accentColor : Color.secondary.opacity(0.12))
+                #endif
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -237,7 +251,11 @@ public struct LeaderboardView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
+        #if os(iOS)
         .background(index != nil && index! % 2 == 0 ? Color(UIColor.systemBackground) : Color(UIColor.secondarySystemBackground).opacity(0.3))
+        #else
+        .background(index != nil && index! % 2 == 0 ? Color.clear : Color.secondary.opacity(0.06))
+        #endif
     }
     
     private func rankIcon(for rank: Int) -> String {
