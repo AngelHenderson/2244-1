@@ -12,6 +12,7 @@ public final class GameStore {
     public private(set) var state: GameState
     public private(set) var currentPath: [Position] = []
     public private(set) var pathValidation: ChainValidation = .valid
+    public var achievementEvaluator: AchievementEvaluator?
     // Track if we're building a chain that may end on a gift
     public private(set) var isExtendingToGift: Bool = false
     // Pending unlock reward (base amount before multiplier)
@@ -196,6 +197,10 @@ public final class GameStore {
             lastMergeInfo = nil
         }
         movesHistory.append(currentPath)
+        
+        // Evaluate achievements
+        achievementEvaluator?.onChainCommitted(chain: positions, state: state, resultingTileValue: addedValue)
+        
         currentPath = []
         pathValidation = .valid
     }
@@ -213,6 +218,9 @@ public final class GameStore {
         pendingDoubleBase = nil
         movesHistory = []
         powerUpHistory = []
+        
+        // Notify achievement evaluator
+        achievementEvaluator?.onGameStart(state: state)
     }
     
     // Start a new game with a custom seed (user-designed challenge)
@@ -326,6 +334,7 @@ public final class GameStore {
         }
         state = engine.hammer(at: position)
         powerUpHistory.append(.hammer(position))
+        achievementEvaluator?.onPowerUpUsed(type: "hammer")
         return true
     }
     
@@ -340,6 +349,7 @@ public final class GameStore {
         }
         state = engine.swap(a, b)
         powerUpHistory.append(.swap(a, b))
+        achievementEvaluator?.onPowerUpUsed(type: "swap")
         return true
     }
     
@@ -354,6 +364,7 @@ public final class GameStore {
         }
         state = engine.shuffle()
         powerUpHistory.append(.shuffle)
+        achievementEvaluator?.onPowerUpUsed(type: "shuffle")
         return true
     }
     
@@ -363,6 +374,7 @@ public final class GameStore {
         // Undo doesn't use inventory in this implementation
         state = engine.undo()
         powerUpHistory.append(.undo)
+        achievementEvaluator?.onUndoUsed()
         return true
     }
     

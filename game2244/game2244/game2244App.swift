@@ -10,6 +10,7 @@ import GameApp
 import GameServices
 import GameUI
 import GameCore
+import GameKit
 
 @main
 struct game2244App: App {
@@ -24,6 +25,7 @@ struct game2244App: App {
     @AppStorage("useGlassPreview") private var useGlassPreview: Bool = true
     @State private var isPlaying: Bool = false
     @State private var storageService = UserDefaultsStorageService()
+    @State private var achievementStore = AchievementStore()
     
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
@@ -39,6 +41,7 @@ struct game2244App: App {
                 .environment(\.currentTheme, themeRegistry.descriptor(for: selectedThemeId))
                 .environment(\.tileJourney, gameStore.journey)
                 .environment(\.leaderboardClient, LeaderboardClient.gameCenter())
+                .environment(achievementStore)
                 .task {
                     // Suppress simulator-specific warnings in console
                     if ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
@@ -51,6 +54,22 @@ struct game2244App: App {
                         adService.setAdFree(true)
                     }
                     _ = await gameCenterService.authenticate()
+                    
+                    // Load achievements
+                    try? achievementStore.loadCatalogFromBundle(named: "2244_achievements")
+                    
+                    // Setup Game Center
+                    GameCenterManager.shared.configureAccessPoint(active: true, location: .topLeading)
+                    GameCenterManager.shared.authenticateIfNeeded {
+                        UIApplication.shared.connectedScenes
+                            .compactMap { $0 as? UIWindowScene }
+                            .first?.windows.first?.rootViewController
+                    }
+                    await achievementStore.syncWithGameCenter()
+                    
+                    // Setup achievement evaluator
+                    let evaluator = AchievementEvaluator(achievementStore: achievementStore)
+                    gameStore.achievementEvaluator = evaluator
                     
                     // Load initial progress
                     loadInitialProgress()

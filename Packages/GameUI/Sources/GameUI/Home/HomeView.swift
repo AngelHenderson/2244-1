@@ -8,6 +8,7 @@ public struct HomeView: View {
     @Environment(\.tileJourney) private var journey
     @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
+    @State private var isShowingAchievements: Bool = false
     @State private var isShowingMusic: Bool = false
     @State private var centeredMilestone: Int? = nil
 
@@ -164,7 +165,7 @@ public struct HomeView: View {
                         system: "star.circle.fill",
                         title: "Achievements",
                         badge: state.hasAchievementsBadge,
-                        action: { actions.openAchievements() }
+                        action: { isShowingAchievements = true }
                     )
                     dockItem(
                         system: "trophy.circle.fill",
@@ -184,6 +185,10 @@ public struct HomeView: View {
         // Leaderboard sheet
         .sheet(isPresented: $isShowingLeaderboard) {
             LeaderboardView()
+        }
+        // Achievements sheet
+        .sheet(isPresented: $isShowingAchievements) {
+            AchievementsView()
         }
         // Music Themes sheet
         .sheet(isPresented: $isShowingMusic) {

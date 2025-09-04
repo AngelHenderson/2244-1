@@ -61,7 +61,7 @@ struct MusicThemesView: View {
             // Spacer button to balance layout
             Color.clear.frame(width: 28, height: 28)
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(.primary)
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 8)
@@ -100,11 +100,11 @@ struct MusicThemesView: View {
 
             Text(instrument.displayName.uppercased())
                 .font(.largeTitle.weight(.heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
 
             Text(instrument.tagline)
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(.secondary)
 
             Spacer(minLength: 0)
 
@@ -177,7 +177,7 @@ struct MusicThemesView: View {
             Image(systemName: direction == .left ? "arrow.left.circle.fill" : "arrow.right.circle.fill")
                 .font(.system(size: 36, weight: .bold))
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.white.opacity(0.95))
+                .foregroundStyle(.secondary)
                 .shadow(radius: 2)
                 .accessibilityLabel(direction == .left ? Text("Previous") : Text("Next"))
         }
