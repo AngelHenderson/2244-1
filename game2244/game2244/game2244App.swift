@@ -27,6 +27,7 @@ struct game2244App: App {
     @State private var storageService = UserDefaultsStorageService()
     @State private var achievementStore = AchievementStore()
     @State private var dailyClaimsStore = DailyClaimsStore()
+    @State private var shopStore: ShopStore? = nil
     
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
@@ -44,7 +45,11 @@ struct game2244App: App {
                 .environment(\.leaderboardClient, LeaderboardClient.gameCenter())
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
+                .environment(\.shopStore, shopStore ?? ShopStore(journeyStore: gameStore.journey))
                 .task {
+                    // Initialize shop store
+                    shopStore = ShopStore(journeyStore: gameStore.journey)
+                    
                     // Suppress simulator-specific warnings in console
                     if ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
                         // Running in simulator - some warnings are expected

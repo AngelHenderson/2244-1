@@ -10,6 +10,7 @@ public struct HomeView: View {
     @State private var isShowingLeaderboard: Bool = false
     @State private var isShowingAchievements: Bool = false
     @State private var isShowingMusic: Bool = false
+    @State private var isShowingShop: Bool = false
     @State private var centeredMilestone: Int? = nil
 
     public init() {}
@@ -47,7 +48,7 @@ public struct HomeView: View {
                                 customImage: "mysterybox",
                                 title: "SHOP",
                                 badge: state.hasShopBadge,
-                                action: { actions.openShop() }
+                                action: { isShowingShop = true }
                             )
                             
                             SideRailButton(
@@ -201,6 +202,10 @@ public struct HomeView: View {
                     print("Purchase tapped for: \(instrument.id)")
                 }
             )
+        }
+        // Shop sheet
+        .sheet(isPresented: $isShowingShop) {
+            ShopView()
         }
     }
 
