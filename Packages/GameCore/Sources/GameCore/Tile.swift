@@ -5,6 +5,7 @@ public enum TileType: Equatable, Hashable, Sendable {
     case infinity
     case locked
     case bomb(turnsRemaining: Int)
+    case highValue(step: Int)  // For tiles beyond Int.max, track the doubling step
 }
 
 public struct Tile: Equatable, Hashable, Sendable {

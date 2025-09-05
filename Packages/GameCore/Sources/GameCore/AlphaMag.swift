@@ -76,9 +76,8 @@ public struct AlphaMag {
         }
         
         // exp=0 means trillions (use 'a'), exp=1 means quadrillions (use 'b'), etc.
-        // Cap at "bz" as the final tier.
-        let maxOrd = (try? ordinal(forSuffix: "bz")) ?? 78
-        let ord = min(exp + 1, maxOrd)
+        // No cap - continue through all letter combinations
+        let ord = exp + 1
         let alphaSuffix = suffix(forOrdinal: ord)
         return numberString(out, decimals: decimals) + alphaSuffix
     }
@@ -127,11 +126,8 @@ public struct AlphaMag {
             // Alphabetic suffixes (lowercase tiers starting at trillions)
             let lower = sufPart.lowercased()
             let ord = try ordinal(forSuffix: lower)
-            // Clamp to 'bz' max if someone passes a higher suffix
-            let maxOrd = (try? ordinal(forSuffix: "bz")) ?? ord
-            let clampedOrd = min(ord, maxOrd)
             // ord=1 means 'a' which represents trillions
-            return mantissa * 1_000_000_000_000 * pow1000(clampedOrd - 1)
+            return mantissa * 1_000_000_000_000 * pow1000(ord - 1)
         }
     }
 

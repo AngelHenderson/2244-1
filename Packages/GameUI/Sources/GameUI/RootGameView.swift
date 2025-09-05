@@ -12,6 +12,7 @@ public struct RootGameView: View {
     @State private var hasLoadedInitialState = false
     @State private var showDailyClaims = false
     @State private var showDailyStreaks = false
+    @State private var showShop = false
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     
     // Progress management
@@ -52,6 +53,9 @@ public struct RootGameView: View {
                         // Update daily claims availability
                         dailyClaimsStore.updateAvailability()
                     }
+                    .sheet(isPresented: $showShop) {
+                        ShopView(initialTab: .gems)
+                    }
                     .sheet(isPresented: $showDailyClaims) {
                         DailyClaimsView()
                             .environment(dailyClaimsStore)
@@ -75,7 +79,7 @@ public struct RootGameView: View {
             },
             openShop: {
                 print("Open Shop")
-                // TODO: Implement shop sheet
+                showShop = true
             },
             buyGems: {
                 print("Buy Gems")

@@ -49,6 +49,16 @@ struct TileView: View {
                         }
                         .padding(4)
                     }
+                } else if case .highValue(let step) = tile.type {
+                    // Special formatting for tiles beyond Int.max
+                    Text(JourneyTileGenerator.formatTileAtStep(step))
+                        .font(.system(size: fontSize, weight: .heavy, design: .rounded).monospacedDigit())
+                        .foregroundColor(textColor)
+                        .minimumScaleFactor(0.5)
+                        .contentTransition(.numericText())
+                        .overlay(
+                            colorBlindMode ? patternOverlay : nil
+                        )
                 } else {
                     Text(TileLabelFormatter.format(tile.value))
                         .font(.system(size: fontSize, weight: .heavy, design: .rounded).monospacedDigit())
@@ -110,6 +120,10 @@ struct TileView: View {
             return Color.gray.opacity(0.6)
         } else if tile.isBomb {
             return Color.orange.opacity(0.8)
+        } else if case .highValue = tile.type {
+            // For high value tiles, use the Int.max color (which represents very high values)
+            if let theme { return theme.color(for: Int.max) }
+            return Theme.color(for: Int.max)
         }
         if let theme { return theme.color(for: tile.value) }
         return Theme.color(for: tile.value)

@@ -11,37 +11,14 @@ struct JourneyPanel: View {
     }
     
     private func journeyValues() -> [Tile] {
-        var tiles: [Tile] = []
-        var current = 2
         if showAll {
-            // Build a long list up to a higher limit, then infinity
-            let limit = 200
-            for _ in 0..<limit {
-                tiles.append(Tile(value: current))
-                if current > (Int.max >> 1) { break }
-                current = current << 1
-            }
-            tiles.append(Tile(value: 0, type: .infinity))
-            return tiles
+            // Show full journey up to 873bz
+            return JourneyTileGenerator.generateFullJourney()
+        } else {
+            // Show journey relative to current highest
+            let highest = max(2, gameStore.state.highestTile)
+            return JourneyTileGenerator.generateJourney(highest: highest, stepsAhead: 20)
         }
-        let highest = max(2, gameStore.state.highestTile)
-        // Show up to 8 steps beyond current highest, capped to avoid overflow
-        let cap: Int = {
-            if highest > (Int.max >> 5) { return Int.max }
-            var v = highest
-            for _ in 0..<8 {
-                if v > (Int.max >> 1) { return Int.max }
-                v = v << 1
-            }
-            return v
-        }()
-        while current > 0 && current <= cap {
-            tiles.append(Tile(value: current))
-            if current > (Int.max >> 1) { break }
-            current = current << 1
-        }
-        tiles.append(Tile(value: 0, type: .infinity))
-        return tiles
     }
     
     var body: some View {

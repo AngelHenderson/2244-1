@@ -9,7 +9,7 @@ public struct ShopView: View {
     
     @State private var selectedTab = ShopTab.bundles
     
-    enum ShopTab: String, CaseIterable {
+    public enum ShopTab: String, CaseIterable {
         case bundles = "Bundles"
         case gems = "Gems"
         case journey = "Journey"
@@ -27,7 +27,9 @@ public struct ShopView: View {
         }
     }
     
-    public init() {}
+    public init(initialTab: ShopTab = .bundles) {
+        self._selectedTab = State(initialValue: initialTab)
+    }
     
     public var body: some View {
         NavigationStack {
