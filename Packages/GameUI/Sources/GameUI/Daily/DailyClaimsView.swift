@@ -135,18 +135,10 @@ public struct DailyClaimsView: View {
                 .font(.title2.bold())
             
             LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 60), spacing: 8)
+                GridItem(.adaptive(minimum: 68), spacing: 8)
             ], spacing: 8) {
-                ForEach(store.dailyClaims.prefix(30)) { claim in
+                ForEach(store.dailyClaims) { claim in
                     ClaimDayTile(claim: claim, currentDay: store.currentClaimDay)
-                }
-                
-                if store.dailyClaims.count > 30 {
-                    Text("+ \(store.dailyClaims.count - 30) more")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 60, height: 60)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
                 }
             }
         }
@@ -179,18 +171,25 @@ private struct ClaimDayTile: View {
             Text("\(claim.day)")
                 .font(.system(size: 16, weight: .bold, design: .rounded))
             
+            // Rewards summary (tiny)
+            RewardsTiny(rewards: claim.rewards)
+                .font(.system(size: 9))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            
+            // Status icon
             if claim.isClaimed {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.green)
             } else if claim.isAvailable {
                 Image(systemName: "gift.fill")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.yellow)
                     .symbolEffect(.pulse)
             }
         }
-        .frame(width: 60, height: 60)
+        .frame(width: 68, height: 68)
         .background(backgroundGradient, in: RoundedRectangle(cornerRadius: 8))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
@@ -217,6 +216,37 @@ private struct ClaimDayTile: View {
             return .green.opacity(0.5)
         } else {
             return .gray.opacity(0.3)
+        }
+    }
+}
+
+private struct RewardsTiny: View {
+    let rewards: AchievementDef.Rewards
+    var body: some View {
+        HStack(spacing: 6) {
+            if let gems = rewards.gems, gems > 0 {
+                Label("\(gems)", systemImage: "diamond.fill")
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.cyan)
+                    .overlay(
+                        Text("\(gems)")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(.cyan)
+                            .offset(x: 8)
+                    , alignment: .trailing)
+            }
+            if let spins = rewards.spins, spins > 0 {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(.purple)
+            }
+            if let hammers = rewards.hammers, hammers > 0 {
+                Image(systemName: "hammer.fill")
+                    .foregroundStyle(.orange)
+            }
+            if let magnets = rewards.magnets, magnets > 0 {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.blue)
+            }
         }
     }
 }

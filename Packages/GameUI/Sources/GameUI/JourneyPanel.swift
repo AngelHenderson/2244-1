@@ -14,8 +14,8 @@ struct JourneyPanel: View {
         var tiles: [Tile] = []
         var current = 2
         if showAll {
-            // Build a long list up to a reasonable limit, then infinity
-            let limit = 60
+            // Build a long list up to a higher limit, then infinity
+            let limit = 200
             for _ in 0..<limit {
                 tiles.append(Tile(value: current))
                 if current > (Int.max >> 1) { break }

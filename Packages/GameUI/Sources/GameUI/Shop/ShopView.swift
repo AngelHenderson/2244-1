@@ -121,7 +121,7 @@ public struct ShopView: View {
             // Journey progress indicator
             JourneyProgressCard()
             
-            // Available journey tiles using AlphaLabels
+            // Available journey tiles
             VStack(alignment: .leading, spacing: 16) {
                 Text("Journey Tiles")
                     .font(.headline)
@@ -131,11 +131,19 @@ public struct ShopView: View {
                     .foregroundStyle(.secondary)
                 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
-                    ForEach(Array(shopStore.availableJourneyTiles.enumerated()), id: \.offset) { index, label in
+                    ForEach(Array(journeyStore.milestones().enumerated()), id: \.offset) { index, milestone in
                         JourneyTileView(
-                            label: label,
-                            milestone: getMilestone(for: index),
+                            milestone: milestone,
                             isUnlocked: isJourneyTileUnlocked(index: index)
+                        )
+                    }
+                    
+                    // Add "to infinity" tiles beyond current milestones
+                    ForEach(0..<10, id: \.self) { extraIndex in
+                        let extraValue = calculateExtraMilestone(index: journeyStore.milestones().count + extraIndex)
+                        JourneyTileView(
+                            milestone: extraValue,
+                            isUnlocked: false
                         )
                     }
                 }
@@ -192,6 +200,14 @@ public struct ShopView: View {
     private func isJourneyTileUnlocked(index: Int) -> Bool {
         guard let milestone = getMilestone(for: index) else { return false }
         return journeyStore.highestTile >= milestone
+    }
+    
+    private func calculateExtraMilestone(index: Int) -> Int {
+        // Continue doubling from the last milestone
+        let milestones = journeyStore.milestones()
+        guard let lastMilestone = milestones.last else { return 1 << (index + 10) }
+        let extraSteps = index - milestones.count + 1
+        return lastMilestone << extraSteps
     }
 }
 
@@ -449,7 +465,7 @@ struct JourneyProgressCard: View {
                     Text("Highest Tile")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text("\(journeyStore.highestTile)")
+                    Text(AlphaMag.formatTileValue(journeyStore.highestTile))
                         .font(.title2.bold())
                 }
                 
@@ -460,7 +476,7 @@ struct JourneyProgressCard: View {
                     Text("Next Milestone")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text("\(journeyStore.nextMilestone() ?? 0)")
+                    Text(AlphaMag.formatTileValue(journeyStore.nextMilestone() ?? 0))
                         .font(.title2.bold())
                         .foregroundStyle(.cyan)
                 }
@@ -474,21 +490,16 @@ struct JourneyProgressCard: View {
 }
 
 struct JourneyTileView: View {
-    let label: String
-    let milestone: Int?
+    let milestone: Int
     let isUnlocked: Bool
     
     var body: some View {
         VStack(spacing: 4) {
-            Text(label)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+            Text(AlphaMag.formatTileValue(milestone))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundStyle(isUnlocked ? .primary : .tertiary)
-            
-            if let milestone = milestone {
-                Text("\(milestone)")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-            }
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
         }
         .frame(width: 70, height: 70)
         .background(isUnlocked ? Color.accentColor.opacity(0.15) : Color.gray.opacity(0.1))

@@ -29,14 +29,6 @@ public struct HomeView: View {
                         VStack(spacing: 20) {
                             SideRailButton(
                                 systemImage: nil,
-                                customImage: "dailypic", // using available icon set
-                                title: "DAILY",
-                                badge: state.hasDailyBadge,
-                                action: { actions.openDaily() }
-                            )
-                            
-                            SideRailButton(
-                                systemImage: nil,
                                 customImage: "spinthewheel",
                                 title: "FREE SPIN",
                                 badge: state.hasFreeSpinBadge,
@@ -64,6 +56,15 @@ public struct HomeView: View {
                                 title: "SALE OFFER",
                                 badge: true,
                                 action: { actions.openSaleOffer() }
+                            )
+                            
+                            // Daily below Sale Offer
+                            SideRailButton(
+                                systemImage: nil,
+                                customImage: "dailypic",
+                                title: "DAILY",
+                                badge: state.hasDailyBadge,
+                                action: { actions.openDaily() }
                             )
                             
                             Spacer(minLength: 0)
@@ -262,6 +263,8 @@ public struct HomeView: View {
         }
     }
 }
+
+// (Removed inline daily rewards card; daily rewards are accessed via the Daily button.)
 
 private struct ThemeButton: View {
     let name: String
