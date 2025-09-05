@@ -294,43 +294,59 @@ struct GemCard: View {
     let gem: GemBundle
     @Environment(\.shopStore) private var shopStore
     
+    private var formattedGemCount: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter.string(from: NSNumber(value: gem.gems)) ?? String(gem.gems)
+    }
+    
     var body: some View {
-        VStack(spacing: 8) {
-            if let tags = gem.tags, !tags.isEmpty {
-                ForEach(tags, id: \.self) { tag in
-                    TagView(text: tag, style: .default)
+        ZStack(alignment: .topLeading) {
+            VStack(spacing: 10) {
+                Image(systemName: "diamond.fill")
+                    .font(.system(size: 32, weight: .bold))
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(.cyan, .cyan.opacity(0.3))
+                    .accessibilityHidden(true)
+                
+                Text(formattedGemCount)
+                    .font(.system(.title2, design: .rounded).bold())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .accessibilityLabel("\(gem.gems) gems")
+                
+                Text("Gems")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Spacer(minLength: 8)
+                
+                Button {
+                    Task { await shopStore.purchase(gem.id) }
+                } label: {
+                    Text(shopStore.formatPrice(gem.price))
+                        .font(.system(size: 15, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.accentColor)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .accessibilityLabel("Buy for \(shopStore.formatPrice(gem.price))")
                 }
+                .disabled(shopStore.isPurchasing)
             }
+            .padding()
             
-            Image(systemName: "diamond.fill")
-                .font(.system(size: 32))
-                .foregroundStyle(.cyan)
-            
-            Text("\(gem.gems)")
-                .font(.title2.bold())
-            
-            Text("Gems")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            
-            Spacer()
-            
-            Button {
-                Task { await shopStore.purchase(gem.id) }
-            } label: {
-                Text(shopStore.formatPrice(gem.price))
-                    .font(.system(size: 14, weight: .bold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            if let tag = gem.tags?.first {
+                TagView(text: tag, style: .default)
+                    .padding(8)
             }
         }
-        .padding()
-        .frame(height: 160)
+        .frame(height: 170)
         .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(gem.gems) gems for \(shopStore.formatPrice(gem.price))")
     }
 }
 

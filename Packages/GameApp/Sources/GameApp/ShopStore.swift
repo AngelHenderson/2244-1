@@ -24,7 +24,7 @@ public struct ShopBundle: Identifiable, Codable {
         public let swaps: Int?
         public let magnets: Int?
         public let liveThemes: AnyDecodable?  // Can be Int or [String]
-        public let tileBeats: [String]?
+        public let tileBeats: AnyDecodable?  // Can be Int or [String]
         public let galaxyThemes: Int?
         public let colorWheelThemes: Int?
         public let gridThemes: Int?

@@ -50,10 +50,21 @@ public struct HybridGameScreen: View {
 
             GeometryReader { geo in
                 // Clamp available dimensions to non-negative to avoid invalid frames
+                let isPortrait = geo.size.height >= geo.size.width
                 let availableW = max(0, geo.size.width - ModernTheme.gutter * 2)
                 let hudAndDockHeight = ModernTheme.hudHeight + ModernTheme.dockHeight
                 let availableH = max(0, geo.size.height - hudAndDockHeight - ModernTheme.gutter * 2)
-                let boardSide = max(0, min(availableW, availableH))
+                // Proportional sizing rules:
+                // - Portrait: board should take 90% of the inner square (width/height)
+                // - Landscape: board should take 80% of the inner height
+                let desiredSide: CGFloat = {
+                    if isPortrait {
+                        return min(availableW, availableH * 0.9)
+                    } else {
+                        return availableH * 0.8
+                    }
+                }()
+                let boardSide = max(0, min(desiredSide, availableW, availableH))
 
                 VStack(spacing: 12) {
                     Spacer(minLength: ModernTheme.hudHeight)
