@@ -17,10 +17,16 @@ public struct HomeView: View {
     
     public var body: some View {
         ZStack {
+            // Background layer: Tile scroller
+            TileScrollerView()
+                .zIndex(0)
+            
+            // Foreground layer: Main UI
             VStack(spacing: 0) {
                 // Top HUD
                 HUDTopBar()
                     .padding(.top, 8)
+                    .background(.ultraThinMaterial)
 
                 // Main content with side rails and center progression
                 GeometryReader { geo in
@@ -72,14 +78,9 @@ public struct HomeView: View {
                         .frame(width: 80)
                         .padding(.top, 20)
 
-                        // Center column: Inline Journey view (header + full scroll)
-                        VStack(spacing: 16) {
-                            JourneyPanel(showAll: true)
-                                .padding(.horizontal)
-                            Spacer(minLength: 0)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 12)
+                        // Center column: Spacer for tile visibility
+                        Spacer()
+                            .frame(maxWidth: .infinity)
 
                         // Right rail
                         VStack(spacing: 20) {
@@ -182,7 +183,7 @@ public struct HomeView: View {
                 }
                 .padding(.bottom, 16)
             }
-
+            .zIndex(1)
         }
         // Leaderboard sheet
         .sheet(isPresented: $isShowingLeaderboard) {
