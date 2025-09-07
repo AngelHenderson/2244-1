@@ -9,6 +9,10 @@ public struct TileScrollerView: View {
     @State private var focusedTileID: Int? = nil
     @State private var showAnimation = false
     
+    private var currentHighestTile: Int {
+        max(2, gameStore.state.highestTile)
+    }
+    
     private let itemSpacing: CGFloat = 24
     private let tileSize: CGFloat = 140
     
@@ -21,8 +25,11 @@ public struct TileScrollerView: View {
     }
     
     private var highestUnlockedIndex: Int? {
-        let highestValue = gameStore.state.highestTile
-        return tiles.firstIndex { $0.tile.value == highestValue }
+        let highestValue = max(2, gameStore.state.highestTile)
+        // Find the index of the user's highest tile in the reversed array
+        return tiles.firstIndex { tile in
+            !tile.tile.isInfinity && tile.tile.value == highestValue
+        }
     }
     
     public init() {}
@@ -34,6 +41,7 @@ public struct TileScrollerView: View {
                     TileRowItem(
                         tile: item.tile,
                         isLocked: isLocked(item.tile),
+                        isCurrentHighest: item.tile.value == currentHighestTile && !item.tile.isInfinity,
                         tileSize: tileSize
                     )
                     .id(item.id)
@@ -52,14 +60,14 @@ public struct TileScrollerView: View {
         .contentMargins(.vertical, 150, for: .scrollContent)
         .background(Color.black.opacity(0.001))
         .task {
-            // Initial position: scroll to highest achieved tile
-            if focusedTileID == nil, let highestIndex = highestUnlockedIndex {
-                focusedTileID = highestIndex
-                // Fallback: dispatch async to ensure scroll position is set after layout
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    if focusedTileID != highestIndex {
-                        focusedTileID = highestIndex
-                    }
+            // Initial position: scroll to user's current highest tile
+            await setInitialScrollPosition()
+        }
+        .onChange(of: gameStore.state.highestTile) { _, newValue in
+            // Update scroll position if user achieves a new highest tile
+            if let newIndex = tiles.firstIndex(where: { !$0.tile.isInfinity && $0.tile.value == newValue }) {
+                withAnimation(.snappy(duration: 0.3)) {
+                    focusedTileID = newIndex
                 }
             }
         }
@@ -77,11 +85,31 @@ public struct TileScrollerView: View {
         }
         return tile.value > gameStore.state.highestTile
     }
+    
+    @MainActor
+    private func setInitialScrollPosition() async {
+        // Find the user's current position in the journey
+        if let currentIndex = highestUnlockedIndex {
+            focusedTileID = currentIndex
+            
+            // Double-check after a brief delay to ensure layout is complete
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            if focusedTileID != currentIndex {
+                focusedTileID = currentIndex
+            }
+        } else {
+            // Fallback: if no highest tile found, start near the bottom (tile 2)
+            if let firstTileIndex = tiles.firstIndex(where: { $0.tile.value == 2 }) {
+                focusedTileID = firstTileIndex
+            }
+        }
+    }
 }
 
 private struct TileRowItem: View {
     let tile: Tile
     let isLocked: Bool
+    let isCurrentHighest: Bool
     let tileSize: CGFloat
     
     var body: some View {
@@ -95,7 +123,22 @@ private struct TileRowItem: View {
                 )
                 .saturation(isLocked ? 0.0 : 1.0)
                 .opacity(isLocked ? 0.55 : 1.0)
+                .overlay(
+                    isCurrentHighest ?
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.yellow, .orange],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 3
+                        )
+                        .shadow(color: .orange.opacity(0.5), radius: 8)
+                    : nil
+                )
                 .animation(.snappy(duration: 0.25), value: isLocked)
+                .animation(.snappy(duration: 0.25), value: isCurrentHighest)
                 
                 if isLocked {
                     Image(systemName: "lock.fill")
@@ -115,18 +158,31 @@ private struct TileRowItem: View {
                             endPoint: .trailing
                         )
                     )
-            } else if !isLocked {
-                // Show label only for significant milestones
-                if tile.value >= 256 {
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.caption2)
-                        Text("Reached")
-                            .font(.caption2.weight(.medium))
-                    }
-                    .foregroundStyle(.green)
-                    .opacity(0.7)
+            } else if isCurrentHighest {
+                // Highlight current position
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .font(.caption)
+                    Text("Current")
+                        .font(.caption.weight(.semibold))
                 }
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.yellow, .orange],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+            } else if !isLocked && tile.value >= 256 {
+                // Show label only for significant milestones
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption2)
+                    Text("Reached")
+                        .font(.caption2.weight(.medium))
+                }
+                .foregroundStyle(.green)
+                .opacity(0.7)
             } else {
                 // Don't show "Locked" for every tile, too cluttered
                 EmptyView()
