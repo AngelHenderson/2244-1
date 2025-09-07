@@ -53,7 +53,7 @@ public struct TileScrollerView: View {
                 }
             }
             .scrollTargetLayout()
-            .padding(.vertical, UIScreen.main.bounds.height * 0.4)
+            .padding(.vertical, UIScreen.main.bounds.height * 0.45)
         }
         .scrollTargetBehavior(.viewAligned)
         .scrollPosition(id: $focusedTileID, anchor: .center)
@@ -62,6 +62,12 @@ public struct TileScrollerView: View {
         .task {
             // Initial position: scroll to user's current highest tile
             await setInitialScrollPosition()
+        }
+        .onAppear {
+            // Ensure immediate centering on appear
+            if focusedTileID == nil, let currentIndex = highestUnlockedIndex {
+                focusedTileID = currentIndex
+            }
         }
         .onChange(of: gameStore.state.highestTile) { _, newValue in
             // Update scroll position if user achieves a new highest tile
