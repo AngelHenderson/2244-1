@@ -104,7 +104,7 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "createagame",
                                 title: "CREATE",
-                                locked: state.isCreateLocked,
+                                locked: false,
                                 action: { actions.openCreate() }
                             )
                             
@@ -126,7 +126,7 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "challenge",
                                 title: "CHALLENGE",
-                                locked: state.isChallengeLocked,
+                                locked: false,
                                 action: { actions.openChallenge() }
                             )
 

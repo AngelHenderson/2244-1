@@ -1,12 +1,18 @@
 import SwiftUI
 import GameApp
+#if canImport(GameKit)
+import GameKit
+#endif
 
 struct HUDTopBar: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
 
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
+            // Game Center profile button (shown only if available / authenticated)
+            gameCenterButton
+            
             Button(action: { actions.openLeaderboard() }) {
                 Text("Rank: \(state.rank)")
                     .font(.headline)
@@ -35,11 +41,65 @@ struct HUDTopBar: View {
             .modifier(GlassButtonCompat())
             .accessibilityLabel("Gems \(state.gems). Open shop.")
         }
-        // Add leading padding to avoid overlapping with Game Center access point
-        .padding(.leading, 24)
-        .padding(.trailing, 16)
+        .padding(.horizontal, 16)
         .padding(.top, 8)
     }
+
+    @ViewBuilder
+    private var gameCenterButton: some View {
+        #if canImport(GameKit)
+        if GKLocalPlayer.local.isAuthenticated {
+            GameCenterAvatarButton(action: { actions.openLeaderboard() })
+                .accessibilityLabel("Game Center profile. Open leaderboard.")
+        }
+        #else
+        EmptyView()
+        #endif
+    }
+
+#if canImport(GameKit)
+private struct GameCenterAvatarButton: View {
+    let action: () -> Void
+    @State private var avatar: UIImage? = nil
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle().fill(Color.white.opacity(0.08))
+                Group {
+                    if let avatar {
+                        Image(uiImage: avatar)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Image(systemName: "person.crop.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .clipShape(Circle())
+            }
+            .frame(width: 36, height: 36)
+            .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .task { await loadAvatar() }
+    }
+    
+    @MainActor
+    private func loadAvatar() async {
+        guard avatar == nil else { return }
+        let player = GKLocalPlayer.local
+        guard player.isAuthenticated else { return }
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            player.loadPhoto(for: .small) { image, _ in
+                self.avatar = image
+                cont.resume()
+            }
+        }
+    }
+}
+#endif
 }
 
 private struct GlassButtonCompat: ViewModifier {

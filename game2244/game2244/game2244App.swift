@@ -65,8 +65,8 @@ struct game2244App: App {
                     // Load achievements
                     try? achievementStore.loadCatalogFromBundle(named: "2244_achievements")
                     
-                    // Setup Game Center
-                    GameCenterManager.shared.configureAccessPoint(active: true, location: .topLeading)
+                    // Setup Game Center (place access point away from Rank button)
+                    GameCenterManager.shared.configureAccessPoint(active: true, location: .topTrailing)
                     GameCenterManager.shared.authenticateIfNeeded {
                         UIApplication.shared.connectedScenes
                             .compactMap { $0 as? UIWindowScene }
