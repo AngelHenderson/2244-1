@@ -12,13 +12,20 @@ public struct HomeView: View {
     @State private var isShowingMusic: Bool = false
     @State private var isShowingShop: Bool = false
     @State private var centeredMilestone: Int? = nil
+    // Measured overlay heights for proper centering of the journey scroller
+    @State private var headerHeight: CGFloat = 0
+    @State private var playButtonHeight: CGFloat = 0
+    @State private var bottomDockHeight: CGFloat = 0
+    
+    private var bottomOverlayHeight: CGFloat { playButtonHeight + bottomDockHeight + 8 }
 
     public init() {}
     
     public var body: some View {
-        ZStack {
-            // Background layer: Tile scroller
-            TileScrollerView()
+        ZStack(alignment: .top) {
+            // Background layer: Tile scroller. We pass measured header/footer insets so
+            // the current tile appears visually centered upon first appear.
+            TileScrollerView(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
                 .zIndex(0)
             
             // Foreground layer: Main UI
@@ -26,7 +33,16 @@ public struct HomeView: View {
                 // Top HUD
                 HUDTopBar()
                     .padding(.top, 8)
-                    .background(.ultraThinMaterial)
+                    // Remove glass background to avoid extra container behind buttons
+                    .background(Color.clear)
+                    .overlay(alignment: .top) {
+                        // Measure header height so scroller can center correctly
+                        GeometryReader { geo in
+                            Color.clear
+                                .onAppear { headerHeight = geo.size.height }
+                                .onChange(of: geo.size.height) { _, new in headerHeight = new }
+                        }
+                    }
 
                 // Main content with side rails and center progression
                 GeometryReader { geo in
@@ -155,6 +171,13 @@ public struct HomeView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear
+                            .onAppear { playButtonHeight = geo.size.height }
+                            .onChange(of: geo.size.height) { _, new in playButtonHeight = new }
+                    }
+                )
 
                 // Bottom dock
                 HStack(spacing: 22) {
@@ -182,6 +205,13 @@ public struct HomeView: View {
                     )
                 }
                 .padding(.bottom, 16)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear
+                            .onAppear { bottomDockHeight = geo.size.height }
+                            .onChange(of: geo.size.height) { _, new in bottomDockHeight = new }
+                    }
+                )
             }
             .zIndex(1)
         }

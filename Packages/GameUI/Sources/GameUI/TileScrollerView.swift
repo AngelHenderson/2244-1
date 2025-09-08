@@ -10,6 +10,11 @@ public struct TileScrollerView: View {
     @State private var showAnimation = false
     @State private var scrollPosition = ScrollPosition(idType: Int.self)
     
+    // Insets from overlays above/below (header, play button, dock) so the
+    // "visual center" matches the unobstructed area rather than the screen center.
+    private let topInset: CGFloat
+    private let bottomInset: CGFloat
+    
     private var currentHighestTile: Int {
         max(2, gameStore.state.highestTile)
     }
@@ -33,7 +38,10 @@ public struct TileScrollerView: View {
         }
     }
     
-    public init() {}
+    public init(topInset: CGFloat = 0, bottomInset: CGFloat = 0) {
+        self.topInset = topInset
+        self.bottomInset = bottomInset
+    }
     
     public var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -54,13 +62,16 @@ public struct TileScrollerView: View {
                 }
             }
             .scrollTargetLayout()
-            .padding(.vertical, UIScreen.main.bounds.height * 0.4)
+            .padding(.vertical, 24)
         }
         .scrollTargetBehavior(.viewAligned)
         .scrollPosition($scrollPosition, anchor: .center)
         .defaultScrollAnchor(.center)
-        .contentMargins(.vertical, UIScreen.main.bounds.height * 0.35, for: .scrollContent)
+        .contentMargins(.vertical, tileSize / 2 + itemSpacing, for: .scrollContent)
         .background(Color.black.opacity(0.001))
+        // Reserve space equal to overlays so the center aligns within unobstructed region
+        .safeAreaPadding(.top, topInset)
+        .safeAreaPadding(.bottom, bottomInset)
         .task {
             // Initial position: scroll to user's current highest tile
             await setInitialScrollPosition()
@@ -84,6 +95,9 @@ public struct TileScrollerView: View {
                 }
             }
         }
+        // If header/dock insets change (e.g., after layout), keep the current tile centered
+        .onChange(of: topInset) { _, _ in recenterToCurrent() }
+        .onChange(of: bottomInset) { _, _ in recenterToCurrent() }
     }
     
     private func isLocked(_ tile: Tile) -> Bool {
@@ -111,6 +125,13 @@ public struct TileScrollerView: View {
                 scrollPosition.scrollTo(id: firstTileIndex, anchor: .center)
                 focusedTileID = firstTileIndex
             }
+        }
+    }
+    
+    @MainActor
+    private func recenterToCurrent() {
+        if let currentIndex = focusedTileID ?? highestUnlockedIndex {
+            scrollPosition.scrollTo(id: currentIndex, anchor: .center)
         }
     }
 }

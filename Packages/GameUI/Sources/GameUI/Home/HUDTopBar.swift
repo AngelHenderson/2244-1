@@ -35,7 +35,9 @@ struct HUDTopBar: View {
             .modifier(GlassButtonCompat())
             .accessibilityLabel("Gems \(state.gems). Open shop.")
         }
-        .padding(.horizontal, 16)
+        // Add leading padding to avoid overlapping with Game Center access point
+        .padding(.leading, 24)
+        .padding(.trailing, 16)
         .padding(.top, 8)
     }
 }
