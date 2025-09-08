@@ -8,6 +8,7 @@ public struct TileScrollerView: View {
     @Environment(\.homeActions) private var actions
     @State private var focusedTileID: Int? = nil
     @State private var showAnimation = false
+    @State private var scrollPosition = ScrollPosition(idType: Int.self)
     
     private var currentHighestTile: Int {
         max(2, gameStore.state.highestTile)
@@ -53,11 +54,12 @@ public struct TileScrollerView: View {
                 }
             }
             .scrollTargetLayout()
-            .padding(.vertical, UIScreen.main.bounds.height * 0.45)
+            .padding(.vertical, UIScreen.main.bounds.height * 0.4)
         }
         .scrollTargetBehavior(.viewAligned)
-        .scrollPosition(id: $focusedTileID, anchor: .center)
-        .contentMargins(.vertical, 150, for: .scrollContent)
+        .scrollPosition($scrollPosition, anchor: .center)
+        .defaultScrollAnchor(.center)
+        .contentMargins(.vertical, UIScreen.main.bounds.height * 0.35, for: .scrollContent)
         .background(Color.black.opacity(0.001))
         .task {
             // Initial position: scroll to user's current highest tile
@@ -65,21 +67,21 @@ public struct TileScrollerView: View {
         }
         .onAppear {
             // Ensure immediate centering on appear
-            if focusedTileID == nil, let currentIndex = highestUnlockedIndex {
+            if let currentIndex = highestUnlockedIndex {
+                scrollPosition.scrollTo(id: currentIndex, anchor: .center)
                 focusedTileID = currentIndex
+            }
+            withAnimation(.easeOut(duration: 0.3)) {
+                showAnimation = true
             }
         }
         .onChange(of: gameStore.state.highestTile) { _, newValue in
             // Update scroll position if user achieves a new highest tile
             if let newIndex = tiles.firstIndex(where: { !$0.tile.isInfinity && $0.tile.value == newValue }) {
                 withAnimation(.snappy(duration: 0.3)) {
+                    scrollPosition.scrollTo(id: newIndex, anchor: .center)
                     focusedTileID = newIndex
                 }
-            }
-        }
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.3)) {
-                showAnimation = true
             }
         }
     }
@@ -96,16 +98,17 @@ public struct TileScrollerView: View {
     private func setInitialScrollPosition() async {
         // Find the user's current position in the journey
         if let currentIndex = highestUnlockedIndex {
+            // Use ScrollPosition to programmatically scroll to center
+            scrollPosition.scrollTo(id: currentIndex, anchor: .center)
             focusedTileID = currentIndex
             
             // Double-check after a brief delay to ensure layout is complete
             try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-            if focusedTileID != currentIndex {
-                focusedTileID = currentIndex
-            }
+            scrollPosition.scrollTo(id: currentIndex, anchor: .center)
         } else {
             // Fallback: if no highest tile found, start near the bottom (tile 2)
             if let firstTileIndex = tiles.firstIndex(where: { $0.tile.value == 2 }) {
+                scrollPosition.scrollTo(id: firstTileIndex, anchor: .center)
                 focusedTileID = firstTileIndex
             }
         }
