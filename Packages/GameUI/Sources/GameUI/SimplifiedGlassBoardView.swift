@@ -13,7 +13,7 @@ public struct SimplifiedGlassBoardView: View {
     @State private var isDragging = false
     @State private var glassPreviewValues: [Int] = []
     
-    private let spacing: CGFloat = 8
+    private let spacing: CGFloat = 6
     private let cornerRadius: CGFloat = 12
     private let onTileTap: ((Position) -> Void)?
     

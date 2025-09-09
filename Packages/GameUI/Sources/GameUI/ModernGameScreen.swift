@@ -174,11 +174,11 @@ public struct ModernGameScreen: View {
 enum ModernTheme {
     static let bg = Color(red: 0.05, green: 0.06, blue: 0.09)            // #0C0E16
     static let boardPlate = Color(red: 0.06, green: 0.08, blue: 0.13)     // #0F1422
-    static let gutter: CGFloat = 14
+    static let gutter: CGFloat = 8
     static let hudHeight: CGFloat = 56
     static let dockHeight: CGFloat = 76
     static let boardInset: CGFloat = 12
-    static let gridGap: CGFloat = 8
+    static let gridGap: CGFloat = 6
     static let tileRadius: CGFloat = 12
     static let boardRadius: CGFloat = 20
 }

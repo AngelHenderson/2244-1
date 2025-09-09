@@ -50,24 +50,15 @@ public struct HybridGameScreen: View {
 
             GeometryReader { geo in
                 // Clamp available dimensions to non-negative to avoid invalid frames
-                let isPortrait = geo.size.height >= geo.size.width
                 let availableW = max(0, geo.size.width - ModernTheme.gutter * 2)
-                let hudAndDockHeight = ModernTheme.hudHeight + ModernTheme.dockHeight
-                let availableH = max(0, geo.size.height - hudAndDockHeight - ModernTheme.gutter * 2)
-                // Proportional sizing rules:
-                // - Portrait: board should take 90% of the inner square (width/height)
-                // - Landscape: board should take 80% of the inner height
-                let desiredSide: CGFloat = {
-                    if isPortrait {
-                        return min(availableW, availableH * 0.9)
-                    } else {
-                        return availableH * 0.8
-                    }
-                }()
-                let boardSide = max(0, min(desiredSide, availableW, availableH))
+                // Don't subtract HUD/dock height since they use safeAreaInset
+                let availableH = max(0, geo.size.height - ModernTheme.gutter * 2)
+                // Maximize board size to use all available space
+                // Board should use the maximum square that fits
+                let boardSide = min(availableW, availableH)
 
-                VStack(spacing: 12) {
-                    Spacer(minLength: ModernTheme.hudHeight)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
                     
                     // Board container with glass preview (clear background)
                     ZStack {
@@ -75,7 +66,7 @@ public struct HybridGameScreen: View {
                         SimplifiedGlassBoardView(onTileTap: { position in
                             handleTileTap(at: position)
                         })
-                        .padding(ModernTheme.boardInset)
+                        .padding(4)
                         .accessibilityLabel("Game board with glass preview")
                         
                         // Mode overlay indicators
@@ -91,7 +82,7 @@ public struct HybridGameScreen: View {
                     }
                     .frame(width: boardSide, height: boardSide)
 
-                    Spacer(minLength: ModernTheme.dockHeight)
+                    Spacer(minLength: 0)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.horizontal, ModernTheme.gutter)
