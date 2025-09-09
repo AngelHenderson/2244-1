@@ -13,7 +13,11 @@ public struct RootGameView: View {
     @State private var showDailyClaims = false
     @State private var showDailyStreaks = false
     @State private var showShop = false
+    @State private var showFreeSpin = false
+    @State private var wheelEngine = WheelEngine()
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
+    @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
+    @Environment(\.currentBackgroundTheme) private var currentBackgroundTheme
     
     // Progress management
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
@@ -31,6 +35,10 @@ public struct RootGameView: View {
     
     public var body: some View {
         ZStack {
+            // Base background layer - always at the bottom
+            ThemedBackground(theme: currentBackgroundTheme)
+                .ignoresSafeArea()
+                .zIndex(-1)
             if isPlaying {
                 HybridGameScreen(isPlayingDismiss: {
                     // Return to home
@@ -63,6 +71,10 @@ public struct RootGameView: View {
                     .sheet(isPresented: $showDailyStreaks) {
                         DailyStreaksView()
                             .environment(dailyClaimsStore)
+                    }
+                    .sheet(isPresented: $showFreeSpin) {
+                        SpinWheelView()
+                            .environment(\.wheelEngine, wheelEngine)
                     }
             }
         }
@@ -100,8 +112,7 @@ public struct RootGameView: View {
                 showDailyClaims = true
             },
             openFreeSpin: {
-                print("Open Free Spin")
-                // TODO: Implement spin wheel
+                showFreeSpin = true
             },
             openMusic: {
                 print("Toggle Music")

@@ -80,7 +80,7 @@ public struct HybridGameScreen: View {
                         SimplifiedGlassBoardView(onTileTap: { position in
                             handleTileTap(at: position)
                         })
-                        .padding(4)
+                        .padding()
                         .accessibilityLabel("Game board with glass preview")
                         
                         // Mode overlay indicators

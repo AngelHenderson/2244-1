@@ -13,7 +13,7 @@ public struct SimplifiedGlassBoardView: View {
     @State private var isDragging = false
     @State private var glassPreviewValues: [Int] = []
     
-    private let spacing: CGFloat = 6
+    private let spacing: CGFloat = 12
     private let cornerRadius: CGFloat = 12
     private let onTileTap: ((Position) -> Void)?
     
@@ -48,44 +48,67 @@ public struct SimplifiedGlassBoardView: View {
                 return maxVal
             }()
             
-            // Glass Preview Row as the top row
-            SimpleGlassPreviewRow(
-                tileSize: min(tileSize, 52),
-                spacing: spacing,
-                columnCount: gameStore.state.board.width
-            )
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.black.opacity(0.05))
-                    .blur(radius: 1)
-            )
-            .opacity(0.96)
-            .allowsHitTesting(false)
-            
-            // Regular board tiles
+            // All board rows including glass preview row as first row
             ForEach(0..<gameStore.state.board.height, id: \.self) { row in
                 HStack(spacing: spacing) {
                     ForEach(0..<gameStore.state.board.width, id: \.self) { col in
                         let position = Position(row: row, col: col)
-                        ZStack {
-                            TileView(
-                                tile: gameStore.state.board[position],
-                                isSelected: gameStore.currentPath.contains(position),
-                                isValid: gameStore.pathValidation.isValid,
-                                size: tileSize,
-                                colorBlindMode: colorBlindMode,
-                                theme: currentTheme
-                            )
-                            if let t = gameStore.state.board[position], t.value == currentMax {
-                                Image(systemName: "crown.fill")
-                                    .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
-                                    .foregroundStyle(.yellow)
-                                    .offset(y: -tileSize * 0.45)
+                        
+                        if row == 0 {
+                            // First row with glass effect
+                            ZStack {
+                                TileView(
+                                    tile: gameStore.state.board[position],
+                                    isSelected: gameStore.currentPath.contains(position),
+                                    isValid: gameStore.pathValidation.isValid,
+                                    size: tileSize,
+                                    colorBlindMode: colorBlindMode,
+                                    theme: currentTheme
+                                )
+                                
+                                // Glass overlay effect
+                                glassOverlay(for: tileSize)
+                                
+                                // Gift indicator
+                                Image(systemName: "gift.fill")
+                                    .font(.system(size: tileSize * 0.2))
+                                    .foregroundColor(.yellow)
+                                    .shadow(color: .black.opacity(0.3), radius: 2)
+                                    .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
+                                
+                                if let t = gameStore.state.board[position], t.value == currentMax {
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
+                                        .foregroundStyle(.yellow)
+                                        .offset(y: -tileSize * 0.45)
+                                }
                             }
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            onTileTap?(position)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                onTileTap?(position)
+                            }
+                        } else {
+                            // Regular tiles for other rows
+                            ZStack {
+                                TileView(
+                                    tile: gameStore.state.board[position],
+                                    isSelected: gameStore.currentPath.contains(position),
+                                    isValid: gameStore.pathValidation.isValid,
+                                    size: tileSize,
+                                    colorBlindMode: colorBlindMode,
+                                    theme: currentTheme
+                                )
+                                if let t = gameStore.state.board[position], t.value == currentMax {
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
+                                        .foregroundStyle(.yellow)
+                                        .offset(y: -tileSize * 0.45)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                onTileTap?(position)
+                            }
                         }
                     }
                 }
@@ -99,6 +122,75 @@ public struct SimplifiedGlassBoardView: View {
                 containerSize: gridFrameSize(for: tileSize)
             )
         )
+    }
+    
+    @ViewBuilder
+    private func glassOverlay(for size: CGFloat) -> some View {
+        let cornerRadius = min(size * 0.15, 12)
+        
+        ZStack {
+            // Glass base with bubble effect
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.35),
+                            Color.cyan.opacity(0.15),
+                            Color.white.opacity(0.25)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+            // Glass bubble highlights
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.white.opacity(0.4),
+                            Color.clear
+                        ],
+                        center: .topLeading,
+                        startRadius: 0,
+                        endRadius: size * 0.3
+                    )
+                )
+                .frame(width: size * 0.5, height: size * 0.5)
+                .offset(x: -size * 0.2, y: -size * 0.2)
+            
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.white.opacity(0.2),
+                            Color.clear
+                        ],
+                        center: .bottomTrailing,
+                        startRadius: 0,
+                        endRadius: size * 0.2
+                    )
+                )
+                .frame(width: size * 0.3, height: size * 0.3)
+                .offset(x: size * 0.25, y: size * 0.25)
+            
+            // Glass edge
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.8),
+                            Color.white.opacity(0.3),
+                            Color.white.opacity(0.5)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 2
+                )
+        }
+        .frame(width: size, height: size)
+        .opacity(0.98)
     }
     
     @ViewBuilder
@@ -177,7 +269,7 @@ public struct SimplifiedGlassBoardView: View {
     private func calculateTileSize(in size: CGSize) -> CGFloat {
         guard size.width.isFinite, size.height.isFinite, size.width > 0, size.height > 0 else { return 0 }
         let widthCount = max(1, gameStore.state.board.width)
-        let heightCount = max(1, gameStore.state.board.height + 1) // +1 for the preview row
+        let heightCount = max(1, gameStore.state.board.height)
         
         let totalSpacingW = spacing * CGFloat(widthCount + 1)
         let totalSpacingH = spacing * CGFloat(heightCount + 1)
@@ -207,9 +299,8 @@ public struct SimplifiedGlassBoardView: View {
             }
         }
         
-        // Account for preview row at the top by offsetting by 1
         for row in 0..<gameStore.state.board.height {
-            let tileStartY = spacing + CGFloat(row + 1) * (tileSize + spacing) // +1 to skip preview row
+            let tileStartY = spacing + CGFloat(row) * (tileSize + spacing)
             let tileEndY = tileStartY + tileSize
             
             if localY >= tileStartY && localY <= tileEndY {
@@ -227,13 +318,13 @@ public struct SimplifiedGlassBoardView: View {
     private func centerPoint(for position: Position, tileSize: CGFloat, containerSize: CGSize) -> CGPoint {
         let origin = gridOrigin(in: containerSize, tileSize: tileSize)
         let x = origin.x + spacing + CGFloat(position.col) * (tileSize + spacing) + tileSize / 2
-        let y = origin.y + spacing + CGFloat(position.row + 1) * (tileSize + spacing) + tileSize / 2 // +1 to account for preview row
+        let y = origin.y + spacing + CGFloat(position.row) * (tileSize + spacing) + tileSize / 2
         return CGPoint(x: x, y: y)
     }
     
     private func gridOrigin(in containerSize: CGSize, tileSize: CGFloat) -> CGPoint {
         let widthCount = max(1, gameStore.state.board.width)
-        let heightCount = max(1, gameStore.state.board.height + 1) // +1 for preview row
+        let heightCount = max(1, gameStore.state.board.height)
         let totalTilesWidth = CGFloat(widthCount) * tileSize + CGFloat(max(0, widthCount - 1)) * spacing
         let totalTilesHeight = CGFloat(heightCount) * tileSize + CGFloat(max(0, heightCount - 1)) * spacing
         let boardWidth = totalTilesWidth + 2 * spacing
@@ -245,7 +336,7 @@ public struct SimplifiedGlassBoardView: View {
 
     private func gridFrameSize(for tileSize: CGFloat) -> CGSize {
         let widthCount = max(1, gameStore.state.board.width)
-        let heightCount = max(1, gameStore.state.board.height + 1) // +1 for preview row
+        let heightCount = max(1, gameStore.state.board.height)
         let totalTilesWidth = CGFloat(widthCount) * tileSize + CGFloat(max(0, widthCount - 1)) * spacing
         let totalTilesHeight = CGFloat(heightCount) * tileSize + CGFloat(max(0, heightCount - 1)) * spacing
         let boardWidth = totalTilesWidth + 2 * spacing
@@ -254,164 +345,3 @@ public struct SimplifiedGlassBoardView: View {
     }
 }
 
-
-// MARK: - Simple Glass Preview Row (Visual Only)
-
-struct SimpleGlassPreviewRow: View {
-    let tileSize: CGFloat
-    let spacing: CGFloat
-    let columnCount: Int
-    
-    @State private var previewValues: [Int] = []
-    
-    var body: some View {
-        HStack(spacing: spacing) {
-            ForEach(0..<columnCount, id: \.self) { col in
-                SimpleGlassPreviewTile(
-                    value: previewValue(for: col),
-                    size: tileSize
-                )
-            }
-        }
-        .onAppear {
-            generatePreviewValues()
-        }
-    }
-    
-    private func previewValue(for column: Int) -> Int {
-        guard column < previewValues.count else {
-            return [2, 4, 8, 16, 32, 64, 128].randomElement() ?? 2
-        }
-        return previewValues[column]
-    }
-    
-    private func generatePreviewValues() {
-        previewValues = (0..<columnCount).map { _ in
-            [2, 4, 8, 16, 32, 64, 128].randomElement() ?? 2
-        }
-    }
-}
-
-// MARK: - Simple Glass Preview Tile
-
-struct SimpleGlassPreviewTile: View {
-    let value: Int
-    let size: CGFloat
-    
-    @State private var shimmer = false
-    @State private var anchorPulse = false
-    
-    var body: some View {
-        // Use 15% of tile size for corner radius to ensure rounded squares, not circles
-        let cornerRadius = min(size * 0.15, 12) // Cap at 12 points max
-        
-        ZStack {
-            // Base tile
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(tileColor)
-                .frame(width: size, height: size)
-                .shadow(color: Color.black.opacity(0.35), radius: 8, y: 3)
-            
-            // Value text
-            Text(TileLabelFormatter.format(value))
-                .font(.system(size: size * 0.35, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-                .minimumScaleFactor(0.5)
-            
-            // Enhanced glass effect
-            ZStack {
-                // Glass base with bubble effect
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.35),
-                                Color.cyan.opacity(0.15),
-                                Color.white.opacity(0.25)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                
-                // Enhanced shimmer
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.clear,
-                                Color.white.opacity(shimmer ? 0.5 : 0.15),
-                                Color.clear
-                            ],
-                            startPoint: shimmer ? .topLeading : .bottomTrailing,
-                            endPoint: shimmer ? .bottomTrailing : .topLeading
-                        )
-                    )
-                    .onAppear {
-                        withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
-                            shimmer.toggle()
-                        }
-                    }
-                
-                // Glass bubble highlights
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color.white.opacity(0.4),
-                                Color.clear
-                            ],
-                            center: .topLeading,
-                            startRadius: 0,
-                            endRadius: size * 0.3
-                        )
-                    )
-                    .frame(width: size * 0.5, height: size * 0.5)
-                    .offset(x: -size * 0.2, y: -size * 0.2)
-                
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color.white.opacity(0.2),
-                                Color.clear
-                            ],
-                            center: .bottomTrailing,
-                            startRadius: 0,
-                            endRadius: size * 0.2
-                        )
-                    )
-                    .frame(width: size * 0.3, height: size * 0.3)
-                    .offset(x: size * 0.25, y: size * 0.25)
-                
-                // Glass edge
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.8),
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.5)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ),
-                        lineWidth: 2
-                    )
-            }
-            .frame(width: size, height: size)
-            
-            // Gift indicator
-            Image(systemName: "gift.fill")
-                .font(.system(size: size * 0.2))
-                .foregroundColor(.yellow)
-                .shadow(color: .black.opacity(0.3), radius: 2)
-                .offset(x: size * 0.3, y: -size * 0.3)
-        }
-        .opacity(0.98)
-    }
-    
-    private var tileColor: Color {
-        Theme.color(for: value)
-    }
-}

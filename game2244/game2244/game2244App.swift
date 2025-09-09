@@ -21,7 +21,9 @@ struct game2244App: App {
     @State private var hapticsService = HapticsService()
     @State private var gameCenterService = DefaultGameCenterService()
     @State private var themeRegistry = ThemeRegistry.Default
+    @State private var backgroundThemeRegistry = BackgroundThemeRegistry.Default
     @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
+    @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundThemeId: String = "city_1"
     @AppStorage("useGlassPreview") private var useGlassPreview: Bool = true
     @State private var isPlaying: Bool = false
     @State private var storageService = UserDefaultsStorageService()
@@ -41,6 +43,8 @@ struct game2244App: App {
                 .environment(\.gameCenter, gameCenterService)
                 .environment(\.storage, storageService)
                 .environment(\.currentTheme, themeRegistry.descriptor(for: selectedThemeId))
+                .environment(\.backgroundThemeRegistry, backgroundThemeRegistry)
+                .environment(\.currentBackgroundTheme, backgroundThemeRegistry.theme(for: selectedBackgroundThemeId))
                 .environment(\.tileJourney, gameStore.journey)
                 .environment(\.leaderboardClient, LeaderboardClient.gameCenter())
                 .environment(achievementStore)
@@ -67,11 +71,13 @@ struct game2244App: App {
                     
                     // Setup Game Center (place access point away from Rank button)
                     GameCenterManager.shared.configureAccessPoint(active: true, location: .topTrailing)
+                    #if canImport(UIKit)
                     GameCenterManager.shared.authenticateIfNeeded {
                         UIApplication.shared.connectedScenes
                             .compactMap { $0 as? UIWindowScene }
                             .first?.windows.first?.rootViewController
                     }
+                    #endif
                     await achievementStore.syncWithGameCenter()
                     
                     // Setup achievement evaluator with reward handler

@@ -23,6 +23,11 @@ public extension EnvironmentValues {
         set { self[BackgroundThemeKey.self] = newValue }
     }
     
+    var currentBackgroundTheme: BackgroundTheme {
+        get { self[BackgroundThemeKey.self] }
+        set { self[BackgroundThemeKey.self] = newValue }
+    }
+    
     var backgroundThemeRegistry: BackgroundThemeRegistry {
         get { self[BackgroundThemeRegistryKey.self] }
         set { self[BackgroundThemeRegistryKey.self] = newValue }

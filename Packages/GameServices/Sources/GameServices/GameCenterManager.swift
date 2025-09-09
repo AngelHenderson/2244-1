@@ -1,5 +1,8 @@
 import SwiftUI
 import GameKit
+#if canImport(UIKit)
+import UIKit
+#endif
 
 @MainActor
 public final class GameCenterManager {
@@ -12,6 +15,7 @@ public final class GameCenterManager {
         GKAccessPoint.shared.location = location
     }
     
+    #if canImport(UIKit)
     public func authenticateIfNeeded(presentingRoot rootProvider: @escaping () -> UIViewController?) {
         let local = GKLocalPlayer.local
         guard !local.isAuthenticated else { return }
@@ -25,6 +29,7 @@ public final class GameCenterManager {
             }
         }
     }
+    #endif
     
     public func loadExistingAchievements() async -> [GKAchievement] {
         await withCheckedContinuation { cont in
@@ -44,12 +49,15 @@ public final class GameCenterManager {
     }
     
     public func presentDashboard() {
+        #if canImport(UIKit)
         guard let root = Self.topMostViewController() else { return }
         let vc = GKGameCenterViewController(state: .achievements)
         vc.gameCenterDelegate = root as? any GKGameCenterControllerDelegate
         root.present(vc, animated: true)
+        #endif
     }
     
+    #if canImport(UIKit)
     private static func topMostViewController() -> UIViewController? {
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = scene.windows.first(where: { $0.isKeyWindow })
@@ -58,4 +66,5 @@ public final class GameCenterManager {
         while let presented = top?.presentedViewController { top = presented }
         return top
     }
+    #endif
 }
