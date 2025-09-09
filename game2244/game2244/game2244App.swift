@@ -32,6 +32,7 @@ struct game2244App: App {
     @State private var shopStore: ShopStore? = nil
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
+    @State private var leaderboardService = LeaderboardService()
     
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
@@ -54,6 +55,7 @@ struct game2244App: App {
                 .environment(\.shopStore, shopStore ?? ShopStore(journeyStore: gameStore.journey))
                 .environment(\.challengeStore, challengeStore)
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
+                .environment(\.leaderboardService, leaderboardService)
                 .task {
                     // Initialize shop store
                     shopStore = ShopStore(journeyStore: gameStore.journey)

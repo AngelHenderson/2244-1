@@ -41,7 +41,7 @@ public enum TileStepLabelFormatter {
                 let f = NumberFormatter()
                 f.usesGroupingSeparator = true
                 f.groupingSize = 3
-                f.groupingSeparator = ","
+                f.groupingSeparator = ""
                 f.maximumFractionDigits = 0
                 f.minimumFractionDigits = 0
                 return f.string(from: NSNumber(value: value)) ?? "\(value)"
@@ -140,7 +140,7 @@ public enum TileStepLabelFormatter {
         f.numberStyle = .decimal
         f.usesGroupingSeparator = true
         f.groupingSize = 3
-        f.groupingSeparator = ","
+        f.groupingSeparator = ""
         return f.string(from: NSNumber(value: n)) ?? String(n)
     }
 }

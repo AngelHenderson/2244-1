@@ -325,6 +325,19 @@
       { "field": "score", "op": ">=", "value": 1000000 }
     ]
   },
+  {
+    "id": "score_1000000000",
+    "gcIdentifier": "score_1000000000",
+    "title": "Ten Digits",
+    "description": "Score 1000000000+ in a run.",
+    "category": "Score",
+    "rewards": { "gems": 10000, "spins": 10, "hammers": 10, "magnets": 10 },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      { "field": "score", "op": ">=", "value": 1000000000 }
+    ]
+  },
 
   {
     "id": "tile_64",
