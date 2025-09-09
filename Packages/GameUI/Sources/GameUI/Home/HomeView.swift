@@ -12,6 +12,7 @@ public struct HomeView: View {
     @State private var isShowingMusic: Bool = false
     @State private var isShowingShop: Bool = false
     @State private var isShowingProfile: Bool = false
+    @State private var isShowingSettings: Bool = false
     @State private var centeredMilestone: Int? = nil
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
@@ -215,7 +216,7 @@ public struct HomeView: View {
                     dockItem(
                         system: "gearshape.fill",
                         title: "Settings",
-                        action: { actions.openSettings() }
+                        action: { isShowingSettings = true }
                     )
                 }
                 .padding(.bottom, 16)
@@ -256,6 +257,10 @@ public struct HomeView: View {
         // Profile sheet
         .sheet(isPresented: $isShowingProfile) {
             PlayerProfileView()
+        }
+        // Settings sheet
+        .sheet(isPresented: $isShowingSettings) {
+            SettingsView()
         }
     }
 
