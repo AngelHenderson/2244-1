@@ -7,6 +7,7 @@ import GameKit
 struct HUDTopBar: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
+    var score: Int? = nil  // Optional score for game context
 
     var body: some View {
         HStack(spacing: 8) {
@@ -20,6 +21,19 @@ struct HUDTopBar: View {
             }
             .modifier(GlassButtonCompat())
             .accessibilityLabel("Rank \(state.rank). Open leaderboard.")
+
+            // Score display (only shown if provided)
+            if let score = score {
+                VStack(spacing: 2) {
+                    Text("Score")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(score.formatted(.number.grouping(.automatic)))
+                        .font(.headline.monospacedDigit())
+                }
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .modifier(GlassButtonCompat())
+            }
 
             Spacer()
 

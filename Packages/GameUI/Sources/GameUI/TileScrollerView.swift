@@ -171,10 +171,10 @@ private struct TileRowItem: View {
                 .animation(.snappy(duration: 0.25), value: isCurrentHighest)
                 
                 if isLocked {
-                    Image(systemName: "lock.fill")
-                        .font(.title2)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .shadow(radius: 2)
+//                    Image(systemName: "lock.fill")
+//                        .font(.title2)
+//                        .foregroundStyle(.white.opacity(0.7))
+//                        .shadow(radius: 2)
                 }
             }
             

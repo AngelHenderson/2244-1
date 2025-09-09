@@ -28,13 +28,15 @@ public struct HybridGameScreen: View {
     @Environment(\.gameCenter) private var gameCenter
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
     
-    @State private var scope: LeaderboardScope = .week
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
     @State private var isShowingDoublePrompt: Bool = false
     @State private var isShowingPause = false
     @State private var isShowingStore = false
     @State private var isShowingLeaderboard = false
+    
+    // Temporary HomeState for HUDTopBar (initialized with game values)
+    @State private var tempHomeState = HomeState()
     
     // Power-up selection modes
     @State private var isHammerMode = false
@@ -58,18 +60,119 @@ public struct HybridGameScreen: View {
     }
     
     public var body: some View {
+        mainGameView
+            .safeAreaInset(edge: .top) { 
+                // Use actual HUDTopBar from HomeView with score
+                HUDTopBar(score: gameStore.state.score)
+                    .environment(tempHomeState)
+                    .environment(\.homeActions, makeGameActions())
+            }
+            .safeAreaInset(edge: .bottom) { 
+                // Simple power-up dock similar to HomeView's bottom buttons
+                SimplePowerupDock(
+                    onHammer: handleHammer,
+                    onShuffle: handleShuffle,
+                    onSwap: handleSwap,
+                    onMagnet: handleMagnet,
+                    onUndo: handleUndo,
+                    onHome: { isPlayingDismiss?() }
+                )
+            }
+            .overlay(alignment: .top) {
+                if isShowingTopMergeTile, let v = topMergeTileValue {
+                    TopMergeTileView(value: v)
+                }
+            }
+            .sheet(isPresented: $isShowingPause) { 
+                PauseSheet(
+                    onResume: { isShowingPause = false },
+                    onRestart: { 
+                        gameStore.resetGame()
+                        isShowingPause = false
+                    }
+                )
+            }
+            .sheet(isPresented: $isShowingStore) { 
+                StoreView() 
+            }
+            .sheet(isPresented: $isShowingLeaderboard) { 
+                LeaderboardView() 
+            }
+            .sheet(isPresented: Binding(
+                get: { gameStore.pendingUnlockRewardBase != nil },
+                set: { newValue in if !newValue { gameStore.clearPendingUnlockReward() } }
+            )) {
+                RewardSpinnerView(
+                    baseAmount: gameStore.pendingUnlockRewardBase ?? 0,
+                    tileValue: gameStore.pendingUnlockTile ?? 0,
+                    onClose: { gameStore.clearPendingUnlockReward() }
+                )
+            }
+            .sheet(isPresented: Binding(
+                get: { gameStore.lastMergeInfo != nil },
+                set: { newValue in if !newValue { gameStore.clearLastMergeInfo() } }
+            )) {
+                if let info = gameStore.lastMergeInfo {
+                    MergeInfoBoard(info: info, onClose: { gameStore.clearLastMergeInfo() })
+                }
+            }
+            .alert("Double your tile?", isPresented: $isShowingDoublePrompt) {
+                Button("No", role: .cancel) { gameStore.clearPendingDoubleOffer() }
+                Button("Yes") { /* Dismiss and wait for user to tap a tile */ }
+            } message: {
+                if let base = gameStore.pendingDoubleBase {
+                    Text("Tap a target tile to set it to \(base * 2).")
+                } else {
+                    Text("Tap a target tile.")
+                }
+            }
+            .onChange(of: gameStore.lastAddedTileValue) { _, newValue in
+                handleLastAddedTileChange(newValue)
+            }
+            .onChange(of: gameStore.pendingDoubleBase) { _, newValue in
+                isShowingDoublePrompt = (newValue != nil)
+            }
+            .onChange(of: gameStore.coins) { _, newValue in
+                tempHomeState.gems = newValue
+            }
+            .onChange(of: gameStore.state.score) { _, newValue in
+                tempHomeState.rank = max(1, 100000 - newValue)
+            }
+            .onAppear {
+                // Initialize tempHomeState with current values
+                tempHomeState.gems = gameStore.coins
+                tempHomeState.rank = max(1, 100000 - gameStore.state.score)
+            }
+    }
+    
+    private func makeGameActions() -> HomeActions {
+        HomeActions(
+            play: { },
+            openShop: { isShowingStore = true },
+            buyGems: { },
+            watchAd: { 50 },
+            openDaily: { },
+            openFreeSpin: { },
+            openMusic: { },
+            openChallenge: { },
+            openCreate: { },
+            openProfile: { },
+            openAchievements: { },
+            openLeaderboard: { isShowingLeaderboard = true },
+            openSettings: { },
+            openThemeLeft: { },
+            openThemeRight: { },
+            openSaleOffer: { }
+        )
+    }
+    
+    @ViewBuilder
+    private var mainGameView: some View {
         ZStack {
             // Theme background using new BackgroundTheme system
             ThemedBackground(theme: currentBackgroundTheme)
 
             GeometryReader { geo in
-                // Clamp available dimensions to non-negative to avoid invalid frames
-                let availableW = max(0, geo.size.width - ModernTheme.gutter * 2)
-                // Don't subtract HUD/dock height since they use safeAreaInset
-                let availableH = max(0, geo.size.height - ModernTheme.gutter * 2)
-                // Maximize board size to use all available space
-                // Board should use the maximum square that fits
-                let boardSide = min(availableW, availableH)
 
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
@@ -94,7 +197,6 @@ public struct HybridGameScreen: View {
                             )
                         }
                     }
-//                    .frame(width: boardSide, height: boardSide)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     Spacer(minLength: 0)
@@ -103,141 +205,25 @@ public struct HybridGameScreen: View {
                 .padding(.horizontal, ModernTheme.gutter)
             }
         }
-        .safeAreaInset(edge: .top) { 
-            // Enhanced HUD with milestone progression
-            EnhancedHUDBar(
-                scope: $scope,
-                rank: calculateRank(),
-                milestones: dynamicMilestones(),
-                onLeaderboard: { isShowingLeaderboard = true },
-                onBuy: { isShowingStore = true },
-                onPause: { isShowingPause = true },
-                onThemeChange: { 
-                    // Cycle through background themes
-                    let allThemes = backgroundThemeRegistry.allThemes()
-                    if let currentIndex = allThemes.firstIndex(where: { $0.id == selectedBackgroundId }) {
-                        let nextIndex = (currentIndex + 1) % allThemes.count
-                        selectedBackgroundId = allThemes[nextIndex].id
-                    }
-                }
-            )
+    }
+    
+    private func handleLastAddedTileChange(_ newValue: Int?) {
+        guard let v = newValue else { return }
+        let highest = max(0, gameStore.state.highestTile)
+        let oneBeforeHighest = highest >= 4 ? highest / 2 : 0
+        guard oneBeforeHighest > 0, v == oneBeforeHighest else { return }
+        topMergeTileValue = v
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            isShowingTopMergeTile = true
         }
-        .safeAreaInset(edge: .bottom) { 
-            // Enhanced power-up dock with better layout
-            EnhancedPowerupDock(
-                onHammer: handleHammer,
-                onShuffle: handleShuffle,
-                onSwap: handleSwap,
-                onMagnet: handleMagnet,
-                onUndo: handleUndo,
-                onPause: { isShowingPause = true },
-                onShop: { isShowingStore = true },
-                onAdGift: { 
-                    Task { @MainActor in
-                        _ = await adService.showRewarded {
-                            gameStore.addCoins(50)
-                        }
-                    }
-                },
-                onHome: { isPlayingDismiss?() }
-            )
-        }
-        
-        // Top merge tile animation
-        .overlay(alignment: .top) {
-            if isShowingTopMergeTile, let v = topMergeTileValue {
-                TopMergeTileView(value: v)
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                isShowingTopMergeTile = false
             }
-        }
-        
-        // Sheets
-        .sheet(isPresented: $isShowingPause) { 
-            PauseSheet(
-                onResume: { isShowingPause = false },
-                onRestart: { 
-                    gameStore.resetGame()
-                    isShowingPause = false
-                }
-            )
-        }
-        .sheet(isPresented: $isShowingStore) { 
-            StoreView() 
-        }
-        .sheet(isPresented: $isShowingLeaderboard) { 
-            LeaderboardView() 
-        }
-        .sheet(isPresented: Binding(
-            get: { gameStore.pendingUnlockRewardBase != nil },
-            set: { newValue in if !newValue { gameStore.clearPendingUnlockReward() } }
-        )) {
-            RewardSpinnerView(
-                baseAmount: gameStore.pendingUnlockRewardBase ?? 0,
-                tileValue: gameStore.pendingUnlockTile ?? 0,
-                onClose: { gameStore.clearPendingUnlockReward() }
-            )
-        }
-        .sheet(isPresented: Binding(
-            get: { gameStore.lastMergeInfo != nil },
-            set: { newValue in if !newValue { gameStore.clearLastMergeInfo() } }
-        )) {
-            if let info = gameStore.lastMergeInfo {
-                MergeInfoBoard(info: info, onClose: { gameStore.clearLastMergeInfo() })
-            }
-        }
-        
-        // Double offer alert
-        .alert("Double your tile?", isPresented: $isShowingDoublePrompt) {
-            Button("No", role: .cancel) { gameStore.clearPendingDoubleOffer() }
-            Button("Yes") { /* Dismiss and wait for user to tap a tile */ }
-        } message: {
-            if let base = gameStore.pendingDoubleBase {
-                Text("Tap a target tile to set it to \(base * 2).")
-            } else {
-                Text("Tap a target tile.")
-            }
-        }
-        
-        // OnChange handlers
-        .onChange(of: gameStore.lastAddedTileValue) { _, newValue in
-            guard let v = newValue else { return }
-            let highest = max(0, gameStore.state.highestTile)
-            let oneBeforeHighest = highest >= 4 ? highest / 2 : 0
-            guard oneBeforeHighest > 0, v == oneBeforeHighest else { return }
-            topMergeTileValue = v
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                isShowingTopMergeTile = true
-            }
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 1_200_000_000)
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                    isShowingTopMergeTile = false
-                }
-            }
-        }
-        .onChange(of: gameStore.pendingDoubleBase) { _, newValue in
-            isShowingDoublePrompt = (newValue != nil)
         }
     }
     
-    // MARK: - Helper Methods
-    
-    private func calculateRank() -> Int {
-        // Calculate rank based on score
-        return max(1, 100000 - gameStore.state.score)
-    }
-    
-    private func dynamicMilestones() -> [Milestone] {
-        let highest = max(2, gameStore.state.highestTile)
-        let minAllowed = max(2, gameStore.currentMinAllowedTile())
-        let current = highest
-        let next = current > 0 && current < (Int.max >> 1) ? current * 2 : current
-        return [
-            Milestone(value: minAllowed, label: TileLabelFormatter.format(minAllowed), isCurrent: false, isLocked: false),
-            Milestone(value: current, label: TileLabelFormatter.format(current), isCurrent: true, isLocked: false),
-            Milestone(value: next, label: TileLabelFormatter.format(next), isCurrent: false, isLocked: true)
-        ]
-    }
-
     
     // MARK: - Power-up Handlers
     
@@ -359,262 +345,98 @@ public struct HybridGameScreen: View {
     }
 }
 
-// MARK: - Leaderboard Scope
-public enum LeaderboardScope: String, CaseIterable, Identifiable {
-    case day = "Day"
-    case week = "Week"
-    case month = "Month"
-    public var id: Self { self }
-}
 
-// MARK: - Enhanced HUD Bar
+// MARK: - Simple Power-up Dock
 
-struct EnhancedHUDBar: View {
+struct SimplePowerupDock: View {
     @Environment(\.gameStore) private var gameStore
-    @Binding var scope: LeaderboardScope
-    let rank: Int
-    let milestones: [Milestone]
-    let onLeaderboard: () -> Void
-    let onBuy: () -> Void
-    let onPause: () -> Void
-    let onThemeChange: () -> Void
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            // Top row
-            HStack {
-                // Rank badge
-                Button(action: onLeaderboard) {
-                    Label("Rank: \(rank)", systemImage: "trophy.fill")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                
-                Spacer()
-                
-                // Leaderboard Scope Picker
-                Picker("Scope", selection: $scope) {
-                    ForEach(LeaderboardScope.allCases) { scopeCase in
-                        Text(scopeCase.rawValue).tag(scopeCase)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 200)
-                
-                Spacer()
-                
-                // Score (hero metric)
-                Text(gameStore.state.score.formatted(.number.grouping(.automatic)))
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    //.foregroundStyle(.white)
-                
-                Spacer()
-                
-                // Right controls
-                HStack(spacing: 12) {
-                    // Gems
-                    HStack(spacing: 4) {
-                        Image(systemName: "diamond.fill")
-                            .foregroundStyle(.mint)
-                        Text("\(gameStore.coins)")
-                            .monospacedDigit()
-                        Button(action: onBuy) {
-                            Image(systemName: "plus.circle.fill")
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .font(.system(size: 15, weight: .semibold))
-                    
-                    // Theme button
-                    Button(action: onThemeChange) {
-                        Image(systemName: "paintpalette.fill")
-                            .font(.system(size: 16))
-                    }
-                    .buttonStyle(.plain)
-                    
-                    // Pause button
-                    Button(action: onPause) {
-                        Image(systemName: "pause.fill")
-                            .font(.system(size: 16))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            
-            // Milestone progression bar
-            if !milestones.isEmpty {
-                HStack(spacing: 4) {
-                    ForEach(milestones) { milestone in
-                        MilestoneChip(milestone: milestone)
-                    }
-                }
-                .frame(height: 24)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(.clear)
-    }
-}
-
-// MARK: - Enhanced Power-up Dock
-
-struct EnhancedPowerupDock: View {
-    @Environment(\.gameStore) private var gameStore
-    @Environment(\.audio) private var audio
-    @AppStorage("sfxEnabled") private var sfxEnabled: Bool = true
     let onHammer: () -> Void
     let onShuffle: () -> Void
     let onSwap: () -> Void
     let onMagnet: () -> Void
     let onUndo: () -> Void
-    let onPause: () -> Void
-    let onShop: () -> Void
-    let onAdGift: () -> Void
     let onHome: () -> Void
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Single row, ordered like the reference image
-            HStack(spacing: 0) {
-                // Speaker toggle
-                ExpandedPlainIconButton(icon: sfxEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill") {
-                    sfxEnabled.toggle()
-                    audio.setSfxEnabled(sfxEnabled)
-                }
-
-                // Power-ups
-                ExpandedPowerUpButton(
-                    icon: "hammer.fill",
-                    powerUpKey: "hammer",
-                    cost: GameStore.PowerUpCost.hammer,
-                    isEnabled: gameStore.isPowerUpAvailable("hammer"),
-                    action: onHammer
-                )
-                ExpandedPowerUpButton(
-                    icon: "arrow.triangle.2.circlepath",
-                    powerUpKey: "shuffle",
-                    cost: GameStore.PowerUpCost.shuffle,
-                    isEnabled: gameStore.isPowerUpAvailable("shuffle"),
-                    action: onShuffle
-                )
-                ExpandedPowerUpButton(
-                    icon: "scope",
-                    powerUpKey: "swap",
-                    cost: GameStore.PowerUpCost.swap,
-                    isEnabled: gameStore.isPowerUpAvailable("swap"),
-                    action: onSwap
-                )
-                ExpandedPowerUpButton(
-                    icon: "magnet.fill",
-                    powerUpKey: "magnet",
-                    cost: 0,
-                    isEnabled: true,
-                    showCost: false,
-                    action: onMagnet
-                )
-
-                // Free reward
-                ExpandedUtilityButton(icon: "gift.fill", title: "FREE", action: onAdGift)
-
-                // Utility
-                ExpandedPlainIconButton(icon: "pause.fill", action: onPause)
-                ExpandedPlainIconButton(icon: "shippingbox.fill", action: onShop)
-                ExpandedPlainIconButton(icon: "house.fill", action: onHome)
-            }
-            .frame(maxWidth: .infinity)
+        HStack(spacing: 20) {
+            // Home button
+            powerupDockItem(
+                icon: "house.fill",
+                action: onHome
+            )
+            
+            // Power-ups
+            powerupDockItem(
+                icon: "hammer.fill",
+                badge: gameStore.powerUpInventory["hammer", default: 0],
+                isEnabled: gameStore.isPowerUpAvailable("hammer"),
+                action: onHammer
+            )
+            
+            powerupDockItem(
+                icon: "arrow.triangle.2.circlepath",
+                badge: gameStore.powerUpInventory["shuffle", default: 0],
+                isEnabled: gameStore.isPowerUpAvailable("shuffle"),
+                action: onShuffle
+            )
+            
+            powerupDockItem(
+                icon: "scope",
+                badge: gameStore.powerUpInventory["swap", default: 0],
+                isEnabled: gameStore.isPowerUpAvailable("swap"),
+                action: onSwap
+            )
+            
+            powerupDockItem(
+                icon: "magnet.fill",
+                action: onMagnet
+            )
+            
+            // Undo button
+            powerupDockItem(
+                icon: "arrow.uturn.backward",
+                isEnabled: gameStore.state.undoAvailable,
+                action: onUndo
+            )
         }
-        .background(.clear)
-    }
-}
-
-// MARK: - Supporting Views
-
-struct Milestone: Identifiable {
-    let id = UUID()
-    let value: Int
-    let label: String
-    let isCurrent: Bool
-    let isLocked: Bool
-}
-
-struct MilestoneChip: View {
-    let milestone: Milestone
-    
-    var body: some View {
-        Text(milestone.label)
-            .font(.system(size: milestone.isCurrent ? 14 : 12, weight: .bold, design: .rounded))
-            .foregroundStyle(milestone.isLocked ? .gray : .white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(milestone.isCurrent ? Color.green : (milestone.isLocked ? Color.gray.opacity(0.3) : Color.orange))
-            )
-            .overlay(
-                milestone.isCurrent ?
-                Image(systemName: "crown.fill")
-                    .font(.system(size: 8))
-                    .foregroundStyle(.yellow)
-                    .offset(y: -10) : nil
-            )
-    }
-}
-
-struct ExpandedPowerUpButton: View {
-    @Environment(\.gameStore) private var gameStore
-    let icon: String
-    let powerUpKey: String
-    let cost: Int
-    let isEnabled: Bool
-    var showCost: Bool = true
-    let action: () -> Void
-    
-    var inventoryCount: Int {
-        gameStore.powerUpInventory[powerUpKey, default: 0]
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
     
-    var body: some View {
+    private func powerupDockItem(
+        icon: String,
+        badge: Int = 0,
+        isEnabled: Bool = true,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 54)
-                    .foregroundStyle(isEnabled ? .white : .gray)
+                    .font(.system(size: 24))
+                    .frame(width: 48, height: 48)
+                    .foregroundStyle(isEnabled ? .primary : .tertiary)
                 
-                // Show inventory count badge if > 0
-                if inventoryCount > 0 {
-                    Text("\(inventoryCount)")
-                        .font(.system(size: 11, weight: .bold))
-                        //.foregroundStyle(.white)
-                        .frame(width: 18, height: 18)
+                // Badge for inventory count
+                if badge > 0 {
+                    Text("\(badge)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 16, height: 16)
                         .background(Color.blue)
                         .clipShape(Circle())
-                        .offset(x: -8, y: 8)
-                }
-                
-                // Show cost if no inventory
-                if showCost && cost > 0 && inventoryCount == 0 {
-                    HStack(spacing: 2) {
-                        Image(systemName: "diamond.fill")
-                            .font(.system(size: 8))
-                        Text("\(cost)")
-                            .font(.system(size: 10, weight: .bold))
-                    }
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .foregroundStyle(isEnabled ? .white : .gray)
-                    .offset(x: -8, y: 28)
+                        .offset(x: 6, y: -6)
                 }
             }
+            .padding(4)
         }
         .buttonStyle(.plain)
+        .glassEffectCompat(cornerRadius: 12)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1.0 : 0.6)
     }
 }
+
+// MARK: - Supporting Views
 
 struct TopMergeTileView: View {
     let value: Int
@@ -648,43 +470,6 @@ struct ScaleButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
             .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
-    }
-}
-
-struct ExpandedUtilityButton: View {
-    let icon: String
-    let title: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
-                Text(title)
-                    .font(.system(size: 10, weight: .bold))
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            //.foregroundStyle(.white)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-struct ExpandedPlainIconButton: View {
-    let icon: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 22, weight: .semibold))
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
-                //.foregroundStyle(.white)
-        }
-        .buttonStyle(.plain)
     }
 }
 

@@ -202,13 +202,12 @@ public struct ThemedBackground: View {
                     )
                     .ignoresSafeArea()
                 } else {
-                    // Image background - scale based on theme settings
+                    // Image background - scale to fill and clip overflow
                     Image(theme.imageName)
                         .resizable()
-                        .aspectRatio(contentMode: theme.scaleMode == .fill ? .fill : .fit)
+                        .scaledToFill() // This ensures the image fills the entire view
                         .frame(width: geometry.size.width, height: geometry.size.height)
-                        .clipped()  // Clip any overflow (important for widescreen images on portrait)
-                        .background(Color.black)  // Black background for .fit mode letterboxing
+                        .clipped()  // Clips any overflow on the sides
                         .ignoresSafeArea()
                     
                     // Overlay for better text readability if needed
