@@ -25,31 +25,9 @@ public struct SimplifiedGlassBoardView: View {
         GeometryReader { geometry in
             let tileSize = calculateTileSize(in: geometry.size)
             
-            ZStack(alignment: .top) {
-                // Main Board (existing implementation) - no background, transparent
-                ZStack {
-                    boardGrid(tileSize: tileSize, containerSize: geometry.size)
-                    pathOverlay(tileSize: tileSize, containerSize: geometry.size)
-                }
-                .zIndex(0)
-
-                // Glass Preview Row overlay at the top with subtle glass effect
-                SimpleGlassPreviewRow(
-                    tileSize: min(tileSize, 52),
-                    spacing: spacing,
-                    columnCount: gameStore.state.board.width
-                )
-                .padding(.horizontal, spacing)
-                .padding(.top, 4)
-                .background(
-                    // Very subtle glass effect that doesn't block the theme
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.black.opacity(0.05))
-                        .blur(radius: 1)
-                )
-                .opacity(0.96)
-                .allowsHitTesting(false)
-                .zIndex(1)
+            ZStack {
+                boardGrid(tileSize: tileSize, containerSize: geometry.size)
+                pathOverlay(tileSize: tileSize, containerSize: geometry.size)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
@@ -70,6 +48,21 @@ public struct SimplifiedGlassBoardView: View {
                 return maxVal
             }()
             
+            // Glass Preview Row as the top row
+            SimpleGlassPreviewRow(
+                tileSize: min(tileSize, 52),
+                spacing: spacing,
+                columnCount: gameStore.state.board.width
+            )
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.black.opacity(0.05))
+                    .blur(radius: 1)
+            )
+            .opacity(0.96)
+            .allowsHitTesting(false)
+            
+            // Regular board tiles
             ForEach(0..<gameStore.state.board.height, id: \.self) { row in
                 HStack(spacing: spacing) {
                     ForEach(0..<gameStore.state.board.width, id: \.self) { col in
@@ -184,15 +177,12 @@ public struct SimplifiedGlassBoardView: View {
     private func calculateTileSize(in size: CGSize) -> CGFloat {
         guard size.width.isFinite, size.height.isFinite, size.width > 0, size.height > 0 else { return 0 }
         let widthCount = max(1, gameStore.state.board.width)
-        let heightCount = max(1, gameStore.state.board.height)
-        
-        // No need to reserve space - glass row is overlaid
-        let adjustedHeight = size.height
+        let heightCount = max(1, gameStore.state.board.height + 1) // +1 for the preview row
         
         let totalSpacingW = spacing * CGFloat(widthCount + 1)
         let totalSpacingH = spacing * CGFloat(heightCount + 1)
         let availableWidth = max(0, size.width - totalSpacingW)
-        let availableHeight = max(0, adjustedHeight - totalSpacingH)
+        let availableHeight = max(0, size.height - totalSpacingH)
         let tileWidth = availableWidth / CGFloat(widthCount)
         let tileHeight = availableHeight / CGFloat(heightCount)
         let candidate = min(tileWidth, tileHeight)
@@ -217,8 +207,9 @@ public struct SimplifiedGlassBoardView: View {
             }
         }
         
+        // Account for preview row at the top by offsetting by 1
         for row in 0..<gameStore.state.board.height {
-            let tileStartY = spacing + CGFloat(row) * (tileSize + spacing)
+            let tileStartY = spacing + CGFloat(row + 1) * (tileSize + spacing) // +1 to skip preview row
             let tileEndY = tileStartY + tileSize
             
             if localY >= tileStartY && localY <= tileEndY {
@@ -236,13 +227,13 @@ public struct SimplifiedGlassBoardView: View {
     private func centerPoint(for position: Position, tileSize: CGFloat, containerSize: CGSize) -> CGPoint {
         let origin = gridOrigin(in: containerSize, tileSize: tileSize)
         let x = origin.x + spacing + CGFloat(position.col) * (tileSize + spacing) + tileSize / 2
-        let y = origin.y + spacing + CGFloat(position.row) * (tileSize + spacing) + tileSize / 2
+        let y = origin.y + spacing + CGFloat(position.row + 1) * (tileSize + spacing) + tileSize / 2 // +1 to account for preview row
         return CGPoint(x: x, y: y)
     }
     
     private func gridOrigin(in containerSize: CGSize, tileSize: CGFloat) -> CGPoint {
         let widthCount = max(1, gameStore.state.board.width)
-        let heightCount = max(1, gameStore.state.board.height)
+        let heightCount = max(1, gameStore.state.board.height + 1) // +1 for preview row
         let totalTilesWidth = CGFloat(widthCount) * tileSize + CGFloat(max(0, widthCount - 1)) * spacing
         let totalTilesHeight = CGFloat(heightCount) * tileSize + CGFloat(max(0, heightCount - 1)) * spacing
         let boardWidth = totalTilesWidth + 2 * spacing
@@ -254,7 +245,7 @@ public struct SimplifiedGlassBoardView: View {
 
     private func gridFrameSize(for tileSize: CGFloat) -> CGSize {
         let widthCount = max(1, gameStore.state.board.width)
-        let heightCount = max(1, gameStore.state.board.height)
+        let heightCount = max(1, gameStore.state.board.height + 1) // +1 for preview row
         let totalTilesWidth = CGFloat(widthCount) * tileSize + CGFloat(max(0, widthCount - 1)) * spacing
         let totalTilesHeight = CGFloat(heightCount) * tileSize + CGFloat(max(0, heightCount - 1)) * spacing
         let boardWidth = totalTilesWidth + 2 * spacing
