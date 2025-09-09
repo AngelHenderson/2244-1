@@ -11,9 +11,12 @@ import GameServices
 import GameUI
 import GameCore
 import GameKit
+import FirebaseCore
 
 @main
 struct game2244App: App {
+    // Register AppDelegate for SwiftUI
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @State private var gameStore = GameStore()
     @State private var homeState = HomeState()
     @State private var purchaseService = PurchaseService()
@@ -32,9 +35,9 @@ struct game2244App: App {
     @State private var shopStore: ShopStore? = nil
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
-    @State private var leaderboardService = LeaderboardService()
-    
+
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
+    
     
     var body: some Scene {
         WindowGroup {
@@ -55,7 +58,6 @@ struct game2244App: App {
                 .environment(\.shopStore, shopStore ?? ShopStore(journeyStore: gameStore.journey))
                 .environment(\.challengeStore, challengeStore)
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
-                .environment(\.leaderboardService, leaderboardService)
                 .task {
                     // Initialize shop store
                     shopStore = ShopStore(journeyStore: gameStore.journey)

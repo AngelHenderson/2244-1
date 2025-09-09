@@ -7,7 +7,6 @@ import FirebaseCore
 #endif
 
 /// Service for managing Firebase initialization and configuration
-@MainActor
 public final class FirebaseService: @unchecked Sendable {
     
     public static let shared = FirebaseService()
@@ -74,11 +73,8 @@ public final class FirebaseService: @unchecked Sendable {
         let firestore = Firestore.firestore()
         let settings = firestore.settings
         
-        // Enable offline persistence
-        settings.isPersistenceEnabled = true
-        
-        // Configure cache size (50MB)
-        settings.cacheSizeBytes = 50 * 1024 * 1024
+        // Configure cache settings for Firebase v12+
+        settings.cacheSettings = PersistentCacheSettings(sizeBytes: NSNumber(value: 50 * 1024 * 1024))
         
         firestore.settings = settings
     }

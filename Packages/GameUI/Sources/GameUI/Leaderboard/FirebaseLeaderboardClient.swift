@@ -12,7 +12,7 @@ public extension LeaderboardClient {
     static func firebase(_ service: LeaderboardService) -> LeaderboardClient {
         LeaderboardClient(
             authenticate: {
-                await authenticateFirebase()
+                try await authenticateFirebase()
             },
             submitScore: { score in
                 try await submitFirebaseScore(score, service: service)
