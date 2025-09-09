@@ -20,6 +20,9 @@ public struct PlayerProfileView: View {
                 }
                 .padding(16)
             }
+            .refreshable {
+                await model.load(using: client)
+            }
             .navigationTitle("Player Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -158,9 +161,18 @@ public struct PlayerProfileView: View {
 
     private var actions: some View {
         HStack(spacing: 12) {
-            ShareLink("Share", item: client.shareDeepLink(for: payload()),
-                      preview: SharePreview("My Profile", image: Image(systemName: "square.and.arrow.up")))
-                .buttonStyle(.borderedProminent)
+            ShareLink(
+                "Share",
+                item: ShareableProfile(
+                    payload: payload(),
+                    deepLink: client.shareDeepLink(for: payload())
+                ),
+                preview: SharePreview(
+                    "\(model.playerName)'s Profile",
+                    image: Image(systemName: "person.crop.square.filled.and.at.rectangle")
+                )
+            )
+            .buttonStyle(.borderedProminent)
 
             Button {
                 model.showCompare = true
@@ -180,11 +192,20 @@ public struct PlayerProfileView: View {
                 Text("Syncing…").foregroundStyle(.secondary)
             case .synced(let date):
                 Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
                 Text("Synced • \(RelativeDateTimeFormatter().localizedString(for: date, relativeTo: .now))")
                     .foregroundStyle(.secondary)
             case .error(let message):
                 Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
                 Text(message).foregroundStyle(.secondary)
+                Button("Retry") {
+                    Task {
+                        await model.load(using: client)
+                    }
+                }
+                .font(.footnote.weight(.medium))
+                .buttonStyle(.borderless)
             }
             Spacer()
         }

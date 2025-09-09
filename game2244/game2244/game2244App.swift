@@ -30,6 +30,8 @@ struct game2244App: App {
     @State private var achievementStore = AchievementStore()
     @State private var dailyClaimsStore = DailyClaimsStore()
     @State private var shopStore: ShopStore? = nil
+    @State private var challengeStore = ChallengeStore()
+    @State private var challengeDesignerStore = ChallengeDesignerStore()
     
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
@@ -50,6 +52,8 @@ struct game2244App: App {
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
                 .environment(\.shopStore, shopStore ?? ShopStore(journeyStore: gameStore.journey))
+                .environment(\.challengeStore, challengeStore)
+                .environment(\.challengeDesignerStore, challengeDesignerStore)
                 .task {
                     // Initialize shop store
                     shopStore = ShopStore(journeyStore: gameStore.journey)

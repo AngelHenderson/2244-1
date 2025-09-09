@@ -14,7 +14,11 @@ public struct RootGameView: View {
     @State private var showDailyStreaks = false
     @State private var showShop = false
     @State private var showFreeSpin = false
+    @State private var showChallenge = false
+    @State private var showChallengeDesigner = false
     @State private var wheelEngine = WheelEngine()
+    @State private var challengeStore = ChallengeStore()
+    @State private var challengeDesignerStore = ChallengeDesignerStore()
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
     @Environment(\.currentBackgroundTheme) private var currentBackgroundTheme
@@ -54,6 +58,8 @@ public struct RootGameView: View {
                 HomeView()
                     .environment(homeState)
                     .environment(\.homeActions, makeHomeActions())
+                    .environment(\.challengeStore, challengeStore)
+                    .environment(\.challengeDesignerStore, challengeDesignerStore)
                     .transition(.move(edge: .leading).combined(with: .opacity))
                     .task {
                         // Load saved progress when Home appears
@@ -75,6 +81,28 @@ public struct RootGameView: View {
                     .sheet(isPresented: $showFreeSpin) {
                         SpinWheelView()
                             .environment(\.wheelEngine, wheelEngine)
+                    }
+                    .sheet(isPresented: $showChallenge) {
+                        ChallengeModeView { challenge in
+                            // Start challenge game
+                            print("Starting challenge: \(challenge.id)")
+                            // TODO: Pass challenge context to game
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                isPlaying = true
+                            }
+                        }
+                        .environment(\.challengeStore, challengeStore)
+                    }
+                    .sheet(isPresented: $showChallengeDesigner) {
+                        ChallengeDesignerView { config in
+                            // Start custom challenge
+                            print("Starting custom challenge with config: \(config)")
+                            // TODO: Pass custom challenge to game
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                isPlaying = true
+                            }
+                        }
+                        .environment(\.challengeDesignerStore, challengeDesignerStore)
                     }
             }
         }
@@ -120,10 +148,10 @@ public struct RootGameView: View {
                 saveProgress()
             },
             openChallenge: {
-                print("Open Challenge (locked)")
+                showChallenge = true
             },
             openCreate: {
-                print("Open Create (locked)")
+                showChallengeDesigner = true
             },
             openProfile: {
                 print("Open Profile")
