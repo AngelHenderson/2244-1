@@ -1,11 +1,14 @@
 import Foundation
+
+#if canImport(FirebaseAuth)
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseFunctions
+#endif
 
 /// Service for managing Firebase-based leaderboards
 @MainActor
-public final class LeaderboardService: @unchecked Sendable {
+public class LeaderboardService: @unchecked Sendable {
     
     // MARK: - Dependencies
     
@@ -130,7 +133,7 @@ public final class LeaderboardService: @unchecked Sendable {
             return nil
         }
         
-        guard let userScore = Int64(userEntry.value) else {
+        guard Int64(userEntry.value) != nil else {
             throw LeaderboardError.invalidData
         }
         
@@ -206,18 +209,13 @@ public enum LeaderboardError: LocalizedError, Sendable {
 
 // MARK: - Mock Implementation for Testing
 
-public final class MockLeaderboardService: LeaderboardService {
+public final class MockLeaderboardService: @unchecked Sendable {
     
     private var mockEntries: [String: [LeaderboardEntry]] = [:]
     private var shouldFailSubmission = false
     private var shouldFailFetch = false
     
-    public override init(
-        functions: Functions = Functions.functions(),
-        firestore: Firestore = Firestore.firestore(),
-        auth: Auth = Auth.auth()
-    ) {
-        super.init(functions: functions, firestore: firestore, auth: auth)
+    public init() {
         setupMockData()
     }
     
@@ -229,7 +227,8 @@ public final class MockLeaderboardService: LeaderboardService {
         shouldFailFetch = shouldFail
     }
     
-    public override func submit(
+    @MainActor
+    public func submit(
         to board: LeaderboardBoard,
         runData: GameRunData,
         displayName: String
@@ -255,7 +254,8 @@ public final class MockLeaderboardService: LeaderboardService {
         mockEntries[board.identifier] = entries
     }
     
-    public override func fetchTopEntries(
+    @MainActor
+    public func fetchTopEntries(
         from board: LeaderboardBoard,
         limit: Int = 50
     ) async throws -> [LeaderboardEntry] {
@@ -265,6 +265,28 @@ public final class MockLeaderboardService: LeaderboardService {
         
         let entries = mockEntries[board.identifier] ?? []
         return Array(entries.prefix(limit))
+    }
+    
+    @MainActor
+    public func fetchUserEntry(from board: LeaderboardBoard) async throws -> LeaderboardEntry? {
+        if shouldFailFetch {
+            throw LeaderboardError.fetchFailed(NSError(domain: "Mock", code: 1))
+        }
+        
+        return mockEntries[board.identifier]?.first { $0.uid == "mock-uid" }
+    }
+    
+    @MainActor
+    public func fetchUserRank(in board: LeaderboardBoard) async throws -> Int? {
+        guard let userEntry = try await fetchUserEntry(from: board) else {
+            return nil
+        }
+        
+        let entries = mockEntries[board.identifier] ?? []
+        if let index = entries.firstIndex(where: { $0.uid == userEntry.uid }) {
+            return index + 1
+        }
+        return nil
     }
     
     private func setupMockData() {

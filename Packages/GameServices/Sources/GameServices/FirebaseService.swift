@@ -1,6 +1,10 @@
 import Foundation
+
+#if canImport(FirebaseAuth)
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseCore
+#endif
 
 /// Service for managing Firebase initialization and configuration
 @MainActor

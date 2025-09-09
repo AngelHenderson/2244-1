@@ -66,8 +66,10 @@ public struct SimplifiedGlassBoardView: View {
                                     theme: currentTheme
                                 )
                                 
-                                // Glass overlay effect
-                                glassOverlay(for: tileSize)
+                                // Glass overlay effect - only show if glass hasn't been broken
+                                if !gameStore.brokenGlassTiles.contains(position) {
+                                    glassOverlay(for: tileSize)
+                                }
                                 
                                 // Gift indicator
                                 Image(systemName: "gift.fill")

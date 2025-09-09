@@ -1,6 +1,9 @@
 import Foundation
 import GameServices
+
+#if canImport(FirebaseAuth)
 import FirebaseAuth
+#endif
 
 /// Firebase-based implementation of LeaderboardClient
 public extension LeaderboardClient {
@@ -162,7 +165,6 @@ private func convertFirebaseEntriesToUI(
 ) async throws -> [LeaderboardEntry] {
     
     var uiEntries: [LeaderboardEntry] = []
-    let currentUserId = Auth.auth().currentUser?.uid
     
     for (index, firebaseEntry) in firebaseEntries.enumerated() {
         let rank = index + 1 // Simple rank calculation

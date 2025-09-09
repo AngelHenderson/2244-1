@@ -29,6 +29,8 @@ public final class GameStore {
     public private(set) var lastAddedTileValue: Int? = nil
     // Pending double offer value to apply (base value for doubling)
     public private(set) var pendingDoubleBase: Int? = nil
+    // Track which glass tiles have been broken (positions in row 0)
+    public private(set) var brokenGlassTiles: Set<Position> = []
     // Power-up inventory tracking
     public private(set) var powerUpInventory: [String: Int] = [
         "hammer": 3,
@@ -165,6 +167,13 @@ public final class GameStore {
         } else {
             state = engine.commitChain(positions)
         }
+        
+        // Break glass tiles for any positions in row 0 that were part of this connection
+        for position in positions {
+            if position.row == 0 {
+                brokenGlassTiles.insert(position)
+            }
+        }
         // Added value is the tile now at lastPos
         let addedValue: Int = {
             if let lp = lastPos, let v = state.board[lp]?.value { return v }
@@ -220,6 +229,7 @@ public final class GameStore {
         pathValidation = .valid
         lastAddedTileValue = nil
         pendingDoubleBase = nil
+        brokenGlassTiles = []
         movesHistory = []
         powerUpHistory = []
         
@@ -239,6 +249,7 @@ public final class GameStore {
         pathValidation = .valid
         lastAddedTileValue = nil
         pendingDoubleBase = nil
+        brokenGlassTiles = []
         movesHistory = []
         powerUpHistory = []
     }
