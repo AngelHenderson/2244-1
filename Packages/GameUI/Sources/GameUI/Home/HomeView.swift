@@ -11,6 +11,7 @@ public struct HomeView: View {
     @State private var isShowingAchievements: Bool = false
     @State private var isShowingMusic: Bool = false
     @State private var isShowingShop: Bool = false
+    @State private var isShowingProfile: Bool = false
     @State private var centeredMilestone: Int? = nil
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
@@ -185,7 +186,7 @@ public struct HomeView: View {
                         system: "person.circle.fill",
                         title: "Profile",
                         badge: state.hasProfileBadge,
-                        action: { actions.openProfile() }
+                        action: { isShowingProfile = true }
                     )
                     dockItem(
                         system: "star.circle.fill",
@@ -238,6 +239,10 @@ public struct HomeView: View {
         // Shop sheet
         .sheet(isPresented: $isShowingShop) {
             ShopView()
+        }
+        // Profile sheet
+        .sheet(isPresented: $isShowingProfile) {
+            PlayerProfileView()
         }
     }
 
