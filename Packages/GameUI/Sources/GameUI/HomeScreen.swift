@@ -129,7 +129,7 @@ public struct HomeScreen: View {
             .presentationDetents([.large])
         }
         .sheet(isPresented: $isShowingChallenge) {
-            GameScreen(isPlayingDismiss: { isShowingChallenge = false })
+            HybridGameScreen(isPlayingDismiss: { isShowingChallenge = false })
         }
         .simultaneousGesture(DragGesture(minimumDistance: .infinity))
         .task {
