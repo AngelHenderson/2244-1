@@ -41,12 +41,16 @@ public extension LeaderboardClient {
     // Mock data for preview/testing
     private static func mockEntries() -> [LeaderboardEntry] {
         [
-            LeaderboardEntry(id: "1", rank: 1, name: "Alex", score: 158432, countryCode: "US", platform: .ios),
-            LeaderboardEntry(id: "2", rank: 2, name: "Sarah", score: 145200, countryCode: "CA", platform: .ios),
-            LeaderboardEntry(id: "3", rank: 3, name: "Mike", score: 132100, countryCode: "GB", platform: .android),
-            LeaderboardEntry(id: "4", rank: 4, name: "Emma", score: 128900, countryCode: "AU", platform: .ios),
-            LeaderboardEntry(id: "5", rank: 5, name: "John", score: 115600, countryCode: "US", platform: .ios),
-            LeaderboardEntry(id: "me", rank: 42, name: "You", score: 45200, countryCode: "US", platform: .ios, isMe: true),
+            LeaderboardEntry(id: "1", rank: 1, name: "DefenselessMetal49", score: 158432, countryCode: "BD", platform: .ios, highestTile: "873bz"),
+            LeaderboardEntry(id: "2", rank: 2, name: "LopingLemming57", score: 145200, countryCode: nil, platform: .ios, highestTile: "873bz"),
+            LeaderboardEntry(id: "3", rank: 3, name: "DensePage91", score: 132100, countryCode: "PK", platform: .android, highestTile: "873bz"),
+            LeaderboardEntry(id: "4", rank: 4, name: "BrittleBelly111", score: 128900, countryCode: "DE", platform: .ios, highestTile: "218bz"),
+            LeaderboardEntry(id: "5", rank: 5, name: "PerfectPirate2198", score: 115600, countryCode: "IN", platform: .ios, highestTile: "27bz"),
+            LeaderboardEntry(id: "6", rank: 6, name: "CaramelStamp47", score: 98200, countryCode: "PK", platform: .ios, highestTile: "27bz"),
+            LeaderboardEntry(id: "7", rank: 7, name: "Player6362", score: 87650, countryCode: "UZ", platform: .android, highestTile: "13bz"),
+            LeaderboardEntry(id: "8", rank: 8, name: "CulturalDerision48", score: 76543, countryCode: "GB", platform: .ios, highestTile: "6bz"),
+            LeaderboardEntry(id: "9", rank: 9, name: "KnownOwner26", score: 65432, countryCode: "LB", platform: .android, highestTile: "1bz"),
+            LeaderboardEntry(id: "me", rank: 536, name: "Angel Junior711", score: 45200, countryCode: "US", platform: .ios, isMe: true, highestTile: "1an"),
         ]
     }
 }

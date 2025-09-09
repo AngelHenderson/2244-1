@@ -27,6 +27,7 @@ public struct LeaderboardEntry: Identifiable, Codable, Hashable, Sendable {
     public var platform: Platform
     public var isMe: Bool
     public var avatarURL: String?    // Optional avatar URL
+    public var highestTile: String?  // "1an", "873bz", etc.
     
     public init(
         id: String,
@@ -36,7 +37,8 @@ public struct LeaderboardEntry: Identifiable, Codable, Hashable, Sendable {
         countryCode: String? = nil,
         platform: Platform = .ios,
         isMe: Bool = false,
-        avatarURL: String? = nil
+        avatarURL: String? = nil,
+        highestTile: String? = nil
     ) {
         self.id = id
         self.rank = rank
@@ -46,6 +48,7 @@ public struct LeaderboardEntry: Identifiable, Codable, Hashable, Sendable {
         self.platform = platform
         self.isMe = isMe
         self.avatarURL = avatarURL
+        self.highestTile = highestTile
     }
 }
 

@@ -237,9 +237,25 @@ public struct LeaderboardView: View {
                     }
                 }
                 
-                Text(LeaderboardModel.formatScore(entry.score))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    Text(LeaderboardModel.formatScore(entry.score))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    
+                    if let highestTile = entry.highestTile {
+                        HStack(spacing: 3) {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 8))
+                                .foregroundStyle(.yellow)
+                            Text(highestTile)
+                                .font(.caption2.weight(.bold))
+                                .foregroundStyle(.primary)
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.ultraThinMaterial, in: Capsule())
+                    }
+                }
             }
             
             Spacer()

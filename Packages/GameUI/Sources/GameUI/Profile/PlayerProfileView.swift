@@ -59,6 +59,16 @@ public struct PlayerProfileView: View {
                     }
                 )
             }
+            .sheet(isPresented: $model.showCountryPicker) {
+                CountryPickerView(
+                    selectedCountry: model.countryCode,
+                    onSelect: { countryCode in
+                        Task {
+                            await model.updateCountry(to: countryCode, using: client)
+                        }
+                    }
+                )
+            }
         }
     }
 
@@ -122,6 +132,44 @@ public struct PlayerProfileView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Season history")
+                }
+                
+                // Country and Highest Tile Row
+                HStack(spacing: 8) {
+                    // Country Selector
+                    Button {
+                        model.showCountryPicker = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            if let countryCode = model.countryCode {
+                                Text(flagEmoji(countryCode))
+                                Text(countryName(countryCode))
+                            } else {
+                                Image(systemName: "globe")
+                                Text("Select Country")
+                            }
+                        }
+                        .font(.footnote.weight(.medium))
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Country selection")
+                    
+                    Spacer(minLength: 0)
+                    
+                    // Highest Tile Display
+                    if let highestTile = model.highestTile {
+                        HStack(spacing: 6) {
+                            Image(systemName: "crown.fill")
+                                .foregroundStyle(.yellow)
+                            Text(highestTile)
+                                .font(.headline.weight(.bold))
+                        }
+                        .font(.footnote.weight(.semibold))
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                    }
                 }
             }
         }
@@ -221,8 +269,28 @@ public struct PlayerProfileView: View {
             tiers: model.tiers,
             friendCode: model.friendCode,
             season: model.season,
-            avatarSystemName: model.avatarSystemName
+            avatarSystemName: model.avatarSystemName,
+            countryCode: model.countryCode,
+            highestTile: model.highestTile
         )
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func flagEmoji(_ countryCode: String) -> String {
+        let base: UInt32 = 127397
+        var emoji = ""
+        for scalar in countryCode.uppercased().unicodeScalars {
+            if let unicodeScalar = UnicodeScalar(base + scalar.value) {
+                emoji.unicodeScalars.append(unicodeScalar)
+            }
+        }
+        return emoji
+    }
+    
+    private func countryName(_ countryCode: String) -> String {
+        let locale = Locale.current
+        return locale.localizedString(forRegionCode: countryCode) ?? countryCode
     }
 }
 
@@ -266,6 +334,102 @@ private struct TierCard: View {
         .padding(12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .help(tier.label)
+    }
+}
+
+// MARK: - Country Picker
+
+private struct CountryPickerView: View {
+    let selectedCountry: String?
+    let onSelect: (String?) -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    private let popularCountries = ["US", "GB", "CA", "AU", "DE", "FR", "JP", "IN", "BR", "MX"]
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Button {
+                        onSelect(nil)
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Image(systemName: "globe")
+                                .foregroundStyle(.secondary)
+                            Text("No Country")
+                            Spacer()
+                            if selectedCountry == nil {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(.tint)
+                            }
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                }
+                
+                Section("Popular Countries") {
+                    ForEach(popularCountries, id: \.self) { countryCode in
+                        countryRow(countryCode: countryCode)
+                    }
+                }
+                
+                Section("All Countries") {
+                    ForEach(allCountryCodes.filter { !popularCountries.contains($0) }, id: \.self) { countryCode in
+                        countryRow(countryCode: countryCode)
+                    }
+                }
+            }
+            .navigationTitle("Select Country")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+    }
+    
+    private func countryRow(countryCode: String) -> some View {
+        Button {
+            onSelect(countryCode)
+            dismiss()
+        } label: {
+            HStack {
+                Text(flagEmoji(countryCode))
+                Text(countryName(countryCode))
+                Spacer()
+                if selectedCountry == countryCode {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(.tint)
+                }
+            }
+        }
+        .foregroundStyle(.primary)
+    }
+    
+    private func flagEmoji(_ countryCode: String) -> String {
+        let base: UInt32 = 127397
+        var emoji = ""
+        for scalar in countryCode.uppercased().unicodeScalars {
+            if let unicodeScalar = UnicodeScalar(base + scalar.value) {
+                emoji.unicodeScalars.append(unicodeScalar)
+            }
+        }
+        return emoji
+    }
+    
+    private func countryName(_ countryCode: String) -> String {
+        let locale = Locale.current
+        return locale.localizedString(forRegionCode: countryCode) ?? countryCode
+    }
+    
+    private var allCountryCodes: [String] {
+        if #available(iOS 16.0, *) {
+            return Locale.Region.isoRegions.compactMap { $0.identifier }.sorted { countryName($0) < countryName($1) }
+        } else {
+            return Locale.isoRegionCodes.sorted { countryName($0) < countryName($1) }
+        }
     }
 }
 

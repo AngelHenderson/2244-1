@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Service Protocol
 
-public struct ProfilePayload {
+public struct ProfilePayload: Sendable {
     public var playerName: String
     public var bestScoreText: String
     public var globalRank: Int
@@ -10,6 +10,8 @@ public struct ProfilePayload {
     public var friendCode: String
     public var season: SeasonInfo
     public var avatarSystemName: String
+    public var countryCode: String?
+    public var highestTile: String?
     
     public init(
         playerName: String,
@@ -18,7 +20,9 @@ public struct ProfilePayload {
         tiers: [TierStat],
         friendCode: String,
         season: SeasonInfo,
-        avatarSystemName: String
+        avatarSystemName: String,
+        countryCode: String? = nil,
+        highestTile: String? = nil
     ) {
         self.playerName = playerName
         self.bestScoreText = bestScoreText
@@ -27,12 +31,15 @@ public struct ProfilePayload {
         self.friendCode = friendCode
         self.season = season
         self.avatarSystemName = avatarSystemName
+        self.countryCode = countryCode
+        self.highestTile = highestTile
     }
 }
 
 public protocol ProfileClient: Sendable {
     func fetchProfile() async throws -> ProfilePayload
     func updatePlayerName(_ name: String) async throws
+    func updateCountry(_ countryCode: String?) async throws
     func shareDeepLink(for payload: ProfilePayload) -> URL
 }
 
@@ -75,11 +82,15 @@ struct MockProfileClient: ProfileClient, Sendable {
             tiers: left + right,
             friendCode: "AJ711-534",
             season: .init(name: "Season 7", division: "Diamond"),
-            avatarSystemName: "pawprint.circle.fill"
+            avatarSystemName: "pawprint.circle.fill",
+            countryCode: "US",
+            highestTile: "1an"
         )
     }
 
     func updatePlayerName(_ name: String) async throws { /* no-op */ }
+    
+    func updateCountry(_ countryCode: String?) async throws { /* no-op */ }
 
     func shareDeepLink(for payload: ProfilePayload) -> URL {
         // Replace with your real deep link scheme

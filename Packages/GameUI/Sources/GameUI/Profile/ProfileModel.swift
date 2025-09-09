@@ -3,7 +3,7 @@ import Observation
 
 // MARK: - Domain Models
 
-public struct TierStat: Identifiable, Hashable {
+public struct TierStat: Identifiable, Hashable, Sendable {
     public let id = UUID()
     public var key: String      // e.g., "K"
     public var value: Int       // e.g., 244
@@ -18,7 +18,7 @@ public struct TierStat: Identifiable, Hashable {
     }
 }
 
-public struct SeasonInfo: Equatable {
+public struct SeasonInfo: Equatable, Sendable {
     public var name: String        // "Season 7"
     public var division: String    // "Diamond"
     
@@ -41,6 +41,8 @@ public final class ProfileModel {
     public var playerName: String = "Angel Junior711"
     public var avatarSystemName: String = "person.circle.fill" // placeholder for your asset id
     public var friendCode: String = "AJ711-534"
+    public var countryCode: String? = nil
+    public var highestTile: String? = nil
 
     // Stats
     public var bestScoreText: String = "3,513,812"
@@ -56,6 +58,7 @@ public final class ProfileModel {
     public var showRename = false
     public var showSeasonHistory = false
     public var showCompare = false
+    public var showCountryPicker = false
     
     public init() {}
 
@@ -79,6 +82,15 @@ public final class ProfileModel {
             return true
         } catch { return false }
     }
+    
+    public func updateCountry(to countryCode: String?, using client: ProfileClient) async {
+        do {
+            try await client.updateCountry(countryCode)
+            self.countryCode = countryCode
+        } catch {
+            // Handle error silently for now
+        }
+    }
 
     private func apply(_ d: ProfilePayload) {
         playerName = d.playerName
@@ -88,5 +100,7 @@ public final class ProfileModel {
         friendCode = d.friendCode
         season = d.season
         avatarSystemName = d.avatarSystemName
+        countryCode = d.countryCode
+        highestTile = d.highestTile
     }
 }
