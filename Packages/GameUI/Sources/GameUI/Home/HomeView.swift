@@ -18,16 +18,29 @@ public struct HomeView: View {
     @State private var playButtonHeight: CGFloat = 0
     @State private var bottomDockHeight: CGFloat = 0
     
+    // Background theme selection stored in AppStorage  
+    @AppStorage("selectedBackgroundId") private var selectedBackgroundId: String = "city_1"
+    @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
+    
+    private var currentBackgroundTheme: BackgroundTheme {
+        backgroundThemeRegistry.theme(for: selectedBackgroundId)
+    }
+    
     private var bottomOverlayHeight: CGFloat { playButtonHeight + bottomDockHeight + 8 }
 
     public init() {}
     
     public var body: some View {
         ZStack(alignment: .top) {
+            // Theme background using BackgroundTheme system (same as HybridGameScreen)
+            ThemedBackground(theme: currentBackgroundTheme)
+                .ignoresSafeArea()
+                .zIndex(0)
+            
             // Background layer: Tile scroller. We pass measured header/footer insets so
             // the current tile appears visually centered upon first appear.
             TileScrollerView(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
-                .zIndex(0)
+                .zIndex(1)
             
             // Foreground layer: Main UI
             VStack(spacing: 0) {
@@ -214,7 +227,7 @@ public struct HomeView: View {
                     }
                 )
             }
-            .zIndex(1)
+            .zIndex(2)
         }
         // Leaderboard sheet
         .sheet(isPresented: $isShowingLeaderboard) {
