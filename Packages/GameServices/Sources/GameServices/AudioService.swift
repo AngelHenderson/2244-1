@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import SwiftUI
 
 public protocol AudioServiceProtocol: Sendable {
     func setMusicEnabled(_ enabled: Bool) async
@@ -62,23 +63,25 @@ public struct DefaultAudioService: AudioServiceProtocol, Sendable {
     }
 }
 
+// Storage adapter to avoid @AppStorage inside @Observable
+@MainActor
+final class AudioSettingsStorage: ObservableObject {
+    @AppStorage("musicEnabled") var musicEnabled: Bool = true
+    @AppStorage("sfxEnabled") var sfxEnabled: Bool = true
+    @AppStorage("currentMusicTheme") var currentMusicTheme: String = ""
+}
+
 public actor LiveAudioService: AudioServiceProtocol {
     private var musicPlayer: AVAudioPlayer?
     private var sfxPlayers: [AVAudioPlayer] = []
-    private var currentMusicTheme: String = ""
     private var pianoTapIndex: Int = 0
-    
-    private let userDefaults = UserDefaults.standard
-    private let musicKey = "musicEnabled"
-    private let sfxKey = "sfxEnabled"
+    private let storage = AudioSettingsStorage()
     
     public init() {
-        // Load the current music theme from UserDefaults
-        currentMusicTheme = userDefaults.string(forKey: "currentMusicTheme") ?? ""
-        print("🎵 Initialized LiveAudioService with theme: '\(currentMusicTheme)'")
-        
         Task { @MainActor in
-            // Configure audio session on main actor (iOS only)
+            print("🎵 Initialized LiveAudioService with theme: '\(storage.currentMusicTheme)'")
+            
+            // Configure audio session (iOS only)
             #if os(iOS)
             do {
                 try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
@@ -91,24 +94,26 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     public func setMusicEnabled(_ enabled: Bool) async {
-        userDefaults.set(enabled, forKey: musicKey)
+        await MainActor.run { storage.musicEnabled = enabled }
         if !enabled {
             await stopMusic()
         }
     }
     
     public func setSfxEnabled(_ enabled: Bool) async {
-        userDefaults.set(enabled, forKey: sfxKey)
+        await MainActor.run { storage.sfxEnabled = enabled }
     }
     
     public func playMusic(loop: Bool) async {
-        guard userDefaults.bool(forKey: musicKey) else { return }
+        let enabled = await MainActor.run { storage.musicEnabled }
+        guard enabled else { return }
         // Default background music
         await playMusic(named: "background", loop: loop)
     }
     
     public func playMusic(named fileName: String, loop: Bool) async {
-        guard userDefaults.bool(forKey: musicKey) else { return }
+        let enabled = await MainActor.run { storage.musicEnabled }
+        guard enabled else { return }
         
         await stopMusic()
         
@@ -150,15 +155,19 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     public func playSfx(name: String) async {
-        guard userDefaults.bool(forKey: sfxKey) else { 
+        let (sfxEnabled, currentTheme) = await MainActor.run { 
+            (storage.sfxEnabled, storage.currentMusicTheme) 
+        }
+        
+        guard sfxEnabled else { 
             print("🔇 SFX disabled, not playing: \(name)")
             return 
         }
         
-        print("🔊 Playing SFX: \(name), current theme: '\(currentMusicTheme)'")
+        print("🔊 Playing SFX: \(name), current theme: '\(currentTheme)'")
         
         // Handle piano-specific sounds
-        if currentMusicTheme == "piano" && (name == "tap" || name == "select" || name == "drag") {
+        if currentTheme == "piano" && (name == "tap" || name == "select" || name == "drag") {
             print("🎹 Playing piano sound for: \(name)")
             await playPianoTapSound()
             return
@@ -205,9 +214,9 @@ public actor LiveAudioService: AudioServiceProtocol {
     
     public func setCurrentMusicTheme(_ theme: String) async {
         print("🎵 Setting music theme to: '\(theme)'")
-        currentMusicTheme = theme
-        userDefaults.set(theme, forKey: "currentMusicTheme")
-        print("🎵 Music theme set successfully: '\(currentMusicTheme)'")
+        await MainActor.run { storage.currentMusicTheme = theme }
+        let newTheme = await MainActor.run { storage.currentMusicTheme }
+        print("🎵 Music theme set successfully: '\(newTheme)'")
     }
     
     private func playPianoTapSound() async {
