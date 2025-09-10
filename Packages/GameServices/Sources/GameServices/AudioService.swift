@@ -73,6 +73,10 @@ public actor LiveAudioService: AudioServiceProtocol {
     private let sfxKey = "sfxEnabled"
     
     public init() {
+        // Load the current music theme from UserDefaults
+        currentMusicTheme = userDefaults.string(forKey: "currentMusicTheme") ?? ""
+        print("🎵 Initialized LiveAudioService with theme: '\(currentMusicTheme)'")
+        
         Task { @MainActor in
             // Configure audio session on main actor (iOS only)
             #if os(iOS)
@@ -146,10 +150,16 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     public func playSfx(name: String) async {
-        guard userDefaults.bool(forKey: sfxKey) else { return }
+        guard userDefaults.bool(forKey: sfxKey) else { 
+            print("🔇 SFX disabled, not playing: \(name)")
+            return 
+        }
+        
+        print("🔊 Playing SFX: \(name), current theme: '\(currentMusicTheme)'")
         
         // Handle piano-specific sounds
         if currentMusicTheme == "piano" && (name == "tap" || name == "select" || name == "drag") {
+            print("🎹 Playing piano sound for: \(name)")
             await playPianoTapSound()
             return
         }
@@ -194,8 +204,10 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     public func setCurrentMusicTheme(_ theme: String) async {
+        print("🎵 Setting music theme to: '\(theme)'")
         currentMusicTheme = theme
         userDefaults.set(theme, forKey: "currentMusicTheme")
+        print("🎵 Music theme set successfully: '\(currentMusicTheme)'")
     }
     
     private func playPianoTapSound() async {
@@ -203,27 +215,33 @@ public actor LiveAudioService: AudioServiceProtocol {
         let soundName = pianoSounds[pianoTapIndex]
         pianoTapIndex = (pianoTapIndex + 1) % pianoSounds.count
         
+        print("🎹 Attempting to play piano sound: \(soundName) (index: \(pianoTapIndex - 1))")
+        
         // Try different path combinations for piano tap sounds
         var url: URL?
         
         // Look in Audio/Pianos subdirectory first
         url = Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: "Audio/Pianos")
+        print("🎹 Looking in Audio/Pianos: \(url != nil ? "found" : "not found")")
         
         // Fallback to root bundle
         if url == nil {
             url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ?? 
                   Bundle.main.url(forResource: soundName, withExtension: "wav")
+            print("🎹 Fallback search: \(url != nil ? "found" : "not found")")
         }
         
         guard let audioUrl = url else {
-            print("Piano tap sound not found: \(soundName)")
+            print("❌ Piano tap sound not found: \(soundName)")
             return
         }
         
         do {
+            print("🎹 Playing piano sound: \(soundName) from \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.7
             player.play()
+            print("✅ Piano sound started playing: \(soundName)")
             
             sfxPlayers.append(player)
             
@@ -232,7 +250,7 @@ public actor LiveAudioService: AudioServiceProtocol {
                 await removeSfxPlayer(player)
             }
         } catch {
-            print("Failed to play piano tap sound: \(error)")
+            print("❌ Failed to play piano tap sound: \(error)")
         }
     }
     

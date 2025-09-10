@@ -57,7 +57,6 @@ public struct TileScrollerView: View {
                     .scrollTransition(.interactive, axis: .vertical) { view, phase in
                         view
                             .scaleEffect(phase.isIdentity ? 1.0 : 0.92)
-                            .opacity(phase.isIdentity ? 1.0 : 0.85)
                     }
                 }
             }
@@ -152,7 +151,6 @@ private struct TileRowItem: View {
                     size: tileSize
                 )
                 .saturation(isLocked ? 0.0 : 1.0)
-                .opacity(isLocked ? 0.55 : 1.0)
                 .overlay(
                     isCurrentHighest ?
                     RoundedRectangle(cornerRadius: 12)
@@ -212,7 +210,6 @@ private struct TileRowItem: View {
                         .font(.caption2.weight(.medium))
                 }
                 .foregroundStyle(.green)
-                .opacity(0.7)
             } else {
                 // Don't show "Locked" for every tile, too cluttered
                 EmptyView()

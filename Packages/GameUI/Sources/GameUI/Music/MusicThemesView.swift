@@ -14,6 +14,7 @@ struct MusicThemesView: View {
     // Inputs
     var instruments: [Instrument] = [
         .init(id: "piano", displayName: "Piano", tagline: "Merge with Classic Warmth!", assetName: "piano", priceLabel: "$0.99"),
+        .init(id: "harp", displayName: "Harp", tagline: "Merge with Ethereal Strings!", assetName: "harp", priceLabel: "$0.99"),
         .init(id: "xylophone", displayName: "Xylophone", tagline: "Merge with Bright Chimes!", assetName: "xylophone", priceLabel: "$0.99"),
         .init(id: "guitar", displayName: "Guitar", tagline: "Merge with Gentle Resonance!", assetName: "guitar", priceLabel: "$0.99"),
         .init(id: "kalimba", displayName: "Kalimba", tagline: "Merge with Gentle Resonance!", assetName: "kalimba", priceLabel: "$0.99"),
@@ -45,6 +46,12 @@ struct MusicThemesView: View {
             switch instrument.id {
             case "piano":
                 Task { await audioService.playMusic(named: "piano_background", loop: true) }
+            case "harp":
+                Task { await audioService.playMusic(named: "harp_melody", loop: true) }
+            case "xylophone":
+                Task { await audioService.playMusic(named: "xylophone_melody", loop: true) }
+            case "kalimba":
+                Task { await audioService.playMusic(named: "kalimba_melody", loop: true) }
             case "guitar":
                 Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
             default:
@@ -58,6 +65,12 @@ struct MusicThemesView: View {
             switch currentInstrument.id {
             case "piano":
                 Task { await audioService.playMusic(named: "piano_background", loop: true) }
+            case "harp":
+                Task { await audioService.playMusic(named: "harp_melody", loop: true) }
+            case "xylophone":
+                Task { await audioService.playMusic(named: "xylophone_melody", loop: true) }
+            case "kalimba":
+                Task { await audioService.playMusic(named: "kalimba_melody", loop: true) }
             case "guitar":
                 Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
             default:
