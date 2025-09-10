@@ -41,19 +41,27 @@ struct MusicThemesView: View {
             let instrument = instruments[selectionIndex]
             print("[MusicThemesView] Selected instrument: \(instrument.id) – start preview sound here")
             
-            // Play piano background music when piano is selected
-            if instrument.id == "piano" {
+            // Play specific background music for each instrument
+            switch instrument.id {
+            case "piano":
                 Task { await audioService.playMusic(named: "piano_background", loop: true) }
-            } else {
-                // For other instruments, stop current music or play their specific background
+            case "guitar":
+                Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
+            default:
+                // For other instruments, stop current music
                 Task { await audioService.stopMusic() }
             }
         }
         .onAppear {
-            // Start piano music if piano is initially selected
+            // Start appropriate background music for the initially selected instrument
             let currentInstrument = instruments[selectionIndex]
-            if currentInstrument.id == "piano" {
+            switch currentInstrument.id {
+            case "piano":
                 Task { await audioService.playMusic(named: "piano_background", loop: true) }
+            case "guitar":
+                Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
+            default:
+                break
             }
         }
         .onDisappear {
