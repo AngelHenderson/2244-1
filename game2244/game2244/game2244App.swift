@@ -22,6 +22,7 @@ struct game2244App: App {
     @State private var purchaseService = PurchaseService()
     @State private var adService = DummyAdService()
     @State private var hapticsService = HapticsService()
+    @State private var audioService = LiveAudioService()
     @State private var gameCenterService = DefaultGameCenterService()
     @State private var themeRegistry = ThemeRegistry.Default
     @State private var backgroundThemeRegistry = BackgroundThemeRegistry.Default
@@ -46,6 +47,7 @@ struct game2244App: App {
                 .environment(\.purchaseService, purchaseService)
                 .environment(\.adService, adService)
                 .environment(\.hapticsService, hapticsService)
+                .environment(\.audio, audioService)
                 .environment(\.gameCenter, gameCenterService)
                 .environment(\.storage, storageService)
                 .environment(\.currentTheme, themeRegistry.descriptor(for: selectedThemeId))
@@ -87,6 +89,14 @@ struct game2244App: App {
                     }
                     #endif
                     await achievementStore.syncWithGameCenter()
+                    
+                    // Enable audio by default if not set
+                    if UserDefaults.standard.object(forKey: "musicEnabled") == nil {
+                        await audioService.setMusicEnabled(true)
+                    }
+                    if UserDefaults.standard.object(forKey: "sfxEnabled") == nil {
+                        await audioService.setSfxEnabled(true)
+                    }
                     
                     // Setup achievement evaluator with reward handler
                     let evaluator = AchievementEvaluator(achievementStore: achievementStore)

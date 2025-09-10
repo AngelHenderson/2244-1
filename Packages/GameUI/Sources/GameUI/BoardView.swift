@@ -8,6 +8,7 @@ public struct BoardView: View {
     @Environment(\.hapticsService) private var haptics
     @Environment(\.colorBlindMode) private var colorBlindMode
     @Environment(\.currentTheme) private var currentTheme
+    @Environment(\.audio) private var audioService
     
     @State private var dragLocation: CGPoint = .zero
     @State private var isDragging = false
@@ -69,6 +70,7 @@ public struct BoardView: View {
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
+                            Task { await audioService.playSfx(name: "tap") }
                             onTileTap?(position)
                         }
                     }
@@ -127,6 +129,7 @@ public struct BoardView: View {
                     if let position = position, gameStore.state.board[position] != nil {
                         gameStore.beginPath(at: position)
                         haptics.lightImpact()
+                        Task { await audioService.playSfx(name: "select") }
                     }
                 } else if let position = position, gameStore.state.board[position] != nil {
                     // Backtrack while dragging: if moving to a previously selected tile,
@@ -141,6 +144,7 @@ public struct BoardView: View {
                         gameStore.extendPath(to: position)
                         if gameStore.pathValidation.isValid {
                             haptics.lightImpact()
+                            Task { await audioService.playSfx(name: "drag") }
                         } else {
                             haptics.warning()
                         }

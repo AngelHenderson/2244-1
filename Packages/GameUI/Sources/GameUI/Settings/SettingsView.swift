@@ -41,7 +41,7 @@ public struct SettingsView: View {
                     
                     Toggle("Mute Sound Effects", isOn: $sfxMuted)
                         .onChange(of: sfxMuted) { _, newValue in
-                            audioService.setSfxEnabled(!newValue)
+                            Task { await audioService.setSfxEnabled(!newValue) }
                             UserDefaults.standard.set(newValue, forKey: "sfxMuted")
                         }
                     
@@ -68,7 +68,7 @@ public struct SettingsView: View {
                     
                     Toggle("Mute Music", isOn: $musicMuted)
                         .onChange(of: musicMuted) { _, newValue in
-                            audioService.setMusicEnabled(!newValue)
+                            Task { await audioService.setMusicEnabled(!newValue) }
                             UserDefaults.standard.set(newValue, forKey: "musicMuted")
                         }
                     
@@ -87,7 +87,9 @@ public struct SettingsView: View {
                         }
                     
                     Button("Test Sound & Haptic") {
-                        audioService.playSfx(name: "test")
+                        Task {
+                            await audioService.playSfx(name: "test")
+                        }
                         if hapticsEnabled {
                             hapticsService.mediumImpact()
                         }

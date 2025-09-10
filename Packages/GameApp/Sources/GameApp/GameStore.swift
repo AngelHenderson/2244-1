@@ -59,9 +59,11 @@ public final class GameStore {
     // Lowest allowed spawn tile based on current highest (mirrors engine logic)
     public func currentMinAllowedTile() -> Int {
         let highest = state.highestTile
-        guard highest >= 16384 else { return 2 }
+        // Progressive elimination starts at 1024 to maintain game balance
+        guard highest >= 1024 else { return 2 }
         let exp = highest > 0 ? Int(floor(log2(Double(highest)))) : 0
-        let minExp = max(1, exp - 12)
+        // Set minimum exponent: 2^10 -> 4, 2^11 -> 8, 2^12 -> 16, ...
+        let minExp = max(1, exp - 8)
         return 1 << minExp
     }
     public private(set) var lastDailyDateUTC: String?

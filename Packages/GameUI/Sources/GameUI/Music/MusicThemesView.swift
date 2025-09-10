@@ -1,4 +1,5 @@
 import SwiftUI
+import GameServices
 
 @MainActor
 struct MusicThemesView: View {
@@ -25,6 +26,7 @@ struct MusicThemesView: View {
     // State
     @State private var selectionIndex: Int = 0
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.audio) private var audioService
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,10 +38,27 @@ struct MusicThemesView: View {
         }
 //        .background(Color.black.opacity(0.9).ignoresSafeArea())
         .onChange(of: selectionIndex) { _ in
-            // Placeholder for starting sound immediately when page changes
-            // The hosting app can inject real playback via onTry/onPurchase if desired.
             let instrument = instruments[selectionIndex]
             print("[MusicThemesView] Selected instrument: \(instrument.id) – start preview sound here")
+            
+            // Play piano background music when piano is selected
+            if instrument.id == "piano" {
+                Task { await audioService.playMusic(named: "piano_background", loop: true) }
+            } else {
+                // For other instruments, stop current music or play their specific background
+                Task { await audioService.stopMusic() }
+            }
+        }
+        .onAppear {
+            // Start piano music if piano is initially selected
+            let currentInstrument = instruments[selectionIndex]
+            if currentInstrument.id == "piano" {
+                Task { await audioService.playMusic(named: "piano_background", loop: true) }
+            }
+        }
+        .onDisappear {
+            // Stop music when leaving the view
+            Task { await audioService.stopMusic() }
         }
         .accessibilityElement(children: .contain)
     }
@@ -125,10 +144,14 @@ struct MusicThemesView: View {
             let instrument = instruments[safe: selectionIndex] ?? instruments.first!
             // Try Now – host will handle ad presentation later
             primaryButton(title: "Try Now", role: .secondary) {
+                // Set the music theme when trying
+                Task { await audioService.setCurrentMusicTheme(instrument.id) }
                 onTry(instrument)
             }
             // Purchase button
             primaryButton(title: instrument.priceLabel, role: .primary) {
+                // Set the music theme when purchasing
+                Task { await audioService.setCurrentMusicTheme(instrument.id) }
                 onPurchase(instrument)
             }
         }

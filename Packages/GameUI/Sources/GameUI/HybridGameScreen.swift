@@ -71,7 +71,6 @@ public struct HybridGameScreen: View {
                 // Simple power-up dock similar to HomeView's bottom buttons
                 SimplePowerupDock(
                     onHammer: handleHammer,
-                    onShuffle: handleShuffle,
                     onSwap: handleSwap,
                     onMagnet: handleMagnet,
                     onUndo: handleUndo,
@@ -351,7 +350,6 @@ public struct HybridGameScreen: View {
 struct SimplePowerupDock: View {
     @Environment(\.gameStore) private var gameStore
     let onHammer: () -> Void
-    let onShuffle: () -> Void
     let onSwap: () -> Void
     let onMagnet: () -> Void
     let onUndo: () -> Void
@@ -365,30 +363,27 @@ struct SimplePowerupDock: View {
                 action: onHome
             )
             
-            // Power-ups
+            // Break Any Tile On The Board (Hammer)
             powerupDockItem(
-                icon: "hammer.fill",
+                assetName: "hammer",
                 badge: gameStore.powerUpInventory["hammer", default: 0],
                 isEnabled: gameStore.isPowerUpAvailable("hammer"),
                 action: onHammer
             )
             
+            // Swap Any 2 Tiles With Each Other (Restart/Swap)
             powerupDockItem(
-                icon: "arrow.triangle.2.circlepath",
-                badge: gameStore.powerUpInventory["shuffle", default: 0],
-                isEnabled: gameStore.isPowerUpAvailable("shuffle"),
-                action: onShuffle
-            )
-            
-            powerupDockItem(
-                icon: "scope",
+                assetName: "restart",
                 badge: gameStore.powerUpInventory["swap", default: 0],
                 isEnabled: gameStore.isPowerUpAvailable("swap"),
                 action: onSwap
             )
             
+            // Merge Same Tiles On The Board (Magnet)
             powerupDockItem(
-                icon: "magnet.fill",
+                assetName: "magnet",
+                badge: gameStore.powerUpInventory["magnet", default: 0],
+                isEnabled: gameStore.isPowerUpAvailable("magnet"),
                 action: onMagnet
             )
             
@@ -415,6 +410,40 @@ struct SimplePowerupDock: View {
                     .font(.system(size: 24))
                     .frame(width: 48, height: 48)
                     .foregroundStyle(isEnabled ? .primary : .tertiary)
+                
+                // Badge for inventory count
+                if badge > 0 {
+                    Text("\(badge)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 16, height: 16)
+                        .background(Color.blue)
+                        .clipShape(Circle())
+                        .offset(x: 6, y: -6)
+                }
+            }
+            .padding(4)
+        }
+        .buttonStyle(.plain)
+        .glassEffectCompat(cornerRadius: 12)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.6)
+    }
+    
+    private func powerupDockItem(
+        assetName: String,
+        badge: Int = 0,
+        isEnabled: Bool = true,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            ZStack(alignment: .topTrailing) {
+                Image(assetName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
+                    .frame(width: 48, height: 48)
+                    .opacity(isEnabled ? 1.0 : 0.4)
                 
                 // Badge for inventory count
                 if badge > 0 {

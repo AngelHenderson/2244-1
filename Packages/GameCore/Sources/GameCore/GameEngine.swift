@@ -748,17 +748,22 @@ public final class GameEngine {
 
     private func minAllowedSpawnValue() -> Int {
         let highest = state.highestTile
-        // Before 16K keep 2s
-        guard highest >= 16384 else { return 2 }
+        // Progressive elimination starts at 1024 to maintain game balance
+        // 1024 (2^10) -> eliminate 2s, start with 4+
+        // 2048 (2^11) -> eliminate 4s, start with 8+  
+        // 4096 (2^12) -> eliminate 8s, start with 16+
+        // 8192 (2^13) -> eliminate 16s, start with 32+
+        // 16384 (2^14) -> eliminate 32s, start with 64+
+        guard highest >= 1024 else { return 2 }
         let exp = highest > 0 ? Int(floor(log2(Double(highest)))) : 0
-        // Set minimum exponent so that: 2^14 -> 4, 2^15 -> 8, 2^16 -> 16, ...
-        let minExp = max(1, exp - 12)
+        // Set minimum exponent: 2^10 -> 4, 2^11 -> 8, 2^12 -> 16, ...
+        let minExp = max(1, exp - 8)
         return 1 << minExp
     }
 
     private func enforceLowestTileEliminationIfNeeded() {
         // Upgrade any tiles below the current minimum allowed spawn value
-        guard state.highestTile >= 16384 else { return }
+        guard state.highestTile >= 1024 else { return }
         let minAllowed = minAllowedSpawnValue()
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
