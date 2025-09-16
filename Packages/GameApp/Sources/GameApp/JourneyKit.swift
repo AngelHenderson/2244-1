@@ -12,7 +12,7 @@ public enum JourneyKit {
   public struct Config: Sendable, Equatable {
     public var minPower: Int
     public var maxPower: Int
-    public static let `default` = Self(minPower: 10, maxPower: 17)
+    public static let `default` = Self(minPower: 20, maxPower: 25)
     
     public init(minPower: Int, maxPower: Int) {
       self.minPower = minPower
@@ -296,3 +296,4 @@ private extension AsyncStream {
     return (stream, cont)
   }
 }
+

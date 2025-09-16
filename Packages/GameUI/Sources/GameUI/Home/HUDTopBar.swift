@@ -107,8 +107,11 @@ private struct GameCenterAvatarButton: View {
         guard player.isAuthenticated else { return }
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             player.loadPhoto(for: .small) { image, _ in
-                self.avatar = image
-                cont.resume()
+                // Hop to the main actor before mutating @State
+                Task { @MainActor in
+                    self.avatar = image
+                    cont.resume()
+                }
             }
         }
     }

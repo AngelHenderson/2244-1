@@ -1,6 +1,7 @@
 import SwiftUI
 import GameApp
 import GameServices
+import GameCore
 
 /// Journey Header component showing milestone progression
 public struct JourneyHeader: View {
@@ -126,7 +127,7 @@ private struct MilestoneCard: View {
                     .shadow(color: shadowColor, radius: isCurrent ? 8 : 2)
                 
                 if unlocked {
-                    Text(formatValue(value))
+                    Text(AlphaMag.formatTileValue(value))
                         .font(.headline)
                         .fontWeight(isCurrent ? .bold : .semibold)
                         .foregroundColor(textColor)
@@ -210,27 +211,4 @@ private struct MilestoneCard: View {
             return Color.primary
         }
     }
-    
-    private func formatValue(_ value: Int) -> String {
-        if value >= 1024 {
-            let k = value / 1024
-            if k * 1024 == value {
-                return "\(k)K"
-            }
-        }
-        return "\(value)"
-    }
-}
-
-// MARK: - Preview
-#Preview {
-    VStack {
-        JourneyHeader()
-            .padding()
-        Spacer()
-    }
-    .environment(\.tileJourney, JourneyKit.Store(
-        config: .init(minPower: 10, maxPower: 15)
-    ))
-    .environment(\.hapticsService, HapticsService())
 }

@@ -90,6 +90,9 @@ public final class GameEngine {
     private var milestonesReached: Set<Int> = []
     private var lastMergeAtMs: Int? = nil
     
+    // Track which milestones have already triggered elimination
+    private var eliminatedMilestones: Set<Int> = []
+    
     public init(config: GameConfig = GameConfig()) {
         self.config = config
         let selectedSeed = config.seed ?? UInt64(Date().timeIntervalSince1970)
@@ -179,10 +182,8 @@ public final class GameEngine {
         for i in 2..<values.count {
             let value = values[i]
             if value == currentValue {
-                // Same value is allowed
                 continue
             } else if value == currentValue * 2 {
-                // Double value is allowed, update current
                 currentValue = value
             } else {
                 return .invalid("Each tile must be the same value or double the previous value")
@@ -234,8 +235,10 @@ public final class GameEngine {
             highestTileAchieved = outcome.resultValue
             updateLevel()
             checkMilestoneRewards(outcome.resultValue)
-            enforceLowestTileEliminationIfNeeded()
         }
+        
+        // Apply milestone elimination if needed (remove specific tier when milestone is created)
+        applyMilestoneEliminationIfNeeded(createdValue: outcome.resultValue)
         
         // Award gems for long chains (10+ tiles)
         if positions.count >= 10 {
@@ -335,11 +338,6 @@ public final class GameEngine {
         let values = positions.compactMap { state.board[$0]?.value }
         
         // Merge rule: Round SUM up to the next power of two (inclusive).
-        // Examples:
-        //  - [2,2,4] -> sum 8 => 8
-        //  - [2,2,4,4] -> sum 12 => 16
-        //  - [2,2,2,4,4,4] -> sum 18 => 32
-        //  - 64-64-128 -> sum 256 => 256
         // Overflow-safe summation and rounding
         let sumResult = values.reduce((total: 0, overflowed: false)) { acc, value in
             let (next, didOverflow) = acc.total.addingReportingOverflow(value)
@@ -349,9 +347,7 @@ public final class GameEngine {
         let mergedValue: Int = {
             if sumResult.overflowed { return Int.max }
             guard chainSum > 0 else { return 0 }
-            // If already a power of two, return as-is
             if chainSum & (chainSum - 1) == 0 { return chainSum }
-            // Guard against overflow computing next power-of-two
             if chainSum > (1 << 62) { return Int.max }
             var x = chainSum - 1
             x |= x >> 1
@@ -377,7 +373,6 @@ public final class GameEngine {
         
         // Place merged tile at the last position in the chain
         if let lastPosition = positions.last {
-            // Always create a normal tile; UI label formatter will render ∞ only after "bz"
             state.board[lastPosition] = Tile(value: mergedValue)
         }
         
@@ -386,13 +381,11 @@ public final class GameEngine {
             state.highestTile = mergedValue
             highestTileAchieved = mergedValue
             updateLevel()
-            
-            // Check for milestone rewards (bombs)
             checkMilestoneRewards(mergedValue)
-
-            // Eliminate lowest blocks (like 2) once highest reaches threshold
-            enforceLowestTileEliminationIfNeeded()
         }
+        
+        // Apply milestone elimination if needed (remove specific tier when milestone is created)
+        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         
         // Award points
         state.score += chainScore
@@ -415,8 +408,6 @@ public final class GameEngine {
         
         return state
     }
-    
-    // MARK: - Power-ups
     
     // MARK: - Power-ups
     
@@ -487,16 +478,11 @@ public final class GameEngine {
         
         // Move tiles toward the target position (adjacent positions)
         for tilePos in tilesToMove {
-            // Find closest adjacent empty position to target
             let neighbors = state.board.neighbors(of: position, includeDiagonals: config.allowDiagonals)
-            
-            for neighbor in neighbors {
-                if state.board[neighbor] == nil {
-                    // Move tile to empty neighbor
-                    state.board[neighbor] = state.board[tilePos]
-                    state.board[tilePos] = nil
-                    break
-                }
+            for neighbor in neighbors where state.board[neighbor] == nil {
+                state.board[neighbor] = state.board[tilePos]
+                state.board[tilePos] = nil
+                break
             }
         }
         
@@ -590,8 +576,10 @@ public final class GameEngine {
             state.highestTile = doubled
             highestTileAchieved = doubled
             updateLevel()
-            enforceLowestTileEliminationIfNeeded()
         }
+        // Apply milestone elimination if needed
+        applyMilestoneEliminationIfNeeded(createdValue: doubled)
+        
         state.moves += 1
         if !hasValidMoves() { state.isGameOver = true }
         return state
@@ -685,8 +673,6 @@ public final class GameEngine {
         }
     }
 
-    
-    
     private func updateLevel() {
         // Level increments based on highest tile achieved
         let tileToLevel = [
@@ -709,7 +695,6 @@ public final class GameEngine {
                 let position = Position(row: row, col: col)
                 guard let tile = state.board[position] else { continue }
                 
-                // Check all 8 directions if diagonals allowed, otherwise 4
                 let directions = config.allowDiagonals ? Direction.allCases : [Direction.up, .down, .left, .right]
                 for direction in directions {
                     let neighbor = position.moved(in: direction)
@@ -726,16 +711,12 @@ public final class GameEngine {
     
     private func generateRandomValue() -> Int {
         // Progressive spawning: always spawn from the six lowest allowed tiles
-        // Example windows:
-        //  - baseline: [2, 4, 8, 16, 32, 64]
-        //  - after removing 2s: [4, 8, 16, 32, 64, 128]
-        //  - after removing 4s: [8, 16, 32, 64, 128, 256], and so on
+        // Window is based on the latest eliminated tier only.
         let minAllowed = minAllowedSpawnValue()
         var candidates: [Int] = []
         var current = minAllowed
         for _ in 0..<6 {
             candidates.append(current)
-            // Double with overflow guard
             if current > (Int.max >> 1) {
                 current = Int.max
             } else {
@@ -747,32 +728,21 @@ public final class GameEngine {
     }
 
     private func minAllowedSpawnValue() -> Int {
-        let highest = state.highestTile
-        // Progressive elimination starts at 1024 to maintain game balance
-        // 1024 (2^10) -> eliminate 2s, start with 4+
-        // 2048 (2^11) -> eliminate 4s, start with 8+  
-        // 4096 (2^12) -> eliminate 8s, start with 16+
-        // 8192 (2^13) -> eliminate 16s, start with 32+
-        // 16384 (2^14) -> eliminate 32s, start with 64+
-        guard highest >= 1024 else { return 2 }
-        let exp = highest > 0 ? Int(floor(log2(Double(highest)))) : 0
-        // Set minimum exponent: 2^10 -> 4, 2^11 -> 8, 2^12 -> 16, ...
-        let minExp = max(1, exp - 8)
-        return 1 << minExp
-    }
-
-    private func enforceLowestTileEliminationIfNeeded() {
-        // Upgrade any tiles below the current minimum allowed spawn value
-        guard state.highestTile >= 1024 else { return }
-        let minAllowed = minAllowedSpawnValue()
-        for row in 0..<config.boardHeight {
-            for col in 0..<config.boardWidth {
-                let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], tile.value < minAllowed {
-                    state.board[pos] = Tile(value: minAllowed)
-                }
-            }
+        // If we’ve eliminated X, min spawn is X*2; otherwise 2.
+        if let removed = latestEliminatedValue() {
+            return max(2, removed << 1)
         }
+        return 2
+    }
+    
+    private func latestEliminatedValue() -> Int? {
+        // Find the highest milestone achieved and eliminated (or achievable by highestTile)
+        let triggers = EliminationRules.map.keys.sorted()
+        var lastRemoved: Int? = nil
+        for t in triggers where t <= state.highestTile {
+            lastRemoved = EliminationRules.map[t]
+        }
+        return lastRemoved
     }
 
     // MARK: - Gravity and Refill (Always-Full)
@@ -831,7 +801,6 @@ public final class GameEngine {
 
     private func ensureAtLeastOneStartableLink(attempts: Int) {
         var remaining = max(0, attempts)
-        // Simple loop: if no adjacent equal pair exists, reroll a few random cells and try again
         while !state.board.hasAdjacentEqualPair(includeDiagonals: config.allowDiagonals) && remaining > 0 {
             rerollRandomCells(count: 3)
             remaining -= 1
@@ -876,6 +845,35 @@ public final class GameEngine {
             }
         }
         return found ? minVal : 0
+    }
+
+    // MARK: - Milestone elimination helpers
+
+    private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
+        guard let toRemove = EliminationRules.map[createdValue] else { return }
+        // Only trigger once per milestone creation
+        if !eliminatedMilestones.contains(createdValue) {
+            eliminatedMilestones.insert(createdValue)
+            eliminateAllTiles(withValue: toRemove)
+        }
+    }
+    
+    private func eliminateAllTiles(withValue value: Int) {
+        var didRemove = false
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos], tile.value == value {
+                    state.board[pos] = nil
+                    didRemove = true
+                }
+            }
+        }
+        if didRemove {
+            // Pull down and refill so the board stays valid
+            applyGravityDown()
+            refillToFull()
+        }
     }
 
     // MARK: - Test Helpers (internal)

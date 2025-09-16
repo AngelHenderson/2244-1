@@ -1,6 +1,7 @@
 import SwiftUI
 import GameCore
 import GameApp
+import UIKit
 
 public struct TileScrollerView: View {
     @Environment(\.gameStore) private var gameStore
@@ -22,19 +23,17 @@ public struct TileScrollerView: View {
     private let itemSpacing: CGFloat = 24
     private let tileSize: CGFloat = 140
     
+    // Build the full journey, then reverse for an upward-growing panel (2 near bottom, Infinity toward top).
     private var tiles: [(id: Int, tile: Tile)] {
-        // Generate tiles and reverse so infinity is at top, starting from 2 at bottom
-        let journeyTiles = JourneyTileGenerator.generateFullJourney().reversed()
-        return journeyTiles.enumerated().map { (index, tile) in
-            (id: index, tile: tile)
-        }
+        let modelsAscending = JourneyTileGenerator.generateFullJourney()
+        let models = modelsAscending.reversed() // visual goes up
+        return Array(models.enumerated().map { ($0.offset, $0.element) })
     }
     
     private var highestUnlockedIndex: Int? {
         let highestValue = max(2, gameStore.state.highestTile)
-        // Find the index of the user's highest tile in the reversed array
-        return tiles.firstIndex { tile in
-            !tile.tile.isInfinity && tile.tile.value == highestValue
+        return tiles.firstIndex { item in
+            !item.tile.isInfinity && item.tile.value == highestValue
         }
     }
     
@@ -68,15 +67,12 @@ public struct TileScrollerView: View {
         .defaultScrollAnchor(.center)
         .contentMargins(.vertical, tileSize / 2 + itemSpacing, for: .scrollContent)
         .background(Color.black.opacity(0.001))
-        // Reserve space equal to overlays so the center aligns within unobstructed region
         .safeAreaPadding(.top, topInset)
         .safeAreaPadding(.bottom, bottomInset)
         .task {
-            // Initial position: scroll to user's current highest tile
             await setInitialScrollPosition()
         }
         .onAppear {
-            // Ensure immediate centering on appear
             if let currentIndex = highestUnlockedIndex {
                 scrollPosition.scrollTo(id: currentIndex, anchor: .center)
                 focusedTileID = currentIndex
@@ -86,7 +82,6 @@ public struct TileScrollerView: View {
             }
         }
         .onChange(of: gameStore.state.highestTile) { _, newValue in
-            // Update scroll position if user achieves a new highest tile
             if let newIndex = tiles.firstIndex(where: { !$0.tile.isInfinity && $0.tile.value == newValue }) {
                 withAnimation(.snappy(duration: 0.3)) {
                     scrollPosition.scrollTo(id: newIndex, anchor: .center)
@@ -94,33 +89,24 @@ public struct TileScrollerView: View {
                 }
             }
         }
-        // If header/dock insets change (e.g., after layout), keep the current tile centered
         .onChange(of: topInset) { _, _ in recenterToCurrent() }
         .onChange(of: bottomInset) { _, _ in recenterToCurrent() }
     }
     
     private func isLocked(_ tile: Tile) -> Bool {
-        // Infinity is always "locked" as it's the ultimate goal
-        if tile.isInfinity {
-            return true
-        }
+        if tile.isInfinity { return true }
         return tile.value > gameStore.state.highestTile
     }
     
     @MainActor
     private func setInitialScrollPosition() async {
-        // Find the user's current position in the journey
         if let currentIndex = highestUnlockedIndex {
-            // Use ScrollPosition to programmatically scroll to center
             scrollPosition.scrollTo(id: currentIndex, anchor: .center)
             focusedTileID = currentIndex
-            
-            // Double-check after a brief delay to ensure layout is complete
-            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            try? await Task.sleep(nanoseconds: 100_000_000)
             scrollPosition.scrollTo(id: currentIndex, anchor: .center)
         } else {
-            // Fallback: if no highest tile found, start near the bottom (tile 2)
-            if let firstTileIndex = tiles.firstIndex(where: { $0.tile.value == 2 }) {
+            if let firstTileIndex = tiles.firstIndex(where: { !$0.tile.isInfinity }) {
                 scrollPosition.scrollTo(id: firstTileIndex, anchor: .center)
                 focusedTileID = firstTileIndex
             }
@@ -141,6 +127,10 @@ private struct TileRowItem: View {
     let isCurrentHighest: Bool
     let tileSize: CGFloat
     
+    private var showCrown: Bool {
+        !tile.isInfinity
+    }
+    
     var body: some View {
         VStack(spacing: 12) {
             ZStack {
@@ -148,7 +138,8 @@ private struct TileRowItem: View {
                     tile: tile,
                     isSelected: false,
                     isValid: true,
-                    size: tileSize
+                    size: tileSize,
+                    useLegacyTypography: true   // Preserve the previous journey look
                 )
                 .saturation(isLocked ? 0.0 : 1.0)
                 .overlay(
@@ -168,11 +159,22 @@ private struct TileRowItem: View {
                 .animation(.snappy(duration: 0.25), value: isLocked)
                 .animation(.snappy(duration: 0.25), value: isCurrentHighest)
                 
-                if isLocked {
-//                    Image(systemName: "lock.fill")
-//                        .font(.title2)
-//                        .foregroundStyle(.white.opacity(0.7))
-//                        .shadow(radius: 2)
+                // Crown overlay to match design
+                if showCrown {
+                    VStack {
+                        if let uiImage = UIImage(named: "crownBadge"), uiImage.size != .zero {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: tileSize * 0.28)
+                                .offset(y: -tileSize * 0.62)
+                        } else {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: tileSize * 0.22))
+                                .foregroundStyle(.orange)
+                                .offset(y: -tileSize * 0.62)
+                        }
+                    }
                 }
             }
             
@@ -187,7 +189,6 @@ private struct TileRowItem: View {
                         )
                     )
             } else if isCurrentHighest {
-                // Highlight current position
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .font(.caption)
@@ -201,17 +202,7 @@ private struct TileRowItem: View {
                         endPoint: .trailing
                     )
                 )
-            } else if !isLocked && tile.value >= 256 {
-                // Show label only for significant milestones
-                HStack(spacing: 4) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.caption2)
-                    Text("Reached")
-                        .font(.caption2.weight(.medium))
-                }
-                .foregroundStyle(.green)
             } else {
-                // Don't show "Locked" for every tile, too cluttered
                 EmptyView()
             }
         }
@@ -223,5 +214,5 @@ private struct TileRowItem: View {
 #Preview {
     TileScrollerView()
         .environment(\.gameStore, GameStore())
-        .environment(\.tileJourney, JourneyKit.Store(config: .init(minPower: 8, maxPower: 22)))
+        .environment(\.tileJourney, JourneyKit.Store(config: .init(minPower: 20, maxPower: 25)))
 }

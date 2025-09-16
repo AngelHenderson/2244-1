@@ -1,6 +1,22 @@
 import SwiftUI
 import GameCore
 
+private enum MilestoneAppearance {
+    // Exact milestone values: 1M, 2M, 4M, 8M, 16M, 33M
+    static let milestones: [Int: Color] = [
+        1 << 20: Color(hex: "D31AAE"),
+        1 << 21: Color(hex: "6C3EBF"),
+        1 << 22: Color(hex: "FF6B6B"),
+        1 << 23: Color(hex: "1E73C6"),
+        1 << 24: Color(hex: "F47C20"),
+        1 << 25: Color(hex: "C4D018")
+    ]
+    
+    static func colorOverride(for value: Int) -> Color? {
+        milestones[value]
+    }
+}
+
 struct TileView: View {
     let tile: Tile?
     let isSelected: Bool
@@ -8,6 +24,7 @@ struct TileView: View {
     let size: CGFloat
     var colorBlindMode: Bool = false
     var theme: ThemeDescriptor? = nil
+    var useLegacyTypography: Bool = false   // NEW: allows restoring the old look
     
     var body: some View {
         let content = Group {
@@ -18,10 +35,7 @@ struct TileView: View {
                         .foregroundColor(textColor)
                 } else if tile.isLocked {
                     ZStack {
-                        Text(TileLabelFormatter.format(tile.value))
-                            .font(.system(size: fontSize, weight: .bold, design: .rounded))
-                            .foregroundColor(textColor.opacity(0.5))
-                            .minimumScaleFactor(0.5)
+                        numberText(for: tile.value, locked: true)
                         Image("lockpic")
                             .resizable()
                             .scaledToFit()
@@ -29,10 +43,7 @@ struct TileView: View {
                     }
                 } else if case .bomb(let turns) = tile.type {
                     ZStack {
-                        Text(TileLabelFormatter.format(tile.value))
-                            .font(.system(size: fontSize * 0.8, weight: .bold, design: .rounded))
-                            .foregroundColor(textColor)
-                            .minimumScaleFactor(0.5)
+                        numberText(for: tile.value, scale: 0.8)
                         VStack {
                             Spacer()
                             HStack {
@@ -50,24 +61,17 @@ struct TileView: View {
                         .padding(4)
                     }
                 } else if case .highValue(let step) = tile.type {
-                    // Special formatting for tiles beyond Int.max
                     Text(JourneyTileGenerator.formatTileAtStep(step))
-                        .font(.system(size: fontSize, weight: .heavy, design: .rounded).monospacedDigit())
+                        .font(baseFont(weight: .heavy, size: fontSize))
                         .foregroundColor(textColor)
                         .minimumScaleFactor(0.5)
                         .contentTransition(.numericText())
-                        .overlay(
-                            colorBlindMode ? patternOverlay : nil
-                        )
+                        .kerning(kerning(for: Int.max))
+                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                        .overlay(colorBlindMode ? patternOverlay : nil)
                 } else {
-                    Text(TileLabelFormatter.format(tile.value))
-                        .font(.system(size: fontSize, weight: .heavy, design: .rounded).monospacedDigit())
-                        .foregroundColor(textColor)
-                        .minimumScaleFactor(0.5)
-                        .contentTransition(.numericText())
-                        .overlay(
-                            colorBlindMode ? patternOverlay : nil
-                        )
+                    numberText(for: tile.value)
+                        .overlay(colorBlindMode ? patternOverlay : nil)
                 }
             }
         }
@@ -90,10 +94,8 @@ struct TileView: View {
                 let radius: CGFloat = {
                     let baseRadius: CGFloat
                     switch theme?.tileShape {
-                    case .square:
-                        baseRadius = 8
-                    case .rounded, .none:
-                        baseRadius = 12
+                    case .square: baseRadius = 8
+                    case .rounded, .none: baseRadius = 12
                     }
                     return min(baseRadius, maxRadius)
                 }()
@@ -112,19 +114,42 @@ struct TileView: View {
         .animation(.easeInOut(duration: 0.1), value: isSelected)
     }
     
+    // MARK: - Number text builder
+    
+    @ViewBuilder
+    private func numberText(for value: Int, locked: Bool = false, scale: CGFloat = 1.0) -> some View {
+        let fontWeight: Font.Weight = .heavy
+        let effectiveSize = fontSize * scale
+        
+        Text(TileLabelFormatter.format(value))
+            .font(baseFont(weight: fontWeight, size: effectiveSize))
+            .foregroundColor(locked ? textColor.opacity(0.5) : textColor)
+            .minimumScaleFactor(0.5)
+            .contentTransition(.numericText())
+            .kerning(kerning(for: value))
+            .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+    }
+    
+    private func baseFont(weight: Font.Weight, size: CGFloat) -> Font {
+        var font = Font.system(size: size, weight: weight, design: .rounded)
+        if useLegacyTypography {
+            font = font.monospacedDigit()
+        }
+        return font
+    }
+    
+    // MARK: - Colors and sizes
+    
     private var backgroundColor: Color {
         guard let tile = tile else { return .gray.opacity(0.3) }
-        if tile.isInfinity {
-            return Color.purple
-        } else if tile.isLocked {
-            return Color.gray.opacity(0.6)
-        } else if tile.isBomb {
-            return Color.orange.opacity(0.8)
-        } else if case .highValue = tile.type {
-            // For high value tiles, use the Int.max color (which represents very high values)
-            if let theme { return theme.color(for: Int.max) }
-            return Theme.color(for: Int.max)
+        if tile.isInfinity { return Color.purple }
+        if tile.isLocked { return Color.gray.opacity(0.6) }
+        if tile.isBomb { return Color.orange.opacity(0.8) }
+        if case .highValue(let step) = tile.type {
+            // For high-value (beyond Int.max), repeat the palette by step
+            return Theme.colorForStep(step)
         }
+        if let override = MilestoneAppearance.colorOverride(for: tile.value) { return override }
         if let theme { return theme.color(for: tile.value) }
         return Theme.color(for: tile.value)
     }
@@ -136,6 +161,10 @@ struct TileView: View {
     
     private var textColor: Color {
         guard let tile = tile else { return .clear }
+        if case .highValue(let step) = tile.type {
+            // Match text contrast for step-based color
+            return Theme.textColorForStep(step)
+        }
         return Theme.textColor(for: tile.value)
     }
     
@@ -143,10 +172,27 @@ struct TileView: View {
         guard let tile = tile else { return size * 0.4 }
         let label = TileLabelFormatter.format(tile.value)
         let digitCount = label.count
-        if digitCount <= 2 { return size * 0.40 }
-        if digitCount == 3 { return size * 0.36 }
-        if digitCount == 4 { return size * 0.32 }
-        return size * 0.28
+        if useLegacyTypography {
+            // Original mapping
+            if digitCount <= 2 { return size * 0.40 }
+            if digitCount == 3 { return size * 0.36 }
+            if digitCount == 4 { return size * 0.32 }
+            return size * 0.28
+        } else {
+            // Improved 8192 readability
+            if digitCount <= 2 { return size * 0.40 }
+            if digitCount == 3 { return size * 0.36 }
+            if digitCount == 4 { return size * 0.34 }
+            return size * 0.28
+        }
+    }
+    
+    private func kerning(for value: Int) -> CGFloat {
+        guard !useLegacyTypography else { return 0.0 }
+        let count = TileLabelFormatter.format(value).count
+        if count == 4 { return -1.0 }
+        if count >= 5 { return -0.6 }
+        return 0.0
     }
     
     private func isFinite(_ value: CGFloat) -> CGFloat {

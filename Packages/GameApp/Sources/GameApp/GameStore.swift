@@ -45,7 +45,8 @@ public final class GameStore {
     
     // JourneyKit integration
     public let journey = JourneyKit.Store(
-        config: .init(minPower: 8, maxPower: 22) // 256 to 4,194,304
+        // 1M (2^20) up to 33M (≈ 2^25)
+        config: .init(minPower: 20, maxPower: 25)
     )
     
     public var coins: Int {
@@ -56,15 +57,24 @@ public final class GameStore {
         }
     }
     
-    // Lowest allowed spawn tile based on current highest (mirrors engine logic)
+    // Compute the latest achieved elimination milestone at or below `highest`.
+    private func latestEliminatedValue(forHighest highest: Int) -> Int? {
+        let trigger = EliminationRules.map.keys
+            .filter { $0 <= highest }
+            .max()
+        if let t = trigger {
+            return EliminationRules.map[t]
+        }
+        return nil
+    }
+    
+    // Lowest allowed spawn tile based on the latest elimination milestone only.
+    // If we’ve removed X, the minimum spawn becomes next power (X * 2).
     public func currentMinAllowedTile() -> Int {
-        let highest = state.highestTile
-        // Progressive elimination starts at 1024 to maintain game balance
-        guard highest >= 1024 else { return 2 }
-        let exp = highest > 0 ? Int(floor(log2(Double(highest)))) : 0
-        // Set minimum exponent: 2^10 -> 4, 2^11 -> 8, 2^12 -> 16, ...
-        let minExp = max(1, exp - 8)
-        return 1 << minExp
+        if let removed = latestEliminatedValue(forHighest: state.highestTile) {
+            return max(2, removed << 1)
+        }
+        return 2
     }
     public private(set) var lastDailyDateUTC: String?
     
@@ -183,6 +193,14 @@ public final class GameStore {
         }()
         lastAddedTileValue = addedValue > 0 ? addedValue : nil
         
+        // Special rule: apply elimination if this commit created a milestone in our map
+        var eliminatedThisTurn: Int? = nil
+        if let toRemove = EliminationRules.map[addedValue] {
+            if excludeAllTiles(withValue: toRemove) {
+                eliminatedThisTurn = toRemove
+            }
+        }
+        
         // Notify JourneyKit of the new tile value
         if addedValue > 0 {
             journey.didReach(tile: addedValue)
@@ -204,7 +222,8 @@ public final class GameStore {
         if let unlockedValue {
             setPendingUnlockRewardIfNeeded(for: unlockedValue, previousHigh: previousHighest)
         }
-        let excludedValue: Int? = removedValuesBefore.first
+        // If we just excluded due to milestone, reflect that in merge info
+        let excludedValue: Int? = eliminatedThisTurn ?? removedValuesBefore.first
         // Only show the merge info board when a new highest tile is unlocked
         if let unlockedValue {
             lastMergeInfo = .init(unlocked: unlockedValue, added: addedValue, excluded: excludedValue)
@@ -338,6 +357,7 @@ public final class GameStore {
         public static let hammer = 50
         public static let swap = 75
         public static let shuffle = 100
+        public static let undo = 1 // keep if you have one
     }
     
     @discardableResult
@@ -625,5 +645,24 @@ extension GameStore {
     
     public func bestScore(using storage: any StorageServiceProtocol) async -> Int {
         await storage.bestScore()
+    }
+}
+
+// MARK: - Special Exclusion Helpers
+extension GameStore {
+    /// Remove all tiles with a given value from the board. Returns true if any were removed.
+    @discardableResult
+    private func excludeAllTiles(withValue value: Int) -> Bool {
+        var removedAny = false
+        for row in 0..<state.board.height {
+            for col in 0..<state.board.width {
+                let pos = Position(row: row, col: col)
+                if let t = state.board[pos], t.value == value {
+                    state.board[pos] = nil
+                    removedAny = true
+                }
+            }
+        }
+        return removedAny
     }
 }
