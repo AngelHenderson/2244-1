@@ -1,0 +1,819 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5811E7372E70CA9700F79661 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E7362E70CA9700F79661 /* FirebaseAI */; };
+		5811E7392E70CA9700F79661 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E7382E70CA9700F79661 /* FirebaseAnalytics */; };
+		5811E73B2E70CA9700F79661 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E73A2E70CA9700F79661 /* FirebaseAppCheck */; };
+		5811E73D2E70CA9700F79661 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E73C2E70CA9700F79661 /* FirebaseAuth */; };
+		5811E73F2E70CA9700F79661 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E73E2E70CA9700F79661 /* FirebaseCore */; };
+		5811E7412E70CA9700F79661 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E7402E70CA9700F79661 /* FirebaseCrashlytics */; };
+		5811E7432E70CA9700F79661 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E7422E70CA9700F79661 /* FirebaseDatabase */; };
+		5811E7452E70CA9700F79661 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E7442E70CA9700F79661 /* FirebaseFirestore */; };
+		5811E7472E70CA9700F79661 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E7462E70CA9700F79661 /* FirebaseFunctions */; };
+		5811E7492E70CA9700F79661 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E7482E70CA9700F79661 /* FirebaseInAppMessaging-Beta */; };
+		5811E74B2E70CA9700F79661 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E74A2E70CA9700F79661 /* FirebaseMessaging */; };
+		5811E74D2E70CA9700F79661 /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E74C2E70CA9700F79661 /* FirebasePerformance */; };
+		5811E74F2E70CA9700F79661 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 5811E74E2E70CA9700F79661 /* FirebaseStorage */; };
+		AAA000000000000000000021 /* GameCore in Frameworks */ = {isa = PBXBuildFile; productRef = AAA000000000000000000011 /* GameCore */; };
+		AAA000000000000000000022 /* GameApp in Frameworks */ = {isa = PBXBuildFile; productRef = AAA000000000000000000012 /* GameApp */; };
+		AAA000000000000000000023 /* GameUI in Frameworks */ = {isa = PBXBuildFile; productRef = AAA000000000000000000013 /* GameUI */; };
+		AAA000000000000000000024 /* GameServices in Frameworks */ = {isa = PBXBuildFile; productRef = AAA000000000000000000014 /* GameServices */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5894B10E2E4A901A007057AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5894B0F62E4A9018007057AA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5894B0FD2E4A9018007057AA;
+			remoteInfo = game2248;
+		};
+		5894B1182E4A901A007057AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5894B0F62E4A9018007057AA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5894B0FD2E4A9018007057AA;
+			remoteInfo = game2248;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		5894B0FE2E4A9018007057AA /* game2244.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = game2244.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5894B10D2E4A901A007057AA /* game2244Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = game2244Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5894B1172E4A901A007057AA /* game2244UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = game2244UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		5894B1002E4A9018007057AA /* game2244 */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = game2244;
+			sourceTree = "<group>";
+		};
+		5894B1102E4A901A007057AA /* game2244Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = game2244Tests;
+			sourceTree = "<group>";
+		};
+		5894B11A2E4A901A007057AA /* game2244UITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = game2244UITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5894B0FB2E4A9018007057AA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5811E7372E70CA9700F79661 /* FirebaseAI in Frameworks */,
+				5811E7492E70CA9700F79661 /* FirebaseInAppMessaging-Beta in Frameworks */,
+				AAA000000000000000000021 /* GameCore in Frameworks */,
+				5811E7392E70CA9700F79661 /* FirebaseAnalytics in Frameworks */,
+				AAA000000000000000000022 /* GameApp in Frameworks */,
+				5811E73B2E70CA9700F79661 /* FirebaseAppCheck in Frameworks */,
+				5811E74D2E70CA9700F79661 /* FirebasePerformance in Frameworks */,
+				5811E7452E70CA9700F79661 /* FirebaseFirestore in Frameworks */,
+				AAA000000000000000000023 /* GameUI in Frameworks */,
+				AAA000000000000000000024 /* GameServices in Frameworks */,
+				5811E7412E70CA9700F79661 /* FirebaseCrashlytics in Frameworks */,
+				5811E7472E70CA9700F79661 /* FirebaseFunctions in Frameworks */,
+				5811E74F2E70CA9700F79661 /* FirebaseStorage in Frameworks */,
+				5811E7432E70CA9700F79661 /* FirebaseDatabase in Frameworks */,
+				5811E74B2E70CA9700F79661 /* FirebaseMessaging in Frameworks */,
+				5811E73F2E70CA9700F79661 /* FirebaseCore in Frameworks */,
+				5811E73D2E70CA9700F79661 /* FirebaseAuth in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5894B10A2E4A901A007057AA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5894B1142E4A901A007057AA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5894B0F52E4A9018007057AA = {
+			isa = PBXGroup;
+			children = (
+				5894B1002E4A9018007057AA /* game2244 */,
+				5894B1102E4A901A007057AA /* game2244Tests */,
+				5894B11A2E4A901A007057AA /* game2244UITests */,
+				5894B0FF2E4A9018007057AA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5894B0FF2E4A9018007057AA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5894B0FE2E4A9018007057AA /* game2244.app */,
+				5894B10D2E4A901A007057AA /* game2244Tests.xctest */,
+				5894B1172E4A901A007057AA /* game2244UITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5894B0FD2E4A9018007057AA /* game2244 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5894B1212E4A901A007057AA /* Build configuration list for PBXNativeTarget "game2244" */;
+			buildPhases = (
+				5894B0FA2E4A9018007057AA /* Sources */,
+				5894B0FB2E4A9018007057AA /* Frameworks */,
+				5894B0FC2E4A9018007057AA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5894B1002E4A9018007057AA /* game2244 */,
+			);
+			name = game2244;
+			packageProductDependencies = (
+				AAA000000000000000000011 /* GameCore */,
+				AAA000000000000000000012 /* GameApp */,
+				AAA000000000000000000013 /* GameUI */,
+				AAA000000000000000000014 /* GameServices */,
+				5811E7362E70CA9700F79661 /* FirebaseAI */,
+				5811E7382E70CA9700F79661 /* FirebaseAnalytics */,
+				5811E73A2E70CA9700F79661 /* FirebaseAppCheck */,
+				5811E73C2E70CA9700F79661 /* FirebaseAuth */,
+				5811E73E2E70CA9700F79661 /* FirebaseCore */,
+				5811E7402E70CA9700F79661 /* FirebaseCrashlytics */,
+				5811E7422E70CA9700F79661 /* FirebaseDatabase */,
+				5811E7442E70CA9700F79661 /* FirebaseFirestore */,
+				5811E7462E70CA9700F79661 /* FirebaseFunctions */,
+				5811E7482E70CA9700F79661 /* FirebaseInAppMessaging-Beta */,
+				5811E74A2E70CA9700F79661 /* FirebaseMessaging */,
+				5811E74C2E70CA9700F79661 /* FirebasePerformance */,
+				5811E74E2E70CA9700F79661 /* FirebaseStorage */,
+			);
+			productName = game2244;
+			productReference = 5894B0FE2E4A9018007057AA /* game2244.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5894B10C2E4A901A007057AA /* game2244Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5894B1242E4A901A007057AA /* Build configuration list for PBXNativeTarget "game2244Tests" */;
+			buildPhases = (
+				5894B1092E4A901A007057AA /* Sources */,
+				5894B10A2E4A901A007057AA /* Frameworks */,
+				5894B10B2E4A901A007057AA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5894B10F2E4A901A007057AA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5894B1102E4A901A007057AA /* game2244Tests */,
+			);
+			name = game2244Tests;
+			packageProductDependencies = (
+			);
+			productName = game2244Tests;
+			productReference = 5894B10D2E4A901A007057AA /* game2244Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		5894B1162E4A901A007057AA /* game2244UITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5894B1272E4A901A007057AA /* Build configuration list for PBXNativeTarget "game2244UITests" */;
+			buildPhases = (
+				5894B1132E4A901A007057AA /* Sources */,
+				5894B1142E4A901A007057AA /* Frameworks */,
+				5894B1152E4A901A007057AA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5894B1192E4A901A007057AA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5894B11A2E4A901A007057AA /* game2244UITests */,
+			);
+			name = game2244UITests;
+			packageProductDependencies = (
+			);
+			productName = game2244UITests;
+			productReference = 5894B1172E4A901A007057AA /* game2244UITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5894B0F62E4A9018007057AA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					5894B0FD2E4A9018007057AA = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					5894B10C2E4A901A007057AA = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 5894B0FD2E4A9018007057AA;
+					};
+					5894B1162E4A901A007057AA = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 5894B0FD2E4A9018007057AA;
+					};
+				};
+			};
+			buildConfigurationList = 5894B0F92E4A9018007057AA /* Build configuration list for PBXProject "game2244" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5894B0F52E4A9018007057AA;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AAA000000000000000000001 /* XCLocalSwiftPackageReference "../Packages/GameCore" */,
+				AAA000000000000000000002 /* XCLocalSwiftPackageReference "../Packages/GameApp" */,
+				AAA000000000000000000003 /* XCLocalSwiftPackageReference "../Packages/GameUI" */,
+				AAA000000000000000000004 /* XCLocalSwiftPackageReference "../Packages/GameServices" */,
+				5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5894B0FF2E4A9018007057AA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5894B0FD2E4A9018007057AA /* game2244 */,
+				5894B10C2E4A901A007057AA /* game2244Tests */,
+				5894B1162E4A901A007057AA /* game2244UITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5894B0FC2E4A9018007057AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5894B10B2E4A901A007057AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5894B1152E4A901A007057AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5894B0FA2E4A9018007057AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5894B1092E4A901A007057AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5894B1132E4A901A007057AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5894B10F2E4A901A007057AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5894B0FD2E4A9018007057AA /* game2244 */;
+			targetProxy = 5894B10E2E4A901A007057AA /* PBXContainerItemProxy */;
+		};
+		5894B1192E4A901A007057AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5894B0FD2E4A9018007057AA /* game2244 */;
+			targetProxy = 5894B1182E4A901A007057AA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5894B11F2E4A901A007057AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = U6GR42555U;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		5894B1202E4A901A007057AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = U6GR42555U;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		5894B1222E4A901A007057AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = game2244/game2244.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = U6GR42555U;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ideabloomlabs.game2244;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		5894B1232E4A901A007057AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = game2244/game2244.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = U6GR42555U;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ideabloomlabs.game2244;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+		5894B1252E4A901A007057AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = U6GR42555U;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ideabloomlabs.game2244Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/game2244.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/game2244";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		5894B1262E4A901A007057AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = U6GR42555U;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ideabloomlabs.game2244Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/game2244.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/game2244";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+		5894B1282E4A901A007057AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = U6GR42555U;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ideabloomlabs.game2244UITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = game2244;
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		5894B1292E4A901A007057AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = U6GR42555U;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ideabloomlabs.game2244UITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = game2244;
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5894B0F92E4A9018007057AA /* Build configuration list for PBXProject "game2244" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5894B11F2E4A901A007057AA /* Debug */,
+				5894B1202E4A901A007057AA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5894B1212E4A901A007057AA /* Build configuration list for PBXNativeTarget "game2244" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5894B1222E4A901A007057AA /* Debug */,
+				5894B1232E4A901A007057AA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5894B1242E4A901A007057AA /* Build configuration list for PBXNativeTarget "game2244Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5894B1252E4A901A007057AA /* Debug */,
+				5894B1262E4A901A007057AA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5894B1272E4A901A007057AA /* Build configuration list for PBXNativeTarget "game2244UITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5894B1282E4A901A007057AA /* Debug */,
+				5894B1292E4A901A007057AA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		AAA000000000000000000001 /* XCLocalSwiftPackageReference "../Packages/GameCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/GameCore;
+		};
+		AAA000000000000000000002 /* XCLocalSwiftPackageReference "../Packages/GameApp" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/GameApp;
+		};
+		AAA000000000000000000003 /* XCLocalSwiftPackageReference "../Packages/GameUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/GameUI;
+		};
+		AAA000000000000000000004 /* XCLocalSwiftPackageReference "../Packages/GameServices" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/GameServices;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5811E7362E70CA9700F79661 /* FirebaseAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAI;
+		};
+		5811E7382E70CA9700F79661 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		5811E73A2E70CA9700F79661 /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
+		};
+		5811E73C2E70CA9700F79661 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		5811E73E2E70CA9700F79661 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		5811E7402E70CA9700F79661 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		5811E7422E70CA9700F79661 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		5811E7442E70CA9700F79661 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		5811E7462E70CA9700F79661 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		5811E7482E70CA9700F79661 /* FirebaseInAppMessaging-Beta */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseInAppMessaging-Beta";
+		};
+		5811E74A2E70CA9700F79661 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		5811E74C2E70CA9700F79661 /* FirebasePerformance */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebasePerformance;
+		};
+		5811E74E2E70CA9700F79661 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5811E7352E70CA9700F79661 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		AAA000000000000000000011 /* GameCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AAA000000000000000000001 /* XCLocalSwiftPackageReference "../Packages/GameCore" */;
+			productName = GameCore;
+		};
+		AAA000000000000000000012 /* GameApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AAA000000000000000000002 /* XCLocalSwiftPackageReference "../Packages/GameApp" */;
+			productName = GameApp;
+		};
+		AAA000000000000000000013 /* GameUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AAA000000000000000000003 /* XCLocalSwiftPackageReference "../Packages/GameUI" */;
+			productName = GameUI;
+		};
+		AAA000000000000000000014 /* GameServices */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AAA000000000000000000004 /* XCLocalSwiftPackageReference "../Packages/GameServices" */;
+			productName = GameServices;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 5894B0F62E4A9018007057AA /* Project object */;
+}
