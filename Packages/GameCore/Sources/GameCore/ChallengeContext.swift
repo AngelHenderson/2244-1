@@ -46,7 +46,7 @@ public struct ChallengeRule: Sendable, Equatable {
     }
 }
 
-public struct Challenge: Identifiable, Sendable, Equatable {
+public struct LegacyChallenge: Identifiable, Sendable, Equatable {
     public let id: Int
     public let targetTileLabel: String
     public let targetTileValue: Int
@@ -72,11 +72,11 @@ public struct Challenge: Identifiable, Sendable, Equatable {
 }
 
 public struct ChallengeContext: Sendable {
-    public let challenge: Challenge
+    public let challenge: LegacyChallenge
     public let startTime: Date
     public var movesUsed: Int = 0
     
-    public init(challenge: Challenge, startTime: Date = Date()) {
+    public init(challenge: LegacyChallenge, startTime: Date = Date()) {
         self.challenge = challenge
         self.startTime = startTime
     }
