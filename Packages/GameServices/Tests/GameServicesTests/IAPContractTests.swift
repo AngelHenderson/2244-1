@@ -7,6 +7,7 @@ import StoreKit
 struct IAPContractTests {
 
     @Test("IAP products are defined correctly")
+    @MainActor
     func iapProductsDefined() async {
         let iapService = IAPService()
 
@@ -22,6 +23,7 @@ struct IAPContractTests {
     }
 
     @Test("Ad-free purchase removes ads permanently")
+    @MainActor
     func adFreePurchase() async {
         let iapService = IAPService()
 
@@ -34,6 +36,7 @@ struct IAPContractTests {
     }
 
     @Test("Coin packages award correct amounts")
+    @MainActor
     func coinPackages() async {
         let iapService = IAPService()
 
@@ -47,6 +50,7 @@ struct IAPContractTests {
     }
 
     @Test("Power-up bundle contains correct items")
+    @MainActor
     func powerUpBundle() async {
         let iapService = IAPService()
 
@@ -61,6 +65,7 @@ struct IAPContractTests {
     }
 
     @Test("Theme purchases unlock permanently")
+    @MainActor
     func themePurchases() async {
         let iapService = IAPService()
 
@@ -73,6 +78,7 @@ struct IAPContractTests {
     }
 
     @Test("IAP service uses StoreKit 2")
+    @MainActor
     func usesStoreKit2() async {
         let iapService = IAPService()
 
@@ -80,6 +86,7 @@ struct IAPContractTests {
     }
 
     @Test("Purchase restoration works")
+    @MainActor
     func purchaseRestoration() async {
         let iapService = IAPService()
 
@@ -89,6 +96,7 @@ struct IAPContractTests {
     }
 
     @Test("Product prices are fetched from store")
+    @MainActor
     func productPrices() async {
         let iapService = IAPService()
 

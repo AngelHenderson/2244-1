@@ -7,6 +7,7 @@ import AVFoundation
 struct AudioContractTests {
 
     @Test("Audio engine supports 6 themes")
+    @MainActor
     func supportsSixThemes() async {
         let audioEngine = AudioEngine()
 
@@ -21,6 +22,7 @@ struct AudioContractTests {
     }
 
     @Test("Theme crossfade completes in less than 500ms")
+    @MainActor
     func crossfadeCompletesQuickly() async {
         let audioEngine = AudioEngine()
 
@@ -32,6 +34,7 @@ struct AudioContractTests {
     }
 
     @Test("Audio engine uses dual-buffer preloading")
+    @MainActor
     func dualBufferPreloading() async {
         let audioEngine = AudioEngine()
 
@@ -43,6 +46,7 @@ struct AudioContractTests {
     }
 
     @Test("Audio engine uses AVAudioEngine")
+    @MainActor
     func usesAVAudioEngine() async {
         let audioEngine = AudioEngine()
 
@@ -51,6 +55,7 @@ struct AudioContractTests {
     }
 
     @Test("Free themes are available without IAP")
+    @MainActor
     func freeThemesAvailable() async {
         let audioEngine = AudioEngine()
 
@@ -60,6 +65,7 @@ struct AudioContractTests {
     }
 
     @Test("Premium themes require IAP")
+    @MainActor
     func premiumThemesRequireIAP() async {
         let audioEngine = AudioEngine()
 
@@ -82,7 +88,7 @@ struct AudioContractTests {
 
     @Test("Audio settings persist to UserDefaults")
     func audioSettingsPersist() async {
-        let settings = AudioSettings()
+        var settings = AudioSettings()
         settings.musicVolume = 0.7
         settings.effectsVolume = 0.5
         settings.save()
