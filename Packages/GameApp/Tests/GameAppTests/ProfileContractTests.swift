@@ -51,7 +51,7 @@ struct ProfileContractTests {
 
     @Test("Profile supports persistence to UserDefaults")
     func persistsToUserDefaults() async {
-        let profile = Profile()
+        var profile = Profile()
         profile.coins = 500
         profile.save()
 

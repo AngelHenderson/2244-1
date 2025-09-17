@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import GameApp
 @testable import GameCore
 
@@ -85,9 +86,9 @@ struct RewardsContractTests {
 
         let currentOffer = offerManager.currentOffer
         #expect(currentOffer != nil)
-        #expect(currentOffer?.expiresAt > Date())
-        #expect(currentOffer?.discount > 0)
-        #expect(currentOffer?.discount <= 50)
+        #expect(currentOffer!.expiresAt > Date())
+        #expect(currentOffer!.discount > 0)
+        #expect(currentOffer!.discount <= 50)
     }
 
     @Test("Leaderboard rewards for top positions")

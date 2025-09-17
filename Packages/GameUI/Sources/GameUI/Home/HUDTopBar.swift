@@ -105,12 +105,12 @@ private struct GameCenterAvatarButton: View {
         guard avatar == nil else { return }
         let player = GKLocalPlayer.local
         guard player.isAuthenticated else { return }
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+        let image = await withCheckedContinuation { (cont: CheckedContinuation<UIImage?, Never>) in
             player.loadPhoto(for: .small) { image, _ in
-                self.avatar = image
-                cont.resume()
+                cont.resume(returning: image)
             }
         }
+        self.avatar = image
     }
 }
 #endif
