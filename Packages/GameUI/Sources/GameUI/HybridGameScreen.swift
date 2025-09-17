@@ -60,57 +60,71 @@ public struct HybridGameScreen: View {
     }
     
     public var body: some View {
-        mainGameView
-            .safeAreaInset(edge: .top) { 
-                // Use actual HUDTopBar from HomeView with score
-                HUDTopBar(score: gameStore.state.score)
-                    .environment(tempHomeState)
-                    .environment(\.homeActions, makeGameActions())
-            }
-            .safeAreaInset(edge: .bottom) { 
-                // Simple power-up dock similar to HomeView's bottom buttons
-                SimplePowerupDock(
-                    onHammer: handleHammer,
-                    onSwap: handleSwap,
-                    onMagnet: handleMagnet,
-                    onUndo: handleUndo,
-                    onHome: { isPlayingDismiss?() }
-                )
-            }
+        let topHUD = HUDTopBar(score: gameStore.state.score)
+            .environment(tempHomeState)
+            .environment(\.homeActions, makeGameActions())
+
+        let bottomDock = SimplePowerupDock(
+            onHammer: handleHammer,
+            onSwap: handleSwap,
+            onMagnet: handleMagnet,
+            onUndo: handleUndo,
+            onHome: { isPlayingDismiss?() }
+        )
+
+        let giftRewardBinding = Binding(
+            get: { gameStore.pendingGiftReward != nil },
+            set: { newValue in if !newValue { gameStore.dismissGiftReward() } }
+        )
+
+        let unlockRewardBinding = Binding(
+            get: { gameStore.pendingUnlockRewardBase != nil },
+            set: { newValue in if !newValue { gameStore.clearPendingUnlockReward() } }
+        )
+
+        let mergeInfoBinding = Binding(
+            get: { gameStore.lastMergeInfo != nil },
+            set: { newValue in if !newValue { gameStore.clearLastMergeInfo() } }
+        )
+
+        return mainGameView
+            .safeAreaInset(edge: .top) { topHUD }
+            .safeAreaInset(edge: .bottom) { bottomDock }
             .overlay(alignment: .top) {
                 if isShowingTopMergeTile, let v = topMergeTileValue {
                     TopMergeTileView(value: v)
                 }
             }
-            .sheet(isPresented: $isShowingPause) { 
+            .sheet(isPresented: $isShowingPause) {
                 PauseSheet(
                     onResume: { isShowingPause = false },
-                    onRestart: { 
+                    onRestart: {
                         gameStore.resetGame()
                         isShowingPause = false
                     }
                 )
             }
-            .sheet(isPresented: $isShowingStore) { 
-                StoreView() 
+            .sheet(isPresented: $isShowingStore) {
+                StoreView()
             }
-            .sheet(isPresented: $isShowingLeaderboard) { 
-                LeaderboardView() 
+            .sheet(isPresented: $isShowingLeaderboard) {
+                LeaderboardView()
             }
-            .sheet(isPresented: Binding(
-                get: { gameStore.pendingUnlockRewardBase != nil },
-                set: { newValue in if !newValue { gameStore.clearPendingUnlockReward() } }
-            )) {
+            .sheet(isPresented: giftRewardBinding) {
+                if let giftReward = gameStore.pendingGiftReward {
+                    GiftRewardView(giftReward: giftReward) {
+                        gameStore.claimGiftReward()
+                    }
+                }
+            }
+            .sheet(isPresented: unlockRewardBinding) {
                 RewardSpinnerView(
                     baseAmount: gameStore.pendingUnlockRewardBase ?? 0,
                     tileValue: gameStore.pendingUnlockTile ?? 0,
                     onClose: { gameStore.clearPendingUnlockReward() }
                 )
             }
-            .sheet(isPresented: Binding(
-                get: { gameStore.lastMergeInfo != nil },
-                set: { newValue in if !newValue { gameStore.clearLastMergeInfo() } }
-            )) {
+            .sheet(isPresented: mergeInfoBinding) {
                 if let info = gameStore.lastMergeInfo {
                     MergeInfoBoard(info: info, onClose: { gameStore.clearLastMergeInfo() })
                 }

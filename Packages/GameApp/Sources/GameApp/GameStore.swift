@@ -31,6 +31,8 @@ public final class GameStore {
     public private(set) var pendingDoubleBase: Int? = nil
     // Track which glass tiles have been broken (positions in row 0)
     public private(set) var brokenGlassTiles: Set<Position> = []
+    // Gift reward state
+    public var pendingGiftReward: GiftReward? = nil
     // Power-up inventory tracking
     public private(set) var powerUpInventory: [String: Int] = [
         "hammer": 3,
@@ -166,6 +168,11 @@ public final class GameStore {
         
         if endsOnGift {
             state = engine.commitGiftChain(positions)
+            
+            // Generate gift reward when a gift is broken
+            if pendingGiftReward == nil { // Don't override existing pending reward
+                pendingGiftReward = GiftReward.randomReward()
+            }
         } else {
             state = engine.commitChain(positions)
         }
@@ -296,6 +303,37 @@ public final class GameStore {
     public func clearPendingUnlockReward() {
         pendingUnlockRewardBase = nil
         pendingUnlockTile = nil
+    }
+
+    
+    // MARK: - Gift Rewards
+    
+    public func claimGiftReward() {
+        guard let reward = pendingGiftReward else { return }
+        
+        // Apply the rewards to the player's inventory
+        for item in reward.items {
+            switch item.type {
+            case .hammer:
+                addPowerUp("hammer", count: item.amount)
+            case .magnet:
+                addPowerUp("magnet", count: item.amount)
+            case .gems:
+                // Add gems to coins (assuming gems are stored as coins)
+                addCoins(item.amount)
+            case .swap:
+                addPowerUp("swap", count: item.amount)
+            case .undo:
+                addPowerUp("undo", count: item.amount)
+            }
+        }
+        
+        // Clear the pending reward
+        pendingGiftReward = nil
+    }
+    
+    public func dismissGiftReward() {
+        pendingGiftReward = nil
     }
     
     // MARK: - Double Offer
@@ -490,6 +528,7 @@ public final class GameStore {
         public let moves: [[Position]]
         public let powerUps: [PowerUpAction]
     }
+
     
     public func exportReplay() throws -> String {
         let replay = Replay(seed: engine.seedUsed, moves: movesHistory, powerUps: powerUpHistory)
