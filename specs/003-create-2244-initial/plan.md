@@ -1,313 +1,254 @@
-# Implementation Plan: Create 2244 - Initial Playable Shell
+# Implementation Plan: [FEATURE]
 
-**Branch**: `003-create-2244-initial` | **Date**: 2025-01-16 | **Spec**: [/specs/003-create-2244-initial/spec.md](spec.md)
-**Input**: Feature specification from `/specs/003-create-2244-initial/spec.md`
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
 1. Load feature spec from Input path
-   → Feature spec loaded successfully
+   → If not found: ERROR "No feature spec at {path}"
 2. Fill Technical Context (scan for NEEDS CLARIFICATION)
-   → No NEEDS CLARIFICATION markers found
-   → Project Type: iOS mobile app with modular Swift packages
-   → Structure Decision: Existing modular package structure
+   → Detect Project Type from context (web=frontend+backend, mobile=app+api)
+   → Set Structure Decision based on project type
 3. Evaluate Constitution Check section below
-   → No violations detected
+   → If violations exist: Document in Complexity Tracking
+   → If no justification possible: ERROR "Simplify approach first"
    → Update Progress Tracking: Initial Constitution Check
 4. Execute Phase 0 → research.md
-   → Research audio architecture and theme system
-5. Execute Phase 1 → contracts, data-model.md, quickstart.md, CLAUDE.md
+   → If NEEDS CLARIFICATION remain: ERROR "Resolve unknowns"
+5. Execute Phase 1 → contracts, data-model.md, quickstart.md, agent-specific template file (e.g., `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot, or `GEMINI.md` for Gemini CLI).
 6. Re-evaluate Constitution Check section
-   → No new violations
+   → If new violations: Refactor design, return to Phase 1
    → Update Progress Tracking: Post-Design Constitution Check
 7. Plan Phase 2 → Describe task generation approach (DO NOT create tasks.md)
 8. STOP - Ready for /tasks command
 ```
 
+**IMPORTANT**: The /plan command STOPS at step 7. Phases 2-4 are executed by other commands:
+- Phase 2: /tasks command creates tasks.md
+- Phase 3-4: Implementation execution (manual or via tools)
+
 ## Summary
-Create an initial playable shell for 2244 puzzle game with circular hub menu UI, auto-loading default profile, progression path visualization, full gameplay mechanics including chain validation and power-ups, six music themes, daily spin wheel, rewarded ads, time-limited offers, Game Center leaderboards, Google AdMob integration, and Firebase analytics. Built on existing modular Swift package architecture following strict Swift 6 concurrency and SwiftUI Observation patterns.
+Create 2244 - a chain-based puzzle game where players connect adjacent tiles (2→2→4→8) to score points and progress. The initial playable shell delivers:
+- **Core Gameplay**: 5×8 board with chain validation (first two equal, subsequent same/double)
+- **6 Power-Ups**: Hammer, Swap, Undo, Shuffle, Magnet, Double with command pattern
+- **3 Game Modes**: Classic (endless), Daily Challenge (SHA256 seed), Journey (staged)
+- **Audio System**: 6 music themes with <500ms crossfade using AVAudioEngine
+- **Profile System**: Auto-loading with 305 coins, initial power-ups [3,2,5,1,0,0]
+- **33 Sample Tasks**: Pre-populated across modes to simulate active gameplay
+
+Implementation follows TDD with RED-GREEN-REFACTOR cycle and Swift 6 strict concurrency.
 
 ## Technical Context
-**Language/Version**: Swift 6.0 (strict concurrency mode)
-**Primary Dependencies**: SwiftUI 5+, AVFoundation, StoreKit 2, Game Center, Core Haptics, Firebase SDK, Google AdMob
-**Storage**: UserDefaults (settings/profile), JSON files (saves/challenges), Firebase (analytics/config)
-**Testing**: Swift Testing framework (not XCTest)
-**Target Platform**: iOS 18+, iPadOS optional, 60 FPS target
-**Project Type**: iOS mobile app with modular packages
-**Performance Goals**: 60 FPS during gameplay, <500ms theme switch, <50ms audio latency
-**Constraints**: No authentication, local profile only, deterministic gameplay
-**Scale/Scope**: 1 default profile, 9 hub features, 6 music themes, 6 power-up types, leaderboards, ads
+**Language/Version**: Swift 6 with strict concurrency
+**Primary Dependencies**: SwiftUI, AVAudioEngine, StoreKit 2, GameKit
+**Storage**: UserDefaults + JSON files for saves/challenges
+**Testing**: Swift Testing framework (NOT XCTest)
+**Target Platform**: iOS 18+ (iPhone primary, iPad secondary)
+**Project Type**: mobile - iOS app with modular packages
+**Performance Goals**: 60 FPS gameplay, <500ms audio crossfade, <50ms haptic latency
+**Constraints**: 5×8 fixed board, deterministic RNG, offline-capable
+**Scale/Scope**: Single-player game, 3 game modes, 6 themes, 33 pre-populated tasks
 
-## Constitution Check
+## Constitution Check (2244 Game)
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-**Simplicity**:
-- Projects: 5 existing packages (GameCore, GameApp, GameUI, GameServices, GameTestingSupport) ✓
-- Using framework directly? Yes - SwiftUI, StoreKit 2, AVFoundation ✓
-- Single data model? Yes - GameState in GameCore ✓
-- Avoiding patterns? Yes - no unnecessary abstractions ✓
+**Game Architecture**:
+- Modular packages: GameCore (engine), GameApp (stores), GameUI (views), GameServices ✓
+- Pure Swift game engine (deterministic, testable) ✓
+- @Observable stores with @MainActor (no @StateObject) ✓
+- Swift 6 strict concurrency enabled ✓
 
-**Architecture**:
-- EVERY feature as library? Yes - modular packages ✓
-- Libraries listed:
-  - GameCore: Engine, rules, deterministic RNG
-  - GameApp: State management, stores
-  - GameUI: Views, themes, animations
-  - GameServices: Audio, haptics, IAP, ads
-  - GameTestingSupport: Test fixtures
-- CLI per library: N/A (iOS app)
-- Library docs: README per package ✓
+**Game Requirements**:
+- 5×8 fixed board (not configurable) ✓
+- Chain rules: first two equal, subsequent same/double ✓
+- Initial profile: 305 coins, [3,2,5,1,0,0] power-ups ✓
+- 6 themes with <500ms crossfade ✓
+- 33 pre-populated sample tasks ✓
 
 **Testing (NON-NEGOTIABLE)**:
-- RED-GREEN-Refactor cycle enforced? Yes ✓
-- Git commits show tests before implementation? Will enforce ✓
-- Order: Contract→Integration→E2E→Unit strictly followed? Yes ✓
-- Real dependencies used? Yes - actual Game Center, StoreKit sandbox ✓
-- Integration tests for: new libraries, contract changes, shared schemas? Yes ✓
-- FORBIDDEN: Implementation before test - understood ✓
+- Swift Testing framework (NOT XCTest) ✓
+- RED-GREEN-Refactor for all game features ✓
+- Contract tests for Profile, GameSession, MusicTheme ✓
+- Integration tests for chains, power-ups, themes ✓
+- 60 FPS performance validation ✓
+- FORBIDDEN: Implementation before test, using @StateObject
 
 **Observability**:
-- Structured logging included? Yes - os.Logger per module ✓
-- Frontend logs → backend? N/A (local app) ✓
-- Error context sufficient? Yes - detailed error types ✓
+- Structured logging included?
+- Frontend logs → backend? (unified stream)
+- Error context sufficient?
 
 **Versioning**:
-- Version number assigned? Using existing app version ✓
-- BUILD increments on every change? Yes via CI ✓
-- Breaking changes handled? N/A (initial release) ✓
+- Version number assigned? (MAJOR.MINOR.BUILD)
+- BUILD increments on every change?
+- Breaking changes handled? (parallel tests, migration plan)
 
 ## Project Structure
 
 ### Documentation (this feature)
 ```
-specs/003-create-2244-initial/
-├── spec.md              # Feature specification
+specs/[###-feature]/
 ├── plan.md              # This file (/plan command output)
 ├── research.md          # Phase 0 output (/plan command)
 ├── data-model.md        # Phase 1 output (/plan command)
 ├── quickstart.md        # Phase 1 output (/plan command)
 ├── contracts/           # Phase 1 output (/plan command)
-│   ├── profile.yaml     # Profile structure
-│   ├── game-state.yaml  # Game state contracts
-│   ├── audio.yaml       # Audio theme contracts
-│   └── iap.yaml         # In-app purchase contracts
 └── tasks.md             # Phase 2 output (/tasks command - NOT created by /plan)
 ```
 
-### Source Code (existing modular structure)
+### Source Code (repository root)
 ```
-Packages/
-├── GameCore/           # Pure Swift engine
-│   ├── Sources/
-│   │   └── GameCore/
-│   │       ├── GameEngine.swift (existing, needs power-up updates)
-│   │       ├── Board.swift (existing, needs 5x8 config)
-│   │       ├── PowerUpManager.swift (new)
-│   │       └── ProfileManager.swift (new)
-│   └── Tests/
-│
-├── GameApp/            # State management
-│   ├── Sources/
-│   │   └── GameApp/
-│   │       ├── GameStore.swift (existing, needs profile updates)
-│   │       ├── ProfileStore.swift (new)
-│   │       └── SampleProjectTasks.swift (new)
-│   └── Tests/
-│
-├── GameUI/             # SwiftUI views
-│   ├── Sources/
-│   │   └── GameUI/
-│   │       ├── BoardView.swift (existing, needs 5x8 layout)
-│   │       ├── MainMenuView.swift (new)
-│   │       └── ThemeSelector.swift (new)
-│   └── Tests/
-│
-├── GameServices/       # Platform services
-│   ├── Sources/
-│   │   └── GameServices/
-│   │       ├── AudioService.swift (existing, needs theme system)
-│   │       ├── MusicThemeManager.swift (new)
-│   │       ├── HapticsService.swift (existing)
-│   │       └── PurchaseService.swift (existing)
-│   └── Tests/
-│
-└── GameTestingSupport/ # Test helpers
-    ├── Sources/
-    └── Tests/
+# Option 1: Single project (DEFAULT)
+src/
+├── models/
+├── services/
+├── cli/
+└── lib/
+
+tests/
+├── contract/
+├── integration/
+└── unit/
+
+# Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
+
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
+
+# Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
+
+ios/ or android/
+└── [platform-specific structure]
 ```
 
-**Structure Decision**: Use existing modular package structure
+**Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
 
-## Phase 0: Outline & Research
+## Phase 0: Game Architecture Research
+1. **Audio Architecture** (research.md lines 8-72):
+   - AVAudioEngine node graph for multi-theme music
+   - Dual-buffer preloading (current + next theme)
+   - <500ms crossfade requirement
+   - Theme-specific haptic patterns
 
-### Research Tasks Identified:
-1. **Audio Theme Architecture**
-   - How to implement 6 music themes with crossfade
-   - AVAudioEngine vs AVAudioPlayer for low latency
-   - Memory management for multiple audio tracks
+2. **Power-Up System** (research.md lines 105-138):
+   - Command pattern for undo/redo
+   - Initial inventory: [3 hammer, 2 swap, 5 undo, 1 shuffle, 0 magnet, 0 double]
+   - Validation through game engine
 
-2. **Theme Switching Performance**
-   - Achieving <500ms crossfade between themes
-   - Preloading strategies for audio assets
-   - Fallback handling for missing audio files
+3. **Game Board** (research.md lines 190-204):
+   - Fixed 5×8 layout (40 tiles)
+   - Chain rules: first two equal, subsequent same or double
+   - 8-direction adjacency for chains
+   - Deterministic RNG with SHA256(salt + date) for daily
 
-3. **Sample Project Tasks System**
-   - Best structure for pre-populated tasks
-   - Task state persistence approach
-   - UI for task tracking within game modes
+**Output**: research.md documenting all game design decisions
 
-4. **Power-Up Inventory Management**
-   - Initial inventory distribution
-   - Consumption tracking
-   - UI feedback for power-up usage
+## Phase 1: Game Design & Contracts
+*Prerequisites: research.md complete*
 
-### Research Execution:
-```
-For Audio Architecture:
-  Task: "Research AVAudioEngine for multi-track music with crossfade"
-  Task: "Find best practices for iOS game audio with 50ms latency"
-  
-For Theme System:
-  Task: "Research audio asset bundling strategies for iOS"
-  Task: "Evaluate Core Audio vs AVFoundation for game music"
-  
-For Task System:
-  Task: "Research task/quest systems in mobile puzzle games"
-  Task: "Find patterns for progress tracking UI"
-```
+1. **Game Entities** (data-model.md):
+   - **Profile** (lines 8-75): coins=305, gems=0, power-ups, achievements
+   - **GameSession** (lines 77-126): 5×8 board, seed, score, moves
+   - **MusicTheme** (lines 128-181): 6 themes, sound effects, haptics
+   - **ProjectTask** (lines 183-244): 33 pre-populated tasks
+   - **SpinWheelReward** (lines 283-306): daily spin, 24hr cooldown
+   - **TimeLimitedOffer** (lines 309-336): countdown deals
 
-**Output**: research.md with technical decisions documented
+2. **Game Contracts** (/contracts/):
+   - **profile.yaml**: Initial inventory validation
+   - **game-state.yaml**: Board dimensions, chain rules
+   - **audio.yaml**: Theme structure, crossfade specs
+   - **iap.yaml**: Product IDs for themes/gems
+   - **rewards.yaml**: Spin wheel, offers
 
-## Phase 1: Design & Contracts
+3. **Gameplay Tests** (quickstart.md):
+   - Profile auto-loads in <100ms
+   - Chain [2,2,4,8] validates correctly
+   - Power-ups consume from inventory
+   - Theme switches in <500ms
+   - Daily challenge uses date seed
 
-### Data Model Design:
-1. **Profile Entity**
-   - id: UUID
-   - powerUpInventory: [PowerUpType: Int]
-   - coins: Int
-   - achievements: Set<AchievementID>
-   - settings: ProfileSettings
-   - createdAt: Date
+**Output**: Complete game design docs with failing contract tests
 
-2. **GameSession Entity**
-   - board: Board (5x8)
-   - score: Int
-   - moves: Int
-   - mode: GameMode
-   - powerUpsUsed: [PowerUpType: Int]
-   - tasks: [TaskID: TaskStatus]
-
-3. **MusicTheme Entity**
-   - id: ThemeID
-   - name: String
-   - isPremium: Bool
-   - backgroundTrack: AudioAsset
-   - effectsMap: [SoundEffect: AudioAsset]
-   - hapticPatterns: [InteractionType: HapticPattern]
-
-4. **ProjectTask Entity**
-   - id: TaskID
-   - title: String
-   - status: TaskStatus (completed/inProgress/notStarted)
-   - projectID: ProjectID
-
-### API Contracts:
-1. **Profile Management**
-   - GET /profile → Profile
-   - PUT /profile/powerups → UpdatedInventory
-   - PUT /profile/coins → UpdatedBalance
-
-2. **Game State**
-   - POST /game/start → GameSession
-   - PUT /game/chain → ChainResult
-   - PUT /game/powerup → PowerUpResult
-
-3. **Audio System**
-   - GET /audio/themes → [MusicTheme]
-   - PUT /audio/theme/{id} → ThemeChangeResult
-   - PUT /audio/volume → VolumeSettings
-
-4. **IAP System**
-   - GET /iap/products → [Product]
-   - POST /iap/purchase → PurchaseResult
-   - POST /iap/restore → RestoreResult
-
-### Contract Tests:
-- One test file per endpoint
-- Schema validation for all requests/responses
-- Tests written to fail initially (TDD)
-
-### Agent Context Update:
-- Update CLAUDE.md with Swift 6 patterns
-- Add audio architecture decisions
-- Document theme system approach
-
-**Output**: data-model.md, /contracts/*.yaml, failing tests, quickstart.md, CLAUDE.md updates
-
-## Phase 2: Task Planning Approach
+## Phase 2: Game Implementation Tasks (74 total)
 *This section describes what the /tasks command will do - DO NOT execute during /plan*
 
-**Task Generation Strategy**:
-- Profile & data model tasks (5 tasks)
-- Hub menu UI layout (8 tasks - circular buttons, progression path)
-- Board configuration tasks (3 tasks)
-- Power-up implementation tasks (6 tasks, one per type)
-- Audio theme tasks (8 tasks - system + 6 themes)
-- Spin wheel & rewards (4 tasks)
-- Time-limited offers system (3 tasks)
-- Ad integration - Google AdMob (3 tasks)
-- Game Center leaderboards (4 tasks)
-- Firebase integration (3 tasks)
-- UI implementation tasks (12 tasks)
-- Integration test tasks (8 tasks)
-- Sample project tasks setup (4 tasks)
+**Task Categories**:
+- **Setup** (T001-T004): Firebase, AdMob, Game Center, StoreKit
+- **Tests First** (T005-T019):
+  - 5 contract tests for game structures
+  - 10 integration tests for gameplay mechanics
+- **Core Game** (T020-T037):
+  - 6 entity models (Profile, GameSession, etc.)
+  - 6 game logic components (Board, PowerUps, Chain validation)
+  - 6 state stores (@Observable with @MainActor)
+- **Game UI** (T038-T051):
+  - Hub menu with 9 features
+  - 5×8 board view with chain highlighting
+  - Power-up bar, theme selector, spin wheel
+- **Services** (T052-T063):
+  - Audio system with AVAudioEngine
+  - Theme-specific haptics
+  - AdMob, Game Center, StoreKit 2
+- **Polish** (T064-T074): 60 FPS validation, quickstart verification
 
-**Ordering Strategy**:
-1. Firebase & external SDKs setup [P]
-2. Profile and data model [P]
-3. Hub menu layout & navigation
-4. Board configuration [P]
-5. Power-up system
-6. Audio architecture
-7. Theme implementation
-8. Spin wheel & rewards
-9. Ad integration
-10. Leaderboards
-11. Time-limited offers
-12. UI components
-13. Integration tests
-14. Sample tasks setup
-
-**Estimated Output**: 61 numbered, ordered tasks in tasks.md
+**Estimated Output**: 74 numbered tasks with [P] parallelization markers
 
 **IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
 
-## Phase 3+: Future Implementation
+## Phase 3+: Game Development Execution
 *These phases are beyond the scope of the /plan command*
 
-**Phase 3**: Task execution (/tasks command creates tasks.md)  
-**Phase 4**: Implementation (execute tasks.md following constitutional principles)  
-**Phase 5**: Validation (run tests, execute quickstart.md, performance validation)
+**Phase 3**: Generate 74 game implementation tasks (/tasks command)
+**Phase 4**: Build the game following TDD:
+  - RED: Write failing tests for each game feature
+  - GREEN: Implement minimal code to pass
+  - REFACTOR: Optimize while maintaining 60 FPS
+**Phase 5**: Game validation:
+  - Play through all 3 modes
+  - Verify 33 sample tasks appear
+  - Test all 6 power-ups
+  - Confirm <500ms theme crossfade
+  - Validate chain rules [2,2,4,8...]
 
 ## Complexity Tracking
-*No violations requiring justification*
+*Fill ONLY if Constitution Check has violations that must be justified*
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+
 
 ## Progress Tracking
 *This checklist is updated during execution flow*
 
 **Phase Status**:
-- [x] Phase 0: Research complete (/plan command)
-- [x] Phase 1: Design complete (/plan command)
-- [x] Phase 2: Task planning complete (/plan command - describe approach only)
+- [ ] Phase 0: Research complete (/plan command)
+- [ ] Phase 1: Design complete (/plan command)
+- [ ] Phase 2: Task planning complete (/plan command - describe approach only)
 - [ ] Phase 3: Tasks generated (/tasks command)
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
-- [x] Initial Constitution Check: PASS
-- [x] Post-Design Constitution Check: PASS
-- [x] All NEEDS CLARIFICATION resolved
-- [x] Complexity deviations documented (none)
+- [ ] Initial Constitution Check: PASS
+- [ ] Post-Design Constitution Check: PASS
+- [ ] All NEEDS CLARIFICATION resolved
+- [ ] Complexity deviations documented
 
 ---
 *Based on Constitution v2.1.1 - See `/memory/constitution.md`*
