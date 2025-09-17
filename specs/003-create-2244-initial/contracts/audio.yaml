@@ -1,0 +1,250 @@
+openapi: 3.0.0
+info:
+  title: Audio System API
+  version: 1.0.0
+  description: Contracts for audio theme management in 2244
+
+paths:
+  /audio/themes:
+    get:
+      summary: Get available music themes
+      operationId: getThemes
+      responses:
+        '200':
+          description: List of available themes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  themes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MusicTheme'
+                  currentTheme:
+                    $ref: '#/components/schemas/ThemeID'
+
+  /audio/theme/{themeId}:
+    put:
+      summary: Switch to specified theme
+      operationId: switchTheme
+      parameters:
+        - name: themeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ThemeID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                crossfadeDuration:
+                  type: number
+                  minimum: 0.1
+                  maximum: 1.0
+                  default: 0.5
+                  description: Crossfade duration in seconds
+      responses:
+        '200':
+          description: Theme switched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeChangeResult'
+        '400':
+          description: Theme not available
+        '403':
+          description: Premium theme not purchased
+
+  /audio/volume:
+    get:
+      summary: Get current volume settings
+      operationId: getVolume
+      responses:
+        '200':
+          description: Current volume levels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VolumeSettings'
+
+    put:
+      summary: Update volume settings
+      operationId: setVolume
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VolumeSettings'
+      responses:
+        '200':
+          description: Volume updated
+
+  /audio/effect:
+    post:
+      summary: Play sound effect
+      operationId: playEffect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  $ref: '#/components/schemas/SoundEffectType'
+                volume:
+                  type: number
+                  minimum: 0.0
+                  maximum: 1.0
+                  description: Override volume for this effect
+      responses:
+        '200':
+          description: Effect played
+
+  /audio/haptic:
+    post:
+      summary: Trigger haptic feedback
+      operationId: triggerHaptic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  $ref: '#/components/schemas/HapticType'
+                intensity:
+                  type: number
+                  minimum: 0.0
+                  maximum: 1.0
+                  default: 1.0
+      responses:
+        '200':
+          description: Haptic triggered
+        '501':
+          description: Haptics not supported
+
+components:
+  schemas:
+    ThemeID:
+      type: string
+      enum: [classic, minimal, retro, cyberpunk, lofi, orchestral]
+
+    MusicTheme:
+      type: object
+      required:
+        - id
+        - displayName
+        - isPremium
+        - isAvailable
+      properties:
+        id:
+          $ref: '#/components/schemas/ThemeID'
+        displayName:
+          type: string
+        description:
+          type: string
+        isPremium:
+          type: boolean
+        isAvailable:
+          type: boolean
+        isPurchased:
+          type: boolean
+        fileSize:
+          type: integer
+          description: Size in bytes
+        accentColor:
+          type: string
+          format: hex-color
+        secondaryColor:
+          type: string
+          format: hex-color
+
+    SoundEffectType:
+      type: string
+      enum:
+        # Game effects
+        - tileSelect
+        - tileMerge
+        - chainComplete
+        - invalidMove
+        - powerUpActivate
+        - gameOver
+        - newHighScore
+        # UI effects
+        - buttonTap
+        - swipeGesture
+        - menuOpen
+        - menuClose
+        - toggleSwitch
+        - sliderChange
+
+    HapticType:
+      type: string
+      enum:
+        - selection
+        - impact
+        - success
+        - warning
+        - error
+
+    VolumeSettings:
+      type: object
+      properties:
+        musicVolume:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        effectsVolume:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        masterVolume:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+
+    ThemeChangeResult:
+      type: object
+      properties:
+        previousTheme:
+          $ref: '#/components/schemas/ThemeID'
+        currentTheme:
+          $ref: '#/components/schemas/ThemeID'
+        crossfadeStarted:
+          type: boolean
+        estimatedDuration:
+          type: number
+          description: Estimated crossfade duration in seconds
+
+    HapticPattern:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              time:
+                type: number
+                description: Time offset in seconds
+              intensity:
+                type: number
+                minimum: 0.0
+                maximum: 1.0
+              sharpness:
+                type: number
+                minimum: 0.0
+                maximum: 1.0
+        duration:
+          type: number
+          description: Total pattern duration in seconds

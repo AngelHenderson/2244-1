@@ -132,18 +132,33 @@ As a game tester or player, I want to launch the 2244 game with an auto-loading 
 
 #### UI/UX Requirements
 - **FR-051**: System MUST maintain 60 FPS during gameplay and animations
-- **FR-052**: System MUST highlight current player's content distinctly (visual differentiation)
-- **FR-053**: System MUST provide Daily streak tracking and claim flow
-- **FR-054**: System MUST provide Spin Wheel reward mechanism
-- **FR-055**: System MUST display player stats, achievements, and currency on profile screen
-- **FR-056**: System MUST show daily countdown timer on main menu
-- **FR-057**: System MUST provide quick resume option for interrupted games
+- **FR-052**: System MUST display circular hub menu with 9 feature buttons around progression path
+- **FR-053**: System MUST show rank, score, and gems in top bar
+- **FR-054**: System MUST display vertical tile progression path (512→1024→2048→4096)
+- **FR-055**: System MUST provide Free Spin wheel with daily rewards
+- **FR-056**: System MUST show notification dots on buttons with new content
+- **FR-057**: System MUST display countdown timers for limited offers
+- **FR-058**: System MUST provide bottom navigation bar with 4 icons
+- **FR-059**: System MUST show "Current" and "Reached" progression indicators
+
+#### Monetization & Rewards
+- **FR-060**: System MUST provide "Watch Ad" option for bonus inventory/gems
+- **FR-061**: System MUST display Sale Offers with time-limited deals
+- **FR-062**: System MUST show Best Offer bundles with countdown timer
+- **FR-063**: System MUST track gem inventory separately from coins
+- **FR-064**: System MUST provide gem purchase options with + button
+
+#### External Services
+- **FR-065**: System MUST integrate Game Center for leaderboard rankings
+- **FR-066**: System MUST integrate Google AdMob for banner and rewarded ads
+- **FR-067**: System MUST integrate Firebase for analytics and remote config
+- **FR-068**: System MUST show player rank from global leaderboard
 
 #### Accessibility
-- **FR-058**: System MUST support Dynamic Type for all text elements
-- **FR-059**: System MUST provide VoiceOver labels for all interactive elements
-- **FR-060**: System MUST maintain audio latency under 50ms for real-time feedback
-- **FR-061**: System MUST handle audio interruptions and route changes gracefully
+- **FR-069**: System MUST support Dynamic Type for all text elements
+- **FR-070**: System MUST provide VoiceOver labels for all interactive elements
+- **FR-071**: System MUST maintain audio latency under 50ms for real-time feedback
+- **FR-072**: System MUST handle audio interruptions and route changes gracefully
 
 ### Key Entities
 

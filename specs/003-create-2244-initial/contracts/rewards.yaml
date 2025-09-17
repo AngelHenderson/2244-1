@@ -1,0 +1,301 @@
+openapi: 3.0.0
+info:
+  title: Rewards & Monetization API
+  version: 1.0.0
+  description: Contracts for spin wheel, ads, and time-limited offers
+
+paths:
+  /rewards/spin:
+    get:
+      summary: Check daily spin availability
+      operationId: getSpinStatus
+      responses:
+        '200':
+          description: Spin availability status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                  nextSpinAt:
+                    type: string
+                    format: date-time
+                  spinsToday:
+                    type: integer
+    
+    post:
+      summary: Perform daily spin
+      operationId: performSpin
+      responses:
+        '200':
+          description: Spin result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpinResult'
+        '403':
+          description: Spin not available
+        '429':
+          description: Daily limit reached
+
+  /rewards/ad/watch:
+    post:
+      summary: Watch rewarded video ad
+      operationId: watchAd
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                placement:
+                  type: string
+                  enum: [main_menu, game_over, shop, power_up_empty]
+      responses:
+        '200':
+          description: Ad watched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdReward'
+        '429':
+          description: Daily ad limit reached
+
+  /offers/active:
+    get:
+      summary: Get active time-limited offers
+      operationId: getActiveOffers
+      responses:
+        '200':
+          description: List of active offers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saleOffer:
+                    $ref: '#/components/schemas/TimeLimitedOffer'
+                  bestOffer:
+                    $ref: '#/components/schemas/TimeLimitedOffer'
+                  dailyDeal:
+                    $ref: '#/components/schemas/TimeLimitedOffer'
+
+  /offers/purchase/{offerId}:
+    post:
+      summary: Purchase time-limited offer
+      operationId: purchaseOffer
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Offer purchased successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferPurchaseResult'
+        '404':
+          description: Offer not found
+        '410':
+          description: Offer expired
+
+  /leaderboard/global:
+    get:
+      summary: Get global leaderboard
+      operationId: getGlobalLeaderboard
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Leaderboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderboardData'
+
+  /leaderboard/submit:
+    post:
+      summary: Submit score to leaderboard
+      operationId: submitScore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - score
+                - mode
+              properties:
+                score:
+                  type: integer
+                mode:
+                  type: string
+                  enum: [classic, daily, journey]
+                metadata:
+                  type: object
+      responses:
+        '200':
+          description: Score submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  newRank:
+                    type: integer
+                  previousRank:
+                    type: integer
+                  isNewBest:
+                    type: boolean
+
+components:
+  schemas:
+    SpinResult:
+      type: object
+      properties:
+        reward:
+          $ref: '#/components/schemas/SpinReward'
+        isJackpot:
+          type: boolean
+        animation:
+          type: string
+          enum: [normal, rare, epic, legendary]
+        nextSpinAt:
+          type: string
+          format: date-time
+
+    SpinReward:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [coins, gems, powerUp, theme, adFree]
+        amount:
+          type: integer
+        itemId:
+          type: string
+          description: For powerUp or theme rewards
+
+    AdReward:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [coins, gems, powerUp]
+        amount:
+          type: integer
+        watchedAt:
+          type: string
+          format: date-time
+        adsWatchedToday:
+          type: integer
+        dailyLimit:
+          type: integer
+
+    TimeLimitedOffer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [saleOffer, bestOffer, dailyDeal, bundle]
+        title:
+          type: string
+        description:
+          type: string
+        originalPrice:
+          type: number
+        discountedPrice:
+          type: number
+        discountPercentage:
+          type: integer
+        expiresAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OfferItem'
+        isPurchased:
+          type: boolean
+
+    OfferItem:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [coins, gems, powerUp, theme, adFree]
+        itemId:
+          type: string
+        quantity:
+          type: integer
+
+    OfferPurchaseResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OfferItem'
+        newBalance:
+          type: object
+          properties:
+            coins:
+              type: integer
+            gems:
+              type: integer
+
+    LeaderboardData:
+      type: object
+      properties:
+        playerRank:
+          type: integer
+        playerScore:
+          type: integer
+        topPlayers:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardEntry'
+        nearbyPlayers:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardEntry'
+        totalPlayers:
+          type: integer
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        playerId:
+          type: string
+        displayName:
+          type: string
+        score:
+          type: integer
+        countryCode:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
