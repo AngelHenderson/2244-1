@@ -183,7 +183,7 @@ public struct HybridGameScreen: View {
     private var mainGameView: some View {
         ZStack {
             // Theme background using new BackgroundTheme system
-            ThemedBackground(theme: currentBackgroundTheme)
+//            ThemedBackground(theme: currentBackgroundTheme)
 
             GeometryReader { geo in
 
