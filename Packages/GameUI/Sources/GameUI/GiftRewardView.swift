@@ -201,3 +201,75 @@ public struct GiftRewardView: View {
         }
     }
 }
+
+// MARK: - SwiftUI Previews
+
+#Preview("Single Item Gift") {
+    GiftRewardView(
+        giftReward: GiftReward(
+            message: "A helpful hammer appeared!",
+            items: [GiftRewardItem(type: .hammer, amount: 1)]
+        ),
+        onDismiss: { print("Preview dismiss") }
+    )
+}
+
+#Preview("Multiple Items Gift") {
+    GiftRewardView(
+        giftReward: GiftReward(
+            message: "Multiple goodies appeared!",
+            items: [
+                GiftRewardItem(type: .gems, amount: 5),
+                GiftRewardItem(type: .hammer, amount: 2),
+                GiftRewardItem(type: .magnet, amount: 1)
+            ]
+        ),
+        onDismiss: { print("Preview dismiss") }
+    )
+}
+
+#Preview("Gems Gift") {
+    GiftRewardView(
+        giftReward: GiftReward(
+            message: "Some magical gems appeared!",
+            items: [GiftRewardItem(type: .gems, amount: 10)]
+        ),
+        onDismiss: { print("Preview dismiss") }
+    )
+}
+
+#Preview("Power-up Bundle") {
+    GiftRewardView(
+        giftReward: GiftReward(
+            message: "Amazing power-up bundle!",
+            items: [
+                GiftRewardItem(type: .hammer, amount: 3),
+                GiftRewardItem(type: .swap, amount: 2),
+                GiftRewardItem(type: .undo, amount: 5),
+                GiftRewardItem(type: .magnet, amount: 1)
+            ]
+        ),
+        onDismiss: { print("Preview dismiss") }
+    )
+}
+
+#Preview("Dark Mode") {
+    GiftRewardView(
+        giftReward: GiftReward(
+            message: "Some magical gems appeared!",
+            items: [
+                GiftRewardItem(type: .gems, amount: 15),
+                GiftRewardItem(type: .hammer, amount: 1)
+            ]
+        ),
+        onDismiss: { print("Preview dismiss") }
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Random Reward") {
+    GiftRewardView(
+        giftReward: GiftReward.randomReward(),
+        onDismiss: { print("Preview dismiss") }
+    )
+}

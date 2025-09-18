@@ -189,7 +189,17 @@ public final class GameStore {
             return 0
         }()
         lastAddedTileValue = addedValue > 0 ? addedValue : nil
-        
+
+        // Check if created tile should trigger a gift reward (gift icon tiles)
+        if addedValue > 0 && shouldTriggerGiftReward(for: addedValue) {
+            if pendingGiftReward == nil { // Don't override existing pending reward
+                pendingGiftReward = GiftReward.randomReward()
+                #if DEBUG
+                print("🎁 Gift triggered for creating tile value: \(addedValue)")
+                #endif
+            }
+        }
+
         // Notify JourneyKit of the new tile value
         if addedValue > 0 {
             journey.didReach(tile: addedValue)
@@ -307,7 +317,33 @@ public final class GameStore {
 
     
     // MARK: - Gift Rewards
-    
+
+    /// Determines if creating a tile with the given value should trigger a gift reward
+    /// These are considered "gift icon" tiles that award gifts when created
+    private func shouldTriggerGiftReward(for tileValue: Int) -> Bool {
+        // Trigger gifts for milestone tile values (powers of 2 that are significant)
+        // Start at 32 for easier testing, then 128 and trigger every 2-3 doublings to make gifts feel special but not too frequent
+        let milestoneValues: Set<Int> = [32, 128, 512, 2048, 8192, 32768, 131072, 524288]
+
+        // Also trigger gifts with a small random chance for any tile >= 16 to add excitement
+        if tileValue >= 16 {
+            let randomChance = Double.random(in: 0...1)
+            let chanceThreshold: Double = {
+                // Higher value tiles have better chances
+                if tileValue >= 1024 { return 0.15 } // 15% chance for high tiles
+                if tileValue >= 256 { return 0.08 }  // 8% chance for medium-high tiles
+                if tileValue >= 64 { return 0.05 }   // 5% chance for medium tiles
+                return 0.02 // 2% chance for smaller tiles (16-63)
+            }()
+
+            if randomChance < chanceThreshold {
+                return true
+            }
+        }
+
+        return milestoneValues.contains(tileValue)
+    }
+
     public func claimGiftReward() {
         guard let reward = pendingGiftReward else { return }
         
