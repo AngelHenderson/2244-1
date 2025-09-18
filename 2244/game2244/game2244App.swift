@@ -42,7 +42,14 @@ struct game2244App: App {
     
     var body: some Scene {
         WindowGroup {
-            RootGameView()
+            ZStack {
+                let currentBackgroundTheme = backgroundThemeRegistry.theme(for: selectedBackgroundThemeId)
+                HomeBackgroundLayer(theme: currentBackgroundTheme)
+                    .ignoresSafeArea()
+                    .zIndex(0)
+
+                RootGameView(managesBackground: false)
+            }
                 .environment(\.gameStore, gameStore)
                 .environment(\.purchaseService, purchaseService)
                 .environment(\.adService, adService)
