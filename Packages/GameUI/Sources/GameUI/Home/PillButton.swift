@@ -22,7 +22,6 @@ struct PillButton: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.glass)
-            .tint(dynamicGlassTint)
             .accessibilityLabel(title)
         } else {
             Button(action: action) {
@@ -54,14 +53,6 @@ struct PillButton: View {
         }
     }
     
-    /// Dynamically compute glass tint based on current board state
-    private var dynamicGlassTint: Color {
-        // Use the highest tile from game state as the tint color
-        let highestValue = gameStore.state.highestTile
-
-        // Use Theme system to get the color for the highest tile
-        return Theme.color(for: highestValue)
-    }
 }
  
 #Preview("PillButton Variants", traits: .sizeThatFitsLayout) {

@@ -123,19 +123,9 @@ private struct GlassButtonCompat: ViewModifier {
         if #available(iOS 26.0, macOS 26.0, *) {
             content
                 .buttonStyle(.glass)
-                .tint(dynamicGlassTint)
         } else {
             content.buttonStyle(.plain)
         }
     }
     
-    /// Dynamically compute glass tint based on current board state
-    /// Dynamically compute glass tint based on current board state
-    private var dynamicGlassTint: Color {
-        // Use the highest tile from game state as the tint color
-        let highestValue = gameStore.state.highestTile
-        
-        // Use Theme system to get the color for the highest tile
-        return Theme.color(for: highestValue)
-    }
 }
