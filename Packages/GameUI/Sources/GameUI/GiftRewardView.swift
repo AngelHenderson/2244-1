@@ -1,6 +1,23 @@
 import SwiftUI
 import GameApp
 
+#if canImport(SwiftUI)
+extension View {
+    @ViewBuilder
+    func glassIfAvailableCard() -> some View {
+        if #available(iOS 26.0, *) {
+            // Prefer the new glass effect when available
+            self.glassEffect()
+        } else if #available(iOS 15.0, *) {
+            // Fallback to a material background for a similar look
+            self.background(.ultraThinMaterial)
+        } else {
+            self
+        }
+    }
+}
+#endif
+
 public struct GiftRewardView: View {
     let giftReward: GiftReward
     let onDismiss: () -> Void
@@ -15,9 +32,20 @@ public struct GiftRewardView: View {
 
     public var body: some View {
         ZStack {
-            // Background overlay
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
+            Group {
+                if #available(iOS 26.0, *) {
+                    Color.clear
+                        .ignoresSafeArea()
+                        .glassEffect()
+                } else if #available(iOS 15.0, *) {
+                    Color.clear
+                        .ignoresSafeArea()
+                        .background(.ultraThinMaterial)
+                } else {
+                    Color.clear
+                        .ignoresSafeArea()
+                }
+            }
 
             VStack(spacing: 0) {
                 // Main content card
@@ -120,7 +148,7 @@ public struct GiftRewardView: View {
                                     .foregroundStyle(.secondary)
                             }
                             .padding()
-                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                            .glassIfAvailableCard()
                         }
                     }
 
@@ -154,14 +182,17 @@ public struct GiftRewardView: View {
                     .padding(.top, 8)
                 }
                 .padding(32)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
-                .overlay(
+                .glassIfAvailableCard()
+                .background(
                     RoundedRectangle(cornerRadius: 24)
                         .stroke(.quaternary, lineWidth: 1)
                 )
                 .scaleEffect(showContent ? 1.0 : 0.8)
                 .opacity(showContent ? 1.0 : 0.0)
-                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showContent)
+                .animation(
+                    .spring(response: 0.6, dampingFraction: 0.8, blendDuration: 0.0),
+                    value: showContent
+                )
             }
             .padding()
         }
@@ -273,3 +304,4 @@ public struct GiftRewardView: View {
         onDismiss: { print("Preview dismiss") }
     )
 }
+
