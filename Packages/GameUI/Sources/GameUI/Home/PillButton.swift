@@ -4,6 +4,8 @@ struct PillButton: View {
     let title: String
     var icon: String? = nil
     var action: () -> Void
+    
+    @Environment(\.gameStore) private var gameStore
 
     var body: some View {
         if #available(iOS 26.0, macOS 26.0, *) {
@@ -20,6 +22,7 @@ struct PillButton: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.glass)
+            .tint(dynamicGlassTint)
             .accessibilityLabel(title)
         } else {
             Button(action: action) {
@@ -49,6 +52,23 @@ struct PillButton: View {
             )
             .accessibilityLabel(title)
         }
+    }
+    
+    /// Dynamically compute glass tint based on current board state
+    /// Dynamically compute glass tint based on current board state
+    private var dynamicGlassTint: Color {
+        // Get tiles from the board
+        let boardTiles = gameStore.state.board.tiles.compactMap { $0 }
+        
+        if boardTiles.isEmpty {
+            return .teal // Default fallback
+        }
+        
+        // Find the highest tile value
+        let highestValue = boardTiles.map { $0.value }.max() ?? 128
+        
+        // Use Theme system to get the color for the highest tile
+        return Theme.color(for: highestValue)
     }
 }
  

@@ -289,6 +289,7 @@ public struct HomeView: View {
                     .padding(4)
                 }
                 .buttonStyle(.glass)
+                .tint(dynamicGlassTint)
             )
         } else {
             return AnyView(
@@ -309,6 +310,17 @@ public struct HomeView: View {
                 }
             )
         }
+    }
+
+    /// Dynamically compute glass tint based on current board state
+    /// Dynamically compute glass tint based on current board state
+    private var dynamicGlassTint: Color {
+        // Access gameStore from environment (should be available at HomeView level)
+        // For now, return a contextual color based on the highest tile in journey
+        let highestValue = journey.currentMilestone()
+        
+        // Use Theme system to get the color for the highest tile
+        return Theme.color(for: highestValue)
     }
 
     private func assetName(for title: String) -> String {

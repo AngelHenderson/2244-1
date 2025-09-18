@@ -117,11 +117,31 @@ private struct GameCenterAvatarButton: View {
 }
 
 private struct GlassButtonCompat: ViewModifier {
+    @Environment(\.gameStore) private var gameStore
+    
     func body(content: Content) -> some View {
         if #available(iOS 26.0, macOS 26.0, *) {
-            content.buttonStyle(.glass)
+            content
+                .buttonStyle(.glass)
+                .tint(dynamicGlassTint)
         } else {
             content.buttonStyle(.plain)
         }
+    }
+    
+    /// Dynamically compute glass tint based on current board state
+    private var dynamicGlassTint: Color {
+        // Get tiles from the board
+        let boardTiles = gameStore.state.board.tiles.compactMap { $0 }
+        
+        if boardTiles.isEmpty {
+            return .teal // Default fallback
+        }
+        
+        // Find the highest tile value
+        let highestValue = boardTiles.map { tile in tile.value }.max() ?? 128
+        
+        // Use Theme system to get the color for the highest tile
+        return Theme.color(for: highestValue)
     }
 }
