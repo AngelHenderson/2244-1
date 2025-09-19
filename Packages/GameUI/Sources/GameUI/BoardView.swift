@@ -108,12 +108,12 @@ public struct BoardView: View {
             .stroke(style: StrokeStyle(lineWidth: Tokens.Size.pathWidth, lineCap: .round, lineJoin: .round))
             .foregroundStyle(
                 LinearGradient(
-                    colors: gameStore.pathValidation.isValid ? [Color.white.opacity(0.9), Color.green] : [Color.white.opacity(0.9), Color.red],
+                    colors: [Color.white.opacity(0.9), Color.green],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
-            .shadow(color: (gameStore.pathValidation.isValid ? Color.green : Color.red).opacity(0.45), radius: 6)
+            .shadow(color: Color.green.opacity(0.45), radius: 6)
             .animation(.easeInOut(duration: 0.1), value: gameStore.currentPath)
         }
     }

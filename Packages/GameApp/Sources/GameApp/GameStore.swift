@@ -169,9 +169,14 @@ public final class GameStore {
         if endsOnGift {
             state = engine.commitGiftChain(positions)
             
-            // Generate gift reward only when a gift (glass) is broken
-            if pendingGiftReward == nil {
-                pendingGiftReward = GiftReward.randomReward()
+            // Check if any glass tiles were broken in this chain
+            let glassTilesBroken = positions.contains { position in
+                position.row == 0 && !brokenGlassTiles.contains(position)
+            }
+            
+            // Generate gift reward only when glass is actually shattered
+            if glassTilesBroken && pendingGiftReward == nil {
+                pendingGiftReward = GiftReward.randomReward(isFromGlassShatter: true)
             }
         } else {
             state = engine.commitChain(positions)

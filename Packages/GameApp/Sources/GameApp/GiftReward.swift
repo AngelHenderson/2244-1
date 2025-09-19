@@ -5,32 +5,38 @@ import Foundation
 public struct GiftReward: Sendable {
     public let message: String
     public let items: [GiftRewardItem]
+    public let isFromGlassShatter: Bool
 
-    public init(message: String, items: [GiftRewardItem]) {
+    public init(message: String, items: [GiftRewardItem], isFromGlassShatter: Bool = false) {
         self.message = message
         self.items = items
+        self.isFromGlassShatter = isFromGlassShatter
     }
 
-    public static func randomReward() -> GiftReward {
+    public static func randomReward(isFromGlassShatter: Bool = false) -> GiftReward {
         let rewards = [
             GiftReward(
                 message: "A helpful hammer appeared!",
-                items: [GiftRewardItem(type: .hammer, amount: 1)]
+                items: [GiftRewardItem(type: .hammer, amount: 1)],
+                isFromGlassShatter: isFromGlassShatter
             ),
             GiftReward(
                 message: "Some magical gems appeared!",
-                items: [GiftRewardItem(type: .gems, amount: 5)]
+                items: [GiftRewardItem(type: .gems, amount: 5)],
+                isFromGlassShatter: isFromGlassShatter
             ),
             GiftReward(
                 message: "A powerful magnet appeared!",
-                items: [GiftRewardItem(type: .magnet, amount: 1)]
+                items: [GiftRewardItem(type: .magnet, amount: 1)],
+                isFromGlassShatter: isFromGlassShatter
             ),
             GiftReward(
                 message: "Multiple goodies appeared!",
                 items: [
                     GiftRewardItem(type: .gems, amount: 3),
                     GiftRewardItem(type: .hammer, amount: 1)
-                ]
+                ],
+                isFromGlassShatter: isFromGlassShatter
             )
         ]
         return rewards.randomElement() ?? rewards[0]

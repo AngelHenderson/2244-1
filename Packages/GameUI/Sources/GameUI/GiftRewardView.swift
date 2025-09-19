@@ -118,8 +118,8 @@ public struct GiftRewardView: View {
                         .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: petBounce)
                     }
 
-                    // Title
-                    Text("You Won a Gift!")
+                    // Title - only show "You Won a Gift!" if from glass shatter
+                    Text(giftReward.isFromGlassShatter ? "You Won a Gift!" : "Reward!")
                         .font(.largeTitle.bold())
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
