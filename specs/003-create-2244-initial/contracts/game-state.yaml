@@ -1,0 +1,326 @@
+openapi: 3.0.0
+info:
+  title: Game State API
+  version: 1.0.0
+  description: Contracts for game session management in 2244
+
+paths:
+  /game/start:
+    post:
+      summary: Start new game session
+      operationId: startGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mode
+              properties:
+                mode:
+                  $ref: '#/components/schemas/GameMode'
+                seed:
+                  type: integer
+                  format: int64
+                  description: Optional seed for deterministic gameplay
+                challengeId:
+                  type: string
+                  format: uuid
+                  description: For custom challenge mode
+      responses:
+        '200':
+          description: Game started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSession'
+
+  /game/chain:
+    put:
+      summary: Submit chain for validation and merge
+      operationId: submitChain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - positions
+              properties:
+                positions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Position'
+                  minItems: 2
+      responses:
+        '200':
+          description: Chain processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChainResult'
+        '400':
+          description: Invalid chain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /game/powerup:
+    put:
+      summary: Use power-up
+      operationId: usePowerUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  $ref: '#/components/schemas/PowerUpType'
+                target:
+                  $ref: '#/components/schemas/Position'
+                secondary:
+                  $ref: '#/components/schemas/Position'
+                  description: For swap power-up
+      responses:
+        '200':
+          description: Power-up used successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PowerUpResult'
+        '400':
+          description: Invalid power-up usage
+
+  /game/pause:
+    put:
+      summary: Pause/resume game
+      operationId: pauseGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paused:
+                  type: boolean
+      responses:
+        '200':
+          description: Game pause state updated
+
+  /game/end:
+    post:
+      summary: End game session
+      operationId: endGame
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  enum: [completed, quit, gameOver]
+      responses:
+        '200':
+          description: Game ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameResult'
+
+components:
+  schemas:
+    GameMode:
+      type: string
+      enum: [classic, daily, journey, custom]
+
+    GameSession:
+      type: object
+      required:
+        - id
+        - mode
+        - board
+        - score
+        - moves
+        - seed
+        - startedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        mode:
+          $ref: '#/components/schemas/GameMode'
+        board:
+          $ref: '#/components/schemas/Board'
+        score:
+          type: integer
+          minimum: 0
+        moves:
+          type: integer
+          minimum: 0
+        chains:
+          type: integer
+          minimum: 0
+        powerUpsUsed:
+          type: object
+          additionalProperties:
+            type: integer
+        activeTasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectTask'
+        seed:
+          type: integer
+          format: int64
+        startedAt:
+          type: string
+          format: date-time
+        isPaused:
+          type: boolean
+
+    Board:
+      type: object
+      required:
+        - width
+        - height
+        - tiles
+      properties:
+        width:
+          type: integer
+          enum: [5]
+        height:
+          type: integer
+          enum: [8]
+        tiles:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: '#/components/schemas/Tile'
+          minItems: 8
+          maxItems: 8
+
+    Tile:
+      type: object
+      properties:
+        value:
+          type: integer
+          minimum: 2
+        id:
+          type: string
+          format: uuid
+        isLocked:
+          type: boolean
+        specialType:
+          type: string
+          enum: [gift, bomb, multiplier]
+
+    Position:
+      type: object
+      required:
+        - row
+        - column
+      properties:
+        row:
+          type: integer
+          minimum: 0
+          maximum: 7
+        column:
+          type: integer
+          minimum: 0
+          maximum: 4
+
+    ChainResult:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        mergedTile:
+          $ref: '#/components/schemas/Tile'
+        scoreGained:
+          type: integer
+        newBoard:
+          $ref: '#/components/schemas/Board'
+        chainLength:
+          type: integer
+        specialEffects:
+          type: array
+          items:
+            type: string
+
+    PowerUpResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        newBoard:
+          $ref: '#/components/schemas/Board'
+        scoreChange:
+          type: integer
+        message:
+          type: string
+
+    ValidationError:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [invalid_chain, not_adjacent, invalid_sequence]
+        message:
+          type: string
+        details:
+          type: object
+
+    GameResult:
+      type: object
+      properties:
+        finalScore:
+          type: integer
+        finalBoard:
+          $ref: '#/components/schemas/Board'
+        statistics:
+          type: object
+          properties:
+            totalMoves:
+              type: integer
+            totalChains:
+              type: integer
+            longestChain:
+              type: integer
+            highestTile:
+              type: integer
+            powerUpsUsed:
+              type: object
+        achievements:
+          type: array
+          items:
+            type: string
+        leaderboardRank:
+          type: integer
+
+    ProjectTask:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum: [notStarted, inProgress, completed]
+        requirement:
+          type: object
+        reward:
+          type: object
+
+    PowerUpType:
+      type: string
+      enum: [hammer, swap, magnet, shuffle, undo, double]

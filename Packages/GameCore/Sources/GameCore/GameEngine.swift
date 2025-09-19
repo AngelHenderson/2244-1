@@ -57,11 +57,13 @@ public struct GameState: Equatable, Sendable {
     }
 }
 
-public enum PowerUpType: String, CaseIterable, Sendable {
-    case shuffle = "Shuffle"
-    case hammer = "Hammer"
-    case swap = "Swap"
-    case undo = "Undo"
+public enum PowerUpType: String, CaseIterable, Codable, Sendable {
+    case shuffle = "shuffle"
+    case hammer = "hammer"
+    case swap = "swap"
+    case undo = "undo"
+    case magnet = "magnet"
+    case double = "double"
 }
 
 public enum SpecialTileType: String, Sendable {

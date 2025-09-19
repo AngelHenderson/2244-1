@@ -1,0 +1,222 @@
+openapi: 3.0.0
+info:
+  title: Profile Management API
+  version: 1.0.0
+  description: Contracts for profile operations in 2244 game
+
+paths:
+  /profile:
+    get:
+      summary: Get current profile
+      operationId: getProfile
+      responses:
+        '200':
+          description: Profile data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+    
+    put:
+      summary: Update profile
+      operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          description: Invalid profile data
+
+  /profile/powerups:
+    put:
+      summary: Update power-up inventory
+      operationId: updatePowerUps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  $ref: '#/components/schemas/PowerUpType'
+                delta:
+                  type: integer
+                  description: Change in quantity (negative for consumption)
+      responses:
+        '200':
+          description: Inventory updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PowerUpInventory'
+        '400':
+          description: Insufficient power-ups
+
+  /profile/coins:
+    put:
+      summary: Update coin balance
+      operationId: updateCoins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delta:
+                  type: integer
+                  description: Change in coins (negative for spending)
+                reason:
+                  type: string
+                  enum: [purchase, reward, spend, refund]
+      responses:
+        '200':
+          description: Balance updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coins:
+                    type: integer
+                  gems:
+                    type: integer
+        '400':
+          description: Insufficient funds
+
+components:
+  schemas:
+    Profile:
+      type: object
+      required:
+        - id
+        - displayName
+        - powerUpInventory
+        - coins
+        - gems
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 20
+        powerUpInventory:
+          $ref: '#/components/schemas/PowerUpInventory'
+        coins:
+          type: integer
+          minimum: 0
+        gems:
+          type: integer
+          minimum: 0
+        achievements:
+          type: array
+          items:
+            type: string
+        statistics:
+          $ref: '#/components/schemas/PlayerStatistics'
+        settings:
+          $ref: '#/components/schemas/ProfileSettings'
+        unlockedThemes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThemeID'
+        currentTheme:
+          $ref: '#/components/schemas/ThemeID'
+        createdAt:
+          type: string
+          format: date-time
+        lastPlayedAt:
+          type: string
+          format: date-time
+
+    ProfileUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 20
+        settings:
+          $ref: '#/components/schemas/ProfileSettings'
+        currentTheme:
+          $ref: '#/components/schemas/ThemeID'
+
+    ProfileSettings:
+      type: object
+      properties:
+        musicVolume:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        effectsVolume:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        hapticsEnabled:
+          type: boolean
+        reducedMotion:
+          type: boolean
+        colorBlindMode:
+          type: string
+          enum: [protanopia, deuteranopia, tritanopia]
+
+    PlayerStatistics:
+      type: object
+      properties:
+        gamesPlayed:
+          type: integer
+        totalScore:
+          type: integer
+        highestScore:
+          type: integer
+        highestTile:
+          type: integer
+        totalChains:
+          type: integer
+        longestChain:
+          type: integer
+        totalPlayTime:
+          type: number
+
+    PowerUpInventory:
+      type: object
+      properties:
+        hammer:
+          type: integer
+          minimum: 0
+        swap:
+          type: integer
+          minimum: 0
+        magnet:
+          type: integer
+          minimum: 0
+        shuffle:
+          type: integer
+          minimum: 0
+        undo:
+          type: integer
+          minimum: 0
+        double:
+          type: integer
+          minimum: 0
+
+    PowerUpType:
+      type: string
+      enum: [hammer, swap, magnet, shuffle, undo, double]
+
+    ThemeID:
+      type: string
+      enum: [classic, minimal, retro, cyberpunk, lofi, orchestral]

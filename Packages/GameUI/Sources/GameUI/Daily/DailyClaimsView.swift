@@ -1,4 +1,5 @@
 import SwiftUI
+import GameApp
 import GameServices
 
 @MainActor
@@ -325,3 +326,5 @@ private struct ClaimAnimationOverlay: View {
         }
     }
 }
+
+

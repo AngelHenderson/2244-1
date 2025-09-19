@@ -54,3 +54,31 @@ swift test --package-path Packages/GameCore
 - iOS 18+ minimum deployment
 - Swift Testing framework (not XCTest)
 - No @AppStorage inside @Observable classes
+
+## Recent Updates (Feature 003: Initial Playable Shell)
+
+### Audio Architecture
+- **AVAudioEngine** for multi-theme music system with <500ms crossfade
+- **Dual-buffer preloading**: Current + next theme in memory
+- **Theme assets**: Separate asset catalogs with fallback chain
+- **6 themes**: Classic, Minimal, Retro (free); Cyberpunk, Lofi, Orchestral (IAP)
+
+### Power-Up System
+- **Protocol-based commands**: PowerUpCommand protocol for all power-ups
+- **Initial inventory**: 3 Hammers, 2 Swaps, 5 Undos, 1 Shuffle, 0 Magnets, 0 Doubles
+- **6 power-up types**: Hammer, Swap, Magnet, Shuffle, Undo, Double
+
+### Board Configuration
+- **5×8 fixed layout** (5 columns, 8 rows)
+- **Adaptive sizing** based on screen width
+- **Tile values**: 2 to infinity using AlphaMag progression
+
+### Profile System
+- **Single default profile** auto-loads on launch
+- **UserDefaults persistence** for profile data
+- **305 starting coins** for new profiles
+
+### Sample Projects
+- **33 pre-populated tasks** across 3 game modes
+- **Task states**: Completed, In Progress, Not Started
+- **JSON-defined** tasks with UserDefaults progress tracking

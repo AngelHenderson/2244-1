@@ -74,7 +74,7 @@ public struct ChallengeModeView: View {
         } label: {
             HStack {
                 Image(systemName: "play.fill")
-                Text("Play Challenge \(store.lastCompletedId + 1)")
+                Text("Play Challenge \(store.currentChallengeNumber)")
             }
             .font(.title3.weight(.semibold))
             .frame(maxWidth: .infinity)
@@ -91,11 +91,49 @@ public struct ChallengeModeView: View {
 private struct ChallengeCard: View {
     let challenge: Challenge
     let status: ChallengeStatus
-    
+
+    // Format tile target for display (27 -> "1a", 28 -> "1b", etc.)
+    private var targetTileLabel: String {
+        guard let targetTile = challenge.targetTile else { return "??" }
+
+        // Map tile levels to display labels
+        // 27-36 correspond to "1a" through "1j"
+        let baseLabel = targetTile - 26
+        if baseLabel >= 1 && baseLabel <= 10 {
+            let suffix = String(Character(UnicodeScalar(96 + baseLabel)!))
+            return "1\(suffix)"
+        }
+
+        // For other values, just show the raw number
+        return "\(targetTile)"
+    }
+
+    // Get a sequential challenge number for display
+    private var challengeNumber: Int {
+        // Use the last part of the UUID string as a stable identifier
+        let uuidString = challenge.id.uuidString
+        if let lastChar = uuidString.last {
+            switch lastChar {
+            case "1": return 1
+            case "2": return 2
+            case "3": return 3
+            case "4": return 4
+            case "5": return 5
+            case "6": return 6
+            case "7": return 7
+            case "8": return 8
+            case "9": return 9
+            case "A", "a": return 10
+            default: return 0
+            }
+        }
+        return 0
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             HStack {
-                Text("Challenge \(challenge.id)")
+                Text("Challenge \(challengeNumber)")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
                 
@@ -110,19 +148,18 @@ private struct ChallengeCard: View {
                 }
             }
             
-            Text(challenge.targetTileLabel)
+            Text(targetTileLabel)
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
                 .foregroundStyle(status == .locked ? .secondary : .primary)
             
             VStack(spacing: 6) {
                 if status == .active {
-                    Text("Make \(challenge.targetTileLabel) Tile")
+                    Text(challenge.name)
                         .font(.headline)
-                    if !challenge.rule.displayText.isEmpty {
-                        Text(challenge.rule.displayText)
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(.secondary)
-                    }
+                    Text(challenge.description)
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                 } else if status == .completed {
                     Text("Completed")
                         .font(.footnote.weight(.medium))
@@ -137,7 +174,7 @@ private struct ChallengeCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "diamond.fill")
                             .font(.caption)
-                        Text("\(challenge.rewardGems)")
+                        Text("\(challenge.reward.coins)")
                             .font(.caption.weight(.semibold))
                     }
                     .foregroundStyle(status == .active ? .orange : .secondary)
@@ -193,8 +230,12 @@ private struct ChallengeCard: View {
 
 #Preview("Challenge Mode") {
     let store = ChallengeStore()
-    store.lastCompletedId = 2
-    
+    // Mark first two challenges as completed
+    if store.challenges.count >= 2 {
+        store.markCompleted(store.challenges[0].id)
+        store.markCompleted(store.challenges[1].id)
+    }
+
     return ChallengeModeView()
         .environment(\.challengeStore, store)
 }

@@ -4,6 +4,8 @@ struct PillButton: View {
     let title: String
     var icon: String? = nil
     var action: () -> Void
+    
+    @Environment(\.gameStore) private var gameStore
 
     var body: some View {
         if #available(iOS 26.0, macOS 26.0, *) {
@@ -50,6 +52,7 @@ struct PillButton: View {
             .accessibilityLabel(title)
         }
     }
+    
 }
  
 #Preview("PillButton Variants", traits: .sizeThatFitsLayout) {

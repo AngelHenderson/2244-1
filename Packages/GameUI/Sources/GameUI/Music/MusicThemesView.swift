@@ -38,7 +38,7 @@ struct MusicThemesView: View {
                 .padding(.vertical, 16)
         }
 //        .background(Color.black.opacity(0.9).ignoresSafeArea())
-        .onChange(of: selectionIndex) { _ in
+        .onChange(of: selectionIndex) {
             let instrument = instruments[selectionIndex]
             print("[MusicThemesView] Selected instrument: \(instrument.id) – start preview sound here")
             

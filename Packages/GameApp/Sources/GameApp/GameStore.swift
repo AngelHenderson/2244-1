@@ -31,6 +31,8 @@ public final class GameStore {
     public private(set) var pendingDoubleBase: Int? = nil
     // Track which glass tiles have been broken (positions in row 0)
     public private(set) var brokenGlassTiles: Set<Position> = []
+    // Gift reward state
+    public var pendingGiftReward: GiftReward? = nil
     // Power-up inventory tracking
     public private(set) var powerUpInventory: [String: Int] = [
         "hammer": 3,
@@ -45,8 +47,7 @@ public final class GameStore {
     
     // JourneyKit integration
     public let journey = JourneyKit.Store(
-        // 1M (2^20) up to 33M (≈ 2^25)
-        config: .init(minPower: 20, maxPower: 25)
+        config: .init(minPower: 8, maxPower: 22) // 256 to 4,194,304
     )
     
     public var coins: Int {
@@ -57,24 +58,15 @@ public final class GameStore {
         }
     }
     
-    // Compute the latest achieved elimination milestone at or below `highest`.
-    private func latestEliminatedValue(forHighest highest: Int) -> Int? {
-        let trigger = EliminationRules.map.keys
-            .filter { $0 <= highest }
-            .max()
-        if let t = trigger {
-            return EliminationRules.map[t]
-        }
-        return nil
-    }
-    
-    // Lowest allowed spawn tile based on the latest elimination milestone only.
-    // If we’ve removed X, the minimum spawn becomes next power (X * 2).
+    // Lowest allowed spawn tile based on current highest (mirrors engine logic)
     public func currentMinAllowedTile() -> Int {
-        if let removed = latestEliminatedValue(forHighest: state.highestTile) {
-            return max(2, removed << 1)
-        }
-        return 2
+        let highest = state.highestTile
+        // Progressive elimination starts at 1024 to maintain game balance
+        guard highest >= 1024 else { return 2 }
+        let exp = highest > 0 ? Int(floor(log2(Double(highest)))) : 0
+        // Set minimum exponent: 2^10 -> 4, 2^11 -> 8, 2^12 -> 16, ...
+        let minExp = max(1, exp - 8)
+        return 1 << minExp
     }
     public private(set) var lastDailyDateUTC: String?
     
@@ -176,6 +168,11 @@ public final class GameStore {
         
         if endsOnGift {
             state = engine.commitGiftChain(positions)
+            
+            // Generate gift reward when a gift is broken
+            if pendingGiftReward == nil { // Don't override existing pending reward
+                pendingGiftReward = GiftReward.randomReward()
+            }
         } else {
             state = engine.commitChain(positions)
         }
@@ -192,15 +189,17 @@ public final class GameStore {
             return 0
         }()
         lastAddedTileValue = addedValue > 0 ? addedValue : nil
-        
-        // Special rule: apply elimination if this commit created a milestone in our map
-        var eliminatedThisTurn: Int? = nil
-        if let toRemove = EliminationRules.map[addedValue] {
-            if excludeAllTiles(withValue: toRemove) {
-                eliminatedThisTurn = toRemove
+
+        // Check if created tile should trigger a gift reward (gift icon tiles)
+        if addedValue > 0 && shouldTriggerGiftReward(for: addedValue) {
+            if pendingGiftReward == nil { // Don't override existing pending reward
+                pendingGiftReward = GiftReward.randomReward()
+                #if DEBUG
+                print("🎁 Gift triggered for creating tile value: \(addedValue)")
+                #endif
             }
         }
-        
+
         // Notify JourneyKit of the new tile value
         if addedValue > 0 {
             journey.didReach(tile: addedValue)
@@ -222,8 +221,7 @@ public final class GameStore {
         if let unlockedValue {
             setPendingUnlockRewardIfNeeded(for: unlockedValue, previousHigh: previousHighest)
         }
-        // If we just excluded due to milestone, reflect that in merge info
-        let excludedValue: Int? = eliminatedThisTurn ?? removedValuesBefore.first
+        let excludedValue: Int? = removedValuesBefore.first
         // Only show the merge info board when a new highest tile is unlocked
         if let unlockedValue {
             lastMergeInfo = .init(unlocked: unlockedValue, added: addedValue, excluded: excludedValue)
@@ -316,6 +314,63 @@ public final class GameStore {
         pendingUnlockRewardBase = nil
         pendingUnlockTile = nil
     }
+
+    
+    // MARK: - Gift Rewards
+
+    /// Determines if creating a tile with the given value should trigger a gift reward
+    /// These are considered "gift icon" tiles that award gifts when created
+    private func shouldTriggerGiftReward(for tileValue: Int) -> Bool {
+        // Trigger gifts for milestone tile values (powers of 2 that are significant)
+        // Start at 32 for easier testing, then 128 and trigger every 2-3 doublings to make gifts feel special but not too frequent
+        let milestoneValues: Set<Int> = [32, 128, 512, 2048, 8192, 32768, 131072, 524288]
+
+        // Also trigger gifts with a small random chance for any tile >= 16 to add excitement
+        if tileValue >= 16 {
+            let randomChance = Double.random(in: 0...1)
+            let chanceThreshold: Double = {
+                // Higher value tiles have better chances
+                if tileValue >= 1024 { return 0.15 } // 15% chance for high tiles
+                if tileValue >= 256 { return 0.08 }  // 8% chance for medium-high tiles
+                if tileValue >= 64 { return 0.05 }   // 5% chance for medium tiles
+                return 0.02 // 2% chance for smaller tiles (16-63)
+            }()
+
+            if randomChance < chanceThreshold {
+                return true
+            }
+        }
+
+        return milestoneValues.contains(tileValue)
+    }
+
+    public func claimGiftReward() {
+        guard let reward = pendingGiftReward else { return }
+        
+        // Apply the rewards to the player's inventory
+        for item in reward.items {
+            switch item.type {
+            case .hammer:
+                addPowerUp("hammer", count: item.amount)
+            case .magnet:
+                addPowerUp("magnet", count: item.amount)
+            case .gems:
+                // Add gems to coins (assuming gems are stored as coins)
+                addCoins(item.amount)
+            case .swap:
+                addPowerUp("swap", count: item.amount)
+            case .undo:
+                addPowerUp("undo", count: item.amount)
+            }
+        }
+        
+        // Clear the pending reward
+        pendingGiftReward = nil
+    }
+    
+    public func dismissGiftReward() {
+        pendingGiftReward = nil
+    }
     
     // MARK: - Double Offer
     public func clearPendingDoubleOffer() {
@@ -357,7 +412,6 @@ public final class GameStore {
         public static let hammer = 50
         public static let swap = 75
         public static let shuffle = 100
-        public static let undo = 1 // keep if you have one
     }
     
     @discardableResult
@@ -510,6 +564,7 @@ public final class GameStore {
         public let moves: [[Position]]
         public let powerUps: [PowerUpAction]
     }
+
     
     public func exportReplay() throws -> String {
         let replay = Replay(seed: engine.seedUsed, moves: movesHistory, powerUps: powerUpHistory)
@@ -645,24 +700,5 @@ extension GameStore {
     
     public func bestScore(using storage: any StorageServiceProtocol) async -> Int {
         await storage.bestScore()
-    }
-}
-
-// MARK: - Special Exclusion Helpers
-extension GameStore {
-    /// Remove all tiles with a given value from the board. Returns true if any were removed.
-    @discardableResult
-    private func excludeAllTiles(withValue value: Int) -> Bool {
-        var removedAny = false
-        for row in 0..<state.board.height {
-            for col in 0..<state.board.width {
-                let pos = Position(row: row, col: col)
-                if let t = state.board[pos], t.value == value {
-                    state.board[pos] = nil
-                    removedAny = true
-                }
-            }
-        }
-        return removedAny
     }
 }

@@ -105,26 +105,27 @@ private struct GameCenterAvatarButton: View {
         guard avatar == nil else { return }
         let player = GKLocalPlayer.local
         guard player.isAuthenticated else { return }
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+        let image = await withCheckedContinuation { (cont: CheckedContinuation<UIImage?, Never>) in
             player.loadPhoto(for: .small) { image, _ in
-                // Hop to the main actor before mutating @State
-                Task { @MainActor in
-                    self.avatar = image
-                    cont.resume()
-                }
+                cont.resume(returning: image)
             }
         }
+        self.avatar = image
     }
 }
 #endif
 }
 
 private struct GlassButtonCompat: ViewModifier {
+    @Environment(\.gameStore) private var gameStore
+    
     func body(content: Content) -> some View {
         if #available(iOS 26.0, macOS 26.0, *) {
-            content.buttonStyle(.glass)
+            content
+                .buttonStyle(.glass)
         } else {
             content.buttonStyle(.plain)
         }
     }
+    
 }

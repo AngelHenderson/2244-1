@@ -5,6 +5,7 @@ import GameServices
 
 /// Root view that manages the flow between Home and Game screens
 public struct RootGameView: View {
+    private let managesBackground: Bool
     @State private var homeState = HomeState()
     @Environment(\.gameStore) private var gameStore
     @Environment(\.tileJourney) private var journey
@@ -29,7 +30,8 @@ public struct RootGameView: View {
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     private let progressCoordinator: ProgressSyncCoordinator
     
-    public init() {
+    public init(managesBackground: Bool = true) {
+        self.managesBackground = managesBackground
         let localStore = UserDefaultsProgressStore()
         let remoteStore: ProgressStore? = nil // TODO: Add CloudKit/Firebase store
         self.progressCoordinator = ProgressSyncCoordinator(
@@ -41,10 +43,11 @@ public struct RootGameView: View {
     
     public var body: some View {
         ZStack {
-            // Base background layer - always at the bottom
-            ThemedBackground(theme: currentBackgroundTheme)
-                .ignoresSafeArea()
-                .zIndex(-1)
+            if managesBackground {
+                HomeBackgroundLayer(theme: currentBackgroundTheme)
+                    .ignoresSafeArea()
+                    .zIndex(-1)
+            }
             if isPlaying {
                 HybridGameScreen(isPlayingDismiss: {
                     // Return to home
@@ -57,7 +60,7 @@ public struct RootGameView: View {
                 .environment(\.gameStore, gameStore)
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             } else {
-                HomeView()
+                HomeView(managesBackground: false)
                     .environment(homeState)
                     .environment(\.homeActions, makeHomeActions())
                     .environment(\.challengeStore, challengeStore)

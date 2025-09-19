@@ -3,6 +3,7 @@ import GameApp
 import GameServices
 
 public struct HomeView: View {
+    private let managesBackground: Bool
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
@@ -29,14 +30,18 @@ public struct HomeView: View {
     
     private var bottomOverlayHeight: CGFloat { playButtonHeight + bottomDockHeight + 8 }
 
-    public init() {}
+    public init(managesBackground: Bool = true) {
+        self.managesBackground = managesBackground
+    }
     
     public var body: some View {
         ZStack(alignment: .top) {
-            // Theme background using BackgroundTheme system (same as HybridGameScreen)
-            ThemedBackground(theme: currentBackgroundTheme)
-                .ignoresSafeArea()
-                .zIndex(0)
+            if managesBackground {
+                HomeBackgroundLayer(theme: currentBackgroundTheme)
+                    .ignoresSafeArea()
+                    .zIndex(0)
+            }
+
             
             // Background layer: Tile scroller. We pass measured header/footer insets so
             // the current tile appears visually centered upon first appear.
@@ -305,6 +310,7 @@ public struct HomeView: View {
             )
         }
     }
+
 
     private func assetName(for title: String) -> String {
         switch title.lowercased() {

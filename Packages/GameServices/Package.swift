@@ -1,11 +1,11 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 import PackageDescription
 
 let package = Package(
     name: "GameServices",
     platforms: [
-        .iOS(.v18),
-        .macOS(.v15)
+        .iOS(.v26),
+        .macOS(.v26)
     ],
     products: [
         .library(
@@ -14,12 +14,14 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.2.0")
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.2.0"),
+        .package(path: "../GameCore")
     ],
     targets: [
         .target(
             name: "GameServices",
             dependencies: [
+                "GameCore",
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseFunctions", package: "firebase-ios-sdk")
@@ -31,7 +33,7 @@ let package = Package(
         ),
         .testTarget(
             name: "GameServicesTests",
-            dependencies: ["GameServices"]
+            dependencies: ["GameServices", "GameCore"]
         ),
     ]
 )

@@ -1,5 +1,5 @@
 {
-  "originHash" : "272fda0df3bf870d0f3152016aba176592913d203037ac5fb3b4311324023e91",
+  "originHash" : "16f4ff762946572c14cfe55b24344b5cf56f9d503afaea28dbeede1dee3d54c6",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -22,7 +22,7 @@
     {
       "identity" : "firebase-ios-sdk",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/firebase/firebase-ios-sdk",
+      "location" : "https://github.com/firebase/firebase-ios-sdk.git",
       "state" : {
         "revision" : "1cce11cf94d27e2fc194112cc7ad51e8fb279230",
         "version" : "12.3.0"
