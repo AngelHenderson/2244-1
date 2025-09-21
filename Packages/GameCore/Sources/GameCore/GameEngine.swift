@@ -712,12 +712,12 @@ public final class GameEngine {
     }
     
     private func generateRandomValue() -> Int {
-        // Progressive spawning: always spawn from the six lowest allowed tiles
+        // Progressive spawning: always spawn from the seven lowest allowed tiles
         // Window is based on the latest eliminated tier only.
         let minAllowed = minAllowedSpawnValue()
         var candidates: [Int] = []
         var current = minAllowed
-        for _ in 0..<6 {
+        for _ in 0..<7 {
             candidates.append(current)
             if current > (Int.max >> 1) {
                 current = Int.max
