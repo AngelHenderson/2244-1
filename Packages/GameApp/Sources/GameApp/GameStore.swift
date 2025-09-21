@@ -725,6 +725,8 @@ extension GameStore {
     // MARK: - Progress Auto-Save System
     
     private func saveProgressImmediately(newTile: Int?, currentScore: Int) {
+        // SAVE EVERYTHING ON EVERY ACTION - not just new records
+        
         // Check for infinity tiles on board
         var hasInfinityTile = false
         for row in 0..<state.board.height {
@@ -740,42 +742,53 @@ extension GameStore {
         // Save infinity achievement if found
         if hasInfinityTile {
             UserDefaults.standard.set(true, forKey: "hasInfinityAchievement")
-            UserDefaults.standard.set(Int.max, forKey: "savedHighestTile") // Mark infinity as highest
-            print("♾️  INFINITY TILE ACHIEVEMENT SAVED!")
+            print("♾️  INFINITY TILE ON BOARD - SAVED!")
         }
         
-        // Save highest tile achievement
+        // ALWAYS save current session highest (regardless of all-time record)
+        let currentHighest = state.highestTile
+        UserDefaults.standard.set(currentHighest, forKey: "currentHighestTile")
+        
+        // ALWAYS update all-time highest if current session beats it
+        let allTimeHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
+        if currentHighest > allTimeHighest {
+            UserDefaults.standard.set(currentHighest, forKey: "savedHighestTile")
+            print("🏆 New all-time highest tile: \(currentHighest)")
+        }
+        
+        // Log EVERY tile creation (not just records)
         if let tile = newTile, tile > 0 {
-            let savedHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
-            if tile > savedHighest {
-                UserDefaults.standard.set(tile, forKey: "savedHighestTile")
-                
-                // Special logging for major achievements
-                if tile >= Int.max {
-                    print("♾️  INFINITY TILE CREATED AND SAVED!")
-                } else if tile >= 2_147_483_648 { // 2B
-                    print("🌟 2B TILE ACHIEVEMENT SAVED!")
-                } else if tile >= 1_073_741_824 { // 1B
-                    print("💎 1B TILE ACHIEVEMENT SAVED!")
-                }
-                print("🏆 New highest tile saved: \(tile)")
+            if tile >= Int.max {
+                print("♾️  INFINITY TILE CREATED!")
+            } else if tile >= 2_147_483_648 { // 2B
+                print("🌟 2B TILE CREATED!")
+            } else if tile >= 1_073_741_824 { // 1B
+                print("💎 1B TILE CREATED!")
+            } else {
+                print("🆕 Tile created: \(tile)")
             }
         }
         
-        // Save best score
-        let savedBestScore = UserDefaults.standard.integer(forKey: "savedBestScore")
-        if currentScore > savedBestScore {
+        // ALWAYS save current score (regardless of all-time best)
+        UserDefaults.standard.set(currentScore, forKey: "currentScore")
+        
+        // ALWAYS update all-time best score if current beats it
+        let allTimeBest = UserDefaults.standard.integer(forKey: "savedBestScore")
+        if currentScore > allTimeBest {
             UserDefaults.standard.set(currentScore, forKey: "savedBestScore")
-            print("🎯 New best score saved: \(currentScore)")
+            print("🎯 New all-time best score: \(currentScore)")
         }
         
-        // Save current session progress
-        UserDefaults.standard.set(state.highestTile, forKey: "currentHighestTile")
-        UserDefaults.standard.set(currentScore, forKey: "currentScore")
+        // ALWAYS save gems balance
         UserDefaults.standard.set(state.gems, forKey: "coins")
         
-        // Save timestamp of last progress save
+        // ALWAYS save timestamp
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "lastProgressSave")
+        
+        // Force immediate write to disk
+        UserDefaults.standard.synchronize()
+        
+        print("💾 COMPLETE PROGRESS SAVED - session highest: \(currentHighest), session score: \(currentScore), gems: \(state.gems)")
     }
     
     /// Restore progress from saved data (called on app launch)
