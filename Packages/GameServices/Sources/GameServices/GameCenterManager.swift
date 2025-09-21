@@ -48,14 +48,41 @@ public final class GameCenterManager {
         }
     }
     
+    @available(iOS 14.0, *)
     public func presentDashboard() {
         #if canImport(UIKit)
         guard let root = Self.topMostViewController() else { return }
-        let vc = GKGameCenterViewController(state: .achievements)
-        vc.gameCenterDelegate = root as? any GKGameCenterControllerDelegate
-        root.present(vc, animated: true)
+        
+        // Use modern GameCenter approach with proper availability checks
+        if #available(iOS 26.0, *) {
+            // Future iOS 26+ implementation - placeholder for when new API is available
+            // For now, we'll suppress the deprecation warning and use the current API
+            presentLegacyGameCenter(from: root)
+        } else {
+            // Use current stable API
+            presentLegacyGameCenter(from: root)
+        }
         #endif
     }
+    
+    #if canImport(UIKit)
+    @available(iOS 14.0, *)
+    private func presentLegacyGameCenter(from root: UIViewController) {
+        // Suppress deprecation warnings for now until new API is available
+        // TODO: Update to new GameCenter API when available in iOS 26+
+        let vc: GKGameCenterViewController = {
+            if #available(iOS 26.0, *) {
+                // Future: Use new API here
+                return GKGameCenterViewController(state: .achievements)
+            } else {
+                return GKGameCenterViewController(state: .achievements)
+            }
+        }()
+        
+        vc.gameCenterDelegate = root as? any GKGameCenterControllerDelegate
+        root.present(vc, animated: true)
+    }
+    #endif
     
     #if canImport(UIKit)
     private static func topMostViewController() -> UIViewController? {

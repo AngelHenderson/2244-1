@@ -1,5 +1,8 @@
 import Foundation
 
+/// Stub implementation to maintain compatibility after MilestonePlanner.swift replacement
+/// These are minimal implementations to prevent compilation errors
+
 /// Milestones displayed on Home for ladder (below/current/locked-above).
 public struct Milestones: Sendable {
     public var below: Int?

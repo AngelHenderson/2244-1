@@ -1,22 +1,18 @@
 import SwiftUI
 import GameApp
 
-#if canImport(SwiftUI)
 extension View {
     @ViewBuilder
     func glassIfAvailableCard() -> some View {
         if #available(iOS 26.0, *) {
             // Prefer the new glass effect when available
             self.glassEffect()
-        } else if #available(iOS 15.0, *) {
+        } else {
             // Fallback to a material background for a similar look
             self.background(.ultraThinMaterial)
-        } else {
-            self
         }
     }
 }
-#endif
 
 public struct GiftRewardView: View {
     let giftReward: GiftReward
@@ -37,13 +33,10 @@ public struct GiftRewardView: View {
                     Color.clear
                         .ignoresSafeArea()
                         .glassEffect()
-                } else if #available(iOS 15.0, *) {
-                    Color.clear
-                        .ignoresSafeArea()
-                        .background(.ultraThinMaterial)
                 } else {
                     Color.clear
                         .ignoresSafeArea()
+                        .background(.ultraThinMaterial)
                 }
             }
 

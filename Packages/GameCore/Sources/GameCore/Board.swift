@@ -192,7 +192,7 @@ public struct Board: Equatable, Sendable {
         }
         
         // 2244 rule: after starting with two equal tiles, you can continue with same or double
-        if chain.count == 1 {
+        if chain.count < 2 {
             // need at least 2 identical to start
             return nextVal == lastVal
         } else {
