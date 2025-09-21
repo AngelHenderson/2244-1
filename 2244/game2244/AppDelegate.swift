@@ -19,4 +19,22 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         return true
     }
+    
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        // Save all progress when app goes to background
+        NotificationCenter.default.post(name: .saveProgress, object: nil)
+        print("📱 App backgrounded - progress saving triggered")
+    }
+    
+    func applicationWillTerminate(_ application: UIApplication) {
+        // Emergency save before app terminates
+        NotificationCenter.default.post(name: .saveProgress, object: nil)
+        UserDefaults.standard.synchronize() // Force immediate save
+        print("🚨 App terminating - emergency progress save")
+    }
+}
+
+// MARK: - Notification Names
+extension Notification.Name {
+    static let saveProgress = Notification.Name("SaveProgress")
 }

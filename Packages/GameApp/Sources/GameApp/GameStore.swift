@@ -5,6 +5,11 @@ import GameServices
 import Observation
 import CryptoKit
 
+// MARK: - Notification Names
+extension Notification.Name {
+    static let saveProgress = Notification.Name("SaveProgress")
+}
+
 @Observable
 @MainActor
 public final class GameStore {
@@ -93,6 +98,20 @@ public final class GameStore {
             state.highestTile = savedHighest
         } else if state.highestTile > 0 {
             journey.didReach(tile: state.highestTile)
+        }
+        
+        // Restore progress from saved data
+        restoreProgress()
+        
+        // Listen for app lifecycle save notifications
+        NotificationCenter.default.addObserver(
+            forName: .saveProgress,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.saveProgress()
+            }
         }
     }
     
@@ -205,6 +224,9 @@ public final class GameStore {
             if addedValue > previousHighest {
                 UserDefaults.standard.set(addedValue, forKey: "highestTile")
             }
+            
+            // CRITICAL: Auto-save progress for any new tile creation
+            saveProgressImmediately(newTile: addedValue, currentScore: state.score)
         }
         // Offer to double only if we created a tile that is one below the previous highest
         // or another instance of the previous highest.
@@ -230,6 +252,9 @@ public final class GameStore {
         
         // Evaluate achievements
         achievementEvaluator?.onChainCommitted(chain: positions, state: state, resultingTileValue: addedValue)
+        
+        // Auto-save progress for score changes and achievements
+        saveProgressImmediately(newTile: addedValue, currentScore: state.score)
         
         currentPath = []
         pathValidation = .valid
@@ -364,6 +389,9 @@ public final class GameStore {
             UserDefaults.standard.set(doubledValue, forKey: "highestTile")
         }
         
+        // Save progress for doubled tile (could be massive achievement)
+        saveProgressImmediately(newTile: doubledValue, currentScore: state.score)
+        
         return true
     }
     
@@ -398,6 +426,10 @@ public final class GameStore {
         state = engine.hammer(at: position)
         powerUpHistory.append(.hammer(position))
         achievementEvaluator?.onPowerUpUsed(type: "hammer")
+        
+        // Save progress after power-up use
+        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        
         return true
     }
     
@@ -413,6 +445,10 @@ public final class GameStore {
         state = engine.swap(a, b)
         powerUpHistory.append(.swap(a, b))
         achievementEvaluator?.onPowerUpUsed(type: "swap")
+        
+        // Save progress after swap power-up
+        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        
         return true
     }
     
@@ -428,6 +464,10 @@ public final class GameStore {
         state = engine.shuffle()
         powerUpHistory.append(.shuffle)
         achievementEvaluator?.onPowerUpUsed(type: "shuffle")
+        
+        // Save progress after shuffle power-up
+        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        
         return true
     }
     
@@ -438,6 +478,10 @@ public final class GameStore {
         state = engine.undo()
         powerUpHistory.append(.undo)
         achievementEvaluator?.onUndoUsed()
+        
+        // Save progress after undo (could restore significant state)
+        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        
         return true
     }
     
@@ -453,7 +497,11 @@ public final class GameStore {
                 if let tile = state.board[pos], tile.value == value && pos != position {
                     // Try to swap with target
                     if pos.isAdjacent(to: position) {
-                        _ = engine.swap(pos, position)
+                        state = engine.swap(pos, position)
+                        
+                        // Save progress after magnet use
+                        saveProgressImmediately(newTile: nil, currentScore: state.score)
+                        
                         return true
                     }
                 }
@@ -672,5 +720,119 @@ extension GameStore {
     
     public func bestScore(using storage: any StorageServiceProtocol) async -> Int {
         await storage.bestScore()
+    }
+    
+    // MARK: - Progress Auto-Save System
+    
+    private func saveProgressImmediately(newTile: Int?, currentScore: Int) {
+        // Check for infinity tiles on board
+        var hasInfinityTile = false
+        for row in 0..<state.board.height {
+            for col in 0..<state.board.width {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos], tile.isInfinity {
+                    hasInfinityTile = true
+                    break
+                }
+            }
+        }
+        
+        // Save infinity achievement if found
+        if hasInfinityTile {
+            UserDefaults.standard.set(true, forKey: "hasInfinityAchievement")
+            UserDefaults.standard.set(Int.max, forKey: "savedHighestTile") // Mark infinity as highest
+            print("♾️  INFINITY TILE ACHIEVEMENT SAVED!")
+        }
+        
+        // Save highest tile achievement
+        if let tile = newTile, tile > 0 {
+            let savedHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
+            if tile > savedHighest {
+                UserDefaults.standard.set(tile, forKey: "savedHighestTile")
+                
+                // Special logging for major achievements
+                if tile >= Int.max {
+                    print("♾️  INFINITY TILE CREATED AND SAVED!")
+                } else if tile >= 2_147_483_648 { // 2B
+                    print("🌟 2B TILE ACHIEVEMENT SAVED!")
+                } else if tile >= 1_073_741_824 { // 1B
+                    print("💎 1B TILE ACHIEVEMENT SAVED!")
+                }
+                print("🏆 New highest tile saved: \(tile)")
+            }
+        }
+        
+        // Save best score
+        let savedBestScore = UserDefaults.standard.integer(forKey: "savedBestScore")
+        if currentScore > savedBestScore {
+            UserDefaults.standard.set(currentScore, forKey: "savedBestScore")
+            print("🎯 New best score saved: \(currentScore)")
+        }
+        
+        // Save current session progress
+        UserDefaults.standard.set(state.highestTile, forKey: "currentHighestTile")
+        UserDefaults.standard.set(currentScore, forKey: "currentScore")
+        UserDefaults.standard.set(state.gems, forKey: "coins")
+        
+        // Save timestamp of last progress save
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "lastProgressSave")
+    }
+    
+    /// Restore progress from saved data (called on app launch)
+    public func restoreProgress() {
+        let savedHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
+        let savedBestScore = UserDefaults.standard.integer(forKey: "savedBestScore")
+        let savedGems = UserDefaults.standard.integer(forKey: "coins")
+        let hasInfinityAchievement = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
+        
+        // Restore infinity achievement
+        if hasInfinityAchievement {
+            print("♾️  INFINITY ACHIEVEMENT RESTORED!")
+        }
+        
+        if savedHighest > state.highestTile {
+            state.highestTile = savedHighest
+            journey.didReach(tile: savedHighest)
+            if savedHighest >= 2_147_483_648 {
+                print("🔄 Restored 2B+ achievement: \(savedHighest)")
+            } else {
+                print("🔄 Restored highest tile: \(savedHighest)")
+            }
+        }
+        
+        if savedGems > state.gems {
+            state.gems = savedGems
+            print("🔄 Restored gems: \(savedGems)")
+        }
+        
+        print("📱 Progress restoration complete")
+        print("   • Highest Tile: \(state.highestTile)")
+        print("   • Best Score: \(savedBestScore)")
+        print("   • Gems: \(state.gems)")
+        if hasInfinityAchievement {
+            print("   • Infinity Achievement: ✅")
+        }
+    }
+    
+    // MARK: - Manual Progress Management
+    
+    /// Manually save current progress (call anytime)
+    public func saveProgress() {
+        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        print("💾 Manual progress save completed")
+    }
+    
+    /// Get current progress summary
+    public func getProgressSummary() -> (highestTile: Int, bestScore: Int, gems: Int, hasInfinity: Bool) {
+        let savedHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
+        let savedBestScore = UserDefaults.standard.integer(forKey: "savedBestScore")
+        let hasInfinity = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
+        
+        return (
+            highestTile: max(savedHighest, state.highestTile),
+            bestScore: max(savedBestScore, state.score),
+            gems: state.gems,
+            hasInfinity: hasInfinity
+        )
     }
 }
