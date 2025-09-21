@@ -856,6 +856,7 @@ public final class GameEngine {
         // Only trigger once per milestone creation
         if !eliminatedMilestones.contains(createdValue) {
             eliminatedMilestones.insert(createdValue)
+            // Remove lower value tiles from board (NOT the milestone itself)
             eliminateAllTiles(withValue: toRemove)
         }
     }
