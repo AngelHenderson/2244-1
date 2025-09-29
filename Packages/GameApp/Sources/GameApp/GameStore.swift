@@ -735,7 +735,7 @@ extension GameStore {
     
     // MARK: - Progress Auto-Save System
     
-    private func saveProgressImmediately(newTile: Int?, currentScore: Int) {
+    public func saveProgressImmediately(newTile: Int?, currentScore: Int) {
         // SAVE EVERYTHING ON EVERY ACTION - not just new records
         
         // Check for infinity tiles on board
@@ -1122,11 +1122,11 @@ extension GameStore {
         }
         
         // Restore session statistics
-        let totalMerges = UserDefaults.standard.integer(forKey: "totalMerges")
-        let totalTimePlayed = UserDefaults.standard.double(forKey: "totalTimePlayed")
-        let gamesPlayed = UserDefaults.standard.integer(forKey: "gamesPlayed")
-        let currentWinStreak = UserDefaults.standard.integer(forKey: "currentWinStreak")
-        let bestWinStreak = UserDefaults.standard.integer(forKey: "bestWinStreak")
+        _ = UserDefaults.standard.integer(forKey: "totalMerges")
+        _ = UserDefaults.standard.double(forKey: "totalTimePlayed")
+        _ = UserDefaults.standard.integer(forKey: "gamesPlayed")
+        _ = UserDefaults.standard.integer(forKey: "currentWinStreak")
+        _ = UserDefaults.standard.integer(forKey: "bestWinStreak")
         
         // Restore session analytics
         if let analyticsData = UserDefaults.standard.data(forKey: "sessionAnalytics"),
@@ -1146,7 +1146,7 @@ extension GameStore {
     // MARK: - Session Tracking & Analytics
     
     /// Initialize comprehensive session tracking system
-    private func initializeSessionTracking() {
+    public func initializeSessionTracking() {
         let now = Date()
         
         // Check if this is a new session or continuation
@@ -1201,7 +1201,7 @@ extension GameStore {
     }
     
     /// Update session analytics in real-time
-    private func updateSessionAnalytics() {
+    public func updateSessionAnalytics() {
         // Update session statistics
         let sessionMoves = UserDefaults.standard.integer(forKey: "sessionMoves") + 1
         UserDefaults.standard.set(sessionMoves, forKey: "sessionMoves")
@@ -1244,7 +1244,7 @@ extension GameStore {
     }
     
     /// Track detailed move analytics
-    private func trackMoveAnalytics(move: [Position]) {
+    public func trackMoveAnalytics(move: [Position]) {
         var moveHistory = UserDefaults.standard.array(forKey: "sessionMoveHistory") as? [[String: Any]] ?? []
         
         let moveData: [String: Any] = [
@@ -1278,7 +1278,7 @@ extension GameStore {
     }
     
     /// Track power-up usage analytics
-    private func trackPowerUpAnalytics(action: PowerUpAction) {
+    public func trackPowerUpAnalytics(action: PowerUpAction) {
         var powerUpHistory = UserDefaults.standard.array(forKey: "sessionPowerUpHistory") as? [[String: Any]] ?? []
         
         let powerUpData: [String: Any] = [

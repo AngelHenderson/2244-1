@@ -27,6 +27,7 @@ public struct HybridGameScreen: View {
     @Environment(\.hapticsService) private var haptics
     @Environment(\.gameCenter) private var gameCenter
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
+    @Environment(\.scenePhase) private var scenePhase
     
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
@@ -87,7 +88,8 @@ public struct HybridGameScreen: View {
             set: { newValue in if !newValue { gameStore.clearLastMergeInfo() } }
         )
 
-        return mainGameView
+        // Break down the complex expression into smaller parts
+        let baseView = mainGameView
             .safeAreaInset(edge: .top) { topHUD }
             .safeAreaInset(edge: .bottom) { bottomDock }
             .overlay(alignment: .top) {
@@ -95,6 +97,8 @@ public struct HybridGameScreen: View {
                     TopMergeTileView(value: v)
                 }
             }
+        
+        let pauseSheet = baseView
             .sheet(isPresented: $isShowingPause) {
                 PauseSheet(
                     onResume: { isShowingPause = false },
@@ -104,12 +108,18 @@ public struct HybridGameScreen: View {
                     }
                 )
             }
+        
+        let storeSheet = pauseSheet
             .sheet(isPresented: $isShowingStore) {
                 StoreView()
             }
+        
+        let leaderboardSheet = storeSheet
             .sheet(isPresented: $isShowingLeaderboard) {
                 LeaderboardView()
             }
+        
+        let giftSheet = leaderboardSheet
             .sheet(isPresented: giftRewardBinding) {
                 if let giftReward = gameStore.pendingGiftReward {
                     GiftRewardView(giftReward: giftReward) {
@@ -117,6 +127,8 @@ public struct HybridGameScreen: View {
                     }
                 }
             }
+        
+        let unlockSheet = giftSheet
             .sheet(isPresented: unlockRewardBinding) {
                 RewardSpinnerView(
                     baseAmount: gameStore.pendingUnlockRewardBase ?? 0,
@@ -124,11 +136,15 @@ public struct HybridGameScreen: View {
                     onClose: { gameStore.clearPendingUnlockReward() }
                 )
             }
+        
+        let sheetViews = unlockSheet
             .sheet(isPresented: mergeInfoBinding) {
                 if let info = gameStore.lastMergeInfo {
                     MergeInfoBoard(info: info, onClose: { gameStore.clearLastMergeInfo() })
                 }
             }
+        
+        let alertView = sheetViews
             .alert("Double your tile?", isPresented: $isShowingDoublePrompt) {
                 Button("No", role: .cancel) { gameStore.clearPendingDoubleOffer() }
                 Button("Yes") { /* Dismiss and wait for user to tap a tile */ }
@@ -139,6 +155,8 @@ public struct HybridGameScreen: View {
                     Text("Tap a target tile.")
                 }
             }
+        
+        let changeHandlers = alertView
             .onChange(of: gameStore.lastAddedTileValue) { _, newValue in
                 handleLastAddedTileChange(newValue)
             }
@@ -151,11 +169,37 @@ public struct HybridGameScreen: View {
             .onChange(of: gameStore.state.score) { _, newValue in
                 tempHomeState.rank = max(1, 100000 - newValue)
             }
+        
+        let sessionTracking = changeHandlers
             .onAppear {
                 // Initialize tempHomeState with current values
                 tempHomeState.gems = gameStore.coins
                 tempHomeState.rank = max(1, 100000 - gameStore.state.score)
+                
+                // Initialize comprehensive session tracking
+                gameStore.initializeSessionTracking()
             }
+            // Enhanced auto-save triggers for comprehensive session data
+            .onChange(of: gameStore.state.moves) { _, _ in
+                // Auto-save on every move with comprehensive session data
+                gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+            }
+            .onChange(of: gameStore.state.score) { _, newScore in
+                // Update session analytics on score change
+                gameStore.updateSessionAnalytics()
+            }
+            .onChange(of: gameStore.coins) { _, _ in
+                // Auto-save when gems change
+                gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                // Comprehensive auto-save when app goes to background
+                if newPhase != .active {
+                    gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+                }
+            }
+        
+        return sessionTracking
     }
     
     private func makeGameActions() -> HomeActions {
@@ -245,6 +289,8 @@ public struct HybridGameScreen: View {
             cancelAllModes()
             isHammerMode = true
             haptics.lightImpact()
+            // Track power-up selection for analytics
+            gameStore.trackPowerUpAnalytics(action: .hammer(Position(row: 0, col: 0))) // Placeholder position
         } else {
             haptics.error()
         }
@@ -265,6 +311,8 @@ public struct HybridGameScreen: View {
             isSwapMode = true
             firstSwapPosition = nil
             haptics.lightImpact()
+            // Track power-up selection for analytics
+            gameStore.trackPowerUpAnalytics(action: .swap(Position(row: 0, col: 0), Position(row: 0, col: 1))) // Placeholder positions
         } else {
             haptics.error()
         }
@@ -283,9 +331,14 @@ public struct HybridGameScreen: View {
         cancelAllModes()
         isMagnetMode = true
         haptics.lightImpact()
+        // Track power-up selection for analytics
+        gameStore.trackPowerUpAnalytics(action: .shuffle) // Use shuffle as placeholder for magnet
     }
     
     private func handleTileTap(at position: Position) {
+        // Track tile interaction for analytics
+        gameStore.trackMoveAnalytics(move: [position])
+        
         // Handle double tile power-up first
         if gameStore.pendingDoubleBase != nil {
             _ = gameStore.applyDouble(to: position)

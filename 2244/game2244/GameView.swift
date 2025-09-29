@@ -29,6 +29,8 @@ struct GameView: View {
                 await adService.showBanner()
                 // Attempt to restore last autosave on first launch of this scene
                 _ = await gameStore.load(from: "autosave", using: storage)
+                // Initialize comprehensive session tracking
+                gameStore.initializeSessionTracking()
             }
             .onAppear {
                 Theme.colorBlindMode = colorBlindMode
@@ -36,13 +38,19 @@ struct GameView: View {
             .onChange(of: colorBlindMode) { _, newValue in
                 Theme.colorBlindMode = newValue
             }
-            // Auto-save whenever a move is committed
+            // Enhanced auto-save with comprehensive session data
             .onChange(of: gameStore.state.moves) { _, _ in
+                // Use comprehensive session tracking auto-save
+                gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+                // Also save to autosave slot for compatibility
                 Task { await gameStore.save(to: "autosave", using: storage, theme: selectedThemeId) }
             }
-            // Also auto-save on app going to background/inactive
+            // Enhanced auto-save on app going to background/inactive
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase != .active {
+                    // Use comprehensive session tracking auto-save
+                    gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+                    // Also save to autosave slot for compatibility
                     Task { await gameStore.save(to: "autosave", using: storage, theme: selectedThemeId) }
                 }
             }
