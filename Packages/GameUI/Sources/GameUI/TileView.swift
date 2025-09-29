@@ -5,24 +5,15 @@ private enum MilestoneAppearance {
     // Exact milestone values: 1M, 2M, 4M, 8M, 16M, 33M
     static let milestones: [Int: Color] = [
         1 << 20: Color(hex: "D31AAE"),
-        1 << 21: Color(hex: "4A2A8A"), // 2M - darker blue-purple
+        1 << 21: Color(hex: "6C3EBF"),
         1 << 22: Color(hex: "FF6B6B"),
-        1 << 23: Color(hex: "0D4A7A"), // 8M - darker blue
+        1 << 23: Color(hex: "1E73C6"),
         1 << 24: Color(hex: "F47C20"),
         1 << 25: Color(hex: "C4D018")
     ]
     
-    // Text color overrides for specific milestone values
-    static let textColorOverrides: [Int: Color] = [
-        1 << 22: .white  // 4M - white text
-    ]
-    
     static func colorOverride(for value: Int) -> Color? {
         milestones[value]
-    }
-    
-    static func textColorOverride(for value: Int) -> Color? {
-        textColorOverrides[value]
     }
 }
 
@@ -173,10 +164,6 @@ struct TileView: View {
         if case .highValue(let step) = tile.type {
             // Match text contrast for step-based color
             return Theme.textColorForStep(step)
-        }
-        // Check for milestone text color override first
-        if let override = MilestoneAppearance.textColorOverride(for: tile.value) {
-            return override
         }
         return Theme.textColor(for: tile.value)
     }
