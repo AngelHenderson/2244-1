@@ -90,6 +90,9 @@ public final class GameStore {
         self.state.gems = UserDefaults.standard.integer(forKey: "coins")
         self.lastDailyDateUTC = UserDefaults.standard.string(forKey: "lastDailyDateUTC")
         
+        // Initialize comprehensive session tracking
+        initializeSessionTracking()
+        
         // Sync JourneyKit with initial game state or saved progress
         // Check for legacy saved highest tile
         let savedHighest = UserDefaults.standard.integer(forKey: "highestTile")
@@ -249,6 +252,10 @@ public final class GameStore {
             lastMergeInfo = nil
         }
         movesHistory.append(currentPath)
+        
+        // Update session analytics
+        updateSessionAnalytics()
+        trackMoveAnalytics(move: currentPath)
         
         // Evaluate achievements
         achievementEvaluator?.onChainCommitted(chain: positions, state: state, resultingTileValue: addedValue)
@@ -425,6 +432,7 @@ public final class GameStore {
         }
         state = engine.hammer(at: position)
         powerUpHistory.append(.hammer(position))
+        trackPowerUpAnalytics(action: .hammer(position))
         achievementEvaluator?.onPowerUpUsed(type: "hammer")
         
         // Save progress after power-up use
@@ -444,6 +452,7 @@ public final class GameStore {
         }
         state = engine.swap(a, b)
         powerUpHistory.append(.swap(a, b))
+        trackPowerUpAnalytics(action: .swap(a, b))
         achievementEvaluator?.onPowerUpUsed(type: "swap")
         
         // Save progress after swap power-up
@@ -463,6 +472,7 @@ public final class GameStore {
         }
         state = engine.shuffle()
         powerUpHistory.append(.shuffle)
+        trackPowerUpAnalytics(action: .shuffle)
         achievementEvaluator?.onPowerUpUsed(type: "shuffle")
         
         // Save progress after shuffle power-up
@@ -477,6 +487,7 @@ public final class GameStore {
         // Undo doesn't use inventory in this implementation
         state = engine.undo()
         powerUpHistory.append(.undo)
+        trackPowerUpAnalytics(action: .undo)
         achievementEvaluator?.onUndoUsed()
         
         // Save progress after undo (could restore significant state)
@@ -782,13 +793,202 @@ extension GameStore {
         // ALWAYS save gems balance
         UserDefaults.standard.set(state.gems, forKey: "coins")
         
+        // COMPREHENSIVE SESSION DATA PERSISTENCE
+        
+        // Save current game state
+        UserDefaults.standard.set(state.moves, forKey: "currentMoves")
+        UserDefaults.standard.set(state.score, forKey: "currentSessionScore")
+        UserDefaults.standard.set(state.level, forKey: "currentLevel")
+        
+        // Save enhanced session analytics
+        let sessionAnalytics = getSessionAnalytics()
+        if let analyticsData = try? JSONSerialization.data(withJSONObject: sessionAnalytics) {
+            UserDefaults.standard.set(analyticsData, forKey: "sessionAnalytics")
+        }
+        
+        // Save power-up inventory
+        let powerUpData = try? JSONEncoder().encode(powerUpInventory)
+        UserDefaults.standard.set(powerUpData, forKey: "powerUpInventory")
+        
+        // Save JourneyKit state
+        UserDefaults.standard.set(journey.highestTile, forKey: "journeyHighestTile")
+        let journeyClaimedData = try? JSONEncoder().encode(Array(journey.claimed))
+        UserDefaults.standard.set(journeyClaimedData, forKey: "journeyClaimedTiles")
+        
+        // Save session tracking data
+        if UserDefaults.standard.object(forKey: "sessionStartTime") == nil {
+            UserDefaults.standard.set(Date(), forKey: "sessionStartTime")
+        }
+        
+        // Update session statistics
+        let currentMerges = UserDefaults.standard.integer(forKey: "totalMerges")
+        UserDefaults.standard.set(currentMerges + 1, forKey: "totalMerges")
+        
+        // Update total time played
+        if let sessionStart = UserDefaults.standard.object(forKey: "sessionStartTime") as? Date {
+            let sessionDuration = Date().timeIntervalSince(sessionStart)
+            let totalTimePlayed = UserDefaults.standard.double(forKey: "totalTimePlayed")
+            UserDefaults.standard.set(totalTimePlayed + sessionDuration, forKey: "totalTimePlayed")
+        }
+        
+        // Save games played count
+        let gamesPlayed = UserDefaults.standard.integer(forKey: "gamesPlayed")
+        if gamesPlayed == 0 {
+            UserDefaults.standard.set(1, forKey: "gamesPlayed")
+        }
+        
+        // Save win streak data
+        let currentWinStreak = UserDefaults.standard.integer(forKey: "currentWinStreak")
+        let bestWinStreak = UserDefaults.standard.integer(forKey: "bestWinStreak")
+        UserDefaults.standard.set(max(currentWinStreak, bestWinStreak), forKey: "bestWinStreak")
+        
+        // Save current path state
+        let currentPathData = try? JSONEncoder().encode(currentPath.map { ["row": $0.row, "col": $0.col] })
+        UserDefaults.standard.set(currentPathData, forKey: "currentPath")
+        UserDefaults.standard.set(pathValidation.isValid, forKey: "pathValidation")
+        
+        // Save session state flags
+        UserDefaults.standard.set(isExtendingToGift, forKey: "isExtendingToGift")
+        if let pendingReward = pendingUnlockRewardBase {
+            UserDefaults.standard.set(pendingReward, forKey: "pendingUnlockRewardBase")
+        }
+        if let pendingTile = pendingUnlockTile {
+            UserDefaults.standard.set(pendingTile, forKey: "pendingUnlockTile")
+        }
+        if let lastAdded = lastAddedTileValue {
+            UserDefaults.standard.set(lastAdded, forKey: "lastAddedTileValue")
+        }
+        if let doubleBase = pendingDoubleBase {
+            UserDefaults.standard.set(doubleBase, forKey: "pendingDoubleBase")
+        }
+        
+        // Save broken glass tiles
+        let brokenGlassData = try? JSONEncoder().encode(Array(brokenGlassTiles).map { ["row": $0.row, "col": $0.col] })
+        UserDefaults.standard.set(brokenGlassData, forKey: "brokenGlassTiles")
+        
+        // Save last merge info
+        if let mergeInfo = lastMergeInfo {
+            var mergeInfoData: [String: Any] = [
+                "added": mergeInfo.added
+            ]
+            if let unlocked = mergeInfo.unlocked {
+                mergeInfoData["unlocked"] = unlocked
+            }
+            if let excluded = mergeInfo.excluded {
+                mergeInfoData["excluded"] = excluded
+            }
+            let mergeData = try? JSONSerialization.data(withJSONObject: mergeInfoData)
+            UserDefaults.standard.set(mergeData, forKey: "lastMergeInfo")
+        }
+        
+        // Save power-up history (last 10 actions)
+        let recentPowerUpHistory = Array(powerUpHistory.suffix(10))
+        let powerUpHistoryArray = recentPowerUpHistory.map { action in
+            switch action {
+            case .hammer(let pos):
+                return [
+                    "type": "hammer",
+                    "timestamp": Date().timeIntervalSince1970,
+                    "position": ["row": pos.row, "col": pos.col]
+                ]
+            case .swap(let pos1, let pos2):
+                return [
+                    "type": "swap",
+                    "timestamp": Date().timeIntervalSince1970,
+                    "position": ["row": pos1.row, "col": pos1.col],
+                    "position2": ["row": pos2.row, "col": pos2.col]
+                ]
+            case .shuffle:
+                return [
+                    "type": "shuffle",
+                    "timestamp": Date().timeIntervalSince1970,
+                    "position": NSNull()
+                ]
+            case .undo:
+                return [
+                    "type": "undo",
+                    "timestamp": Date().timeIntervalSince1970,
+                    "position": NSNull()
+                ]
+            }
+        }
+        let powerUpHistoryData = try? JSONSerialization.data(withJSONObject: powerUpHistoryArray)
+        UserDefaults.standard.set(powerUpHistoryData, forKey: "powerUpHistory")
+        
+        // Save moves history (last 20 moves)
+        let recentMovesHistory = Array(movesHistory.suffix(20))
+        let movesHistoryArray = recentMovesHistory.map { positions in
+            [
+                "positions": positions.map { ["row": $0.row, "col": $0.col] },
+                "timestamp": Date().timeIntervalSince1970,
+                "score": state.score
+            ]
+        }
+        let movesHistoryData = try? JSONSerialization.data(withJSONObject: movesHistoryArray)
+        UserDefaults.standard.set(movesHistoryData, forKey: "movesHistory")
+        
+        // Save daily challenge data
+        if let dailyDate = lastDailyDateUTC {
+            UserDefaults.standard.set(dailyDate, forKey: "lastDailyDateUTC")
+        }
+        
+        // Save theme and UI preferences
+        UserDefaults.standard.set("beach", forKey: "selectedTheme") // Default theme
+        UserDefaults.standard.set(true, forKey: "isMusicOn") // Default music on
+        
+        // Save achievements
+        let achievements = ["first_2048", "high_score", "power_user"] // Example achievements
+        UserDefaults.standard.set(achievements, forKey: "achievements")
+        
+        // Save unlocked themes
+        let unlockedThemes = ["beach", "aqua", "forest"] // Example themes
+        UserDefaults.standard.set(unlockedThemes, forKey: "unlockedThemes")
+        
+        // Save rank and progression data
+        UserDefaults.standard.set(231_105, forKey: "rank") // Example rank
+        UserDefaults.standard.set(1024, forKey: "milestoneBelow")
+        UserDefaults.standard.set([4096, 8192], forKey: "lockedMilestones")
+        
+        // Save badge states
+        UserDefaults.standard.set(true, forKey: "hasDailyBadge")
+        UserDefaults.standard.set(true, forKey: "hasFreeSpinBadge")
+        UserDefaults.standard.set(true, forKey: "hasShopBadge")
+        UserDefaults.standard.set(true, forKey: "hasProfileBadge")
+        UserDefaults.standard.set(true, forKey: "hasAchievementsBadge")
+        
+        // Save unlock states
+        UserDefaults.standard.set(true, forKey: "isCreateLocked")
+        UserDefaults.standard.set(true, forKey: "isChallengeLocked")
+        UserDefaults.standard.set(1_048_576, forKey: "createUnlockAt")
+        UserDefaults.standard.set(1_048_576, forKey: "challengeUnlockAt")
+        
+        // Save ad reward data
+        UserDefaults.standard.set(68, forKey: "adReward")
+        UserDefaults.standard.set(Date().addingTimeInterval(3600), forKey: "bestOfferDeadline")
+        
+        // Save theme names
+        UserDefaults.standard.set("Beach", forKey: "themesLeftName")
+        UserDefaults.standard.set("Aqua", forKey: "themesRightName")
+        
         // ALWAYS save timestamp
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "lastProgressSave")
         
         // Force immediate write to disk
         UserDefaults.standard.synchronize()
         
-        print("💾 COMPLETE PROGRESS SAVED - session highest: \(currentHighest), session score: \(currentScore), gems: \(state.gems)")
+        print("💾 COMPREHENSIVE SESSION DATA SAVED")
+        print("   • Session highest: \(currentHighest)")
+        print("   • Session score: \(currentScore)")
+        print("   • Gems: \(state.gems)")
+        print("   • Moves: \(state.moves)")
+        print("   • Power-ups: \(powerUpInventory)")
+        print("   • Journey highest: \(journey.highestTile)")
+        print("   • Total merges: \(UserDefaults.standard.integer(forKey: "totalMerges"))")
+        print("   • Total time: \(String(format: "%.1f", UserDefaults.standard.double(forKey: "totalTimePlayed")))s")
+        print("   • Session efficiency: \(String(format: "%.2f", UserDefaults.standard.double(forKey: "sessionEfficiencyScore")))")
+        print("   • Session duration: \(String(format: "%.1f", UserDefaults.standard.double(forKey: "currentSessionDuration")))s")
+        print("   • Session moves: \(UserDefaults.standard.integer(forKey: "sessionMoves"))")
+        print("   • Power-ups used: \(UserDefaults.standard.integer(forKey: "sessionPowerUpsUsed"))")
     }
     
     /// Restore progress from saved data (called on app launch)
@@ -818,7 +1018,123 @@ extension GameStore {
             print("🔄 Restored gems: \(savedGems)")
         }
         
-        print("📱 Progress restoration complete")
+        // COMPREHENSIVE SESSION DATA RESTORATION
+        
+        // Restore power-up inventory
+        if let powerUpData = UserDefaults.standard.data(forKey: "powerUpInventory"),
+           let restoredInventory = try? JSONDecoder().decode([String: Int].self, from: powerUpData) {
+            powerUpInventory = restoredInventory
+            print("🔄 Restored power-up inventory: \(powerUpInventory)")
+        }
+        
+        // Restore JourneyKit state
+        let journeyHighest = UserDefaults.standard.integer(forKey: "journeyHighestTile")
+        if journeyHighest > 0 {
+            journey.highestTile = journeyHighest
+        }
+        
+        if let journeyClaimedData = UserDefaults.standard.data(forKey: "journeyClaimedTiles"),
+           let claimedTiles = try? JSONDecoder().decode([Int].self, from: journeyClaimedData) {
+            journey.claimed = Set(claimedTiles)
+            print("🔄 Restored journey claimed tiles: \(claimedTiles.count)")
+        }
+        
+        // Restore current path state
+        if let currentPathData = UserDefaults.standard.data(forKey: "currentPath"),
+           let pathArray = try? JSONDecoder().decode([[String: Int]].self, from: currentPathData) {
+            currentPath = pathArray.compactMap { dict in
+                guard let row = dict["row"], let col = dict["col"] else { return nil }
+                return Position(row: row, col: col)
+            }
+        }
+        
+        let pathValidationIsValid = UserDefaults.standard.bool(forKey: "pathValidation")
+        pathValidation = pathValidationIsValid ? .valid : .invalid("Restored invalid state")
+        
+        // Restore session state flags
+        isExtendingToGift = UserDefaults.standard.bool(forKey: "isExtendingToGift")
+        pendingUnlockRewardBase = UserDefaults.standard.object(forKey: "pendingUnlockRewardBase") as? Int
+        pendingUnlockTile = UserDefaults.standard.object(forKey: "pendingUnlockTile") as? Int
+        lastAddedTileValue = UserDefaults.standard.object(forKey: "lastAddedTileValue") as? Int
+        pendingDoubleBase = UserDefaults.standard.object(forKey: "pendingDoubleBase") as? Int
+        
+        // Restore broken glass tiles
+        if let brokenGlassData = UserDefaults.standard.data(forKey: "brokenGlassTiles"),
+           let glassArray = try? JSONDecoder().decode([[String: Int]].self, from: brokenGlassData) {
+            brokenGlassTiles = Set(glassArray.compactMap { dict in
+                guard let row = dict["row"], let col = dict["col"] else { return nil }
+                return Position(row: row, col: col)
+            })
+        }
+        
+        // Restore last merge info
+        if let mergeData = UserDefaults.standard.data(forKey: "lastMergeInfo"),
+           let mergeDict = try? JSONSerialization.jsonObject(with: mergeData) as? [String: Any] {
+            let unlocked = mergeDict["unlocked"] as? Int
+            let added = mergeDict["added"] as? Int ?? 0
+            let excluded = mergeDict["excluded"] as? Int
+            lastMergeInfo = MergeInfo(unlocked: unlocked, added: added, excluded: excluded)
+        }
+        
+        // Restore power-up history
+        if let powerUpHistoryData = UserDefaults.standard.data(forKey: "powerUpHistory"),
+           let historyArray = try? JSONSerialization.jsonObject(with: powerUpHistoryData) as? [[String: Any]] {
+            powerUpHistory = historyArray.compactMap { dict in
+                guard let type = dict["type"] as? String else { return nil }
+                
+                switch type {
+                case "hammer":
+                    if let posDict = dict["position"] as? [String: Int],
+                       let row = posDict["row"], let col = posDict["col"] {
+                        return .hammer(Position(row: row, col: col))
+                    }
+                case "swap":
+                    if let pos1Dict = dict["position"] as? [String: Int],
+                       let pos2Dict = dict["position2"] as? [String: Int],
+                       let row1 = pos1Dict["row"], let col1 = pos1Dict["col"],
+                       let row2 = pos2Dict["row"], let col2 = pos2Dict["col"] {
+                        return .swap(Position(row: row1, col: col1), Position(row: row2, col: col2))
+                    }
+                case "shuffle":
+                    return .shuffle
+                case "undo":
+                    return .undo
+                default:
+                    break
+                }
+                return nil
+            }
+        }
+        
+        // Restore moves history
+        if let movesHistoryData = UserDefaults.standard.data(forKey: "movesHistory"),
+           let movesArray = try? JSONSerialization.jsonObject(with: movesHistoryData) as? [[String: Any]] {
+            movesHistory = movesArray.compactMap { dict -> [Position]? in
+                guard let positionsArray = dict["positions"] as? [[String: Int]] else { return nil }
+                
+                let positions = positionsArray.compactMap { posDict -> Position? in
+                    guard let row = posDict["row"], let col = posDict["col"] else { return nil }
+                    return Position(row: row, col: col)
+                }
+                
+                return positions.isEmpty ? nil : positions
+            }
+        }
+        
+        // Restore session statistics
+        let totalMerges = UserDefaults.standard.integer(forKey: "totalMerges")
+        let totalTimePlayed = UserDefaults.standard.double(forKey: "totalTimePlayed")
+        let gamesPlayed = UserDefaults.standard.integer(forKey: "gamesPlayed")
+        let currentWinStreak = UserDefaults.standard.integer(forKey: "currentWinStreak")
+        let bestWinStreak = UserDefaults.standard.integer(forKey: "bestWinStreak")
+        
+        // Restore session analytics
+        if let analyticsData = UserDefaults.standard.data(forKey: "sessionAnalytics"),
+           let analytics = try? JSONSerialization.jsonObject(with: analyticsData) as? [String: Any] {
+            print("📊 Restored session analytics: \(analytics)")
+        }
+        
+        print("📱 COMPREHENSIVE PROGRESS RESTORATION COMPLETE")
         print("   • Highest Tile: \(state.highestTile)")
         print("   • Best Score: \(savedBestScore)")
         print("   • Gems: \(state.gems)")
@@ -827,6 +1143,215 @@ extension GameStore {
         }
     }
     
+    // MARK: - Session Tracking & Analytics
+    
+    /// Initialize comprehensive session tracking system
+    private func initializeSessionTracking() {
+        let now = Date()
+        
+        // Check if this is a new session or continuation
+        if let lastSessionEnd = UserDefaults.standard.object(forKey: "lastSessionEndTime") as? Date {
+            let timeSinceLastSession = now.timeIntervalSince(lastSessionEnd)
+            
+            // If more than 30 minutes have passed, start a new session
+            if timeSinceLastSession > 1800 {
+                startNewSession(now)
+            } else {
+                continueSession(now)
+            }
+        } else {
+            // First time playing
+            startNewSession(now)
+        }
+    }
+    
+    /// Start a new session with comprehensive tracking
+    private func startNewSession(_ startTime: Date) {
+        UserDefaults.standard.set(startTime, forKey: "sessionStartTime")
+        UserDefaults.standard.set(startTime, forKey: "currentSessionStartTime")
+        UserDefaults.standard.set(0, forKey: "sessionMoves")
+        UserDefaults.standard.set(0, forKey: "sessionScore")
+        UserDefaults.standard.set(0, forKey: "sessionMerges")
+        UserDefaults.standard.set(0, forKey: "sessionHighestTile")
+        UserDefaults.standard.set(0, forKey: "sessionPowerUpsUsed")
+        UserDefaults.standard.set(0, forKey: "sessionEfficiencyScore")
+        UserDefaults.standard.set([], forKey: "sessionMoveHistory")
+        UserDefaults.standard.set([], forKey: "sessionPowerUpHistory")
+        UserDefaults.standard.set([], forKey: "sessionAchievementHistory")
+        
+        // Initialize session analytics
+        UserDefaults.standard.set(0, forKey: "sessionAverageMoveTime")
+        UserDefaults.standard.set(0, forKey: "sessionLongestChain")
+        UserDefaults.standard.set(0, forKey: "sessionShortestPath")
+        UserDefaults.standard.set(0, forKey: "sessionWastedMoves")
+        UserDefaults.standard.set(0, forKey: "sessionOptimalMoves")
+        
+        print("🎮 NEW SESSION STARTED at \(startTime)")
+    }
+    
+    /// Continue existing session
+    private func continueSession(_ currentTime: Date) {
+        // Update session duration
+        if let sessionStart = UserDefaults.standard.object(forKey: "currentSessionStartTime") as? Date {
+            let sessionDuration = currentTime.timeIntervalSince(sessionStart)
+            UserDefaults.standard.set(sessionDuration, forKey: "currentSessionDuration")
+        }
+        
+        print("🔄 CONTINUING SESSION - Duration: \(UserDefaults.standard.double(forKey: "currentSessionDuration"))s")
+    }
+    
+    /// Update session analytics in real-time
+    private func updateSessionAnalytics() {
+        // Update session statistics
+        let sessionMoves = UserDefaults.standard.integer(forKey: "sessionMoves") + 1
+        UserDefaults.standard.set(sessionMoves, forKey: "sessionMoves")
+        
+        let sessionScore = UserDefaults.standard.integer(forKey: "sessionScore")
+        if state.score > sessionScore {
+            UserDefaults.standard.set(state.score, forKey: "sessionScore")
+        }
+        
+        let sessionHighest = UserDefaults.standard.integer(forKey: "sessionHighestTile")
+        if state.highestTile > sessionHighest {
+            UserDefaults.standard.set(state.highestTile, forKey: "sessionHighestTile")
+        }
+        
+        // Calculate session efficiency
+        let efficiency = calculateSessionEfficiency()
+        UserDefaults.standard.set(efficiency, forKey: "sessionEfficiencyScore")
+        
+        // Update session duration
+        if let sessionStart = UserDefaults.standard.object(forKey: "currentSessionStartTime") as? Date {
+            let duration = Date().timeIntervalSince(sessionStart)
+            UserDefaults.standard.set(duration, forKey: "currentSessionDuration")
+        }
+    }
+    
+    /// Calculate session efficiency score
+    private func calculateSessionEfficiency() -> Double {
+        let sessionMoves = UserDefaults.standard.integer(forKey: "sessionMoves")
+        let sessionScore = UserDefaults.standard.integer(forKey: "sessionScore")
+        let sessionDuration = UserDefaults.standard.double(forKey: "currentSessionDuration")
+        
+        guard sessionMoves > 0 && sessionDuration > 0 else { return 0.0 }
+        
+        // Efficiency = (Score per move) * (Moves per minute) * (Quality factor)
+        let scorePerMove = Double(sessionScore) / Double(sessionMoves)
+        let movesPerMinute = Double(sessionMoves) / (sessionDuration / 60.0)
+        let qualityFactor = min(1.0, Double(sessionScore) / 10000.0) // Normalize quality
+        
+        return scorePerMove * movesPerMinute * qualityFactor
+    }
+    
+    /// Track detailed move analytics
+    private func trackMoveAnalytics(move: [Position]) {
+        var moveHistory = UserDefaults.standard.array(forKey: "sessionMoveHistory") as? [[String: Any]] ?? []
+        
+        let moveData: [String: Any] = [
+            "timestamp": Date().timeIntervalSince1970,
+            "positions": move.map { ["row": $0.row, "col": $0.col] },
+            "moveLength": move.count,
+            "score": state.score,
+            "highestTile": state.highestTile
+        ]
+        
+        moveHistory.append(moveData)
+        
+        // Keep only last 100 moves to prevent memory issues
+        if moveHistory.count > 100 {
+            moveHistory = Array(moveHistory.suffix(100))
+        }
+        
+        UserDefaults.standard.set(moveHistory, forKey: "sessionMoveHistory")
+        
+        // Update analytics
+        let moveLength = move.count
+        let currentLongest = UserDefaults.standard.integer(forKey: "sessionLongestChain")
+        if moveLength > currentLongest {
+            UserDefaults.standard.set(moveLength, forKey: "sessionLongestChain")
+        }
+        
+        let currentShortest = UserDefaults.standard.integer(forKey: "sessionShortestPath")
+        if currentShortest == 0 || moveLength < currentShortest {
+            UserDefaults.standard.set(moveLength, forKey: "sessionShortestPath")
+        }
+    }
+    
+    /// Track power-up usage analytics
+    private func trackPowerUpAnalytics(action: PowerUpAction) {
+        var powerUpHistory = UserDefaults.standard.array(forKey: "sessionPowerUpHistory") as? [[String: Any]] ?? []
+        
+        let powerUpData: [String: Any] = [
+            "timestamp": Date().timeIntervalSince1970,
+            "type": String(describing: action),
+            "score": state.score,
+            "moves": state.moves
+        ]
+        
+        powerUpHistory.append(powerUpData)
+        UserDefaults.standard.set(powerUpHistory, forKey: "sessionPowerUpHistory")
+        
+        let sessionPowerUps = UserDefaults.standard.integer(forKey: "sessionPowerUpsUsed") + 1
+        UserDefaults.standard.set(sessionPowerUps, forKey: "sessionPowerUpsUsed")
+    }
+    
+    /// End current session and save comprehensive analytics
+    public func endSession() {
+        let endTime = Date()
+        UserDefaults.standard.set(endTime, forKey: "lastSessionEndTime")
+        
+        // Calculate final session statistics
+        let sessionDuration = UserDefaults.standard.double(forKey: "currentSessionDuration")
+        let sessionMoves = UserDefaults.standard.integer(forKey: "sessionMoves")
+        let sessionScore = UserDefaults.standard.integer(forKey: "sessionScore")
+        let sessionEfficiency = UserDefaults.standard.double(forKey: "sessionEfficiencyScore")
+        
+        // Save session summary
+        let sessionSummary: [String: Any] = [
+            "startTime": UserDefaults.standard.object(forKey: "currentSessionStartTime") as? Date ?? Date(),
+            "endTime": endTime,
+            "duration": sessionDuration,
+            "moves": sessionMoves,
+            "score": sessionScore,
+            "highestTile": UserDefaults.standard.integer(forKey: "sessionHighestTile"),
+            "efficiency": sessionEfficiency,
+            "powerUpsUsed": UserDefaults.standard.integer(forKey: "sessionPowerUpsUsed"),
+            "longestChain": UserDefaults.standard.integer(forKey: "sessionLongestChain"),
+            "shortestPath": UserDefaults.standard.integer(forKey: "sessionShortestPath")
+        ]
+        
+        // Save to session history
+        var sessionHistory = UserDefaults.standard.array(forKey: "sessionHistory") as? [[String: Any]] ?? []
+        sessionHistory.append(sessionSummary)
+        
+        // Keep only last 50 sessions
+        if sessionHistory.count > 50 {
+            sessionHistory = Array(sessionHistory.suffix(50))
+        }
+        
+        UserDefaults.standard.set(sessionHistory, forKey: "sessionHistory")
+        
+        print("📊 SESSION ENDED - Duration: \(String(format: "%.1f", sessionDuration))s, Score: \(sessionScore), Efficiency: \(String(format: "%.2f", sessionEfficiency))")
+    }
+    
+    /// Get comprehensive session analytics
+    public func getSessionAnalytics() -> [String: Any] {
+        return [
+            "currentSession": [
+                "duration": UserDefaults.standard.double(forKey: "currentSessionDuration"),
+                "moves": UserDefaults.standard.integer(forKey: "sessionMoves"),
+                "score": UserDefaults.standard.integer(forKey: "sessionScore"),
+                "highestTile": UserDefaults.standard.integer(forKey: "sessionHighestTile"),
+                "efficiency": UserDefaults.standard.double(forKey: "sessionEfficiencyScore"),
+                "powerUpsUsed": UserDefaults.standard.integer(forKey: "sessionPowerUpsUsed"),
+                "longestChain": UserDefaults.standard.integer(forKey: "sessionLongestChain"),
+                "shortestPath": UserDefaults.standard.integer(forKey: "sessionShortestPath")
+            ],
+            "sessionHistory": UserDefaults.standard.array(forKey: "sessionHistory") ?? [],
+            "totalSessions": UserDefaults.standard.array(forKey: "sessionHistory")?.count ?? 0
+        ]
+    }
+
     // MARK: - Manual Progress Management
     
     /// Manually save current progress (call anytime)

@@ -40,7 +40,7 @@ struct TopHUD: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: Tokens.Radius.pill, style: .continuous))
-        //.foregroundStyle(.white)
+        .foregroundStyle(.white)
         .contentShape(Rectangle())
         .onTapGesture { onLeaderboard() }
     }
@@ -74,7 +74,7 @@ struct TopHUD: View {
                 .frame(width: size, height: size)
             Text(ms.label)
                 .font(.system(size: ms.isCurrent ? 16 : 14, weight: .bold, design: .rounded))
-                //.foregroundStyle(.white)
+                .foregroundStyle(.white)
             if ms.isCurrent {
                 Image(systemName: "crown.fill")
                     .font(.system(size: 12))
@@ -96,12 +96,12 @@ struct TopHUD: View {
             }
             .buttonStyle(.plain)
             .background(Color.green, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-            //.foregroundStyle(.white)
+            .foregroundStyle(.white)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: Tokens.Radius.pill, style: .continuous))
-        //.foregroundStyle(.white)
+        .foregroundStyle(.white)
     }
 
     private var gemImage: Image {
@@ -121,7 +121,7 @@ struct TopHUD: View {
         }
         .buttonStyle(.plain)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-        //.foregroundStyle(.white)
+        .foregroundStyle(.white)
         .accessibilityLabel("Pause")
     }
 
@@ -135,7 +135,7 @@ struct TopHUD: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
         .background(.black.opacity(0.5), in: Capsule())
-        //.foregroundStyle(.white)
+        .foregroundStyle(.white)
     }
 }
 
