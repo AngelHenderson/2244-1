@@ -1,8 +1,9 @@
 import Foundation
+import GameCore
 
 /// Canonical, versioned progress that both local and remote stores persist.
 public struct GameProgress: Codable, Equatable, Sendable {
-    public static let schemaVersion = 2
+    public static let schemaVersion = 3 // Bumped to v3 for comprehensive session state
 
     public var version: Int = schemaVersion
     public var highestTile: Int
@@ -21,6 +22,101 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public var completedDailyChallenges: Int
     public var currentWinStreak: Int
     public var bestWinStreak: Int
+    
+    // MARK: - Comprehensive Session State (v3)
+    
+    // Current game session
+    public var currentSessionState: SessionState?
+    
+    // Power-up inventory
+    public var powerUpInventory: [String: Int]
+    
+    // JourneyKit state
+    public var journeyState: JourneyState
+    
+    // Session tracking
+    public var sessionTracking: SessionTracking
+    
+    // Achievement tracking
+    public var hasInfinityAchievement: Bool
+    
+    public struct SessionState: Codable, Equatable, Sendable {
+        public var board: Board
+        public var score: Int
+        public var moves: Int
+        public var level: Int
+        public var highestTile: Int
+        public var seed: UInt64?
+        public var brokenGlassTiles: [Position]
+        public var movesHistory: [[Position]]
+        public var lastDailyDateUTC: String?
+        
+        public init(
+            board: Board,
+            score: Int = 0,
+            moves: Int = 0,
+            level: Int = 1,
+            highestTile: Int = 0,
+            seed: UInt64? = nil,
+            brokenGlassTiles: [Position] = [],
+            movesHistory: [[Position]] = [],
+            lastDailyDateUTC: String? = nil
+        ) {
+            self.board = board
+            self.score = score
+            self.moves = moves
+            self.level = level
+            self.highestTile = highestTile
+            self.seed = seed
+            self.brokenGlassTiles = brokenGlassTiles
+            self.movesHistory = movesHistory
+            self.lastDailyDateUTC = lastDailyDateUTC
+        }
+    }
+    
+    public struct JourneyState: Codable, Equatable, Sendable {
+        public var highestTile: Int
+        public var claimedTiles: Set<Int>
+        
+        public init(highestTile: Int = 0, claimedTiles: Set<Int> = []) {
+            self.highestTile = highestTile
+            self.claimedTiles = claimedTiles
+        }
+    }
+    
+    public struct SessionTracking: Codable, Equatable, Sendable {
+        public var sessionStartTime: Date?
+        public var currentSessionStartTime: Date?
+        public var currentSessionDuration: TimeInterval
+        public var sessionMoves: Int
+        public var sessionScore: Int
+        public var sessionMerges: Int
+        public var sessionHighestTile: Int
+        public var sessionPowerUpsUsed: Int
+        public var sessionEfficiencyScore: Double
+        
+        public init(
+            sessionStartTime: Date? = nil,
+            currentSessionStartTime: Date? = nil,
+            currentSessionDuration: TimeInterval = 0,
+            sessionMoves: Int = 0,
+            sessionScore: Int = 0,
+            sessionMerges: Int = 0,
+            sessionHighestTile: Int = 0,
+            sessionPowerUpsUsed: Int = 0,
+            sessionEfficiencyScore: Double = 0
+        ) {
+            self.sessionStartTime = sessionStartTime
+            self.currentSessionStartTime = currentSessionStartTime
+            self.currentSessionDuration = currentSessionDuration
+            self.sessionMoves = sessionMoves
+            self.sessionScore = sessionScore
+            self.sessionMerges = sessionMerges
+            self.sessionHighestTile = sessionHighestTile
+            self.sessionPowerUpsUsed = sessionPowerUpsUsed
+            self.sessionEfficiencyScore = sessionEfficiencyScore
+        }
+    }
 
     public init(
         highestTile: Int = 0,
@@ -36,7 +132,12 @@ public struct GameProgress: Codable, Equatable, Sendable {
         unlockedThemes: Set<String> = ["beach", "aqua"],
         completedDailyChallenges: Int = 0,
         currentWinStreak: Int = 0,
-        bestWinStreak: Int = 0
+        bestWinStreak: Int = 0,
+        currentSessionState: SessionState? = nil,
+        powerUpInventory: [String: Int] = ["hammer": 3, "shuffle": 2, "swap": 2, "undo": 1],
+        journeyState: JourneyState = JourneyState(),
+        sessionTracking: SessionTracking = SessionTracking(),
+        hasInfinityAchievement: Bool = false
     ) {
         self.highestTile = highestTile
         self.bestScore = bestScore
@@ -52,5 +153,10 @@ public struct GameProgress: Codable, Equatable, Sendable {
         self.completedDailyChallenges = completedDailyChallenges
         self.currentWinStreak = currentWinStreak
         self.bestWinStreak = bestWinStreak
+        self.currentSessionState = currentSessionState
+        self.powerUpInventory = powerUpInventory
+        self.journeyState = journeyState
+        self.sessionTracking = sessionTracking
+        self.hasInfinityAchievement = hasInfinityAchievement
     }
 }

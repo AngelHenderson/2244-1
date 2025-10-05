@@ -9,7 +9,8 @@ public protocol ProgressStore: Sendable {
 
 // MARK: - UserDefaults Store
 public actor UserDefaultsProgressStore: ProgressStore {
-    private let key = "com.yourco.game.progress.v2"
+    private let key = "com.yourco.game.progress.v3"
+    private let legacyV2Key = "com.yourco.game.progress.v2"
     private let legacyKeys = [
         "bestTile", "bestScore", "coins", "gamesPlayed",
         "theme", "rank", "lastPlayedAt", "highestTile"
@@ -25,10 +26,40 @@ public actor UserDefaultsProgressStore: ProgressStore {
     }
 
     public func load() async throws -> GameProgress? {
-        // Try to load v2 format first
+        // Try to load v3 format first
         if let data = ud.data(forKey: key),
            let decoded = try? decoder.decode(GameProgress.self, from: data) {
             return decoded
+        }
+        
+        // Try to load v2 and migrate to v3
+        if let data = ud.data(forKey: legacyV2Key),
+           let v2Progress = try? decoder.decode(GameProgress.self, from: data) {
+            // Migrate v2 to v3 by adding new fields with defaults
+            let v3Progress = GameProgress(
+                highestTile: v2Progress.highestTile,
+                bestScore: v2Progress.bestScore,
+                gems: v2Progress.gems,
+                gamesPlayed: v2Progress.gamesPlayed,
+                achievements: v2Progress.achievements,
+                theme: v2Progress.theme,
+                rank: v2Progress.rank,
+                lastUpdatedAt: v2Progress.lastUpdatedAt,
+                totalMerges: v2Progress.totalMerges,
+                totalTimePlayed: v2Progress.totalTimePlayed,
+                unlockedThemes: v2Progress.unlockedThemes,
+                completedDailyChallenges: v2Progress.completedDailyChallenges,
+                currentWinStreak: v2Progress.currentWinStreak,
+                bestWinStreak: v2Progress.bestWinStreak,
+                currentSessionState: nil,
+                powerUpInventory: ["hammer": 3, "shuffle": 2, "swap": 2, "undo": 1],
+                journeyState: GameProgress.JourneyState(),
+                sessionTracking: GameProgress.SessionTracking(),
+                hasInfinityAchievement: false
+            )
+            try await save(v3Progress)
+            ud.removeObject(forKey: legacyV2Key)
+            return v3Progress
         }
         
         // Attempt legacy migration if v2 blob absent

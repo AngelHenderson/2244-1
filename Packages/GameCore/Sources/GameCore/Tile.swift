@@ -1,6 +1,6 @@
 import Foundation
 
-public enum TileType: Equatable, Hashable, Sendable {
+public enum TileType: Equatable, Hashable, Sendable, Codable {
     case normal
     case infinity
     case locked
@@ -8,7 +8,7 @@ public enum TileType: Equatable, Hashable, Sendable {
     case highValue(step: Int)  // For tiles beyond Int.max, track the doubling step
 }
 
-public struct Tile: Equatable, Hashable, Sendable {
+public struct Tile: Equatable, Hashable, Sendable, Codable {
     public let id: UUID
     public let value: Int
     public let type: TileType

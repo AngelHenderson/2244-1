@@ -2,13 +2,13 @@ import Foundation
 
 // MARK: - Enhanced Data Model for Gift Support
 
-public enum CellKind: Equatable, Sendable {
+public enum CellKind: Equatable, Sendable, Codable {
     case tile
     case gift
     case empty
 }
 
-public struct BoardIndex: Hashable, Sendable {
+public struct BoardIndex: Hashable, Sendable, Codable {
     public let row: Int
     public let col: Int
     
@@ -27,7 +27,7 @@ public struct BoardIndex: Hashable, Sendable {
     }
 }
 
-public struct Gift: Equatable, Sendable {
+public struct Gift: Equatable, Sendable, Codable {
     public let id: UUID
     public let targetValue: Int
     
@@ -37,7 +37,7 @@ public struct Gift: Equatable, Sendable {
     }
 }
 
-public struct Cell: Equatable, Sendable {
+public struct Cell: Equatable, Sendable, Codable {
     public var kind: CellKind
     public var tile: Tile?
     public var gift: Gift?
@@ -59,7 +59,7 @@ public struct Cell: Equatable, Sendable {
     public static let empty = Cell(kind: .empty)
 }
 
-public struct MergeOutcome: Sendable {
+public struct MergeOutcome: Sendable, Codable {
     public let consumed: [BoardIndex]
     public let resultAt: BoardIndex
     public let resultValue: Int
@@ -73,7 +73,7 @@ public struct MergeOutcome: Sendable {
     }
 }
 
-public struct Board: Equatable, Sendable {
+public struct Board: Equatable, Sendable, Codable {
     public let width: Int
     public let height: Int
     public private(set) var tiles: [[Tile?]]
