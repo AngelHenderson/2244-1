@@ -458,12 +458,14 @@ public final class GameStore {
         case swap(Position, Position)
         case shuffle
         case undo
+        case magnet(value: Int, position: Position)
     }
     
     public enum PowerUpCost {
         public static let hammer = 50
         public static let swap = 75
         public static let shuffle = 100
+        public static let magnet = 150
     }
     
     @discardableResult
@@ -543,27 +545,45 @@ public final class GameStore {
     
     @discardableResult
     public func useMagnet(value: Int, to position: Position) -> Bool {
-        // Simple magnet implementation: move one matching tile adjacent to target
-        guard state.board[position] != nil else { return false }
+        // Check if magnet power-up is available
+        guard isPowerUpAvailable("magnet") else { return false }
+        guard let tile = state.board[position], tile.value == value else { return false }
         
-        // Find first tile with matching value
+        // Count how many tiles with this value exist on the board
+        var matchingCount = 0
         for row in 0..<state.board.height {
             for col in 0..<state.board.width {
                 let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], tile.value == value && pos != position {
-                    // Try to swap with target
-                    if pos.isAdjacent(to: position) {
-                        state = engine.swap(pos, position)
-                        
-                        // Save progress after magnet use
-                        saveProgressImmediately(newTile: nil, currentScore: state.score)
-                        
-                        return true
-                    }
+                if let t = state.board[pos], t.value == value {
+                    matchingCount += 1
                 }
             }
         }
-        return false
+        
+        // Need at least 2 tiles to merge
+        guard matchingCount > 1 else { return false }
+        
+        // Deduct power-up cost
+        if powerUpInventory["magnet", default: 0] > 0 {
+            powerUpInventory["magnet", default: 0] -= 1
+        } else if coins >= PowerUpCost.magnet {
+            coins -= PowerUpCost.magnet
+        } else {
+            return false
+        }
+        
+        // Use the engine's magnetize method to merge all tiles with the same value
+        state = engine.magnetize(value: value, to: position)
+        
+        // Track power-up usage
+        trackPowerUpAnalytics(action: .magnet(value: value, position: position))
+        achievementEvaluator?.onPowerUpUsed(type: "magnet")
+        profile.powerUpInventory[.magnet] = powerUpInventory["magnet", default: 0]
+        
+        // Save progress after magnet use
+        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        
+        return true
     }
     
     // Helper to check if power-up is available (inventory or affordable)
@@ -573,6 +593,7 @@ public final class GameStore {
         case "hammer": return coins >= PowerUpCost.hammer
         case "shuffle": return coins >= PowerUpCost.shuffle
         case "swap": return coins >= PowerUpCost.swap
+        case "magnet": return coins >= PowerUpCost.magnet
         default: return false
         }
     }

@@ -461,34 +461,73 @@ public final class GameEngine {
     @discardableResult
     public func magnetize(value: Int, to position: Position) -> GameState {
         guard position.isValid(for: state.board) else { return state }
-        guard state.board[position] != nil else { return state }
+        guard let targetTile = state.board[position] else { return state }
+        guard targetTile.value == value else { return state }
         
         // Save state for undo
         previousState = state
         state.undoAvailable = true
         
-        // Find all tiles with the target value
-        var tilesToMove: [Position] = []
+        // Find all tiles with the target value (including the target position)
+        var matchingPositions: [Position] = []
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], tile.value == value && pos != position {
-                    tilesToMove.append(pos)
+                if let tile = state.board[pos], tile.value == value {
+                    matchingPositions.append(pos)
                 }
             }
         }
         
-        // Move tiles toward the target position (adjacent positions)
-        for tilePos in tilesToMove {
-            let neighbors = state.board.neighbors(of: position, includeDiagonals: config.allowDiagonals)
-            for neighbor in neighbors where state.board[neighbor] == nil {
-                state.board[neighbor] = state.board[tilePos]
-                state.board[tilePos] = nil
-                break
-            }
+        // If only one tile exists with this value, nothing to merge
+        guard matchingPositions.count > 1 else {
+            state.undoAvailable = false
+            previousState = nil
+            return state
         }
         
-        // Apply gravity after magnetization
+        // Calculate merged value: sum all matching tiles and round up to next power of 2
+        let totalValue = value * matchingPositions.count
+        let mergedValue: Int = {
+            guard totalValue > 0 else { return 0 }
+            if totalValue & (totalValue - 1) == 0 { return totalValue }
+            if totalValue > (1 << 62) { return Int.max }
+            var x = totalValue - 1
+            x |= x >> 1
+            x |= x >> 2
+            x |= x >> 4
+            x |= x >> 8
+            x |= x >> 16
+            #if arch(x86_64) || arch(arm64)
+            x |= x >> 32
+            #endif
+            let next = x + 1
+            return next > 0 ? next : Int.max
+        }()
+        
+        // Remove all matching tiles except the target position
+        for pos in matchingPositions {
+            state.board[pos] = nil
+        }
+        
+        // Place merged tile at target position
+        state.board[position] = Tile(value: mergedValue)
+        
+        // Update highest tile and level if needed
+        if mergedValue > state.highestTile {
+            state.highestTile = mergedValue
+            highestTileAchieved = mergedValue
+            updateLevel()
+            checkMilestoneRewards(mergedValue)
+        }
+        
+        // Apply milestone elimination if needed
+        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+        
+        // Award score for the merge
+        state.score += mergedValue
+        
+        // Apply gravity after magnetization and refill
         applyGravityDown()
         refillToFull()
         
@@ -856,26 +895,34 @@ public final class GameEngine {
         // Only trigger once per milestone creation
         if !eliminatedMilestones.contains(createdValue) {
             eliminatedMilestones.insert(createdValue)
-            // Remove lower value tiles from board (NOT the milestone itself)
+            // IMMEDIATELY remove lower value tiles from board (NOT the milestone itself)
             eliminateAllTiles(withValue: toRemove)
+            print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), removed all \(toRemove) tiles")
         }
     }
     
     private func eliminateAllTiles(withValue value: Int) {
         var didRemove = false
+        var removedCount = 0
+        
+        // IMMEDIATELY scan and remove ALL tiles with this value
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
                 if let tile = state.board[pos], tile.value == value {
                     state.board[pos] = nil
                     didRemove = true
+                    removedCount += 1
                 }
             }
         }
+        
         if didRemove {
-            // Pull down and refill so the board stays valid
+            print("   ✅ Eliminated \(removedCount) tiles of value \(value)")
+            // IMMEDIATELY pull down and refill so the board stays valid
             applyGravityDown()
             refillToFull()
+            print("   ✅ Board refilled with higher-value tiles only")
         }
     }
 
