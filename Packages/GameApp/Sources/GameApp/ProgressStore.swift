@@ -8,7 +8,7 @@ public protocol ProgressStore: Sendable {
 }
 
 // MARK: - UserDefaults Store
-public actor UserDefaultsProgressStore: ProgressStore {
+public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable {
     private let key = "com.yourco.game.progress.v3"
     private let legacyV2Key = "com.yourco.game.progress.v2"
     private let legacyKeys = [
@@ -18,14 +18,30 @@ public actor UserDefaultsProgressStore: ProgressStore {
     private let ud: UserDefaults
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+    private let queue = DispatchQueue(label: "com.game2244.progressStore", qos: .userInitiated)
 
     public init(suiteName: String? = nil) {
         self.ud = suiteName.flatMap(UserDefaults.init(suiteName:)) ?? .standard
         encoder.dateEncodingStrategy = .iso8601
         decoder.dateDecodingStrategy = .iso8601
     }
+    
+    /// Synchronous load for initialization (used by GameStore.init)
+    public func loadSync() -> GameProgress? {
+        return queue.sync {
+            return _load()
+        }
+    }
+    
+    /// Synchronous save for immediate persistence
+    public func saveSync(_ progress: GameProgress) throws {
+        try queue.sync {
+            try _save(progress)
+        }
+    }
 
-    public func load() async throws -> GameProgress? {
+    // Internal implementation (not thread-safe, must be called within queue)
+    private func _load() -> GameProgress? {
         // Try to load v3 format first
         if let data = ud.data(forKey: key),
            let decoded = try? decoder.decode(GameProgress.self, from: data) {
@@ -57,22 +73,22 @@ public actor UserDefaultsProgressStore: ProgressStore {
                 sessionTracking: GameProgress.SessionTracking(),
                 hasInfinityAchievement: false
             )
-            try await save(v3Progress)
+            try? _save(v3Progress)
             ud.removeObject(forKey: legacyV2Key)
             return v3Progress
         }
         
         // Attempt legacy migration if v2 blob absent
         if let legacy = loadLegacy() {
-            try await save(legacy)
+            try? _save(legacy)
             clearLegacyKeys()
             return legacy
         }
         
         return nil
     }
-
-    public func save(_ progress: GameProgress) async throws {
+    
+    private func _save(_ progress: GameProgress) throws {
         var p = progress
         p.version = GameProgress.schemaVersion
         p.lastUpdatedAt = Date()
@@ -80,9 +96,23 @@ public actor UserDefaultsProgressStore: ProgressStore {
         ud.set(data, forKey: key)
     }
     
+    public func load() async throws -> GameProgress? {
+        return queue.sync {
+            return _load()
+        }
+    }
+
+    public func save(_ progress: GameProgress) async throws {
+        try queue.sync {
+            try _save(progress)
+        }
+    }
+    
     public func clear() async throws {
-        ud.removeObject(forKey: key)
-        clearLegacyKeys()
+        queue.sync {
+            ud.removeObject(forKey: key)
+            clearLegacyKeys()
+        }
     }
 
     // MARK: - Legacy Migration

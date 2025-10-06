@@ -84,25 +84,71 @@ public final class GameStore {
     
     public init(config: GameConfig = GameConfig(), progressStore: UserDefaultsProgressStore = UserDefaultsProgressStore()) {
         self.progressStore = progressStore
-        let engine = GameEngine(config: config)
-        self.engine = engine
         
-        // Note: Gift row initialization is now optional and can be called separately
-        // _ = engine.initializeGiftRow()
+        // Load saved progress synchronously during initialization
+        let loadedProgress = progressStore.loadSync()
         
-        self.state = engine.currentState()
-        
-        // Load comprehensive progress from store
-        Task { @MainActor in
-            await self.loadProgressFromStore()
+        // Initialize engine with loaded state if available
+        if let progress = loadedProgress, let sessionState = progress.currentSessionState {
+            // Restore from saved session
+            let restoredConfig = GameConfig(
+                boardWidth: sessionState.board.width,
+                boardHeight: sessionState.board.height,
+                seed: sessionState.seed
+            )
+            let restoredEngine = GameEngine(
+                config: restoredConfig,
+                initialBoard: sessionState.board,
+                initialScore: sessionState.score,
+                initialMoves: sessionState.moves,
+                initialLevel: sessionState.level,
+                initialGems: progress.gems
+            )
+            self.engine = restoredEngine
+            self.state = restoredEngine.currentState()
+            self.state.gems = progress.gems
+            self.state.highestTile = max(self.state.highestTile, sessionState.highestTile)
+            
+            // Restore power-up inventory
+            self.powerUpInventory = progress.powerUpInventory
+            
+            // Restore journey state
+            self.journey.highestTile = progress.journeyState.highestTile
+            self.journey.claimed = progress.journeyState.claimedTiles
+            
+            // Restore session-specific data
+            self.brokenGlassTiles = Set(sessionState.brokenGlassTiles)
+            self.movesHistory = sessionState.movesHistory
+            self.lastDailyDateUTC = sessionState.lastDailyDateUTC
+            
+            print("🎮 Restored complete game session - Moves: \(sessionState.moves), Score: \(sessionState.score), Highest: \(sessionState.highestTile)")
+        } else {
+            // Start fresh
+            let engine = GameEngine(config: config)
+            self.engine = engine
+            self.state = engine.currentState()
+            
+            // Load basic progress if available
+            if let progress = loadedProgress {
+                self.state.gems = progress.gems
+                self.powerUpInventory = progress.powerUpInventory
+                self.journey.highestTile = progress.journeyState.highestTile
+                self.journey.claimed = progress.journeyState.claimedTiles
+                print("📂 Loaded basic progress - Gems: \(progress.gems), Highest: \(progress.highestTile)")
+            } else {
+                // Truly starting fresh
+                self.state.gems = UserDefaults.standard.integer(forKey: "coins")
+                if self.state.gems == 0 {
+                    self.state.gems = 305 // Default starter gems
+                }
+                print("🆕 Starting fresh game")
+            }
         }
-        
-        self.lastDailyDateUTC = UserDefaults.standard.string(forKey: "lastDailyDateUTC")
         
         // Initialize comprehensive session tracking
         initializeSessionTracking()
         
-        // Restore legacy progress if needed (will be migrated automatically)
+        // Restore legacy progress if needed (for backward compatibility)
         restoreProgress()
         
         // Listen for app lifecycle save notifications
@@ -839,81 +885,6 @@ extension GameStore {
         }
     }
     
-    /// Loads comprehensive progress from persistent storage
-    @MainActor
-    private func loadProgressFromStore() async {
-        do {
-            guard let progress = try await progressStore.load() else {
-                print("ℹ️ No saved progress found - starting fresh")
-                return
-            }
-            
-            print("📂 Loading comprehensive progress - Score: \(progress.bestScore), Highest: \(progress.highestTile), Gems: \(progress.gems)")
-            
-            // Restore basic stats
-            state.gems = progress.gems
-            
-            // Restore power-up inventory
-            powerUpInventory = progress.powerUpInventory
-            
-            // Restore journey state
-            journey.highestTile = progress.journeyState.highestTile
-            journey.claimed = progress.journeyState.claimedTiles
-            
-            // Restore session state if it exists
-            if let sessionState = progress.currentSessionState {
-                // Restore board and game state
-                let config = GameConfig(
-                    boardWidth: sessionState.board.width,
-                    boardHeight: sessionState.board.height,
-                    seed: sessionState.seed
-                )
-                let restoredEngine = GameEngine(
-                    config: config,
-                    initialBoard: sessionState.board,
-                    initialScore: sessionState.score,
-                    initialMoves: sessionState.moves,
-                    initialLevel: sessionState.level,
-                    initialGems: progress.gems
-                )
-                engine = restoredEngine
-                state = restoredEngine.currentState()
-                state.highestTile = max(state.highestTile, sessionState.highestTile)
-                
-                // Restore session-specific data
-                brokenGlassTiles = Set(sessionState.brokenGlassTiles)
-                movesHistory = sessionState.movesHistory
-                lastDailyDateUTC = sessionState.lastDailyDateUTC
-                
-                print("🎮 Restored active game session - Moves: \(sessionState.moves), Score: \(sessionState.score)")
-            }
-            
-            // Restore session tracking to UserDefaults for compatibility
-            if let sessionStart = progress.sessionTracking.sessionStartTime {
-                UserDefaults.standard.set(sessionStart, forKey: "sessionStartTime")
-            }
-            if let currentStart = progress.sessionTracking.currentSessionStartTime {
-                UserDefaults.standard.set(currentStart, forKey: "currentSessionStartTime")
-            }
-            UserDefaults.standard.set(progress.sessionTracking.currentSessionDuration, forKey: "currentSessionDuration")
-            UserDefaults.standard.set(progress.sessionTracking.sessionMoves, forKey: "sessionMoves")
-            UserDefaults.standard.set(progress.sessionTracking.sessionScore, forKey: "sessionScore")
-            UserDefaults.standard.set(progress.sessionTracking.sessionMerges, forKey: "sessionMerges")
-            UserDefaults.standard.set(progress.sessionTracking.sessionHighestTile, forKey: "sessionHighestTile")
-            
-            // Restore all-time bests
-            UserDefaults.standard.set(progress.highestTile, forKey: "savedHighestTile")
-            UserDefaults.standard.set(progress.bestScore, forKey: "savedBestScore")
-            
-            // Restore infinity achievement
-            UserDefaults.standard.set(progress.hasInfinityAchievement, forKey: "hasInfinityAchievement")
-            
-            print("✅ Comprehensive progress fully restored")
-            
-        } catch {
-            print("⚠️ Failed to load comprehensive progress: \(error)")
-        }
-    }
     
     // MARK: - Legacy Progress Auto-Save System (for backward compatibility)
     
