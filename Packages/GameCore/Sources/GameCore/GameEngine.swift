@@ -827,13 +827,32 @@ public final class GameEngine {
     }
 
     private func refillToFull() {
-        // In alwaysFull mode, fill ALL empty cells to keep board completely full
-        // In match-3 auto-cascade gameplay, this ensures continuous action
+        // In both modes, spawn tiles only at the TOP ROW and let gravity pull them down
+        // This creates a natural cascade effect and prevents tiles from appearing mid-board
         if config.fillMode == .alwaysFull {
-            // Fill entire board
-            for row in 0..<config.boardHeight {
+            // Keep spawning at top and applying gravity until board is full
+            var maxIterations = config.boardHeight * 2 // Safety limit
+            while maxIterations > 0 {
+                maxIterations -= 1
+                
+                // Count empty cells
+                var emptyCount = 0
+                for row in 0..<config.boardHeight {
+                    for col in 0..<config.boardWidth {
+                        let pos = Position(row: row, col: col)
+                        let boardIndex = BoardIndex(pos)
+                        if state.board[boardIndex].kind != .gift && state.board[pos] == nil {
+                            emptyCount += 1
+                        }
+                    }
+                }
+                
+                // If board is full, we're done
+                if emptyCount == 0 { break }
+                
+                // Spawn new tiles in TOP ROW only
                 for col in 0..<config.boardWidth {
-                    let pos = Position(row: row, col: col)
+                    let pos = Position(row: 0, col: col)
                     let boardIndex = BoardIndex(pos)
                     // Skip gift cells in top row
                     if state.board[boardIndex].kind == .gift {
@@ -843,10 +862,13 @@ public final class GameEngine {
                         state.board[pos] = Tile(value: generateRandomValue())
                     }
                 }
+                
+                // Apply gravity to make tiles fall down
+                applyGravityDown()
             }
         } else {
             // Sparse mode: only spawn new tiles in the TOP ROW (row 0)
-            // Tiles will fall down via gravity
+            // Tiles will fall down via gravity on next move
             for col in 0..<config.boardWidth {
                 let pos = Position(row: 0, col: col)
                 let boardIndex = BoardIndex(pos)
