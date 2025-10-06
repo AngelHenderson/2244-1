@@ -4,16 +4,39 @@ import GameCore
 private enum MilestoneAppearance {
     // Exact milestone values: 1M, 2M, 4M, 8M, 16M, 33M
     static let milestones: [Int: Color] = [
-        1 << 20: Color(hex: "D31AAE"),
-        1 << 21: Color(hex: "6C3EBF"),
-        1 << 22: Color(hex: "FF6B6B"),
-        1 << 23: Color(hex: "1E73C6"),
-        1 << 24: Color(hex: "F47C20"),
-        1 << 25: Color(hex: "C4D018")
+        1 << 20: Color(hex: "D31AAE"),  // 1M - Pink/Magenta
+        1 << 21: Color(hex: "4A2890"),  // 2M - Darker Purple (was 6C3EBF)
+        1 << 22: Color(hex: "FF6B6B"),  // 4M - Red
+        1 << 23: Color(hex: "0F4A85"),  // 8M - Darker Blue (was 1E73C6)
+        1 << 24: Color(hex: "F47C20"),  // 16M - Orange
+        1 << 25: Color(hex: "C4D018")   // 33M - Yellow-Green
+    ]
+    
+    // Text color overrides for milestone tiles
+    static let whiteTextMilestones: Set<Int> = [
+        1 << 20,  // 1M - White text
+        1 << 21,  // 2M - White text
+        1 << 22,  // 4M - White text
+        1 << 23,  // 8M - White text
+        1 << 24   // 16M - White text
+    ]
+    
+    static let blackTextMilestones: Set<Int> = [
+        1 << 25   // 33M - Black text (on yellow-green background)
     ]
     
     static func colorOverride(for value: Int) -> Color? {
         milestones[value]
+    }
+    
+    static func textColorOverride(for value: Int) -> Color? {
+        if whiteTextMilestones.contains(value) {
+            return .white
+        }
+        if blackTextMilestones.contains(value) {
+            return .black
+        }
+        return nil
     }
 }
 
@@ -164,6 +187,10 @@ struct TileView: View {
         if case .highValue(let step) = tile.type {
             // Match text contrast for step-based color
             return Theme.textColorForStep(step)
+        }
+        // Check for milestone text color override first
+        if let override = MilestoneAppearance.textColorOverride(for: tile.value) {
+            return override
         }
         return Theme.textColor(for: tile.value)
     }

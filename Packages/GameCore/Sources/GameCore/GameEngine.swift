@@ -439,8 +439,8 @@ public final class GameEngine {
     @discardableResult
     public func swap(_ a: Position, _ b: Position) -> GameState {
         guard a.isValid(for: state.board), b.isValid(for: state.board) else { return state }
-        guard a.isAdjacent(to: b) else { return state } // Must be adjacent
         guard a != b else { return state }
+        // Swap power-up can swap ANY two tiles, not just adjacent ones
         
         // Save state for undo
         previousState = state

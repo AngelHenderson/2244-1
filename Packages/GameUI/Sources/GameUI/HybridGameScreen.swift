@@ -362,15 +362,15 @@ public struct HybridGameScreen: View {
         if isSwapMode {
             if gameStore.state.board[position] != nil {
                 if let first = firstSwapPosition {
-                    // Second selection - perform swap if adjacent
-                    if first.isAdjacent(to: position) {
+                    // Second selection - perform swap (can swap ANY two tiles)
+                    if first != position {
                         _ = gameStore.useSwap(first, position)
                         haptics.success()
                         isSwapMode = false
                         firstSwapPosition = nil
                     } else {
-                        // Not adjacent, reset selection
-                        firstSwapPosition = position
+                        // Same tile, just clear selection
+                        firstSwapPosition = nil
                         haptics.lightImpact()
                     }
                 } else {
