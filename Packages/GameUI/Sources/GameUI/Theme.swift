@@ -34,42 +34,17 @@ public struct Theme {
         (Color(hex: "009688"), false)  // 25: teal
     ]
     
-    // Exact value overrides take highest precedence
-    private static let overridesByExactValue: [Int: (color: Color, darkText: Bool)] = [
-        32: (Color(hex: "6F0000"), false),
-        64: (Color(hex: "9674FF"), false),      // 64 → #9674FF
-        128: (Color(hex: "03524B"), false),     // 128 → #03524B
-        256: (Color(hex: "FF0039"), false),     // 256 → #FF0039
-        512: (Color(hex: "FF6F96"), false),     // 512 → #FF6F96
-        1024: (Color(hex: "07F901"), false),    // 1024 → #07F901
-        2048: (Color(hex: "FF3B7B"), false),    // 2048 → vivid pink (white text)
-        4096: (Color(hex: "55B9FF"), false),    // 4096 → blue (white text)
-        8192: (Color(hex: "FFFFEB"), true),     // 8192 → cream (dark text)
-        16_384: (Color(hex: "8849D1"), false),  // 16K → purple
-        32_768: (Color(hex: "00FFE5"), true),   // 32K → bright cyan (dark text)
-        65_536: (Color(hex: "FFD300"), true),   // 64K → yellow (dark text)
-        131_072: (Color(hex: "F05B59"), false), // 131K → coral red
-        262_144: (Color(hex: "55DFFE"), true),  // 262K → light cyan (dark text)
-        524_288: (Color(hex: "39B54A"), true),  // 524K → green (dark text)
-        1_000_000_000: (Color(hex: "6F0000"), false),
-        36_000_000_000: (Color(hex: "6F0000"), false),
-        1_000_000_000_000_000_000: (Color(hex: "6F0000"), false)
-    ]
+    // Exact value overrides - DISABLED to allow clean 25-color cycling
+    // Keep only milestone overrides (handled in TileView)
+    private static let overridesByExactValue: [Int: (color: Color, darkText: Bool)] = [:]
 
     // Optional overrides for specific exponent remainders (e % 25)
-    // Existing requests kept
-    private static let overridesByRemainder: [Int: (color: Color, darkText: Bool)] = [
-        4: (Color(hex: "BA6597"), false),
-        11: (Color(hex: "FF0027"), false),
-        23: (Color(hex: "FF0027"), false)
-    ]
+    // DISABLED to allow clean 25-color cycling
+    private static let overridesByRemainder: [Int: (color: Color, darkText: Bool)] = [:]
 
     // Conditional remainder overrides
-    private static let remainder6F0000Thresholds: [Int: Int] = [
-        5: 30,
-        11: 36,
-        10: 60
-    ]
+    // DISABLED to allow clean 25-color cycling
+    private static let remainder6F0000Thresholds: [Int: Int] = [:]
     
     public static func color(for value: Int) -> Color {
         if let o = overridesByExactValue[value] { return o.color }
