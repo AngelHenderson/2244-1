@@ -10,8 +10,8 @@ class SevenTileSpawningTests: XCTestCase {
             boardWidth: 3,
             boardHeight: 3,
             seed: 12345,
-            fillMode: .sparse,
-            initialTileCount: 1
+            initialTileCount: 1,
+            fillMode: .sparse
         )
         
         let engine = GameEngine(config: config)

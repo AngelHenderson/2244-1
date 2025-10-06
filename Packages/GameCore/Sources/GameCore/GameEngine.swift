@@ -505,12 +505,14 @@ public final class GameEngine {
             return next > 0 ? next : Int.max
         }()
         
-        // Remove all matching tiles except the target position
+        // STEP 1: Remove all matching tiles (including the target position)
+        // This clears the board of all tiles that are being merged
         for pos in matchingPositions {
             state.board[pos] = nil
         }
         
-        // Place merged tile at target position
+        // STEP 2: Place the merged result tile at the target position
+        // This happens BEFORE gravity, so the tile will fall if needed
         state.board[position] = Tile(value: mergedValue)
         
         // Update highest tile and level if needed
@@ -527,8 +529,12 @@ public final class GameEngine {
         // Award score for the merge
         state.score += mergedValue
         
-        // Apply gravity after magnetization and refill
+        // STEP 3: Apply gravity to make tiles fall down and fill gaps
+        // This happens AFTER removal and placement, BEFORE spawning new tiles
         applyGravityDown()
+        
+        // STEP 4: Spawn new tiles to fill remaining empty spaces
+        // This is the final step - only empty cells get filled with new tiles
         refillToFull()
         
         state.moves += 1

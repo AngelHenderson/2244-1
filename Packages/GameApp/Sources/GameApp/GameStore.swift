@@ -578,7 +578,6 @@ public final class GameStore {
         // Track power-up usage
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
         achievementEvaluator?.onPowerUpUsed(type: "magnet")
-        profile.powerUpInventory[.magnet] = powerUpInventory["magnet", default: 0]
         
         // Save progress after magnet use
         saveProgressImmediately(newTile: nil, currentScore: state.score)
@@ -696,6 +695,8 @@ public final class GameStore {
                 _ = engine.shuffle()
             case .undo:
                 _ = engine.undo()
+            case .magnet(let value, let position):
+                _ = engine.magnetize(value: value, to: position)
             }
             state = engine.currentState()
         }
@@ -1083,6 +1084,13 @@ extension GameStore {
                     "type": "undo",
                     "timestamp": Date().timeIntervalSince1970,
                     "position": NSNull()
+                ]
+            case .magnet(let value, let position):
+                return [
+                    "type": "magnet",
+                    "timestamp": Date().timeIntervalSince1970,
+                    "value": value,
+                    "position": ["row": position.row, "col": position.col]
                 ]
             }
         }
