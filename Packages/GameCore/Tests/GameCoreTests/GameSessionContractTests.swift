@@ -10,7 +10,8 @@ struct GameSessionContractTests {
 
         #expect(session.board.columns == 5)
         #expect(session.board.rows == 8)
-        #expect(session.board.tiles.count == 40)
+        // Board starts empty; tiles are placed explicitly
+        #expect(session.board.tiles.count == 0)
     }
 
     @Test("Board supports tile placement at positions")

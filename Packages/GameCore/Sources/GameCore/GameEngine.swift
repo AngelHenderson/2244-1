@@ -429,6 +429,9 @@ public final class GameEngine {
         applyGravityDown()
         refillToFull()
         
+        // Trigger auto-cascade after hammer
+        _ = runAutoCascade()
+        
         if !hasValidMoves() {
             state.isGameOver = true
         }
@@ -440,16 +443,19 @@ public final class GameEngine {
     public func swap(_ a: Position, _ b: Position) -> GameState {
         guard a.isValid(for: state.board), b.isValid(for: state.board) else { return state }
         guard a != b else { return state }
-        // Swap power-up can swap ANY two tiles, not just adjacent ones
         
         // Save state for undo
         previousState = state
         state.undoAvailable = true
         
+        // Perform the swap
         let temp = state.board[a]
         state.board[a] = state.board[b]
         state.board[b] = temp
         state.moves += 1
+        
+        // Trigger auto-cascade after swap
+        _ = runAutoCascade()
         
         if !hasValidMoves() {
             state.isGameOver = true
@@ -585,6 +591,9 @@ public final class GameEngine {
         
         state.moves += 1
         
+        // Trigger auto-cascade after shuffle
+        _ = runAutoCascade()
+        
         if !hasValidMoves() {
             state.isGameOver = true
         }
@@ -647,7 +656,8 @@ public final class GameEngine {
         switch config.fillMode {
         case .alwaysFull:
             fillBoardToFull()
-            ensureAtLeastOneStartableLink(attempts: 8)
+            // Run auto-cascade to merge any initial matches
+            _ = runAutoCascade()
         case .sparse:
             var emptyPositions: [Position] = []
             for row in 0..<config.boardHeight {
@@ -665,6 +675,8 @@ public final class GameEngine {
                 let position = emptyPositions.remove(at: index)
                 state.board[position] = Tile(value: generateRandomValue())
             }
+            // Run auto-cascade to merge any initial matches
+            _ = runAutoCascade()
         }
     }
     
@@ -815,9 +827,28 @@ public final class GameEngine {
     }
 
     private func refillToFull() {
-        for row in 0..<config.boardHeight {
+        // In alwaysFull mode, fill ALL empty cells to keep board completely full
+        // In match-3 auto-cascade gameplay, this ensures continuous action
+        if config.fillMode == .alwaysFull {
+            // Fill entire board
+            for row in 0..<config.boardHeight {
+                for col in 0..<config.boardWidth {
+                    let pos = Position(row: row, col: col)
+                    let boardIndex = BoardIndex(pos)
+                    // Skip gift cells in top row
+                    if state.board[boardIndex].kind == .gift {
+                        continue
+                    }
+                    if state.board[pos] == nil {
+                        state.board[pos] = Tile(value: generateRandomValue())
+                    }
+                }
+            }
+        } else {
+            // Sparse mode: only spawn new tiles in the TOP ROW (row 0)
+            // Tiles will fall down via gravity
             for col in 0..<config.boardWidth {
-                let pos = Position(row: row, col: col)
+                let pos = Position(row: 0, col: col)
                 let boardIndex = BoardIndex(pos)
                 // Skip gift cells in top row
                 if state.board[boardIndex].kind == .gift {
@@ -932,6 +963,180 @@ public final class GameEngine {
         }
     }
 
+    // MARK: - Auto-Cascade Merge System
+    
+    /// Find all groups of adjacent matching tiles on the board
+    private func findMatchingGroups() -> [[Position]] {
+        var visited = Set<Position>()
+        var groups: [[Position]] = []
+        
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                
+                // Skip if already visited or empty
+                guard !visited.contains(pos),
+                      let tile = state.board[pos],
+                      tile.canMerge else {
+                    continue
+                }
+                
+                // Find all connected tiles with same value using flood fill
+                var group: [Position] = []
+                var queue: [Position] = [pos]
+                let targetValue = tile.value
+                
+                while !queue.isEmpty {
+                    let current = queue.removeFirst()
+                    
+                    // Skip if already visited
+                    guard !visited.contains(current) else { continue }
+                    
+                    // Check if this tile matches
+                    guard let currentTile = state.board[current],
+                          currentTile.value == targetValue,
+                          currentTile.canMerge else {
+                        continue
+                    }
+                    
+                    // Add to group and mark as visited
+                    group.append(current)
+                    visited.insert(current)
+                    
+                    // Add adjacent tiles to queue
+                    let directions = config.allowDiagonals ? Direction.allCases : [.up, .down, .left, .right]
+                    for direction in directions {
+                        let neighbor = current.moved(in: direction)
+                        if neighbor.isValid(for: state.board) && !visited.contains(neighbor) {
+                            queue.append(neighbor)
+                        }
+                    }
+                }
+                
+                // Only keep groups of 2 or more tiles
+                if group.count >= 2 {
+                    groups.append(group)
+                }
+            }
+        }
+        
+        return groups
+    }
+    
+    /// Merge a group of matching tiles and return the score earned
+    @discardableResult
+    private func mergeGroup(_ group: [Position]) -> Int {
+        guard group.count >= 2 else { return 0 }
+        guard let firstTile = state.board[group[0]] else { return 0 }
+        
+        let value = firstTile.value
+        let count = group.count
+        
+        // Calculate merged value: sum all tiles and round up to next power of 2
+        let totalValue = value * count
+        let mergedValue: Int = {
+            guard totalValue > 0 else { return 0 }
+            if totalValue & (totalValue - 1) == 0 { return totalValue }
+            if totalValue > (1 << 62) { return Int.max }
+            var x = totalValue - 1
+            x |= x >> 1
+            x |= x >> 2
+            x |= x >> 4
+            x |= x >> 8
+            x |= x >> 16
+            #if arch(x86_64) || arch(arm64)
+            x |= x >> 32
+            #endif
+            let next = x + 1
+            return next > 0 ? next : Int.max
+        }()
+        
+        // Find the lowest position in the group (bottom-most, then leftmost)
+        let mergePosition = group.sorted { a, b in
+            if a.row != b.row {
+                return a.row > b.row // Lower row number = lower on screen
+            }
+            return a.col < b.col // Leftmost
+        }.first!
+        
+        // Remove all tiles in the group
+        for pos in group {
+            state.board[pos] = nil
+        }
+        
+        // Place merged tile at the merge position
+        state.board[mergePosition] = Tile(value: mergedValue)
+        
+        // Update highest tile
+        if mergedValue > state.highestTile {
+            state.highestTile = mergedValue
+            highestTileAchieved = mergedValue
+            updateLevel()
+            checkMilestoneRewards(mergedValue)
+        }
+        
+        // Apply milestone elimination if needed
+        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+        
+        return mergedValue
+    }
+    
+    /// Perform one cascade step: find and merge all matching groups
+    /// Returns true if any merges occurred
+    @discardableResult
+    private func performCascadeStep() -> (merged: Bool, score: Int) {
+        let groups = findMatchingGroups()
+        
+        guard !groups.isEmpty else {
+            return (false, 0)
+        }
+        
+        var totalScore = 0
+        
+        // Merge all groups
+        for group in groups {
+            let score = mergeGroup(group)
+            totalScore += score
+        }
+        
+        // Apply gravity and refill
+        applyGravityDown()
+        refillToFull()
+        
+        return (true, totalScore)
+    }
+    
+    /// Run the full cascade: repeatedly merge until no more matches exist
+    /// Returns the total score from all cascades
+    @discardableResult
+    public func runAutoCascade() -> Int {
+        var totalScore = 0
+        var cascadeCount = 0
+        let maxCascades = 50 // Safety limit to prevent infinite loops
+        
+        while cascadeCount < maxCascades {
+            let result = performCascadeStep()
+            
+            if !result.merged {
+                break // No more matches found
+            }
+            
+            totalScore += result.score
+            cascadeCount += 1
+        }
+        
+        // Award score with combo multiplier for cascades
+        if cascadeCount > 1 {
+            // Bonus for combos: 2x for 2 cascades, 3x for 3, etc.
+            let comboBonus = totalScore * (cascadeCount - 1) / 2
+            totalScore += comboBonus
+        }
+        
+        state.score += totalScore
+        
+        return totalScore
+    }
+    
     // MARK: - Test Helpers (internal)
     // These helpers are internal for use in @testable imports only.
     func _setTileForTesting(at position: Position, value: Int?) {
