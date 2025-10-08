@@ -44,22 +44,42 @@ class SevenTileSpawningTests: XCTestCase {
             }
         }
         
-        // Verify that we're getting 7 different base values from the lowest tier
-        // At game start with no eliminations, should see: 2, 4, 8, 16, 32, 64, 128
-        let expectedInitialSet: Set<Int> = [2, 4, 8, 16, 32, 64, 128]
+        // Verify that we're getting 7 different consecutive power-of-2 values
+        // With auto-cascade enabled, milestone eliminations may have occurred during initialization
+        // So we check for 7 consecutive values, not necessarily starting at 2
+        // At game start with no eliminations: 2, 4, 8, 16, 32, 64, 128
+        // After 2048 elimination: 4, 8, 16, 32, 64, 128, 256
+        // After 4096 elimination: 8, 16, 32, 64, 128, 256, 512
         
-        // Check that all expected values appear in our spawned set
-        for expectedValue in expectedInitialSet {
-            XCTAssertTrue(
-                spawnedValues.contains(expectedValue),
-                "Expected to see value \(expectedValue) in spawned tiles. Got: \(spawnedValues.sorted())"
-            )
+        let sortedValues = spawnedValues.sorted()
+        print("Spawned values: \(sortedValues)")
+        
+        // Find the minimum spawned value and check for 7 consecutive doublings
+        guard let minValue = sortedValues.first else {
+            XCTFail("No tiles were spawned")
+            return
         }
         
-        // Verify 128 is now included (this was the 7th tile that wasn't in the old 6-tile system)
+        // Generate expected 7-tile window starting from minValue
+        var expectedValues: Set<Int> = []
+        var currentValue = minValue
+        for _ in 0..<7 {
+            expectedValues.insert(currentValue)
+            currentValue *= 2
+        }
+        
+        // Check that we have at least 7 consecutive powers of 2 in the spawn pool
+        let hasSevenConsecutive = expectedValues.isSubset(of: spawnedValues)
         XCTAssertTrue(
-            spawnedValues.contains(128),
-            "The 7th tile (128) should now be included in spawning. Got: \(spawnedValues.sorted())"
+            hasSevenConsecutive,
+            "Expected 7 consecutive power-of-2 values starting from \(minValue). Expected: \(expectedValues.sorted()), Got: \(sortedValues)"
+        )
+        
+        // Verify we're spawning at least 7 different values (the 7-tile system)
+        XCTAssertGreaterThanOrEqual(
+            spawnedValues.count,
+            7,
+            "Should spawn at least 7 different tile values. Got: \(spawnedValues.sorted())"
         )
         
         print("✅ Seven-tile spawning verified!")

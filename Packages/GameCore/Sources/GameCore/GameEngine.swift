@@ -278,6 +278,9 @@ public final class GameEngine {
             return value
         }
         
+        // Trigger auto-cascade after gift chain
+        _ = runAutoCascade()
+        
         // Check for game over
         if !hasValidMoves() {
             state.isGameOver = true
@@ -402,6 +405,9 @@ public final class GameEngine {
         // Always-full policy: apply gravity and refill to keep the board dense
         applyGravityDown()
         refillToFull()
+        
+        // Trigger auto-cascade after player move
+        _ = runAutoCascade()
         
         // Check for game over
         if !hasValidMoves() {

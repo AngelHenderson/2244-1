@@ -37,9 +37,12 @@ Successfully implemented a complete auto-cascading merge system that transforms 
 ### Integration Points
 
 The auto-cascade system is automatically triggered after:
+- **Player moves**: `commitChain()` and `commitGiftChain()` - cascades happen after every player action!
 - **Power-up actions**: `hammer()`, `swap()`, `shuffle()`, `magnetize()`
 - **Initial board setup**: `spawnInitialTiles()` merges any starting matches
 - **Manual testing**: Public `runAutoCascade()` method for direct invocation
+
+This means **every single move** in the game now triggers automatic cascading, creating a true match-3 experience where chain reactions happen automatically after the player's action.
 
 ### Board Management Fix
 
