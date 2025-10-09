@@ -1151,9 +1151,15 @@ public final class GameEngine {
             totalScore += score
         }
         
-        // Apply gravity and refill
+        // Apply gravity and refill from top (creates natural cascade effect)
         applyGravityDown()
-        refillToFull()
+        
+        // Use cascade-aware refill that spawns only from top
+        if config.fillMode == .alwaysFull {
+            refillToFullWithCascade()
+        } else {
+            refillToFull()
+        }
         
         return (true, totalScore)
     }
