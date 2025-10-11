@@ -1,8 +1,10 @@
 import SwiftUI
 import GameApp
+import GameCore
 #if canImport(GameKit)
 import GameKit
 #endif
+import Foundation
 
 struct HUDTopBar: View {
     @Environment(HomeState.self) private var state
@@ -28,7 +30,8 @@ struct HUDTopBar: View {
                     Text("Score")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(score.formatted(.number.grouping(.automatic)))
+                    // Use AlphaMag 1,000-step units: K, M, B, a, b, c, ...
+                    Text(AlphaMag.format(score))
                         .font(.headline.monospacedDigit())
                 }
                 .padding(.horizontal, 12).padding(.vertical, 6)
