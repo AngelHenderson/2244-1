@@ -19,6 +19,7 @@ struct AutoCascadeTests {
         engine._setTileForTesting(at: Position(row: 4, col: 0), value: 32)
         engine._setTileForTesting(at: Position(row: 4, col: 1), value: 32)
         engine._setTileForTesting(at: Position(row: 4, col: 2), value: 32)
+        engine._setTileForTesting(at: Position(row: 3, col: 2), value: 32)
         
         engine._resetScoreForTesting()
         
@@ -36,21 +37,20 @@ struct AutoCascadeTests {
         // Run cascade
         let score = engine.runAutoCascade()
         
-        // Should have merged 3 tiles of value 32
-        // 32 * 3 = 96 → rounds up to 128
+        // Should have merged 3 tiles of value 32 into a 64
         #expect(score > 0, "Score should increase from merge")
         
-        // Check that a merged tile was created (128)
-        var count128 = 0
+        // Check that a merged tile was created (64)
+        var count64 = 0
         for row in 0..<5 {
             for col in 0..<5 {
-                if let tile = engine.currentState().board[Position(row: row, col: col)], tile.value == 128 {
-                    count128 += 1
+                if let tile = engine.currentState().board[Position(row: row, col: col)], tile.value == 64 {
+                    count64 += 1
                 }
             }
         }
         
-        #expect(count128 >= 1, "Should have created at least one 128 tile from merging three 32s")
+        #expect(count64 >= 1, "Should have created at least one 64 tile from merging three 32s")
         
         // The original three 32 tiles should be gone (merged into 128)
         // Note: New tiles might spawn during refill, but the original 3 should be merged
@@ -65,7 +65,7 @@ struct AutoCascadeTests {
         
         // If new 32s spawned, that's okay - just check that we have fewer than we started with
         // or that a 128 was created (which proves the merge happened)
-        #expect(count32AfterMerge < initialCount32 || count128 > 0, "32 tiles should be merged or reduced")
+        #expect(count32AfterMerge < initialCount32 || count64 > 0, "32 tiles should be merged or reduced")
     }
     
     @Test("Cascade triggers multiple merges in sequence")
@@ -85,17 +85,13 @@ struct AutoCascadeTests {
         engine._setTileForTesting(at: Position(row: 5, col: 2), value: 16)
         engine._setTileForTesting(at: Position(row: 4, col: 2), value: 16)
         
-        // Above: two 32s that will fall and merge with the result
-        engine._setTileForTesting(at: Position(row: 3, col: 2), value: 32)
-        engine._setTileForTesting(at: Position(row: 2, col: 2), value: 32)
-        
         engine._resetScoreForTesting()
         
         // Run cascade
         let score = engine.runAutoCascade()
         
         // Should trigger multiple merges
-        #expect(score > 32, "Should get score from cascading merges")
+        #expect(score >= 144, "Should get score from cascading merges with combo bonus")
     }
     
     @Test("Find matching groups correctly identifies adjacent tiles")

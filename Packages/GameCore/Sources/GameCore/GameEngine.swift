@@ -1063,8 +1063,8 @@ public final class GameEngine {
                     }
                 }
                 
-                // Only keep groups of 2 or more tiles
-                if group.count >= 2 {
+                // Only keep groups of 3 or more tiles (match-3 style)
+                if group.count >= 3 {
                     groups.append(group)
                 }
             }
@@ -1076,30 +1076,14 @@ public final class GameEngine {
     /// Merge a group of matching tiles and return the score earned
     @discardableResult
     private func mergeGroup(_ group: [Position]) -> Int {
-        guard group.count >= 2 else { return 0 }
+        guard group.count >= 3 else { return 0 }
         guard let firstTile = state.board[group[0]] else { return 0 }
         
         let value = firstTile.value
         let count = group.count
         
         // Calculate merged value: sum all tiles and round up to next power of 2
-        let totalValue = value * count
-        let mergedValue: Int = {
-            guard totalValue > 0 else { return 0 }
-            if totalValue & (totalValue - 1) == 0 { return totalValue }
-            if totalValue > (1 << 62) { return Int.max }
-            var x = totalValue - 1
-            x |= x >> 1
-            x |= x >> 2
-            x |= x >> 4
-            x |= x >> 8
-            x |= x >> 16
-            #if arch(x86_64) || arch(arm64)
-            x |= x >> 32
-            #endif
-            let next = x + 1
-            return next > 0 ? next : Int.max
-        }()
+        let mergedValue = min(value * 2, Int.max)
         
         // Find the lowest position in the group (bottom-most, then leftmost)
         let mergePosition = group.sorted { a, b in
