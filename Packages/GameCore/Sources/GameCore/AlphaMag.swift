@@ -32,29 +32,21 @@ public struct AlphaMag {
         
         // K suffix for thousands
         if value < million {
-            let v = value / thousand
-            var rounded = v
-            var out = Decimal()
-            NSDecimalRound(&out, &rounded, decimals, rounding)
-            return numberString(out, decimals: decimals) + "K"
+            let mantissa = Int(value / thousand)
+            let remainder = Int(value % thousand)
+            return "\(mantissa)," + padded(remainder, width: 3) + "K"
         }
-        
-        // M suffix for millions
+
         if value < billion {
-            let v = value / million
-            var rounded = v
-            var out = Decimal()
-            NSDecimalRound(&out, &rounded, decimals, rounding)
-            return numberString(out, decimals: decimals) + "M"
+            let mantissa = Int(value / million)
+            let remainder = Int((value % million) / thousand)
+            return "\(mantissa)," + padded(remainder, width: 3) + "M"
         }
-        
-        // B suffix for billions
+
         if value < trillion {
-            let v = value / billion
-            var rounded = v
-            var out = Decimal()
-            NSDecimalRound(&out, &rounded, decimals, rounding)
-            return numberString(out, decimals: decimals) + "B"
+            let mantissa = Int(value / billion)
+            let remainder = Int((value % billion) / million)
+            return "\(mantissa)," + padded(remainder, width: 3) + "B"
         }
         
         // For values >= trillion, use alphabetic suffixes (a, b, c, ...), lowercase
