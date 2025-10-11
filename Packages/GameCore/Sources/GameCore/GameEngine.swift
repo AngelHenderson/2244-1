@@ -254,29 +254,17 @@ public final class GameEngine {
             // TODO: Fire gift reward logic here (power-ups, etc.)
         }
         
-        // Apply gravity using the enhanced Board method
+        // Apply gravity using the enhanced Board method to respect gifts
         state.board.applyGravity()
         
         // If a gift was broken, refill the top row with a new gift
         if outcome.giftBroken {
-            // Generate values first to avoid concurrent access
             let giftValue = generateRandomValue()
             state.board.refillTopRowWithGifts { giftValue }
         }
         
-        // Generate values for refill to avoid concurrent access
-        var refillValues: [Int] = []
-        for _ in 0..<(state.board.width * state.board.height) {
-            refillValues.append(generateRandomValue())
-        }
-        var refillIndex = 0
-        
-        // Refill remaining empty cells to keep board full
-        state.board.refillEmptyCells { 
-            let value = refillValues[refillIndex % refillValues.count]
-            refillIndex += 1
-            return value
-        }
+        // Refill board using cascade-aware spawning without reapplying gravity (already applied above)
+        refillAfterGravity(applyGravity: false)
         
         // Trigger auto-cascade after gift chain
         _ = runAutoCascade()
@@ -403,8 +391,7 @@ public final class GameEngine {
         }
         
         // Always-full policy: apply gravity and refill to keep the board dense
-        applyGravityDown()
-        refillToFull()
+        refillAfterGravity()
         
         // Trigger auto-cascade after player move
         _ = runAutoCascade()
@@ -432,8 +419,7 @@ public final class GameEngine {
         state.board[position] = nil
         state.moves += 1
         // Keep board full after destructive action
-        applyGravityDown()
-        refillToFull()
+        refillAfterGravity()
         
         // Trigger auto-cascade after hammer
         _ = runAutoCascade()
@@ -837,6 +823,17 @@ public final class GameEngine {
         }
     }
 
+    private func refillAfterGravity(applyGravity: Bool = true) {
+        if applyGravity {
+            applyGravityDown()
+        }
+        if config.fillMode == .alwaysFull {
+            refillToFullWithCascade()
+        } else {
+            refillToFull()
+        }
+    }
+
     private func refillToFull() {
         // In alwaysFull mode, fill ALL empty cells to keep board completely full
         // In match-3 auto-cascade gameplay, this ensures continuous action
@@ -980,6 +977,7 @@ public final class GameEngine {
     // MARK: - Milestone elimination helpers
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
+        guard config.fillMode == .sparse else { return }
         guard let toRemove = EliminationRules.map[createdValue] else { return }
         // Only trigger once per milestone creation
         if !eliminatedMilestones.contains(createdValue) {
@@ -991,6 +989,7 @@ public final class GameEngine {
     }
     
     private func eliminateAllTiles(withValue value: Int) {
+        guard config.fillMode == .sparse else { return }
         var didRemove = false
         var removedCount = 0
         
@@ -1009,8 +1008,7 @@ public final class GameEngine {
         if didRemove {
             print("   ✅ Eliminated \(removedCount) tiles of value \(value)")
             // IMMEDIATELY pull down and refill so the board stays valid
-            applyGravityDown()
-            refillToFull()
+            refillAfterGravity()
             print("   ✅ Board refilled with higher-value tiles only")
         }
     }
@@ -1055,8 +1053,8 @@ public final class GameEngine {
                     group.append(current)
                     visited.insert(current)
                     
-                    // Add adjacent tiles to queue
-                    let directions = config.allowDiagonals ? Direction.allCases : [.up, .down, .left, .right]
+                // Add adjacent tiles to queue (match-3 style: orthogonal only)
+                let directions: [Direction] = [.up, .down, .left, .right]
                     for direction in directions {
                         let neighbor = current.moved(in: direction)
                         if neighbor.isValid(for: state.board) && !visited.contains(neighbor) {
