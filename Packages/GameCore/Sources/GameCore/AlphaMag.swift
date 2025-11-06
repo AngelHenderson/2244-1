@@ -32,20 +32,31 @@ public struct AlphaMag {
         
         // K suffix for thousands
         if value < million {
-            let mantissa = Int(value / thousand)
-            let remainder = Int(value % thousand)
+            let valueNum = NSDecimalNumber(decimal: value)
+            let thousandNum = NSDecimalNumber(decimal: thousand)
+            let mantissa = valueNum.dividing(by: thousandNum).intValue
+            let remainderDecimal = valueNum.subtracting(NSDecimalNumber(value: mantissa).multiplying(by: thousandNum))
+            let remainder = remainderDecimal.intValue
             return "\(mantissa)," + padded(remainder, width: 3) + "K"
         }
 
         if value < billion {
-            let mantissa = Int(value / million)
-            let remainder = Int((value % million) / thousand)
+            let valueNum = NSDecimalNumber(decimal: value)
+            let millionNum = NSDecimalNumber(decimal: million)
+            let thousandNum = NSDecimalNumber(decimal: thousand)
+            let mantissa = valueNum.dividing(by: millionNum).intValue
+            let remainderAfterMillion = valueNum.subtracting(NSDecimalNumber(value: mantissa).multiplying(by: millionNum))
+            let remainder = remainderAfterMillion.dividing(by: thousandNum).intValue
             return "\(mantissa)," + padded(remainder, width: 3) + "M"
         }
 
         if value < trillion {
-            let mantissa = Int(value / billion)
-            let remainder = Int((value % billion) / million)
+            let valueNum = NSDecimalNumber(decimal: value)
+            let billionNum = NSDecimalNumber(decimal: billion)
+            let millionNum = NSDecimalNumber(decimal: million)
+            let mantissa = valueNum.dividing(by: billionNum).intValue
+            let remainderAfterBillion = valueNum.subtracting(NSDecimalNumber(value: mantissa).multiplying(by: billionNum))
+            let remainder = remainderAfterBillion.dividing(by: millionNum).intValue
             return "\(mantissa)," + padded(remainder, width: 3) + "B"
         }
         
@@ -147,6 +158,13 @@ public struct AlphaMag {
     }
 
     // MARK: - Internals
+
+    /// Zero-pad an integer to specified width
+    private static func padded(_ value: Int, width: Int) -> String {
+        let str = "\(value)"
+        let padding = max(0, width - str.count)
+        return String(repeating: "0", count: padding) + str
+    }
 
     /// ord=1 -> "a", 2->"b", ..., 26->"z", 27->"aa", ...
     static func suffix(forOrdinal ord: Int) -> String {
