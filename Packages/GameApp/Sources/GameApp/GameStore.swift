@@ -287,15 +287,16 @@ public final class GameStore {
         if let unlockedValue {
             setPendingUnlockRewardIfNeeded(for: unlockedValue, previousHigh: previousHighest)
         }
-        // Look up which tile value is being eliminated from spawning (if any)
+        // Calculate merge info values using consistent pattern for ALL milestones
         let excludedValue: Int? = {
             guard let unlocked = unlockedValue else { return nil }
-            return EliminationRules.map[unlocked]
+            // Eliminated = 14 doublings down = unlocked / 16384
+            let eliminated = unlocked / 16_384
+            return eliminated > 0 ? eliminated : nil
         }()
-        // Calculate the "added" tile for merge info (7 doublings below the unlocked milestone)
         let mergeInfoAddedValue: Int = {
             guard let unlocked = unlockedValue else { return addedValue }
-            // 7 doublings down = divide by 2^7 = divide by 128
+            // Added = 7 doublings down = unlocked / 128
             return unlocked / 128
         }()
         // Only show the merge info board when a new highest tile is unlocked
@@ -1264,15 +1265,15 @@ extension GameStore {
         if let mergeData = UserDefaults.standard.data(forKey: "lastMergeInfo"),
            let mergeDict = try? JSONSerialization.jsonObject(with: mergeData) as? [String: Any] {
             let unlocked = mergeDict["unlocked"] as? Int
-            // Recalculate "added" value (7 doublings below unlocked milestone)
+            // Recalculate "added" and "excluded" using consistent pattern
             let added: Int = {
                 guard let unlockedValue = unlocked else { return mergeDict["added"] as? Int ?? 0 }
-                return unlockedValue / 128  // 2^7 = 128
+                return unlockedValue / 128  // 7 doublings down
             }()
-            // Recalculate excluded value from EliminationRules to fix any old incorrect data
             let excluded: Int? = {
                 guard let unlockedValue = unlocked else { return nil }
-                return EliminationRules.map[unlockedValue]
+                let eliminated = unlockedValue / 16_384  // 14 doublings down
+                return eliminated > 0 ? eliminated : nil
             }()
             lastMergeInfo = MergeInfo(unlocked: unlocked, added: added, excluded: excluded)
         }
