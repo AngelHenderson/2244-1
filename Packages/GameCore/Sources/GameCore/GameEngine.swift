@@ -979,14 +979,16 @@ public final class GameEngine {
     // MARK: - Milestone elimination helpers
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
-        guard config.fillMode == .sparse else { return }
         guard let toRemove = EliminationRules.map[createdValue] else { return }
         // Only trigger once per milestone creation
         if !eliminatedMilestones.contains(createdValue) {
             eliminatedMilestones.insert(createdValue)
-            // IMMEDIATELY remove lower value tiles from board (NOT the milestone itself)
-            eliminateAllTiles(withValue: toRemove)
-            print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), removed all \(toRemove) tiles")
+            print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), eliminating \(toRemove) from spawn pool")
+            // In sparse mode, also remove tiles from board
+            // In alwaysFull mode, just updating spawn pool is enough (tiles will naturally be replaced)
+            if config.fillMode == .sparse {
+                eliminateAllTiles(withValue: toRemove)
+            }
         }
     }
     
