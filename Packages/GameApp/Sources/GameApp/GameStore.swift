@@ -227,9 +227,7 @@ public final class GameStore {
         let previousHighest = state.highestTile
         let positions = currentPath
         let lastPos = positions.last
-        // Capture removed values before commit (all but last)
-        let removedValuesBefore = positions.dropLast().compactMap { pos in state.board[pos]?.value }
-        
+
         // Check if ending on gift and use appropriate commit method
         let endsOnGift = lastPos.map { BoardIndex($0) }.map { state.board[$0].kind == .gift } ?? false
         
