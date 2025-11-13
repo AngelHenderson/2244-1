@@ -289,10 +289,10 @@ public final class GameStore {
         if let unlockedValue {
             setPendingUnlockRewardIfNeeded(for: unlockedValue, previousHigh: previousHighest)
         }
-        // Calculate total eliminated value (sum of all removed tiles)
+        // Look up which tile value is being eliminated from spawning (if any)
         let excludedValue: Int? = {
-            guard !removedValuesBefore.isEmpty else { return nil }
-            return removedValuesBefore.reduce(0, +)
+            guard let unlocked = unlockedValue else { return nil }
+            return EliminationRules.map[unlocked]
         }()
         // Only show the merge info board when a new highest tile is unlocked
         if let unlockedValue {
