@@ -1016,43 +1016,44 @@ public final class GameEngine {
     // MARK: - Auto-Cascade Merge System
     
     /// Find all groups of adjacent matching tiles on the board
-    private func findMatchingGroups() -> [[Position]] {
+    /// - Parameter excludePosition: Optional position to exclude from matching groups (protects player-created tiles)
+    private func findMatchingGroups(excludePosition: Position? = nil) -> [[Position]] {
         var visited = Set<Position>()
         var groups: [[Position]] = []
-        
+
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
-                
+
                 // Skip if already visited or empty
                 guard !visited.contains(pos),
                       let tile = state.board[pos],
                       tile.canMerge else {
                     continue
                 }
-                
+
                 // Find all connected tiles with same value using flood fill
                 var group: [Position] = []
                 var queue: [Position] = [pos]
                 let targetValue = tile.value
-                
+
                 while !queue.isEmpty {
                     let current = queue.removeFirst()
-                    
+
                     // Skip if already visited
                     guard !visited.contains(current) else { continue }
-                    
+
                     // Check if this tile matches
                     guard let currentTile = state.board[current],
                           currentTile.value == targetValue,
                           currentTile.canMerge else {
                         continue
                     }
-                    
+
                     // Add to group and mark as visited
                     group.append(current)
                     visited.insert(current)
-                    
+
                 // Add adjacent tiles to queue (match-3 style: orthogonal only)
                 let directions: [Direction] = [.up, .down, .left, .right]
                     for direction in directions {
@@ -1062,14 +1063,19 @@ public final class GameEngine {
                         }
                     }
                 }
-                
+
                 // Only keep groups of 3 or more tiles (match-3 style)
+                // Exclude any group that contains the protected position
                 if group.count >= 3 {
+                    if let excludePos = excludePosition, group.contains(excludePos) {
+                        // Skip this group - it contains the player's newly created tile
+                        continue
+                    }
                     groups.append(group)
                 }
             }
         }
-        
+
         return groups
     }
     
@@ -1116,33 +1122,34 @@ public final class GameEngine {
     }
     
     /// Perform one cascade step: find and merge all matching groups
-    /// Returns true if any merges occurred
+    /// - Parameter excludePosition: Optional position to exclude from first cascade iteration
+    /// - Returns: Tuple of (merged: whether any merges occurred, score: points earned)
     @discardableResult
-    private func performCascadeStep() -> (merged: Bool, score: Int) {
-        let groups = findMatchingGroups()
-        
+    private func performCascadeStep(excludePosition: Position? = nil) -> (merged: Bool, score: Int) {
+        let groups = findMatchingGroups(excludePosition: excludePosition)
+
         guard !groups.isEmpty else {
             return (false, 0)
         }
-        
+
         var totalScore = 0
-        
+
         // Merge all groups
         for group in groups {
             let score = mergeGroup(group)
             totalScore += score
         }
-        
+
         // Apply gravity and refill from top (creates natural cascade effect)
         applyGravityDown()
-        
+
         // Use cascade-aware refill that spawns only from top
         if config.fillMode == .alwaysFull {
             refillToFullWithCascade()
         } else {
             refillToFull()
         }
-        
+
         return (true, totalScore)
     }
     
