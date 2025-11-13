@@ -292,9 +292,15 @@ public final class GameStore {
             guard let unlocked = unlockedValue else { return nil }
             return EliminationRules.map[unlocked]
         }()
+        // Calculate the "added" tile for merge info (7 doublings below the unlocked milestone)
+        let mergeInfoAddedValue: Int = {
+            guard let unlocked = unlockedValue else { return addedValue }
+            // 7 doublings down = divide by 2^7 = divide by 128
+            return unlocked / 128
+        }()
         // Only show the merge info board when a new highest tile is unlocked
         if let unlockedValue {
-            lastMergeInfo = .init(unlocked: unlockedValue, added: addedValue, excluded: excludedValue)
+            lastMergeInfo = .init(unlocked: unlockedValue, added: mergeInfoAddedValue, excluded: excludedValue)
         } else {
             lastMergeInfo = nil
         }
@@ -1258,8 +1264,16 @@ extension GameStore {
         if let mergeData = UserDefaults.standard.data(forKey: "lastMergeInfo"),
            let mergeDict = try? JSONSerialization.jsonObject(with: mergeData) as? [String: Any] {
             let unlocked = mergeDict["unlocked"] as? Int
-            let added = mergeDict["added"] as? Int ?? 0
-            let excluded = mergeDict["excluded"] as? Int
+            // Recalculate "added" value (7 doublings below unlocked milestone)
+            let added: Int = {
+                guard let unlockedValue = unlocked else { return mergeDict["added"] as? Int ?? 0 }
+                return unlockedValue / 128  // 2^7 = 128
+            }()
+            // Recalculate excluded value from EliminationRules to fix any old incorrect data
+            let excluded: Int? = {
+                guard let unlockedValue = unlocked else { return nil }
+                return EliminationRules.map[unlockedValue]
+            }()
             lastMergeInfo = MergeInfo(unlocked: unlocked, added: added, excluded: excluded)
         }
         
