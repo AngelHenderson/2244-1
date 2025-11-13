@@ -265,15 +265,16 @@ public final class GameEngine {
         
         // Refill board using cascade-aware spawning without reapplying gravity (already applied above)
         refillAfterGravity(applyGravity: false)
-        
+
         // Trigger auto-cascade after gift chain
-        _ = runAutoCascade()
-        
+        // Protect the tile we just created from being immediately merged
+        _ = runAutoCascade(protectPosition: positions.last)
+
         // Check for game over
         if !hasValidMoves() {
             state.isGameOver = true
         }
-        
+
         return state
     }
     
@@ -392,15 +393,16 @@ public final class GameEngine {
         
         // Always-full policy: apply gravity and refill to keep the board dense
         refillAfterGravity()
-        
+
         // Trigger auto-cascade after player move
-        _ = runAutoCascade()
-        
+        // Protect the tile we just created from being immediately merged
+        _ = runAutoCascade(protectPosition: positions.last)
+
         // Check for game over
         if !hasValidMoves() {
             state.isGameOver = true
         }
-        
+
         return state
     }
     
@@ -1154,33 +1156,37 @@ public final class GameEngine {
     }
     
     /// Run the full cascade: repeatedly merge until no more matches exist
-    /// Returns the total score from all cascades
+    /// - Parameter protectPosition: Optional position to protect in the first cascade only (prevents immediate merging of player-created tiles)
+    /// - Returns: Total score from all cascades
     @discardableResult
-    public func runAutoCascade() -> Int {
+    public func runAutoCascade(protectPosition: Position? = nil) -> Int {
         var totalScore = 0
         var cascadeCount = 0
         let maxCascades = 50 // Safety limit to prevent infinite loops
-        
+
         while cascadeCount < maxCascades {
-            let result = performCascadeStep()
-            
+            // Only protect the position in the FIRST cascade iteration
+            // Subsequent cascades can merge it naturally
+            let excludePos = (cascadeCount == 0) ? protectPosition : nil
+            let result = performCascadeStep(excludePosition: excludePos)
+
             if !result.merged {
                 break // No more matches found
             }
-            
+
             totalScore += result.score
             cascadeCount += 1
         }
-        
+
         // Award score with combo multiplier for cascades
         if cascadeCount > 1 {
             // Bonus for combos: 2x for 2 cascades, 3x for 3, etc.
             let comboBonus = totalScore * (cascadeCount - 1) / 2
             totalScore += comboBonus
         }
-        
+
         state.score += totalScore
-        
+
         return totalScore
     }
     
