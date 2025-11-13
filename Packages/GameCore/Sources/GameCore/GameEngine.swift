@@ -794,13 +794,11 @@ public final class GameEngine {
     }
     
     private func latestEliminatedValue() -> Int? {
-        // Find the highest milestone achieved and eliminated (or achievable by highestTile)
-        let triggers = EliminationRules.map.keys.sorted()
-        var lastRemoved: Int? = nil
-        for t in triggers where t <= state.highestTile {
-            lastRemoved = EliminationRules.map[t]
-        }
-        return lastRemoved
+        // Calculate dynamically based on highest tile achieved
+        // Pattern: eliminated = highestTile / 16384 (14 doublings down)
+        guard state.highestTile >= 16_384 else { return nil }
+        let eliminated = state.highestTile / 16_384
+        return eliminated > 0 ? eliminated : nil
     }
 
     // MARK: - Gravity and Refill (Always-Full)
@@ -979,7 +977,10 @@ public final class GameEngine {
     // MARK: - Milestone elimination helpers
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
-        guard let toRemove = EliminationRules.map[createdValue] else { return }
+        // Calculate eliminated value dynamically: 14 doublings down
+        let toRemove = createdValue / 16_384
+        guard toRemove > 0 else { return }
+
         // Only trigger once per milestone creation
         if !eliminatedMilestones.contains(createdValue) {
             eliminatedMilestones.insert(createdValue)
