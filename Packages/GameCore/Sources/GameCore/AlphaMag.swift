@@ -32,21 +32,29 @@ public struct AlphaMag {
         
         // K suffix for thousands
         if value < million {
-            let mantissa = Int(value / thousand)
-            let remainder = Int(value % thousand)
-            return "\(mantissa)," + padded(remainder, width: 3) + "K"
+            let v = value / thousand
+            var rounded = v
+            var out = Decimal()
+            NSDecimalRound(&out, &rounded, decimals, rounding)
+            return numberString(out, decimals: decimals) + "K"
         }
 
+        // M suffix for millions
         if value < billion {
-            let mantissa = Int(value / million)
-            let remainder = Int((value % million) / thousand)
-            return "\(mantissa)," + padded(remainder, width: 3) + "M"
+            let v = value / million
+            var rounded = v
+            var out = Decimal()
+            NSDecimalRound(&out, &rounded, decimals, rounding)
+            return numberString(out, decimals: decimals) + "M"
         }
 
+        // B suffix for billions
         if value < trillion {
-            let mantissa = Int(value / billion)
-            let remainder = Int((value % billion) / million)
-            return "\(mantissa)," + padded(remainder, width: 3) + "B"
+            let v = value / billion
+            var rounded = v
+            var out = Decimal()
+            NSDecimalRound(&out, &rounded, decimals, rounding)
+            return numberString(out, decimals: decimals) + "B"
         }
         
         // For values >= trillion, use alphabetic suffixes (a, b, c, ...), lowercase
@@ -76,6 +84,9 @@ public struct AlphaMag {
     
     /// Format an Int tile value (convenience method)
     public static func format(_ value: Int, decimals: Int = 0) -> String {
+        if decimals == 0 {
+            return formatScoreStyle(value)
+        }
         do {
             return try format(Decimal(value), decimals: decimals)
         } catch {
@@ -190,6 +201,49 @@ public struct AlphaMag {
         f.maximumFractionDigits = decimals
         f.usesGroupingSeparator = false
         return f.string(from: n) ?? n.stringValue
+    }
+
+    // MARK: - Score-style helpers
+
+    private static func formatScoreStyle(_ value: Int) -> String {
+        guard value != 0 else { return "0" }
+        let isNegative = value < 0
+        var magnitude = isNegative ? -value : value
+        var chunks: [Int] = []
+        while magnitude > 0 {
+            chunks.append(magnitude % 1_000)
+            magnitude /= 1_000
+        }
+        let hi = chunks.count - 1
+        let formatted: String
+        switch hi {
+        case 0:
+            formatted = groupedInt(chunks[0])
+        case 1:
+            formatted = "\(chunks[1]),\(padded(chunks[0]))K"
+        case 2:
+            formatted = "\(chunks[2]),\(padded(chunks[1]))M"
+        case 3:
+            formatted = "\(chunks[3]),\(padded(chunks[2]))B"
+        default:
+            let tierIndex = hi - 3
+            let suffix = TileStepLabelFormatter.excelLetters(for: tierIndex).lowercased()
+            formatted = "\(chunks[hi]),\(padded(chunks[hi - 1]))\(suffix)"
+        }
+        return isNegative ? "-" + formatted : formatted
+    }
+
+    private static func groupedInt(_ value: Int) -> String {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        f.usesGroupingSeparator = true
+        f.groupingSize = 3
+        f.groupingSeparator = ""
+        return f.string(from: NSNumber(value: value)) ?? String(value)
+    }
+
+    private static func padded(_ value: Int) -> String {
+        String(format: "%03d", value)
     }
 }
 

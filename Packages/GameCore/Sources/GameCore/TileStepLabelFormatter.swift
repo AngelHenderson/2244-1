@@ -81,23 +81,14 @@ public enum TileStepLabelFormatter {
         }
 
         // M and B (floor)
-        if hi == 2 {
-            let hiChunk = chunks[2]
-            let nextChunk = chunks[1]
-            return "\(hiChunk),\(padded(nextChunk))M"
-        }
-        if hi == 3 {
-            let hiChunk = chunks[3]
-            let nextChunk = chunks[2]
-            return "\(hiChunk),\(padded(nextChunk))B"
-        }
+        if hi == 2 { return "\(chunks[2])M" }
+        if hi == 3 { return "\(chunks[3])B" }
 
         // Beyond billions → letters: a,b,...,z,aa,...,bz (lowercase)
         let tierIndex = hi - 3            // 1 -> a (trillion), 2 -> b, ..., 26 -> z, 27 -> aa, ...
         let suffix = excelLetters(for: tierIndex).lowercased()
-        let hiChunk = chunks[hi]
-        let nextChunk = chunks[hi - 1]
-        return "\(hiChunk),\(padded(nextChunk))\(suffix)"
+        let mantissa = chunks[hi]         // floor(n / 1000^(9+3*tier)) < 1000 always
+        return "\(mantissa)\(suffix)"
     }
 
     // MARK: Big-integer-by-1000 core
@@ -153,7 +144,4 @@ public enum TileStepLabelFormatter {
         return f.string(from: NSNumber(value: n)) ?? String(n)
     }
 
-    private static func padded(_ value: Int) -> String {
-        String(format: "%03d", value)
-    }
 }

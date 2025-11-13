@@ -31,7 +31,7 @@ struct HUDTopBar: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     // Use AlphaMag 1,000-step units: K, M, B, a, b, c, ...
-                    Text(AlphaMag.format(score, decimals: 3))
+                    Text(AlphaMag.format(score))
                         .font(.headline.monospacedDigit())
                 }
                 .padding(.horizontal, 12).padding(.vertical, 6)
