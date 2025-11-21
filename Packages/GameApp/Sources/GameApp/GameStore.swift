@@ -308,25 +308,10 @@ public final class GameStore {
             // Added = 7 doublings down = unlocked / 128
             return unlocked / 128
         }()
-        // Queue notifications sequentially: unlocked, added, excluded
-        if let unlockedValue {
-            lastMergeInfo = .init(unlocked: unlockedValue, added: mergeInfoAddedValue, excluded: excludedValue)
-            // Queue notifications in order: unlocked first, then added, then excluded
-            notificationQueue.append(.unlocked(unlockedValue))
-            notificationQueue.append(.added(mergeInfoAddedValue))
-            if let excludedValue {
-                notificationQueue.append(.excluded(excludedValue))
-            }
-            // Start showing the first notification if none is currently showing
-            if currentNotification == nil {
-                showNextNotification()
-            }
-        } else {
-            lastMergeInfo = nil
-            // Clear notification queue if no milestone was unlocked
-            notificationQueue.removeAll()
-            currentNotification = nil
-        }
+        // Disable merge info window + notifications (per design request)
+        lastMergeInfo = nil
+        notificationQueue.removeAll()
+        currentNotification = nil
         movesHistory.append(currentPath)
         
         // Update session analytics
