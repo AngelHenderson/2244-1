@@ -38,6 +38,7 @@ public struct Theme {
     private static let overridesByExactValue: [Int: (color: Color, darkText: Bool)] = [
         1_000_000_000: (Color(hex: "6F0000"), false),
         36_000_000_000: (Color(hex: "6F0000"), false),
+        68_000_000_000: (Color(hex: "FF3B7B"), false), // Match 2048 styling for 68B request
         1_000_000_000_000_000_000: (Color(hex: "6F0000"), false)
     ]
 
