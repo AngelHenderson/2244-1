@@ -1071,9 +1071,19 @@ public final class GameEngine {
 
                 // Only keep groups of 3 or more tiles (match-3 style)
                 // Exclude any group that contains the protected position
+                // Also exclude groups that contain milestone tiles (they should not be auto-merged)
                 if group.count >= 3 {
                     if let excludePos = excludePosition, group.contains(excludePos) {
                         // Skip this group - it contains the player's newly created tile
+                        continue
+                    }
+                    // Check if any tile in the group is a milestone value
+                    let containsMilestone = group.contains { pos in
+                        guard let tile = state.board[pos] else { return false }
+                        return EliminationRules.map.keys.contains(tile.value)
+                    }
+                    if containsMilestone {
+                        // Skip this group - it contains a milestone tile that should be protected
                         continue
                     }
                     groups.append(group)
@@ -1091,7 +1101,6 @@ public final class GameEngine {
         guard let firstTile = state.board[group[0]] else { return 0 }
         
         let value = firstTile.value
-        let count = group.count
         
         // Calculate merged value: sum all tiles and round up to next power of 2
         let mergedValue = min(value * 2, Int.max)
