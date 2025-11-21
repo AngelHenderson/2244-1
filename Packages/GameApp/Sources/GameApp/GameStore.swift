@@ -32,6 +32,15 @@ public final class GameStore {
         public let added: Int
         public let excluded: Int?
     }
+    
+    public enum MergeNotification: Equatable, Sendable {
+        case unlocked(Int)
+        case added(Int)
+        case excluded(Int)
+    }
+    
+    private var notificationQueue: [MergeNotification] = []
+    public private(set) var currentNotification: MergeNotification? = nil
     public private(set) var lastMergeInfo: MergeInfo? = nil
     // Value of the most recently created tile from a commit (for HUD banner)
     public private(set) var lastAddedTileValue: Int? = nil
@@ -299,11 +308,24 @@ public final class GameStore {
             // Added = 7 doublings down = unlocked / 128
             return unlocked / 128
         }()
-        // Only show the merge info board when a new highest tile is unlocked
+        // Queue notifications sequentially: unlocked, added, excluded
         if let unlockedValue {
             lastMergeInfo = .init(unlocked: unlockedValue, added: mergeInfoAddedValue, excluded: excludedValue)
+            // Queue notifications in order: unlocked first, then added, then excluded
+            notificationQueue.append(.unlocked(unlockedValue))
+            notificationQueue.append(.added(mergeInfoAddedValue))
+            if let excludedValue {
+                notificationQueue.append(.excluded(excludedValue))
+            }
+            // Start showing the first notification if none is currently showing
+            if currentNotification == nil {
+                showNextNotification()
+            }
         } else {
             lastMergeInfo = nil
+            // Clear notification queue if no milestone was unlocked
+            notificationQueue.removeAll()
+            currentNotification = nil
         }
         movesHistory.append(currentPath)
         
@@ -459,6 +481,19 @@ public final class GameStore {
     // MARK: - Merge Info
     public func clearLastMergeInfo() {
         lastMergeInfo = nil
+    }
+    
+    private func showNextNotification() {
+        guard !notificationQueue.isEmpty else {
+            currentNotification = nil
+            return
+        }
+        currentNotification = notificationQueue.removeFirst()
+    }
+    
+    public func dismissCurrentNotification() {
+        currentNotification = nil
+        showNextNotification()
     }
     
     // MARK: - PowerUps via Engine wrapper

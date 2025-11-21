@@ -84,8 +84,13 @@ public struct HybridGameScreen: View {
         )
 
         let mergeInfoBinding = Binding(
-            get: { gameStore.lastMergeInfo != nil },
+            get: { gameStore.lastMergeInfo != nil && gameStore.currentNotification == nil },
             set: { newValue in if !newValue { gameStore.clearLastMergeInfo() } }
+        )
+        
+        let notificationBinding = Binding(
+            get: { gameStore.currentNotification != nil },
+            set: { newValue in if !newValue { gameStore.dismissCurrentNotification() } }
         )
 
         // Break down the complex expression into smaller parts
@@ -137,7 +142,23 @@ public struct HybridGameScreen: View {
                 )
             }
         
-        let sheetViews = unlockSheet
+        let notificationSheet = unlockSheet
+            .sheet(isPresented: notificationBinding) {
+                if let notification = gameStore.currentNotification {
+                    Group {
+                        switch notification {
+                        case .unlocked(let value):
+                            UnlockedNotificationView(value: value, onClose: { gameStore.dismissCurrentNotification() })
+                        case .added(let value):
+                            AddedNotificationView(value: value, onClose: { gameStore.dismissCurrentNotification() })
+                        case .excluded(let value):
+                            ExcludedNotificationView(value: value, onClose: { gameStore.dismissCurrentNotification() })
+                        }
+                    }
+                }
+            }
+        
+        let sheetViews = notificationSheet
             .sheet(isPresented: mergeInfoBinding) {
                 if let info = gameStore.lastMergeInfo {
                     MergeInfoBoard(info: info, onClose: { gameStore.clearLastMergeInfo() })

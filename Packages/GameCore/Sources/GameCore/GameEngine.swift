@@ -794,8 +794,15 @@ public final class GameEngine {
     }
     
     private func latestEliminatedValue() -> Int? {
-        // Calculate dynamically based on highest tile achieved
-        // Pattern: eliminated = highestTile / 16384 (14 doublings down)
+        // Find the highest milestone that has been reached and get its eliminated value
+        // This ensures we use the exact EliminationRules.map values
+        let reachedMilestones = eliminatedMilestones.sorted(by: >)
+        for milestone in reachedMilestones {
+            if let eliminated = EliminationRules.map[milestone] {
+                return eliminated
+            }
+        }
+        // Fallback to dynamic calculation if no milestones in map
         guard state.highestTile >= 16_384 else { return nil }
         let eliminated = state.highestTile / 16_384
         return eliminated > 0 ? eliminated : nil
@@ -977,24 +984,30 @@ public final class GameEngine {
     // MARK: - Milestone elimination helpers
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
-        // Calculate eliminated value dynamically: 14 doublings down
-        let toRemove = createdValue / 16_384
-        guard toRemove > 0 else { return }
+        // Use the EliminationRules map to get the exact value to remove
+        guard let toRemove = EliminationRules.map[createdValue] else {
+            // Fallback to dynamic calculation if not in map
+            let calculated = createdValue / 16_384
+            guard calculated > 0 else { return }
+            // Only trigger once per milestone creation
+            if !eliminatedMilestones.contains(createdValue) {
+                eliminatedMilestones.insert(createdValue)
+                print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), eliminating \(calculated) from board and spawn pool")
+                eliminateAllTiles(withValue: calculated)
+            }
+            return
+        }
 
         // Only trigger once per milestone creation
         if !eliminatedMilestones.contains(createdValue) {
             eliminatedMilestones.insert(createdValue)
-            print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), eliminating \(toRemove) from spawn pool")
-            // In sparse mode, also remove tiles from board
-            // In alwaysFull mode, just updating spawn pool is enough (tiles will naturally be replaced)
-            if config.fillMode == .sparse {
-                eliminateAllTiles(withValue: toRemove)
-            }
+            print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), eliminating \(toRemove) from board and spawn pool")
+            // Remove tiles from board in both modes
+            eliminateAllTiles(withValue: toRemove)
         }
     }
     
     private func eliminateAllTiles(withValue value: Int) {
-        guard config.fillMode == .sparse else { return }
         var didRemove = false
         var removedCount = 0
         
