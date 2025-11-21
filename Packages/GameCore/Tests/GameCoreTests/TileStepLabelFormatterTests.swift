@@ -118,4 +118,12 @@ struct TileStepLabelFormatterTests {
         #expect(suffixes[26] == "aa")
         #expect(suffixes[27] == "ab")
     }
+    
+    @Test("Letter tier mantissa compresses to single digit")
+    func testLetterTierLeadingDigit() {
+        let label = TileStepLabelFormatter.label(fromChunks: [0, 0, 0, 0, 461])
+        #expect(label == "4a")
+        let labelNine = TileStepLabelFormatter.label(fromChunks: [0, 0, 0, 0, 987])
+        #expect(labelNine == "9a")
+    }
 }
