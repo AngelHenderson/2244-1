@@ -33,6 +33,13 @@ public struct SimplifiedGlassBoardView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
+            .gesture(
+                dragGesture(
+                    tileSize: tileSize,
+                    containerSize: gridFrameSize(for: tileSize)
+                ),
+                including: .all
+            )
             .onChange(of: gameStore.lastMagnetEvent) { _, newValue in
                 if let event = newValue {
                     startMagnetAnimations(for: event)
@@ -125,12 +132,6 @@ public struct SimplifiedGlassBoardView: View {
         }
         .padding(spacing)
         .contentShape(Rectangle())
-        .simultaneousGesture(
-            dragGesture(
-                tileSize: tileSize,
-                containerSize: gridFrameSize(for: tileSize)
-            )
-        )
     }
     
     @ViewBuilder
