@@ -321,4 +321,35 @@ struct GameEngineTests {
         #expect(board[BoardIndex(row: 0, col: 0)].kind == CellKind.empty, "Top of column 0 should be empty")
         #expect(board[BoardIndex(row: 0, col: 1)].kind == CellKind.empty, "Top of column 1 should be empty")
     }
+    
+    @Test("Milestone elimination removes too-low tiles and raises spawn floor")
+    func testMilestoneEliminationRemovesTiles() {
+        let config = GameConfig(boardWidth: 3, boardHeight: 3, seed: 99, fillMode: .alwaysFull)
+        let engine = GameEngine(config: config)
+        
+        // Clear the board for deterministic setup
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                engine._setTileForTesting(at: Position(row: row, col: col), value: nil)
+            }
+        }
+        
+        let removedValue = 262_144
+        let milestoneValue = removedValue << 14 // 4B milestone
+        let targetPositions = [
+            Position(row: 0, col: 0),
+            Position(row: 1, col: 1),
+            Position(row: 2, col: 2)
+        ]
+        targetPositions.forEach { engine._setTileForTesting(at: $0, value: removedValue) }
+        
+        engine._applyMilestoneEliminationForTesting(createdValue: milestoneValue)
+        
+        let state = engine.currentState()
+        for pos in targetPositions {
+            #expect(state.board[pos]?.value != removedValue, "Tile \(removedValue) should be eliminated from board")
+        }
+        
+        #expect(engine._latestEliminatedValueForTesting() == removedValue, "Spawn floor should reflect removed value")
+    }
 }

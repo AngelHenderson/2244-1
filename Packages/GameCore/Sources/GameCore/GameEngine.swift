@@ -268,7 +268,8 @@ public final class GameEngine {
 
         // Trigger auto-cascade after gift chain
         // Protect the tile we just created from being immediately merged
-        _ = runAutoCascade(protectPosition: positions.last)
+        let protectedValue = milestoneProtectionValue(for: outcome.resultValue)
+        _ = runAutoCascade(protectPosition: positions.last, protectedValue: protectedValue)
 
         // Check for game over
         if !hasValidMoves() {
@@ -393,10 +394,11 @@ public final class GameEngine {
         
         // Always-full policy: apply gravity and refill to keep the board dense
         refillAfterGravity()
-
+        
         // Trigger auto-cascade after player move
         // Protect the tile we just created from being immediately merged
-        _ = runAutoCascade(protectPosition: positions.last)
+        let protectedValue = milestoneProtectionValue(for: mergedValue)
+        _ = runAutoCascade(protectPosition: positions.last, protectedValue: protectedValue)
 
         // Check for game over
         if !hasValidMoves() {
@@ -793,16 +795,20 @@ public final class GameEngine {
         return 2
     }
     
+    private func milestoneExcludedValue(for milestone: Int) -> Int? {
+        guard milestone >= (1 << 14) else { return nil }
+        return milestone >> 14
+    }
+    
+    private func milestoneProtectionValue(for milestone: Int) -> Int? {
+        milestoneExcludedValue(for: milestone) != nil ? milestone : nil
+    }
+    
     private func latestEliminatedValue() -> Int? {
-        // Find the highest milestone that has been reached and get its eliminated value
-        // This ensures we use the exact EliminationRules.map values
-        let reachedMilestones = eliminatedMilestones.sorted(by: >)
-        for milestone in reachedMilestones {
-            if let eliminated = EliminationRules.map[milestone] {
-                return eliminated
-            }
+        if let highestMilestone = eliminatedMilestones.max(),
+           let eliminated = milestoneExcludedValue(for: highestMilestone) {
+            return eliminated
         }
-        // Fallback to dynamic calculation if no milestones in map
         guard state.highestTile >= 16_384 else { return nil }
         let eliminated = state.highestTile / 16_384
         return eliminated > 0 ? eliminated : nil
@@ -984,25 +990,12 @@ public final class GameEngine {
     // MARK: - Milestone elimination helpers
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
-        // Use the EliminationRules map to get the exact value to remove
-        guard let toRemove = EliminationRules.map[createdValue] else {
-            // Fallback to dynamic calculation if not in map
-            let calculated = createdValue / 16_384
-            guard calculated > 0 else { return }
-            // Only trigger once per milestone creation
-            if !eliminatedMilestones.contains(createdValue) {
-                eliminatedMilestones.insert(createdValue)
-                print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), eliminating \(calculated) from board and spawn pool")
-                eliminateAllTiles(withValue: calculated)
-            }
-            return
-        }
-
+        guard let toRemove = milestoneExcludedValue(for: createdValue) else { return }
+        
         // Only trigger once per milestone creation
         if !eliminatedMilestones.contains(createdValue) {
             eliminatedMilestones.insert(createdValue)
             print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), eliminating \(toRemove) from board and spawn pool")
-            // Remove tiles from board in both modes
             eliminateAllTiles(withValue: toRemove)
         }
     }
@@ -1084,28 +1077,20 @@ public final class GameEngine {
                 }
 
                 // Only keep groups of 3 or more tiles (match-3 style)
-                // Exclude any group that contains the protected position
-                // Also exclude groups that contain milestone tiles (they should not be auto-merged)
                 if group.count >= 3 {
                     if let excludePos = excludePosition, group.contains(excludePos) {
                         // Skip this group - it contains the player's newly created tile
                         continue
                     }
-                    // Check if any tile in the group is a milestone value
-                    // Protect ALL milestone tiles from being auto-merged
-                    let containsMilestone = group.contains { pos in
-                        guard let tile = state.board[pos] else { return false }
-                        // Check if it's a milestone value OR if it matches the protected milestone
-                        let isMilestone = EliminationRules.map.keys.contains(tile.value)
-                        let isProtected = (protectedMilestoneValue != nil) && (tile.value == protectedMilestoneValue)
-                        // Also protect if it's the current highest tile and is a milestone
-                        let isHighestMilestone = (tile.value == state.highestTile) && EliminationRules.map.keys.contains(tile.value)
-                        return isMilestone || isProtected || isHighestMilestone
-                    }
-                    if containsMilestone {
-                        // Skip this group - it contains a milestone tile that should be protected
-                        print("🛡️ PROTECTED: Skipping merge group containing milestone tile")
-                        continue
+                    if let protectValue = protectedMilestoneValue {
+                        let containsProtectedValue = group.contains { pos in
+                            guard let tile = state.board[pos] else { return false }
+                            return tile.value == protectValue
+                        }
+                        if containsProtectedValue {
+                            print("🛡️ PROTECTED: Skipping merge group containing milestone value \(protectValue)")
+                            continue
+                        }
                     }
                     groups.append(group)
                 }
@@ -1122,13 +1107,6 @@ public final class GameEngine {
         guard let firstTile = state.board[group[0]] else { return 0 }
         
         let value = firstTile.value
-        
-        // CRITICAL: Never merge milestone tiles in auto-cascade
-        // Milestone tiles should only be merged by player action, not auto-cascade
-        if EliminationRules.map.keys.contains(value) {
-            print("🛡️ PROTECTED: Blocked merge of milestone tile \(value) in auto-cascade")
-            return 0
-        }
         
         // Calculate merged value: sum all tiles and round up to next power of 2
         let mergedValue = min(value * 2, Int.max)
@@ -1198,29 +1176,21 @@ public final class GameEngine {
     
     /// Run the full cascade: repeatedly merge until no more matches exist
     /// - Parameter protectPosition: Optional position to protect in the first cascade only (prevents immediate merging of player-created tiles)
+    /// - Parameter protectedValue: Optional milestone value to protect across all iterations
     /// - Returns: Total score from all cascades
     @discardableResult
-    public func runAutoCascade(protectPosition: Position? = nil) -> Int {
+    public func runAutoCascade(protectPosition: Position? = nil, protectedValue: Int? = nil) -> Int {
         var totalScore = 0
         var cascadeCount = 0
         let maxCascades = 50 // Safety limit to prevent infinite loops
-        
-        // Check if the protected position contains a milestone tile
-        let protectedMilestoneValue: Int? = {
-            guard let pos = protectPosition,
-                  let tile = state.board[pos],
-                  EliminationRules.map.keys.contains(tile.value) else {
-                return nil
-            }
-            return tile.value
-        }()
 
         while cascadeCount < maxCascades {
             // Only protect the position in the FIRST cascade iteration
-            // BUT: Always protect milestone tiles by value (not just position)
-            // Subsequent cascades can merge non-milestone tiles naturally
             let excludePos = (cascadeCount == 0) ? protectPosition : nil
-            let result = performCascadeStep(excludePosition: excludePos, protectedMilestoneValue: protectedMilestoneValue)
+            let result = performCascadeStep(
+                excludePosition: excludePos,
+                protectedMilestoneValue: protectedValue
+            )
 
             if !result.merged {
                 break // No more matches found
@@ -1259,5 +1229,13 @@ public final class GameEngine {
 
     func _setLastMergeAtMsForTesting(_ value: Int?) {
         lastMergeAtMs = value
+    }
+    
+    func _applyMilestoneEliminationForTesting(createdValue: Int) {
+        applyMilestoneEliminationIfNeeded(createdValue: createdValue)
+    }
+    
+    func _latestEliminatedValueForTesting() -> Int? {
+        latestEliminatedValue()
     }
 }
