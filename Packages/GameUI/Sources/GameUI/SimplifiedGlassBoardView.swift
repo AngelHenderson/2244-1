@@ -12,6 +12,7 @@ public struct SimplifiedGlassBoardView: View {
     @State private var dragLocation: CGPoint = .zero
     @State private var isDragging = false
     @State private var glassPreviewValues: [Int] = []
+    @State private var magnetAnimations: [MagnetAnimationModel] = []
     
     private let spacing: CGFloat = 12
     private let cornerRadius: CGFloat = 12
@@ -28,9 +29,15 @@ public struct SimplifiedGlassBoardView: View {
             ZStack {
                 boardGrid(tileSize: tileSize, containerSize: geometry.size)
                 pathOverlay(tileSize: tileSize, containerSize: geometry.size)
+                magnetOverlay(tileSize: tileSize, containerSize: geometry.size)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
+            .onChange(of: gameStore.lastMagnetEvent) { _, newValue in
+                if let event = newValue {
+                    startMagnetAnimations(for: event)
+                }
+            }
         }
     }
     
@@ -223,6 +230,34 @@ public struct SimplifiedGlassBoardView: View {
         }
     }
     
+    @ViewBuilder
+    private func magnetOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
+        if tileSize > 0, !magnetAnimations.isEmpty {
+            ForEach(magnetAnimations) { animation in
+                let startPoint = centerPoint(for: animation.start, tileSize: tileSize, containerSize: containerSize)
+                let endPoint = centerPoint(for: animation.target, tileSize: tileSize, containerSize: containerSize)
+                let currentPoint = CGPoint(
+                    x: startPoint.x + (endPoint.x - startPoint.x) * animation.progress,
+                    y: startPoint.y + (endPoint.y - startPoint.y) * animation.progress
+                )
+                
+                TileView(
+                    tile: Tile(value: animation.value),
+                    isSelected: false,
+                    isValid: true,
+                    size: tileSize,
+                    colorBlindMode: colorBlindMode,
+                    theme: currentTheme
+                )
+                .scaleEffect(1 - 0.25 * animation.progress)
+                .opacity(1 - 0.35 * animation.progress)
+                .position(currentPoint)
+                .animation(.easeInOut(duration: 0.35), value: animation.progress)
+            }
+            .allowsHitTesting(false)
+        }
+    }
+    
     // Rest of implementation (drag gesture, calculations) same as BoardView...
     private func dragGesture(tileSize: CGFloat, containerSize: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
@@ -345,5 +380,33 @@ public struct SimplifiedGlassBoardView: View {
         let boardHeight = totalTilesHeight + 2 * spacing
         return CGSize(width: boardWidth, height: boardHeight)
     }
+    
+    private func startMagnetAnimations(for event: GameStore.MagnetEvent) {
+        let contributors = event.sources.filter { $0 != event.target }
+        guard !contributors.isEmpty else {
+            gameStore.clearLastMagnetEvent()
+            return
+        }
+        magnetAnimations = contributors.map { MagnetAnimationModel(value: event.value, start: $0, target: event.target, progress: 0) }
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: 0.35)) {
+                for index in magnetAnimations.indices {
+                    magnetAnimations[index].progress = 1
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                magnetAnimations.removeAll()
+                gameStore.clearLastMagnetEvent()
+            }
+        }
+    }
+}
+
+private struct MagnetAnimationModel: Identifiable, Equatable {
+    let id = UUID()
+    let value: Int
+    let start: Position
+    let target: Position
+    var progress: CGFloat
 }
 

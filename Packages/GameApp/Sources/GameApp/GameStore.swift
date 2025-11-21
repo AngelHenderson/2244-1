@@ -39,9 +39,16 @@ public final class GameStore {
         case excluded(Int)
     }
     
+    public struct MagnetEvent: Equatable, Sendable {
+        public let target: Position
+        public let sources: [Position]
+        public let value: Int
+    }
+    
     private var notificationQueue: [MergeNotification] = []
     public private(set) var currentNotification: MergeNotification? = nil
     public private(set) var lastMergeInfo: MergeInfo? = nil
+    public private(set) var lastMagnetEvent: MagnetEvent? = nil
     // Value of the most recently created tile from a commit (for HUD banner)
     public private(set) var lastAddedTileValue: Int? = nil
     // Pending double offer value to apply (base value for doubling)
@@ -468,6 +475,10 @@ public final class GameStore {
         lastMergeInfo = nil
     }
     
+    public func clearLastMagnetEvent() {
+        lastMagnetEvent = nil
+    }
+    
     private func showNextNotification() {
         guard !notificationQueue.isEmpty else {
             currentNotification = nil
@@ -579,18 +590,18 @@ public final class GameStore {
         guard let tile = state.board[position], tile.value == value else { return false }
         
         // Count how many tiles with this value exist on the board
-        var matchingCount = 0
+        var matchingPositions: [Position] = []
         for row in 0..<state.board.height {
             for col in 0..<state.board.width {
                 let pos = Position(row: row, col: col)
                 if let t = state.board[pos], t.value == value {
-                    matchingCount += 1
+                    matchingPositions.append(pos)
                 }
             }
         }
         
         // Need at least 2 tiles to merge
-        guard matchingCount > 1 else { return false }
+        guard matchingPositions.count > 1 else { return false }
         
         // Deduct power-up cost
         if powerUpInventory["magnet", default: 0] > 0 {
@@ -603,6 +614,7 @@ public final class GameStore {
         
         // Use the engine's magnetize method to merge all tiles with the same value
         state = engine.magnetize(value: value, to: position)
+        lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
         
         // Track power-up usage
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
