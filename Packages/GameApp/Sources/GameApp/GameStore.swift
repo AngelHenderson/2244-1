@@ -303,18 +303,6 @@ public final class GameStore {
         if let unlockedValue {
             setPendingUnlockRewardIfNeeded(for: unlockedValue, previousHigh: previousHighest)
         }
-        // Calculate merge info values using consistent pattern for ALL milestones
-        let excludedValue: Int? = {
-            guard let unlocked = unlockedValue else { return nil }
-            // Eliminated = 14 doublings down = unlocked / 16384
-            let eliminated = unlocked / 16_384
-            return eliminated > 0 ? eliminated : nil
-        }()
-        let mergeInfoAddedValue: Int = {
-            guard let unlocked = unlockedValue else { return addedValue }
-            // Added = 7 doublings down = unlocked / 128
-            return unlocked / 128
-        }()
         // Disable merge info window + notifications (per design request)
         lastMergeInfo = nil
         notificationQueue.removeAll()

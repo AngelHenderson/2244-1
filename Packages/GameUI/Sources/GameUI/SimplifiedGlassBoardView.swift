@@ -249,8 +249,8 @@ public struct SimplifiedGlassBoardView: View {
                     colorBlindMode: colorBlindMode,
                     theme: currentTheme
                 )
-                .scaleEffect(1 - 0.25 * animation.progress)
-                .opacity(1 - 0.35 * animation.progress)
+                .scaleEffect(1.0 - 0.25 * animation.progress)
+                .opacity(1.0 - 0.35 * animation.progress)
                 .position(currentPoint)
                 .animation(.easeInOut(duration: 0.35), value: animation.progress)
             }
