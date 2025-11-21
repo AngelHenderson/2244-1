@@ -28,6 +28,7 @@ public struct BoardView: View {
             ZStack {
                 boardGrid(tileSize: tileSize, containerSize: geometry.size)
                 pathOverlay(tileSize: tileSize, containerSize: geometry.size)
+                mergeAnimationOverlay(tileSize: tileSize, containerSize: geometry.size)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
@@ -61,6 +62,7 @@ public struct BoardView: View {
                                 colorBlindMode: colorBlindMode,
                                 theme: currentTheme
                             )
+                            .opacity(isAnimating(position) ? 0 : 1)
                             if let t = gameStore.state.board[position], t.value == currentMax {
                                 Image(systemName: "crown.fill")
                                     .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
@@ -118,9 +120,31 @@ public struct BoardView: View {
         }
     }
     
+
+    
+    @ViewBuilder
+    private func mergeAnimationOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
+        if let state = gameStore.mergeAnimationState {
+            MergeAnimationView(
+                state: state,
+                tileSize: tileSize,
+                spacing: spacing,
+                containerSize: containerSize,
+                boardWidth: gameStore.state.board.width,
+                boardHeight: gameStore.state.board.height
+            )
+        }
+    }
+    
+    private func isAnimating(_ position: Position) -> Bool {
+        guard let state = gameStore.mergeAnimationState else { return false }
+        return state.sourcePositions.contains(position)
+    }
+    
     private func dragGesture(tileSize: CGFloat, containerSize: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
+                guard !gameStore.isInputLocked else { return }
                 guard tileSize > 0 else { return }
                 let position = gridPosition(from: value.location, tileSize: tileSize, containerSize: containerSize)
                 

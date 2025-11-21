@@ -45,10 +45,19 @@ public final class GameStore {
         public let value: Int
     }
     
+    public struct MergeAnimationState: Equatable, Sendable {
+        public let sourcePositions: [Position]
+        public let targetPosition: Position
+        public let value: Int
+        public let startTime: Date
+    }
+    
     private var notificationQueue: [MergeNotification] = []
     public private(set) var currentNotification: MergeNotification? = nil
     public private(set) var lastMergeInfo: MergeInfo? = nil
     public private(set) var lastMagnetEvent: MagnetEvent? = nil
+    public private(set) var mergeAnimationState: MergeAnimationState? = nil
+    public private(set) var isInputLocked: Bool = false
     // Value of the most recently created tile from a commit (for HUD banner)
     public private(set) var lastAddedTileValue: Int? = nil
     // Pending double offer value to apply (base value for doubling)
@@ -240,8 +249,45 @@ public final class GameStore {
     
     public func commitPath() {
         guard pathValidation.isValid else { return }
-        let previousHighest = state.highestTile
+        guard !currentPath.isEmpty else { return }
+        
         let positions = currentPath
+        guard let lastPos = positions.last else { return }
+        
+        // Lock input to prevent interaction during animation
+        isInputLocked = true
+        
+        // Determine the value being merged (for particle color)
+        // We use the value of the first tile in the chain
+        let firstPos = positions[0]
+        let value = state.board[firstPos]?.value ?? 2
+        
+        // Trigger animation state
+        mergeAnimationState = MergeAnimationState(
+            sourcePositions: Array(positions.dropLast()),
+            targetPosition: lastPos,
+            value: value,
+            startTime: Date()
+        )
+        
+        // Delay the actual commit to allow animation to play
+        // Animation duration should match the view's animation (e.g., 0.4s)
+        Task {
+            try? await Task.sleep(nanoseconds: 400_000_000) // 0.4 seconds
+            
+            await MainActor.run {
+                self.performCommit(positions: positions)
+                self.mergeAnimationState = nil
+                self.isInputLocked = false
+            }
+        }
+    }
+
+    private func performCommit(positions: [Position]) {
+        // Re-validate just in case, though input was locked
+        // guard pathValidation.isValid else { return } // Validation might rely on currentPath which is passed as arg now
+        
+        let previousHighest = state.highestTile
         let lastPos = positions.last
 
         // Check if ending on gift and use appropriate commit method
