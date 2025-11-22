@@ -450,8 +450,8 @@ public final class GameEngine {
         state.board[b] = temp
         state.moves += 1
         
-        // Trigger auto-cascade after swap
-        _ = runAutoCascade()
+        // Swap-drop-refill: keep gravity/refill consistent without triggering auto-cascade
+        refillAfterGravity()
         
         if !hasValidMoves() {
             state.isGameOver = true

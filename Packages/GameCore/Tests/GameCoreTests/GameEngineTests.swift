@@ -123,6 +123,50 @@ struct GameEngineTests {
         // With auto-cascade enabled, score will be >= 16 (may include cascade bonuses)
         #expect(state.score >= 16, "Score should be at least 16 from the base chain")
     }
+    
+    @Test
+    func testSwapDropRefillKeepsBoardStable() {
+        let config = GameConfig(boardWidth: 4, boardHeight: 4, seed: 7, fillMode: .alwaysFull)
+        let engine = GameEngine(config: config)
+        
+        // Fill board with a known value to remove randomness
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                engine._setTileForTesting(at: Position(row: row, col: col), value: 8)
+            }
+        }
+        
+        // Arrange tiles so that a swap could previously trigger a cascade
+        let topLeft = Position(row: 0, col: 0)
+        let topMid = Position(row: 0, col: 1)
+        let topRight = Position(row: 0, col: 2)
+        let midMid = Position(row: 1, col: 1)
+        
+        engine._setTileForTesting(at: topLeft, value: 4)
+        engine._setTileForTesting(at: topMid, value: 2)
+        engine._setTileForTesting(at: topRight, value: 4)
+        engine._setTileForTesting(at: midMid, value: 4)
+        engine._resetScoreForTesting()
+        
+        let state = engine.swap(topMid, midMid)
+        
+        // Swap should not award score (no cascade)
+        #expect(state.score == 0, "Swap should not trigger auto-cascade scoring")
+        
+        // Tiles should remain present (board stays full)
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                #expect(state.board[pos] != nil, "Board should stay full after swap-drop-refill")
+            }
+        }
+        
+        // Verify swapped values landed in expected positions without merging
+        #expect(state.board[topLeft]?.value == 4)
+        #expect(state.board[topMid]?.value == 4)
+        #expect(state.board[topRight]?.value == 4)
+        #expect(state.board[midMid]?.value == 2)
+    }
 
     @Test
     func testTieredDoubling_LongChains() {
