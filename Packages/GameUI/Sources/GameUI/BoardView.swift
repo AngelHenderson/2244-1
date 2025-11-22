@@ -12,6 +12,7 @@ public struct BoardView: View {
     
     @State private var dragLocation: CGPoint = .zero
     @State private var isDragging = false
+    @Namespace private var tileNamespace
     
     private let spacing: CGFloat = 8
     private let cornerRadius: CGFloat = 12
@@ -54,22 +55,17 @@ public struct BoardView: View {
                     ForEach(0..<gameStore.state.board.width, id: \.self) { col in
                         let position = Position(row: row, col: col)
                         ZStack {
-                            TileView(
-                                tile: gameStore.state.board[position],
-                                isSelected: gameStore.currentPath.contains(position),
-                                isValid: gameStore.pathValidation.isValid,
-                                size: tileSize,
-                                colorBlindMode: colorBlindMode,
-                                theme: currentTheme
-                            )
-                            .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
-                            
-                            if gameStore.pendingGiftBoxes[position] != nil {
-                                GiftBoxOverlay(size: tileSize)
-                                    .onTapGesture {
-                                        haptics.success()
-                                        gameStore.tapGiftBox(at: position)
-                                    }
+                            if let tile = gameStore.state.board[position] {
+                                TileView(
+                                    tile: tile,
+                                    isSelected: gameStore.currentPath.contains(position),
+                                    isValid: gameStore.pathValidation.isValid,
+                                    size: tileSize,
+                                    colorBlindMode: colorBlindMode,
+                                    theme: currentTheme
+                                )
+                                .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
+                                .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                             }
                             
                             if gameStore.pendingGiftBoxes[position] != nil {
@@ -79,6 +75,7 @@ public struct BoardView: View {
                                         gameStore.tapGiftBox(at: position)
                                     }
                             }
+                            
                             if let t = gameStore.state.board[position], t.value == currentMax {
                                 Image(systemName: "crown.fill")
                                     .font(.system(size: max(10, tileSize * 0.28), weight: .bold))

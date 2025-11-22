@@ -1,6 +1,7 @@
 import SwiftUI
 import GameApp
 
+@MainActor
 struct RewardSpinnerView: View {
     @Environment(\.gameStore) private var gameStore
     let baseAmount: Int
@@ -89,8 +90,10 @@ struct RewardSpinnerView: View {
         timer?.invalidate()
         isFrozen = false
         timer = Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { _ in
-            guard !isFrozen else { return }
-            moveIndicator()
+            Task { @MainActor in
+                guard !isFrozen else { return }
+                moveIndicator()
+            }
         }
     }
     
