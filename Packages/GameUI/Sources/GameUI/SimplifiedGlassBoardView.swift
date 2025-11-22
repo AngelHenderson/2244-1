@@ -236,10 +236,28 @@ public struct SimplifiedGlassBoardView: View {
         if tileSize > 0, !magnetAnimations.isEmpty {
             ForEach(magnetAnimations) { animation in
                 let startPoint = centerPoint(for: animation.start, tileSize: tileSize, containerSize: containerSize)
-                let endPoint = centerPoint(for: at(1.0 - 0.25 * animation.progress)
-                .opacity(1.0 - 0.35 * animation.progress)
+                let endPoint = centerPoint(for: animation.target, tileSize: tileSize, containerSize: containerSize)
+
+                // Calculate the current position based on the animation's progress.
+                let currentPoint = CGPoint(
+                    x: startPoint.x + (endPoint.x - startPoint.x) * animation.progress,
+                    y: startPoint.y + (endPoint.y - startPoint.y) * animation.progress
+                )
+                
+                TileView(
+                    tile: Tile(value: animation.value),
+                    isSelected: false,
+                    isValid: true,
+                    size: tileSize,
+                    colorBlindMode: colorBlindMode,
+                    theme: currentTheme
+                )
                 .position(currentPoint)
-                .animation(.easeInOut(dur
+                .opacity(1.0 - animation.progress) // Fades out as it nears the target
+            }
+        }
+    }
+    
     // Rest of implementation (drag gesture, calculations) same as BoardView...
     private func dragGesture(tileSize: CGFloat, containerSize: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
