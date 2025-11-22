@@ -90,21 +90,25 @@ private struct ParticleGroup: View {
     private func particleView(index: Int, startPoint: CGPoint, endPoint: CGPoint) -> some View {
         let horizontalSign: CGFloat = (index % 2 == 0) ? -1.0 : 1.0
         let verticalSign: CGFloat = (index < 2) ? -1.0 : 1.0
-        let explodeMagnitude = tileSize * 0.2 * (1 - progress)
         let baseOffset = CGSize(width: horizontalSign * tileSize * 0.25,
                                 height: verticalSign * tileSize * 0.25)
+        
+        // Explosion lasts for first 30% of progress, then collapses to 0 for a straight-line pull
+        let explodeProgress = min(max(progress / 0.3, 0), 1)
+        let explodeMagnitude = tileSize * 0.2 * (1 - explodeProgress)
         let explodeOffset = CGSize(width: horizontalSign * explodeMagnitude,
                                    height: verticalSign * explodeMagnitude)
-        let currentX = startPoint.x + (endPoint.x - startPoint.x) * progress
-        let currentY = startPoint.y + (endPoint.y - startPoint.y) * progress
+        
+        let startAnchorX = startPoint.x + baseOffset.width + explodeOffset.width
+        let startAnchorY = startPoint.y + baseOffset.height + explodeOffset.height
+        let currentX = startAnchorX + (endPoint.x - startAnchorX) * progress
+        let currentY = startAnchorY + (endPoint.y - startAnchorY) * progress
         let currentScale = max(0.2, 1 - progress * 0.6)
         let currentOpacity = 1 - progress * 0.1
         
         RoundedRectangle(cornerRadius: 4)
             .fill(Theme.color(for: value))
             .frame(width: tileSize / 2 - 2, height: tileSize / 2 - 2)
-            .offset(baseOffset)
-            .offset(explodeOffset)
             .position(x: currentX, y: currentY)
             .scaleEffect(currentScale)
             .opacity(currentOpacity)
