@@ -131,7 +131,7 @@ struct ProfileShareCard: View {
                                         .font(.caption.weight(.bold))
                                         .foregroundStyle(.white)
                                 }
-                                  Text(verbatim: String(tier.value))
+                                Text(verbatim: String(tier.value))
                                     .font(.caption.monospacedDigit())
                                     .foregroundStyle(.primary)
                             }
