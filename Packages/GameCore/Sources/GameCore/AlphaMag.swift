@@ -220,26 +220,21 @@ public struct AlphaMag {
         case 0:
             formatted = groupedInt(chunks[0])
         case 1:
-            formatted = "\(chunks[1]),\(padded(chunks[0]))K"
+            formatted = "\(chunks[1])\(padded(chunks[0]))K"
         case 2:
-            formatted = "\(chunks[2]),\(padded(chunks[1]))M"
+            formatted = "\(chunks[2])\(padded(chunks[1]))M"
         case 3:
-            formatted = "\(chunks[3]),\(padded(chunks[2]))B"
+            formatted = "\(chunks[3])\(padded(chunks[2]))B"
         default:
             let tierIndex = hi - 3
             let suffix = TileStepLabelFormatter.excelLetters(for: tierIndex).lowercased()
-            formatted = "\(chunks[hi]),\(padded(chunks[hi - 1]))\(suffix)"
+            formatted = "\(chunks[hi])\(padded(chunks[hi - 1]))\(suffix)"
         }
         return isNegative ? "-" + formatted : formatted
     }
 
     private static func groupedInt(_ value: Int) -> String {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.usesGroupingSeparator = true
-        f.groupingSize = 3
-        f.groupingSeparator = ""
-        return f.string(from: NSNumber(value: value)) ?? String(value)
+        String(value)
     }
 
     private static func padded(_ value: Int) -> String {
@@ -257,23 +252,13 @@ public extension AlphaMag {
     }
     
     /// Format a tile value appropriately 
-    /// < 16384: plain numbers with grouping for thousands (2, 4, 8, 16, 32, 64, 128, 256, 512, 1,024, 2,048, 4,096, 8,192)
+    /// < 16384: plain numbers without grouping (2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192)
     /// >= 16384: AlphaMag format (16K, 32K, 64K, 128K, 256K, 512K, 1M, 2M, 4M, 8M, 16M, 32M, 64M, 128M, 256M, 512M, 1B, 2B, 4B, 8B, etc.)
     static func formatTileValue(_ value: Int) -> String {
         if shouldUseAlphaMagFormatting(for: value) {
             return format(value)
         } else {
-            if value >= 1000 {
-                let f = NumberFormatter()
-                f.usesGroupingSeparator = true
-                f.groupingSize = 3
-                f.groupingSeparator = ","
-                f.maximumFractionDigits = 0
-                f.minimumFractionDigits = 0
-                return f.string(from: NSNumber(value: value)) ?? "\(value)"
-            } else {
-                return "\(value)"
-            }
+            return "\(value)"
         }
     }
 }

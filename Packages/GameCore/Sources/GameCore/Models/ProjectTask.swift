@@ -79,15 +79,15 @@ public struct ProjectTaskManager {
     public static let sampleTasks: [ProjectTask] = [
         ProjectTask(id: "classic_1", title: "First Merge", description: "Create your first merge", mode: .classic, difficulty: .easy, requirement: 1, progress: 1, state: .completed),
         ProjectTask(id: "classic_2", title: "Chain Master", description: "Create a 5-tile chain", mode: .classic, difficulty: .medium, requirement: 1, progress: 0, state: .inProgress),
-        ProjectTask(id: "classic_3", title: "High Scorer", description: "Score 10,000 points", mode: .classic, difficulty: .hard, requirement: 10000, progress: 0, state: .notStarted),
+        ProjectTask(id: "classic_3", title: "High Scorer", description: "Score 10000 points", mode: .classic, difficulty: .hard, requirement: 10000, progress: 0, state: .notStarted),
         ProjectTask(id: "classic_4", title: "Tile 512", description: "Create a 512 tile", mode: .classic, difficulty: .medium, requirement: 1, progress: 0, state: .notStarted),
         ProjectTask(id: "classic_5", title: "Combo King", description: "Create 3 chains in one game", mode: .classic, difficulty: .easy, requirement: 3, progress: 1, state: .inProgress),
-        ProjectTask(id: "classic_6", title: "No Power-Ups", description: "Score 5,000 without power-ups", mode: .classic, difficulty: .hard, requirement: 5000, progress: 0, state: .notStarted),
-        ProjectTask(id: "classic_7", title: "Speed Run", description: "Score 3,000 in 2 minutes", mode: .classic, difficulty: .medium, requirement: 1, progress: 0, state: .notStarted),
+        ProjectTask(id: "classic_6", title: "No Power-Ups", description: "Score 5000 without power-ups", mode: .classic, difficulty: .hard, requirement: 5000, progress: 0, state: .notStarted),
+        ProjectTask(id: "classic_7", title: "Speed Run", description: "Score 3000 in 2 minutes", mode: .classic, difficulty: .medium, requirement: 1, progress: 0, state: .notStarted),
         ProjectTask(id: "classic_8", title: "Perfect Game", description: "Fill entire board", mode: .classic, difficulty: .hard, requirement: 1, progress: 0, state: .notStarted),
         ProjectTask(id: "classic_9", title: "Tile Collector", description: "Have 5 different tile values", mode: .classic, difficulty: .easy, requirement: 5, progress: 3, state: .inProgress),
         ProjectTask(id: "classic_10", title: "Marathon", description: "Play for 10 minutes", mode: .classic, difficulty: .easy, requirement: 600, progress: 600, state: .completed),
-        ProjectTask(id: "classic_11", title: "Efficiency Expert", description: "Score 2,000 in 50 moves", mode: .classic, difficulty: .medium, requirement: 1, progress: 0, state: .notStarted),
+        ProjectTask(id: "classic_11", title: "Efficiency Expert", description: "Score 2000 in 50 moves", mode: .classic, difficulty: .medium, requirement: 1, progress: 0, state: .notStarted),
 
         ProjectTask(id: "journey_1", title: "Journey Begin", description: "Start your journey", mode: .journey, difficulty: .easy, requirement: 1, progress: 1, state: .completed),
         ProjectTask(id: "journey_2", title: "First Milestone", description: "Reach tile 64", mode: .journey, difficulty: .easy, requirement: 1, progress: 1, state: .completed),
@@ -98,7 +98,7 @@ public struct ProjectTaskManager {
         ProjectTask(id: "journey_7", title: "Beyond Limits", description: "Reach tile 4096", mode: .journey, difficulty: .hard, requirement: 1, progress: 0, state: .notStarted),
         ProjectTask(id: "journey_8", title: "Chain Journey", description: "Create 10 chains total", mode: .journey, difficulty: .easy, requirement: 10, progress: 5, state: .inProgress),
         ProjectTask(id: "journey_9", title: "Power Journey", description: "Use 5 power-ups", mode: .journey, difficulty: .easy, requirement: 5, progress: 2, state: .inProgress),
-        ProjectTask(id: "journey_10", title: "Score Journey", description: "Total score 50,000", mode: .journey, difficulty: .medium, requirement: 50000, progress: 12000, state: .inProgress),
+        ProjectTask(id: "journey_10", title: "Score Journey", description: "Total score 50000", mode: .journey, difficulty: .medium, requirement: 50000, progress: 12000, state: .inProgress),
         ProjectTask(id: "journey_11", title: "Complete Journey", description: "Complete all milestones", mode: .journey, difficulty: .hard, requirement: 1, progress: 0, state: .notStarted),
 
         ProjectTask(id: "daily_1", title: "Daily Player", description: "Play daily challenge", mode: .daily, difficulty: .easy, requirement: 1, progress: 1, state: .completed),

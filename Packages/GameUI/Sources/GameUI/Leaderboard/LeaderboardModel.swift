@@ -123,7 +123,7 @@ public final class LeaderboardModel {
     public static func formatScore(_ score: Int) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.groupingSeparator = ""
+        formatter.usesGroupingSeparator = false
         return formatter.string(from: NSNumber(value: score)) ?? "\(score)"
     }
     

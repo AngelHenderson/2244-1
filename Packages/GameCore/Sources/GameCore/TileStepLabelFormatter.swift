@@ -4,7 +4,7 @@ import Foundation
 /// - Doubling only (each step = previous * 2)
 /// - Floors at every unit (no rounding)
 /// - K/M/B, then lowercase Excel-style suffixes starting at `a` (trillions), then `b`, ..., `z`, `aa` ... `bz`.
-/// - Shows full number with grouping for values < 10_000.
+/// - Shows full number without grouping for values < 10_000.
 public enum TileStepLabelFormatter {
 
     // MARK: Public API
@@ -35,22 +35,12 @@ public enum TileStepLabelFormatter {
     
     /// Format a tile value (convenience method that converts value to step)
     public static func formatTileValue(_ value: Int) -> String {
-        // For values < 10,000, show the raw number with grouping
+        // For values < 10_000, show the raw number without grouping
         if value < 10_000 {
-            if value >= 1_000 {
-                let f = NumberFormatter()
-                f.usesGroupingSeparator = true
-                f.groupingSize = 3
-                f.groupingSeparator = ""
-                f.maximumFractionDigits = 0
-                f.minimumFractionDigits = 0
-                return f.string(from: NSNumber(value: value)) ?? "\(value)"
-            } else {
-                return "\(value)"
-            }
+            return "\(value)"
         }
         
-        // For values >= 10,000, use step-based formatting if it's a power of 2
+        // For values >= 10_000, use step-based formatting if it's a power of 2
         if let step = stepForValue(value, start: 2) {
             return labelForStep(step, start: 2)
         }
@@ -66,7 +56,7 @@ public enum TileStepLabelFormatter {
     static func label(fromChunks chunks: [Int]) -> String {
         let hi = chunks.count - 1
 
-        // < 10,000 → show full with grouping (e.g., "8,192")
+        // < 10_000 → show full without grouping (e.g., "8192")
         if hi == 0 {
             return grouped(chunks[0])
         }
@@ -135,14 +125,9 @@ public enum TileStepLabelFormatter {
         return result
     }
 
-    /// Grouped decimal string for small totals (e.g., 8192 -> "8,192").
+    /// Plain decimal string for small totals (e.g., 8192 -> "8192").
     private static func grouped(_ n: Int) -> String {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.usesGroupingSeparator = true
-        f.groupingSize = 3
-        f.groupingSeparator = ""
-        return f.string(from: NSNumber(value: n)) ?? String(n)
+        String(n)
     }
     
     private static func leadingDigit(_ value: Int) -> Int {

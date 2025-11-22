@@ -45,7 +45,7 @@ public final class ProfileModel {
     public var highestTile: String? = nil
 
     // Stats
-    public var bestScoreText: String = "3,513,812"
+    public var bestScoreText: String = "3513812"
     public var globalRank: Int = 534
     public var tiers: [TierStat] = []
 

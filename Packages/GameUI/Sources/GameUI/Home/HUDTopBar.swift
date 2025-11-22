@@ -30,7 +30,7 @@ struct HUDTopBar: View {
                     Text("Score")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    // Use AlphaMag 1,000-step units: K, M, B, a, b, c, ...
+                    // Use AlphaMag 1_000-step units: K, M, B, a, b, c, ...
                     Text(AlphaMag.format(score))
                         .font(.headline.monospacedDigit())
                 }

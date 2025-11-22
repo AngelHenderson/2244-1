@@ -83,7 +83,7 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
         id: "com.game2244.coins.medium",
         type: .coins(2500),
         displayName: "Coin Bag",
-        description: "2,500 coins with 25% bonus",
+        description: "2500 coins with 25% bonus",
         price: 3.99,
         items: [IAPProductItem(type: .coins, quantity: 2500)],
         displayPriority: 11
@@ -93,7 +93,7 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
         id: "com.game2244.coins.large",
         type: .coins(10000),
         displayName: "Coin Chest",
-        description: "10,000 coins with 50% bonus",
+        description: "10000 coins with 50% bonus",
         price: 9.99,
         items: [IAPProductItem(type: .coins, quantity: 10000)],
         displayPriority: 12

@@ -7,7 +7,7 @@ struct TileStepLabelFormatterTests {
     @Test("Small values and K suffix")
     func testSmallAndK() {
         // 2 -> step 12 = 8192
-        #expect(TileStepLabelFormatter.labelForStep(12) == "8,192")
+        #expect(TileStepLabelFormatter.labelForStep(12) == "8192")
         #expect(TileStepLabelFormatter.labelForStep(13) == "16K")
         #expect(TileStepLabelFormatter.labelForStep(14) == "32K")
         #expect(TileStepLabelFormatter.labelForStep(15) == "65K")
@@ -34,8 +34,8 @@ struct TileStepLabelFormatterTests {
     
     @Test("Carry at 1000 boundary")
     func testCarryAt1000() {
-        // Step 49 = 2^50 = 1,125,899,906,842,624 = 1125a
-        // Step 48 = 2^49 = 562,949,953,421,312 = 562a 
+        // Step 49 = 2^50 = 1_125_899_906_842_624 = 1125a
+        // Step 48 = 2^49 = 562_949_953_421_312 = 562a 
         // We need to find where we get close to 999 in the "a" tier
         // 2^49.96 ≈ 999 trillion, so around step 49
         // Since we only deal with integer steps, we can't get exactly 999a
@@ -47,7 +47,7 @@ struct TileStepLabelFormatterTests {
         let step39 = TileStepLabelFormatter.labelForStep(39)
         #expect(step39 == "1a")
         
-        // Step 49 = 2^50 = 1,125,899,906,842,624 should give us 1b (first quadrillion)
+        // Step 49 = 2^50 = 1_125_899_906_842_624 should give us 1b (first quadrillion)
         let step49 = TileStepLabelFormatter.labelForStep(49)
         #expect(step49 == "1b")
         
@@ -67,8 +67,8 @@ struct TileStepLabelFormatterTests {
     func testFormatTileValue() {
         #expect(TileStepLabelFormatter.formatTileValue(2) == "2")
         #expect(TileStepLabelFormatter.formatTileValue(512) == "512")
-        #expect(TileStepLabelFormatter.formatTileValue(1024) == "1,024")
-        #expect(TileStepLabelFormatter.formatTileValue(8192) == "8,192")
+        #expect(TileStepLabelFormatter.formatTileValue(1024) == "1024")
+        #expect(TileStepLabelFormatter.formatTileValue(8192) == "8192")
         #expect(TileStepLabelFormatter.formatTileValue(16384) == "16K")
         #expect(TileStepLabelFormatter.formatTileValue(32768) == "32K")
         #expect(TileStepLabelFormatter.formatTileValue(65536) == "65K")
@@ -95,11 +95,11 @@ struct TileStepLabelFormatterTests {
         // Starting from 4
         #expect(TileStepLabelFormatter.labelForStep(0, start: 4) == "4")
         #expect(TileStepLabelFormatter.labelForStep(1, start: 4) == "8")
-        #expect(TileStepLabelFormatter.labelForStep(11, start: 4) == "8,192")
+        #expect(TileStepLabelFormatter.labelForStep(11, start: 4) == "8192")
         
         // Starting from 8
         #expect(TileStepLabelFormatter.labelForStep(0, start: 8) == "8")
-        #expect(TileStepLabelFormatter.labelForStep(10, start: 8) == "8,192")
+        #expect(TileStepLabelFormatter.labelForStep(10, start: 8) == "8192")
     }
     
     @Test("Excel-style suffix progression")

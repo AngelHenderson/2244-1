@@ -33,6 +33,7 @@ public struct LeaderboardEntry: Identifiable, Codable, Sendable {
     public var formattedScore: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = false
         return formatter.string(from: NSNumber(value: score)) ?? "\(score)"
     }
 

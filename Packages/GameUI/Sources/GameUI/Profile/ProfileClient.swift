@@ -77,7 +77,7 @@ struct MockProfileClient: ProfileClient, Sendable {
         ]
         return .init(
             playerName: "Angel Junior711",
-            bestScoreText: "3,513,812",
+            bestScoreText: "3513812",
             globalRank: 534,
             tiers: left + right,
             friendCode: "AJ711-534",

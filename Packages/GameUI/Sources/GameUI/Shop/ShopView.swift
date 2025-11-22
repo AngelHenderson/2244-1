@@ -315,6 +315,7 @@ struct GemCard: View {
     private var formattedGemCount: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = false
         return formatter.string(from: NSNumber(value: gem.gems)) ?? String(gem.gems)
     }
     

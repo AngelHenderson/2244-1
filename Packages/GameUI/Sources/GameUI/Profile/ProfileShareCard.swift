@@ -230,7 +230,7 @@ extension ProfileShareCard {
     static var previewPayload: ProfilePayload {
         .init(
             playerName: "Angel Junior711",
-            bestScoreText: "3,513,812",
+            bestScoreText: "3513812",
             globalRank: 534,
             tiers: [
                 TierStat(key: "K", value: 244, color: .purple, label: "K-Tier"),
@@ -251,7 +251,7 @@ extension ProfileShareCard {
     ProfileShareCard(
         playerName: "Angel Junior711",
         avatarSystemName: "pawprint.circle.fill",
-        bestScore: "3,513,812",
+        bestScore: "3513812",
         globalRank: 534,
         friendCode: "AJ711-534",
         season: SeasonInfo(name: "Season 7", division: "Diamond"),
@@ -265,7 +265,7 @@ extension ProfileShareCard {
     ProfileShareCard(
         playerName: "Angel Junior711",
         avatarSystemName: "pawprint.circle.fill",
-        bestScore: "3,513,812",
+        bestScore: "3513812",
         globalRank: 534,
         friendCode: "AJ711-534",
         season: SeasonInfo(name: "Season 7", division: "Diamond"),
