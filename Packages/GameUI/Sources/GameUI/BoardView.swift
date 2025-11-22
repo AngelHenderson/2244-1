@@ -270,38 +270,26 @@ public struct BoardView: View {
     }
     
     private func gridPosition(from location: CGPoint, tileSize: CGFloat, containerSize: CGSize) -> Position? {
-        // The `location` is provided in the local coordinate space of the view that the
-        // gesture is attached to (the `boardGrid` VStack). The VStack has padding,
-        // so we need to account for that when calculating hit detection.
+        // The gesture's `location` is in the local coordinate space of the view it's
+        // attached to—the `boardGrid`. We first subtract the padding to get coordinates
+        // relative to the grid of tiles itself.
+        let localX = location.x - spacing
+        let localY = location.y - spacing
+
+        // Ignore touches in the top/left padding area.
+        guard localX >= 0, localY >= 0 else { return nil }
+
+        // Determine the column and row by dividing the local coordinates by the total
+        // size of a block (tile + spacing).
+        let blockWidth = tileSize + spacing
+        let blockHeight = tileSize + spacing
         
-        var foundCol: Int?
-        var foundRow: Int?
-        
-        // Loop through columns to find a match for the x-coordinate.
-        // A tile's frame begins at `spacing + (tileSize + spacing) * col`.
-        for col in 0..<gameStore.state.board.width {
-            let tileStartX = spacing + CGFloat(col) * (tileSize + spacing)
-            let tileEndX = tileStartX + tileSize
-            
-            if location.x >= tileStartX && location.x <= tileEndX {
-                foundCol = col
-                break
-            }
-        }
-        
-        // Loop through rows to find a match for the y-coordinate.
-        for row in 0..<gameStore.state.board.height {
-            let tileStartY = spacing + CGFloat(row) * (tileSize + spacing)
-            let tileEndY = tileStartY + tileSize
-            
-            if location.y >= tileStartY && location.y <= tileEndY {
-                foundRow = row
-                break
-            }
-        }
-        
-        // A position is only valid if both a row and column were found.
-        guard let col = foundCol, let row = foundRow else {
+        let col = Int(localX / blockWidth)
+        let row = Int(localY / blockHeight)
+
+        // Ensure the calculated position is within the board's bounds.
+        guard col >= 0, col < gameStore.state.board.width,
+              row >= 0, row < gameStore.state.board.height else {
             return nil
         }
         
