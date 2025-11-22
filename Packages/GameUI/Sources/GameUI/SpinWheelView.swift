@@ -398,12 +398,15 @@ struct WheelFace: View {
                     let y = rect.midY - r * cos(centerAngle)
                     VStack(spacing: 4) {
                         Text(segments[i].icon)
-                            .font(.system(size: 24))
-                        Text(segments[i].shortLabel)
+                            .font(.system(size: 22))
+                        Text(segments[i].title)
                             .font(.system(size: 11, weight: .bold, design: .rounded))
                             .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
                     }
                     .shadow(color: .black.opacity(0.4), radius: 3)
+                    .frame(width: 70)
                     .position(x: x, y: y)
                     .rotationEffect(.radians(Double(centerAngle)))
                 }
