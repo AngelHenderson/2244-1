@@ -80,19 +80,21 @@ public struct SimplifiedGlassBoardView: View {
                                     colorBlindMode: colorBlindMode,
                                     theme: currentTheme
                                 )
-                                .opacity(isAnimating(position) ? 0 : 1)
+                                .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
                                 
                                 // Glass overlay effect - only show if glass hasn't been broken
                                 if !gameStore.brokenGlassTiles.contains(position) {
                                     glassOverlay(for: tileSize)
                                 }
                                 
-                                // Gift indicator
-                                Image(systemName: "gift.fill")
-                                    .font(.system(size: tileSize * 0.2))
-                                    .foregroundColor(.yellow)
-                                    .shadow(color: .black.opacity(0.3), radius: 2)
-                                    .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
+                                // Gift indicator (only while glass intact)
+                                if gameStore.pendingGiftBoxes[position] == nil {
+                                    Image(systemName: "gift.fill")
+                                        .font(.system(size: tileSize * 0.2))
+                                        .foregroundColor(.yellow)
+                                        .shadow(color: .black.opacity(0.3), radius: 2)
+                                        .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
+                                }
                                 
                                 if let t = gameStore.state.board[position], t.value == currentMax {
                                     Image(systemName: "crown.fill")
@@ -125,7 +127,7 @@ public struct SimplifiedGlassBoardView: View {
                                     colorBlindMode: colorBlindMode,
                                     theme: currentTheme
                                 )
-                                .opacity(isAnimating(position) ? 0 : 1)
+                                .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
                                 if let t = gameStore.state.board[position], t.value == currentMax {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: max(10, tileSize * 0.28), weight: .bold))

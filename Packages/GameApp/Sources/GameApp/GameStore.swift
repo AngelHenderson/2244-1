@@ -647,6 +647,7 @@ public final class GameStore {
         // Check if magnet power-up is available
         guard isPowerUpAvailable("magnet") else { return false }
         guard let tile = state.board[position], tile.value == value else { return false }
+        guard pendingGiftBoxes[position] == nil else { return false }
         
         // Count how many tiles with this value exist on the board
         var matchingPositions: [Position] = []

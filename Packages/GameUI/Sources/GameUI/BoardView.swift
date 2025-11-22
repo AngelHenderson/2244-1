@@ -62,7 +62,7 @@ public struct BoardView: View {
                                 colorBlindMode: colorBlindMode,
                                 theme: currentTheme
                             )
-                            .opacity(isAnimating(position) ? 0 : 1)
+                            .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
                             
                             if gameStore.pendingGiftBoxes[position] != nil {
                                 GiftBoxOverlay(size: tileSize)
