@@ -418,6 +418,11 @@ public struct SimplifiedGlassBoardView: View {
             }
         }
     }
+    
+    private func isAnimating(_ position: Position) -> Bool {
+        guard let state = gameStore.mergeAnimationState else { return false }
+        return state.sourcePositions.contains(position)
+    }
 }
 
 private struct MagnetAnimationModel: Identifiable, Equatable {
@@ -426,12 +431,5 @@ private struct MagnetAnimationModel: Identifiable, Equatable {
     let start: Position
     let target: Position
     var progress: CGFloat
-}
-
-private extension SimplifiedGlassBoardView {
-    func isAnimating(_ position: Position) -> Bool {
-        guard let state = gameStore.mergeAnimationState else { return false }
-        return state.sourcePositions.contains(position)
-    }
 }
 
