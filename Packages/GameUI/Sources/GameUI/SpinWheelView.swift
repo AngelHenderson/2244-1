@@ -465,7 +465,6 @@ struct WheelFace: View {
                     .shadow(color: .black.opacity(0.4), radius: 3)
                     .frame(width: 110, alignment: .leading)
                     .position(x: x, y: y)
-                    .rotationEffect(.radians(Double(centerAngle)))
                 }
                 
                 Circle()

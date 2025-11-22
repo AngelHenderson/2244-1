@@ -184,7 +184,7 @@ public struct PlayerProfileView: View {
             )
             StatCard(
                 title: "Global Rank",
-                value: "#\(model.globalRank)",
+                value: "#\(String(model.globalRank))",
                 info: "Your position on the world ladder. Updates after each run."
             )
         }

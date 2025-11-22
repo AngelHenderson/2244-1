@@ -62,7 +62,9 @@ public final class GameCenterManager {
     private func presentAccessPointDashboard() {
         GKAccessPoint.shared.isActive = true
         GKAccessPoint.shared.location = .topTrailing
-        GKAccessPoint.shared.trigger(handler: nil)
+        GKAccessPoint.shared.trigger {
+            // no-op completion
+        }
     }
     #endif
     

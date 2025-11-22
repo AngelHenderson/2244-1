@@ -1,7 +1,15 @@
 import SwiftUI
 import GameApp
+
 #if canImport(GameCore)
 import GameCore
+typealias TileValueFormatter = AlphaMag
+#else
+enum TileValueFormatter {
+    static func formatTileValue(_ value: Int) -> String {
+        RewardSpinnerView.tileFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
+    }
+}
 #endif
 
 @MainActor
@@ -23,7 +31,7 @@ struct RewardSpinnerView: View {
         VStack(spacing: 18) {
             Text("New Tile Unlocked")
                 .font(.title.bold())
-            Text(formattedTileValue(tileValue))
+            Text(TileValueFormatter.formatTileValue(tileValue))
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(.secondary)
             
@@ -119,20 +127,14 @@ struct RewardSpinnerView: View {
         return progress * max(available, 0)
     }
     
-    private func formattedTileValue(_ value: Int) -> String {
-        #if canImport(GameCore)
-        return AlphaMag.formatTileValue(value)
-        #else
-        return RewardSpinnerView.tileFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
-        #endif
-    }
-    
+    #if !canImport(GameCore)
     private static let tileFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 0
         return formatter
     }()
+    #endif
     
     private func startSpinner() {
         timer?.invalidate()
