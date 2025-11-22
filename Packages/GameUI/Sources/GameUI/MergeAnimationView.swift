@@ -56,26 +56,7 @@ private struct ParticleGroup: View {
         return ZStack {
             // 4 particles representing the broken block
             ForEach(0..<4) { i in
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Theme.color(for: value))
-                    .frame(width: tileSize / 2 - 2, height: tileSize / 2 - 2)
-                    // Initial position relative to the tile center
-                    .offset(
-                        x: (i % 2 == 0 ? -1 : 1) * tileSize / 4,
-                        y: (i < 2 ? -1 : 1) * tileSize / 4
-                    )
-                    // Explode out slightly first
-                    .offset(
-                        x: (i % 2 == 0 ? -1 : 1) * (1 - progress) * (tileSize * 0.2),
-                        y: (i < 2 ? -1 : 1) * (1 - progress) * (tileSize * 0.2)
-                    )
-                    // Move to target
-                    .position(
-                        x: startPoint.x + (endPoint.x - startPoint.x) * progress,
-                        y: startPoint.y + (endPoint.y - startPoint.y) * progress
-                    )
-                    .scaleEffect(max(0.2, 1 - progress * 0.6)) // Shrink as they get sucked in
-                    .opacity(1 - progress * 0.1) // Stay mostly visible until the end
+                particleView(index: i, startPoint: startPoint, endPoint: endPoint)
             }
         }
         .onAppear {
@@ -103,5 +84,29 @@ private struct ParticleGroup: View {
         let originX = (containerSize.width - boardWidthPx) / 2
         let originY = (containerSize.height - boardHeightPx) / 2
         return CGPoint(x: originX, y: originY)
+    }
+    
+    @ViewBuilder
+    private func particleView(index: Int, startPoint: CGPoint, endPoint: CGPoint) -> some View {
+        let horizontalSign: CGFloat = (index % 2 == 0) ? -1.0 : 1.0
+        let verticalSign: CGFloat = (index < 2) ? -1.0 : 1.0
+        let explodeMagnitude = tileSize * 0.2 * (1 - progress)
+        let baseOffset = CGSize(width: horizontalSign * tileSize * 0.25,
+                                height: verticalSign * tileSize * 0.25)
+        let explodeOffset = CGSize(width: horizontalSign * explodeMagnitude,
+                                   height: verticalSign * explodeMagnitude)
+        let currentX = startPoint.x + (endPoint.x - startPoint.x) * progress
+        let currentY = startPoint.y + (endPoint.y - startPoint.y) * progress
+        let currentScale = max(0.2, 1 - progress * 0.6)
+        let currentOpacity = 1 - progress * 0.1
+        
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Theme.color(for: value))
+            .frame(width: tileSize / 2 - 2, height: tileSize / 2 - 2)
+            .offset(baseOffset)
+            .offset(explodeOffset)
+            .position(x: currentX, y: currentY)
+            .scaleEffect(currentScale)
+            .opacity(currentOpacity)
     }
 }

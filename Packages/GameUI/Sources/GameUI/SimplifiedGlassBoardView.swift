@@ -29,6 +29,7 @@ public struct SimplifiedGlassBoardView: View {
             ZStack {
                 boardGrid(tileSize: tileSize, containerSize: geometry.size)
                 pathOverlay(tileSize: tileSize, containerSize: geometry.size)
+                mergeAnimationOverlay(tileSize: tileSize, containerSize: geometry.size)
                 magnetOverlay(tileSize: tileSize, containerSize: geometry.size)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -79,6 +80,7 @@ public struct SimplifiedGlassBoardView: View {
                                     colorBlindMode: colorBlindMode,
                                     theme: currentTheme
                                 )
+                                .opacity(isAnimating(position) ? 0 : 1)
                                 
                                 // Glass overlay effect - only show if glass hasn't been broken
                                 if !gameStore.brokenGlassTiles.contains(position) {
@@ -114,6 +116,7 @@ public struct SimplifiedGlassBoardView: View {
                                     colorBlindMode: colorBlindMode,
                                     theme: currentTheme
                                 )
+                                .opacity(isAnimating(position) ? 0 : 1)
                                 if let t = gameStore.state.board[position], t.value == currentMax {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
@@ -258,11 +261,26 @@ public struct SimplifiedGlassBoardView: View {
         }
     }
     
+    @ViewBuilder
+    private func mergeAnimationOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
+        if let state = gameStore.mergeAnimationState {
+            MergeAnimationView(
+                state: state,
+                tileSize: tileSize,
+                spacing: spacing,
+                containerSize: containerSize,
+                boardWidth: gameStore.state.board.width,
+                boardHeight: gameStore.state.board.height
+            )
+        }
+    }
+    
     // Rest of implementation (drag gesture, calculations) same as BoardView...
     private func dragGesture(tileSize: CGFloat, containerSize: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
                 guard tileSize > 0 else { return }
+                guard !gameStore.isInputLocked else { return }
                 let position = gridPosition(from: value.location, tileSize: tileSize, containerSize: containerSize)
                 
                 if !isDragging {
@@ -408,5 +426,12 @@ private struct MagnetAnimationModel: Identifiable, Equatable {
     let start: Position
     let target: Position
     var progress: CGFloat
+}
+
+private extension SimplifiedGlassBoardView {
+    func isAnimating(_ position: Position) -> Bool {
+        guard let state = gameStore.mergeAnimationState else { return false }
+        return state.sourcePositions.contains(position)
+    }
 }
 
