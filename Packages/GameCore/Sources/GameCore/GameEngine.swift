@@ -332,15 +332,32 @@ public final class GameEngine {
         
         let values = positions.compactMap { state.board[$0]?.value }
         
-        // Merge rule: twice the highest number in the chain (standard 2244)
-        let maxVal = values.max() ?? 0
+        // Merge rule: Round SUM up to the next power of two (inclusive).
+        // Overflow-safe summation and rounding
+        let sumResult = values.reduce((total: 0, overflowed: false)) { acc, value in
+            let (next, didOverflow) = acc.total.addingReportingOverflow(value)
+            return (didOverflow ? Int.max : next, acc.overflowed || didOverflow)
+        }
+        let chainSum = sumResult.total
         let mergedValue: Int = {
-            if maxVal >= (Int.max >> 1) { return Int.max } // Avoid overflow
-            let (next, overflow) = maxVal.multipliedReportingOverflow(by: 2)
-            return overflow ? Int.max : max(next, 2) // Ensure minimum result of 2
+            if sumResult.overflowed { return Int.max }
+            guard chainSum > 0 else { return 0 }
+            if chainSum & (chainSum - 1) == 0 { return chainSum }
+            if chainSum > (1 << 62) { return Int.max }
+            var x = chainSum - 1
+            x |= x >> 1
+            x |= x >> 2
+            x |= x >> 4
+            x |= x >> 8
+            x |= x >> 16
+            #if arch(x86_64) || arch(arm64)
+            x |= x >> 32
+            #endif
+            let next = x + 1
+            return next > 0 ? next : Int.max
         }()
         
-        // Score equals the resulting merged tile value
+        // Score equals the resulting merged tile value (no combo multipliers)
         let chainScore = mergedValue
         
         // Remove all tiles in the chain
@@ -379,12 +396,12 @@ public final class GameEngine {
         // Trigger auto-cascade after player move
         let protectedValue = milestoneProtectionValue(for: mergedValue)
         _ = runAutoCascade(protectPosition: positions.last, protectedValue: protectedValue)
-        
+
         // Check for game over
         if !hasValidMoves() {
             state.isGameOver = true
         }
-        
+
         return state
     }
     
