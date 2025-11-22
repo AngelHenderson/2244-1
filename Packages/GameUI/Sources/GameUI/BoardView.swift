@@ -13,6 +13,7 @@ public struct BoardView: View {
     @State private var dragLocation: CGPoint = .zero
     @State private var isDragging = false
     @Namespace private var tileNamespace
+    @State private var magnetAnimations: [MagnetAnimationModel] = []
     
     private let spacing: CGFloat = 8
     private let cornerRadius: CGFloat = 12
@@ -30,9 +31,15 @@ public struct BoardView: View {
                 boardGrid(tileSize: tileSize, containerSize: geometry.size)
                 pathOverlay(tileSize: tileSize, containerSize: geometry.size)
                 mergeAnimationOverlay(tileSize: tileSize, containerSize: geometry.size)
+                magnetOverlay(tileSize: tileSize, containerSize: geometry.size)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
+            .onChange(of: gameStore.lastMagnetEvent) { _, newValue in
+                if let event = newValue {
+                    startMagnetAnimations(for: event, tileSize: tileSize)
+                }
+            }
         }
     }
     
@@ -148,6 +155,31 @@ public struct BoardView: View {
                 boardWidth: gameStore.state.board.width,
                 boardHeight: gameStore.state.board.height
             )
+        }
+    }
+    
+    @ViewBuilder
+    private func magnetOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
+        if tileSize > 0, !magnetAnimations.isEmpty {
+            ForEach(magnetAnimations) { animation in
+                let startPoint = centerPoint(for: animation.start, tileSize: tileSize, containerSize: containerSize)
+                let endPoint = centerPoint(for: animation.target, tileSize: tileSize, containerSize: containerSize)
+                let currentPoint = CGPoint(
+                    x: startPoint.x + (endPoint.x - startPoint.x) * animation.progress,
+                    y: startPoint.y + (endPoint.y - startPoint.y) * animation.progress
+                )
+                
+                TileView(
+                    tile: Tile(value: animation.value),
+                    isSelected: false,
+                    isValid: true,
+                    size: tileSize,
+                    colorBlindMode: colorBlindMode,
+                    theme: currentTheme
+                )
+                .position(currentPoint)
+                .opacity(1.0 - animation.progress)
+            }
         }
     }
     
@@ -288,5 +320,25 @@ public struct BoardView: View {
         let boardWidth = totalTilesWidth + 2 * spacing
         let boardHeight = totalTilesHeight + 2 * spacing
         return CGSize(width: boardWidth, height: boardHeight)
+    }
+    
+    private func startMagnetAnimations(for event: GameStore.MagnetEvent, tileSize: CGFloat) {
+        let contributors = event.sources.filter { $0 != event.target }
+        guard !contributors.isEmpty else {
+            gameStore.clearLastMagnetEvent()
+            return
+        }
+        magnetAnimations = contributors.map { MagnetAnimationModel(value: event.value, start: $0, target: event.target, progress: 0) }
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: 0.35)) {
+                for index in magnetAnimations.indices {
+                    magnetAnimations[index].progress = 1
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                magnetAnimations.removeAll()
+                gameStore.clearLastMagnetEvent()
+            }
+        }
     }
 }

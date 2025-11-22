@@ -14,6 +14,7 @@ public struct SpinWheelView: View {
     @State private var spinState = SpinWheelState()
     @State private var showReward = false
     @State private var rewardMessage = ""
+    @State private var purchaseFeedback: String?
     @State private var now = Date()
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -35,6 +36,7 @@ public struct SpinWheelView: View {
                         VStack(spacing: 24) {
                             wheelSection
                             availabilityCard
+                            purchaseOptions
                             spinButton
                         }
                         .padding(.top, 8)
@@ -190,6 +192,50 @@ public struct SpinWheelView: View {
         )
     }
     
+    private var purchaseOptions: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Need more spins?")
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white)
+            
+            HStack(spacing: 12) {
+                purchaseButton(title: "1 Free Spin", cost: 2000, grant: 1)
+                purchaseButton(title: "3 Free Spins", cost: 10000, grant: 3)
+            }
+            
+            if let feedback = purchaseFeedback {
+                Text(feedback)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+        }
+        .padding(20)
+        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+    
+    private func purchaseButton(title: String, cost: Int, grant: Int) -> some View {
+        Button {
+            purchaseBonusSpins(count: grant, cost: cost)
+        } label: {
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                Text("\(cost) gems")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(homeState.gems >= cost ? Color.blue : Color.gray.opacity(0.5))
+            )
+            .foregroundStyle(.white)
+        }
+        .buttonStyle(.plain)
+        .disabled(homeState.gems < cost)
+    }
+    
     private var spinButton: some View {
         Button(action: startSpin) {
             Text(canSpin ? "SPIN" : "COME BACK SOON")
@@ -219,6 +265,17 @@ public struct SpinWheelView: View {
         engine.spin { segment in
             handleWinning(segment: segment)
         }
+    }
+    
+    private func purchaseBonusSpins(count: Int, cost: Int) {
+        guard homeState.gems >= cost else {
+            purchaseFeedback = "Need \(cost) gems."
+            return
+        }
+        homeState.spendGems(cost)
+        spinState.addBonusSpins(count)
+        haptics.success()
+        purchaseFeedback = "Bought \(count) bonus spin\(count == 1 ? "" : "s")!"
     }
     
     private func handleWinning(segment: WheelSegment) {
@@ -396,17 +453,17 @@ struct WheelFace: View {
                     let r = radius * 0.62
                     let x = rect.midX + r * sin(centerAngle)
                     let y = rect.midY - r * cos(centerAngle)
-                    VStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Text(segments[i].icon)
-                            .font(.system(size: 22))
+                            .font(.system(size: 20))
                         Text(segments[i].title)
                             .font(.system(size: 11, weight: .bold, design: .rounded))
                             .foregroundStyle(.white)
-                            .multilineTextAlignment(.center)
                             .lineLimit(2)
+                            .multilineTextAlignment(.leading)
                     }
                     .shadow(color: .black.opacity(0.4), radius: 3)
-                    .frame(width: 70)
+                    .frame(width: 110, alignment: .leading)
                     .position(x: x, y: y)
                     .rotationEffect(.radians(Double(centerAngle)))
                 }

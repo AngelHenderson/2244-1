@@ -8,29 +8,45 @@ struct RewardSpinnerView: View {
     let tileValue: Int
     let onClose: () -> Void
     
-    @State private var selectedIndex: Int = 2 // center (4x)
+    @State private var selectedIndex: Int = 2
     @State private var direction: Int = 1
     @State private var isFrozen = false
     @State private var timer: Timer? = nil
+    @State private var indicatorOffset: CGFloat = 0 // 0..1 across the track
     
     private let multipliers: [Int] = [2, 3, 4, 5, 4, 3, 2]
+    private let slotWidth: CGFloat = 48
+    private let trackPadding: CGFloat = 12
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("New Unlock!")
+        VStack(spacing: 18) {
+            Text("New Tile Unlocked")
                 .font(.title.bold())
-            Text("Tile \(tileValue)")
-                .font(.headline)
+            Text(AlphaMag.formatTileValue(tileValue))
+                .font(.headline.weight(.semibold))
                 .foregroundStyle(.secondary)
+            
+            VStack(spacing: 6) {
+                Text("Base Reward")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    Image(systemName: "diamond.fill")
+                        .foregroundStyle(.mint)
+                    Text("\(baseAmount)")
+                        .font(.title2.weight(.heavy))
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             
             spinner
             
             Button(action: claim) {
-                VStack(spacing: 4) {
-                    Text("Claim \(currentMultiplier)x")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                }
+                Text("Claim \(currentMultiplier)x")
+                    .font(.headline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
         }
@@ -53,37 +69,54 @@ struct RewardSpinnerView: View {
     }
     
     private var spinner: some View {
-        VStack(spacing: 12) {
-            Text("Reward Multiplier")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-            
-            ZStack {
-                Capsule()
-                    .fill(Color.black.opacity(0.15))
-                    .frame(height: 70)
+        VStack(spacing: 8) {
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color(hex: "7B50A2"))
+                    .frame(height: 56)
                 
-                HStack(spacing: 8) {
+                GeometryReader { geo in
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color.white.opacity(0.15))
+                        .frame(width: 70, height: 46)
+                        .offset(x: indicatorX(in: geo.size.width))
+                        .animation(.easeInOut(duration: 0.25), value: indicatorOffset)
+                }
+                .allowsHitTesting(false)
+                
+                HStack(spacing: 0) {
                     ForEach(0..<multipliers.count, id: \.self) { index in
-                        Text("\(multipliers[index])x")
-                            .font(.headline.weight(.bold))
-                            .frame(width: 44, height: 44)
-                            .background(
-                                Circle()
-                                    .fill(index == selectedIndex ? Color.green : Color.orange)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(.white.opacity(index == selectedIndex ? 0.9 : 0.4), lineWidth: 2)
-                                    )
-                            )
-                            .foregroundStyle(.white)
-                            .scaleEffect(index == selectedIndex ? 1.1 : 0.9)
-                            .animation(.easeInOut(duration: 0.2), value: selectedIndex)
+                        multiplierCell(for: index)
                     }
                 }
-                .padding(.horizontal, 8)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
+            .frame(height: 56)
         }
+    }
+    
+    private func multiplierCell(for index: Int) -> some View {
+        let colors = [
+            Color(hex: "E646A0"),
+            Color(hex: "F5962A"),
+            Color(hex: "F4C229"),
+            Color(hex: "61C459"),
+            Color(hex: "F4C229"),
+            Color(hex: "F5962A"),
+            Color(hex: "E646A0")
+        ]
+        return Text("x\(multipliers[index])")
+            .font(.headline.weight(.heavy))
+            .foregroundColor(.white)
+            .frame(width: slotWidth, height: 56)
+            .background(colors[index])
+    }
+    
+    private func indicatorX(in width: CGFloat) -> CGFloat {
+        let totalWidth = slotWidth * CGFloat(multipliers.count)
+        let available = width - 70
+        let progress = CGFloat(selectedIndex) / CGFloat(max(multipliers.count - 1, 1))
+        return progress * available
     }
     
     private func startSpinner() {
@@ -114,3 +147,4 @@ struct RewardSpinnerView: View {
         selectedIndex = nextIndex
     }
 }
+

@@ -34,10 +34,11 @@ struct HUDTopBar: View {
                 VStack(spacing: 2) {
                     Text("Score")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.75))
                     // Use AlphaMag 1_000-step units: K, M, B, a, b, c, ...
                     Text(AlphaMag.format(score))
                         .font(.headline.monospacedDigit())
+                        .foregroundStyle(.white)
                 }
                 .padding(.horizontal, 12).padding(.vertical, 6)
                 .modifier(GlassButtonCompat())
