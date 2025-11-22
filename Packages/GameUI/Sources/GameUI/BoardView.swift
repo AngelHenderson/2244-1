@@ -270,41 +270,40 @@ public struct BoardView: View {
     }
     
     private func gridPosition(from location: CGPoint, tileSize: CGFloat, containerSize: CGSize) -> Position? {
-        // Find which tile contains this touch point
-        // Each tile starts at: spacing + index * (tileSize + spacing)
-        // And extends for tileSize pixels
+        // The `location` is provided in the local coordinate space of the view that the
+        // gesture is attached to (the `boardGrid` VStack). The VStack has padding,
+        // so we need to account for that when calculating hit detection.
         
-        let origin = gridOrigin(in: containerSize, tileSize: tileSize)
-        let localX = location.x - origin.x
-        let localY = location.y - origin.y
+        var foundCol: Int?
+        var foundRow: Int?
         
-        var foundCol: Int? = nil
-        var foundRow: Int? = nil
-        
-        // Check each column to find which tile contains the x coordinate
+        // Loop through columns to find a match for the x-coordinate.
+        // A tile's frame begins at `spacing + (tileSize + spacing) * col`.
         for col in 0..<gameStore.state.board.width {
             let tileStartX = spacing + CGFloat(col) * (tileSize + spacing)
             let tileEndX = tileStartX + tileSize
             
-            if localX >= tileStartX && localX <= tileEndX {
+            if location.x >= tileStartX && location.x <= tileEndX {
                 foundCol = col
                 break
             }
         }
         
-        // Check each row to find which tile contains the y coordinate
+        // Loop through rows to find a match for the y-coordinate.
         for row in 0..<gameStore.state.board.height {
             let tileStartY = spacing + CGFloat(row) * (tileSize + spacing)
             let tileEndY = tileStartY + tileSize
             
-            if localY >= tileStartY && localY <= tileEndY {
+            if location.y >= tileStartY && location.y <= tileEndY {
                 foundRow = row
                 break
             }
         }
         
-        // Only return a position if we found both a valid row and column
-        guard let col = foundCol, let row = foundRow else { return nil }
+        // A position is only valid if both a row and column were found.
+        guard let col = foundCol, let row = foundRow else {
+            return nil
+        }
         
         let position = Position(row: row, col: col)
         return position.isValid(for: gameStore.state.board) ? position : nil
