@@ -235,9 +235,13 @@ private struct MilestoneCard: View {
             
             // Rewards preview
             if let gems = streak.rewards.gems, gems > 0 {
-                Label("\(gems)", systemImage: "diamond.fill")
-                    .font(.caption)
-                    .foregroundStyle(.cyan)
+                Label {
+                    Text(verbatim: String(gems))
+                } icon: {
+                    Image(systemName: "diamond.fill")
+                }
+                .font(.caption)
+                .foregroundStyle(.cyan)
             }
         }
         .frame(width: 100, height: 140)
@@ -340,7 +344,7 @@ private struct StreakDetailSheet: View {
                                 Image(systemName: "diamond.fill")
                                     .font(.title2)
                                     .foregroundStyle(.cyan)
-                                Text("\(gems) Gems")
+                                Text(verbatim: "\(gems) Gems")
                                     .font(.title3)
                                 Spacer()
                             }
@@ -399,8 +403,12 @@ private struct RewardsDisplay: View {
     var body: some View {
         HStack(spacing: 12) {
             if let gems = rewards.gems, gems > 0 {
-                Label("\(gems)", systemImage: "diamond.fill")
-                    .foregroundStyle(.cyan)
+                Label {
+                    Text(verbatim: String(gems))
+                } icon: {
+                    Image(systemName: "diamond.fill")
+                }
+                .foregroundStyle(.cyan)
             }
             if let spins = rewards.spins, spins > 0 {
                 Label("\(spins)", systemImage: "arrow.triangle.2.circlepath")

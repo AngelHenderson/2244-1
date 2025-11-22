@@ -261,12 +261,20 @@ struct BundleCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 if let items = bundle.items {
                     if let gems = items.gems {
-                        Label("\(gems) Gems", systemImage: "diamond.fill")
-                            .font(.caption)
+                        Label {
+                            Text(verbatim: "\(gems) Gems")
+                        } icon: {
+                            Image(systemName: "diamond.fill")
+                        }
+                        .font(.caption)
                     }
                     if let hammers = items.hammers {
-                        Label("\(hammers) Hammers", systemImage: "hammer.fill")
-                            .font(.caption)
+                        Label {
+                            Text(verbatim: "\(hammers) Hammers")
+                        } icon: {
+                            Image(systemName: "hammer.fill")
+                        }
+                        .font(.caption)
                     }
                 }
                 if bundle.perks?.noAds == true {
@@ -319,6 +327,10 @@ struct GemCard: View {
         return formatter.string(from: NSNumber(value: gem.gems)) ?? String(gem.gems)
     }
     
+    private var gemCountString: String {
+        String(gem.gems)
+    }
+    
     var body: some View {
         ZStack(alignment: .topLeading) {
             VStack(spacing: 10) {
@@ -332,7 +344,7 @@ struct GemCard: View {
                     .font(.system(.title2, design: .rounded).bold())
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .accessibilityLabel("\(gem.gems) gems")
+                    .accessibilityLabel("\(gemCountString) gems")
                 
                 Text("Gems")
                     .font(.caption)
@@ -365,7 +377,7 @@ struct GemCard: View {
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("\(gem.gems) gems for \(shopStore.formatPrice(gem.price))")
+        .accessibilityLabel("\(gemCountString) gems for \(shopStore.formatPrice(gem.price))")
     }
 }
 
@@ -378,7 +390,7 @@ struct PerkCard: View {
             Image(systemName: iconForPerk(perk.item))
                 .font(.title)
             
-            Text("x\(perk.quantity)")
+            Text(verbatim: "x\(perk.quantity)")
                 .font(.headline)
             
             Button {

@@ -34,7 +34,7 @@ struct TopHUD: View {
         HStack(spacing: Tokens.Spacing.xs) {
             Text("Rank:")
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-            Text("\(rank)")
+            Text(verbatim: String(rank))
                 .font(.system(size: 18, weight: .bold, design: .rounded))
         }
         .padding(.horizontal, 10)
@@ -87,7 +87,7 @@ struct TopHUD: View {
     private var gemWallet: some View {
         HStack(spacing: Tokens.Spacing.sm) {
             gemImage
-            Text("\(gameStore.coins)")
+            Text(verbatim: String(gameStore.coins))
                 .font(.system(size: 16, weight: .bold, design: .rounded))
             Button(action: onBuy) {
                 Image(systemName: "plus")

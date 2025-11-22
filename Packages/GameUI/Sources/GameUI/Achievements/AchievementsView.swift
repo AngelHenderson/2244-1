@@ -41,9 +41,13 @@ private struct RewardsView: View {
     var body: some View {
         HStack(spacing: 4) {
             if let gems = rewards.gems, gems > 0 {
-                Label("\(gems)", systemImage: "diamond.fill")
-                    .font(.caption)
-                    .foregroundStyle(.cyan)
+                Label {
+                    Text(verbatim: String(gems))
+                } icon: {
+                    Image(systemName: "diamond.fill")
+                }
+                .font(.caption)
+                .foregroundStyle(.cyan)
             }
             if let spins = rewards.spins, spins > 0 {
                 Label("\(spins)", systemImage: "arrow.trianglehead.2.clockwise")

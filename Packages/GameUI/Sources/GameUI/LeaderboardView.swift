@@ -200,7 +200,7 @@ public struct LeaderboardView: View {
                         .font(.title2)
                         .foregroundStyle(rankColor(for: entry.rank))
                 } else {
-                    Text("\(entry.rank)")
+                    Text(verbatim: String(entry.rank))
                         .font(.headline.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }

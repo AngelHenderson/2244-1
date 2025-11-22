@@ -269,7 +269,7 @@ private struct GemBalancePill: View {
             Image(systemName: "diamond.fill")
                 .foregroundStyle(.white)
                 .font(.system(size: 16, weight: .bold))
-            Text("\(gems)")
+            Text(verbatim: String(gems))
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white)
             Image(systemName: "plus.circle.fill")

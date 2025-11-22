@@ -226,15 +226,19 @@ private struct RewardsTiny: View {
     var body: some View {
         HStack(spacing: 6) {
             if let gems = rewards.gems, gems > 0 {
-                Label("\(gems)", systemImage: "diamond.fill")
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(.cyan)
-                    .overlay(
-                        Text("\(gems)")
-                            .font(.system(size: 9, weight: .semibold))
-                            .foregroundStyle(.cyan)
-                            .offset(x: 8)
-                    , alignment: .trailing)
+                Label {
+                    Text(verbatim: String(gems))
+                } icon: {
+                    Image(systemName: "diamond.fill")
+                }
+                .labelStyle(.iconOnly)
+                .foregroundStyle(.cyan)
+                .overlay(
+                    Text(verbatim: String(gems))
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.cyan)
+                        .offset(x: 8)
+                , alignment: .trailing)
             }
             if let spins = rewards.spins, spins > 0 {
                 Image(systemName: "arrow.triangle.2.circlepath")
@@ -280,8 +284,12 @@ private struct RewardsDisplay: View {
     var body: some View {
         HStack(spacing: 16) {
             if let gems = rewards.gems, gems > 0 {
-                Label("\(gems)", systemImage: "diamond.fill")
-                    .foregroundStyle(.cyan)
+                Label {
+                    Text(verbatim: String(gems))
+                } icon: {
+                    Image(systemName: "diamond.fill")
+                }
+                .foregroundStyle(.cyan)
             }
             if let spins = rewards.spins, spins > 0 {
                 Label("\(spins)", systemImage: "arrow.triangle.2.circlepath")

@@ -98,7 +98,7 @@ struct ProfileShareCard: View {
                     Text("Global Rank")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text("#\(globalRank)")
+                    Text(verbatim: "#\(globalRank)")
                         .font(.title3.weight(.bold))
                         .monospacedDigit()
                 }
@@ -131,7 +131,7 @@ struct ProfileShareCard: View {
                                         .font(.caption.weight(.bold))
                                         .foregroundStyle(.white)
                                 }
-                                Text("\(tier.value)")
+                                  Text(verbatim: String(tier.value))
                                     .font(.caption.monospacedDigit())
                                     .foregroundStyle(.primary)
                             }

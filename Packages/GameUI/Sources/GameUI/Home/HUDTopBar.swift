@@ -17,12 +17,17 @@ struct HUDTopBar: View {
             gameCenterButton
             
             Button(action: { actions.openLeaderboard() }) {
-                Text("Rank: \(state.rank)")
-                    .font(.headline)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
+                HStack(spacing: 4) {
+                    Text("Rank:")
+                    Text(verbatim: String(state.rank))
+                        .monospacedDigit()
+                }
+                .font(.headline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
             }
             .modifier(GlassButtonCompat())
-            .accessibilityLabel("Rank \(state.rank). Open leaderboard.")
+            .accessibilityLabel("Rank \(String(state.rank)). Open leaderboard.")
 
             // Score display (only shown if provided)
             if let score = score {
@@ -46,7 +51,7 @@ struct HUDTopBar: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 28, height: 28)
-                    Text("\(state.gems)")
+                    Text(verbatim: String(state.gems))
                         .font(.title3.monospacedDigit())
                     Image(systemName: "plus.circle.fill")
                         .imageScale(.medium)
@@ -56,7 +61,7 @@ struct HUDTopBar: View {
                 .padding(.horizontal, 12).padding(.vertical, 6)
             }
             .modifier(GlassButtonCompat())
-            .accessibilityLabel("Gems \(state.gems). Open shop.")
+            .accessibilityLabel("Gems \(String(state.gems)). Open shop.")
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
