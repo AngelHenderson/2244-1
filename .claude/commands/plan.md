@@ -1,37 +1,27 @@
 
-Plan how to implement the specified feature.
+### Plan: Add reward spinner to “New Tile Unlocked” modal
 
-This is the second step in the Spec-Driven Development lifecycle.
+Goals:
+- Show a looping multiplier spinner (2×, 3×, 4×, 5×, 4×, 3×, 2×) above the “claim” button when a tile is unlocked.
+- Spinner sweeps left→right→left continuously until the player taps “Claim”.
+- Claim button should apply the multiplier where appropriate (existing logic already multiplies rewards; spinner should feed that value).
 
-Given the implementation details provided as an argument, do this:
+Steps:
+1. **Design spinner model/state**
+   - Extend `GameStore` (or modal view model) to expose a selected multiplier and animation timer.
+   - Defaults to 4× (center) but animates across the sequence.
 
-1. Run `scripts/setup-plan.sh --json` from the repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. All future file paths must be absolute.
-2. Read and analyze the feature specification to understand:
-   - The feature requirements and user stories
-   - Functional and non-functional requirements
-   - Success criteria and acceptance criteria
-   - Any technical constraints or dependencies mentioned
+2. **Implement UI component**
+   - Create a reusable `RewardSpinnerView` (or adapt existing one) that renders the 7 multiplier slots, highlights the active slot, and animates the indicator bouncing left/right.
+   - Use `TimelineView`/`Timer.publish` or SwiftUI animation to oscillate until stopped.
 
-3. Read the constitution at `/memory/constitution.md` to understand constitutional requirements.
+3. **Integrate into unlock modal (`RewardSpinnerView` / `MergeInfoBoard` equivalent)**
+   - Insert spinner between “Already Claimed” text and claim button.
+   - Bind spinner’s current multiplier to state.
 
-4. Execute the implementation plan template:
-   - Load `/templates/plan-template.md` (already copied to IMPL_PLAN path)
-   - Set Input path to FEATURE_SPEC
-   - Run the Execution Flow (main) function steps 1-10
-   - The template is self-contained and executable
-   - Follow error handling and gate checks as specified
-   - Let the template guide artifact generation in $SPECS_DIR:
-     * Phase 0 generates research.md
-     * Phase 1 generates data-model.md, contracts/, quickstart.md
-     * Phase 2 generates tasks.md
-   - Incorporate user-provided details from arguments into Technical Context: $ARGUMENTS
-   - Update Progress Tracking as you complete each phase
+4. **Claim flow hook-up**
+   - When the player taps claim, stop the spinner animation and pass the multiplier to existing reward logic (currently uses fixed value; update to read spinner selection).
+   - Ensure spinner resets when modal closes.
 
-5. Verify execution completed:
-   - Check Progress Tracking shows all phases complete
-   - Ensure all required artifacts were generated
-   - Confirm no ERROR states in execution
-
-6. Report results with branch name, file paths, and generated artifacts.
-
-Use absolute paths with the repository root for all file operations to avoid path issues.
+5. **QA**
+   - Verify animation runs smoothly, stops on claim, and multiplier affects reward totals correctly.

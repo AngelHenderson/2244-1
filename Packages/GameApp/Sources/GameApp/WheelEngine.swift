@@ -25,13 +25,16 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
     }
 }
 
-public struct WheelReward: Hashable, Sendable {
-    public enum RewardType: Sendable {
-        case gems
-        case hammers
-        case magnets
-        case spin
-    }
+    public struct WheelReward: Hashable, Sendable {
+        public enum RewardType: Hashable, Sendable {
+            case gems
+            case hammers
+            case magnets
+            case spin
+            case swap
+            case multiplier(SpinWheelState.MultiplierTier)
+            case giftBox
+        }
     
     public let type: RewardType
     public let amount: Int
@@ -256,24 +259,38 @@ public final class WheelEngine {
         return r >= 0 ? r : r + m
     }
     
-    public static let defaultSegments: [WheelSegment] = [
-        .init(title: "50 Gems", subtitle: "Common prize", icon: "💎", shortLabel: "50", 
-              color: .blue, reward: .init(type: .gems, amount: 50)),
-        .init(title: "2 Hammers", subtitle: "Remove tiles", icon: "🔨", shortLabel: "2x", 
-              color: .orange, reward: .init(type: .hammers, amount: 2)),
-        .init(title: "100 Gems", subtitle: "Nice win!", icon: "💎", shortLabel: "100", 
-              color: .green, reward: .init(type: .gems, amount: 100)),
-        .init(title: "1 Magnet", subtitle: "Attract tiles", icon: "🧲", shortLabel: "1x", 
-              color: .purple, reward: .init(type: .magnets, amount: 1)),
-        .init(title: "Extra Spin", subtitle: "Spin again!", icon: "🎰", shortLabel: "SPIN", 
-              color: .pink, reward: .init(type: .spin, amount: 1)),
-        .init(title: "25 Gems", subtitle: "Small prize", icon: "💎", shortLabel: "25", 
-              color: .teal, reward: .init(type: .gems, amount: 25)),
-        .init(title: "3 Hammers", subtitle: "Jackpot!", icon: "🔨", shortLabel: "3x", 
-              color: .red, reward: .init(type: .hammers, amount: 3)),
-        .init(title: "75 Gems", subtitle: "Good win", icon: "💎", shortLabel: "75", 
-              color: .yellow, reward: .init(type: .gems, amount: 75))
-    ]
+        public static let defaultSegments: [WheelSegment] = [
+            .init(title: "1 Hammer", subtitle: "Smash a tile", icon: "🔨", shortLabel: "1x", 
+                  color: Color.orange, reward: .init(type: .hammers, amount: 1)),
+            .init(title: "2 Hammers", subtitle: "Double smash", icon: "🔨", shortLabel: "2x", 
+                  color: Color(red: 0.99, green: 0.54, blue: 0.22), reward: .init(type: .hammers, amount: 2)),
+            .init(title: "1 Swap", subtitle: "Swap tiles", icon: "🔁", shortLabel: "1x", 
+                  color: Color(red: 126.0/255.0, green: 91.0/255.0, blue: 1.0), reward: .init(type: .swap, amount: 1)),
+            .init(title: "2 Swaps", subtitle: "Strategic moves", icon: "🔁", shortLabel: "2x", 
+                  color: Color(red: 90.0/255.0, green: 58.0/255.0, blue: 1.0), reward: .init(type: .swap, amount: 2)),
+            .init(title: "1 Magnet", subtitle: "Pull tiles in", icon: "🧲", shortLabel: "1x", 
+                  color: Color.purple, reward: .init(type: .magnets, amount: 1)),
+            .init(title: "2 Magnets", subtitle: "Double pull", icon: "🧲", shortLabel: "2x", 
+                  color: Color(red: 0.64, green: 0.29, blue: 0.99), reward: .init(type: .magnets, amount: 2)),
+            .init(title: "2X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "2X", 
+                  color: Color(red: 0.36, green: 0.80, blue: 0.98), reward: .init(type: .multiplier(.twoX), amount: 1)),
+            .init(title: "3X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "3X", 
+                  color: Color(red: 0.20, green: 0.64, blue: 0.93), reward: .init(type: .multiplier(.threeX), amount: 1)),
+            .init(title: "4X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "4X", 
+                  color: Color(red: 0.14, green: 0.41, blue: 0.96), reward: .init(type: .multiplier(.fourX), amount: 1)),
+            .init(title: "1 Free Spin", subtitle: "Bonus spin", icon: "🎡", shortLabel: "+1", 
+                  color: Color(red: 0.16, green: 0.78, blue: 0.46), reward: .init(type: .spin, amount: 1)),
+            .init(title: "2 Free Spins", subtitle: "Spin streak", icon: "🎡", shortLabel: "+2", 
+                  color: Color(red: 0.10, green: 0.60, blue: 0.36), reward: .init(type: .spin, amount: 2)),
+            .init(title: "100 Gems", subtitle: "Shimmering win", icon: "💎", shortLabel: "100", 
+                  color: Color(red: 0.08, green: 0.71, blue: 0.94), reward: .init(type: .gems, amount: 100)),
+            .init(title: "500 Gems", subtitle: "Big sparkle", icon: "💎", shortLabel: "500", 
+                  color: Color(red: 0.04, green: 0.54, blue: 0.82), reward: .init(type: .gems, amount: 500)),
+            .init(title: "1000 Gems", subtitle: "Jackpot", icon: "💎", shortLabel: "1000", 
+                  color: Color(red: 0.00, green: 0.38, blue: 0.69), reward: .init(type: .gems, amount: 1000)),
+            .init(title: "Gift Box", subtitle: "Mystery prize", icon: "🎁", shortLabel: "?", 
+                  color: Color(red: 0.97, green: 0.73, blue: 0.20), reward: .init(type: .giftBox, amount: 1))
+        ]
 }
 
 // MARK: - Environment Injection

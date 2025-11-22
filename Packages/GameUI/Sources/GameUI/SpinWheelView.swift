@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 import GameApp
 
 // MARK: - View
@@ -7,194 +8,344 @@ public struct SpinWheelView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.wheelEngine) private var engine
     @Environment(\.hapticsService) private var haptics
-    @State private var hasSpun = false
+    @Environment(HomeState.self) private var homeState
+    
+    @State private var spinState = SpinWheelState()
     @State private var showReward = false
     @State private var rewardMessage = ""
+    @State private var now = Date()
+    
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    private var slotReady: Bool { spinState.slotAvailable(on: now) }
+    private var bonusReady: Bool { spinState.bonusSpins > 0 }
+    private var canSpin: Bool { (slotReady || bonusReady) && !engine.isSpinning }
     
     public init() {}
     
     public var body: some View {
         NavigationStack {
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: [Color.purple.opacity(0.3), Color.blue.opacity(0.2)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
+                BackgroundGradient()
                 VStack(spacing: 24) {
-                    // Title
-                    Text("Spin the Wheel")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .padding(.top, 20)
-                    
-                    Spacer()
-                    
-                    // Wheel container
-                    ZStack {
-                        // Wheel
-                        WheelFace(segments: engine.segments)
-                            .rotationEffect(.radians(Double(engine.angle)))
-                            .shadow(radius: 4)
-                        
-                        // Peg/ticker at top (points down)
-                        PegShape()
-                            .fill(.ultraThickMaterial)
-                            .overlay(PegShape().stroke(Color.black.opacity(0.2), lineWidth: 1.5))
-                            .frame(width: 22, height: 70)
-                            .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
-                            .offset(y: -150)
-                            .shadow(radius: 3)
-                        
-                        // Center hub
-                        Circle()
-                            .fill(.regularMaterial)
-                            .frame(width: 52, height: 52)
-                            .overlay(Circle().stroke(.black.opacity(0.2), lineWidth: 1.5))
-                    }
-                    .frame(width: 320, height: 320)
-                    .accessibilityLabel(Text("Spin wheel"))
-                    
-                    // Selected segment display
-                    VStack(spacing: 8) {
-                        Text("Current Prize")
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.7))
-                        
-                        HStack(spacing: 12) {
-                            Text(engine.segments[engine.highlightedIndex].icon)
-                                .font(.system(size: 44))
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(engine.segments[engine.highlightedIndex].title)
-                                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                                    .foregroundStyle(.white)
-                                
-                                Text(engine.segments[engine.highlightedIndex].subtitle)
-                                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                                    .foregroundStyle(.white.opacity(0.8))
-                            }
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(engine.segments[engine.highlightedIndex].color.opacity(0.9))
-                        )
-                        .animation(.easeInOut(duration: 0.3), value: engine.highlightedIndex)
-                    }
-                    
-                    Spacer()
-                    
-                    // Controls
-                    HStack(spacing: 20) {
-                        Button {
-                            hasSpun = true
-                            haptics.mediumImpact()
-                            engine.spin { segment in
-                                // Handle the result
-                                handleWinning(segment: segment)
-                            }
-                        } label: {
-                            Label("SPIN", systemImage: "arrow.2.circlepath.circle.fill")
-                                .font(.system(size: 18, weight: .bold, design: .rounded))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(
-                                    Capsule()
-                                        .fill(hasSpun ? AnyShapeStyle(Color.gray) : AnyShapeStyle(LinearGradient(
-                                            colors: [Color.green, Color.blue],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )))
-                                )
-                                .foregroundStyle(.white)
-                                .shadow(radius: hasSpun ? 1 : 3)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(engine.isSpinning || hasSpun)
-                        
-                        Button(role: .cancel) {
-                            if engine.isSpinning {
-                                engine.stop()
-                            } else {
-                                dismiss()
-                            }
-                        } label: {
-                            Label(engine.isSpinning ? "STOP" : "CLOSE", 
-                                  systemImage: engine.isSpinning ? "stop.circle.fill" : "xmark.circle.fill")
-                                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .frame(maxWidth: 140)
-                                .padding(.vertical, 16)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.red.opacity(0.9))
-                                )
-                                .foregroundStyle(.white)
-                                .shadow(radius: 2)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 32)
+                    header
+                    wheelSection
+                    availabilityCard
+                    spinButton
                 }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+                .padding(.top, 12)
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white.opacity(0.7))
-                    }
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
+        }
+        .onReceive(timer) { date in
+            now = date
+            spinState.refresh(now: date)
         }
         .alert("🎉 Congratulations!", isPresented: $showReward) {
             Button("Collect", role: .cancel) {
-                dismiss()
+                showReward = false
             }
         } message: {
             Text(rewardMessage)
         }
     }
     
+    private var header: some View {
+        HStack(spacing: 16) {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.08), in: Circle())
+            }
+            
+            Spacer()
+            
+            Text("SPIN")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+            
+            Spacer()
+            
+            GemBalancePill(gems: homeState.gems)
+        }
+    }
+    
+    private var wheelSection: some View {
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 16) {
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [.cyan.opacity(0.9), .blue],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 140, height: 38)
+                    .overlay(
+                        HStack(spacing: 6) {
+                            Image(systemName: "bolt.fill")
+                                .foregroundStyle(.white)
+                            Text("2X BONUS")
+                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+                    )
+                
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color(red: 0.13, green: 0.14, blue: 0.33), Color(red: 0.05, green: 0.06, blue: 0.14)],
+                                center: .center,
+                                startRadius: 40,
+                                endRadius: 170
+                            )
+                        )
+                        .shadow(color: .black.opacity(0.6), radius: 16, x: 0, y: 12)
+                    
+                    WheelFace(segments: engine.segments)
+                        .rotationEffect(.radians(Double(engine.angle)))
+                    
+                    WheelLights(count: max(engine.segments.count, 1))
+                    
+                    PegShape()
+                        .fill(.ultraThinMaterial)
+                        .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
+                        .frame(width: 28, height: 90)
+                        .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
+                        .offset(y: -170)
+                        .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
+                    
+                    Circle()
+                        .fill(.ultraThickMaterial)
+                        .frame(width: 70, height: 70)
+                        .shadow(color: .black.opacity(0.4), radius: 8)
+                    
+                    if let active = spinState.activeMultiplier {
+                        ActiveMultiplierBadge(active: active, countdown: spinState.formattedActiveMultiplierCountdown(now: now))
+                    } else {
+                        Circle()
+                            .strokeBorder(Color.white.opacity(0.15), lineWidth: 2)
+                            .frame(width: 90, height: 90)
+                    }
+                }
+                .frame(width: 340, height: 340)
+            }
+            .frame(maxWidth: .infinity)
+            
+            MultiplierInventoryCard(spinState: spinState, now: now)
+                .frame(maxWidth: 220)
+                .padding(.top, 8)
+        }
+    }
+    
+    private var availabilityCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Next spin", systemImage: "clock.fill")
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                Spacer()
+                Text(spinState.formattedCountdown(now: now))
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(slotReady ? .green : .white)
+            }
+            
+            if bonusReady {
+                Text("Bonus spins available: \(spinState.bonusSpins)")
+                    .foregroundStyle(.white.opacity(0.85))
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
+            } else if slotReady {
+                Text("Ready now - tap Spin to claim this window.")
+                    .foregroundStyle(.white.opacity(0.75))
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
+            } else {
+                Text("Windows reset every 12a / 4a / 8a / 12p / 4p / 8p.")
+                    .foregroundStyle(.white.opacity(0.6))
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+            }
+        }
+        .padding(20)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+        )
+    }
+    
+    private var spinButton: some View {
+        Button(action: startSpin) {
+            Text(canSpin ? "SPIN" : "COME BACK SOON")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .background(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: canSpin ? [Color(red: 0.29, green: 0.96, blue: 0.52), Color(red: 0.17, green: 0.76, blue: 0.99)]
+                                                 : [Color.gray.opacity(0.4)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                )
+                .foregroundStyle(.white)
+                .shadow(color: canSpin ? Color.black.opacity(0.4) : .clear, radius: 12, y: 8)
+        }
+        .disabled(!canSpin)
+    }
+    
+    private func startSpin() {
+        guard let _ = spinState.beginSpin(now: now) else { return }
+        haptics.mediumImpact()
+        engine.spin { segment in
+            handleWinning(segment: segment)
+        }
+    }
+    
     private func handleWinning(segment: WheelSegment) {
-        // Process the reward based on the segment
         let reward = segment.reward
-        
         Task { @MainActor in
-            // Apply the reward
             switch reward.type {
             case .gems:
-                // Add gems to user's balance
-                if let homeState = try? await HomeState.shared() {
-                    homeState.addGems(reward.amount)
-                }
+                homeState.addGems(reward.amount)
                 rewardMessage = "You won \(reward.amount) gems! 💎"
-                
             case .hammers:
-                // Add hammers to inventory
-                rewardMessage = "You won \(reward.amount) hammer\(reward.amount == 1 ? "" : "s")! 🔨"
-                
+                rewardMessage = "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
             case .magnets:
-                // Add magnets to inventory
-                rewardMessage = "You won \(reward.amount) magnet\(reward.amount == 1 ? "" : "s")! 🧲"
-                
+                rewardMessage = "You won \(reward.amount) magnet\(pluralSuffix(for: reward.amount))! 🧲"
+            case .swap:
+                rewardMessage = "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
             case .spin:
-                // Award extra spin
-                rewardMessage = "You won an extra spin! 🎰"
-                hasSpun = false // Allow another spin
-                return // Don't show alert for extra spin
+                spinState.addBonusSpins(reward.amount)
+                rewardMessage = reward.amount == 1 ? "Bonus spin added! 🎡" : "\(reward.amount) bonus spins added! 🎡"
+            case .multiplier(let tier):
+                spinState.addMultiplier(tier)
+                rewardMessage = "You banked a \(tier.displayName) boost for 24 hours!"
+            case .giftBox:
+                rewardMessage = "Mystery prize! 🎁"
             }
             
             haptics.success()
             showReward = true
         }
+    }
+    
+    private func pluralSuffix(for amount: Int) -> String {
+        amount == 1 ? "" : "s"
+    }
+}
+
+// MARK: - Background
+
+private struct BackgroundGradient: View {
+    var body: some View {
+        LinearGradient(
+            colors: [
+                Color(red: 0.05, green: 0.03, blue: 0.11),
+                Color(red: 0.09, green: 0.07, blue: 0.21),
+                Color(red: 0.05, green: 0.06, blue: 0.16)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
+    }
+}
+
+private struct GemBalancePill: View {
+    let gems: Int
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "diamond.fill")
+                .foregroundStyle(.white)
+                .font(.system(size: 16, weight: .bold))
+            Text("\(gems)")
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white)
+            Image(systemName: "plus.circle.fill")
+                .foregroundStyle(.white.opacity(0.8))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color(red: 0.06, green: 0.56, blue: 0.33), in: Capsule())
+        .shadow(color: .black.opacity(0.4), radius: 6, y: 4)
+    }
+}
+
+// MARK: - Inventory Card
+
+private struct MultiplierInventoryCard: View {
+    @Bindable var spinState: SpinWheelState
+    let now: Date
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Boost Inventory")
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+            
+            ForEach(SpinWheelState.MultiplierTier.allCases, id: \.self) { tier in
+                let canActivate = spinState.count(for: tier) > 0 && spinState.activeMultiplier == nil
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(tier.displayName) for 24h")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white)
+                        Text("Stacks until you use it")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
+                    Spacer()
+                    Text("×\(spinState.count(for: tier))")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(width: 36, alignment: .trailing)
+                    Button("Use") {
+                        _ = spinState.activateMultiplier(tier, now: now)
+                    }
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(canActivate ? Color.blue : Color.gray.opacity(0.4))
+                    )
+                    .foregroundColor(.white)
+                    .disabled(!canActivate)
+                }
+            }
+            
+            if let active = spinState.activeMultiplier {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Active: \(active.tier.displayName)")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                    Text(spinState.formattedActiveMultiplierCountdown(now: now))
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+                .padding(.top, 6)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+        }
+        .padding(16)
+        .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
@@ -208,51 +359,56 @@ struct WheelFace: View {
             let rect = geo.frame(in: .local)
             let radius = min(rect.width, rect.height) / 2
             ZStack {
-                // Colored sectors (centered so index 0's center is at top peg)
                 ForEach(segments.indices, id: \.self) { i in
                     let n = max(segments.count, 1)
                     let span = 2 * .pi / CGFloat(n)
-                    let start = CGFloat(i) * span - span/2
+                    let start = CGFloat(i) * span - span / 2
                     let end = start + span
                     WheelSectorShape(start: start, end: end)
-                        .fill(segments[i].color.gradient)
+                        .fill(
+                            LinearGradient(
+                                colors: [segments[i].color.opacity(0.9), segments[i].color.opacity(0.6)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
                         .overlay(
                             WheelSectorShape(start: start, end: end)
-                                .stroke(.white.opacity(0.8), lineWidth: 1.5)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
                         )
+                        .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
                 }
                 
-                // Labels
                 ForEach(segments.indices, id: \.self) { i in
                     let n = max(segments.count, 1)
                     let span = 2 * .pi / CGFloat(n)
                     let centerAngle = CGFloat(i) * span
-                    let r = radius * 0.65
+                    let r = radius * 0.62
                     let x = rect.midX + r * sin(centerAngle)
                     let y = rect.midY - r * cos(centerAngle)
-                    VStack(spacing: 2) {
+                    VStack(spacing: 4) {
                         Text(segments[i].icon)
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .font(.system(size: 24))
                         Text(segments[i].shortLabel)
                             .font(.system(size: 11, weight: .bold, design: .rounded))
                             .foregroundStyle(.white)
                     }
+                    .shadow(color: .black.opacity(0.4), radius: 3)
                     .position(x: x, y: y)
                     .rotationEffect(.radians(Double(centerAngle)))
                 }
                 
-                // Rim + ticks
                 Circle()
                     .stroke(
                         LinearGradient(
-                            colors: [.white.opacity(0.3), .black.opacity(0.3)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                            colors: [.white.opacity(0.4), .white.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
                         ),
-                        lineWidth: 4
+                        lineWidth: 6
                     )
                 Ticks(count: segments.count)
-                    .stroke(.black.opacity(0.3), style: .init(lineWidth: 2.5, lineCap: .round))
+                    .stroke(Color.white.opacity(0.2), style: .init(lineWidth: 3, lineCap: .round))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -299,9 +455,29 @@ struct Ticks: Shape {
     }
 }
 
+struct WheelLights: View {
+    let count: Int
+    
+    var body: some View {
+        GeometryReader { geo in
+            let rect = geo.frame(in: .local)
+            let radius = min(rect.width, rect.height) / 2 - 10
+            ForEach(0..<max(count, 1), id: \.self) { index in
+                let angle = 2 * .pi * CGFloat(index) / CGFloat(max(count, 1))
+                let x = rect.midX + radius * sin(angle)
+                let y = rect.midY - radius * cos(angle)
+                Circle()
+                    .fill(Color.white.opacity(0.9))
+                    .frame(width: 12, height: 12)
+                    .shadow(color: .white.opacity(0.5), radius: 4, x: 0, y: 0)
+                    .position(x: x, y: y)
+            }
+        }
+    }
+}
+
 struct PegShape: Shape {
     func path(in rect: CGRect) -> Path {
-        // Triangle pointing down, anchored at top
         var p = Path()
         let w = rect.width
         p.move(to: CGPoint(x: w * 0.5, y: 0))
@@ -309,6 +485,44 @@ struct PegShape: Shape {
         p.addLine(to: CGPoint(x: w, y: rect.height))
         p.closeSubpath()
         return p
+    }
+}
+
+private struct ActiveMultiplierBadge: View {
+    let active: SpinWheelState.ActiveMultiplier
+    let countdown: String
+    
+    private var colors: [Color] {
+        switch active.tier {
+        case .twoX:
+            return [Color(red: 0.31, green: 0.94, blue: 0.63), Color(red: 0.15, green: 0.74, blue: 0.96)]
+        case .threeX:
+            return [Color(red: 0.97, green: 0.72, blue: 0.24), Color(red: 0.99, green: 0.48, blue: 0.24)]
+        case .fourX:
+            return [Color(red: 0.94, green: 0.34, blue: 0.70), Color(red: 0.53, green: 0.23, blue: 0.91)]
+        }
+    }
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(active.tier.displayName)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+            Text(countdown)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(.white.opacity(0.9))
+        }
+        .padding(20)
+        .background(
+            Circle().fill(
+                LinearGradient(
+                    colors: colors,
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+        )
+        .shadow(color: colors.last?.opacity(0.4) ?? .black.opacity(0.4), radius: 10, x: 0, y: 6)
     }
 }
 
