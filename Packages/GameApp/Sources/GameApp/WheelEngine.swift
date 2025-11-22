@@ -25,16 +25,16 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
     }
 }
 
-    public struct WheelReward: Hashable, Sendable {
+public struct WheelReward: Hashable, Sendable {
         public enum RewardType: Hashable, Sendable {
-            case gems
-            case hammers
-            case magnets
-            case spin
+        case gems
+        case hammers
+        case magnets
+        case spin
             case swap
             case multiplier(SpinWheelState.MultiplierTier)
             case giftBox
-        }
+    }
     
     public let type: RewardType
     public let amount: Int
@@ -259,7 +259,7 @@ public final class WheelEngine {
         return r >= 0 ? r : r + m
     }
     
-        public static let defaultSegments: [WheelSegment] = [
+    public static let defaultSegments: [WheelSegment] = [
             .init(title: "1 Hammer", subtitle: "Smash a tile", icon: "🔨", shortLabel: "1x", 
                   color: Color.orange, reward: .init(type: .hammers, amount: 1)),
             .init(title: "2 Hammers", subtitle: "Double smash", icon: "🔨", shortLabel: "2x", 
@@ -290,7 +290,7 @@ public final class WheelEngine {
                   color: Color(red: 0.00, green: 0.38, blue: 0.69), reward: .init(type: .gems, amount: 1000)),
             .init(title: "Gift Box", subtitle: "Mystery prize", icon: "🎁", shortLabel: "?", 
                   color: Color(red: 0.97, green: 0.73, blue: 0.20), reward: .init(type: .giftBox, amount: 1))
-        ]
+    ]
 }
 
 // MARK: - Environment Injection

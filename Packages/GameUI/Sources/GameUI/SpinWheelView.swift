@@ -46,13 +46,13 @@ public struct SpinWheelView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     MultiplierInventoryCard(spinState: spinState, now: now)
-                        .frame(maxWidth: .infinity)
+                                .frame(maxWidth: .infinity)
                         .padding(.bottom, 8)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 24)
                 .padding(.top, 12)
-            }
+                            }
             .toolbar(.hidden, for: .navigationBar)
         }
         .onReceive(timer) { date in
@@ -283,7 +283,7 @@ public struct SpinWheelView: View {
         Task { @MainActor in
             switch reward.type {
             case .gems:
-                homeState.addGems(reward.amount)
+                    homeState.addGems(reward.amount)
                 rewardMessage = "You won \(reward.amount) gems! 💎"
             case .hammers:
                 rewardMessage = "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
@@ -449,7 +449,7 @@ struct WheelFace: View {
                 ForEach(segments.indices, id: \.self) { i in
                     let n = max(segments.count, 1)
                     let span = 2 * .pi / CGFloat(n)
-                    let centerAngle = CGFloat(i) * span - (.pi / 2)
+                    let centerAngle = CGFloat(i) * span
                     let r = radius * 0.62
                     let x = rect.midX + r * sin(centerAngle)
                     let y = rect.midY - r * cos(centerAngle)

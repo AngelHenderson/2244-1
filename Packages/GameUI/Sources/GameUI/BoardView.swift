@@ -191,8 +191,15 @@ public struct BoardView: View {
     private func dragGesture(tileSize: CGFloat, containerSize: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
-                guard !gameStore.isInputLocked else { return }
-                guard tileSize > 0 else { return }
+                debugLog("drag changed", extra: "location=\(value.location)")
+                guard !gameStore.isInputLocked else {
+                    debugLog("drag ignored - input locked")
+                    return
+                }
+                guard tileSize > 0 else {
+                    debugLog("drag ignored - tileSize <= 0")
+                    return
+                }
                 let position = gridPosition(from: value.location, tileSize: tileSize, containerSize: containerSize)
                 
                 if !isDragging {
@@ -225,6 +232,7 @@ public struct BoardView: View {
                 dragLocation = value.location
             }
             .onEnded { _ in
+                debugLog("drag ended", extra: "valid=\(gameStore.pathValidation.isValid) pathCount=\(gameStore.currentPath.count)")
                 if gameStore.pathValidation.isValid && gameStore.currentPath.count >= 2 {
                     gameStore.commitPath()
                     haptics.success()
@@ -236,6 +244,15 @@ public struct BoardView: View {
                 }
                 isDragging = false
             }
+    }
+    
+    private func debugLog(_ message: String, extra: String = "") {
+        #if DEBUG
+        print("[BoardView]", message,
+              "| isInputLocked:", gameStore.isInputLocked,
+              "| pathCount:", gameStore.currentPath.count,
+              extra.isEmpty ? "" : "| \(extra)")
+        #endif
     }
     
     private func calculateTileSize(in size: CGSize) -> CGFloat {

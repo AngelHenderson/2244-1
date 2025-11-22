@@ -53,9 +53,9 @@ struct RewardSpinnerView: View {
             spinner
             
             Button(action: claim) {
-                Text("Claim \(currentMultiplier)x")
+                    Text("Claim \(currentMultiplier)x")
                     .font(.headline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
         }
@@ -141,8 +141,8 @@ struct RewardSpinnerView: View {
         isFrozen = false
         timer = Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { _ in
             Task { @MainActor in
-                guard !isFrozen else { return }
-                moveIndicator()
+            guard !isFrozen else { return }
+            moveIndicator()
             }
         }
     }
