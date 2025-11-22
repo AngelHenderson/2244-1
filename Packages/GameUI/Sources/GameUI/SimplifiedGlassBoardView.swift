@@ -13,6 +13,7 @@ public struct SimplifiedGlassBoardView: View {
     @State private var isDragging = false
     @State private var glassPreviewValues: [Int] = []
     @State private var magnetAnimations: [MagnetAnimationModel] = []
+    @Namespace private var tileNamespace
     
     private let spacing: CGFloat = 12
     private let cornerRadius: CGFloat = 12
@@ -72,15 +73,18 @@ public struct SimplifiedGlassBoardView: View {
                         if row == 0 {
                             // First row with glass effect
                             ZStack {
-                                TileView(
-                                    tile: gameStore.state.board[position],
-                                    isSelected: gameStore.currentPath.contains(position),
-                                    isValid: gameStore.pathValidation.isValid,
-                                    size: tileSize,
-                                    colorBlindMode: colorBlindMode,
-                                    theme: currentTheme
-                                )
-                                .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
+                                if let tile = gameStore.state.board[position] {
+                                    TileView(
+                                        tile: tile,
+                                        isSelected: gameStore.currentPath.contains(position),
+                                        isValid: gameStore.pathValidation.isValid,
+                                        size: tileSize,
+                                        colorBlindMode: colorBlindMode,
+                                        theme: currentTheme
+                                    )
+                                    .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
+                                    .matchedGeometryEffect(id: tile.id, in: tileNamespace)
+                                }
                                 
                                 // Glass overlay effect - only show if glass hasn't been broken
                                 if !gameStore.brokenGlassTiles.contains(position) {
@@ -119,15 +123,18 @@ public struct SimplifiedGlassBoardView: View {
                         } else {
                             // Regular tiles for other rows
                             ZStack {
-                                TileView(
-                                    tile: gameStore.state.board[position],
-                                    isSelected: gameStore.currentPath.contains(position),
-                                    isValid: gameStore.pathValidation.isValid,
-                                    size: tileSize,
-                                    colorBlindMode: colorBlindMode,
-                                    theme: currentTheme
-                                )
-                                .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
+                                if let tile = gameStore.state.board[position] {
+                                    TileView(
+                                        tile: tile,
+                                        isSelected: gameStore.currentPath.contains(position),
+                                        isValid: gameStore.pathValidation.isValid,
+                                        size: tileSize,
+                                        colorBlindMode: colorBlindMode,
+                                        theme: currentTheme
+                                    )
+                                    .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
+                                    .matchedGeometryEffect(id: tile.id, in: tileNamespace)
+                                }
                                 if let t = gameStore.state.board[position], t.value == currentMax {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
@@ -155,6 +162,7 @@ public struct SimplifiedGlassBoardView: View {
         }
         .padding(spacing)
         .contentShape(Rectangle())
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: gameStore.state.board)
     }
     
     @ViewBuilder
