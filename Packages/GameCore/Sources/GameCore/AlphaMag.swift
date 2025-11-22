@@ -228,7 +228,7 @@ public struct AlphaMag {
         default:
             let tierIndex = hi - 3
             let suffix = TileStepLabelFormatter.excelLetters(for: tierIndex).lowercased()
-            formatted = "\(chunks[hi])\(padded(chunks[hi - 1]))\(suffix)"
+            formatted = "\(chunks[hi])\(suffix)"
         }
         return isNegative ? "-" + formatted : formatted
     }
