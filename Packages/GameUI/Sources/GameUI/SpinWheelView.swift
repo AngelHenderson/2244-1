@@ -4,6 +4,7 @@ import GameApp
 
 // MARK: - View
 
+@MainActor
 public struct SpinWheelView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.wheelEngine) private var engine
@@ -40,8 +41,10 @@ public struct SpinWheelView: View {
             .toolbar(.hidden, for: .navigationBar)
         }
         .onReceive(timer) { date in
-            now = date
-            spinState.refresh(now: date)
+            Task { @MainActor in
+                now = date
+                spinState.refresh(now: date)
+            }
         }
         .alert("🎉 Congratulations!", isPresented: $showReward) {
             Button("Collect", role: .cancel) {
