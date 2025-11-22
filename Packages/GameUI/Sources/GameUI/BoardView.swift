@@ -88,6 +88,7 @@ public struct BoardView: View {
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
+                            guard gameStore.pendingGiftBoxes[position] == nil else { return }
                             Task { await audioService.playSfx(name: "tap") }
                             onTileTap?(position)
                         }
