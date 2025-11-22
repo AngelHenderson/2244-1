@@ -1,5 +1,8 @@
 import SwiftUI
 import GameApp
+#if canImport(GameCore)
+import GameCore
+#endif
 
 @MainActor
 struct RewardSpinnerView: View {
@@ -12,17 +15,15 @@ struct RewardSpinnerView: View {
     @State private var direction: Int = 1
     @State private var isFrozen = false
     @State private var timer: Timer? = nil
-    @State private var indicatorOffset: CGFloat = 0 // 0..1 across the track
     
     private let multipliers: [Int] = [2, 3, 4, 5, 4, 3, 2]
     private let slotWidth: CGFloat = 48
-    private let trackPadding: CGFloat = 12
     
     var body: some View {
         VStack(spacing: 18) {
             Text("New Tile Unlocked")
                 .font(.title.bold())
-            Text(AlphaMag.formatTileValue(tileValue))
+            Text(formattedTileValue(tileValue))
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(.secondary)
             
@@ -80,7 +81,7 @@ struct RewardSpinnerView: View {
                         .fill(Color.white.opacity(0.15))
                         .frame(width: 70, height: 46)
                         .offset(x: indicatorX(in: geo.size.width))
-                        .animation(.easeInOut(duration: 0.25), value: indicatorOffset)
+                          .animation(.easeInOut(duration: 0.25), value: selectedIndex)
                 }
                 .allowsHitTesting(false)
                 
@@ -113,11 +114,25 @@ struct RewardSpinnerView: View {
     }
     
     private func indicatorX(in width: CGFloat) -> CGFloat {
-        let totalWidth = slotWidth * CGFloat(multipliers.count)
         let available = width - 70
         let progress = CGFloat(selectedIndex) / CGFloat(max(multipliers.count - 1, 1))
-        return progress * available
+        return progress * max(available, 0)
     }
+    
+    private func formattedTileValue(_ value: Int) -> String {
+        #if canImport(GameCore)
+        return AlphaMag.formatTileValue(value)
+        #else
+        return RewardSpinnerView.tileFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
+        #endif
+    }
+    
+    private static let tileFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }()
     
     private func startSpinner() {
         timer?.invalidate()

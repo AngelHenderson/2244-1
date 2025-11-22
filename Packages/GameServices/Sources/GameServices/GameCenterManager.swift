@@ -48,50 +48,22 @@ public final class GameCenterManager {
         }
     }
     
-    @available(iOS 14.0, *)
     public func presentDashboard() {
         #if canImport(UIKit)
-        guard let root = Self.topMostViewController() else { return }
-        
-        // Use modern GameCenter approach with proper availability checks
-        if #available(iOS 26.0, *) {
-            // Future iOS 26+ implementation - placeholder for when new API is available
-            // For now, we'll suppress the deprecation warning and use the current API
-            presentLegacyGameCenter(from: root)
-        } else {
-            // Use current stable API
-            presentLegacyGameCenter(from: root)
+        guard #available(iOS 26.0, *) else {
+            return
         }
+        presentAccessPointDashboard()
         #endif
     }
     
     #if canImport(UIKit)
-    @available(iOS 14.0, *)
-    private func presentLegacyGameCenter(from root: UIViewController) {
-        // Suppress deprecation warnings for now until new API is available
-        // TODO: Update to new GameCenter API when available in iOS 26+
-        let vc: GKGameCenterViewController = {
-            if #available(iOS 26.0, *) {
-                // Future: Use new API here
-                return GKGameCenterViewController(state: .achievements)
-            } else {
-                return GKGameCenterViewController(state: .achievements)
-            }
-        }()
-        
-        vc.gameCenterDelegate = root as? any GKGameCenterControllerDelegate
-        root.present(vc, animated: true)
+    @available(iOS 26.0, *)
+    private func presentAccessPointDashboard() {
+        GKAccessPoint.shared.isActive = true
+        GKAccessPoint.shared.location = .topTrailing
+        GKAccessPoint.shared.trigger(handler: nil)
     }
     #endif
     
-    #if canImport(UIKit)
-    private static func topMostViewController() -> UIViewController? {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = scene.windows.first(where: { $0.isKeyWindow })
-        else { return nil }
-        var top = window.rootViewController
-        while let presented = top?.presentedViewController { top = presented }
-        return top
-    }
-    #endif
 }
