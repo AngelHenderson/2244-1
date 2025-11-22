@@ -27,31 +27,47 @@ public struct SpinWheelView: View {
     
     public var body: some View {
         NavigationStack {
-            ZStack {
-                BackgroundGradient()
-                VStack(spacing: 16) {
-                    header
-                    
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 24) {
-                            wheelAndButtonRow
-                            availabilityCard
-                            purchaseOptions
+            GeometryReader { proxy in
+                ZStack {
+                    BackgroundGradient()
+                    VStack(spacing: 16) {
+                        header
+                        
+                        ScrollView(.vertical, showsIndicators: false) {
+                            VStack(spacing: 24) {
+                                wheelRow
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.horizontal, 24)
+                                
+                                availabilityCard
+                                    .padding(.horizontal, 24)
+                                
+                                purchaseOptions
+                                    .padding(.horizontal, 24)
+                                
+                                spinButton
+                                    .padding(.horizontal, 24)
+                            }
+                            .padding(.top, 8)
+                            .padding(.bottom, 32)
+                            .frame(maxWidth: .infinity, minHeight: proxy.size.height * 0.75, alignment: .top)
+                            .background(
+                                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                                    .fill(Color.black.opacity(0.15))
+                                    .padding(.horizontal, 12)
+                            )
                         }
-                        .padding(.top, 8)
-                        .padding(.bottom, 40)
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        
+                        MultiplierInventoryCard(spinState: spinState, now: now)
+                            .padding(.horizontal, 24)
+                            .padding(.bottom, 16)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
-                    MultiplierInventoryCard(spinState: spinState, now: now)
-                                .frame(maxWidth: .infinity)
-                        .padding(.bottom, 8)
+                    .padding(.top, 16)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 24)
-                .padding(.top, 12)
-                            }
+                .ignoresSafeArea()
+            }
             .toolbar(.hidden, for: .navigationBar)
         }
         .onReceive(timer) { date in
@@ -93,7 +109,7 @@ public struct SpinWheelView: View {
         }
     }
     
-    private var wheelAndButtonRow: some View {
+    private var wheelRow: some View {
         VStack(spacing: 16) {
             HStack(alignment: .center, spacing: 24) {
                 Capsule()
@@ -115,10 +131,6 @@ public struct SpinWheelView: View {
                         }
                     )
                 
-                Spacer()
-                
-                SpinnerIndicator()
-                    .frame(maxWidth: 180, alignment: .trailing)
             }
             
             ZStack {
@@ -138,13 +150,13 @@ public struct SpinWheelView: View {
                 
                 WheelLights(count: max(engine.segments.count, 1))
                 
-                PegShape()
+                SidePegShape()
                     .fill(.ultraThinMaterial)
-                    .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
-                    .frame(width: 28, height: 90)
-                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
-                    .offset(y: -170)
-                    .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
+                    .overlay(SidePegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
+                    .frame(width: 82, height: 32)
+                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .trailing)
+                    .offset(x: 170)
+                    .shadow(color: .black.opacity(0.6), radius: 6, x: 4, y: 0)
                 
                 Circle()
                     .fill(.ultraThickMaterial)
@@ -557,6 +569,18 @@ struct PegShape: Shape {
         p.move(to: CGPoint(x: w * 0.5, y: 0))
         p.addLine(to: CGPoint(x: 0, y: rect.height))
         p.addLine(to: CGPoint(x: w, y: rect.height))
+        p.closeSubpath()
+        return p
+    }
+}
+
+struct SidePegShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let attachY = rect.midY
+        p.move(to: CGPoint(x: rect.maxX, y: attachY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
         p.closeSubpath()
         return p
     }
