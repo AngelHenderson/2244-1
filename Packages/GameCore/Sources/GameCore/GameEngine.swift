@@ -322,33 +322,15 @@ public final class GameEngine {
         
         let values = positions.compactMap { state.board[$0]?.value }
         
-        // Merge rule: Round SUM up to the next power of two (inclusive).
-        // Overflow-safe summation and rounding
-        let sumResult = values.reduce((total: 0, overflowed: false)) { acc, value in
-            let (next, didOverflow) = acc.total.addingReportingOverflow(value)
-            return (didOverflow ? Int.max : next, acc.overflowed || didOverflow)
-        }
-        let chainSum = sumResult.total
+        // Merge rule: twice the highest number in the chain (standard 2244)
+        let maxVal = values.max() ?? 0
         let mergedValue: Int = {
-            if sumResult.overflowed { return Int.max }
-            guard chainSum > 0 else { return 0 }
-            if chainSum & (chainSum - 1) == 0 { return chainSum }
-            if chainSum > (1 << 62) { return Int.max }
-            var x = chainSum - 1
-            x |= x >> 1
-            x |= x >> 2
-            x |= x >> 4
-            x |= x >> 8
-            x |= x >> 16
-            #if arch(x86_64) || arch(arm64)
-            x |= x >> 32
-            #endif
-            let next = x + 1
-            return next > 0 ? next : Int.max
+            if maxVal >= (Int.max >> 1) { return Int.max } // Avoid overflow
+            let (next, overflow) = maxVal.multipliedReportingOverflow(by: 2)
+            return overflow ? Int.max : max(next, 2) // Ensure minimum result of 2
         }()
         
-        // Score equals the resulting merged tile value (no combo multipliers)
-        let nowMs = Int(Date().timeIntervalSince1970 * 1000)
+        // Score equals the resulting merged tile value
         let chainScore = mergedValue
         
         // Remove all tiles in the chain
@@ -369,32 +351,30 @@ public final class GameEngine {
             checkMilestoneRewards(mergedValue)
         }
         
-        // Apply milestone elimination if needed (remove specific tier when milestone is created)
+        // Apply milestone elimination if needed
         applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         
         // Award points
         state.score += chainScore
         state.moves += 1
-        lastMergeAtMs = nowMs
         
         // Award gems for long chains (10+ tiles)
         if positions.count >= 10 {
-            state.gems += positions.count / 5 // 2 gems per 10 tiles
+            state.gems += positions.count / 5
         }
         
         // Always-full policy: apply gravity and refill to keep the board dense
         refillAfterGravity()
         
         // Trigger auto-cascade after player move
-        // Protect the tile we just created from being immediately merged
         let protectedValue = milestoneProtectionValue(for: mergedValue)
         _ = runAutoCascade(protectPosition: positions.last, protectedValue: protectedValue)
-
+        
         // Check for game over
         if !hasValidMoves() {
             state.isGameOver = true
         }
-
+        
         return state
     }
     
