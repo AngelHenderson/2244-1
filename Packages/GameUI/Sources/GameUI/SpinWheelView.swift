@@ -28,14 +28,22 @@ public struct SpinWheelView: View {
         NavigationStack {
             ZStack {
                 BackgroundGradient()
-                VStack(spacing: 24) {
+                VStack(spacing: 16) {
                     header
-                    wheelSection
-                    availabilityCard
-                    spinButton
+                    
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: 24) {
+                            wheelSection
+                            availabilityCard
+                            spinButton
+                        }
+                        .padding(.top, 8)
+                        .padding(.bottom, 40)
+                        .frame(maxWidth: .infinity)
+                    }
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 32)
+                .padding(.bottom, 24)
                 .padding(.top, 12)
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -146,7 +154,9 @@ public struct SpinWheelView: View {
             MultiplierInventoryCard(spinState: spinState, now: now)
                 .frame(maxWidth: 220)
                 .padding(.top, 8)
+                .padding(.trailing, 4)
         }
+        .frame(maxWidth: .infinity)
     }
     
     private var availabilityCard: some View {

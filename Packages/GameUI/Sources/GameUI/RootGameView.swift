@@ -87,6 +87,7 @@ public struct RootGameView: View {
                     .sheet(isPresented: $showFreeSpin) {
                         SpinWheelView()
                             .environment(\.wheelEngine, wheelEngine)
+                            .environment(homeState)
                     }
                     .sheet(isPresented: $showChallenge) {
                         ChallengeModeView { challenge in
