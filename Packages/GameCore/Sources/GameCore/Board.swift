@@ -76,29 +76,30 @@ public struct MergeOutcome: Sendable, Codable {
 public struct Board: Equatable, Sendable, Codable {
     public let width: Int
     public let height: Int
-    public private(set) var tiles: [[Tile?]]
     public private(set) var cells: [[Cell]]
     
     public init(width: Int = 5, height: Int = 8) {
         self.width = width
         self.height = height
-        self.tiles = Array(repeating: Array(repeating: nil, count: width), count: height)
         self.cells = Array(repeating: Array(repeating: Cell.empty, count: width), count: height)
-        
-        // Sync initial tiles to cells
-        self.syncTilesToCells()
     }
     
     // MARK: - Legacy Tile Access (for compatibility)
     public subscript(position: Position) -> Tile? {
         get {
             guard position.isValid(for: self) else { return nil }
-            return tiles[position.row][position.col]
+            return cells[position.row][position.col].tile
         }
         set {
             guard position.isValid(for: self) else { return }
-            tiles[position.row][position.col] = newValue
-            syncTilesToCells()
+            if let tile = newValue {
+                cells[position.row][position.col] = Cell.withTile(tile)
+            } else {
+                // Only set to empty if the cell is not a gift, to avoid accidentally clearing gifts.
+                if cells[position.row][position.col].kind != .gift {
+                    cells[position.row][position.col] = Cell.empty
+                }
+            }
         }
     }
     
@@ -111,7 +112,6 @@ public struct Board: Equatable, Sendable, Codable {
         set {
             guard isValid(index) else { return }
             cells[index.row][index.col] = newValue
-            syncCellsToTiles()
         }
     }
     
@@ -127,32 +127,10 @@ public struct Board: Equatable, Sendable, Codable {
         return index.row >= 0 && index.row < height && index.col >= 0 && index.col < width
     }
     
-    // MARK: - Synchronization Methods
-    private mutating func syncTilesToCells() {
-        for row in 0..<height {
-            for col in 0..<width {
-                if let tile = tiles[row][col] {
-                    cells[row][col] = Cell.withTile(tile)
-                } else {
-                    cells[row][col] = Cell.empty
-                }
-            }
-        }
-    }
-    
-    private mutating func syncCellsToTiles() {
-        for row in 0..<height {
-            for col in 0..<width {
-                tiles[row][col] = cells[row][col].tile
-            }
-        }
-    }
-    
     // MARK: - Gift Management
     public mutating func placeGift(_ gift: Gift, at index: BoardIndex) {
         guard isValid(index) else { return }
         cells[index.row][index.col] = Cell.withGift(gift)
-        syncCellsToTiles()
     }
     
     public func giftPositions() -> [BoardIndex] {
@@ -232,23 +210,16 @@ public struct Board: Equatable, Sendable, Codable {
         let consumed = Array(chain.dropLast())
         for index in consumed {
             self[index] = Cell.empty
-            // Also clear from legacy tiles array
-            tiles[index.row][index.col] = nil
         }
         
         // If ending on gift, consume the gift and place result
         if giftBroken {
-            // Remove the gift and place the result tile there
             let resultTile = Tile(value: resultVal)
             self[finalIndex] = Cell.withTile(resultTile)
-            // Ensure legacy tiles array is updated
-            tiles[finalIndex.row][finalIndex.col] = resultTile
         } else {
             // Normal merge - place result at final position
             let resultTile = Tile(value: resultVal)
             self[finalIndex] = Cell.withTile(resultTile)
-            // Ensure legacy tiles array is updated
-            tiles[finalIndex.row][finalIndex.col] = resultTile
         }
         
         return MergeOutcome(
@@ -288,9 +259,6 @@ public struct Board: Equatable, Sendable, Codable {
                 self[index] = cell
             }
         }
-        
-        // Sync changes to legacy tiles array
-        syncCellsToTiles()
     }
     
     public mutating func refillEmptyCells(generator: () -> Int) {
@@ -303,9 +271,6 @@ public struct Board: Equatable, Sendable, Codable {
                 }
             }
         }
-        
-        // Sync changes to legacy tiles array
-        syncCellsToTiles()
     }
     
     // Refill only the top row with new gift cells
@@ -318,9 +283,6 @@ public struct Board: Equatable, Sendable, Codable {
                 self[index] = Cell.withGift(gift)
             }
         }
-        
-        // Sync changes - gifts don't appear in legacy tiles array
-        syncCellsToTiles()
     }
     
     // MARK: - Gift Interaction Helpers
