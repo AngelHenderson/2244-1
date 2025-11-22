@@ -242,6 +242,37 @@ public struct AlphaMag {
     }
 }
 
+// MARK: - Score Display Helpers
+
+private let scoreMillionsFormatter: NumberFormatter = {
+    let formatter = NumberFormatter()
+    formatter.usesGroupingSeparator = true
+    formatter.groupingSize = 3
+    formatter.groupingSeparator = ","
+    formatter.maximumFractionDigits = 0
+    formatter.minimumFractionDigits = 0
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter
+}()
+
+public extension AlphaMag {
+    /// Scoreboard-friendly format that always expresses large values in millions.
+    /// Example: 710_000_000_000 -> "710,000M"
+    static func formatScoreDisplay(_ value: Int) -> String {
+        guard value != 0 else { return "0" }
+        let isNegative = value < 0
+        let magnitude = abs(value)
+        
+        if magnitude >= 1_000_000 {
+            let millions = magnitude / 1_000_000
+            let millionsString = scoreMillionsFormatter.string(from: NSNumber(value: millions)) ?? "\(millions)"
+            return (isNegative ? "-" : "") + "\(millionsString)M"
+        }
+        
+        return formatScoreStyle(value)
+    }
+}
+
 // MARK: - Tile Value Extensions
 
 public extension AlphaMag {

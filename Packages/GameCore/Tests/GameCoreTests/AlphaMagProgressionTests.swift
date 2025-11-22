@@ -122,6 +122,13 @@ struct AlphaMagProgressionTests {
         }
     }
     
+    @Test("Score display stays in millions even past billions")
+    func testScoreDisplayFormatting() {
+        #expect(AlphaMag.formatScoreDisplay(710_000_000_000) == "710,000M")
+        #expect(AlphaMag.formatScoreDisplay(950_000_000) == "950M")
+        #expect(AlphaMag.formatScoreDisplay(512_000) == "512K")
+    }
+    
     @Test("No artificial capping at any suffix")
     func testNoCapping() throws {
         // Test that we can format values at any suffix level
