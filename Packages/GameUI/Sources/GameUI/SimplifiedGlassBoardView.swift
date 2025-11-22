@@ -100,9 +100,18 @@ public struct SimplifiedGlassBoardView: View {
                                         .foregroundStyle(.yellow)
                                         .offset(y: -tileSize * 0.45)
                                 }
+                                
+                                if gameStore.pendingGiftBoxes[position] != nil {
+                                    GiftBoxOverlay(size: tileSize)
+                                        .onTapGesture {
+                                            haptics.success()
+                                            gameStore.tapGiftBox(at: position)
+                                        }
+                                }
                             }
                             .contentShape(Rectangle())
                             .onTapGesture {
+                                guard gameStore.pendingGiftBoxes[position] == nil else { return }
                                 onTileTap?(position)
                             }
                         } else {
@@ -123,9 +132,18 @@ public struct SimplifiedGlassBoardView: View {
                                         .foregroundStyle(.yellow)
                                         .offset(y: -tileSize * 0.45)
                                 }
+                                
+                                if gameStore.pendingGiftBoxes[position] != nil {
+                                    GiftBoxOverlay(size: tileSize)
+                                        .onTapGesture {
+                                            haptics.success()
+                                            gameStore.tapGiftBox(at: position)
+                                        }
+                                }
                             }
                             .contentShape(Rectangle())
                             .onTapGesture {
+                                guard gameStore.pendingGiftBoxes[position] == nil else { return }
                                 onTileTap?(position)
                             }
                         }

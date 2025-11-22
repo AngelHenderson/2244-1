@@ -63,6 +63,22 @@ public struct BoardView: View {
                                 theme: currentTheme
                             )
                             .opacity(isAnimating(position) ? 0 : 1)
+                            
+                            if gameStore.pendingGiftBoxes[position] != nil {
+                                GiftBoxOverlay(size: tileSize)
+                                    .onTapGesture {
+                                        haptics.success()
+                                        gameStore.tapGiftBox(at: position)
+                                    }
+                            }
+                            
+                            if gameStore.pendingGiftBoxes[position] != nil {
+                                GiftBoxOverlay(size: tileSize)
+                                    .onTapGesture {
+                                        haptics.success()
+                                        gameStore.tapGiftBox(at: position)
+                                    }
+                            }
                             if let t = gameStore.state.board[position], t.value == currentMax {
                                 Image(systemName: "crown.fill")
                                     .font(.system(size: max(10, tileSize * 0.28), weight: .bold))

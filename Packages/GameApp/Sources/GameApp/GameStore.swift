@@ -52,6 +52,12 @@ public final class GameStore {
         public let startTime: Date
     }
     
+    private struct StoredGiftBox: Codable {
+        let row: Int
+        let col: Int
+        let reward: GiftReward
+    }
+    
     private var notificationQueue: [MergeNotification] = []
     public private(set) var currentNotification: MergeNotification? = nil
     public private(set) var lastMergeInfo: MergeInfo? = nil
@@ -64,7 +70,9 @@ public final class GameStore {
     public private(set) var pendingDoubleBase: Int? = nil
     // Track which glass tiles have been broken (positions in row 0)
     public private(set) var brokenGlassTiles: Set<Position> = []
-    // Gift reward state
+    // Pending gift boxes (glass shattered but reward not claimed)
+    public private(set) var pendingGiftBoxes: [Position: GiftReward] = [:]
+    // Gift reward sheet state
     public var pendingGiftReward: GiftReward? = nil
     // Power-up inventory tracking
     public private(set) var powerUpInventory: [String: Int] = [
@@ -194,6 +202,9 @@ public final class GameStore {
         if state.board[boardIndex].kind == .gift {
             return
         }
+        if pendingGiftBoxes[position] != nil {
+            return
+        }
         
         currentPath = [position]
         pathValidation = .valid
@@ -202,6 +213,7 @@ public final class GameStore {
     
     public func extendPath(to position: Position) {
         guard !currentPath.contains(position) else { return }
+        guard pendingGiftBoxes[position] == nil else { return }
         
         if let last = currentPath.last, !last.isAdjacent(to: position) {
             return
@@ -290,21 +302,14 @@ public final class GameStore {
         let previousHighest = state.highestTile
         let lastPos = positions.last
 
+        // Track newly shattered glass tiles (row 0)
+        var newlyBrokenGlass: [Position] = []
+        
         // Check if ending on gift and use appropriate commit method
         let endsOnGift = lastPos.map { BoardIndex($0) }.map { state.board[$0].kind == .gift } ?? false
         
         if endsOnGift {
             state = engine.commitGiftChain(positions)
-            
-            // Check if any glass tiles were broken in this chain
-            let glassTilesBroken = positions.contains { position in
-                position.row == 0 && !brokenGlassTiles.contains(position)
-            }
-            
-            // Generate gift reward only when glass is actually shattered
-            if glassTilesBroken && pendingGiftReward == nil {
-                pendingGiftReward = GiftReward.randomReward(isFromGlassShatter: true)
-            }
         } else {
             state = engine.commitChain(positions)
         }
@@ -312,8 +317,17 @@ public final class GameStore {
         // Break glass tiles for any positions in row 0 that were part of this connection
         for position in positions {
             if position.row == 0 {
-                brokenGlassTiles.insert(position)
+                if brokenGlassTiles.insert(position).inserted {
+                    newlyBrokenGlass.append(position)
+                }
             }
+        }
+        
+        if endsOnGift && !newlyBrokenGlass.isEmpty {
+            for position in newlyBrokenGlass {
+                pendingGiftBoxes[position] = GiftReward.randomReward(isFromGlassShatter: true)
+            }
+            persistPendingGiftBoxes()
         }
         // Added value is the tile now at lastPos
         let addedValue: Int = {
@@ -381,8 +395,10 @@ public final class GameStore {
         lastAddedTileValue = nil
         pendingDoubleBase = nil
         brokenGlassTiles = []
+        pendingGiftBoxes = [:]
         movesHistory = []
         powerUpHistory = []
+        persistPendingGiftBoxes()
         
         // Notify achievement evaluator
         achievementEvaluator?.onGameStart(state: state)
@@ -401,8 +417,10 @@ public final class GameStore {
         lastAddedTileValue = nil
         pendingDoubleBase = nil
         brokenGlassTiles = []
+        pendingGiftBoxes = [:]
         movesHistory = []
         powerUpHistory = []
+        persistPendingGiftBoxes()
     }
     
     // MARK: - Economy
@@ -476,6 +494,13 @@ public final class GameStore {
     
     public func dismissGiftReward() {
         pendingGiftReward = nil
+    }
+    
+    public func tapGiftBox(at position: Position) {
+        guard pendingGiftReward == nil else { return }
+        guard let reward = pendingGiftBoxes.removeValue(forKey: position) else { return }
+        pendingGiftReward = reward
+        persistPendingGiftBoxes()
     }
     
     // MARK: - Double Offer
@@ -1116,6 +1141,9 @@ extension GameStore {
         let brokenGlassData = try? JSONEncoder().encode(Array(brokenGlassTiles).map { ["row": $0.row, "col": $0.col] })
         UserDefaults.standard.set(brokenGlassData, forKey: "brokenGlassTiles")
         
+        // Save pending gift boxes
+        persistPendingGiftBoxes()
+        
         // Save last merge info
         if let mergeInfo = lastMergeInfo {
             var mergeInfoData: [String: Any] = [
@@ -1327,6 +1355,8 @@ extension GameStore {
             })
         }
         
+        restorePendingGiftBoxes()
+        
         // Restore last merge info
         if let mergeData = UserDefaults.standard.data(forKey: "lastMergeInfo"),
            let mergeDict = try? JSONSerialization.jsonObject(with: mergeData) as? [String: Any] {
@@ -1409,6 +1439,21 @@ extension GameStore {
         if hasInfinityAchievement {
             print("   • Infinity Achievement: ✅")
         }
+    }
+    
+    private func persistPendingGiftBoxes() {
+        let stored = pendingGiftBoxes.map { StoredGiftBox(row: $0.key.row, col: $0.key.col, reward: $0.value) }
+        let data = try? JSONEncoder().encode(stored)
+        UserDefaults.standard.set(data, forKey: "pendingGiftBoxes")
+    }
+    
+    private func restorePendingGiftBoxes() {
+        guard let data = UserDefaults.standard.data(forKey: "pendingGiftBoxes"),
+              let stored = try? JSONDecoder().decode([StoredGiftBox].self, from: data) else {
+            pendingGiftBoxes = [:]
+            return
+        }
+        pendingGiftBoxes = Dictionary(uniqueKeysWithValues: stored.map { (Position(row: $0.row, col: $0.col), $0.reward) })
     }
     
     // MARK: - Session Tracking & Analytics

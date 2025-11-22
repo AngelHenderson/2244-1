@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Gift Reward System
 
-public struct GiftReward: Sendable {
+public struct GiftReward: Codable, Sendable {
     public let message: String
     public let items: [GiftRewardItem]
     public let isFromGlassShatter: Bool
@@ -43,8 +43,8 @@ public struct GiftReward: Sendable {
     }
 }
 
-public struct GiftRewardItem: Sendable {
-    public enum GiftType: Sendable {
+public struct GiftRewardItem: Codable, Sendable {
+    public enum GiftType: String, Codable, Sendable {
         case hammer, magnet, gems, swap, undo
     }
 

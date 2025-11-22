@@ -78,8 +78,7 @@ public enum TileStepLabelFormatter {
         let tierIndex = hi - 3            // 1 -> a (trillion), 2 -> b, ..., 26 -> z, 27 -> aa, ...
         let suffix = excelLetters(for: tierIndex).lowercased()
         let mantissa = chunks[hi]         // floor(n / 1000^(9+3*tier)) < 1000 always
-        let leading = leadingDigit(mantissa)
-        return "\(leading)\(suffix)"
+        return "\(mantissa)\(suffix)"
     }
 
     // MARK: Big-integer-by-1000 core
@@ -130,12 +129,4 @@ public enum TileStepLabelFormatter {
         String(n)
     }
     
-    private static func leadingDigit(_ value: Int) -> Int {
-        var v = value
-        while v >= 10 {
-            v /= 10
-        }
-        return max(1, v)
-    }
-
 }

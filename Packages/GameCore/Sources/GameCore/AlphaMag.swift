@@ -220,11 +220,11 @@ public struct AlphaMag {
         case 0:
             formatted = groupedInt(chunks[0])
         case 1:
-            formatted = "\(chunks[1])\(padded(chunks[0]))K"
+            formatted = "\(chunks[1])K"
         case 2:
-            formatted = "\(chunks[2])\(padded(chunks[1]))M"
+            formatted = "\(chunks[2])M"
         case 3:
-            formatted = "\(chunks[3])\(padded(chunks[2]))B"
+            formatted = "\(chunks[3])B"
         default:
             let tierIndex = hi - 3
             let suffix = TileStepLabelFormatter.excelLetters(for: tierIndex).lowercased()
