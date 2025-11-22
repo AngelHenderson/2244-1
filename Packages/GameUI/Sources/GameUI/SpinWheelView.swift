@@ -41,6 +41,11 @@ public struct SpinWheelView: View {
                         .padding(.bottom, 40)
                         .frame(maxWidth: .infinity)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    MultiplierInventoryCard(spinState: spinState, now: now)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 8)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 24)
@@ -88,73 +93,65 @@ public struct SpinWheelView: View {
     }
     
     private var wheelSection: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 16) {
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [.cyan.opacity(0.9), .blue],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+        VStack(spacing: 16) {
+            Capsule()
+                .fill(
+                    LinearGradient(
+                        colors: [.cyan.opacity(0.9), .blue],
+                        startPoint: .leading,
+                        endPoint: .trailing
                     )
-                    .frame(width: 140, height: 38)
-                    .overlay(
-                        HStack(spacing: 6) {
-                            Image(systemName: "bolt.fill")
-                                .foregroundStyle(.white)
-                            Text("2X BONUS")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                        }
-                    )
-                
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color(red: 0.13, green: 0.14, blue: 0.33), Color(red: 0.05, green: 0.06, blue: 0.14)],
-                                center: .center,
-                                startRadius: 40,
-                                endRadius: 170
-                            )
-                        )
-                        .shadow(color: .black.opacity(0.6), radius: 16, x: 0, y: 12)
-                    
-                    WheelFace(segments: engine.segments)
-                        .rotationEffect(.radians(Double(engine.angle)))
-                    
-                    WheelLights(count: max(engine.segments.count, 1))
-                    
-                    PegShape()
-                        .fill(.ultraThinMaterial)
-                        .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
-                        .frame(width: 28, height: 90)
-                        .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
-                        .offset(y: -170)
-                        .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
-                    
-                    Circle()
-                        .fill(.ultraThickMaterial)
-                        .frame(width: 70, height: 70)
-                        .shadow(color: .black.opacity(0.4), radius: 8)
-                    
-                    if let active = spinState.activeMultiplier {
-                        ActiveMultiplierBadge(active: active, countdown: spinState.formattedActiveMultiplierCountdown(now: now))
-                    } else {
-                        Circle()
-                            .strokeBorder(Color.white.opacity(0.15), lineWidth: 2)
-                            .frame(width: 90, height: 90)
+                )
+                .frame(width: 140, height: 38)
+                .overlay(
+                    HStack(spacing: 6) {
+                        Image(systemName: "bolt.fill")
+                            .foregroundStyle(.white)
+                        Text("2X BONUS")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
                     }
-                }
-                .frame(width: 340, height: 340)
-            }
-            .frame(maxWidth: .infinity)
+                )
             
-            MultiplierInventoryCard(spinState: spinState, now: now)
-                .frame(maxWidth: 220)
-                .padding(.top, 8)
-                .padding(.trailing, 4)
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color(red: 0.13, green: 0.14, blue: 0.33), Color(red: 0.05, green: 0.06, blue: 0.14)],
+                            center: .center,
+                            startRadius: 40,
+                            endRadius: 170
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.6), radius: 16, x: 0, y: 12)
+                
+                WheelFace(segments: engine.segments)
+                    .rotationEffect(.radians(Double(engine.angle)))
+                
+                WheelLights(count: max(engine.segments.count, 1))
+                
+                PegShape()
+                    .fill(.ultraThinMaterial)
+                    .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
+                    .frame(width: 28, height: 90)
+                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
+                    .offset(y: -170)
+                    .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
+                
+                Circle()
+                    .fill(.ultraThickMaterial)
+                    .frame(width: 70, height: 70)
+                    .shadow(color: .black.opacity(0.4), radius: 8)
+                
+                if let active = spinState.activeMultiplier {
+                    ActiveMultiplierBadge(active: active, countdown: spinState.formattedActiveMultiplierCountdown(now: now))
+                } else {
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.15), lineWidth: 2)
+                        .frame(width: 90, height: 90)
+                }
+            }
+            .frame(width: 340, height: 340)
         }
         .frame(maxWidth: .infinity)
     }
