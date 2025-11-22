@@ -34,10 +34,9 @@ public struct SpinWheelView: View {
                     
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 24) {
-                            wheelSection
+                            wheelAndButtonRow
                             availabilityCard
                             purchaseOptions
-                            spinButton
                         }
                         .padding(.top, 8)
                         .padding(.bottom, 40)
@@ -94,26 +93,33 @@ public struct SpinWheelView: View {
         }
     }
     
-    private var wheelSection: some View {
+    private var wheelAndButtonRow: some View {
         VStack(spacing: 16) {
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [.cyan.opacity(0.9), .blue],
-                        startPoint: .leading,
-                        endPoint: .trailing
+            HStack(alignment: .center, spacing: 24) {
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [.cyan.opacity(0.9), .blue],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
                     )
-                )
-                .frame(width: 140, height: 38)
-                .overlay(
-                    HStack(spacing: 6) {
-                        Image(systemName: "bolt.fill")
-                            .foregroundStyle(.white)
-                        Text("2X BONUS")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                    }
-                )
+                    .frame(width: 140, height: 38)
+                    .overlay(
+                        HStack(spacing: 6) {
+                            Image(systemName: "bolt.fill")
+                                .foregroundStyle(.white)
+                            Text("2X BONUS")
+                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+                    )
+                
+                Spacer()
+                
+                SpinnerIndicator()
+                    .frame(maxWidth: 180, alignment: .trailing)
+            }
             
             ZStack {
                 Circle()
@@ -155,7 +161,6 @@ public struct SpinWheelView: View {
             }
             .frame(width: 340, height: 340)
         }
-        .frame(maxWidth: .infinity)
     }
     
     private var availabilityCard: some View {
