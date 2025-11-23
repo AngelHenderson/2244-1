@@ -27,11 +27,10 @@ struct JourneyPanel: View {
     }
     
     var body: some View {
-        let tiles = journeyTileItems
         let highest = max(2, gameStore.state.highestTile)
         
         return ScrollView(.vertical, showsIndicators: false) {
-            journeyList(tiles: tiles, highest: highest)
+            journeyList(highest: highest)
                 .padding(.vertical, 12)
                 .padding(.horizontal, 8)
         }
@@ -47,10 +46,11 @@ private extension JourneyPanel {
     }
     
     @ViewBuilder
-    func journeyList(tiles: [JourneyTileItem], highest: Int) -> some View {
+    func journeyList(highest: Int) -> some View {
+        let tiles = journeyTileItems
         LazyVStack(spacing: 0) {
-            ForEach(tiles) { item in
-                let index = item.id
+            ForEach(Array(tiles.indices), id: \.self) { index in
+                let item = tiles[index]
                 let tile = item.tile
                 let tier = JourneyAbbreviationTiers.tier(for: tile)
                 let rewardStatus = tier.flatMap { rewardStatus(for: $0) }
