@@ -126,7 +126,7 @@ public struct GiftRewardView: View {
 
                     // Reward display
                     HStack(spacing: 16) {
-                        ForEach(giftReward.items, id: \.type) { item in
+                        ForEach(giftReward.items, id: \.self) { item in
                             VStack(spacing: 8) {
                                 Image(systemName: iconName(for: item))
                                     .font(.largeTitle)
@@ -202,6 +202,8 @@ public struct GiftRewardView: View {
         case .gems: return "diamond.fill"
         case .swap: return "arrow.2.squarepath"
         case .undo: return "arrow.uturn.backward.circle.fill"
+        case .bonusSpin: return "arrow.triangle.2.circlepath"
+        case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
         }
     }
 
@@ -212,6 +214,10 @@ public struct GiftRewardView: View {
         case .gems: return .cyan
         case .swap: return .green
         case .undo: return .purple
+        case .bonusSpin: return .blue
+        case .boost2x: return .yellow
+        case .boost3x: return .orange
+        case .boost4x: return .pink
         }
     }
 
@@ -222,6 +228,10 @@ public struct GiftRewardView: View {
         case .gems: return item.amount == 1 ? "Gem" : "Gems"
         case .swap: return item.amount == 1 ? "Swap" : "Swaps"
         case .undo: return item.amount == 1 ? "Undo" : "Undos"
+        case .bonusSpin: return item.amount == 1 ? "Free Spin" : "Free Spins"
+        case .boost2x: return "2x Boost"
+        case .boost3x: return "3x Boost"
+        case .boost4x: return "4x Boost"
         }
     }
 }
