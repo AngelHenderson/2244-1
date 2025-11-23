@@ -953,12 +953,14 @@ public final class GameEngine {
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
         guard let toRemove = milestoneExcludedValue(for: createdValue) else { return }
         
-        // Only trigger once per milestone creation
-        if !eliminatedMilestones.contains(createdValue) {
-            eliminatedMilestones.insert(createdValue)
+        let isNewMilestone = eliminatedMilestones.insert(createdValue).inserted
+        if isNewMilestone {
             print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), eliminating \(toRemove) from board and spawn pool")
-            eliminateAllTiles(withValue: toRemove)
+        } else {
+            print("🔁 MILESTONE RE-ELIMINATION: Reached \(createdValue) again, purging \(toRemove)")
         }
+        
+        eliminateAllTiles(withValue: toRemove)
     }
     
     private func eliminateAllTiles(withValue value: Int) {
