@@ -295,6 +295,8 @@ public final class GameStore {
         )
         
         performCommit(positions: positions)
+        
+        // Unlock input right away so the next drag can start even while animations play.
         isInputLocked = false
         
         // Keep the visual shards onscreen briefly, then clear them.
