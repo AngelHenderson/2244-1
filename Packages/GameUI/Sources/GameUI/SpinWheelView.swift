@@ -307,12 +307,15 @@ public struct SpinWheelView: View {
                 rewardMessage = "You won \(amount) gems! 💎"
             case .hammers:
                 let amount = reward.amount * multiplier
+                gameStore.addPowerUp("hammer", count: amount)
                 rewardMessage = "You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
             case .magnets:
                 let amount = reward.amount * multiplier
+                gameStore.addPowerUp("magnet", count: amount)
                 rewardMessage = "You won \(amount) magnet\(pluralSuffix(for: amount))! 🧲"
             case .swap:
                 let amount = reward.amount * multiplier
+                gameStore.addPowerUp("swap", count: amount)
                 rewardMessage = "You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
             case .spin:
                 let amount = reward.amount * multiplier
