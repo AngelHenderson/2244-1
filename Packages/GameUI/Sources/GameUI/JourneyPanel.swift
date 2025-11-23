@@ -27,12 +27,57 @@ struct JourneyPanel: View {
     }
     
     var body: some View {
+        let tiles = journeyTileItems
         let highest = max(2, gameStore.state.highestTile)
         
         return ScrollView(.vertical, showsIndicators: false) {
-            journeyList(highest: highest)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 8)
+            LazyVStack(spacing: 0) {
+                ForEach(Array(tiles.enumerated()), id: \.offset) { entry in
+                    let index = entry.offset
+                    let item = entry.element
+                    let tile = item.tile
+                    let tier = JourneyAbbreviationTiers.tier(for: tile)
+                    let rewardStatus = tier.flatMap { rewardStatus(for: $0) }
+                    
+                    HStack(alignment: .center, spacing: 16) {
+                        if let tier, let rewardStatus {
+                            JourneyTierRewardBubble(status: rewardStatus) {
+                                gameStore.presentJourneyReward(for: tier)
+                            }
+                            .accessibilityLabel("\(tier.label) reward")
+                        } else {
+                            Spacer()
+                                .frame(width: 0)
+                        }
+                        
+                        VStack(spacing: 4) {
+                            TileView(
+                                tile: tile,
+                                isSelected: false,
+                                isValid: true,
+                                size: 120
+                            )
+                            if tile.value == highest {
+                                Text("Highest Tile")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 4)
+                    
+                    if index < tiles.count - 1 {
+                        JourneyDotTrail(height: 64, dotCount: 4, dotSize: 6)
+                            .frame(maxWidth: .infinity)
+                            .accessibilityHidden(true)
+                            .padding(.vertical, 8)
+                    }
+                }
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 8)
         }
     }
 }
@@ -49,7 +94,7 @@ private extension JourneyPanel {
     func journeyList(highest: Int) -> some View {
         let tiles = journeyTileItems
         LazyVStack(spacing: 0) {
-            ForEach(Array(tiles.indices), id: \.self) { index in
+            ForEach(0..<tiles.count, id: \.self) { index in
                 let item = tiles[index]
                 let tile = item.tile
                 let tier = JourneyAbbreviationTiers.tier(for: tile)

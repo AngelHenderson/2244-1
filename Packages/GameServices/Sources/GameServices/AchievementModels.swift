@@ -12,6 +12,30 @@ public struct AchievementDef: Codable, Identifiable, Hashable {
         public let spins: Int?
         public let hammers: Int?
         public let magnets: Int?
+        public let swaps: Int?
+        public let boost2x: Int?
+        public let boost3x: Int?
+        public let boost4x: Int?
+        
+        public init(
+            gems: Int? = nil,
+            spins: Int? = nil,
+            hammers: Int? = nil,
+            magnets: Int? = nil,
+            swaps: Int? = nil,
+            boost2x: Int? = nil,
+            boost3x: Int? = nil,
+            boost4x: Int? = nil
+        ) {
+            self.gems = gems
+            self.spins = spins
+            self.hammers = hammers
+            self.magnets = magnets
+            self.swaps = swaps
+            self.boost2x = boost2x
+            self.boost3x = boost3x
+            self.boost4x = boost4x
+        }
     }
     
     public let id: String
@@ -23,6 +47,40 @@ public struct AchievementDef: Codable, Identifiable, Hashable {
     public let hidden: Bool
     public let conditionExpr: String
     public let conditions: [Condition]
+}
+
+public extension AchievementDef.Rewards {
+    struct Entry: Hashable {
+        public enum Kind: Hashable {
+            case gems, spins, hammers, magnets, swaps, boost2x, boost3x, boost4x
+        }
+        
+        public let kind: Kind
+        public let amount: Int
+        
+        public init(kind: Kind, amount: Int) {
+            self.kind = kind
+            self.amount = amount
+        }
+    }
+    
+    var entries: [Entry] {
+        var result: [Entry] = []
+        func append(_ kind: Entry.Kind, value: Int?) {
+            if let value, value > 0 {
+                result.append(Entry(kind: kind, amount: value))
+            }
+        }
+        append(.gems, value: gems)
+        append(.spins, value: spins)
+        append(.hammers, value: hammers)
+        append(.magnets, value: magnets)
+        append(.swaps, value: swaps)
+        append(.boost2x, value: boost2x)
+        append(.boost3x, value: boost3x)
+        append(.boost4x, value: boost4x)
+        return result
+    }
 }
 
 public struct GameSnapshot: Sendable {
