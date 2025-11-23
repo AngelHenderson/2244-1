@@ -25,7 +25,7 @@ public final class DailyClaimsStore {
     public private(set) var lastClaimDate: Date?
     public private(set) var canClaimToday: Bool = false
     
-    private let storage = UserDefaults.standard
+    private let storage: UserDefaults
     private let visibleLookaheadDays = 21
     private static let streakKey = "dailyStreak"
     private static let claimDayKey = "dailyClaimDay"
@@ -38,7 +38,8 @@ public final class DailyClaimsStore {
     
     public var onReward: ((AchievementDef.Rewards) -> Void)?
     
-    public init() {
+    public init(storage: UserDefaults = .standard) {
+        self.storage = storage
         loadProgress()
         Task {
             await loadCatalogs()
