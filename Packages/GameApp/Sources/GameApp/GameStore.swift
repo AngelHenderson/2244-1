@@ -75,6 +75,7 @@ public final class GameStore {
     // Tiles spawned during refill that should fade in after gravity settles
     public private(set) var pendingRefillPositions: Set<Position> = []
     private var refillRevealTask: Task<Void, Never>? = nil
+    private var mergeCleanupTask: Task<Void, Never>? = nil
     // Gift reward sheet state
     public var pendingGiftReward: GiftReward? = nil
     // Power-up inventory tracking
@@ -202,6 +203,7 @@ public final class GameStore {
     nonisolated deinit {
         Task { @MainActor [weak self] in
             self?.cancelRefillRevealTask()
+            self?.cancelMergeCleanupTask()
         }
     }
     
@@ -277,6 +279,7 @@ public final class GameStore {
         
         // Lock input to prevent interaction during animation
         isInputLocked = true
+        mergeCleanupTask?.cancel()
         
         // Determine the value being merged (for particle color)
         // We use the value of the first tile in the chain
@@ -291,23 +294,21 @@ public final class GameStore {
             startTime: Date()
         )
         
-        // Delay the actual commit to allow animation to play
-        Task { [weak self] in
-            guard let self else { return }
+        performCommit(positions: positions)
+        isInputLocked = false
+        
+        // Keep the visual shards onscreen briefly, then clear them.
+        mergeCleanupTask = Task { @MainActor [weak self] in
             do {
                 try await Task.sleep(nanoseconds: Self.mergeAnimationDelay)
             } catch {
-                // Ignore cancellation so we still finish the commit immediately
+                // Ignore cancellation and exit early.
             }
-            
-            await MainActor.run {
-                self.performCommit(positions: positions)
-                self.mergeAnimationState = nil
-                self.isInputLocked = false
-            }
+            guard let self, !Task.isCancelled else { return }
+            self.mergeAnimationState = nil
         }
     }
-
+    
     private func performCommit(positions: [Position]) {
         // Re-validate just in case, though input was locked
         // guard pathValidation.isValid else { return } // Validation might rely on currentPath which is passed as arg now
@@ -439,6 +440,13 @@ public final class GameStore {
         refillRevealTask = nil
     }
     
+    @MainActor
+    private func cancelMergeCleanupTask() {
+        mergeCleanupTask?.cancel()
+        mergeCleanupTask = nil
+        mergeAnimationState = nil
+    }
+    
     private func detectNewSpawnPositions(previousBoard: Board, newBoard: Board) -> Set<Position> {
         var existingIDs: Set<UUID> = []
         for row in 0..<previousBoard.height {
@@ -471,6 +479,7 @@ public final class GameStore {
         
         state = engine.currentState()
         cancelRefillRevealTask()
+        cancelMergeCleanupTask()
         pendingRefillPositions = []
         currentPath = []
         pathValidation = .valid
@@ -495,6 +504,7 @@ public final class GameStore {
         
         state = engine.currentState()
         cancelRefillRevealTask()
+        cancelMergeCleanupTask()
         pendingRefillPositions = []
         currentPath = []
         pathValidation = .valid
@@ -802,6 +812,7 @@ public final class GameStore {
         _ = engine.initializeGiftRow()
         state = engine.currentState()
         cancelRefillRevealTask()
+        cancelMergeCleanupTask()
         pendingRefillPositions = []
         return true
     }
@@ -828,6 +839,7 @@ public final class GameStore {
         currentPath = []
         pathValidation = .valid
         cancelRefillRevealTask()
+        cancelMergeCleanupTask()
         pendingRefillPositions = []
         lastDailyDateUTC = dateString
         UserDefaults.standard.set(dateString, forKey: "lastDailyDateUTC")
