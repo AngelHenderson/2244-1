@@ -540,11 +540,9 @@ public final class GameStore {
     
     // MARK: - Unlock Rewards
     private func baseUnlockReward(for tileValue: Int) -> Int {
-        // Start at 512 => 50 gems, then +2 per higher step (1024 => 52, 2048 => 54, ...)
-        guard tileValue >= 512 else { return 0 }
-        let exponent = Int(floor(log2(Double(tileValue))))
-        let baseExponent = 9 // 2^9 = 512
-        return 50 + max(0, (exponent - baseExponent)) * 2
+        // Formula-driven rewards: added = V >> 7 (per design spec)
+        guard tileValue > 0 else { return 0 }
+        return max(0, tileValue >> 7)
     }
     
     private func setPendingUnlockRewardIfNeeded(for newHigh: Int, previousHigh: Int) {
