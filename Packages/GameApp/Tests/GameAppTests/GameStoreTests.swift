@@ -56,25 +56,19 @@ struct GameStoreTests {
     @MainActor
     func testUnlockRewardUsesShiftedFormula() {
         let store = GameStore()
-        store._clearBoardForTesting()
-        
-        let first = Position(row: 2, col: 0)
-        let second = Position(row: 2, col: 1)
-        store._setTileForTesting(at: first, value: 65_536)
-        store._setTileForTesting(at: second, value: 65_536)
-        store._setHighestTileForTesting(65_536)
         store.coins = 0
+        let previousHigh = 65_536
+        let newHigh = 131_072
+        store.state.highestTile = previousHigh
         
-        store.beginPath(at: first)
-        store.extendPath(to: second)
-        store.commitPath()
+        store._testTriggerUnlockReward(newHigh: newHigh, previousHigh: previousHigh)
         
-        #expect(store.pendingUnlockRewardBase == 131_072 >> 7)
-        #expect(store.pendingUnlockTile == 131_072)
+        #expect(store.pendingUnlockRewardBase == newHigh >> 7)
+        #expect(store.pendingUnlockTile == newHigh)
         #expect(store.coins == 0)
         
         store.claimPendingUnlockReward(multiplier: 4)
-        #expect(store.coins == (131_072 >> 7) * 4)
+        #expect(store.coins == (newHigh >> 7) * 4)
         #expect(store.pendingUnlockRewardBase == nil)
     }
 }
