@@ -33,6 +33,7 @@ struct game2244App: App {
     @State private var storageService = UserDefaultsStorageService()
     @State private var achievementStore = AchievementStore()
     @State private var dailyClaimsStore = DailyClaimsStore()
+    @State private var gemWallet = GemWallet()
     @State private var shopStore: ShopStore? = nil
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
@@ -68,6 +69,13 @@ struct game2244App: App {
                 .environment(\.challengeStore, challengeStore)
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
                 .task {
+                    gemWallet.attach(gameStore: gameStore, homeState: homeState)
+                    gemWallet.bootstrapFromLocal()
+                    
+                    FirebaseService.shared.initialize()
+                    try? await FirebaseService.shared.signInAnonymously()
+                    await gemWallet.startCloudSync()
+                    
                     // Initialize shop store
                     shopStore = ShopStore(journeyStore: gameStore.journey)
                     
@@ -108,8 +116,7 @@ struct game2244App: App {
                     let applyRewards: @MainActor @Sendable (AchievementDef.Rewards) -> Void = { rewards in
                         // Gems
                         if let gems = rewards.gems, gems > 0 {
-                            gameStore.coins += gems
-                            homeState.gems += gems
+                            gemWallet.deposit(gems, source: .achievement)
                         }
                         
                         // Power-ups
