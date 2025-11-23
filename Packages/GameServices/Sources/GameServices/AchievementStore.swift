@@ -8,6 +8,11 @@ public final class AchievementStore {
     public struct UnlockState: Hashable {
         public var unlocked: Bool
         public var unlockedAt: Date?
+        public var claimed: Bool
+        
+        public var isClaimable: Bool {
+            unlocked && !claimed
+        }
     }
     
     public private(set) var catalog: [AchievementDef] = []
@@ -15,7 +20,8 @@ public final class AchievementStore {
     public private(set) var lastEvaluatedSnapshot: GameSnapshot?
     
     private let gc = GameCenterManager.shared
-    
+    public var onReward: ((AchievementDef.Rewards) -> Void)?
+
     public init() {}
     
     public func loadCatalogFromBundle(named filename: String = "2244_achievements", in bundle: Bundle = .main) throws {
@@ -33,7 +39,7 @@ public final class AchievementStore {
         catalog = try decoder.decode([AchievementDef].self, from: data)
         
         for def in catalog where unlocks[def.id] == nil {
-            unlocks[def.id] = .init(unlocked: false, unlockedAt: nil)
+            unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
         }
     }
     
@@ -42,22 +48,18 @@ public final class AchievementStore {
         for gk in existing where gk.percentComplete >= 100.0 {
             if let idx = catalog.firstIndex(where: { ($0.gcIdentifier ?? $0.id) == gk.identifier }) {
                 let id = catalog[idx].id
-                unlocks[id] = .init(unlocked: true, unlockedAt: gk.lastReportedDate)
+                let alreadyClaimed = unlocks[id]?.claimed ?? true
+                unlocks[id] = .init(unlocked: true, unlockedAt: gk.lastReportedDate, claimed: alreadyClaimed)
             }
         }
     }
     
-    public func evaluate(snapshot: GameSnapshot, reportToGameCenter: Bool = true, onReward: ((AchievementDef.Rewards) -> Void)? = nil) async {
+    public func evaluate(snapshot: GameSnapshot, reportToGameCenter: Bool = true) async {
         lastEvaluatedSnapshot = snapshot
         for def in catalog {
             guard unlocks[def.id]?.unlocked != true else { continue }
             if matches(def: def, snapshot: snapshot) {
-                unlocks[def.id] = .init(unlocked: true, unlockedAt: Date())
-                
-                // Award rewards
-                if let rewards = def.rewards {
-                    onReward?(rewards)
-                }
+                unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                 
                 if reportToGameCenter,
                    GKLocalPlayer.local.isAuthenticated {
@@ -66,6 +68,19 @@ public final class AchievementStore {
                 }
             }
         }
+    }
+    
+    public func claim(definition: AchievementDef) {
+        guard var state = unlocks[definition.id], state.isClaimable else { return }
+        state.claimed = true
+        unlocks[definition.id] = state
+        if let rewards = definition.rewards {
+            onReward?(rewards)
+        }
+    }
+    
+    public var claimableCount: Int {
+        unlocks.values.filter { $0.isClaimable }.count
     }
     
     private func matches(def: AchievementDef, snapshot s: GameSnapshot) -> Bool {

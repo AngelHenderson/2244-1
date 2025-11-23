@@ -14,8 +14,8 @@ public struct AchievementsView: View {
                     ForEach(achievements.catalog) { def in
                         AchievementRow(
                             definition: def,
-                            isUnlocked: achievements.unlocks[def.id]?.unlocked == true,
-                            unlockedDate: achievements.unlocks[def.id]?.unlockedAt
+                            state: achievements.unlocks[def.id],
+                            onClaim: { achievements.claim(definition: def) }
                         )
                     }
                 }
@@ -35,102 +35,82 @@ public struct AchievementsView: View {
     }
 }
 
-private struct RewardsView: View {
-    let rewards: AchievementDef.Rewards
-    
-    var body: some View {
-        HStack(spacing: 4) {
-            if let gems = rewards.gems, gems > 0 {
-                Label {
-                    Text(verbatim: String(gems))
-                } icon: {
-                    Image(systemName: "diamond.fill")
-                }
-                .font(.caption)
-                .foregroundStyle(.cyan)
-            }
-            if let spins = rewards.spins, spins > 0 {
-                Label("\(spins)", systemImage: "arrow.trianglehead.2.clockwise")
-                    .font(.caption)
-                    .foregroundStyle(.purple)
-            }
-            if let hammers = rewards.hammers, hammers > 0 {
-                Label("\(hammers)", systemImage: "hammer.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-            }
-            if let magnets = rewards.magnets, magnets > 0 {
-                Label("\(magnets)", systemImage: "magnifyingglass")
-                    .font(.caption)
-                    .foregroundStyle(.mint)
-            }
-        }
-        .labelStyle(.iconOnly)
-    }
-}
-
 private struct AchievementRow: View {
     let definition: AchievementDef
-    let isUnlocked: Bool
-    let unlockedDate: Date?
+    let state: AchievementStore.UnlockState?
+    let onClaim: () -> Void
+    
+    private var isUnlocked: Bool { state?.unlocked == true }
+    private var isClaimed: Bool { state?.claimed == true }
+    private var isClaimable: Bool { state?.isClaimable == true }
     
     var body: some View {
         HStack(spacing: 16) {
-            Image(systemName: isUnlocked ? "checkmark.seal.fill" : "seal")
-                .font(.system(size: 32))
-                .foregroundStyle(isUnlocked ? .green : .secondary)
-                .frame(width: 44, height: 44)
+            LockupIcon(isUnlocked: isUnlocked)
+                .frame(width: 64, height: 64)
             
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(definition.title)
-                        .font(.headline)
-                        .foregroundStyle(isUnlocked ? .primary : .secondary)
-                    
-                    if definition.hidden && !isUnlocked {
-                        Text("Hidden")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-                }
+            VStack(alignment: .leading, spacing: 8) {
+                Text(definition.title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
                 
-                if !definition.hidden || isUnlocked {
-                    Text(definition.description)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    Text("Complete objectives to unlock")
-                        .font(.subheadline)
-                        .foregroundStyle(.tertiary)
-                        .italic()
-                }
+                Text(detailText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 
-                HStack {
+                HStack(spacing: 8) {
                     Label(definition.category, systemImage: categoryIcon(for: definition.category))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
-                    Spacer()
-                    
-                    if let rewards = definition.rewards {
-                        RewardsView(rewards: rewards)
+                    if isClaimed {
+                        StatusBadge(text: "Claimed", color: .green)
+                    } else if !isUnlocked {
+                        StatusBadge(text: "Locked", color: .gray)
                     }
                 }
             }
             
-            Spacer(minLength: 0)
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 12) {
+                ClaimButton(
+                    title: isClaimed ? "Claimed" : "Claim",
+                    enabled: isClaimable,
+                    action: onClaim
+                )
+                
+                RewardSummary(rewards: definition.rewards)
+            }
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(UIColor.systemGray6),
+                            Color(UIColor.systemGray5)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
         )
-        .opacity(definition.hidden && !isUnlocked ? 0.7 : 1.0)
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(isClaimable ? Color.green : Color(UIColor.separator), lineWidth: 1)
+        )
+        .opacity(definition.hidden && !isUnlocked ? 0.8 : 1.0)
+    }
+    
+    private var detailText: String {
+        if definition.hidden && !isUnlocked {
+            return "Complete objectives to reveal this achievement."
+        }
+        return definition.description
     }
     
     private func categoryIcon(for category: String) -> String {
@@ -145,5 +125,95 @@ private struct AchievementRow: View {
         case "hidden": return "questionmark"
         default: return "star"
         }
+    }
+}
+
+private struct RewardSummary: View {
+    let rewards: AchievementDef.Rewards?
+    
+    private var summary: String {
+        guard let rewards else { return "Bragging rights" }
+        var parts: [String] = []
+        if let gems = rewards.gems, gems > 0 { parts.append("\(gems) Gems") }
+        if let hammers = rewards.hammers, hammers > 0 { parts.append("\(hammers) Hammers") }
+        if let magnets = rewards.magnets, magnets > 0 { parts.append("\(magnets) Magnets") }
+        if let spins = rewards.spins, spins > 0 { parts.append("\(spins) Spins") }
+        return parts.isEmpty ? "Bragging rights" : parts.joined(separator: ", ")
+    }
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "gift.fill")
+                .foregroundStyle(.orange)
+            Text(summary)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct LockupIcon: View {
+    let isUnlocked: Bool
+    
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: isUnlocked ? [.green.opacity(0.3), .green.opacity(0.15)] : [.purple.opacity(0.2), .blue.opacity(0.1)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.4), lineWidth: 1)
+                )
+            
+            Image(systemName: isUnlocked ? "lock.open.fill" : "lock.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 28, height: 28)
+                .foregroundStyle(isUnlocked ? .green : .white)
+                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+        }
+    }
+}
+
+private struct StatusBadge: View {
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        Text(text.uppercased())
+            .font(.caption2.bold())
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(color.opacity(0.15), in: Capsule())
+            .foregroundStyle(color)
+    }
+}
+
+private struct ClaimButton: View {
+    let title: String
+    let enabled: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.headline)
+                .frame(minWidth: 96)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(enabled ? LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .top, endPoint: .bottom) : Color.gray.opacity(0.3))
+                )
+                .foregroundStyle(.white)
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.6)
     }
 }

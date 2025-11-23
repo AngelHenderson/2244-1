@@ -13,8 +13,6 @@ public final class AchievementEvaluator {
     private var totalMerges: Int = 0
     private var maxChainThisGame: Int = 0
     private var movesThisGame: Int = 0
-    public var onReward: ((AchievementDef.Rewards) -> Void)?
-    
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
         totalGamesPlayed = UserDefaults.standard.integer(forKey: "totalGamesPlayed")
@@ -83,7 +81,7 @@ public final class AchievementEvaluator {
         }
         
         Task {
-            await achievementStore.evaluate(snapshot: snapshot, onReward: onReward)
+            await achievementStore.evaluate(snapshot: snapshot)
         }
     }
     
@@ -117,7 +115,7 @@ public final class AchievementEvaluator {
         snapshot.free_slots_end = freeSlots
         
         Task {
-            await achievementStore.evaluate(snapshot: snapshot, onReward: onReward)
+            await achievementStore.evaluate(snapshot: snapshot)
         }
     }
     
@@ -128,7 +126,7 @@ public final class AchievementEvaluator {
         snapshot.games_played = totalGamesPlayed
         
         Task {
-            await achievementStore.evaluate(snapshot: snapshot, onReward: onReward)
+            await achievementStore.evaluate(snapshot: snapshot)
         }
     }
     
@@ -139,7 +137,7 @@ public final class AchievementEvaluator {
         snapshot.games_played = totalGamesPlayed
         
         Task {
-            await achievementStore.evaluate(snapshot: snapshot, onReward: onReward)
+            await achievementStore.evaluate(snapshot: snapshot)
         }
     }
 }

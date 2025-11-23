@@ -263,11 +263,6 @@ public final class GameEngine {
         // Refill board using cascade-aware spawning without reapplying gravity (already applied above)
         refillAfterGravity(applyGravity: false)
 
-        // Trigger auto-cascade after gift chain
-        // Protect the tile we just created from being immediately merged
-        let protectedValue = milestoneProtectionValue(for: outcome.resultValue)
-        _ = runAutoCascade(protectPosition: positions.last, protectedValue: protectedValue)
-
         // Check for game over
         if !hasValidMoves() {
             state.isGameOver = true
@@ -380,10 +375,6 @@ public final class GameEngine {
         // Always-full policy: apply gravity and refill to keep the board dense
         refillAfterGravity()
         
-        // Trigger auto-cascade after player move
-        let protectedValue = milestoneProtectionValue(for: mergedValue)
-        _ = runAutoCascade(protectPosition: positions.last, protectedValue: protectedValue)
-        
         // Check for game over
         if !hasValidMoves() {
             state.isGameOver = true
@@ -408,9 +399,6 @@ public final class GameEngine {
         state.moves += 1
         // Keep board full after destructive action
         refillAfterGravity()
-        
-        // Trigger auto-cascade after hammer
-        _ = runAutoCascade()
         
         if !hasValidMoves() {
             state.isGameOver = true
@@ -576,9 +564,6 @@ public final class GameEngine {
         
         state.moves += 1
         
-        // Trigger auto-cascade after shuffle
-        _ = runAutoCascade()
-        
         if !hasValidMoves() {
             state.isGameOver = true
         }
@@ -641,8 +626,6 @@ public final class GameEngine {
         switch config.fillMode {
         case .alwaysFull:
             fillBoardToFull()
-            // Run auto-cascade to merge any initial matches
-            _ = runAutoCascade()
         case .sparse:
             var emptyPositions: [Position] = []
             for row in 0..<config.boardHeight {
@@ -660,8 +643,6 @@ public final class GameEngine {
                 let position = emptyPositions.remove(at: index)
                 state.board[position] = Tile(value: generateRandomValue())
             }
-            // Run auto-cascade to merge any initial matches
-            _ = runAutoCascade()
         }
     }
     

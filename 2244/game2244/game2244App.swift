@@ -106,8 +106,7 @@ struct game2244App: App {
                     }
                     
                     // Setup achievement evaluator with reward handler
-                    let evaluator = AchievementEvaluator(achievementStore: achievementStore)
-                    evaluator.onReward = { rewards in
+                    achievementStore.onReward = { rewards in
                         // Award gems
                         if let gems = rewards.gems, gems > 0 {
                             gameStore.coins += gems
@@ -123,6 +122,8 @@ struct game2244App: App {
                         }
                         // Note: spins would need separate tracking for wheel of fortune feature
                     }
+                    
+                    let evaluator = AchievementEvaluator(achievementStore: achievementStore)
                     gameStore.achievementEvaluator = evaluator
                     
                     // Setup daily claims reward handler
