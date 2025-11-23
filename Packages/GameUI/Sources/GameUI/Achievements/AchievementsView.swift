@@ -138,6 +138,9 @@ private struct RewardSummary: View {
         if let hammers = rewards.hammers, hammers > 0 { parts.append("\(hammers) Hammers") }
         if let magnets = rewards.magnets, magnets > 0 { parts.append("\(magnets) Magnets") }
         if let spins = rewards.spins, spins > 0 { parts.append("\(spins) Spins") }
+        if let boost2x = rewards.boost2x, boost2x > 0 { parts.append("\(boost2x)× 2 Boost") }
+        if let boost3x = rewards.boost3x, boost3x > 0 { parts.append("\(boost3x)× 3 Boost") }
+        if let boost4x = rewards.boost4x, boost4x > 0 { parts.append("\(boost4x)× 4 Boost") }
         return parts.isEmpty ? "Bragging rights" : parts.joined(separator: ", ")
     }
     
