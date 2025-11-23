@@ -5,7 +5,7 @@ import Testing
 struct JourneyAbbreviationTiersTests {
     @Test("Tier sequence includes expected labels")
     func testTierSequenceContainsMilestones() {
-        let labels = Set(JourneyAbbreviationTiers.tiers.map(\.label.lowercased()))
+        let labels = Set(JourneyAbbreviationTiers.tiers.map { $0.label.lowercased() })
         #expect(labels.contains("1m"))
         #expect(labels.contains("1b"))
         #expect(labels.contains("1a"))

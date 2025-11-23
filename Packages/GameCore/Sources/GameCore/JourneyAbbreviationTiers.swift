@@ -67,7 +67,7 @@ public enum JourneyAbbreviationTiers {
         var suffixIndex = 0
         
         for step in startStep...maxSupportedStep where suffixIndex < suffixTargets.count {
-            let label = JourneyTileGenerator.formatTileAtStep(step)
+            let label = TileStepLabelFormatter.labelForStep(step)
             if labelMatchesTarget(label, target: suffixTargets[suffixIndex]) {
                 let tier = JourneyAbbreviationTier(
                     id: label,
@@ -118,15 +118,14 @@ public enum JourneyAbbreviationTiers {
     private static func singleLetterTargets(prefix: String) -> [String] {
         (0..<26).compactMap { offset -> String? in
             guard let scalar = UnicodeScalar(97 + offset) else { return nil }
-            return "\(prefix)\(Character(scalar))"
+            return "\(prefix)\(String(scalar))"
         }
     }
     
     private static func doubleLetterTargets(prefix: String, leading: String) -> [String] {
-        guard let leadScalar = leading.first else { return [] }
         return (0..<26).compactMap { offset -> String? in
             guard let scalar = UnicodeScalar(97 + offset) else { return nil }
-            return "\(prefix)\(Character(leadScalar))\(Character(scalar))"
+            return "\(prefix)\(leading)\(String(scalar))"
         }
     }
     
