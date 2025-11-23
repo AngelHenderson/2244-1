@@ -169,26 +169,16 @@ public final class GameEngine {
         }
         
         let values = tiles.map { $0.value }
-        
-        // 2244 rules: First two tiles must be identical
-        guard values.count >= 2 else {
-            return .invalid("Chain must have at least 2 tiles")
+
+        // All tiles in a chain must have the same value.
+        guard let firstValue = values.first else {
+            // This case should not be reached due to the count check above, but as a safeguard:
+            return .valid // An empty or single-tile chain is technically not invalid.
         }
         
-        guard values[0] == values[1] else {
-            return .invalid("First two tiles must have the same value")
-        }
-        
-        // After the first two, each tile must be same value or double the previous
-        var currentValue = values[0]
-        for i in 2..<values.count {
-            let value = values[i]
-            if value == currentValue {
-                continue
-            } else if value == currentValue * 2 {
-                currentValue = value
-            } else {
-                return .invalid("Each tile must be the same value or double the previous value")
+        for value in values.dropFirst() {
+            if value != firstValue {
+                return .invalid("All tiles in a chain must have the same value")
             }
         }
         
@@ -332,32 +322,15 @@ public final class GameEngine {
         
         let values = positions.compactMap { state.board[$0]?.value }
         
-        // Merge rule: Round SUM up to the next power of two (inclusive).
-        // Overflow-safe summation and rounding
-        let sumResult = values.reduce((total: 0, overflowed: false)) { acc, value in
-            let (next, didOverflow) = acc.total.addingReportingOverflow(value)
-            return (didOverflow ? Int.max : next, acc.overflowed || didOverflow)
-        }
-        let chainSum = sumResult.total
+        // Merge rule: twice the highest number in the chain (standard 2244)
+        let maxVal = values.max() ?? 0
         let mergedValue: Int = {
-            if sumResult.overflowed { return Int.max }
-            guard chainSum > 0 else { return 0 }
-            if chainSum & (chainSum - 1) == 0 { return chainSum }
-            if chainSum > (1 << 62) { return Int.max }
-            var x = chainSum - 1
-            x |= x >> 1
-            x |= x >> 2
-            x |= x >> 4
-            x |= x >> 8
-            x |= x >> 16
-            #if arch(x86_64) || arch(arm64)
-            x |= x >> 32
-            #endif
-            let next = x + 1
-            return next > 0 ? next : Int.max
+            if maxVal >= (Int.max >> 1) { return Int.max } // Avoid overflow
+            let (next, overflow) = maxVal.multipliedReportingOverflow(by: 2)
+            return overflow ? Int.max : max(next, 2) // Ensure minimum result of 2
         }()
         
-        // Score equals the resulting merged tile value (no combo multipliers)
+        // Score equals the resulting merged tile value
         let chainScore = mergedValue
         
         // Remove all tiles in the chain
@@ -396,12 +369,12 @@ public final class GameEngine {
         // Trigger auto-cascade after player move
         let protectedValue = milestoneProtectionValue(for: mergedValue)
         _ = runAutoCascade(protectPosition: positions.last, protectedValue: protectedValue)
-
+        
         // Check for game over
         if !hasValidMoves() {
             state.isGameOver = true
         }
-
+        
         return state
     }
     

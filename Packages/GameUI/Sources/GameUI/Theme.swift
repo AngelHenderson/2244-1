@@ -66,7 +66,6 @@ public struct Theme {
     // Conditional remainder overrides
     private static let remainder6F0000Thresholds: [Int: Int] = [
         5: 30,
-        11: 36,
         10: 60
     ]
     

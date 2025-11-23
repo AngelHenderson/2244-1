@@ -50,7 +50,7 @@ public struct SpinWheelView: View {
                             }
                             .padding(.top, 8)
                             .padding(.bottom, 32)
-                            .frame(maxWidth: .infinity, minHeight: proxy.size.height * 0.75, alignment: .top)
+                    .frame(maxWidth: .infinity, minHeight: proxy.size.height * 0.9, alignment: .top)
                             .background(
                                 RoundedRectangle(cornerRadius: 32, style: .continuous)
                                     .fill(Color.black.opacity(0.15))
@@ -150,13 +150,13 @@ public struct SpinWheelView: View {
                 
                 WheelLights(count: max(engine.segments.count, 1))
                 
-                SidePegShape()
+                PegShape()
                     .fill(.ultraThinMaterial)
-                    .overlay(SidePegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
-                    .frame(width: 82, height: 32)
-                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .trailing)
-                    .offset(x: 170)
-                    .shadow(color: .black.opacity(0.6), radius: 6, x: 4, y: 0)
+                    .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
+                    .frame(width: 28, height: 90)
+                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
+                    .offset(y: -170)
+                    .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()
                     .fill(.ultraThickMaterial)
@@ -297,20 +297,27 @@ public struct SpinWheelView: View {
     
     private func handleWinning(segment: WheelSegment) {
         let reward = segment.reward
+        let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
+        
         Task { @MainActor in
             switch reward.type {
             case .gems:
-                    homeState.addGems(reward.amount)
-                rewardMessage = "You won \(reward.amount) gems! 💎"
+                let amount = reward.amount * multiplier
+                homeState.addGems(amount)
+                rewardMessage = "You won \(amount) gems! 💎"
             case .hammers:
-                rewardMessage = "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+                let amount = reward.amount * multiplier
+                rewardMessage = "You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
             case .magnets:
-                rewardMessage = "You won \(reward.amount) magnet\(pluralSuffix(for: reward.amount))! 🧲"
+                let amount = reward.amount * multiplier
+                rewardMessage = "You won \(amount) magnet\(pluralSuffix(for: amount))! 🧲"
             case .swap:
-                rewardMessage = "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+                let amount = reward.amount * multiplier
+                rewardMessage = "You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
             case .spin:
-                spinState.addBonusSpins(reward.amount)
-                rewardMessage = reward.amount == 1 ? "Bonus spin added! 🎡" : "\(reward.amount) bonus spins added! 🎡"
+                let amount = reward.amount * multiplier
+                spinState.addBonusSpins(amount)
+                rewardMessage = amount == 1 ? "Bonus spin added! 🎡" : "\(amount) bonus spins added! 🎡"
             case .multiplier(let tier):
                 spinState.addMultiplier(tier)
                 rewardMessage = "You banked a \(tier.displayName) boost for 24 hours!"

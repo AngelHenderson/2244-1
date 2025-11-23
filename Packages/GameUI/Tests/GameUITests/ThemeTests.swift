@@ -11,4 +11,14 @@ struct ThemeTests {
         
         #expect(color2 != color2048)
     }
+    
+    @Test
+    @MainActor
+    func testPaletteWrapsFor2048Class() {
+        let baseValue = 2048
+        let wrappedValue = 1 << 36  // ≈68B, shares exponent % 25 with 2048
+        
+        #expect(Theme.color(for: baseValue) == Theme.color(for: wrappedValue))
+        #expect(Theme.textColor(for: baseValue) == Theme.textColor(for: wrappedValue))
+    }
 }

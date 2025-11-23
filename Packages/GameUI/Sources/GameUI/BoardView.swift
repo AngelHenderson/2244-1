@@ -270,66 +270,42 @@ public struct BoardView: View {
     }
     
     private func gridPosition(from location: CGPoint, tileSize: CGFloat, containerSize: CGSize) -> Position? {
-        #if targetEnvironment(simulator)
-        // Looping version: proven to work on the Simulator.
-        var foundCol: Int?
-        var foundRow: Int?
+        // The coordinate space of the drag gesture is local to the grid view itself.
+        // The origin calculation is not needed here if we assume the containerSize
+        // passed to the gesture is the grid's own size, making the origin (0,0).
         
-        for col in 0..<gameStore.state.board.width {
-            let tileStartX = spacing + CGFloat(col) * (tileSize + spacing)
-            let tileEndX = tileStartX + tileSize
-            
-            if location.x >= tileStartX && location.x <= tileEndX {
-                foundCol = col
-                break
-            }
-        }
-        
-        for row in 0..<gameStore.state.board.height {
-            let tileStartY = spacing + CGFloat(row) * (tileSize + spacing)
-            let tileEndY = tileStartY + tileSize
-            
-            if location.y >= tileStartY && location.y <= tileEndY {
-                foundRow = row
-                break
-            }
-        }
-        
-        guard let col = foundCol, let row = foundRow else {
-            return nil
-        }
-        
-        let position = Position(row: row, col: col)
-        return position.isValid(for: gameStore.state.board) ? position : nil
-        
-        #else
-        // Mathematical version: proven to work on physical devices (iPad).
+        // We subtract the initial padding to get coordinates relative to the top-left of the first tile.
         let localX = location.x - spacing
         let localY = location.y - spacing
 
+        // If the touch is before the first tile, it's in the padding and thus invalid.
         guard localX >= 0, localY >= 0 else { return nil }
 
+        // The total size of one block (tile + its trailing space).
         let blockWidth = tileSize + spacing
         let blockHeight = tileSize + spacing
 
+        // Determine the column and row by direct division.
         let col = Int(localX / blockWidth)
         let row = Int(localY / blockHeight)
 
+        // Check if the calculated row/col are within the board's actual dimensions.
+        guard col >= 0 && col < gameStore.state.board.width &&
+              row >= 0 && row < gameStore.state.board.height else {
+            return nil
+        }
+
+        // Now, verify that the touch is within the TILE part of the block, not the spacing.
         let xOffsetInBlock = localX.truncatingRemainder(dividingBy: blockWidth)
         let yOffsetInBlock = localY.truncatingRemainder(dividingBy: blockHeight)
 
         if xOffsetInBlock > tileSize || yOffsetInBlock > tileSize {
-            return nil
-        }
-
-        guard col >= 0, col < gameStore.state.board.width,
-              row >= 0, row < gameStore.state.board.height else {
+            // The touch is in the spacing between tiles.
             return nil
         }
         
         let position = Position(row: row, col: col)
         return position.isValid(for: gameStore.state.board) ? position : nil
-        #endif
     }
     
     private func centerPoint(for position: Position, tileSize: CGFloat, containerSize: CGSize) -> CGPoint {

@@ -74,14 +74,14 @@ public struct SimplifiedGlassBoardView: View {
                             // First row with glass effect
                             ZStack {
                                 if let tile = gameStore.state.board[position] {
-                                    TileView(
+                                TileView(
                                         tile: tile,
-                                        isSelected: gameStore.currentPath.contains(position),
-                                        isValid: gameStore.pathValidation.isValid,
-                                        size: tileSize,
-                                        colorBlindMode: colorBlindMode,
-                                        theme: currentTheme
-                                    )
+                                    isSelected: gameStore.currentPath.contains(position),
+                                    isValid: gameStore.pathValidation.isValid,
+                                    size: tileSize,
+                                    colorBlindMode: colorBlindMode,
+                                    theme: currentTheme
+                                )
                                     .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }
@@ -93,11 +93,11 @@ public struct SimplifiedGlassBoardView: View {
                                 
                                 // Gift indicator (only while glass intact)
                                 if gameStore.pendingGiftBoxes[position] == nil {
-                                    Image(systemName: "gift.fill")
-                                        .font(.system(size: tileSize * 0.2))
-                                        .foregroundColor(.yellow)
-                                        .shadow(color: .black.opacity(0.3), radius: 2)
-                                        .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
+                                Image(systemName: "gift.fill")
+                                    .font(.system(size: tileSize * 0.2))
+                                    .foregroundColor(.yellow)
+                                    .shadow(color: .black.opacity(0.3), radius: 2)
+                                    .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
                                 }
                                 
                                 if let t = gameStore.state.board[position], t.value == currentMax {
@@ -124,14 +124,14 @@ public struct SimplifiedGlassBoardView: View {
                             // Regular tiles for other rows
                             ZStack {
                                 if let tile = gameStore.state.board[position] {
-                                    TileView(
+                                TileView(
                                         tile: tile,
-                                        isSelected: gameStore.currentPath.contains(position),
-                                        isValid: gameStore.pathValidation.isValid,
-                                        size: tileSize,
-                                        colorBlindMode: colorBlindMode,
-                                        theme: currentTheme
-                                    )
+                                    isSelected: gameStore.currentPath.contains(position),
+                                    isValid: gameStore.pathValidation.isValid,
+                                    size: tileSize,
+                                    colorBlindMode: colorBlindMode,
+                                    theme: currentTheme
+                                )
                                     .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }
