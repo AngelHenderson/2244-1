@@ -270,24 +270,58 @@ public struct BoardView: View {
     }
     
     private func gridPosition(from location: CGPoint, tileSize: CGFloat, containerSize: CGSize) -> Position? {
-        // The gesture's `location` is in the local coordinate space of the view it's
-        // attached to—the `boardGrid`. We first subtract the padding to get coordinates
-        // relative to the grid of tiles itself.
+        #if targetEnvironment(simulator)
+        // Looping version: proven to work on the Simulator.
+        var foundCol: Int?
+        var foundRow: Int?
+        
+        for col in 0..<gameStore.state.board.width {
+            let tileStartX = spacing + CGFloat(col) * (tileSize + spacing)
+            let tileEndX = tileStartX + tileSize
+            
+            if location.x >= tileStartX && location.x <= tileEndX {
+                foundCol = col
+                break
+            }
+        }
+        
+        for row in 0..<gameStore.state.board.height {
+            let tileStartY = spacing + CGFloat(row) * (tileSize + spacing)
+            let tileEndY = tileStartY + tileSize
+            
+            if location.y >= tileStartY && location.y <= tileEndY {
+                foundRow = row
+                break
+            }
+        }
+        
+        guard let col = foundCol, let row = foundRow else {
+            return nil
+        }
+        
+        let position = Position(row: row, col: col)
+        return position.isValid(for: gameStore.state.board) ? position : nil
+        
+        #else
+        // Mathematical version: proven to work on physical devices (iPad).
         let localX = location.x - spacing
         let localY = location.y - spacing
 
-        // Ignore touches in the top/left padding area.
         guard localX >= 0, localY >= 0 else { return nil }
 
-        // Determine the column and row by dividing the local coordinates by the total
-        // size of a block (tile + spacing).
         let blockWidth = tileSize + spacing
         let blockHeight = tileSize + spacing
-        
+
         let col = Int(localX / blockWidth)
         let row = Int(localY / blockHeight)
 
-        // Ensure the calculated position is within the board's bounds.
+        let xOffsetInBlock = localX.truncatingRemainder(dividingBy: blockWidth)
+        let yOffsetInBlock = localY.truncatingRemainder(dividingBy: blockHeight)
+
+        if xOffsetInBlock > tileSize || yOffsetInBlock > tileSize {
+            return nil
+        }
+
         guard col >= 0, col < gameStore.state.board.width,
               row >= 0, row < gameStore.state.board.height else {
             return nil
@@ -295,6 +329,7 @@ public struct BoardView: View {
         
         let position = Position(row: row, col: col)
         return position.isValid(for: gameStore.state.board) ? position : nil
+        #endif
     }
     
     private func centerPoint(for position: Position, tileSize: CGFloat, containerSize: CGSize) -> CGPoint {
