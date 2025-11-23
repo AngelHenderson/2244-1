@@ -36,7 +36,7 @@ public final class DailyClaimsStore {
     private var claimedDays: Set<Int> = []
     private var unlockedStreaks: Set<Int> = []
     
-    public var onReward: ((AchievementDef.Rewards) -> Void)?
+    public var onReward: (@MainActor (AchievementDef.Rewards) -> Void)?
     
     public init(storage: UserDefaults = .standard) {
         self.storage = storage

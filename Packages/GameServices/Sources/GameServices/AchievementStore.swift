@@ -20,7 +20,7 @@ public final class AchievementStore {
     public private(set) var lastEvaluatedSnapshot: GameSnapshot?
     
     private let gc = GameCenterManager.shared
-    public var onReward: ((AchievementDef.Rewards) -> Void)?
+    public var onReward: (@MainActor (AchievementDef.Rewards) -> Void)?
 
     public init() {}
     

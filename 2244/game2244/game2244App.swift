@@ -105,6 +105,7 @@ struct game2244App: App {
                         await audioService.setSfxEnabled(true)
                     }
                     
+                    @MainActor
                     func applyRewards(_ rewards: AchievementDef.Rewards) {
                         // Gems
                         if let gems = rewards.gems, gems > 0 {
