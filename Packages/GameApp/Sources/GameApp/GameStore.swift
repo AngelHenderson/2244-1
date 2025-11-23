@@ -344,7 +344,7 @@ public final class GameStore {
             }
         }
         
-        if endsOnGift && !newlyBrokenGlass.isEmpty {
+        if !newlyBrokenGlass.isEmpty {
             for position in newlyBrokenGlass {
                 pendingGiftBoxes[position] = GiftReward.randomReward(isFromGlassShatter: true)
             }
