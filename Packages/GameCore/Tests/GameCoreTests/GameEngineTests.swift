@@ -415,4 +415,29 @@ struct GameEngineTests {
         
         #expect(engine._latestEliminatedValueForTesting() == removedValue, "Spawn floor should reflect removed value")
     }
+
+    @Test("Creating a 65K tile purges all 4s immediately")
+    func testMilestoneEliminationOn65KMerge() {
+        let config = GameConfig(boardWidth: 4, boardHeight: 4, seed: 11, fillMode: .alwaysFull)
+        let engine = GameEngine(config: config)
+        engine._setAllTilesForTesting(value: 4)
+
+        let left = Position(row: 0, col: 0)
+        let right = Position(row: 0, col: 1)
+        engine._setTileForTesting(at: left, value: 32_768)
+        engine._setTileForTesting(at: right, value: 32_768)
+
+        let state = engine.commitChain([left, right])
+
+        #expect(state.highestTile == 65_536, "Chain should produce a 65K tile")
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos] {
+                    #expect(tile.value != 4, "All 4s should be eliminated after reaching 65K")
+                }
+            }
+        }
+        #expect(engine._latestEliminatedValueForTesting() == 4, "Spawn floor should advance to at least 8")
+    }
 }
