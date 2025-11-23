@@ -267,6 +267,7 @@ public final class GameStore {
     public func cancelPath() {
         currentPath = []
         pathValidation = .valid
+        isInputLocked = false
         isExtendingToGift = false
     }
     

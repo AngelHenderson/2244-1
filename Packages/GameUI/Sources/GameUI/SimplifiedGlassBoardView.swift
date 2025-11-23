@@ -1,6 +1,7 @@
 import SwiftUI
 import GameCore
 import GameApp
+import OSLog
 
 // MARK: - Simplified Glass Board View (Visual Only)
 public struct SimplifiedGlassBoardView: View {
@@ -14,6 +15,7 @@ public struct SimplifiedGlassBoardView: View {
     @State private var glassPreviewValues: [Int] = []
     @State private var magnetAnimations: [MagnetAnimationModel] = []
     @Namespace private var tileNamespace
+    private let gestureLogger = Logger(subsystem: "com.game2244", category: "BoardGesture")
     
     private let spacing: CGFloat = 12
     private let cornerRadius: CGFloat = 12
@@ -34,14 +36,6 @@ public struct SimplifiedGlassBoardView: View {
                 magnetOverlay(tileSize: tileSize, containerSize: geometry.size)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
-            .gesture(
-                dragGesture(
-                    tileSize: tileSize,
-                    containerSize: gridFrameSize(for: tileSize)
-                ),
-                including: .all
-            )
             .onChange(of: gameStore.lastMagnetEvent) { _, newValue in
                 if let event = newValue {
                     startMagnetAnimations(for: event)
@@ -163,6 +157,12 @@ public struct SimplifiedGlassBoardView: View {
         .padding(spacing)
         .contentShape(Rectangle())
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: gameStore.state.board)
+        .simultaneousGesture(
+            dragGesture(
+                tileSize: tileSize,
+                containerSize: gridFrameSize(for: tileSize)
+            )
+        )
     }
     
     @ViewBuilder
@@ -311,8 +311,15 @@ public struct SimplifiedGlassBoardView: View {
     private func dragGesture(tileSize: CGFloat, containerSize: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
-                guard tileSize > 0 else { return }
-                guard !gameStore.isInputLocked else { return }
+                gestureLogger.info("drag changed | loc=\(self.describe(value.location)) locked=\(self.gameStore.isInputLocked)")
+                guard tileSize > 0 else {
+                    gestureLogger.warning("drag ignored | tileSize <= 0")
+                    return
+                }
+                guard !gameStore.isInputLocked else {
+                    gestureLogger.info("drag ignored | input locked")
+                    return
+                }
                 let position = gridPosition(from: value.location, tileSize: tileSize, containerSize: containerSize)
                 
                 if !isDragging {
@@ -320,6 +327,9 @@ public struct SimplifiedGlassBoardView: View {
                     if let position = position, gameStore.state.board[position] != nil {
                         gameStore.beginPath(at: position)
                         haptics.lightImpact()
+                        gestureLogger.info("beginPath @ row=\(position.row) col=\(position.col)")
+                    } else {
+                        gestureLogger.info("beginPath skipped | position nil or empty")
                     }
                 } else if let position = position, gameStore.state.board[position] != nil {
                     if let existingIndex = gameStore.currentPath.firstIndex(of: position) {
@@ -327,19 +337,25 @@ public struct SimplifiedGlassBoardView: View {
                             gameStore.backtrackPath()
                         }
                         haptics.lightImpact()
+                        gestureLogger.info("backtrack to index \(existingIndex)")
                     } else {
                         gameStore.extendPath(to: position)
                         if gameStore.pathValidation.isValid {
                             haptics.lightImpact()
+                            gestureLogger.info("extendPath valid | row=\(position.row) col=\(position.col) count=\(self.gameStore.currentPath.count)")
                         } else {
                             haptics.warning()
+                            gestureLogger.warning("extendPath invalid")
                         }
                     }
+                } else {
+                    gestureLogger.info("move ignored | position nil or empty")
                 }
                 
                 dragLocation = value.location
             }
             .onEnded { _ in
+                gestureLogger.info("drag ended | valid=\(self.gameStore.pathValidation.isValid) count=\(self.gameStore.currentPath.count)")
                 if gameStore.pathValidation.isValid && gameStore.currentPath.count >= 2 {
                     gameStore.commitPath()
                     haptics.success()
@@ -429,6 +445,10 @@ public struct SimplifiedGlassBoardView: View {
         let boardWidth = totalTilesWidth + 2 * spacing
         let boardHeight = totalTilesHeight + 2 * spacing
         return CGSize(width: boardWidth, height: boardHeight)
+    }
+    
+    private func describe(_ point: CGPoint) -> String {
+        "(\(String(format: "%.1f", point.x)), \(String(format: "%.1f", point.y)))"
     }
     
     private func startMagnetAnimations(for event: GameStore.MagnetEvent) {

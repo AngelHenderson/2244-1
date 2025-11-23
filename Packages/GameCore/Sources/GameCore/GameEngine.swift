@@ -329,12 +329,23 @@ public final class GameEngine {
         
         let values = positions.compactMap { state.board[$0]?.value }
         
-        // Merge rule: twice the highest number in the chain (standard 2244)
+        // Merge rule: double the highest value for each additional tile beyond the base pair.
+        // Example: two 64s -> 128 (1 doubling), five 64s -> 2048 (log2(5) ≈ 2 extra doublings).
         let maxVal = values.max() ?? 0
+        let chainCount = values.count
+        let extraDoublings = max(0, chainCount - 1)
         let mergedValue: Int = {
-            if maxVal >= (Int.max >> 1) { return Int.max } // Avoid overflow
-            let (next, overflow) = maxVal.multipliedReportingOverflow(by: 2)
-            return overflow ? Int.max : max(next, 2) // Ensure minimum result of 2
+            guard maxVal > 0 else { return 0 }
+            var result = maxVal
+            var remainingDoublings = extraDoublings
+            while remainingDoublings > 0 {
+                if result >= (Int.max >> 1) { return Int.max }
+                let (next, overflow) = result.multipliedReportingOverflow(by: 2)
+                if overflow { return Int.max }
+                result = next
+                remainingDoublings -= 1
+            }
+            return max(result, 2)
         }()
         
         // Score equals the resulting merged tile value

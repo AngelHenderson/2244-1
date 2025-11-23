@@ -125,6 +125,25 @@ struct GameEngineTests {
     }
     
     @Test
+    func testChainMergeScalesWithLength() {
+        let config = GameConfig(boardWidth: 1, boardHeight: 5, seed: 99, fillMode: .sparse)
+        let engine = GameEngine(config: config)
+        engine._setAllTilesForTesting(value: nil)
+        
+        // Fill a column with identical values to simulate a long chain.
+        let basePositions = (0..<5).map { Position(row: $0, col: 0) }
+        basePositions.forEach { engine._setTileForTesting(at: $0, value: 64) }
+        
+        engine._resetScoreForTesting()
+        let state = engine.commitChain(basePositions)
+        
+        // Expected value: 64 doubled four times (for 5 tiles) = 1024
+        let expectedValue = 64 << 4
+        #expect(state.board[basePositions.last!] == Tile(value: expectedValue), "Long chain should keep doubling")
+        #expect(state.score >= expectedValue, "Score should reflect the resulting tile")
+    }
+    
+    @Test
     func testSwapDropRefillKeepsBoardStable() {
         let config = GameConfig(boardWidth: 4, boardHeight: 4, seed: 7, fillMode: .alwaysFull)
         let engine = GameEngine(config: config)
