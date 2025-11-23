@@ -28,19 +28,38 @@ struct JourneyPanel: View {
                 let tiles = Array(journeyValues().reversed())
                 ForEach(tiles.indices, id: \.self) { index in
                     let tile = tiles[index]
-                    VStack(spacing: 4) {
-                        TileView(
-                            tile: tile,
-                            isSelected: false,
-                            isValid: true,
-                            size: 120
-                        )
-                        if tile.value == highest {
-                            Text("Highest Tile")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.primary)
+                    let tier = JourneyAbbreviationTiers.tier(for: tile)
+                    let rewardStatus = tier.flatMap { rewardStatus(for: $0) }
+                    
+                    HStack(alignment: .center, spacing: 16) {
+                        if let tier, let rewardStatus {
+                            JourneyTierRewardBubble(status: rewardStatus) {
+                                gameStore.presentJourneyReward(for: tier)
+                            }
+                            .accessibilityLabel("\(tier.label) reward")
+                        } else {
+                            Spacer()
+                                .frame(width: 0)
                         }
+                        
+                        VStack(spacing: 4) {
+                            TileView(
+                                tile: tile,
+                                isSelected: false,
+                                isValid: true,
+                                size: 120
+                            )
+                            if tile.value == highest {
+                                Text("Highest Tile")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        
+                        Spacer(minLength: 0)
                     }
+                    .padding(.horizontal, 4)
+                    
                     if index < tiles.count - 1 {
                         JourneyDotTrail(height: 64, dotCount: 4, dotSize: 6)
                             .frame(maxWidth: .infinity)
@@ -52,6 +71,80 @@ struct JourneyPanel: View {
             .padding(.vertical, 12)
             .padding(.horizontal, 8)
         }
+    }
+}
+
+private extension JourneyPanel {
+    func rewardStatus(for tier: JourneyAbbreviationTier) -> JourneyTierRewardBubble.Status? {
+        guard gameStore.isAbbreviationTierUnlocked(tier) else { return nil }
+        return gameStore.hasClaimedAbbreviationTier(tier) ? .claimed : .available
+    }
+}
+
+private struct JourneyTierRewardBubble: View {
+    enum Status {
+        case available, claimed
+    }
+    
+    let status: Status
+    let onTap: () -> Void
+    
+    var body: some View {
+        Group {
+            if status == .available {
+                Button(action: onTap) {
+                    bubbleContent
+                }
+                .buttonStyle(.plain)
+            } else {
+                bubbleContent
+            }
+        }
+        .frame(width: 76)
+    }
+    
+    private var bubbleContent: some View {
+        ZStack(alignment: .topTrailing) {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(background)
+                .overlay(
+                    VStack(spacing: 4) {
+                        Image(systemName: "gift.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(.white)
+                        Text(status == .available ? "Tap" : "Claimed")
+                            .font(.caption.bold())
+                            .foregroundStyle(.white.opacity(0.9))
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 8)
+                )
+            
+            if status == .claimed {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.green)
+                    .background(
+                        Circle()
+                            .fill(Color.white)
+                    )
+                    .offset(x: 8, y: -8)
+            }
+        }
+    }
+    
+    private var background: LinearGradient {
+        if status == .available {
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.54, green: 0.12, blue: 0.82),
+                    Color(red: 0.98, green: 0.35, blue: 0.31)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        return LinearGradient(colors: [Color.gray.opacity(0.35)], startPoint: .top, endPoint: .bottom)
     }
 }
 
