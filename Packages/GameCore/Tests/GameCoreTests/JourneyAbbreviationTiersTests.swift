@@ -38,3 +38,4 @@ struct JourneyAbbreviationTiersTests {
         #expect(JourneyAbbreviationTiers.tier(for: infinityTile)?.isInfinity == true)
     }
 }
+
