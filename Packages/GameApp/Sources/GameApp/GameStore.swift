@@ -1890,5 +1890,9 @@ extension GameStore {
     func _testTriggerUnlockReward(newHigh: Int, previousHigh: Int) {
         setPendingUnlockRewardIfNeeded(for: newHigh, previousHigh: previousHigh)
     }
+    
+    func _setHighestTileForTesting(_ value: Int) {
+        state.highestTile = value
+    }
 }
 #endif

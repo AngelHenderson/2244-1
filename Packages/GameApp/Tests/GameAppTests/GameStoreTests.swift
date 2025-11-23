@@ -59,7 +59,7 @@ struct GameStoreTests {
         store.coins = 0
         let previousHigh = 65_536
         let newHigh = 131_072
-        store.state.highestTile = previousHigh
+        store._setHighestTileForTesting(previousHigh)
         
         store._testTriggerUnlockReward(newHigh: newHigh, previousHigh: previousHigh)
         
