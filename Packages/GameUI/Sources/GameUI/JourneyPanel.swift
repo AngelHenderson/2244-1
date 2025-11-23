@@ -29,13 +29,14 @@ struct JourneyPanel: View {
     
     var body: some View {
         let tiles = journeyTileModels
-        let tileCount = tiles.count
+        let tilesBinding = Binding.constant(tiles)
         let highest = max(2, gameStore.state.highestTile)
         
         return ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(spacing: 0) {
-                ForEach(0..<tileCount, id: \.self) { index in
-                    let model = tiles[index]
+                ForEach(tilesBinding) { modelBinding in
+                    let model = modelBinding.wrappedValue
+                    let index = model.index
                     let tile = model.tile
                     let tier = JourneyAbbreviationTiers.tier(for: tile)
                     let rewardStatus = tier.flatMap { rewardStatus(for: $0) }
