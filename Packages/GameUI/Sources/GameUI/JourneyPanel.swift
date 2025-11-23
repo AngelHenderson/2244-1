@@ -2,6 +2,11 @@ import SwiftUI
 import GameApp
 import GameCore
 
+private struct JourneyTileItem: Identifiable {
+    let id: Int
+    let tile: Tile
+}
+
 struct JourneyPanel: View {
     @Environment(\.gameStore) private var gameStore
     let showAll: Bool
@@ -34,11 +39,6 @@ struct JourneyPanel: View {
 }
 
 private extension JourneyPanel {
-    struct JourneyTileItem: Identifiable {
-        let id: Int
-        let tile: Tile
-    }
-    
     var journeyTileItems: [JourneyTileItem] {
         journeyValues()
             .reversed()
@@ -49,7 +49,7 @@ private extension JourneyPanel {
     @ViewBuilder
     func journeyList(tiles: [JourneyTileItem], highest: Int) -> some View {
         LazyVStack(spacing: 0) {
-            ForEach(tiles, id: \.id) { item in
+            ForEach(tiles) { item in
                 let index = item.id
                 let tile = item.tile
                 let tier = JourneyAbbreviationTiers.tier(for: tile)
