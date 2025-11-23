@@ -26,11 +26,15 @@ public final class DailyClaimsStore {
     public private(set) var canClaimToday: Bool = false
     
     private let storage = UserDefaults.standard
+    private let visibleLookaheadDays = 21
     private static let streakKey = "dailyStreak"
     private static let claimDayKey = "dailyClaimDay"
     private static let lastClaimKey = "lastClaimDate"
     private static let claimedDaysKey = "claimedDays"
     private static let unlockedStreaksKey = "unlockedStreaks"
+    
+    private var claimedDays: Set<Int> = []
+    private var unlockedStreaks: Set<Int> = []
     
     public var onReward: ((AchievementDef.Rewards) -> Void)?
     
@@ -44,40 +48,14 @@ public final class DailyClaimsStore {
     
     @MainActor
     public func loadCatalogs() async {
-        // Load daily claims catalog
-        if let claimsURL = Bundle.main.url(forResource: "daily_claims_365", withExtension: "json") {
-            do {
-                let data = try Data(contentsOf: claimsURL)
-                let achievements = try JSONDecoder().decode([AchievementDef].self, from: data)
-                
-                let claimedDays = Set(storage.array(forKey: Self.claimedDaysKey) as? [Int] ?? [])
-                
-                dailyClaims = achievements.compactMap { achievement in
-                    // Extract day number from conditions
-                    if let dayCondition = achievement.conditions.first(where: { $0.field == "claim_day_index" }),
-                       let day = dayCondition.value.map(Int.init) {
-                        return DailyClaim(
-                            id: achievement.id,
-                            day: day,
-                            rewards: achievement.rewards ?? AchievementDef.Rewards(gems: nil, spins: nil, hammers: nil, magnets: nil),
-                            isClaimed: claimedDays.contains(day),
-                            isAvailable: false
-                        )
-                    }
-                    return nil
-                }.sorted { $0.day < $1.day }
-            } catch {
-                print("Failed to load daily claims catalog: \(error)")
-            }
-        }
+        // Procedurally generate daily claims
+        ensureClaims(upTo: visibleUpperBound())
         
         // Load daily streaks catalog
         if let streaksURL = Bundle.main.url(forResource: "daily_streaks_365", withExtension: "json") {
             do {
                 let data = try Data(contentsOf: streaksURL)
                 let achievements = try JSONDecoder().decode([AchievementDef].self, from: data)
-                
-                let unlockedStreaks = Set(storage.array(forKey: Self.unlockedStreaksKey) as? [Int] ?? [])
                 
                 dailyStreaks = achievements.compactMap { achievement in
                     // Extract day number from conditions
@@ -86,7 +64,7 @@ public final class DailyClaimsStore {
                         return DailyStreak(
                             id: achievement.id,
                             day: day,
-                            rewards: achievement.rewards ?? AchievementDef.Rewards(gems: nil, spins: nil, hammers: nil, magnets: nil),
+                            rewards: achievement.rewards ?? AchievementDef.Rewards(),
                             isUnlocked: unlockedStreaks.contains(day)
                         )
                     }
@@ -104,6 +82,9 @@ public final class DailyClaimsStore {
         if let lastClaimTimestamp = storage.object(forKey: Self.lastClaimKey) as? Double {
             lastClaimDate = Date(timeIntervalSince1970: lastClaimTimestamp)
         }
+        
+        claimedDays = Set(storage.array(forKey: Self.claimedDaysKey) as? [Int] ?? [])
+        unlockedStreaks = Set(storage.array(forKey: Self.unlockedStreaksKey) as? [Int] ?? [])
     }
     
     private func saveProgress() {
@@ -114,12 +95,10 @@ public final class DailyClaimsStore {
         }
         
         // Save claimed days
-        let claimedDays = dailyClaims.filter(\.isClaimed).map(\.day)
-        storage.set(claimedDays, forKey: Self.claimedDaysKey)
+        storage.set(Array(claimedDays).sorted(), forKey: Self.claimedDaysKey)
         
         // Save unlocked streaks
-        let unlockedStreaks = dailyStreaks.filter(\.isUnlocked).map(\.day)
-        storage.set(unlockedStreaks, forKey: Self.unlockedStreaksKey)
+        storage.set(Array(unlockedStreaks).sorted(), forKey: Self.unlockedStreaksKey)
     }
     
     @MainActor
@@ -148,6 +127,9 @@ public final class DailyClaimsStore {
             canClaimToday = true
         }
         
+        // Ensure catalog has enough entries for the next visible window
+        ensureClaims(upTo: visibleUpperBound())
+        
         // Update claim availability
         let nextClaimDay = currentClaimDay + 1
         for i in 0..<dailyClaims.count {
@@ -172,6 +154,8 @@ public final class DailyClaimsStore {
         lastClaimDate = Date()
         canClaimToday = false
         
+        claimedDays.insert(nextClaimDay)
+        
         // Distribute rewards
         let rewards = dailyClaims[claimIndex].rewards
         onReward?(rewards)
@@ -180,6 +164,7 @@ public final class DailyClaimsStore {
         for i in 0..<dailyStreaks.count {
             if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentStreak {
                 dailyStreaks[i].isUnlocked = true
+                unlockedStreaks.insert(dailyStreaks[i].day)
                 onReward?(dailyStreaks[i].rewards)
             }
         }
@@ -188,6 +173,7 @@ public final class DailyClaimsStore {
         saveProgress()
         
         // Update availability for next claim
+        ensureClaims(upTo: visibleUpperBound())
         updateAvailability()
     }
     
@@ -203,5 +189,66 @@ public final class DailyClaimsStore {
         let startOfNextDay = calendar.startOfDay(for: nextMidnight)
         
         return max(0, startOfNextDay.timeIntervalSinceNow)
+    }
+    
+    public func ensureClaimsCovering(pageIndex: Int) {
+        let upperBound = min(max(pageIndex, 0), Int.max / 7) * 7 + 7
+        ensureClaims(upTo: max(upperBound, visibleUpperBound()))
+    }
+    
+    private func visibleUpperBound() -> Int {
+        let highestClaimed = max(currentClaimDay, claimedDays.max() ?? 0)
+        return max(highestClaimed + visibleLookaheadDays, visibleLookaheadDays)
+    }
+    
+    private func ensureClaims(upTo targetDay: Int) {
+        guard targetDay > dailyClaims.count else {
+            refreshClaimStates()
+            return
+        }
+        
+        let start = max(dailyClaims.last?.day ?? 0, 0) + 1
+        if start > targetDay {
+            refreshClaimStates()
+            return
+        }
+        
+        for day in start...targetDay {
+            let rewards = DailyRewardSchedule.rewards(for: day)
+            let claim = DailyClaim(
+                id: String(format: "daily_claim_day_%03d", day),
+                day: day,
+                rewards: rewards,
+                isClaimed: claimedDays.contains(day),
+                isAvailable: false
+            )
+            dailyClaims.append(claim)
+        }
+        refreshClaimStates()
+    }
+    
+    private func refreshClaimStates() {
+        for index in 0..<dailyClaims.count {
+            let day = dailyClaims[index].day
+            dailyClaims[index].isClaimed = claimedDays.contains(day)
+        }
+    }
+}
+
+private enum DailyRewardSchedule {
+    private static let cycle: [AchievementDef.Rewards] = [
+        AchievementDef.Rewards(gems: 200, spins: nil, hammers: 1),
+        AchievementDef.Rewards(gems: 120, spins: 1, magnets: 1),
+        AchievementDef.Rewards(gems: 150, spins: nil, swaps: 1),
+        AchievementDef.Rewards(gems: 100, spins: 1, hammers: 1),
+        AchievementDef.Rewards(gems: 160, spins: nil, magnets: 1, swaps: 1),
+        AchievementDef.Rewards(gems: 180, spins: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 250, spins: 1, hammers: 1, swaps: 1)
+    ]
+    
+    static func rewards(for day: Int) -> AchievementDef.Rewards {
+        guard day > 0 else { return AchievementDef.Rewards() }
+        let index = (day - 1) % cycle.count
+        return cycle[index]
     }
 }

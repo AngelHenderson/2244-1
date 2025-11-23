@@ -105,44 +105,48 @@ struct game2244App: App {
                         await audioService.setSfxEnabled(true)
                     }
                     
-                    // Setup achievement evaluator with reward handler
-                    achievementStore.onReward = { rewards in
-                        // Award gems
+                    func applyRewards(_ rewards: AchievementDef.Rewards) {
+                        // Gems
                         if let gems = rewards.gems, gems > 0 {
                             gameStore.coins += gems
                             homeState.gems += gems
                         }
                         
-                        // Award powerups (simplified - you may want to track these separately)
+                        // Power-ups
                         if let hammers = rewards.hammers, hammers > 0 {
                             gameStore.addPowerUp("hammer", count: hammers)
                         }
                         if let magnets = rewards.magnets, magnets > 0 {
                             gameStore.addPowerUp("magnet", count: magnets)
                         }
-                        // Note: spins would need separate tracking for wheel of fortune feature
+                        if let swaps = rewards.swaps, swaps > 0 {
+                            gameStore.addPowerUp("swap", count: swaps)
+                        }
+                        
+                        // Spins & multipliers
+                        let spinState = SpinWheelState()
+                        if let spins = rewards.spins, spins > 0 {
+                            spinState.addBonusSpins(spins)
+                        }
+                        if let boost2x = rewards.boost2x, boost2x > 0 {
+                            spinState.addMultiplier(.twoX, count: boost2x)
+                        }
+                        if let boost3x = rewards.boost3x, boost3x > 0 {
+                            spinState.addMultiplier(.threeX, count: boost3x)
+                        }
+                        if let boost4x = rewards.boost4x, boost4x > 0 {
+                            spinState.addMultiplier(.fourX, count: boost4x)
+                        }
                     }
+                    
+                    // Setup achievement evaluator with reward handler
+                    achievementStore.onReward = applyRewards
                     
                     let evaluator = AchievementEvaluator(achievementStore: achievementStore)
                     gameStore.achievementEvaluator = evaluator
                     
                     // Setup daily claims reward handler
-                    dailyClaimsStore.onReward = { rewards in
-                        // Award gems
-                        if let gems = rewards.gems, gems > 0 {
-                            gameStore.coins += gems
-                            homeState.gems += gems
-                        }
-                        
-                        // Award powerups
-                        if let hammers = rewards.hammers, hammers > 0 {
-                            gameStore.addPowerUp("hammer", count: hammers)
-                        }
-                        if let magnets = rewards.magnets, magnets > 0 {
-                            gameStore.addPowerUp("magnet", count: magnets)
-                        }
-                        // Note: spins would need separate tracking for wheel of fortune feature
-                    }
+                    dailyClaimsStore.onReward = applyRewards
                     
                     // Load daily claims catalogs
                     await dailyClaimsStore.loadCatalogs()

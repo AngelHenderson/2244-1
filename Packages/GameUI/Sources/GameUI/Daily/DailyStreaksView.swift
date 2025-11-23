@@ -339,42 +339,12 @@ private struct StreakDetailSheet: View {
                         .font(.headline)
                     
                     VStack(spacing: 12) {
-                        if let gems = streak.rewards.gems, gems > 0 {
+                        ForEach(streak.rewards.entries, id: \.self) { entry in
                             HStack {
-                                Image(systemName: "diamond.fill")
+                                Image(systemName: entry.kind.iconName)
                                     .font(.title2)
-                                    .foregroundStyle(.cyan)
-                                Text(verbatim: "\(gems) Gems")
-                                    .font(.title3)
-                                Spacer()
-                            }
-                        }
-                        if let spins = streak.rewards.spins, spins > 0 {
-                            HStack {
-                                Image(systemName: "arrow.triangle.2.circlepath")
-                                    .font(.title2)
-                                    .foregroundStyle(.purple)
-                                Text("\(spins) Spins")
-                                    .font(.title3)
-                                Spacer()
-                            }
-                        }
-                        if let hammers = streak.rewards.hammers, hammers > 0 {
-                            HStack {
-                                Image(systemName: "hammer.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.orange)
-                                Text("\(hammers) Hammers")
-                                    .font(.title3)
-                                Spacer()
-                            }
-                        }
-                        if let magnets = streak.rewards.magnets, magnets > 0 {
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.title2)
-                                    .foregroundStyle(.blue)
-                                Text("\(magnets) Magnets")
+                                    .foregroundStyle(entry.kind.iconColor)
+                                Text("\(entry.amount) \(entry.kind.displayName)")
                                     .font(.title3)
                                 Spacer()
                             }
@@ -402,26 +372,49 @@ private struct RewardsDisplay: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            if let gems = rewards.gems, gems > 0 {
-                Label {
-                    Text(verbatim: String(gems))
-                } icon: {
-                    Image(systemName: "diamond.fill")
-                }
-                .foregroundStyle(.cyan)
+            ForEach(rewards.entries, id: \.self) { entry in
+                Label("\(entry.amount)", systemImage: entry.kind.iconName)
+                    .foregroundStyle(entry.kind.iconColor)
             }
-            if let spins = rewards.spins, spins > 0 {
-                Label("\(spins)", systemImage: "arrow.triangle.2.circlepath")
-                    .foregroundStyle(.purple)
-            }
-            if let hammers = rewards.hammers, hammers > 0 {
-                Label("\(hammers)", systemImage: "hammer.fill")
-                    .foregroundStyle(.orange)
-            }
-            if let magnets = rewards.magnets, magnets > 0 {
-                Label("\(magnets)", systemImage: "magnifyingglass")
-                    .foregroundStyle(.blue)
-            }
+        }
+    }
+}
+
+private extension AchievementDef.Rewards.Entry.Kind {
+    var iconName: String {
+        switch self {
+        case .gems: return "diamond.fill"
+        case .spins: return "arrow.triangle.2.circlepath"
+        case .hammers: return "hammer.fill"
+        case .magnets: return "magnet.fill"
+        case .swaps: return "arrow.2.squarepath"
+        case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
+        }
+    }
+    
+    var iconColor: Color {
+        switch self {
+        case .gems: return .cyan
+        case .spins: return .purple
+        case .hammers: return .orange
+        case .magnets: return .blue
+        case .swaps: return .green
+        case .boost2x: return .yellow
+        case .boost3x: return .pink
+        case .boost4x: return .red
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .gems: return "Gems"
+        case .spins: return "Spins"
+        case .hammers: return "Hammers"
+        case .magnets: return "Magnets"
+        case .swaps: return "Swaps"
+        case .boost2x: return "2× Boost"
+        case .boost3x: return "3× Boost"
+        case .boost4x: return "4× Boost"
         }
     }
 }

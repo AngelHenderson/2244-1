@@ -7,7 +7,7 @@ public struct AchievementDef: Codable, Identifiable, Hashable {
         public let value: Double?
     }
     
-    public struct Rewards: Codable, Hashable {
+    public struct Rewards: Codable, Hashable, Sendable {
         public let gems: Int?
         public let spins: Int?
         public let hammers: Int?

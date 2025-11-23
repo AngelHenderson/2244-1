@@ -8,6 +8,7 @@ public struct DailyClaimsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
+    @State private var selectedPage = 0
     
     public init() {}
     
@@ -26,13 +27,9 @@ public struct DailyClaimsView: View {
                     VStack(spacing: 24) {
                         headerSection
                         
-                        if store.canClaimToday {
-                            claimTodaySection
-                        } else {
-                            nextClaimSection
-                        }
+                        availabilitySection
                         
-                        claimsGridSection
+                        claimsPagerSection
                     }
                     .padding()
                 }
@@ -44,6 +41,14 @@ public struct DailyClaimsView: View {
                     Button("Done") { dismiss() }
                 }
             }
+        }
+        .onAppear(perform: syncSelectedPage)
+        .onChange(of: store.currentClaimDay, syncSelectedPage)
+        .onChange(of: store.dailyClaims.count) { _ in
+            store.ensureClaimsCovering(pageIndex: selectedPage)
+        }
+        .onChange(of: selectedPage) { newValue in
+            store.ensureClaimsCovering(pageIndex: newValue)
         }
         .overlay {
             if showClaimAnimation, let rewards = claimedRewards {
@@ -83,6 +88,16 @@ public struct DailyClaimsView: View {
         }
     }
     
+    private var availabilitySection: some View {
+        Group {
+            if store.canClaimToday {
+                claimTodaySection
+            } else {
+                nextClaimSection
+            }
+        }
+    }
+    
     private var claimTodaySection: some View {
         VStack(spacing: 12) {
             if let nextDay = store.getNextClaimableDay(),
@@ -93,22 +108,9 @@ public struct DailyClaimsView: View {
                 RewardsDisplay(rewards: claim.rewards)
                     .font(.title3)
                 
-                Button {
-                    claimReward(claim.rewards)
-                } label: {
-                    Label("Claim Now", systemImage: "gift.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(LinearGradient(
-                            colors: [.green, .green.opacity(0.8)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .shadow(color: .green.opacity(0.3), radius: 8, y: 4)
+                Text("Claim it from the timeline below.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding()
@@ -130,18 +132,59 @@ public struct DailyClaimsView: View {
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
     }
     
-    private var claimsGridSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("365 Day Journey")
-                .font(.title2.bold())
-            
-            LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 68), spacing: 8)
-            ], spacing: 8) {
-                ForEach(store.dailyClaims) { claim in
-                    ClaimDayTile(claim: claim, currentDay: store.currentClaimDay)
-                }
+    private var claimsPagerSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Weekly Rewards")
+                    .font(.title2.bold())
+                Spacer()
+                Text("Week \(selectedPage + 1)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
+            
+            if chunkedClaims.isEmpty {
+                Text("Rewards loading...")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 200)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            } else {
+                TabView(selection: $selectedPage) {
+                    let highlightDay = store.getNextClaimableDay() ?? (store.currentClaimDay + 1)
+                    ForEach(Array(chunkedClaims.enumerated()), id: \.offset) { index, claims in
+                        VStack(spacing: 12) {
+                            ForEach(claims) { claim in
+                                DailyRewardRow(
+                                    claim: claim,
+                                    currentClaimDay: store.currentClaimDay,
+                                    highlightDay: highlightDay,
+                                    onClaim: claim.isAvailable ? { claimReward(claim.rewards) } : nil
+                                )
+                            }
+                            if claims.count < 7 {
+                                Spacer(minLength: CGFloat(7 - claims.count) * 72)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .automatic))
+                .frame(height: 7 * 86)
+            }
+        }
+    }
+    
+    private var chunkedClaims: [[DailyClaimsStore.DailyClaim]] {
+        store.dailyClaims.chunked(into: 7)
+    }
+    
+    private func syncSelectedPage() {
+        let focusDay = store.getNextClaimableDay() ?? max(store.currentClaimDay, 1)
+        let targetPage = max((focusDay - 1) / 7, 0)
+        if selectedPage != targetPage {
+            selectedPage = targetPage
         }
     }
     
@@ -159,54 +202,80 @@ public struct DailyClaimsView: View {
     }
 }
 
-private struct ClaimDayTile: View {
+private struct DailyRewardRow: View {
     let claim: DailyClaimsStore.DailyClaim
-    let currentDay: Int
+    let currentClaimDay: Int
+    let highlightDay: Int
+    let onClaim: (() -> Void)?
     
     var body: some View {
-        VStack(spacing: 4) {
-            Text("Day")
-                .font(.system(size: 9))
-                .foregroundStyle(.secondary)
-            
-            Text("\(claim.day)")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
-            
-            // Rewards summary (tiny)
-            RewardsTiny(rewards: claim.rewards)
-                .font(.system(size: 9))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            
-            // Status icon
-            if claim.isClaimed {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.green)
-            } else if claim.isAvailable {
-                Image(systemName: "gift.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.yellow)
-                    .symbolEffect(.pulse)
+        HStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Text("Day \(claim.day)")
+                        .font(.headline)
+                    if claim.day == highlightDay {
+                        Text("Today")
+                            .font(.caption)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.15), in: Capsule())
+                    }
+                }
+                
+                RewardsTiny(rewards: claim.rewards)
+                    .font(.footnote)
             }
+            
+            Spacer()
+            
+            statusControl
         }
-        .frame(width: 68, height: 68)
-        .background(backgroundGradient, in: RoundedRectangle(cornerRadius: 8))
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(backgroundColor)
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(borderColor, lineWidth: claim.isAvailable ? 2 : 1)
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(borderColor, lineWidth: 1)
         )
     }
     
-    private var backgroundGradient: Gradient {
+    @ViewBuilder
+    private var statusControl: some View {
         if claim.isClaimed {
-            return Gradient(colors: [.green.opacity(0.3), .green.opacity(0.1)])
-        } else if claim.isAvailable {
-            return Gradient(colors: [.yellow.opacity(0.3), .orange.opacity(0.2)])
-        } else if claim.day <= currentDay {
-            return Gradient(colors: [.gray.opacity(0.3), .gray.opacity(0.1)])
+            Label("Claimed", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .font(.subheadline.bold())
+        } else if let onClaim {
+            Button(action: onClaim) {
+                Text("Claim")
+                    .font(.headline)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 8)
+                    .background(Color.purple.gradient, in: Capsule())
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.plain)
+            .shadow(color: .purple.opacity(0.2), radius: 6, y: 3)
         } else {
-            return Gradient(colors: [.clear, .gray.opacity(0.05)])
+            VStack(spacing: 4) {
+                Image(systemName: "clock")
+                Text(claim.day <= currentClaimDay ? "Locked" : "Upcoming")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var backgroundColor: Color {
+        if claim.isClaimed {
+            return Color.green.opacity(0.12)
+        } else if claim.isAvailable {
+            return Color.yellow.opacity(0.15)
+        } else {
+            return Color(.secondarySystemBackground)
         }
     }
     
@@ -214,43 +283,20 @@ private struct ClaimDayTile: View {
         if claim.isAvailable {
             return .yellow
         } else if claim.isClaimed {
-            return .green.opacity(0.5)
+            return .green.opacity(0.6)
         } else {
-            return .gray.opacity(0.3)
+            return .gray.opacity(0.2)
         }
     }
 }
 
 private struct RewardsTiny: View {
     let rewards: AchievementDef.Rewards
+    
     var body: some View {
-        HStack(spacing: 6) {
-            if let gems = rewards.gems, gems > 0 {
-                Label {
-                    Text(verbatim: String(gems))
-                } icon: {
-                    Image(systemName: "diamond.fill")
-                }
-                .labelStyle(.iconOnly)
-                .foregroundStyle(.cyan)
-                .overlay(
-                    Text(verbatim: String(gems))
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(.cyan)
-                        .offset(x: 8)
-                , alignment: .trailing)
-            }
-            if let spins = rewards.spins, spins > 0 {
-                Image(systemName: "arrow.triangle.2.circlepath")
-                    .foregroundStyle(.purple)
-            }
-            if let hammers = rewards.hammers, hammers > 0 {
-                Image(systemName: "hammer.fill")
-                    .foregroundStyle(.orange)
-            }
-            if let magnets = rewards.magnets, magnets > 0 {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.blue)
+        HStack(spacing: 8) {
+            ForEach(rewards.entries, id: \.self) { entry in
+                RewardChip(entry: entry, style: .compact)
             }
         }
     }
@@ -282,28 +328,12 @@ private struct RewardsDisplay: View {
     let rewards: AchievementDef.Rewards
     
     var body: some View {
-        HStack(spacing: 16) {
-            if let gems = rewards.gems, gems > 0 {
-                Label {
-                    Text(verbatim: String(gems))
-                } icon: {
-                    Image(systemName: "diamond.fill")
-                }
-                .foregroundStyle(.cyan)
-            }
-            if let spins = rewards.spins, spins > 0 {
-                Label("\(spins)", systemImage: "arrow.triangle.2.circlepath")
-                    .foregroundStyle(.purple)
-            }
-            if let hammers = rewards.hammers, hammers > 0 {
-                Label("\(hammers)", systemImage: "hammer.fill")
-                    .foregroundStyle(.orange)
-            }
-            if let magnets = rewards.magnets, magnets > 0 {
-                Label("\(magnets)", systemImage: "magnifyingglass")
-                    .foregroundStyle(.blue)
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(rewards.entries, id: \.self) { entry in
+                RewardChip(entry: entry, style: .detailed)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -326,7 +356,7 @@ private struct ClaimAnimationOverlay: View {
                     .foregroundStyle(.white)
                 
                 RewardsDisplay(rewards: rewards)
-                    .font(.title)
+                    .font(.title3)
                     .padding()
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
             }
@@ -335,4 +365,131 @@ private struct ClaimAnimationOverlay: View {
     }
 }
 
+private struct RewardChip: View {
+    enum Style {
+        case compact
+        case detailed
+    }
+    
+    let entry: AchievementDef.Rewards.Entry
+    let style: Style
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: entry.kind.iconName)
+                .foregroundStyle(entry.kind.iconColor)
+            switch style {
+            case .compact:
+                Text(compactText)
+                    .font(.caption)
+                    .foregroundStyle(entry.kind.iconColor)
+            case .detailed:
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(detailedTitle)
+                        .font(.subheadline.bold())
+                    Text(entry.kind.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(style == .compact ? 4 : 8)
+        .background(entry.kind.iconColor.opacity(0.12), in: Capsule())
+    }
+    
+    private var compactText: String {
+        if entry.kind.isMultiplier {
+            return "\(entry.amount)×"
+        } else {
+            return "\(entry.amount)"
+        }
+    }
+    
+    private var detailedTitle: String {
+        if entry.kind.isMultiplier {
+            return "\(entry.amount) × \(entry.kind.displayName)"
+        } else {
+            return "\(entry.amount) \(entry.kind.displayName)"
+        }
+    }
+}
+
+private extension AchievementDef.Rewards.Entry.Kind {
+    var iconName: String {
+        switch self {
+        case .gems: return "diamond.fill"
+        case .spins: return "arrow.triangle.2.circlepath"
+        case .hammers: return "hammer.fill"
+        case .magnets: return "magnet.fill"
+        case .swaps: return "arrow.2.squarepath"
+        case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
+        }
+    }
+    
+    var iconColor: Color {
+        switch self {
+        case .gems: return .cyan
+        case .spins: return .purple
+        case .hammers: return .orange
+        case .magnets: return .blue
+        case .swaps: return .green
+        case .boost2x: return .yellow
+        case .boost3x: return .pink
+        case .boost4x: return .red
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .gems: return "Gems"
+        case .spins: return "Spins"
+        case .hammers: return "Hammers"
+        case .magnets: return "Magnets"
+        case .swaps: return "Swaps"
+        case .boost2x: return "2× Boost"
+        case .boost3x: return "3× Boost"
+        case .boost4x: return "4× Boost"
+        }
+    }
+    
+    var subtitle: String {
+        switch self {
+        case .boost2x, .boost3x, .boost4x:
+            return "Bonus multiplier"
+        case .spins:
+            return "Bonus spin"
+        case .swaps:
+            return "Swap power"
+        case .hammers:
+            return "Smash a tile"
+        case .magnets:
+            return "Pull matches"
+        case .gems:
+            return "Spend in shop"
+        }
+    }
+    
+    var isMultiplier: Bool {
+        switch self {
+        case .boost2x, .boost3x, .boost4x:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+private extension Array {
+    func chunked(into size: Int) -> [[Element]] {
+        guard size > 0 else { return [] }
+        var result: [[Element]] = []
+        var index = 0
+        while index < count {
+            let end = Swift.min(index + size, count)
+            result.append(Array(self[index..<end]))
+            index += size
+        }
+        return result
+    }
+}
 
