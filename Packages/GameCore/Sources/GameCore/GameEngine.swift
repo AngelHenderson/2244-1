@@ -169,16 +169,23 @@ public final class GameEngine {
         }
         
         let values = tiles.map { $0.value }
-
-        // All tiles in a chain must have the same value.
-        guard let firstValue = values.first else {
-            // This case should not be reached due to the count check above, but as a safeguard:
-            return .valid // An empty or single-tile chain is technically not invalid.
+        guard values.count >= 2 else {
+            return .invalid("Chain must have at least 2 tiles")
         }
         
-        for value in values.dropFirst() {
-            if value != firstValue {
-                return .invalid("All tiles in a chain must have the same value")
+        // First two tiles must match to start a chain.
+        if values[1] != values[0] {
+            return .invalid("First two tiles must match")
+        }
+        
+        // After the opening pair, each tile may either match the previous tile or double it.
+        if values.count > 2 {
+            for index in 2..<values.count {
+                let previous = values[index - 1]
+                let current = values[index]
+                if current != previous && current != previous * 2 {
+                    return .invalid("Tiles must continue with equal or doubled values")
+                }
             }
         }
         

@@ -72,6 +72,9 @@ public final class GameStore {
     public private(set) var brokenGlassTiles: Set<Position> = []
     // Pending gift boxes (glass shattered but reward not claimed)
     public private(set) var pendingGiftBoxes: [Position: GiftReward] = [:]
+    // Tiles spawned during refill that should fade in after gravity settles
+    public private(set) var pendingRefillPositions: Set<Position> = []
+    private var refillRevealTask: Task<Void, Never>? = nil
     // Gift reward sheet state
     public var pendingGiftReward: GiftReward? = nil
     // Power-up inventory tracking
@@ -196,6 +199,12 @@ public final class GameStore {
         }
     }
     
+    nonisolated deinit {
+        Task { @MainActor [weak self] in
+            self?.cancelRefillRevealTask()
+        }
+    }
+    
     public func beginPath(at position: Position) {
         // Don't allow starting on gift cells
         let boardIndex = BoardIndex(position)
@@ -283,9 +292,13 @@ public final class GameStore {
         )
         
         // Delay the actual commit to allow animation to play
-        // Animation duration should match the view's animation (e.g., 0.4s)
-        Task {
-            try? await Task.sleep(nanoseconds: 400_000_000) // 0.4 seconds
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await Task.sleep(nanoseconds: Self.mergeAnimationDelay)
+            } catch {
+                // Ignore cancellation so we still finish the commit immediately
+            }
             
             await MainActor.run {
                 self.performCommit(positions: positions)
@@ -308,11 +321,15 @@ public final class GameStore {
         // Check if ending on gift and use appropriate commit method
         let endsOnGift = lastPos.map { BoardIndex($0) }.map { state.board[$0].kind == .gift } ?? false
         
+        let previousBoard = state.board
+        let newState: GameState
         if endsOnGift {
-            state = engine.commitGiftChain(positions)
+            newState = engine.commitGiftChain(positions)
         } else {
-            state = engine.commitChain(positions)
+            newState = engine.commitChain(positions)
         }
+        let protectedPositions = lastPos.map { Set([$0]) } ?? Set<Position>()
+        applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: protectedPositions)
         
         // Break glass tiles for any positions in row 0 that were part of this connection
         for position in positions {
@@ -383,6 +400,69 @@ public final class GameStore {
         pathValidation = .valid
     }
     
+    private static let mergeAnimationDelay: UInt64 = 400_000_000
+    private static let refillRevealDelay: UInt64 = 350_000_000
+    
+    private func applyStateUpdate(
+        _ newState: GameState,
+        previousBoard: Board,
+        refillProtectedPositions: Set<Position> = []
+    ) {
+        state = newState
+        scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: refillProtectedPositions)
+    }
+    
+    private func scheduleRefillReveal(previousBoard: Board, newBoard: Board, protectedPositions: Set<Position>) {
+        cancelRefillRevealTask()
+        let newPositions = detectNewSpawnPositions(previousBoard: previousBoard, newBoard: newBoard)
+            .subtracting(protectedPositions)
+        pendingRefillPositions = newPositions
+        
+        guard !newPositions.isEmpty else {
+            refillRevealTask = nil
+            return
+        }
+        
+        refillRevealTask = Task { [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(nanoseconds: Self.refillRevealDelay)
+            await MainActor.run {
+                guard !Task.isCancelled else { return }
+                self.pendingRefillPositions.removeAll()
+            }
+        }
+    }
+    
+    @MainActor
+    private func cancelRefillRevealTask() {
+        refillRevealTask?.cancel()
+        refillRevealTask = nil
+    }
+    
+    private func detectNewSpawnPositions(previousBoard: Board, newBoard: Board) -> Set<Position> {
+        var existingIDs: Set<UUID> = []
+        for row in 0..<previousBoard.height {
+            for col in 0..<previousBoard.width {
+                let position = Position(row: row, col: col)
+                if let tile = previousBoard[position] {
+                    existingIDs.insert(tile.id)
+                }
+            }
+        }
+        
+        var result: Set<Position> = []
+        for row in 0..<newBoard.height {
+            for col in 0..<newBoard.width {
+                let position = Position(row: row, col: col)
+                guard let tile = newBoard[position] else { continue }
+                guard previousBoard[position] == nil else { continue }
+                if existingIDs.contains(tile.id) { continue }
+                result.insert(position)
+            }
+        }
+        return result
+    }
+    
     public func resetGame() {
         engine = GameEngine(config: GameConfig())
         
@@ -390,6 +470,8 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
+        cancelRefillRevealTask()
+        pendingRefillPositions = []
         currentPath = []
         pathValidation = .valid
         lastAddedTileValue = nil
@@ -412,6 +494,8 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
+        cancelRefillRevealTask()
+        pendingRefillPositions = []
         currentPath = []
         pathValidation = .valid
         lastAddedTileValue = nil
@@ -511,7 +595,9 @@ public final class GameStore {
     @discardableResult
     public func applyDouble(to position: Position) -> Bool {
         guard let base = pendingDoubleBase else { return false }
-        state = engine.applyDouble(to: position, from: base)
+        let previousBoard = state.board
+        let newState = engine.applyDouble(to: position, from: base)
+        applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         pendingDoubleBase = nil
         
         // Notify JourneyKit if we created a new highest tile  
@@ -576,7 +662,9 @@ public final class GameStore {
         } else {
             _ = spendCoins(PowerUpCost.hammer)
         }
-        state = engine.hammer(at: position)
+        let previousBoard = state.board
+        let newState = engine.hammer(at: position)
+        applyStateUpdate(newState, previousBoard: previousBoard)
         powerUpHistory.append(.hammer(position))
         trackPowerUpAnalytics(action: .hammer(position))
         achievementEvaluator?.onPowerUpUsed(type: "hammer")
@@ -596,7 +684,9 @@ public final class GameStore {
         } else {
             _ = spendCoins(PowerUpCost.swap)
         }
-        state = engine.swap(a, b)
+        let previousBoard = state.board
+        let newState = engine.swap(a, b)
+        applyStateUpdate(newState, previousBoard: previousBoard)
         powerUpHistory.append(.swap(a, b))
         trackPowerUpAnalytics(action: .swap(a, b))
         achievementEvaluator?.onPowerUpUsed(type: "swap")
@@ -616,7 +706,9 @@ public final class GameStore {
         } else {
             _ = spendCoins(PowerUpCost.shuffle)
         }
-        state = engine.shuffle()
+        let previousBoard = state.board
+        let newState = engine.shuffle()
+        applyStateUpdate(newState, previousBoard: previousBoard)
         powerUpHistory.append(.shuffle)
         trackPowerUpAnalytics(action: .shuffle)
         achievementEvaluator?.onPowerUpUsed(type: "shuffle")
@@ -631,7 +723,9 @@ public final class GameStore {
     public func useUndo() -> Bool {
         guard state.undoAvailable else { return false }
         // Undo doesn't use inventory in this implementation
-        state = engine.undo()
+        let previousBoard = state.board
+        let newState = engine.undo()
+        applyStateUpdate(newState, previousBoard: previousBoard)
         powerUpHistory.append(.undo)
         trackPowerUpAnalytics(action: .undo)
         achievementEvaluator?.onUndoUsed()
@@ -673,7 +767,9 @@ public final class GameStore {
         }
         
         // Use the engine's magnetize method to merge all tiles with the same value
-        state = engine.magnetize(value: value, to: position)
+        let previousBoard = state.board
+        let newState = engine.magnetize(value: value, to: position)
+        applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
         
         // Track power-up usage
@@ -705,6 +801,8 @@ public final class GameStore {
     public func enableGiftRow() -> Bool {
         _ = engine.initializeGiftRow()
         state = engine.currentState()
+        cancelRefillRevealTask()
+        pendingRefillPositions = []
         return true
     }
     
@@ -729,6 +827,8 @@ public final class GameStore {
         state = engine.currentState()
         currentPath = []
         pathValidation = .valid
+        cancelRefillRevealTask()
+        pendingRefillPositions = []
         lastDailyDateUTC = dateString
         UserDefaults.standard.set(dateString, forKey: "lastDailyDateUTC")
         movesHistory = []

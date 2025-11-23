@@ -8,6 +8,7 @@ import GameApp
 public struct SpinWheelView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.wheelEngine) private var engine
+    @Environment(\.gameStore) private var gameStore
     @Environment(\.hapticsService) private var haptics
     @Environment(HomeState.self) private var homeState
     

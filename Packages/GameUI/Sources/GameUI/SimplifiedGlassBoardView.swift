@@ -74,15 +74,15 @@ public struct SimplifiedGlassBoardView: View {
                             // First row with glass effect
                             ZStack {
                                 if let tile = gameStore.state.board[position] {
-                                TileView(
+                                    TileView(
                                         tile: tile,
-                                    isSelected: gameStore.currentPath.contains(position),
-                                    isValid: gameStore.pathValidation.isValid,
-                                    size: tileSize,
-                                    colorBlindMode: colorBlindMode,
-                                    theme: currentTheme
-                                )
-                                    .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
+                                        isSelected: gameStore.currentPath.contains(position),
+                                        isValid: gameStore.pathValidation.isValid,
+                                        size: tileSize,
+                                        colorBlindMode: colorBlindMode,
+                                        theme: currentTheme
+                                    )
+                                    .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }
                                 
@@ -124,15 +124,15 @@ public struct SimplifiedGlassBoardView: View {
                             // Regular tiles for other rows
                             ZStack {
                                 if let tile = gameStore.state.board[position] {
-                                TileView(
+                                    TileView(
                                         tile: tile,
-                                    isSelected: gameStore.currentPath.contains(position),
-                                    isValid: gameStore.pathValidation.isValid,
-                                    size: tileSize,
-                                    colorBlindMode: colorBlindMode,
-                                    theme: currentTheme
-                                )
-                                    .opacity((isAnimating(position) || gameStore.pendingGiftBoxes[position] != nil) ? 0 : 1)
+                                        isSelected: gameStore.currentPath.contains(position),
+                                        isValid: gameStore.pathValidation.isValid,
+                                        size: tileSize,
+                                        colorBlindMode: colorBlindMode,
+                                        theme: currentTheme
+                                    )
+                                    .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }
                                 if let t = gameStore.state.board[position], t.value == currentMax {
@@ -265,27 +265,30 @@ public struct SimplifiedGlassBoardView: View {
     @ViewBuilder
     private func magnetOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
         if tileSize > 0, !magnetAnimations.isEmpty {
-            ForEach(magnetAnimations) { animation in
-                let startPoint = centerPoint(for: animation.start, tileSize: tileSize, containerSize: containerSize)
-                let endPoint = centerPoint(for: animation.target, tileSize: tileSize, containerSize: containerSize)
+            ZStack {
+                ForEach(magnetAnimations) { animation in
+                    let startPoint = centerPoint(for: animation.start, tileSize: tileSize, containerSize: containerSize)
+                    let endPoint = centerPoint(for: animation.target, tileSize: tileSize, containerSize: containerSize)
 
-                // Calculate the current position based on the animation's progress.
-                let currentPoint = CGPoint(
-                    x: startPoint.x + (endPoint.x - startPoint.x) * animation.progress,
-                    y: startPoint.y + (endPoint.y - startPoint.y) * animation.progress
-                )
-                
-                TileView(
-                    tile: Tile(value: animation.value),
-                    isSelected: false,
-                    isValid: true,
-                    size: tileSize,
-                    colorBlindMode: colorBlindMode,
-                    theme: currentTheme
-                )
-                .position(currentPoint)
-                .opacity(1.0 - animation.progress) // Fades out as it nears the target
+                    // Calculate the current position based on the animation's progress.
+                    let currentPoint = CGPoint(
+                        x: startPoint.x + (endPoint.x - startPoint.x) * animation.progress,
+                        y: startPoint.y + (endPoint.y - startPoint.y) * animation.progress
+                    )
+                    
+                    TileView(
+                        tile: Tile(value: animation.value),
+                        isSelected: false,
+                        isValid: true,
+                        size: tileSize,
+                        colorBlindMode: colorBlindMode,
+                        theme: currentTheme
+                    )
+                    .position(currentPoint)
+                    .opacity(1.0 - animation.progress) // Fades out as it nears the target
+                }
             }
+            .allowsHitTesting(false)
         }
     }
     
@@ -300,6 +303,7 @@ public struct SimplifiedGlassBoardView: View {
                 boardWidth: gameStore.state.board.width,
                 boardHeight: gameStore.state.board.height
             )
+            .allowsHitTesting(false)
         }
     }
     
@@ -450,6 +454,13 @@ public struct SimplifiedGlassBoardView: View {
     private func isAnimating(_ position: Position) -> Bool {
         guard let state = gameStore.mergeAnimationState else { return false }
         return state.sourcePositions.contains(position)
+    }
+    
+    private func shouldHideTile(at position: Position) -> Bool {
+        if isAnimating(position) { return true }
+        if gameStore.pendingGiftBoxes[position] != nil { return true }
+        if gameStore.pendingRefillPositions.contains(position) { return true }
+        return false
     }
 }
 
