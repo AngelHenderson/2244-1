@@ -332,20 +332,16 @@ public final class GameEngine {
         // Merge rule: double the highest value for each additional tile beyond the base pair.
         // Example: two 64s -> 128 (1 doubling), five 64s -> 2048 (log2(5) ≈ 2 extra doublings).
         let maxVal = values.max() ?? 0
-        let chainCount = values.count
-        let extraDoublings = max(0, chainCount - 1)
+        let chainCount = max(values.count, 2)
+        let chainSum = values.reduce(0, +)
         let mergedValue: Int = {
-            guard maxVal > 0 else { return 0 }
-            var result = maxVal
-            var remainingDoublings = extraDoublings
-            while remainingDoublings > 0 {
-                if result >= (Int.max >> 1) { return Int.max }
-                let (next, overflow) = result.multipliedReportingOverflow(by: 2)
-                if overflow { return Int.max }
-                result = next
-                remainingDoublings -= 1
+            guard chainSum > 0 else { return 0 }
+            var value = 1
+            while value < chainSum {
+                if value >= (Int.max >> 1) { return Int.max }
+                value <<= 1
             }
-            return max(result, 2)
+            return max(value, 2)
         }()
         
         // Score equals the resulting merged tile value
@@ -1207,6 +1203,19 @@ public final class GameEngine {
             state.board[position] = Tile(value: v)
         } else {
             state.board[position] = nil
+        }
+    }
+    
+    func _setAllTilesForTesting(value: Int?) {
+        for row in 0..<state.board.height {
+            for col in 0..<state.board.width {
+                let pos = Position(row: row, col: col)
+                if let v = value {
+                    state.board[pos] = Tile(value: v)
+                } else {
+                    state.board[pos] = nil
+                }
+            }
         }
     }
     
