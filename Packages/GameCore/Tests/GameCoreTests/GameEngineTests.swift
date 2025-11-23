@@ -440,4 +440,33 @@ struct GameEngineTests {
         }
         #expect(engine._latestEliminatedValueForTesting() == 4, "Spawn floor should advance to at least 8")
     }
+
+    @Test("Milestone elimination re-triggers when the same 65K tile appears again")
+    func testMilestoneEliminationRepeatsForExistingMilestone() {
+        let config = GameConfig(boardWidth: 4, boardHeight: 4, seed: 22, fillMode: .alwaysFull)
+        let engine = GameEngine(config: config)
+        engine._setAllTilesForTesting(value: 8)
+
+        let firstPair = [Position(row: 0, col: 0), Position(row: 0, col: 1)]
+        firstPair.forEach { engine._setTileForTesting(at: $0, value: 32_768) }
+        _ = engine.commitChain(firstPair)
+
+        // Reintroduce a low-tier tile (value 4) via manual override to simulate a power-up or gift.
+        let lowPos = Position(row: 3, col: 3)
+        engine._setTileForTesting(at: lowPos, value: 4)
+        #expect(engine.currentState().board[lowPos]?.value == 4, "Setup should place a 4 back on the board")
+
+        let secondPair = [Position(row: 1, col: 0), Position(row: 1, col: 1)]
+        secondPair.forEach { engine._setTileForTesting(at: $0, value: 32_768) }
+        let state = engine.commitChain(secondPair)
+
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos] {
+                    #expect(tile.value != 4, "Any reintroduced 4s should be purged on the next 65K creation")
+                }
+            }
+        }
+    }
 }
