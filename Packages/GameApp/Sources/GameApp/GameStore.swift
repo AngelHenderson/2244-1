@@ -1884,3 +1884,28 @@ extension GameStore {
         )
     }
 }
+
+#if DEBUG
+extension GameStore {
+    func _setTileForTesting(at position: Position, value: Int?) {
+        engine._setTileForTesting(at: position, value: value)
+        if let v = value {
+            state.board[position] = Tile(value: v)
+        } else {
+            state.board[position] = nil
+        }
+    }
+    
+    func _clearBoardForTesting() {
+        for row in 0..<state.board.height {
+            for col in 0..<state.board.width {
+                _setTileForTesting(at: Position(row: row, col: col), value: nil)
+            }
+        }
+    }
+    
+    func _setHighestTileForTesting(_ value: Int) {
+        state.highestTile = value
+    }
+}
+#endif

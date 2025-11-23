@@ -51,4 +51,30 @@ struct GameStoreTests {
         let after = await storage.load(slotId: "slotA")
         #expect(after == nil)
     }
+    
+    @Test
+    @MainActor
+    func testUnlockRewardUsesShiftedFormula() {
+        let store = GameStore()
+        store._clearBoardForTesting()
+        
+        let first = Position(row: 2, col: 0)
+        let second = Position(row: 2, col: 1)
+        store._setTileForTesting(at: first, value: 65_536)
+        store._setTileForTesting(at: second, value: 65_536)
+        store._setHighestTileForTesting(65_536)
+        store.coins = 0
+        
+        store.beginPath(at: first)
+        store.extendPath(to: second)
+        store.commitPath()
+        
+        #expect(store.pendingUnlockRewardBase == 131_072 >> 7)
+        #expect(store.pendingUnlockTile == 131_072)
+        #expect(store.coins == 0)
+        
+        store.claimPendingUnlockReward(multiplier: 4)
+        #expect(store.coins == (131_072 >> 7) * 4)
+        #expect(store.pendingUnlockRewardBase == nil)
+    }
 }
