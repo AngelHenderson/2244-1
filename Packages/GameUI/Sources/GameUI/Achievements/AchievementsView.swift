@@ -208,12 +208,26 @@ private struct ClaimButton: View {
                 .padding(.horizontal, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(enabled ? LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .top, endPoint: .bottom) : Color.gray.opacity(0.3))
+                        .fill(buttonBackground)
                 )
                 .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
         .opacity(enabled ? 1 : 0.6)
+    }
+    
+    private var buttonBackground: AnyShapeStyle {
+        if enabled {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [.green, .green.opacity(0.8)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+        } else {
+            return AnyShapeStyle(Color.gray.opacity(0.3))
+        }
     }
 }

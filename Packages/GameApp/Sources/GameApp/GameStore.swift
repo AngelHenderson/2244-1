@@ -78,6 +78,9 @@ public final class GameStore {
     private var mergeCleanupTask: Task<Void, Never>? = nil
     // Gift reward sheet state
     public var pendingGiftReward: GiftReward? = nil
+    private let journeyAbbreviationClaimsKey = "journeyAbbreviationClaims"
+    public private(set) var claimedJourneyAbbreviationRewards: Set<String> = []
+    private var pendingJourneyRewardTierID: String? = nil
     // Power-up inventory tracking
     public private(set) var powerUpInventory: [String: Int] = [
         "hammer": 3,
@@ -152,6 +155,7 @@ public final class GameStore {
             // Restore journey state
             self.journey.highestTile = progress.journeyState.highestTile
             self.journey.claimed = progress.journeyState.claimedTiles
+            self.claimedJourneyAbbreviationRewards = progress.journeyState.claimedAbbreviationTiers
             
             // Restore session-specific data
             self.brokenGlassTiles = Set(sessionState.brokenGlassTiles)
@@ -171,6 +175,7 @@ public final class GameStore {
                 self.powerUpInventory = progress.powerUpInventory
                 self.journey.highestTile = progress.journeyState.highestTile
                 self.journey.claimed = progress.journeyState.claimedTiles
+                self.claimedJourneyAbbreviationRewards = progress.journeyState.claimedAbbreviationTiers
                 print("📂 Loaded basic progress - Gems: \(progress.gems), Highest: \(progress.highestTile)")
             } else {
                 // Truly starting fresh
@@ -565,6 +570,25 @@ public final class GameStore {
     
     // MARK: - Gift Rewards
 
+    public func isAbbreviationTierUnlocked(_ tier: JourneyAbbreviationTier) -> Bool {
+        if tier.isInfinity {
+            return boardContainsInfinityTile() || UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
+        }
+        guard let step = tier.step, let highestStep = currentHighestJourneyStep() else { return false }
+        return highestStep >= step
+    }
+    
+    public func hasClaimedAbbreviationTier(_ tier: JourneyAbbreviationTier) -> Bool {
+        claimedJourneyAbbreviationRewards.contains(tier.id)
+    }
+    
+    public func presentJourneyReward(for tier: JourneyAbbreviationTier) {
+        guard pendingGiftReward == nil else { return }
+        guard isAbbreviationTierUnlocked(tier), !hasClaimedAbbreviationTier(tier) else { return }
+        pendingJourneyRewardTierID = tier.id
+        pendingGiftReward = JourneyAbbreviationRewardCurve.reward(for: tier)
+    }
+    
     public func claimGiftReward() {
         guard let reward = pendingGiftReward else { return }
         
@@ -582,20 +606,36 @@ public final class GameStore {
                 addPowerUp("swap", count: item.amount)
             case .undo:
                 addPowerUp("undo", count: item.amount)
+            case .bonusSpin:
+                addBonusSpins(item.amount)
+            case .boost2x:
+                addMultipliers(.twoX, count: item.amount)
+            case .boost3x:
+                addMultipliers(.threeX, count: item.amount)
+            case .boost4x:
+                addMultipliers(.fourX, count: item.amount)
             }
         }
         
         // Clear the pending reward
         pendingGiftReward = nil
+        
+        if let tierID = pendingJourneyRewardTierID {
+            claimedJourneyAbbreviationRewards.insert(tierID)
+            persistAbbreviationClaims()
+            pendingJourneyRewardTierID = nil
+        }
     }
     
     public func dismissGiftReward() {
         pendingGiftReward = nil
+        pendingJourneyRewardTierID = nil
     }
     
     public func tapGiftBox(at position: Position) {
         guard pendingGiftReward == nil else { return }
         guard let reward = pendingGiftBoxes.removeValue(forKey: position) else { return }
+        pendingJourneyRewardTierID = nil
         pendingGiftReward = reward
         persistPendingGiftBoxes()
     }
@@ -1048,7 +1088,8 @@ extension GameStore {
         // Create journey state
         let journeyState = GameProgress.JourneyState(
             highestTile: journey.highestTile,
-            claimedTiles: journey.claimed
+            claimedTiles: journey.claimed,
+            claimedAbbreviationTiers: claimedJourneyAbbreviationRewards
         )
         
         // Create session tracking
@@ -1205,6 +1246,8 @@ extension GameStore {
         UserDefaults.standard.set(journey.highestTile, forKey: "journeyHighestTile")
         let journeyClaimedData = try? JSONEncoder().encode(Array(journey.claimed))
         UserDefaults.standard.set(journeyClaimedData, forKey: "journeyClaimedTiles")
+        let abbreviationClaimsData = try? JSONEncoder().encode(Array(claimedJourneyAbbreviationRewards))
+        UserDefaults.standard.set(abbreviationClaimsData, forKey: journeyAbbreviationClaimsKey)
         
         // Save session tracking data
         if UserDefaults.standard.object(forKey: "sessionStartTime") == nil {
@@ -1443,6 +1486,11 @@ extension GameStore {
             print("🔄 Restored journey claimed tiles: \(claimedTiles.count)")
         }
         
+        if let abbreviationClaimsData = UserDefaults.standard.data(forKey: journeyAbbreviationClaimsKey),
+           let claims = try? JSONDecoder().decode([String].self, from: abbreviationClaimsData) {
+            claimedJourneyAbbreviationRewards = Set(claims)
+        }
+        
         // Restore current path state
         if let currentPathData = UserDefaults.standard.data(forKey: "currentPath"),
            let pathArray = try? JSONDecoder().decode([[String: Int]].self, from: currentPathData) {
@@ -1570,6 +1618,41 @@ extension GameStore {
             return
         }
         pendingGiftBoxes = Dictionary(uniqueKeysWithValues: stored.map { (Position(row: $0.row, col: $0.col), $0.reward) })
+    }
+    
+    private func persistAbbreviationClaims() {
+        let payload = Array(claimedJourneyAbbreviationRewards)
+        let data = try? JSONEncoder().encode(payload)
+        UserDefaults.standard.set(data, forKey: journeyAbbreviationClaimsKey)
+    }
+    
+    private func currentHighestJourneyStep() -> Int? {
+        let highestValue = max(state.highestTile, journey.highestTile)
+        return TileStepLabelFormatter.stepForValue(highestValue)
+    }
+    
+    private func boardContainsInfinityTile() -> Bool {
+        for row in 0..<state.board.height {
+            for col in 0..<state.board.width {
+                let pos = Position(row: row, col: col)
+                if state.board[pos]?.isInfinity == true {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    
+    private func addBonusSpins(_ amount: Int) {
+        guard amount > 0 else { return }
+        let spinState = SpinWheelState()
+        spinState.addBonusSpins(amount)
+    }
+    
+    private func addMultipliers(_ tier: SpinWheelState.MultiplierTier, count: Int) {
+        guard count > 0 else { return }
+        let spinState = SpinWheelState()
+        spinState.addMultiplier(tier, count: count)
     }
     
     // MARK: - Session Tracking & Analytics

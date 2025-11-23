@@ -43,9 +43,17 @@ public struct GiftReward: Codable, Sendable {
     }
 }
 
-public struct GiftRewardItem: Codable, Sendable {
+public struct GiftRewardItem: Codable, Hashable, Sendable {
     public enum GiftType: String, Codable, Sendable {
-        case hammer, magnet, gems, swap, undo
+        case hammer
+        case magnet
+        case gems
+        case swap
+        case undo
+        case bonusSpin
+        case boost2x
+        case boost3x
+        case boost4x
     }
 
     public let type: GiftType

@@ -77,10 +77,16 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public struct JourneyState: Codable, Equatable, Sendable {
         public var highestTile: Int
         public var claimedTiles: Set<Int>
+        public var claimedAbbreviationTiers: Set<String>
         
-        public init(highestTile: Int = 0, claimedTiles: Set<Int> = []) {
+        public init(
+            highestTile: Int = 0,
+            claimedTiles: Set<Int> = [],
+            claimedAbbreviationTiers: Set<String> = []
+        ) {
             self.highestTile = highestTile
             self.claimedTiles = claimedTiles
+            self.claimedAbbreviationTiers = claimedAbbreviationTiers
         }
     }
     
