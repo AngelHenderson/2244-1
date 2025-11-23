@@ -50,15 +50,15 @@ private struct AchievementRow: View {
                 .frame(width: 64, height: 64)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text(definition.title)
-                    .font(.headline)
+                    Text(definition.title)
+                        .font(.headline)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                 
                 Text(detailText)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 
                 HStack(spacing: 8) {
                     Label(definition.category, systemImage: categoryIcon(for: definition.category))
@@ -83,8 +83,8 @@ private struct AchievementRow: View {
                 )
                 
                 RewardSummary(rewards: definition.rewards)
-            }
-        }
+                    }
+                }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
