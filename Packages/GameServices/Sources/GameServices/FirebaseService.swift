@@ -18,10 +18,14 @@ public final class FirebaseService: @unchecked Sendable {
     /// Initialize Firebase with the app's configuration
     /// Should be called once during app startup
     public func initialize() {
-        guard !isInitialized else {
+        if FirebaseApp.app() != nil {
+            isInitialized = true
+            #if DEBUG
             print("🔥 Firebase already initialized")
+            #endif
             return
         }
+        guard !isInitialized else { return }
         
         // Check if GoogleService-Info.plist exists
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),

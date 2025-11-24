@@ -73,8 +73,14 @@ struct game2244App: App {
                     gemWallet.bootstrapFromLocal()
                     
                     FirebaseService.shared.initialize()
-                    try? await FirebaseService.shared.signInAnonymously()
-                    await gemWallet.startCloudSync()
+                    if FirebaseApp.app() != nil {
+                        try? await FirebaseService.shared.signInAnonymously()
+                        await gemWallet.startCloudSync()
+                    } else {
+                        #if DEBUG
+                        print("⚠️ Firebase not configured; skipping gem cloud sync.")
+                        #endif
+                    }
                     
                     // Initialize shop store
                     shopStore = ShopStore(journeyStore: gameStore.journey)
