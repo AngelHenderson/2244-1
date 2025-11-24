@@ -43,11 +43,13 @@ public struct DailyClaimsView: View {
             }
         }
         .onAppear(perform: syncSelectedPage)
-        .onChange(of: store.currentClaimDay, syncSelectedPage)
-        .onChange(of: store.dailyClaims.count) { _ in
+        .onChange(of: store.currentClaimDay) { _, _ in
+            syncSelectedPage()
+        }
+        .onChange(of: store.dailyClaims.count) { _, _ in
             store.ensureClaimsCovering(pageIndex: selectedPage)
         }
-        .onChange(of: selectedPage) { newValue in
+        .onChange(of: selectedPage) { _, newValue in
             store.ensureClaimsCovering(pageIndex: newValue)
         }
         .overlay {
