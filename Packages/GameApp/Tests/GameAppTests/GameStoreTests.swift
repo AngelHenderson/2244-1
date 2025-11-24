@@ -8,6 +8,7 @@ struct GameStoreTests {
     @Test
     @MainActor
     func testInitialState() {
+        resetUserDefaultsDomain()
         let store = GameStore()
         #expect(store.state.score == 0)
         #expect(store.state.moves == 0)
@@ -17,6 +18,7 @@ struct GameStoreTests {
     @Test
     @MainActor
     func testSaveLoadRoundTrip() async {
+        resetUserDefaultsDomain()
         let store = GameStore()
         // Make one move for a non-empty score sometimes
         if let start = Position(row: 0, col: 0).isValid(for: store.state.board) ? Position(row: 0, col: 0) : nil {
@@ -55,6 +57,7 @@ struct GameStoreTests {
     @Test
     @MainActor
     func testUnlockRewardUsesShiftedFormula() {
+        resetUserDefaultsDomain()
         let store = GameStore()
         store.coins = 0
         let previousHigh = 65_536
@@ -71,4 +74,56 @@ struct GameStoreTests {
         #expect(store.coins == (newHigh >> 7) * 4)
         #expect(store.pendingUnlockRewardBase == nil)
     }
+    
+    @Test
+    @MainActor
+    func testGemRewardPersistsAfterNextMerge() {
+        resetUserDefaultsDomain()
+        let store = GameStore()
+        let initialGems = store.coins
+        let reward = 280
+        store.addCoins(reward)
+        
+        guard let (start, neighbor) = firstMergeablePair(in: store.state.board) else {
+            #expect(Bool(false), "Test board did not contain a mergeable adjacent pair")
+            return
+        }
+        
+        store.beginPath(at: start)
+        store.extendPath(to: neighbor)
+        store.commitPath()
+        
+        #expect(
+            store.coins >= initialGems + reward,
+            "Gem reward should persist after the next merge"
+        )
+    }
+}
+
+private func firstMergeablePair(in board: Board) -> (Position, Position)? {
+    for row in 0..<board.height {
+        for col in 0..<board.width {
+            let origin = Position(row: row, col: col)
+            guard let originTile = board[origin] else { continue }
+            for neighbor in board.neighbors(of: origin) {
+                guard let neighborTile = board[neighbor] else { continue }
+                if neighborTile.value == originTile.value {
+                    return (origin, neighbor)
+                }
+            }
+        }
+    }
+    return nil
+}
+
+private func resetUserDefaultsDomain() {
+    let defaults = UserDefaults.standard
+    if let bundleID = Bundle.main.bundleIdentifier {
+        defaults.removePersistentDomain(forName: bundleID)
+    } else {
+        for key in defaults.dictionaryRepresentation().keys {
+            defaults.removeObject(forKey: key)
+        }
+    }
+    defaults.synchronize()
 }

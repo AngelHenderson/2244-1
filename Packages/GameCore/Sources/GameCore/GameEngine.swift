@@ -131,10 +131,71 @@ public final class GameEngine {
             gems: initialGems
         )
         self.highestTileAchieved = highest
+        
+        // Reconstruct eliminatedMilestones based on highest tile achieved
+        // Each milestone at 16K, 32K, 64K, etc. should have eliminated tiles
+        // Milestone 16K eliminates 1 (not a real tile), 32K eliminates 2, 64K eliminates 4, etc.
+        reconstructEliminatedMilestones(fromHighestTile: highest)
+        
+        // Apply eliminations to remove any stale tiles that shouldn't be on the board
+        applyPendingEliminationsOnRestore()
+    }
+    
+    /// Reconstruct the eliminatedMilestones set from the highest tile value
+    /// This ensures proper elimination state when restoring a saved game
+    private func reconstructEliminatedMilestones(fromHighestTile highest: Int) {
+        // Start at 16K (first milestone that triggers elimination)
+        var milestone = 1 << 14  // 16_384
+        
+        // Add all milestones up to and including the highest tile
+        while milestone <= highest {
+            eliminatedMilestones.insert(milestone)
+            milestone <<= 1  // Double for next milestone
+        }
+        
+        if !eliminatedMilestones.isEmpty {
+            print("🔄 RESTORE: Reconstructed \(eliminatedMilestones.count) elimination milestones from highest tile \(highest)")
+        }
+    }
+    
+    /// Apply any pending eliminations after restoring a game
+    /// This removes tiles that should have been eliminated but exist in the saved board
+    private func applyPendingEliminationsOnRestore() {
+        guard let highestMilestone = eliminatedMilestones.max() else { return }
+        
+        // Find the highest value that should be eliminated (milestone >> 14)
+        let maxEliminatedValue = highestMilestone >> 14
+        
+        var didRemove = false
+        var totalRemoved = 0
+        
+        // Remove ALL tiles with values at or below the elimination threshold
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos], tile.value <= maxEliminatedValue {
+                    print("🗑️ RESTORE ELIMINATION: Removing stale tile \(tile.value) at \(pos)")
+                    state.board[pos] = nil
+                    didRemove = true
+                    totalRemoved += 1
+                }
+            }
+        }
+        
+        if didRemove {
+            print("   ✅ Eliminated \(totalRemoved) stale tiles from restored board")
+            refillAfterGravity()
+            print("   ✅ Board refilled after restore elimination")
+        }
     }
     
     public func currentState() -> GameState {
         state
+    }
+    
+    /// Synchronize the engine's gem count with an external source (e.g., GameStore rewards).
+    public func overrideGems(with newValue: Int) {
+        state.gems = newValue
     }
     
     public func validateChain(_ positions: [Position]) -> ChainValidation {

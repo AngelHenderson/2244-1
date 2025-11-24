@@ -71,11 +71,24 @@ public final class AchievementStore {
     }
     
     public func claim(definition: AchievementDef) {
-        guard var state = unlocks[definition.id], state.isClaimable else { return }
+        guard var state = unlocks[definition.id], state.isClaimable else {
+            print("🚫 Claim rejected for \(definition.id): not claimable")
+            return
+        }
         state.claimed = true
         unlocks[definition.id] = state
+        print("✅ Achievement claimed: \(definition.id)")
         if let rewards = definition.rewards {
-            onReward?(rewards)
+            print("🎁 Rewards to grant: gems=\(rewards.gems ?? 0), hammers=\(rewards.hammers ?? 0), spins=\(rewards.spins ?? 0)")
+            if let callback = onReward {
+                print("📞 Calling onReward callback...")
+                callback(rewards)
+                print("📞 onReward callback completed")
+            } else {
+                print("❌ onReward callback is nil!")
+            }
+        } else {
+            print("⚠️ No rewards defined for this achievement")
         }
     }
     

@@ -51,8 +51,13 @@ public final class GemWallet {
     }
     
     public func deposit(_ amount: Int, source: Source) {
-        guard amount > 0 else { return }
+        guard amount > 0 else {
+            print("💎 GemWallet.deposit: amount \(amount) <= 0, skipping")
+            return
+        }
+        let oldBalance = balance
         balance += amount
+        print("💎 GemWallet.deposit: \(oldBalance) + \(amount) = \(balance) (source: \(source.rawValue))")
         persistLocal()
         applyToGameState()
         syncToCloud(reason: source.rawValue)
@@ -95,8 +100,18 @@ public final class GemWallet {
     }
     
     private func applyToGameState() {
-        gameStore?.coins = balance
-        homeState?.gems = balance
+        if let gs = gameStore {
+            gs.coins = balance
+            print("💎 Applied to gameStore.coins = \(balance)")
+        } else {
+            print("⚠️ gameStore is nil, cannot apply gem balance")
+        }
+        if let hs = homeState {
+            hs.gems = balance
+            print("💎 Applied to homeState.gems = \(balance)")
+        } else {
+            print("⚠️ homeState is nil, cannot apply gem balance")
+        }
     }
     
     private func syncToCloud(reason: String) {

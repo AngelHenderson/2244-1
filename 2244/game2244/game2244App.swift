@@ -120,9 +120,14 @@ struct game2244App: App {
                     }
                     
                     let applyRewards: @MainActor @Sendable (AchievementDef.Rewards) -> Void = { rewards in
+                        print("🎯 applyRewards called with: gems=\(rewards.gems ?? 0)")
+                        
                         // Gems
                         if let gems = rewards.gems, gems > 0 {
+                            print("🎯 Depositing \(gems) gems via gemWallet...")
                             gemWallet.deposit(gems, source: .achievement)
+                        } else {
+                            print("🎯 No gems to deposit (gems=\(rewards.gems ?? 0))")
                         }
                         
                         // Power-ups
@@ -150,6 +155,7 @@ struct game2244App: App {
                         if let boost4x = rewards.boost4x, boost4x > 0 {
                             spinState.addMultiplier(.fourX, count: boost4x)
                         }
+                        print("🎯 applyRewards completed")
                     }
                     
                     // Setup achievement evaluator with reward handler

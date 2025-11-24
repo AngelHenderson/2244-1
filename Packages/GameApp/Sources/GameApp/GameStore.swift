@@ -102,8 +102,13 @@ public final class GameStore {
         get { state.gems }
         set { 
             state.gems = newValue
+            syncEngineGems()
             UserDefaults.standard.set(newValue, forKey: "coins")
         }
+    }
+    
+    private func syncEngineGems() {
+        engine.overrideGems(with: state.gems)
     }
     
     // Lowest allowed spawn tile based on current highest (mirrors engine logic)
@@ -147,6 +152,7 @@ public final class GameStore {
             self.engine = restoredEngine
             self.state = restoredEngine.currentState()
             self.state.gems = progress.gems
+            syncEngineGems()
             self.state.highestTile = max(self.state.highestTile, sessionState.highestTile)
             
             // Restore power-up inventory
@@ -172,6 +178,7 @@ public final class GameStore {
             // Load basic progress if available
             if let progress = loadedProgress {
                 self.state.gems = progress.gems
+                syncEngineGems()
                 self.powerUpInventory = progress.powerUpInventory
                 self.journey.highestTile = progress.journeyState.highestTile
                 self.journey.claimed = progress.journeyState.claimedTiles
@@ -183,6 +190,7 @@ public final class GameStore {
                 if self.state.gems == 0 {
                     self.state.gems = 305 // Default starter gems
                 }
+                syncEngineGems()
                 print("🆕 Starting fresh game")
             }
         }
@@ -528,12 +536,14 @@ public final class GameStore {
     // MARK: - Economy
     public func addCoins(_ amount: Int) {
         state.gems = max(0, state.gems + amount)
+        syncEngineGems()
         UserDefaults.standard.set(state.gems, forKey: "coins")
     }
     
     public func spendCoins(_ amount: Int) -> Bool {
         guard state.gems >= amount else { return false }
         state.gems -= amount
+        syncEngineGems()
         UserDefaults.standard.set(state.gems, forKey: "coins")
         return true
     }
@@ -1460,6 +1470,7 @@ extension GameStore {
         
         if savedGems > state.gems {
             state.gems = savedGems
+            syncEngineGems()
             print("🔄 Restored gems: \(savedGems)")
         }
         
