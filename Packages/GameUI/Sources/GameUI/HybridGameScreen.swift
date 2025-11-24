@@ -35,6 +35,7 @@ public struct HybridGameScreen: View {
     @State private var isShowingPause = false
     @State private var isShowingStore = false
     @State private var isShowingLeaderboard = false
+    @State private var isShowingUnlockReward = false
     
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState = HomeState()
@@ -76,11 +77,6 @@ public struct HybridGameScreen: View {
         let giftRewardBinding = Binding(
             get: { gameStore.pendingGiftReward != nil },
             set: { newValue in if !newValue { gameStore.dismissGiftReward() } }
-        )
-
-        let unlockRewardBinding = Binding(
-            get: { gameStore.pendingUnlockRewardBase != nil },
-            set: { newValue in if !newValue { gameStore.clearPendingUnlockReward() } }
         )
 
         let mergeInfoBinding = Binding(
@@ -134,12 +130,17 @@ public struct HybridGameScreen: View {
             }
         
         let unlockSheet = giftSheet
-            .sheet(isPresented: unlockRewardBinding) {
-                RewardSpinnerView(
-                    baseAmount: gameStore.pendingUnlockRewardBase ?? 0,
-                    tileValue: gameStore.pendingUnlockTile ?? 0,
-                    onClose: { gameStore.clearPendingUnlockReward() }
-                )
+            .sheet(isPresented: $isShowingUnlockReward) {
+                if let baseAmount = gameStore.pendingUnlockRewardBase,
+                   let tileValue = gameStore.pendingUnlockTile {
+                    RewardSpinnerView(
+                        baseAmount: baseAmount,
+                        tileValue: tileValue,
+                        onClose: { isShowingUnlockReward = false }
+                    )
+                } else {
+                    EmptyView()
+                }
             }
         
         let notificationSheet = unlockSheet
@@ -196,6 +197,7 @@ public struct HybridGameScreen: View {
                 // Initialize tempHomeState with current values
                 tempHomeState.gems = gameStore.coins
                 tempHomeState.rank = max(1, 100000 - gameStore.state.score)
+                isShowingUnlockReward = gameStore.pendingUnlockRewardBase != nil
                 
                 // Initialize comprehensive session tracking
                 gameStore.initializeSessionTracking()
@@ -204,6 +206,12 @@ public struct HybridGameScreen: View {
             .onChange(of: gameStore.state.moves) { _, _ in
                 // Auto-save on every move with comprehensive session data
                 gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+            }
+            .onChange(of: gameStore.pendingUnlockRewardBase) { _, newValue in
+                let shouldShow = newValue != nil
+                if shouldShow != isShowingUnlockReward {
+                    isShowingUnlockReward = shouldShow
+                }
             }
             .onChange(of: gameStore.state.score) { _, newScore in
                 // Update session analytics on score change

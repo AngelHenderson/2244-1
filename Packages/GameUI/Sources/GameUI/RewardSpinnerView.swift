@@ -23,6 +23,7 @@ struct RewardSpinnerView: View {
     @State private var direction: Int = 1
     @State private var isFrozen = false
     @State private var timer: Timer? = nil
+    @State private var didClaim = false
     
     private let multipliers: [Int] = [2, 3, 4, 5, 4, 3, 2]
     private let slotWidth: CGFloat = 48
@@ -62,15 +63,27 @@ struct RewardSpinnerView: View {
         .padding(24)
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
-        .onAppear(perform: startSpinner)
-        .onDisappear(perform: stopSpinner)
+        .onAppear {
+            didClaim = false
+            startSpinner()
+        }
+        .onDisappear {
+            stopSpinner()
+            finalizeReward()
+        }
     }
     
     private func claim() {
         isFrozen = true
         stopSpinner()
-        gameStore.claimPendingUnlockReward(multiplier: currentMultiplier)
+        finalizeReward()
         onClose()
+    }
+    
+    private func finalizeReward() {
+        guard !didClaim else { return }
+        didClaim = true
+        gameStore.claimPendingUnlockReward(multiplier: currentMultiplier)
     }
     
     private var currentMultiplier: Int {
@@ -141,8 +154,8 @@ struct RewardSpinnerView: View {
         isFrozen = false
         timer = Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { _ in
             Task { @MainActor in
-            guard !isFrozen else { return }
-            moveIndicator()
+                guard !isFrozen else { return }
+                moveIndicator()
             }
         }
     }

@@ -550,9 +550,12 @@ public final class GameStore {
     
     // MARK: - Unlock Rewards
     private func baseUnlockReward(for tileValue: Int) -> Int {
-        // Formula-driven rewards: added = V >> 7 (per design spec)
-        guard tileValue > 0 else { return 0 }
-        return max(0, tileValue >> 7)
+        // Milestone rewards start at 512 (2^9) with +2 gems per subsequent milestone.
+        guard tileValue >= 512 else { return 0 }
+        guard tileValue.nonzeroBitCount == 1 else { return 0 } // Require true power-of-two milestones.
+        let exponent = tileValue.trailingZeroBitCount
+        let stepsFromFirstMilestone = max(0, exponent - 9)
+        return 50 + (stepsFromFirstMilestone * 2)
     }
     
     private func setPendingUnlockRewardIfNeeded(for newHigh: Int, previousHigh: Int) {

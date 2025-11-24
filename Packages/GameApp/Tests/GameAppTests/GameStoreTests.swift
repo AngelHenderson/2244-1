@@ -56,23 +56,31 @@ struct GameStoreTests {
     
     @Test
     @MainActor
-    func testUnlockRewardUsesShiftedFormula() {
+    func testUnlockRewardUsesMilestoneFormula() {
         resetUserDefaultsDomain()
-        let store = GameStore()
-        store.coins = 0
-        let previousHigh = 65_536
-        let newHigh = 131_072
-        store._setHighestTileForTesting(previousHigh)
+        let cases: [(tile: Int, expectedBase: Int)] = [
+            (512, 50),
+            (1024, 52),
+            (2048, 54),
+            (8_388_608, 78),
+        ]
         
-        store._testTriggerUnlockReward(newHigh: newHigh, previousHigh: previousHigh)
-        
-        #expect(store.pendingUnlockRewardBase == newHigh >> 7)
-        #expect(store.pendingUnlockTile == newHigh)
-        #expect(store.coins == 0)
-        
-        store.claimPendingUnlockReward(multiplier: 4)
-        #expect(store.coins == (newHigh >> 7) * 4)
-        #expect(store.pendingUnlockRewardBase == nil)
+        for scenario in cases {
+            let store = GameStore()
+            store.coins = 0
+            let previousHigh = scenario.tile / 2
+            store._setHighestTileForTesting(previousHigh)
+            
+            store._testTriggerUnlockReward(newHigh: scenario.tile, previousHigh: previousHigh)
+            
+            #expect(
+                store.pendingUnlockRewardBase == scenario.expectedBase,
+                "Tile \(scenario.tile) should pay \(scenario.expectedBase) gems"
+            )
+            store.claimPendingUnlockReward(multiplier: 3)
+            #expect(store.coins == scenario.expectedBase * 3)
+            #expect(store.pendingUnlockRewardBase == nil)
+        }
     }
     
     @Test
