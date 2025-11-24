@@ -51,6 +51,13 @@ struct game2244App: App {
 
                 RootGameView(managesBackground: false)
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("GemsDidChange"))) { notification in
+                if let newBalance = notification.userInfo?["newBalance"] as? Int {
+                    homeState.gems = newBalance
+                    gameStore.coins = newBalance
+                    print("💎 UI updated via notification: gems = \(newBalance)")
+                }
+            }
                 .environment(\.gameStore, gameStore)
                 .environment(\.purchaseService, purchaseService)
                 .environment(\.adService, adService)
