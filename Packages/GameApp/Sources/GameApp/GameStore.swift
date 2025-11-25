@@ -297,60 +297,106 @@ public final class GameStore {
         let positions = currentPath
         guard let lastPos = positions.last else { return }
         
+        print("[GameStore] Starting commitPath sequence. Positions: \(positions.count)")
+        
         // Lock input to prevent interaction during animation
         isInputLocked = true
+        
+        // Clear the path immediately so the line disappears
+        currentPath = []
+        pathValidation = .valid
+        
         mergeCleanupTask?.cancel()
         
         // Determine the value being merged (for particle color)
-        // We use the value of the first tile in the chain
         let firstPos = positions[0]
         let value = state.board[firstPos]?.value ?? 2
         
         // Start the animation sequence
         mergeCleanupTask = Task { @MainActor [weak self] in
             guard let self else { return }
+            print("[GameStore] Task started")
             
-            // 1. Shatter phase
-            self.mergeAnimationState = MergeAnimationState(
-                sourcePositions: Array(positions.dropLast()),
-                targetPosition: lastPos,
-                value: value,
-                startTime: Date(),
-                phase: .shatter
-            )
+            do {
+                // 1. Shatter phase
+                print("[GameStore] Phase 1: Shatter")
+                self.mergeAnimationState = MergeAnimationState(
+                    sourcePositions: Array(positions.dropLast()),
+                    targetPosition: lastPos,
+                    value: value,
+                    startTime: Date(),
+                    phase: .shatter
+                )
+                
+                // Wait 0.5s for shatter and delay
+                try await Task.sleep(nanoseconds: 500_000_000)
+                
+                if Task.isCancelled {
+                    print("[GameStore] Task cancelled after shatter")
+                    self.isInputLocked = false
+                    return
+                }
+                
+                // 2. Fly phase
+                print("[GameStore] Phase 2: Fly")
+                self.mergeAnimationState = MergeAnimationState(
+                    sourcePositions: Array(positions.dropLast()),
+                    targetPosition: lastPos,
+                    value: value,
+                    startTime: Date(),
+                    phase: .fly
+                )
+                
+                // Wait for fly animation
+                try await Task.sleep(nanoseconds: Self.mergeAnimationDelay)
+                
+                if Task.isCancelled {
+                    print("[GameStore] Task cancelled after fly")
+                    self.isInputLocked = false
+                    return
+                }
+                
+                // 3. Commit (Shatter/Fly complete, now apply logic + gravity)
+                print("[GameStore] Phase 3: Commit (Logic + Gravity)")
+                self.performCommit(positions: positions)
+                
+                // Wait for gravity animation (tiles dropping)
+                // Assuming standard spring animation duration ~0.35s
+                try await Task.sleep(nanoseconds: 350_000_000)
+                
+                if Task.isCancelled {
+                    print("[GameStore] Task cancelled after gravity")
+                    self.isInputLocked = false
+                    return
+                }
+                
+                // 4. Refill Phase
+                print("[GameStore] Phase 4: Refill")
+                self.performRefill()
+                
+                // Clear animation
+                self.mergeAnimationState = nil
+                print("[GameStore] Sequence complete")
+                
+            } catch {
+                print("[GameStore] Task error: \(error)")
+            }
             
-            // Wait 0.5s for shatter and delay
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            
-            if Task.isCancelled { return }
-            
-            // 2. Fly phase
-            self.mergeAnimationState = MergeAnimationState(
-                sourcePositions: Array(positions.dropLast()),
-                targetPosition: lastPos,
-                value: value,
-                startTime: Date(),
-                phase: .fly
-            )
-            
-            // Wait for fly animation
-            try? await Task.sleep(nanoseconds: Self.mergeAnimationDelay)
-            
-            if Task.isCancelled { return }
-            
-            // 3. Commit and update board
-            self.performCommit(positions: positions)
-            
-            // Clear animation and unlock
-            self.mergeAnimationState = nil
-            self.isInputLocked = false
+            // Always unlock input when done
+            if !Task.isCancelled {
+                self.isInputLocked = false
+            }
         }
     }
     
+    private func performRefill() {
+        let previousBoard = state.board
+        let newState = engine.refillBoard()
+        // We don't need to protect positions here because the merge is already done
+        applyStateUpdate(newState, previousBoard: previousBoard)
+    }
+    
     private func performCommit(positions: [Position]) {
-        // Re-validate just in case, though input was locked
-        // guard pathValidation.isValid else { return } // Validation might rely on currentPath which is passed as arg now
-        
         let previousHighest = state.highestTile
         let lastPos = positions.last
 
@@ -368,7 +414,10 @@ public final class GameStore {
             newState = engine.commitChain(positions)
         }
         let protectedPositions = lastPos.map { Set([$0]) } ?? Set<Position>()
-        applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: protectedPositions)
+        
+        // Update state but DO NOT schedule refill reveal yet, as refill hasn't happened
+        state = newState
+        // We manually handle refill reveal later in performRefill
         
         // Break glass tiles for any positions in row 0 that were part of this connection
         for position in positions {
@@ -434,9 +483,6 @@ public final class GameStore {
         
         // Auto-save progress for score changes and achievements
         saveProgressImmediately(newTile: addedValue, currentScore: state.score)
-        
-        currentPath = []
-        pathValidation = .valid
     }
     
     private static let mergeAnimationDelay: UInt64 = 400_000_000

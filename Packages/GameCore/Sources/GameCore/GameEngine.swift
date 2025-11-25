@@ -429,10 +429,26 @@ public final class GameEngine {
             state.gems += positions.count / 5
         }
         
-        // Always-full policy: apply gravity and refill to keep the board dense
-        refillAfterGravity()
+        // Apply gravity ONLY. Do NOT refill yet.
+        // Refill will be triggered explicitly by the UI/GameStore after animation delay.
+        applyGravityDown()
         
         // Check for game over
+        if !hasValidMoves() {
+            state.isGameOver = true
+        }
+        
+        return state
+    }
+    
+    // Public method to trigger refill explicitly
+    public func refillBoard() -> GameState {
+        if config.fillMode == .alwaysFull {
+            fillBoardToFull()
+        } else {
+            refillToFull()
+        }
+        
         if !hasValidMoves() {
             state.isGameOver = true
         }
@@ -839,23 +855,7 @@ public final class GameEngine {
     // MARK: - Gravity and Refill (Always-Full)
 
     private func applyGravityDown() {
-        // Compact each column so tiles fall toward bottom
-        for col in 0..<config.boardWidth {
-            var writeRow = config.boardHeight - 1
-            var row = config.boardHeight - 1
-            while row >= 0 {
-                let pos = Position(row: row, col: col)
-                if let tile = state.board[pos] {
-                    if writeRow != row {
-                        let writePos = Position(row: writeRow, col: col)
-                        state.board[writePos] = tile
-                        state.board[pos] = nil
-                    }
-                    writeRow -= 1
-                }
-                row -= 1
-            }
-        }
+        state.board.applyGravity()
     }
 
     private func refillAfterGravity(applyGravity: Bool = true) {
