@@ -745,18 +745,23 @@ public final class GameEngine {
             if newHighTile >= milestone && !milestonesReached.contains(milestone) {
                 milestonesReached.insert(milestone)
                 // Clear 3-4 random tiles as bomb reward
-                clearRandomTiles(count: Int.random(in: 3...4))
+                // Avoid clearing the newly created milestone tile itself
+                clearRandomTiles(count: Int.random(in: 3...4), protectValue: newHighTile)
                 break
             }
         }
     }
     
-    private func clearRandomTiles(count: Int) {
+    private func clearRandomTiles(count: Int, protectValue: Int? = nil) {
         var filledPositions: [Position] = []
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let position = Position(row: row, col: col)
-                if state.board[position] != nil {
+                if let tile = state.board[position] {
+                    // Keep milestone tile(s) on the board when rewarding the player
+                    if let protectValue, tile.value == protectValue {
+                        continue
+                    }
                     filledPositions.append(position)
                 }
             }

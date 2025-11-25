@@ -469,4 +469,43 @@ struct GameEngineTests {
             }
         }
     }
+
+    @Test("Milestone reward keeps the milestone tile on the board")
+    func testMilestoneRewardsDoNotRemoveMilestoneTile() {
+        let config = GameConfig(
+            boardWidth: 3,
+            boardHeight: 3,
+            seed: 5,
+            initialTileCount: 0,
+            fillMode: .sparse
+        )
+        let engine = GameEngine(config: config)
+
+        // Fill the board deterministically so the reward has tiles to clear.
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                engine._setTileForTesting(at: Position(row: row, col: col), value: 4)
+            }
+        }
+
+        let left = Position(row: 0, col: 0)
+        let right = Position(row: 0, col: 1)
+        engine._setTileForTesting(at: left, value: 1_024)
+        engine._setTileForTesting(at: right, value: 1_024)
+
+        let state = engine.commitChain([left, right])
+
+        let milestoneValue = 2_048
+        var milestoneTiles = 0
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if state.board[pos]?.value == milestoneValue {
+                    milestoneTiles += 1
+                }
+            }
+        }
+
+        #expect(milestoneTiles > 0, "Milestone reward should not remove the newly created milestone tile")
+    }
 }
