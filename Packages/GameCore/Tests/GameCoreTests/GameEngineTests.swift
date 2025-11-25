@@ -123,7 +123,7 @@ struct GameEngineTests {
         // With auto-cascade enabled, score will be >= 16 (may include cascade bonuses)
         #expect(state.score >= 16, "Score should be at least 16 from the base chain")
     }
-    
+
     @Test
     func testChainMergeScalesWithLength() {
         let config = GameConfig(boardWidth: 1, boardHeight: 5, seed: 99, fillMode: .sparse)

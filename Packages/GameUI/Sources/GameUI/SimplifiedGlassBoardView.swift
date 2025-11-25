@@ -68,14 +68,14 @@ public struct SimplifiedGlassBoardView: View {
                             // First row with glass effect
                             ZStack {
                                 if let tile = gameStore.state.board[position] {
-                                    TileView(
+                                TileView(
                                         tile: tile,
-                                        isSelected: gameStore.currentPath.contains(position),
-                                        isValid: gameStore.pathValidation.isValid,
-                                        size: tileSize,
-                                        colorBlindMode: colorBlindMode,
-                                        theme: currentTheme
-                                    )
+                                    isSelected: gameStore.currentPath.contains(position),
+                                    isValid: gameStore.pathValidation.isValid,
+                                    size: tileSize,
+                                    colorBlindMode: colorBlindMode,
+                                    theme: currentTheme
+                                )
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }
@@ -118,14 +118,14 @@ public struct SimplifiedGlassBoardView: View {
                             // Regular tiles for other rows
                             ZStack {
                                 if let tile = gameStore.state.board[position] {
-                                    TileView(
+                                TileView(
                                         tile: tile,
-                                        isSelected: gameStore.currentPath.contains(position),
-                                        isValid: gameStore.pathValidation.isValid,
-                                        size: tileSize,
-                                        colorBlindMode: colorBlindMode,
-                                        theme: currentTheme
-                                    )
+                                    isSelected: gameStore.currentPath.contains(position),
+                                    isValid: gameStore.pathValidation.isValid,
+                                    size: tileSize,
+                                    colorBlindMode: colorBlindMode,
+                                    theme: currentTheme
+                                )
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }

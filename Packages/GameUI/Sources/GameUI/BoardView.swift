@@ -63,14 +63,14 @@ public struct BoardView: View {
                         let position = Position(row: row, col: col)
                         ZStack {
                             if let tile = gameStore.state.board[position] {
-                                TileView(
+                            TileView(
                                     tile: tile,
-                                    isSelected: gameStore.currentPath.contains(position),
-                                    isValid: gameStore.pathValidation.isValid,
-                                    size: tileSize,
-                                    colorBlindMode: colorBlindMode,
-                                    theme: currentTheme
-                                )
+                                isSelected: gameStore.currentPath.contains(position),
+                                isValid: gameStore.pathValidation.isValid,
+                                size: tileSize,
+                                colorBlindMode: colorBlindMode,
+                                theme: currentTheme
+                            )
                                 .opacity(shouldHideTile(at: position) ? 0 : 1)
                                 .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                             }

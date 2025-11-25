@@ -45,11 +45,17 @@ public final class GameStore {
         public let value: Int
     }
     
+    public enum MergePhase: Equatable, Sendable {
+        case shatter
+        case fly
+    }
+
     public struct MergeAnimationState: Equatable, Sendable {
         public let sourcePositions: [Position]
         public let targetPosition: Position
         public let value: Int
         public let startTime: Date
+        public let phase: MergePhase
     }
     
     private struct StoredGiftBox: Codable {
@@ -300,28 +306,44 @@ public final class GameStore {
         let firstPos = positions[0]
         let value = state.board[firstPos]?.value ?? 2
         
-        // Trigger animation state
-        mergeAnimationState = MergeAnimationState(
-            sourcePositions: Array(positions.dropLast()),
-            targetPosition: lastPos,
-            value: value,
-            startTime: Date()
-        )
-        
-        performCommit(positions: positions)
-        
-        // Unlock input right away so the next drag can start even while animations play.
-        isInputLocked = false
-        
-        // Keep the visual shards onscreen briefly, then clear them.
+        // Start the animation sequence
         mergeCleanupTask = Task { @MainActor [weak self] in
-            do {
-                try await Task.sleep(nanoseconds: Self.mergeAnimationDelay)
-            } catch {
-                // Ignore cancellation and exit early.
-            }
-            guard let self, !Task.isCancelled else { return }
+            guard let self else { return }
+            
+            // 1. Shatter phase
+            self.mergeAnimationState = MergeAnimationState(
+                sourcePositions: Array(positions.dropLast()),
+                targetPosition: lastPos,
+                value: value,
+                startTime: Date(),
+                phase: .shatter
+            )
+            
+            // Wait 0.5s for shatter and delay
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            
+            if Task.isCancelled { return }
+            
+            // 2. Fly phase
+            self.mergeAnimationState = MergeAnimationState(
+                sourcePositions: Array(positions.dropLast()),
+                targetPosition: lastPos,
+                value: value,
+                startTime: Date(),
+                phase: .fly
+            )
+            
+            // Wait for fly animation
+            try? await Task.sleep(nanoseconds: Self.mergeAnimationDelay)
+            
+            if Task.isCancelled { return }
+            
+            // 3. Commit and update board
+            self.performCommit(positions: positions)
+            
+            // Clear animation and unlock
             self.mergeAnimationState = nil
+            self.isInputLocked = false
         }
     }
     
@@ -401,11 +423,11 @@ public final class GameStore {
         lastMergeInfo = nil
         notificationQueue.removeAll()
         currentNotification = nil
-        movesHistory.append(currentPath)
+        movesHistory.append(positions)
         
         // Update session analytics
         updateSessionAnalytics()
-        trackMoveAnalytics(move: currentPath)
+        trackMoveAnalytics(move: positions)
         
         // Evaluate achievements
         achievementEvaluator?.onChainCommitted(chain: positions, state: state, resultingTileValue: addedValue)
@@ -499,6 +521,7 @@ public final class GameStore {
         pendingRefillPositions = []
         currentPath = []
         pathValidation = .valid
+        isInputLocked = false
         lastAddedTileValue = nil
         pendingDoubleBase = nil
         brokenGlassTiles = []
@@ -524,6 +547,7 @@ public final class GameStore {
         pendingRefillPositions = []
         currentPath = []
         pathValidation = .valid
+        isInputLocked = false
         lastAddedTileValue = nil
         pendingDoubleBase = nil
         brokenGlassTiles = []

@@ -30,7 +30,8 @@ public struct MergeAnimationView: View {
                     spacing: spacing,
                     containerSize: containerSize,
                     boardWidth: boardWidth,
-                    boardHeight: boardHeight
+                    boardHeight: boardHeight,
+                    phase: state.phase
                 )
             }
         }
@@ -47,6 +48,8 @@ private struct ParticleGroup: View {
     let boardWidth: Int
     let boardHeight: Int
     
+    let phase: GameStore.MergePhase
+    
     @State private var progress: CGFloat = 0
     
     var body: some View {
@@ -60,7 +63,9 @@ private struct ParticleGroup: View {
             }
         }
         .onAppear {
-            withAnimation(.easeIn(duration: 0.35)) {
+            // Adjust duration based on phase
+            let duration = (phase == .shatter) ? 0.2 : 0.35
+            withAnimation(.easeIn(duration: duration)) {
                 progress = 1.0
             }
         }
@@ -93,20 +98,50 @@ private struct ParticleGroup: View {
         let baseOffset = CGSize(width: horizontalSign * tileSize * 0.25,
                                 height: verticalSign * tileSize * 0.25)
         
-        // Explosion lasts for first 30% of progress, then collapses to 0 for a straight-line pull
-        let explodeProgress = min(max(progress / 0.3, 0), 1)
-        let explodeMagnitude = tileSize * 0.2 * (1 - explodeProgress)
-        let explodeOffset = CGSize(width: horizontalSign * explodeMagnitude,
-                                   height: verticalSign * explodeMagnitude)
+        // Calculate explosion and movement based on phase
+        let explodeMagnitude: CGFloat
+        let currentX: CGFloat
+        let currentY: CGFloat
+        let currentScale: CGFloat
+        let currentOpacity: CGFloat
         
-        let startAnchorX = startPoint.x + baseOffset.width + explodeOffset.width
-        let startAnchorY = startPoint.y + baseOffset.height + explodeOffset.height
-        let currentX = startAnchorX + (endPoint.x - startAnchorX) * progress
-        let currentY = startAnchorY + (endPoint.y - startAnchorY) * progress
-        let currentScale = max(0.2, 1 - progress * 0.6)
-        let currentOpacity = 1 - progress * 0.1
+        switch phase {
+        case .shatter:
+            // Expand out
+            explodeMagnitude = tileSize * 0.2 * progress
+            
+            let explodeOffset = CGSize(width: horizontalSign * explodeMagnitude,
+                                       height: verticalSign * explodeMagnitude)
+            
+            // Stay at start point
+            currentX = startPoint.x + baseOffset.width + explodeOffset.width
+            currentY = startPoint.y + baseOffset.height + explodeOffset.height
+            
+            // Scale down slightly as it breaks? Or just stay 1?
+            // Let's keep it 1 or slightly smaller to show separation
+            currentScale = 1.0 - (progress * 0.1)
+            currentOpacity = 1.0
+            
+        case .fly:
+            // Start exploded, move to target
+            // Collapse explosion as we move? Or keep it?
+            // Let's collapse it to simulate merging into the target
+            explodeMagnitude = tileSize * 0.2 * (1 - progress)
+            
+            let explodeOffset = CGSize(width: horizontalSign * explodeMagnitude,
+                                       height: verticalSign * explodeMagnitude)
+            
+            let startAnchorX = startPoint.x + baseOffset.width + explodeOffset.width
+            let startAnchorY = startPoint.y + baseOffset.height + explodeOffset.height
+            
+            currentX = startAnchorX + (endPoint.x - startAnchorX) * progress
+            currentY = startAnchorY + (endPoint.y - startAnchorY) * progress
+            
+            currentScale = max(0.2, 0.9 - progress * 0.6)
+            currentOpacity = 1 - progress * 0.1
+        }
         
-        RoundedRectangle(cornerRadius: 4)
+        return RoundedRectangle(cornerRadius: 4)
             .fill(Theme.color(for: value))
             .frame(width: tileSize / 2 - 2, height: tileSize / 2 - 2)
             .position(x: currentX, y: currentY)
