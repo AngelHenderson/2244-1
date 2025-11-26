@@ -118,9 +118,8 @@ public final class DailyClaimsStore {
                 // Consecutive day - continue streak
                 canClaimToday = true
             } else {
-                // Streak broken - reset
+                // Streak broken - lose streak but keep reward progress
                 currentStreak = 0
-                currentClaimDay = 0
                 canClaimToday = true
             }
         } else {
