@@ -256,20 +256,44 @@ private let scoreMillionsFormatter: NumberFormatter = {
 }()
 
 public extension AlphaMag {
-    /// Scoreboard-friendly format that always expresses large values in millions.
-    /// Example: 710_000_000_000 -> "710,000M"
+    /// Scoreboard-friendly format with proper K/M/B notation
+    /// Examples:
+    /// - 999 -> "999"
+    /// - 1,500 -> "2K" (rounded)
+    /// - 1,888,870,000,000 -> "1,889B" (rounded to nearest billion)
+    /// - 710,000,000,000 -> "710B"
     static func formatScoreDisplay(_ value: Int) -> String {
         guard value != 0 else { return "0" }
         let isNegative = value < 0
         let magnitude = abs(value)
-        
-        if magnitude >= 1_000_000 {
-            let millions = magnitude / 1_000_000
-            let millionsString = scoreMillionsFormatter.string(from: NSNumber(value: millions)) ?? "\(millions)"
-            return (isNegative ? "-" : "") + "\(millionsString)M"
+
+        // Format using K/M/B notation with rounding
+        let formatted: String
+
+        if magnitude < 1_000 {
+            // Display as-is for values under 1K
+            formatted = "\(magnitude)"
+        } else if magnitude < 1_000_000 {
+            // Round to nearest thousand and use K suffix
+            let thousands = (magnitude + 500) / 1_000  // Round to nearest
+            formatted = "\(thousands)K"
+        } else if magnitude < 1_000_000_000 {
+            // Round to nearest million and use M suffix
+            let millions = (magnitude + 500_000) / 1_000_000  // Round to nearest
+            formatted = "\(millions)M"
+        } else {
+            // Round to nearest billion and use B suffix with comma formatting
+            let billions = (magnitude + 500_000_000) / 1_000_000_000  // Round to nearest
+            if billions >= 1_000 {
+                // Format with comma separator for thousands of billions
+                let billionsString = scoreMillionsFormatter.string(from: NSNumber(value: billions)) ?? "\(billions)"
+                formatted = "\(billionsString)B"
+            } else {
+                formatted = "\(billions)B"
+            }
         }
-        
-        return formatScoreStyle(value)
+
+        return isNegative ? "-" + formatted : formatted
     }
 }
 

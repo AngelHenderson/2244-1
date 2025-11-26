@@ -92,7 +92,7 @@ public struct HybridGameScreen: View {
         // Break down the complex expression into smaller parts
         let baseView = mainGameView
             .safeAreaInset(edge: .top) { topHUD }
-            .safeAreaInset(edge: .bottom) { bottomDock }
+            .safeAreaInset(edge: .trailing) { bottomDock }
             .overlay(alignment: .top) {
                 if isShowingTopMergeTile, let v = topMergeTileValue {
                     TopMergeTileView(value: v)
@@ -450,15 +450,15 @@ struct SimplePowerupDock: View {
     let onMagnet: () -> Void
     let onUndo: () -> Void
     let onHome: () -> Void
-    
+
     var body: some View {
-        HStack(spacing: 20) {
+        VStack(spacing: 16) {
             // Home button
             powerupDockItem(
                 icon: "house.fill",
                 action: onHome
             )
-            
+
             // Break Any Tile On The Board (Hammer)
             powerupDockItem(
                 assetName: "hammer",
@@ -466,7 +466,7 @@ struct SimplePowerupDock: View {
                 isEnabled: gameStore.isPowerUpAvailable("hammer"),
                 action: onHammer
             )
-            
+
             // Swap Any 2 Tiles With Each Other (Restart/Swap)
             powerupDockItem(
                 assetName: "restart",
@@ -474,7 +474,7 @@ struct SimplePowerupDock: View {
                 isEnabled: gameStore.isPowerUpAvailable("swap"),
                 action: onSwap
             )
-            
+
             // Merge Same Tiles On The Board (Magnet)
             powerupDockItem(
                 assetName: "magnet",
@@ -482,7 +482,7 @@ struct SimplePowerupDock: View {
                 isEnabled: gameStore.isPowerUpAvailable("magnet"),
                 action: onMagnet
             )
-            
+
             // Undo button
             powerupDockItem(
                 icon: "arrow.uturn.backward",
@@ -490,8 +490,8 @@ struct SimplePowerupDock: View {
                 action: onUndo
             )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 16)
+        .padding(.horizontal, 12)
     }
     
     private func powerupDockItem(

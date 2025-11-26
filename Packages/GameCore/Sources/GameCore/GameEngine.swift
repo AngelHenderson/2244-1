@@ -144,15 +144,37 @@ public final class GameEngine {
     /// Reconstruct the eliminatedMilestones set from the highest tile value
     /// This ensures proper elimination state when restoring a saved game
     private func reconstructEliminatedMilestones(fromHighestTile highest: Int) {
-        // Start at 16K (first milestone that triggers elimination)
-        var milestone = 1 << 14  // 16_384
-        
+        // List of all milestones that trigger elimination (excluding skipped ones)
+        let eliminationMilestones = [
+            2048, 4096, // 8192 skipped
+            16384, 32768, 65536, // 131072 skipped
+            262144, 524288, 1048576, // 2097152 skipped
+            4194304, 8388608, 16777216, // 33554432 skipped
+            67108864, 134217728
+        ]
+
         // Add all milestones up to and including the highest tile
-        while milestone <= highest {
-            eliminatedMilestones.insert(milestone)
-            milestone <<= 1  // Double for next milestone
+        for milestone in eliminationMilestones {
+            if milestone <= highest {
+                eliminatedMilestones.insert(milestone)
+            } else {
+                break
+            }
         }
-        
+
+        // Handle milestones beyond 134M using the repeating pattern
+        if highest > 134217728 {
+            var currentMilestone = 268435456 // 268M
+            while currentMilestone <= highest {
+                // Follow pattern: add, add, skip
+                let position = Int(log2(Double(currentMilestone / 67108864)))
+                if position % 3 != 2 { // Not a skip position
+                    eliminatedMilestones.insert(currentMilestone)
+                }
+                currentMilestone *= 2
+            }
+        }
+
         if !eliminatedMilestones.isEmpty {
             print("🔄 RESTORE: Reconstructed \(eliminatedMilestones.count) elimination milestones from highest tile \(highest)")
         }
@@ -161,19 +183,26 @@ public final class GameEngine {
     /// Apply any pending eliminations after restoring a game
     /// This removes tiles that should have been eliminated but exist in the saved board
     private func applyPendingEliminationsOnRestore() {
-        guard let highestMilestone = eliminatedMilestones.max() else { return }
-        
-        // Find the highest value that should be eliminated (milestone >> 14)
-        let maxEliminatedValue = highestMilestone >> 14
-        
+        guard !eliminatedMilestones.isEmpty else { return }
+
+        // Collect all values that should be eliminated based on reached milestones
+        var valuesToEliminate: Set<Int> = []
+        for milestone in eliminatedMilestones {
+            if let eliminatedValue = milestoneExcludedValue(for: milestone) {
+                valuesToEliminate.insert(eliminatedValue)
+            }
+        }
+
+        guard !valuesToEliminate.isEmpty else { return }
+
         var didRemove = false
         var totalRemoved = 0
-        
-        // Remove ALL tiles with values at or below the elimination threshold
+
+        // Remove ALL tiles with values that should be eliminated
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], tile.value <= maxEliminatedValue {
+                if let tile = state.board[pos], valuesToEliminate.contains(tile.value) {
                     print("🗑️ RESTORE ELIMINATION: Removing stale tile \(tile.value) at \(pos)")
                     state.board[pos] = nil
                     didRemove = true
@@ -181,7 +210,7 @@ public final class GameEngine {
                 }
             }
         }
-        
+
         if didRemove {
             print("   ✅ Eliminated \(totalRemoved) stale tiles from restored board")
             refillAfterGravity()
@@ -888,13 +917,16 @@ public final class GameEngine {
     }
     
     private func latestEliminatedValue() -> Int? {
-        if let highestMilestone = eliminatedMilestones.max(),
-           let eliminated = milestoneExcludedValue(for: highestMilestone) {
-            return eliminated
+        // Find the highest eliminated value from all reached milestones
+        var highestEliminatedValue: Int? = nil
+        for milestone in eliminatedMilestones {
+            if let eliminated = milestoneExcludedValue(for: milestone) {
+                if highestEliminatedValue == nil || eliminated > highestEliminatedValue! {
+                    highestEliminatedValue = eliminated
+                }
+            }
         }
-        guard state.highestTile >= 16_384 else { return nil }
-        let eliminated = state.highestTile / 16_384
-        return eliminated > 0 ? eliminated : nil
+        return highestEliminatedValue
     }
 
     // MARK: - Gravity and Refill (Always-Full)
