@@ -56,7 +56,7 @@ struct TileView: View {
                     if tile.isInfinity {
                         Image(systemName: "infinity")
                             .font(.system(size: fontSize * 1.2, weight: .bold))
-                        .foregroundColor(textColor)
+                            .foregroundColor(textColor)
                     } else if tile.isLocked {
                         ZStack {
                             numberText(for: tile.value, locked: true)
@@ -87,7 +87,7 @@ struct TileView: View {
                     } else if case .highValue(let step) = tile.type {
                         Text(JourneyTileGenerator.formatTileAtStep(step))
                             .font(baseFont(weight: .heavy, size: fontSize))
-                        .foregroundColor(textColor)
+                            .foregroundColor(textColor)
                             .minimumScaleFactor(0.5)
                             .contentTransition(.numericText())
                             .kerning(kerning(for: Int.max))

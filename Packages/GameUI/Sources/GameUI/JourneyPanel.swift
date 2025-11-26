@@ -66,8 +66,7 @@ private extension JourneyPanel {
                         tile: tile,
                         isSelected: false,
                         isValid: true,
-                        size: 120,
-                        textColorOverride: .black
+                        size: 120
                     )
                     if tile.value == highest {
                         Text("Highest Tile")
