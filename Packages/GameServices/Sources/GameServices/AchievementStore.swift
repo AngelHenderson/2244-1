@@ -21,8 +21,11 @@ public final class AchievementStore {
     
     private let gc = GameCenterManager.shared
     public var onReward: (@MainActor (AchievementDef.Rewards) -> Void)?
+    private let defaults: UserDefaults
 
-    public init() {}
+    public init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
     
     public func loadCatalogFromBundle(named filename: String = "2244_achievements", in bundle: Bundle = .main) throws {
         guard let url = bundle.url(forResource: filename, withExtension: "json") else {
@@ -78,34 +81,24 @@ public final class AchievementStore {
         state.claimed = true
         unlocks[definition.id] = state
         print("✅ Achievement claimed: \(definition.id)")
-        if let rewards = definition.rewards {
-            print("🎁 Rewards to grant: gems=\(rewards.gems ?? 0), hammers=\(rewards.hammers ?? 0), spins=\(rewards.spins ?? 0)")
-            
-            // DIRECT gem grant via UserDefaults (matching AppStorage "coins" key)
-            if let gems = rewards.gems, gems > 0 {
-                let currentGems = UserDefaults.standard.integer(forKey: "coins")
-                let newGems = currentGems + gems
-                UserDefaults.standard.set(newGems, forKey: "coins")
-                print("💎 DIRECT GEM GRANT: \(currentGems) + \(gems) = \(newGems) saved to UserDefaults")
-                
-                // Post notification for UI refresh
-                NotificationCenter.default.post(
-                    name: Notification.Name("GemsDidChange"),
-                    object: nil,
-                    userInfo: ["newBalance": newGems, "added": gems]
-                )
-            }
-            
-            // Also call onReward callback if set (for power-ups, spins, etc.)
-            if let callback = onReward {
-                print("📞 Calling onReward callback...")
-                callback(rewards)
-                print("📞 onReward callback completed")
-            } else {
-                print("⚠️ onReward callback is nil - gems were still saved directly")
-            }
-        } else {
+        guard let rewards = definition.rewards else {
             print("⚠️ No rewards defined for this achievement")
+            return
+        }
+        
+        print("🎁 Rewards to grant: gems=\(rewards.gems ?? 0), hammers=\(rewards.hammers ?? 0), spins=\(rewards.spins ?? 0)")
+        
+        // Prefer the injected reward handler so the host app (gem wallet, power-ups, etc.)
+        // can apply rewards consistently. Fall back to a direct gem grant if no handler exists.
+        if let callback = onReward {
+            print("📞 Calling onReward callback...")
+            callback(rewards)
+            print("📞 onReward callback completed")
+        } else {
+            print("⚠️ onReward callback is nil - falling back to direct gem grant")
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
         }
     }
     
@@ -190,5 +183,18 @@ public final class AchievementStore {
             #endif
             return 0.0
         }
+    }
+    
+    private func grantGemsDirectly(_ gems: Int) {
+        let currentGems = defaults.integer(forKey: "coins")
+        let newGems = currentGems + gems
+        defaults.set(newGems, forKey: "coins")
+        print("💎 DIRECT GEM GRANT: \(currentGems) + \(gems) = \(newGems) saved to UserDefaults")
+        
+        NotificationCenter.default.post(
+            name: Notification.Name("GemsDidChange"),
+            object: nil,
+            userInfo: ["newBalance": newGems, "added": gems]
+        )
     }
 }
