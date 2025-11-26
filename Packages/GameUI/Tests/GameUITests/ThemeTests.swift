@@ -47,4 +47,20 @@ struct ThemeTests {
             #expect(Theme.textColor(for: baseValue) == Theme.textColor(for: repeatedValue))
         }
     }
+    
+    @Test
+    @MainActor
+    func testJourneyScreenshotTextColors() {
+        let expectations: [(value: Int, color: Color)] = [
+            (256, .white),
+            (512, .black),
+            (128, .white),
+            (65_536, .black),
+            (4_096, .white)
+        ]
+        
+        for item in expectations {
+            #expect(Theme.textColor(for: item.value) == item.color)
+        }
+    }
 }
