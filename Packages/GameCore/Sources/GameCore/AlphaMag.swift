@@ -256,18 +256,20 @@ private let scoreMillionsFormatter: NumberFormatter = {
 }()
 
 public extension AlphaMag {
-    /// Scoreboard-friendly format with proper K/M/B notation
+    /// Scoreboard-friendly format with K/M/B/a/b/c... notation
     /// Examples:
     /// - 999 -> "999"
     /// - 1,500 -> "2K" (rounded)
-    /// - 1,888,870,000,000 -> "1,889B" (rounded to nearest billion)
+    /// - 950,000,000 -> "950M"
     /// - 710,000,000,000 -> "710B"
+    /// - 2,040,584,000,000 -> "2,041a" (rounded to nearest trillion)
+    /// - 5,500,000,000,000,000 -> "5,500b" (quadrillions)
     static func formatScoreDisplay(_ value: Int) -> String {
         guard value != 0 else { return "0" }
         let isNegative = value < 0
         let magnitude = abs(value)
 
-        // Format using K/M/B notation with rounding
+        // Format using K/M/B/alphabetic notation with rounding
         let formatted: String
 
         if magnitude < 1_000 {
@@ -281,15 +283,36 @@ public extension AlphaMag {
             // Round to nearest million and use M suffix
             let millions = (magnitude + 500_000) / 1_000_000  // Round to nearest
             formatted = "\(millions)M"
-        } else {
-            // Round to nearest billion and use B suffix with comma formatting
+        } else if magnitude < 1_000_000_000_000 {
+            // Round to nearest billion and use B suffix
             let billions = (magnitude + 500_000_000) / 1_000_000_000  // Round to nearest
-            if billions >= 1_000 {
-                // Format with comma separator for thousands of billions
-                let billionsString = scoreMillionsFormatter.string(from: NSNumber(value: billions)) ?? "\(billions)"
-                formatted = "\(billionsString)B"
+            formatted = "\(billions)B"
+        } else {
+            // For trillions and beyond, use alphabetic suffixes (a, b, c, ...)
+            // Calculate which tier we're in
+            var tierValue = magnitude / 1_000_000_000_000  // Start with trillions
+            var tierIndex = 0  // 0 = trillions (a), 1 = quadrillions (b), etc.
+
+            // Find the appropriate tier
+            while tierValue >= 1_000_000 && tierIndex < 25 {  // Stop before we overflow the alphabet
+                tierValue /= 1_000
+                tierIndex += 1
+            }
+
+            // Round to nearest value in the current tier
+            let divisor = Int(1_000_000_000_000) * Int(pow(1_000.0, Double(tierIndex)))
+            let roundingOffset = divisor / 2
+            let rounded = (magnitude + roundingOffset) / divisor
+
+            // Get the alphabetic suffix
+            let suffix = suffix(forOrdinal: tierIndex + 1)  // +1 because ordinal starts at 1
+
+            // Format with comma separator if >= 1,000
+            if rounded >= 1_000 {
+                let formattedNumber = scoreMillionsFormatter.string(from: NSNumber(value: rounded)) ?? "\(rounded)"
+                formatted = "\(formattedNumber)\(suffix)"
             } else {
-                formatted = "\(billions)B"
+                formatted = "\(rounded)\(suffix)"
             }
         }
 
