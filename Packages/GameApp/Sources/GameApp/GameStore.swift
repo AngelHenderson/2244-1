@@ -203,9 +203,10 @@ public final class GameStore {
         
         // Initialize comprehensive session tracking
         initializeSessionTracking()
-        
-        // Restore legacy progress if needed (for backward compatibility)
-        restoreProgress()
+
+        // Note: restoreProgress() is now handled properly during GameProgress loading
+        // Commenting out to prevent duplicate restoration that causes gem rollback
+        // restoreProgress()
         
         // Listen for app lifecycle save notifications
         NotificationCenter.default.addObserver(
@@ -1593,10 +1594,17 @@ extension GameStore {
             }
         }
         
-        if savedGems > state.gems {
+        // Only restore gems if we have NO gems currently (fresh start)
+        // This prevents overwriting current gem balance with old values
+        if state.gems == 0 && savedGems > 0 {
             state.gems = savedGems
             syncEngineGems()
             print("🔄 Restored gems: \(savedGems)")
+        } else if savedGems != state.gems {
+            // If gems differ, trust the current state as it's more recent
+            print("⚠️ Gem mismatch - Current: \(state.gems), Saved: \(savedGems). Keeping current value.")
+            // Ensure UserDefaults matches current state
+            UserDefaults.standard.set(state.gems, forKey: "coins")
         }
         
         // COMPREHENSIVE SESSION DATA RESTORATION
