@@ -4,8 +4,9 @@ import XCTest
 @MainActor
 final class DailyClaimsStoreTests: XCTestCase {
     func testWeeklyRewardsRepeatEverySevenDays() async throws {
-        let store = makeStore(suite: "DailyClaimsStoreTests.repeat")
-        defer { clearStore(for: "DailyClaimsStoreTests.repeat") }
+        let suite = "DailyClaimsStoreTests.repeat"
+        let store = makeStore(suite: suite)
+        defer { clearStore(for: suite) }
         
         await store.loadCatalogs()
         store.updateAvailability()
@@ -18,8 +19,9 @@ final class DailyClaimsStoreTests: XCTestCase {
     }
     
     func testClaimingAdvancesStreakAndLocksUntilTomorrow() async throws {
-        let store = makeStore(suite: "DailyClaimsStoreTests.claim")
-        defer { clearStore(for: "DailyClaimsStoreTests.claim") }
+        let suite = "DailyClaimsStoreTests.claim"
+        let store = makeStore(suite: suite)
+        defer { clearStore(for: suite) }
         
         await store.loadCatalogs()
         store.updateAvailability()
@@ -38,11 +40,38 @@ final class DailyClaimsStoreTests: XCTestCase {
         XCTAssertGreaterThan(store.dailyClaims.count, initialCount)
     }
     
+    func testMissingDayDoesNotResetRewardProgress() async throws {
+        let suite = "DailyClaimsStoreTests.break"
+        let store = makeStore(suite: suite)
+        defer { clearStore(for: suite) }
+        
+        await store.loadCatalogs()
+        store.updateAvailability()
+        
+        store.claimDailyReward()
+        XCTAssertEqual(store.currentClaimDay, 1)
+        
+        // Simulate skipping more than a day by moving the last claim timestamp back.
+        let defaults = userDefaults(for: suite)
+        let twoDaysAgo = Date().addingTimeInterval(-172_800)
+        defaults.set(twoDaysAgo.timeIntervalSince1970, forKey: "lastClaimDate")
+        
+        let storeAfterBreak = makeStore(suite: suite, clearing: false)
+        await storeAfterBreak.loadCatalogs()
+        storeAfterBreak.updateAvailability()
+        
+        XCTAssertTrue(storeAfterBreak.canClaimToday)
+        XCTAssertEqual(storeAfterBreak.currentClaimDay, 1)
+        XCTAssertEqual(storeAfterBreak.getNextClaimableDay(), 2)
+    }
+    
     // MARK: - Helpers
     
-    private func makeStore(suite: String) -> DailyClaimsStore {
-        let defaults = UserDefaults(suiteName: suite)!
-        defaults.removePersistentDomain(forName: suite)
+    private func makeStore(suite: String, clearing: Bool = true) -> DailyClaimsStore {
+        let defaults = userDefaults(for: suite)
+        if clearing {
+            defaults.removePersistentDomain(forName: suite)
+        }
         return DailyClaimsStore(storage: defaults)
     }
     
@@ -50,5 +79,12 @@ final class DailyClaimsStoreTests: XCTestCase {
         if let defaults = UserDefaults(suiteName: suite) {
             defaults.removePersistentDomain(forName: suite)
         }
+    }
+    
+    private func userDefaults(for suite: String) -> UserDefaults {
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            fatalError("Unable to create defaults for suite \(suite)")
+        }
+        return defaults
     }
 }
