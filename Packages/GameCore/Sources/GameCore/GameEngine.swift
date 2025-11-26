@@ -839,8 +839,48 @@ public final class GameEngine {
     }
     
     private func milestoneExcludedValue(for milestone: Int) -> Int? {
-        guard milestone >= (1 << 14) else { return nil }
-        return milestone >> 14
+        // New elimination pattern based on specific milestones
+        switch milestone {
+        case 2048: return 2        // 2K eliminates 2s
+        case 4096: return 4        // 4K eliminates 4s
+        case 8192: return nil      // 8K - skip
+        case 16384: return 8       // 16K eliminates 8s
+        case 32768: return 16      // 32K eliminates 16s
+        case 65536: return 32      // 65K eliminates 32s
+        case 131072: return nil    // 131K - skip
+        case 262144: return 64     // 262K eliminates 64s
+        case 524288: return 128    // 524K eliminates 128s
+        case 1048576: return 256   // 1M eliminates 256s
+        case 2097152: return nil   // 2M - skip
+        case 4194304: return 512   // 4M eliminates 512s
+        case 8388608: return 1024  // 8M eliminates 1024s
+        case 16777216: return 2048 // 16M eliminates 2048s
+        case 33554432: return nil  // 33M - skip
+        case 67108864: return 4096 // 67M eliminates 4096s
+        case 134217728: return 8192 // 134M eliminates 8192s
+        default:
+            // For values beyond 134M, repeat the pattern starting from 67M
+            if milestone > 134217728 {
+                // Calculate the position in the repeating cycle
+                let baseValue = 67108864 // Starting point of repetition
+                var currentMilestone = baseValue
+                var eliminationValue = 4096
+
+                // Find the matching milestone in the cycle
+                while currentMilestone < milestone {
+                    currentMilestone *= 2
+                    // Follow the same pattern: eliminate, eliminate, skip
+                    if currentMilestone == milestone {
+                        let position = Int(log2(Double(currentMilestone / baseValue)))
+                        if position % 3 == 2 {
+                            return nil // Skip position
+                        }
+                        return eliminationValue * (1 << (position - (position / 3)))
+                    }
+                }
+            }
+            return nil
+        }
     }
     
     private func milestoneProtectionValue(for milestone: Int) -> Int? {
