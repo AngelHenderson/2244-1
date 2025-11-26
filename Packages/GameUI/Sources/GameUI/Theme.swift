@@ -50,7 +50,7 @@ public struct Theme {
         6: (Color(hex: "9674FF"), false),      // 64, 64×2^25, 64×2^50... → Purple
         7: (Color(hex: "03524B"), false),      // 128, 128×2^25... → Dark teal
         8: (Color(hex: "FF0039"), false),      // 256, 256×2^25... → Red
-        9: (Color(hex: "FF6F96"), false),      // 512, 512×2^25... → Pink
+        9: (Color(hex: "FF6F96"), true),       // 512, 512×2^25... → Pink (dark text)
         10: (Color(hex: "07F901"), false),     // 1024, 1024×2^25... → Bright green
         11: (Color(hex: "FF3B7B"), false),     // 2048, 2048×2^25... → Vivid pink (was FF0027)
         12: (Color(hex: "55B9FF"), false),     // 4096, 4096×2^25... → Blue
