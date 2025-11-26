@@ -142,12 +142,12 @@ struct AlphaMagProgressionTests {
         // Test trillion formatting with 'a' suffix
         #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000) == "1a")  // 1 trillion
         #expect(AlphaMag.formatScoreDisplay(2_040_584_000_000) == "2a")  // 2.04 trillion rounds to 2a
-        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000) == "5a")  // 5.5 trillion rounds to 5a (using plain rounding)
+        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000) == "6a")  // 5.5 trillion rounds to 6a (plain rounding)
         #expect(AlphaMag.formatScoreDisplay(999_000_000_000_000) == "999a")  // 999 trillion
 
         // Test quadrillion formatting with 'b' suffix
         #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000_000) == "1b")  // 1 quadrillion
-        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000_000) == "5b")  // 5.5 quadrillion rounds to 5b
+        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000_000) == "6b")  // 5.5 quadrillion rounds to 6b
 
         // Test quintillion formatting with 'c' suffix (if Int can hold it)
         if Int.max >= 1_000_000_000_000_000_000 {

@@ -1108,13 +1108,25 @@ public final class GameEngine {
     // MARK: - Milestone elimination helpers
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
-        // For extremely high values (trillion+), use threshold elimination
-        // This ensures old low-value tiles like 33M, 67M get cleaned up
-        if createdValue >= 1_000_000_000_000 { // 1 trillion or higher
+        // For milestones >= 67M, use threshold elimination
+        // This eliminates all tiles below (milestone >> 14)
+        if createdValue >= 67_108_864 { // 67M or higher
+            // Check if it's a skip milestone
+            let log67M = 26 // log2(67108864)
+            let logMilestone = Int(log2(Double(createdValue)))
+            let position = logMilestone - log67M
+
+            // Skip milestones don't eliminate anything
+            if createdValue >= 268_435_456 && position % 3 == 2 {
+                print("🔄 SKIP MILESTONE: Reached \(formatLargeNumber(createdValue)) - no elimination")
+                eliminatedMilestones.insert(createdValue)
+                return
+            }
+
             // Eliminate everything below (createdValue >> 14)
             let threshold = createdValue >> 14
 
-            print("🗑️ HIGH MILESTONE ELIMINATION: Reached \(formatLargeNumber(createdValue))")
+            print("🗑️ MILESTONE ELIMINATION: Reached \(formatLargeNumber(createdValue))")
             print("   Eliminating all tiles below \(formatLargeNumber(threshold))")
 
             eliminateAllTilesBelowThreshold(threshold: threshold)
@@ -1124,7 +1136,7 @@ public final class GameEngine {
             return
         }
 
-        // For normal milestones, use the regular single-value elimination
+        // For milestones < 67M, use the original single-value elimination
         guard let toRemove = milestoneExcludedValue(for: createdValue) else { return }
 
         let isNewMilestone = eliminatedMilestones.insert(createdValue).inserted
