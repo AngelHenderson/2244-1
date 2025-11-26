@@ -729,6 +729,10 @@ public final class GameStore {
     @discardableResult
     public func applyDouble(to position: Position) -> Bool {
         guard let base = pendingDoubleBase else { return false }
+        
+        // Capture previous highest for milestone detection
+        let previousHighest = state.highestTile
+        
         let previousBoard = state.board
         let newState = engine.applyDouble(to: position, from: base)
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
@@ -737,6 +741,9 @@ public final class GameStore {
         // Notify JourneyKit if we created a new highest tile  
         let doubledValue = base * 2
         journey.didReach(tile: doubledValue)
+        
+        // Show milestone notification if this created a new highest tile
+        setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: doubledValue)
         
         // Persist if this is a new highest tile
         if doubledValue > state.highestTile {
@@ -752,6 +759,26 @@ public final class GameStore {
     // MARK: - Merge Info
     public func clearLastMergeInfo() {
         lastMergeInfo = nil
+    }
+    
+    /// Set merge info when a power-up creates a new milestone tile
+    /// This shows the "Unlocked / Added / Eliminated" notification
+    private func setMergeInfoIfMilestone(previousHighest: Int, newTileValue: Int) {
+        // Only show merge info if this is a new highest tile
+        guard newTileValue > previousHighest else { return }
+        
+        // Calculate the "added" value (7 doublings down from unlocked)
+        let added = newTileValue / 128
+        
+        // Calculate the "excluded" value (14 doublings down from unlocked)
+        // Only set if the milestone is high enough to trigger elimination (>= 16K)
+        let excluded: Int? = {
+            let eliminated = newTileValue / 16_384
+            return eliminated > 0 ? eliminated : nil
+        }()
+        
+        lastMergeInfo = MergeInfo(unlocked: newTileValue, added: added, excluded: excluded)
+        print("🎯 POWER-UP MILESTONE: Unlocked \(newTileValue), Added spawns at \(added), Excluded \(excluded ?? 0)")
     }
     
     public func clearLastMagnetEvent() {
@@ -900,18 +927,41 @@ public final class GameStore {
             return false
         }
         
+        // Capture previous highest for milestone detection
+        let previousHighest = state.highestTile
+        
         // Use the engine's magnetize method to merge all tiles with the same value
         let previousBoard = state.board
         let newState = engine.magnetize(value: value, to: position)
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
         
+        // Calculate merged value and show milestone notification if applicable
+        let totalValue = value * matchingPositions.count
+        let mergedValue: Int = {
+            guard totalValue > 0 else { return 0 }
+            if totalValue & (totalValue - 1) == 0 { return totalValue }
+            if totalValue > (1 << 62) { return Int.max }
+            var x = totalValue - 1
+            x |= x >> 1
+            x |= x >> 2
+            x |= x >> 4
+            x |= x >> 8
+            x |= x >> 16
+            #if arch(x86_64) || arch(arm64)
+            x |= x >> 32
+            #endif
+            let next = x + 1
+            return next > 0 ? next : Int.max
+        }()
+        setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
+        
         // Track power-up usage
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
         achievementEvaluator?.onPowerUpUsed(type: "magnet")
         
         // Save progress after magnet use
-        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        saveProgressImmediately(newTile: mergedValue, currentScore: state.score)
         
         return true
     }

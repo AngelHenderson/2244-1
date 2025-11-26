@@ -88,17 +88,17 @@ public final class AchievementStore {
         
         print("🎁 Rewards to grant: gems=\(rewards.gems ?? 0), hammers=\(rewards.hammers ?? 0), spins=\(rewards.spins ?? 0)")
         
-        // Prefer the injected reward handler so the host app (gem wallet, power-ups, etc.)
-        // can apply rewards consistently. Fall back to a direct gem grant if no handler exists.
+        if let gems = rewards.gems, gems > 0 {
+            // Always persist the gem delta so UI and wallet stay in sync, even if no callback is wired.
+            grantGemsDirectly(gems)
+        }
+        
         if let callback = onReward {
             print("📞 Calling onReward callback...")
             callback(rewards)
             print("📞 onReward callback completed")
         } else {
-            print("⚠️ onReward callback is nil - falling back to direct gem grant")
-            if let gems = rewards.gems, gems > 0 {
-                grantGemsDirectly(gems)
-            }
+            print("⚠️ onReward callback is nil - rewards were applied directly where possible")
         }
     }
     

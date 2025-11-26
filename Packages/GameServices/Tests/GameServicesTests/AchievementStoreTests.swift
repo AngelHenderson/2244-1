@@ -21,7 +21,7 @@ final class AchievementStoreTests: XCTestCase {
         store.claim(definition: try XCTUnwrap(store.catalog.first))
         
         XCTAssertEqual(grantedGems, 15, "Reward handler should receive gem amount")
-        XCTAssertEqual(defaults.integer(forKey: "coins"), 0, "Direct fallback should not run when handler is set")
+        XCTAssertEqual(defaults.integer(forKey: "coins"), 15, "Gem grants should persist even when a handler is set")
     }
     
     func testClaimFallsBackToDirectGemGrant() async throws {
