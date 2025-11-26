@@ -159,13 +159,23 @@ struct Tile3DStyle: ViewModifier {
                     x: 0,
                     y: depth * 0.8
                 )
-                .overlay(
-                    isSelected ?
+                .conditionalOverlay(isSelected) {
                     shape.strokeBorder(
                         isValid ? Color.green : Color.red,
                         lineWidth: 3
-                    ) : nil
-                )
+                    )
+                }
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func conditionalOverlay<Overlay: View>(_ condition: Bool, @ViewBuilder _ overlay: () -> Overlay) -> some View {
+        if condition {
+            self.overlay(overlay())
+        } else {
+            self
         }
     }
 }

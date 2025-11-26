@@ -452,12 +452,16 @@ struct SimplePowerupDock: View {
     let onHome: () -> Void
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             // Home button
             powerupDockItem(
                 icon: "house.fill",
                 action: onHome
             )
+
+            Divider()
+                .frame(width: 30)
+                .opacity(0.3)
 
             // Break Any Tile On The Board (Hammer)
             powerupDockItem(
@@ -490,8 +494,14 @@ struct SimplePowerupDock: View {
                 action: onUndo
             )
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .shadow(radius: 4)
+        )
+        .padding(.trailing, 8)
     }
     
     private func powerupDockItem(
@@ -503,10 +513,10 @@ struct SimplePowerupDock: View {
         Button(action: action) {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .frame(width: 48, height: 48)
+                    .font(.system(size: 22))
+                    .frame(width: 44, height: 44)
                     .foregroundStyle(isEnabled ? .primary : .tertiary)
-                
+
                 // Badge for inventory count
                 if badge > 0 {
                     Text("\(badge)")
@@ -515,17 +525,17 @@ struct SimplePowerupDock: View {
                         .frame(width: 16, height: 16)
                         .background(Color.blue)
                         .clipShape(Circle())
-                        .offset(x: 6, y: -6)
+                        .offset(x: 4, y: -4)
                 }
             }
-            .padding(4)
+            .padding(3)
         }
         .buttonStyle(.plain)
-        .glassEffectCompat(cornerRadius: 12)
+        .glassEffectCompat(cornerRadius: 10)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1.0 : 0.6)
     }
-    
+
     private func powerupDockItem(
         assetName: String,
         badge: Int = 0,
@@ -537,10 +547,10 @@ struct SimplePowerupDock: View {
                 Image(assetName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
-                    .frame(width: 48, height: 48)
+                    .frame(width: 22, height: 22)
+                    .frame(width: 44, height: 44)
                     .opacity(isEnabled ? 1.0 : 0.4)
-                
+
                 // Badge for inventory count
                 if badge > 0 {
                     Text("\(badge)")
@@ -549,13 +559,13 @@ struct SimplePowerupDock: View {
                         .frame(width: 16, height: 16)
                         .background(Color.blue)
                         .clipShape(Circle())
-                        .offset(x: 6, y: -6)
+                        .offset(x: 4, y: -4)
                 }
             }
-            .padding(4)
+            .padding(3)
         }
         .buttonStyle(.plain)
-        .glassEffectCompat(cornerRadius: 12)
+        .glassEffectCompat(cornerRadius: 10)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1.0 : 0.6)
     }

@@ -50,54 +50,58 @@ struct TileView: View {
     var useLegacyTypography: Bool = false   // NEW: allows restoring the old look
     
     var body: some View {
-        let content = Group {
-            if let tile = tile {
-                if tile.isInfinity {
-                    Image(systemName: "infinity")
-                        .font(.system(size: fontSize * 1.2, weight: .bold))
-                        .foregroundColor(textColor)
-                } else if tile.isLocked {
-                    ZStack {
-                        numberText(for: tile.value, locked: true)
-                        Image("lockpic")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 32, height: 32)
-                    }
-                } else if case .bomb(let turns) = tile.type {
-                    ZStack {
-                        numberText(for: tile.value, scale: 0.8)
-                        VStack {
-                            Spacer()
-                            HStack {
+        let content = AnyView(
+            Group {
+                if let tile = tile {
+                    if tile.isInfinity {
+                        Image(systemName: "infinity")
+                            .font(.system(size: fontSize * 1.2, weight: .bold))
+                            .foregroundColor(textColor)
+                    } else if tile.isLocked {
+                        ZStack {
+                            numberText(for: tile.value, locked: true)
+                            Image("lockpic")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 32, height: 32)
+                        }
+                    } else if case .bomb(let turns) = tile.type {
+                        ZStack {
+                            numberText(for: tile.value, scale: 0.8)
+                            VStack {
                                 Spacer()
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: size * 0.25, height: size * 0.25)
-                                    Text("\(turns)")
-                                        .font(.system(size: size * 0.15, weight: .bold))
-                                        .foregroundColor(.white)
+                                HStack {
+                                    Spacer()
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: size * 0.25, height: size * 0.25)
+                                        Text("\(turns)")
+                                            .font(.system(size: size * 0.15, weight: .bold))
+                                            .foregroundColor(.white)
+                                    }
                                 }
                             }
+                            .padding(4)
                         }
-                        .padding(4)
+                    } else if case .highValue(let step) = tile.type {
+                        Text(JourneyTileGenerator.formatTileAtStep(step))
+                            .font(baseFont(weight: .heavy, size: fontSize))
+                            .foregroundColor(textColor)
+                            .minimumScaleFactor(0.5)
+                            .contentTransition(.numericText())
+                            .kerning(kerning(for: Int.max))
+                            .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                            .conditionalOverlay(colorBlindMode) { patternOverlay }
+                    } else {
+                        numberText(for: tile.value)
+                            .conditionalOverlay(colorBlindMode) { patternOverlay }
                     }
-                } else if case .highValue(let step) = tile.type {
-                    Text(JourneyTileGenerator.formatTileAtStep(step))
-                        .font(baseFont(weight: .heavy, size: fontSize))
-                        .foregroundColor(textColor)
-                        .minimumScaleFactor(0.5)
-                        .contentTransition(.numericText())
-                        .kerning(kerning(for: Int.max))
-                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
-                        .overlay(colorBlindMode ? patternOverlay : nil)
                 } else {
-                    numberText(for: tile.value)
-                        .overlay(colorBlindMode ? patternOverlay : nil)
+                    EmptyView()
                 }
             }
-        }
+        )
         
         ZStack {
             let maxRadius = size * 0.15
@@ -239,6 +243,17 @@ struct TileView: View {
                 }
             }
             .stroke(Color.white.opacity(0.2), lineWidth: 1)
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func conditionalOverlay<Overlay: View>(_ condition: Bool, @ViewBuilder _ overlay: () -> Overlay) -> some View {
+        if condition {
+            self.overlay(overlay())
+        } else {
+            self
         }
     }
 }

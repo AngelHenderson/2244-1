@@ -195,8 +195,7 @@ private struct TileRowItem: View {
                     useLegacyTypography: true   // Preserve the previous journey look
                 )
                 .saturation(isLocked ? 0.0 : 1.0)
-                .overlay(
-                    isCurrentHighest ?
+                .conditionalOverlay(isCurrentHighest) {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(
                             LinearGradient(
@@ -207,8 +206,7 @@ private struct TileRowItem: View {
                             lineWidth: 3
                         )
                         .shadow(color: .orange.opacity(0.5), radius: 8)
-                    : nil
-                )
+                }
                 .animation(.snappy(duration: 0.25), value: isLocked)
                 .animation(.snappy(duration: 0.25), value: isCurrentHighest)
                 
@@ -261,6 +259,17 @@ private struct TileRowItem: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 80)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func conditionalOverlay<Overlay: View>(_ condition: Bool, @ViewBuilder _ overlay: () -> Overlay) -> some View {
+        if condition {
+            self.overlay(overlay())
+        } else {
+            self
+        }
     }
 }
 

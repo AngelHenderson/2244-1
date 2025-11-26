@@ -162,14 +162,23 @@ public final class GameEngine {
             }
         }
 
-        // Handle milestones beyond 134M using the repeating pattern
-        if highest > 134217728 {
-            var currentMilestone = 268435456 // 268M
+        // Handle milestones beyond 134M using the infinite repeating pattern
+        if highest >= 268435456 { // 268M and beyond
+            var currentMilestone = 268435456 // Start at 268M
             while currentMilestone <= highest {
-                // Follow pattern: add, add, skip
-                let position = Int(log2(Double(currentMilestone / 67108864)))
+                // Calculate position relative to 67M
+                let log67M = 26 // log2(67108864)
+                let logCurrent = Int(log2(Double(currentMilestone)))
+                let position = logCurrent - log67M
+
+                // Every 3rd position (2, 5, 8, 11...) is a skip
                 if position % 3 != 2 { // Not a skip position
                     eliminatedMilestones.insert(currentMilestone)
+                }
+
+                // Safeguard against overflow when doubling
+                if currentMilestone > Int.max / 2 {
+                    break
                 }
                 currentMilestone *= 2
             }
@@ -889,24 +898,39 @@ public final class GameEngine {
         case 134217728: return 8192 // 134M eliminates 8192s
         default:
             // For values beyond 134M, repeat the pattern starting from 67M
-            if milestone > 134217728 {
-                // Calculate the position in the repeating cycle
-                let baseValue = 67108864 // Starting point of repetition
-                var currentMilestone = baseValue
-                var eliminationValue = 4096
+            // Pattern repeats forever: eliminate, eliminate, skip
+            if milestone >= 268435456 { // 268M and beyond
+                // The pattern from 67M repeats with these rules:
+                // 67M (2^26) eliminates 4096 (2^12)
+                // 134M (2^27) eliminates 8192 (2^13)
+                // 268M (2^28) skips
+                // 536M (2^29) eliminates 16384 (2^14)
+                // 1G (2^30) eliminates 32768 (2^15)
+                // 2G (2^31) skips
+                // And so on forever...
 
-                // Find the matching milestone in the cycle
-                while currentMilestone < milestone {
-                    currentMilestone *= 2
-                    // Follow the same pattern: eliminate, eliminate, skip
-                    if currentMilestone == milestone {
-                        let position = Int(log2(Double(currentMilestone / baseValue)))
-                        if position % 3 == 2 {
-                            return nil // Skip position
-                        }
-                        return eliminationValue * (1 << (position - (position / 3)))
-                    }
+                // Calculate position relative to 67M
+                let log67M = 26 // log2(67108864)
+                let logMilestone = Int(log2(Double(milestone)))
+                let position = logMilestone - log67M // How many doublings from 67M
+
+                // Every 3rd position (2, 5, 8, 11...) is a skip
+                if position % 3 == 2 {
+                    return nil // Skip position
                 }
+
+                // Calculate the elimination value
+                // Starting from 4096 (2^12), we increment the exponent for non-skip positions
+                let baseExp = 12 // Starting exponent for 4096
+                let nonSkipIndex = position - (position / 3) // Adjust for skips
+                let eliminationExp = baseExp + nonSkipIndex
+
+                // Safeguard against overflow
+                if eliminationExp >= 63 {
+                    return Int.max
+                }
+
+                return 1 << eliminationExp
             }
             return nil
         }
