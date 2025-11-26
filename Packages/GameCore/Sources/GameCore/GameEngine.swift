@@ -1108,22 +1108,53 @@ public final class GameEngine {
     // MARK: - Milestone elimination helpers
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
+        // For extremely high values (trillion+), use threshold elimination
+        // This ensures old low-value tiles like 33M, 67M get cleaned up
+        if createdValue >= 1_000_000_000_000 { // 1 trillion or higher
+            // Eliminate everything below (createdValue >> 14)
+            let threshold = createdValue >> 14
+
+            print("🗑️ HIGH MILESTONE ELIMINATION: Reached \(formatLargeNumber(createdValue))")
+            print("   Eliminating all tiles below \(formatLargeNumber(threshold))")
+
+            eliminateAllTilesBelowThreshold(threshold: threshold)
+
+            // Mark this milestone as reached
+            eliminatedMilestones.insert(createdValue)
+            return
+        }
+
+        // For normal milestones, use the regular single-value elimination
         guard let toRemove = milestoneExcludedValue(for: createdValue) else { return }
-        
+
         let isNewMilestone = eliminatedMilestones.insert(createdValue).inserted
         if isNewMilestone {
             print("🗑️ MILESTONE ELIMINATION: Reached \(createdValue), eliminating \(toRemove) from board and spawn pool")
         } else {
             print("🔁 MILESTONE RE-ELIMINATION: Reached \(createdValue) again, purging \(toRemove)")
         }
-        
+
         eliminateAllTiles(withValue: toRemove)
+    }
+
+    private func formatLargeNumber(_ value: Int) -> String {
+        if value >= 1_000_000_000_000 {
+            return "\(value / 1_000_000_000_000)T"
+        } else if value >= 1_000_000_000 {
+            return "\(value / 1_000_000_000)B"
+        } else if value >= 1_000_000 {
+            return "\(value / 1_000_000)M"
+        } else if value >= 1_000 {
+            return "\(value / 1_000)K"
+        } else {
+            return "\(value)"
+        }
     }
     
     private func eliminateAllTiles(withValue value: Int) {
         var didRemove = false
         var removedCount = 0
-        
+
         // IMMEDIATELY scan and remove ALL tiles with this value
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
@@ -1135,9 +1166,36 @@ public final class GameEngine {
                 }
             }
         }
-        
+
         if didRemove {
             print("   ✅ Eliminated \(removedCount) tiles of value \(value)")
+            // IMMEDIATELY pull down and refill so the board stays valid
+            refillAfterGravity()
+            print("   ✅ Board refilled with higher-value tiles only")
+        }
+    }
+
+    private func eliminateAllTilesBelowThreshold(threshold: Int) {
+        var didRemove = false
+        var removedCount = 0
+        var removedValues = Set<Int>()
+
+        // Remove ALL tiles below the threshold
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos], tile.value < threshold {
+                    removedValues.insert(tile.value)
+                    state.board[pos] = nil
+                    didRemove = true
+                    removedCount += 1
+                }
+            }
+        }
+
+        if didRemove {
+            print("   ✅ Eliminated \(removedCount) tiles below \(threshold)")
+            print("      Removed values: \(removedValues.sorted())")
             // IMMEDIATELY pull down and refill so the board stays valid
             refillAfterGravity()
             print("   ✅ Board refilled with higher-value tiles only")

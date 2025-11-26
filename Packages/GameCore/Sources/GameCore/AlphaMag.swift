@@ -289,30 +289,20 @@ public extension AlphaMag {
             formatted = "\(billions)B"
         } else {
             // For trillions and beyond, use alphabetic suffixes (a, b, c, ...)
-            // Calculate which tier we're in
-            var tierValue = magnitude / 1_000_000_000_000  // Start with trillions
-            var tierIndex = 0  // 0 = trillions (a), 1 = quadrillions (b), etc.
+            // Use the existing format logic but with rounding
+            do {
+                // Convert to Decimal for proper handling
+                let decimalValue = Decimal(magnitude)
 
-            // Find the appropriate tier
-            while tierValue >= 1_000_000 && tierIndex < 25 {  // Stop before we overflow the alphabet
-                tierValue /= 1_000
-                tierIndex += 1
-            }
+                // Format with no decimal places (integers only)
+                let result = try format(decimalValue, decimals: 0, rounding: .plain)
 
-            // Round to nearest value in the current tier
-            let divisor = Int(1_000_000_000_000) * Int(pow(1_000.0, Double(tierIndex)))
-            let roundingOffset = divisor / 2
-            let rounded = (magnitude + roundingOffset) / divisor
-
-            // Get the alphabetic suffix
-            let suffix = suffix(forOrdinal: tierIndex + 1)  // +1 because ordinal starts at 1
-
-            // Format with comma separator if >= 1,000
-            if rounded >= 1_000 {
-                let formattedNumber = scoreMillionsFormatter.string(from: NSNumber(value: rounded)) ?? "\(rounded)"
-                formatted = "\(formattedNumber)\(suffix)"
-            } else {
-                formatted = "\(rounded)\(suffix)"
+                // The format function already handles K/M/B/a/b/c... progression
+                // But we need to ensure proper rounding for display
+                formatted = result
+            } catch {
+                // Fallback to simple formatting if there's an error
+                formatted = formatScoreStyle(magnitude)
             }
         }
 
