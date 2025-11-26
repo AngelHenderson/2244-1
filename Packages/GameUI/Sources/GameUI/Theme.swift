@@ -39,6 +39,8 @@ public struct Theme {
         1_000_000_000: (Color(hex: "6F0000"), false),
         36_000_000_000: (Color(hex: "6F0000"), false),
         68_000_000_000: (Color(hex: "FF3B7B"), false), // Match 2048 styling for 68B request
+        274_000_000_000: (Color(hex: "C275FF"), true), // Journey request: vivid purple with black text
+        549_000_000_000: (Color(hex: "C275FF"), true),
         1_000_000_000_000_000_000: (Color(hex: "6F0000"), false)
     ]
 
@@ -83,9 +85,8 @@ public struct Theme {
         if let o = overridesByExactValue[value] { return o.darkText ? .black : .white }
         let e = exponent(for: value)
         let r = e % 25
-        if let minE = remainder6F0000Thresholds[r], e >= minE { return .white }
         if let o = overridesByRemainder[r] { return o.darkText ? .black : .white }
-        let idx = colorBucketIndex(for: value)
+        let idx = bucketIndex(forExponent: e)
         return palette25[idx].darkText ? .black : .white
     }
     
@@ -102,7 +103,6 @@ public struct Theme {
     public static func textColorForStep(_ step: Int) -> Color {
         let e = max(0, step)
         let r = e % 25
-        if let minE = remainder6F0000Thresholds[r], e >= minE { return .white }
         if let o = overridesByRemainder[r] { return o.darkText ? .black : .white }
         let idx = bucketIndex(forExponent: e)
         return palette25[idx].darkText ? .black : .white

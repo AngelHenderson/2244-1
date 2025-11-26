@@ -876,7 +876,7 @@ public final class GameEngine {
         return 2
     }
     
-    private func milestoneExcludedValue(for milestone: Int) -> Int? {
+    internal func milestoneExcludedValue(for milestone: Int) -> Int? {
         // New elimination pattern based on specific milestones
         switch milestone {
         case 2048: return 2        // 2K eliminates 2s
