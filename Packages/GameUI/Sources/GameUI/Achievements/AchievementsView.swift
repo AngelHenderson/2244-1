@@ -1,8 +1,10 @@
 import SwiftUI
 import GameServices
+import GameApp
 
 public struct AchievementsView: View {
     @Environment(AchievementStore.self) private var achievements
+    @Environment(HomeState.self) private var homeState
     @Environment(\.dismiss) private var dismiss
     
     public init() {}
@@ -15,7 +17,14 @@ public struct AchievementsView: View {
                         AchievementRow(
                             definition: def,
                             state: achievements.unlocks[def.id],
-                            onClaim: { achievements.claim(definition: def) }
+                            onClaim: {
+                                // Claim the achievement
+                                achievements.claim(definition: def)
+                                // Immediately sync gems from UserDefaults to HomeState
+                                let updatedGems = UserDefaults.standard.integer(forKey: "coins")
+                                homeState.gems = updatedGems
+                                print("💎 AchievementsView: synced homeState.gems = \(updatedGems)")
+                            }
                         )
                     }
                 }
@@ -30,6 +39,12 @@ public struct AchievementsView: View {
                         dismiss()
                     }
                 }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("GemsDidChange"))) { notification in
+            if let newBalance = notification.userInfo?["newBalance"] as? Int {
+                homeState.gems = newBalance
+                print("💎 AchievementsView received notification: gems = \(newBalance)")
             }
         }
     }

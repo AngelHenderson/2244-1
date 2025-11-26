@@ -869,7 +869,16 @@ public final class GameEngine {
     }
 
     private func minAllowedSpawnValue() -> Int {
-        // If we’ve eliminated X, min spawn is X*2; otherwise 2.
+        // Check if we have any eliminated milestones >= 67M
+        let largeMilestones = eliminatedMilestones.filter { $0 >= 67108864 }
+        if let highestLargeMilestone = largeMilestones.max() {
+            // For milestones >= 67M, minimum spawn is 7 steps down from milestone
+            // milestone / 2^7 = milestone >> 7
+            let minSpawn = highestLargeMilestone >> 7
+            return max(2, minSpawn)
+        }
+
+        // For milestones < 67M, use the old logic: min spawn is X*2 where X is eliminated value
         if let removed = latestEliminatedValue() {
             return max(2, removed << 1)
         }
@@ -897,19 +906,11 @@ public final class GameEngine {
         case 67108864: return 4096 // 67M eliminates 4096s
         case 134217728: return 8192 // 134M eliminates 8192s
         default:
-            // For values beyond 134M, repeat the pattern starting from 67M
-            // Pattern repeats forever: eliminate, eliminate, skip
+            // For values beyond 134M, use the consistent pattern:
+            // Eliminated value is always 14 steps (doublings) down from the milestone
+            // Skip pattern still applies: every 3rd position relative to 67M skips
             if milestone >= 268435456 { // 268M and beyond
-                // The pattern from 67M repeats with these rules:
-                // 67M (2^26) eliminates 4096 (2^12)
-                // 134M (2^27) eliminates 8192 (2^13)
-                // 268M (2^28) skips
-                // 536M (2^29) eliminates 16384 (2^14)
-                // 1G (2^30) eliminates 32768 (2^15)
-                // 2G (2^31) skips
-                // And so on forever...
-
-                // Calculate position relative to 67M
+                // Calculate position relative to 67M for skip pattern
                 let log67M = 26 // log2(67108864)
                 let logMilestone = Int(log2(Double(milestone)))
                 let position = logMilestone - log67M // How many doublings from 67M
@@ -919,18 +920,12 @@ public final class GameEngine {
                     return nil // Skip position
                 }
 
-                // Calculate the elimination value
-                // Starting from 4096 (2^12), we increment the exponent for non-skip positions
-                let baseExp = 12 // Starting exponent for 4096
-                let nonSkipIndex = position - (position / 3) // Adjust for skips
-                let eliminationExp = baseExp + nonSkipIndex
+                // Eliminated value is always 14 steps down from milestone
+                // milestone / 2^14 = milestone >> 14
+                let eliminated = milestone >> 14
 
-                // Safeguard against overflow
-                if eliminationExp >= 63 {
-                    return Int.max
-                }
-
-                return 1 << eliminationExp
+                // Safeguard against underflow (though unlikely at these large values)
+                return eliminated > 0 ? eliminated : nil
             }
             return nil
         }

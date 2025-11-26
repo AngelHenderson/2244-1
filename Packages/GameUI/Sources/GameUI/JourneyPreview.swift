@@ -68,7 +68,8 @@ private struct MilestonePreviewTile: View {
                         tile: Tile(value: value),
                         isSelected: false,
                         isValid: true,
-                        size: 52
+                        size: 52,
+                        textColorOverride: .black
                     )
                 } else {
                     // Locked tile
