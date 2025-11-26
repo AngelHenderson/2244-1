@@ -616,6 +616,11 @@ public final class GameStore {
         state.gems -= amount
         syncEngineGems()
         UserDefaults.standard.set(state.gems, forKey: "coins")
+        // Force immediate synchronization to prevent race conditions
+        UserDefaults.standard.synchronize()
+        // Also save to progress store immediately
+        saveProgressToStore()
+        print("💰 Spent \(amount) gems. New balance: \(state.gems)")
         return true
     }
     
