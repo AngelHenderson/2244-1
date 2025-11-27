@@ -1,13 +1,13 @@
 import Foundation
 
-enum TileStepMath {
+public enum TileStepMath {
     /// Returns the doubling step index for a tile (0 -> value 2, 1 -> 4, etc.)
-    static func step(for tile: Tile?) -> Int? {
+    public static func step(for tile: Tile?) -> Int? {
         tile?.stepIndex
     }
     
     /// Creates a tile for the given step index.
-    static func tile(forStep step: Int) -> Tile {
+    public static func tile(forStep step: Int) -> Tile {
         let shift = step + 1
         if shift > 0 && shift < Int.bitWidth {
             return Tile(value: 1 << shift)
@@ -17,7 +17,7 @@ enum TileStepMath {
     }
     
     /// Returns the approximate Int value for a given step (clamped to Int.max).
-    static func value(forStep step: Int) -> Int {
+    public static func value(forStep step: Int) -> Int {
         let shift = step + 1
         if shift > 0 && shift < Int.bitWidth {
             return 1 << shift
@@ -26,7 +26,7 @@ enum TileStepMath {
     }
     
     /// Computes the resulting step when merging tiles with the provided steps.
-    static func mergedStep(from steps: [Int]) -> Int {
+    public static func mergedStep(from steps: [Int]) -> Int {
         guard let maxStep = steps.max() else { return 0 }
         var mantissa: Double = 0
         for step in steps {
@@ -39,4 +39,3 @@ enum TileStepMath {
         return max(0, Int(ceil(total - epsilon)))
     }
 }
-
