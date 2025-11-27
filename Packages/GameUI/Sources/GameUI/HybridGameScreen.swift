@@ -79,11 +79,6 @@ public struct HybridGameScreen: View {
             set: { newValue in if !newValue { gameStore.dismissGiftReward() } }
         )
 
-        let mergeInfoBinding = Binding(
-            get: { gameStore.lastMergeInfo != nil && gameStore.currentNotification == nil },
-            set: { newValue in if !newValue { gameStore.clearLastMergeInfo() } }
-        )
-        
         let notificationBinding = Binding(
             get: { gameStore.currentNotification != nil },
             set: { newValue in if !newValue { gameStore.dismissCurrentNotification() } }
@@ -159,14 +154,7 @@ public struct HybridGameScreen: View {
                 }
             }
         
-        let sheetViews = notificationSheet
-            .sheet(isPresented: mergeInfoBinding) {
-                if let info = gameStore.lastMergeInfo {
-                    MergeInfoBoard(info: info, onClose: { gameStore.clearLastMergeInfo() })
-                }
-            }
-        
-        let alertView = sheetViews
+        let alertView = notificationSheet
             .alert("Double your tile?", isPresented: $isShowingDoublePrompt) {
                 Button("No", role: .cancel) { gameStore.clearPendingDoubleOffer() }
                 Button("Yes") { /* Dismiss and wait for user to tap a tile */ }

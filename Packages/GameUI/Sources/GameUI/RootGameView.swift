@@ -119,8 +119,10 @@ public struct RootGameView: View {
     private func makeHomeActions() -> HomeActions {
         HomeActions(
             play: {
-                // Start a fresh run before entering gameplay
-                gameStore.resetGame()
+                // Only reset if the game is over, otherwise resume current session
+                if gameStore.state.isGameOver {
+                    gameStore.resetGame()
+                }
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isPlaying = true
                 }
