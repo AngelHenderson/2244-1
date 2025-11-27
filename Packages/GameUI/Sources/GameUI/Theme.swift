@@ -155,12 +155,14 @@ public struct Theme {
     }
 
     private static func bucketIndex(forExponent exp: Int) -> Int {
-        let e = max(0, exp)
+        let e = max(1, exp) // Ensure we start at 1
         guard !palette25.isEmpty else { return 0 }
-        if e == 0 { return 0 }
-        let r = e % 25
-        if r == 0 { return 24 }
-        return r - 1
+        
+        // Calculate 0-based index from 1-based exponent
+        // Exponent 1 -> Index 0
+        // Exponent 25 -> Index 24
+        // Exponent 26 -> Index 0
+        return (e - 1) % 25
     }
     
     private static func paletteEntry(forExponent exponent: Int) -> (color: Color, darkText: Bool) {
