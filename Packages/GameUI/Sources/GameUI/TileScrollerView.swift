@@ -51,7 +51,9 @@ public struct TileScrollerView: View {
                             tile: item.tile,
                             isLocked: isLocked(item.tile),
                             isCurrentHighest: item.tile.value == currentHighestTile && !item.tile.isInfinity,
-                            tileSize: tileSize
+                            tileSize: tileSize,
+                            // Force classic theme for journey to lock legacy color mapping
+                            theme: ThemeRegistry.Default.descriptor(for: "classic")
                         )
                         .id(item.id)
                         .scrollTransition(.interactive, axis: .vertical) { view, phase in
@@ -179,6 +181,7 @@ private struct TileRowItem: View {
     let isLocked: Bool
     let isCurrentHighest: Bool
     let tileSize: CGFloat
+    let theme: ThemeDescriptor?
     
     private var showCrown: Bool {
         !tile.isInfinity
@@ -192,7 +195,8 @@ private struct TileRowItem: View {
                     isSelected: false,
                     isValid: true,
                     size: tileSize,
-                    useLegacyTypography: true   // Preserve the previous journey look
+                    useLegacyTypography: true,   // Preserve the previous journey look
+                    theme: theme
                 )
                 .saturation(isLocked ? 0.0 : 1.0)
                 .conditionalOverlay(isCurrentHighest) {
