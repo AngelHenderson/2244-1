@@ -152,8 +152,8 @@ struct AlphaMagProgressionTests {
 
         // Test quintillion formatting with 'c' suffix (if Int can hold it)
         if Int.max >= 1_000_000_000_000_000_000 {
-            #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000_000_000) == "1c")  // 1 quintillion
-            #expect(AlphaMag.formatScoreDisplay(2_345_000_000_000_000_000) == "2,345c")  // 2,345 quintillion
+            #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000_000_000) == "1,000c")  // 1 quintillion = 1,000 quadrillion
+            #expect(AlphaMag.formatScoreDisplay(2_345_000_000_000_000_000) == "2,345c")  // 2,345 quadrillion
         }
 
         // Test million formatting
