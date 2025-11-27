@@ -155,8 +155,7 @@ public struct SpinWheelView: View {
                     .fill(.ultraThinMaterial)
                     .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
                     .frame(width: 28, height: 90)
-                    .rotationEffect(.degrees(180))
-                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .bottom)
+                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
                     .offset(y: -170)
                     .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
                 
@@ -298,41 +297,69 @@ public struct SpinWheelView: View {
     }
     
     private func handleWinning(segment: WheelSegment) {
-        let reward = segment.reward
-        let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
-        
         Task { @MainActor in
-            switch reward.type {
-            case .gems:
-                let amount = reward.amount * multiplier
-                homeState.addGems(amount)
-                rewardMessage = "You won \(amount) gems! 💎"
-            case .hammers:
-                let amount = reward.amount * multiplier
-                gameStore.addPowerUp("hammer", count: amount)
-                rewardMessage = "You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
-            case .magnets:
-                let amount = reward.amount * multiplier
-                gameStore.addPowerUp("magnet", count: amount)
-                rewardMessage = "You won \(amount) magnet\(pluralSuffix(for: amount))! 🧲"
-            case .swap:
-                let amount = reward.amount * multiplier
-                gameStore.addPowerUp("swap", count: amount)
-                rewardMessage = "You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
-            case .spin:
-                let amount = reward.amount * multiplier
-                spinState.addBonusSpins(amount)
-                rewardMessage = amount == 1 ? "Bonus spin added! 🎡" : "\(amount) bonus spins added! 🎡"
-            case .multiplier(let tier):
-                spinState.addMultiplier(tier)
-                rewardMessage = "You banked a \(tier.displayName) boost for 24 hours!"
-            case .giftBox:
-                rewardMessage = "Mystery prize! 🎁"
-            }
-            
+            let message = applyReward(segment.reward)
             haptics.success()
+            rewardMessage = message
             showReward = true
         }
+    }
+    
+    private func applyReward(_ reward: WheelReward, isGiftBox: Bool = false) -> String {
+        let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
+        
+        switch reward.type {
+        case .gems:
+            let amount = reward.amount * multiplier
+            homeState.addGems(amount)
+            return isGiftBox ? "Gift Box surprise! You won \(amount) gems! 💎" : "You won \(amount) gems! 💎"
+            
+        case .hammers:
+            let amount = reward.amount * multiplier
+            gameStore.addPowerUp("hammer", count: amount)
+            return isGiftBox ? "Gift Box surprise! You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
+                             : "You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
+            
+        case .magnets:
+            let amount = reward.amount * multiplier
+            gameStore.addPowerUp("magnet", count: amount)
+            return isGiftBox ? "Gift Box surprise! You won \(amount) magnet\(pluralSuffix(for: amount))! 🧲"
+                             : "You won \(amount) magnet\(pluralSuffix(for: amount))! 🧲"
+            
+        case .swap:
+            let amount = reward.amount * multiplier
+            gameStore.addPowerUp("swap", count: amount)
+            return isGiftBox ? "Gift Box surprise! You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
+                             : "You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
+            
+        case .spin:
+            let amount = reward.amount * multiplier
+            spinState.addBonusSpins(amount)
+            let base = amount == 1 ? "Bonus spin added! 🎡" : "\(amount) bonus spins added! 🎡"
+            return isGiftBox ? "Gift Box surprise! \(base)" : base
+            
+        case .multiplier(let tier):
+            spinState.addMultiplier(tier)
+            let base = "You banked a \(tier.displayName) boost for 24 hours!"
+            return isGiftBox ? "Gift Box surprise! \(base)" : base
+            
+        case .giftBox:
+            let surprise = randomGiftReward()
+            return applyReward(surprise, isGiftBox: true)
+        }
+    }
+    
+    private func randomGiftReward() -> WheelReward {
+        let options: [WheelReward] = [
+            .init(type: .gems, amount: 2000),
+            .init(type: .magnets, amount: 2),
+            .init(type: .hammers, amount: 3),
+            .init(type: .swap, amount: 2),
+            .init(type: .spin, amount: 2),
+            .init(type: .multiplier(.fourX), amount: 1),
+            .init(type: .multiplier(.threeX), amount: 1)
+        ]
+        return options.randomElement() ?? options[0]
     }
     
     private func pluralSuffix(for amount: Int) -> String {
