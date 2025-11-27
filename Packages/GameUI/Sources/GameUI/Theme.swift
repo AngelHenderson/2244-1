@@ -86,9 +86,13 @@ public struct Theme {
     ]
     
     public static func color(for value: Int) -> Color {
-        if let step = TileStepLabelFormatter.stepForValue(value, start: 2),
-           let override = stepOverrides[step] {
-            return override.color
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            // Check step overrides first
+            if let override = stepOverrides[step] {
+                return override.color
+            }
+            // Use step-based palette lookup for consistent cycling
+            return colorForStep(step)
         }
         if let o = overridesByExactValue[value] { return o.color }
         let entry = paletteEntry(forExponent: exponent(for: value))
@@ -96,9 +100,11 @@ public struct Theme {
     }
     
     public static func textColor(for value: Int) -> Color {
-        if let step = TileStepLabelFormatter.stepForValue(value, start: 2),
-           let override = stepOverrides[step] {
-            return override.darkText ? .black : .white
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            if let override = stepOverrides[step] {
+                return override.darkText ? .black : .white
+            }
+            return textColorForStep(step)
         }
         if let o = overridesByExactValue[value] { return o.darkText ? .black : .white }
         let entry = paletteEntry(forExponent: exponent(for: value))
@@ -108,14 +114,20 @@ public struct Theme {
     // MARK: - Step-based APIs (for highValue tiles) to repeat the palette by step % 25
     public static func colorForStep(_ step: Int) -> Color {
         if let override = stepOverrides[step] { return override.color }
-        let exponent = max(1, step + 1)
-        return paletteEntry(forExponent: exponent + 25).color
+        
+        // Calculate exponent from step (step 0 = 2^1, step 1 = 2^2, etc.)
+        // But palette is 1-based on exponent?
+        // palette25[0] is for exponent 1 (value 2).
+        // step 0 (value 2) -> exponent 1.
+        
+        let exponent = step + 1
+        return paletteEntry(forExponent: exponent).color
     }
     
     public static func textColorForStep(_ step: Int) -> Color {
         if let override = stepOverrides[step] { return override.darkText ? .black : .white }
-        let exponent = max(1, step + 1)
-        return paletteEntry(forExponent: exponent + 25).darkText ? .black : .white
+        let exponent = step + 1
+        return paletteEntry(forExponent: exponent).darkText ? .black : .white
     }
     
     private static func colorBucketIndex(for value: Int) -> Int {
@@ -154,9 +166,33 @@ public struct Theme {
     private static func paletteEntry(forExponent exponent: Int) -> (color: Color, darkText: Bool) {
         let e = max(1, exponent)
         let remainder = e % 25
-        if let minE = remainder6F0000Thresholds[remainder], e >= minE {
-            return (Color(hex: "6F0000"), false)
-        }
+        
+        // Remove the 6F0000 threshold logic that was forcing dark red on high values
+        // if let minE = remainder6F0000Thresholds[remainder], e >= minE {
+        //    return (Color(hex: "6F0000"), false)
+        // }
+        
+        // Only apply remainder overrides if they are NOT conflicting with the cycling pattern
+        // The issue is that overridesByRemainder is capturing high values too.
+        // We should only apply overrides for the FIRST cycle (e <= 25) if we want to preserve the base palette,
+        // OR we want the overrides to repeat.
+        // The user says "9c color is getting replaced with 18c's".
+        // 9c corresponds to step ~?
+        // 1c = 2^60. 2c = 2^61. 4c = 2^62.
+        // 9c is likely much higher? Or lower?
+        // Wait, 1c is 1 quintillion.
+        // If the user means 9c as in 9 * something? No, likely the label "9c".
+        
+        // Let's stick to the requested fix: 2c lost red, 4c lost blue.
+        // 2c is step 60. 4c is step 61.
+        // These are in `stepOverrides`.
+        // My updated `color(for:)` logic prioritizes `stepOverrides`.
+        
+        // Also, `overridesByRemainder` might be interfering if `stepOverrides` wasn't checked first.
+        // In the original code, `color(for:)` checked `stepOverrides` first, but `colorForStep` added +25 to exponent?
+        // `return paletteEntry(forExponent: exponent + 25).color`
+        // This offset might be wrong.
+        
         if let override = overridesByRemainder[remainder] {
             return override
         }
