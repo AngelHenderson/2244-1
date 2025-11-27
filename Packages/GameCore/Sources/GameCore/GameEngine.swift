@@ -417,6 +417,21 @@ public final class GameEngine {
         let mergedStep = TileStepMath.mergedStep(from: steps)
         let mergedValue = TileStepMath.value(forStep: mergedStep)
         let mergedTile = Tile.make(forStep: mergedStep)
+
+        // Debug logging for large chains
+        if positions.count >= 10 {
+            print("🔗 LARGE CHAIN DEBUG:")
+            print("   Chain size: \(positions.count) tiles")
+            print("   Tile values: \(tiles.map { $0.value })")
+            print("   Steps: \(steps)")
+            print("   Merged step: \(mergedStep)")
+            print("   Merged value: \(mergedValue)")
+
+            // Check if this is a skip milestone
+            if mergedValue == 8192 || mergedValue == 131072 || mergedValue == 2097152 || mergedValue == 33554432 {
+                print("   ⚠️ This is a SKIP milestone - NO elimination should occur!")
+            }
+        }
         
         // Score equals the resulting merged tile value
         let chainScore = mergedValue
@@ -1130,6 +1145,8 @@ public final class GameEngine {
     // MARK: - Milestone elimination helpers
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
+        print("🎯 Checking milestone elimination for value: \(formatLargeNumber(createdValue))")
+
         // For milestones >= 67M, use threshold elimination
         // This eliminates all tiles below (milestone >> 14)
         if createdValue >= 67_108_864 { // 67M or higher
@@ -1159,7 +1176,10 @@ public final class GameEngine {
         }
 
         // For milestones < 67M, use the original single-value elimination
-        guard let toRemove = milestoneExcludedValue(for: createdValue) else { return }
+        guard let toRemove = milestoneExcludedValue(for: createdValue) else {
+            print("   ✅ No elimination for \(formatLargeNumber(createdValue)) - skip milestone or not a milestone")
+            return
+        }
 
         let isNewMilestone = eliminatedMilestones.insert(createdValue).inserted
         if isNewMilestone {
