@@ -10,20 +10,27 @@ public struct AchievementsView: View {
     public init() {}
     
     /// Sorted achievements: claimable first, then locked, then claimed last
+    /// Tile progression stays near top since it's always in progress
     private var sortedAchievements: [AchievementDef] {
         achievements.catalog.sorted { a, b in
             let stateA = achievements.unlocks[a.id]
             let stateB = achievements.unlocks[b.id]
             
-            let priorityA = sortPriority(for: stateA)
-            let priorityB = sortPriority(for: stateB)
+            let priorityA = sortPriority(for: a.id, state: stateA)
+            let priorityB = sortPriority(for: b.id, state: stateB)
             
             return priorityA < priorityB
         }
     }
     
-    /// Sort priority: 0 = claimable (top), 1 = locked (middle), 2 = claimed (bottom)
-    private func sortPriority(for state: AchievementStore.UnlockState?) -> Int {
+    /// Sort priority: 0 = claimable (top), 1 = tile progression / locked (middle), 2 = claimed (bottom)
+    private func sortPriority(for id: String, state: AchievementStore.UnlockState?) -> Int {
+        // Tile progression achievement stays near top (priority 0.5 - between claimable and locked)
+        if id == "tile_progression" {
+            if state?.isClaimable == true { return 0 }  // Claimable at very top
+            return 1  // Otherwise just below claimable items
+        }
+        
         guard let state else { return 1 } // No state = locked
         if state.isClaimable { return 0 }  // Claimable at top
         if state.claimed { return 2 }       // Claimed at bottom
@@ -38,6 +45,7 @@ public struct AchievementsView: View {
                         AchievementRow(
                             definition: def,
                             state: achievements.unlocks[def.id],
+                            tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
                             onClaim: {
                                 // Claim the achievement
                                 achievements.claim(definition: def)
@@ -68,11 +76,34 @@ public struct AchievementsView: View {
 private struct AchievementRow: View {
     let definition: AchievementDef
     let state: AchievementStore.UnlockState?
+    let tileProgressionTier: (suffix: String, label: String, value: Double)?
     let onClaim: () -> Void
     
     private var isUnlocked: Bool { state?.unlocked == true }
     private var isClaimed: Bool { state?.claimed == true }
     private var isClaimable: Bool { state?.isClaimable == true }
+    
+    /// Dynamic title for tile progression achievement
+    private var displayTitle: String {
+        if let tier = tileProgressionTier {
+            return "Reach the \(tier.label) tile"
+        }
+        return definition.title
+    }
+    
+    /// Dynamic description for tile progression achievement
+    private var displayDescription: String {
+        if definition.hidden && !isUnlocked {
+            return "Complete objectives to reveal this achievement."
+        }
+        if let tier = tileProgressionTier {
+            if tier.label == "∞" {
+                return "Create a tile beyond comprehension. You are infinite."
+            }
+            return "Create a \(tier.label) tile to claim this reward and unlock the next tier."
+        }
+        return definition.description
+    }
     
     var body: some View {
         HStack(spacing: 16) {
@@ -80,15 +111,15 @@ private struct AchievementRow: View {
                 .frame(width: 64, height: 64)
             
             VStack(alignment: .leading, spacing: 8) {
-                    Text(definition.title)
-                        .font(.headline)
+                Text(displayTitle)
+                    .font(.headline)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                 
-                Text(detailText)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                Text(displayDescription)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 
                 HStack(spacing: 8) {
                     Label(definition.category, systemImage: categoryIcon(for: definition.category))
@@ -96,9 +127,11 @@ private struct AchievementRow: View {
                         .foregroundStyle(.secondary)
                     
                     if isClaimed {
-                        StatusBadge(text: "Claimed", color: .green)
+                        StatusBadge(text: "Completed", color: .green)
                     } else if !isUnlocked {
-                        StatusBadge(text: "Locked", color: .gray)
+                        StatusBadge(text: "In Progress", color: .orange)
+                    } else if isClaimable {
+                        StatusBadge(text: "Ready!", color: .green)
                     }
                 }
             }
@@ -107,14 +140,14 @@ private struct AchievementRow: View {
             
             VStack(alignment: .trailing, spacing: 12) {
                 ClaimButton(
-                    title: isClaimed ? "Claimed" : "Claim",
+                    title: isClaimed ? "Done" : "Claim",
                     enabled: isClaimable,
                     action: onClaim
                 )
                 
                 RewardSummary(rewards: definition.rewards)
-                    }
-                }
+            }
+        }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -136,17 +169,11 @@ private struct AchievementRow: View {
         .opacity(definition.hidden && !isUnlocked ? 0.8 : 1.0)
     }
     
-    private var detailText: String {
-        if definition.hidden && !isUnlocked {
-            return "Complete objectives to reveal this achievement."
-        }
-        return definition.description
-    }
-    
     private func categoryIcon(for category: String) -> String {
         switch category.lowercased() {
         case "onboarding": return "sparkles"
         case "score": return "trophy"
+        case "highesttile": return "arrow.up.circle"
         case "timeattack": return "timer"
         case "daily": return "calendar"
         case "endless": return "infinity"
