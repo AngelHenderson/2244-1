@@ -944,7 +944,9 @@ public final class GameStore {
     public func useMagnet(value: Int, to position: Position) -> Bool {
         // Check if magnet power-up is available
         guard isPowerUpAvailable("magnet") else { return false }
-        guard let tile = state.board[position], tile.value == value else { return false }
+        guard let tile = state.board[position],
+              tile.value == value,
+              let targetStep = tile.stepIndex else { return false }
         guard pendingGiftBoxes[position] == nil else { return false }
         
         // Count how many tiles with this value exist on the board
@@ -952,7 +954,9 @@ public final class GameStore {
         for row in 0..<state.board.height {
             for col in 0..<state.board.width {
                 let pos = Position(row: row, col: col)
-                if let t = state.board[pos], t.value == value {
+                if let t = state.board[pos],
+                   let step = t.stepIndex,
+                   step == targetStep {
                     matchingPositions.append(pos)
                 }
             }
@@ -981,25 +985,8 @@ public final class GameStore {
         
         // Calculate merged value and show milestone notification if applicable
         // Use safe multiplication to prevent overflow
-        let (totalValue, overflow) = value.multipliedReportingOverflow(by: matchingPositions.count)
-        let mergedValue: Int = {
-            // If multiplication overflowed, return Int.max
-            if overflow { return Int.max }
-            guard totalValue > 0 else { return 0 }
-            if totalValue & (totalValue - 1) == 0 { return totalValue }
-            if totalValue > (1 << 62) { return Int.max }
-            var x = totalValue - 1
-            x |= x >> 1
-            x |= x >> 2
-            x |= x >> 4
-            x |= x >> 8
-            x |= x >> 16
-            #if arch(x86_64) || arch(arm64)
-            x |= x >> 32
-            #endif
-            let next = x + 1
-            return next > 0 ? next : Int.max
-        }()
+        let mergedStep = TileStepMath.mergedStep(from: Array(repeating: targetStep, count: matchingPositions.count))
+        let mergedValue = TileStepMath.value(forStep: mergedStep)
         setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
         
         // Track power-up usage
