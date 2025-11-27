@@ -438,7 +438,7 @@ private extension AchievementDef.Rewards.Entry.Kind {
         case .gems: return "Gems"
         case .spins: return "Spins"
         case .hammers: return "Hammers"
-        case .magnets: return "Magnets"
+        case .magnets: return "MegaMerges"
         case .swaps: return "Swaps"
         case .boost2x: return "2× Boost"
         case .boost3x: return "3× Boost"

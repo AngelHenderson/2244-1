@@ -323,8 +323,8 @@ public struct SpinWheelView: View {
         case .magnets:
             let amount = reward.amount * multiplier
             gameStore.addPowerUp("magnet", count: amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) magnet\(pluralSuffix(for: amount))! 🧲"
-                             : "You won \(amount) magnet\(pluralSuffix(for: amount))! 🧲"
+            return isGiftBox ? "Gift Box surprise! You won \(amount) MegaMerge\(pluralSuffix(for: amount))! 🧲"
+                             : "You won \(amount) MegaMerge\(pluralSuffix(for: amount))! 🧲"
             
         case .swap:
             let amount = reward.amount * multiplier

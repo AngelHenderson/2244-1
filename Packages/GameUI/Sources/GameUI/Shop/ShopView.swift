@@ -162,7 +162,7 @@ public struct ShopView: View {
             VStack(spacing: 20) {
                 ForEach(Dictionary(grouping: perks, by: { $0.item }).sorted(by: { $0.key < $1.key }), id: \.key) { item, bundles in
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(item.capitalized)
+                        Text(item.lowercased() == "magnet" ? "MegaMerges" : item.capitalized)
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -273,6 +273,22 @@ struct BundleCard: View {
                             Text(verbatim: "\(hammers) Hammers")
                         } icon: {
                             Image(systemName: "hammer.fill")
+                        }
+                        .font(.caption)
+                    }
+                    if let swaps = items.swaps {
+                        Label {
+                            Text(verbatim: "\(swaps) Swaps")
+                        } icon: {
+                            Image(systemName: "arrow.2.squarepath")
+                        }
+                        .font(.caption)
+                    }
+                    if let magnets = items.magnets {
+                        Label {
+                            Text(verbatim: "\(magnets) MegaMerges")
+                        } icon: {
+                            Image(systemName: "magnet.fill")
                         }
                         .font(.caption)
                     }

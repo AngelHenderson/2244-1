@@ -224,7 +224,7 @@ public struct GiftRewardView: View {
     private func name(for item: GiftRewardItem) -> String {
         switch item.type {
         case .hammer: return item.amount == 1 ? "Hammer" : "Hammers"
-        case .magnet: return item.amount == 1 ? "Magnet" : "Magnets"
+        case .magnet: return item.amount == 1 ? "MegaMerge" : "MegaMerges"
         case .gems: return item.amount == 1 ? "Gem" : "Gems"
         case .swap: return item.amount == 1 ? "Swap" : "Swaps"
         case .undo: return item.amount == 1 ? "Undo" : "Undos"

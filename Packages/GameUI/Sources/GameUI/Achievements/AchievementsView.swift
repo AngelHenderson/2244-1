@@ -193,7 +193,7 @@ private struct RewardSummary: View {
         var parts: [String] = []
         if let gems = rewards.gems, gems > 0 { parts.append("\(gems) Gems") }
         if let hammers = rewards.hammers, hammers > 0 { parts.append("\(hammers) Hammers") }
-        if let magnets = rewards.magnets, magnets > 0 { parts.append("\(magnets) Magnets") }
+        if let magnets = rewards.magnets, magnets > 0 { parts.append("\(magnets) MegaMerges") }
         if let swaps = rewards.swaps, swaps > 0 { parts.append("\(swaps) Swaps") }
         if let spins = rewards.spins, spins > 0 { parts.append("\(spins) Spins") }
         if let boost2x = rewards.boost2x, boost2x > 0 { parts.append("\(boost2x)× 2X Boost") }

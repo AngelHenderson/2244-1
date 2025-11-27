@@ -628,7 +628,7 @@ struct ModeOverlay: View {
                 return "Select first tile to swap"
             }
         }
-        if isMagnetMode { return "Select a number to magnetize" }
+        if isMagnetMode { return "Select a number to MegaMerge" }
         return ""
     }
     
