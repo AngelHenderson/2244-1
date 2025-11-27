@@ -172,7 +172,9 @@ public struct HybridGameScreen: View {
                 Button("Yes") { /* Dismiss and wait for user to tap a tile */ }
             } message: {
                 if let base = gameStore.pendingDoubleBase {
-                    Text("Tap a target tile to set it to \(base * 2).")
+                    // Safe multiplication to prevent overflow
+                    let safeDoubled = base <= (Int.max >> 1) ? base * 2 : Int.max
+                    Text("Tap a target tile to set it to \(safeDoubled).")
                 } else {
                     Text("Tap a target tile.")
                 }

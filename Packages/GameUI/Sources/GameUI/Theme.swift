@@ -42,7 +42,8 @@ public struct Theme {
         68_000_000_000: (Color(hex: "FF3B7B"), false), // Match 2048 styling for 68B request
         274_000_000_000: (Color(hex: "C275FF"), true), // Journey request: vivid purple with black text
         549_000_000_000: (Color(hex: "C275FF"), true),
-        1_000_000_000_000_000_000: (Color(hex: "6F0000"), false)
+        1_000_000_000_000_000_000: (Color(hex: "6F0000"), false),
+        2_305_843_009_213_693_952: (Color(hex: "55B9FF"), false) // Preserve 4c legacy blue on the journey
     ]
 
     // Remainder-based overrides (e % 25) - these colors repeat every 25 blocks!
@@ -72,6 +73,12 @@ public struct Theme {
         10: 60
     ]
     
+    // Specific high-value step overrides (beyond Int.max) to preserve legacy journey colors.
+    // Step indexing matches TileStepLabelFormatter: step 61 -> label "4c".
+    private static let highValueStepOverrides: [Int: (color: Color, darkText: Bool)] = [
+        61: (Color(hex: "55B9FF"), false) // Keep 4c on its original blue instead of inheriting the next step's palette color
+    ]
+    
     public static func color(for value: Int) -> Color {
         if let o = overridesByExactValue[value] { return o.color }
         let entry = paletteEntry(forExponent: exponent(for: value))
@@ -86,11 +93,13 @@ public struct Theme {
     
     // MARK: - Step-based APIs (for highValue tiles) to repeat the palette by step % 25
     public static func colorForStep(_ step: Int) -> Color {
+        if let override = highValueStepOverrides[step] { return override.color }
         let exponent = max(1, step + 1)
         return paletteEntry(forExponent: exponent + 25).color
     }
     
     public static func textColorForStep(_ step: Int) -> Color {
+        if let override = highValueStepOverrides[step] { return override.darkText ? .black : .white }
         let exponent = max(1, step + 1)
         return paletteEntry(forExponent: exponent + 25).darkText ? .black : .white
     }

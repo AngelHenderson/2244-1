@@ -246,7 +246,20 @@ public struct RootGameView: View {
             // Apply to home state
             await MainActor.run {
                 homeState.apply(progress: progress, planner: planner)
-                gameStore.coins = progress.gems
+                // Only update coins if gameStore has no coins (fresh start)
+                // Otherwise keep the current gameStore value as it's more recent
+                if gameStore.coins == 0 && progress.gems > 0 {
+                    gameStore.coins = progress.gems
+                    print("📱 Restored gems from progress: \(progress.gems)")
+                } else if gameStore.coins != progress.gems {
+                    print("⚠️ Gem sync issue - GameStore: \(gameStore.coins), Progress: \(progress.gems). Keeping GameStore value.")
+                    // Update progress to match current gameStore value
+                    var updatedProgress = progress
+                    updatedProgress.gems = gameStore.coins
+                    Task {
+                        try? await progressCoordinator.save(updatedProgress)
+                    }
+                }
                 
                 // CRITICAL: Sync JourneyKit with the actual highest tile
                 journey.didReach(tile: finalHighestTile)
