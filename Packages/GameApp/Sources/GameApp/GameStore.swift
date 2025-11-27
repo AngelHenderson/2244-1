@@ -1326,15 +1326,18 @@ extension GameStore {
     /// Saves comprehensive progress to persistent storage
     public func saveProgressToStore() {
         let progress = createProgressSnapshot()
-        Task { @MainActor in
-            do {
-                try await progressStore.save(progress)
-                print("💾 Comprehensive progress saved - Score: \(progress.bestScore), Highest: \(progress.highestTile), Gems: \(progress.gems)")
-                // Also ensure UserDefaults is synced
-                UserDefaults.standard.set(progress.gems, forKey: "coins")
-            } catch {
-                print("❌ Failed to save comprehensive progress: \(error)")
-            }
+        // Use synchronous save to ensure data is persisted immediately
+        // This prevents data loss if the app is terminated shortly after a move
+        do {
+            try progressStore.saveSync(progress)
+            // We don't print the full success message here to avoid log spam, 
+            // as this is called frequently.
+            // print("💾 Comprehensive progress saved")
+            
+            // Also ensure UserDefaults is synced for gems/coins
+            UserDefaults.standard.set(progress.gems, forKey: "coins")
+        } catch {
+            print("❌ Failed to save comprehensive progress: \(error)")
         }
     }
     
