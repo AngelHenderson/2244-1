@@ -400,19 +400,11 @@ private struct RewardChip: View {
     }
     
     private var compactText: String {
-        if entry.kind.isMultiplier {
-            return "\(entry.amount)×"
-        } else {
-            return "\(entry.amount)"
-        }
+        return "\(entry.amount) \(entry.kind.displayName)"
     }
     
     private var detailedTitle: String {
-        if entry.kind.isMultiplier {
-            return "\(entry.amount) × \(entry.kind.displayName)"
-        } else {
-            return "\(entry.amount) \(entry.kind.displayName)"
-        }
+        return "\(entry.amount) \(entry.kind.displayName)"
     }
 }
 
