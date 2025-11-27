@@ -983,10 +983,13 @@ public final class GameStore {
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
         
-        // Calculate merged value - the result of magnetizing all matching tiles
-        // The new tile value after merging all tiles of the same value
-        let mergedValue = state.board[position]?.value ?? (value * matchingPositions.count)
+        // Calculate merged value based on updated state at the target position
+        let mergedValue = state.board[position]?.value ?? {
+            // Fallback if tile missing: assume at least doubling (safe-capped)
+            return value <= (Int.max >> 1) ? value * 2 : Int.max
+        }()
         
+        // Show milestone notification if applicable
         setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
         
         // Track power-up usage
@@ -1077,7 +1080,7 @@ public final class GameStore {
     // MARK: - Replay
     public struct Replay: Codable, Sendable, Equatable {
         public let seed: UInt64?
-        public let moves: [[Position]]
+               public let moves: [[Position]]
         public let powerUps: [PowerUpAction]
     }
 
