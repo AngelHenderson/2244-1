@@ -1096,25 +1096,57 @@ public final class GameStore {
     }
     
     /// Queue milestone notifications in the order: unlocked → added → eliminated.
+    /// Only shows notifications for actual changes (not for skip milestones)
     private func setMergeInfoIfMilestone(previousHighest: Int, newTileValue: Int) {
         guard newTileValue > previousHighest else { return }
-        
-        var pending: [MergeNotification] = [.unlocked(newTileValue)]
-        
-        let addedValue = newTileValue / 128
-        if addedValue > 0 {
-            pending.append(.added(addedValue))
-        }
-        
-        if newTileValue >= 16_384 {
-            let eliminatedValue = newTileValue / 16_384
-            if eliminatedValue > 0 {
-                pending.append(.excluded(eliminatedValue))
+
+        var pending: [MergeNotification] = []
+
+        // Get all milestones we passed
+        let passedMilestones = engine.milestonesBetween(previousHighest, and: newTileValue)
+
+        // Always show unlock notification for the new highest tile
+        pending.append(.unlocked(newTileValue))
+
+        // Check if any passed milestones add new spawn values
+        var addedValue: Int? = nil
+        for milestone in passedMilestones {
+            if let added = engine.milestoneAddedValue(for: milestone) {
+                // Track the highest added value
+                if addedValue == nil || added > addedValue! {
+                    addedValue = added
+                }
             }
         }
-        
+
+        // Only show added notification if something was actually added
+        if let added = addedValue {
+            pending.append(.added(added))
+        }
+
+        // Check if any passed milestones eliminate values
+        var eliminatedValues: Set<Int> = []
+        for milestone in passedMilestones {
+            if let eliminated = engine.milestoneExcludedValue(for: milestone) {
+                eliminatedValues.insert(eliminated)
+            }
+        }
+
+        // Only show excluded notification if something was actually eliminated
+        // Show the highest eliminated value (most recent)
+        if let maxEliminated = eliminatedValues.max() {
+            pending.append(.excluded(maxEliminated))
+        }
+
         enqueueNotifications(pending)
-        print("🎯 POWER-UP MILESTONE: Unlocked \(newTileValue), Added spawns at \(addedValue), Queued \(pending.count) milestone notifications")
+
+        // Debug logging
+        if passedMilestones.contains(8192) || passedMilestones.contains(131072) ||
+           passedMilestones.contains(2097152) || passedMilestones.contains(33554432) {
+            print("🎯 SKIP MILESTONE: Reached \(newTileValue), no elimination/addition changes")
+        } else if !eliminatedValues.isEmpty || addedValue != nil {
+            print("🎯 MILESTONE: Unlocked \(newTileValue), Added: \(addedValue ?? 0), Eliminated: \(eliminatedValues), Queued \(pending.count) notifications")
+        }
     }
     
     private func enqueueNotifications(_ notifications: [MergeNotification]) {

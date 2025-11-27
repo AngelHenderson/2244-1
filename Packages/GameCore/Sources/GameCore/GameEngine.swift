@@ -982,21 +982,26 @@ public final class GameEngine {
     /// Returns the tile value that gets added to the spawn pool when reaching a milestone
     /// Returns nil if no new tiles are added for this milestone
     public func milestoneAddedValue(for milestone: Int) -> Int? {
-        // For high milestones (>=67M), spawning uses a range of 7 tiles
-        // For lower milestones, we add tiles progressively
-        // This is a simplified check - actual spawning is more complex
+        // The spawn pool changes are tied to elimination:
+        // When we eliminate value X, we start spawning X*2 as the minimum
+        // But only if this is an elimination milestone
 
-        // Check if this is a skip milestone first - skip milestones don't change spawn pool
-        if milestoneExcludedValue(for: milestone) == nil &&
-           (milestone == 8192 || milestone == 131072 || milestone == 2097152 || milestone == 33554432) {
-            return nil // Skip milestones don't add new spawn values
+        // Check if this milestone eliminates anything
+        guard let eliminated = milestoneExcludedValue(for: milestone) else {
+            // Skip milestones (8192, 131072, etc.) don't change spawn pool
+            return nil
         }
 
-        // For milestones that do eliminate, they typically allow spawning of higher values
-        // The spawn pool increases based on the milestone reached
-        if milestone >= 256 {
-            return milestone / 128  // Rough approximation of added spawn tier
+        // When we eliminate X, we typically add X*2 to the spawn pool
+        // (the minimum spawn value becomes X*2)
+        let addedSpawnValue = eliminated * 2
+
+        // But we only show this as "added" if it's a meaningful change
+        // For very early milestones, the spawn pool doesn't change much
+        if milestone >= 2048 && addedSpawnValue > 2 {
+            return addedSpawnValue
         }
+
         return nil
     }
 
