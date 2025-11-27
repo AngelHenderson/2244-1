@@ -50,7 +50,7 @@ public extension Tile {
         case .highValue(let step):
             return step
         default:
-            return TileStepLabelFormatter.stepForValue(value, start: 2)
+            return Tile.stepIndex(forValue: value)
         }
     }
     
@@ -77,5 +77,16 @@ public extension Tile {
             return leftStep == rightStep
         }
         return value == other.value
+    }
+    
+    private static func stepIndex(forValue value: Int) -> Int? {
+        guard value > 0 else { return nil }
+        if value & (value - 1) == 0 {
+            let trailing = value.trailingZeroBitCount
+            return max(0, trailing - 1)
+        }
+        // Fallback: use floating-point log if value isn't an exact power of two.
+        let approx = Int(log2(Double(value)))
+        return max(0, approx - 1)
     }
 }
