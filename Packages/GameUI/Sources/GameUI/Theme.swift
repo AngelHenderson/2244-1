@@ -185,9 +185,9 @@ public struct Theme {
         // Wait, 1c is 1 quintillion.
         // If the user means 9c as in 9 * something? No, likely the label "9c".
         
-        // Only apply remainder overrides for the first cycle (exponent <= 25)
-        // This prevents high-value tiles from being forced to low-value colors (like 2048's pink)
-        if e <= 25, let override = overridesByRemainder[remainder] {
+        // Apply remainder overrides for all cycles to ensure consistent patterning
+        // Step overrides (checked in color(for:)) will protect specific high-value tiles like 2c
+        if let override = overridesByRemainder[remainder] {
             return override
         }
         
