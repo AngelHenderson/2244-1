@@ -152,6 +152,25 @@ struct GameEngineTests {
     }
     
     @Test
+    func testScoreMultiplierAppliesToChainScore() {
+        let config = GameConfig(boardWidth: 2, boardHeight: 1, seed: 7, fillMode: .sparse)
+        let engine = GameEngine(config: config)
+        engine._setAllTilesForTesting(value: nil)
+        let positions = [Position(row: 0, col: 0), Position(row: 0, col: 1)]
+        positions.forEach { engine._setTileForTesting(at: $0, value: 2) }
+        engine._resetScoreForTesting()
+        var state = engine.commitChain(positions, applyGravity: false)
+        #expect(state.score == 4, "Base merge should add the merged value")
+        
+        engine._setAllTilesForTesting(value: nil)
+        positions.forEach { engine._setTileForTesting(at: $0, value: 2) }
+        engine._resetScoreForTesting()
+        engine.setScoreMultiplier(5)
+        state = engine.commitChain(positions, applyGravity: false)
+        #expect(state.score == 20, "Score multiplier should scale the awarded points")
+    }
+    
+    @Test
     func testHighValueChainsAdvanceBeyond9c() {
         guard let step9c = JourneyAbbreviationTiers.tier(forLabel: "9c")?.step,
               let step18c = JourneyAbbreviationTiers.tier(forLabel: "18c")?.step else {

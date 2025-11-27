@@ -3,7 +3,7 @@ import GameCore
 
 /// Canonical, versioned progress that both local and remote stores persist.
 public struct GameProgress: Codable, Equatable, Sendable {
-    public static let schemaVersion = 3 // Bumped to v3 for comprehensive session state
+    public static let schemaVersion = 4 // Bumped to v4 for score boost persistence
 
     public var version: Int = schemaVersion
     public var highestTile: Int
@@ -22,6 +22,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public var completedDailyChallenges: Int
     public var currentWinStreak: Int
     public var bestWinStreak: Int
+    public var activeScoreBoost: ScoreBoostState?
     
     // MARK: - Comprehensive Session State (v3)
     
@@ -123,6 +124,16 @@ public struct GameProgress: Codable, Equatable, Sendable {
             self.sessionEfficiencyScore = sessionEfficiencyScore
         }
     }
+    
+    public struct ScoreBoostState: Codable, Equatable, Sendable {
+        public var multiplier: Int
+        public var expiresAt: Date
+        
+        public init(multiplier: Int, expiresAt: Date) {
+            self.multiplier = multiplier
+            self.expiresAt = expiresAt
+        }
+    }
 
     public init(
         highestTile: Int = 0,
@@ -140,6 +151,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         currentWinStreak: Int = 0,
         bestWinStreak: Int = 0,
         currentSessionState: SessionState? = nil,
+        activeScoreBoost: ScoreBoostState? = nil,
         powerUpInventory: [String: Int] = ["hammer": 3, "shuffle": 2, "swap": 2, "undo": 1],
         journeyState: JourneyState = JourneyState(),
         sessionTracking: SessionTracking = SessionTracking(),
@@ -160,6 +172,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         self.currentWinStreak = currentWinStreak
         self.bestWinStreak = bestWinStreak
         self.currentSessionState = currentSessionState
+        self.activeScoreBoost = activeScoreBoost
         self.powerUpInventory = powerUpInventory
         self.journeyState = journeyState
         self.sessionTracking = sessionTracking

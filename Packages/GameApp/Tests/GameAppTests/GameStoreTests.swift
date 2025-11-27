@@ -106,6 +106,48 @@ struct GameStoreTests {
             "Gem reward should persist after the next merge"
         )
     }
+    
+    @Test
+    @MainActor
+    func testScoreBoostPurchaseConsumesGemsAndExpires() {
+        resetUserDefaultsDomain()
+        let store = GameStore()
+        store.coins = 2_000
+        let now = Date()
+        #expect(store.purchaseScoreBoost(now: now))
+        #expect(store.isScoreBoostActive)
+        #expect(store.coins == 1_000)
+        #expect(store.scoreBoostExpiresAt != nil)
+        
+        store._refreshScoreBoost(now: now.addingTimeInterval((15 * 60) + 1))
+        #expect(!store.isScoreBoostActive, "Boost should expire after 15 minutes of real time")
+    }
+    
+    @Test
+    @MainActor
+    func testScoreBoostRepurchaseExtendsDuration() {
+        resetUserDefaultsDomain()
+        let store = GameStore()
+        store.coins = 4_000
+        let firstStart = Date()
+        #expect(store.purchaseScoreBoost(now: firstStart))
+        guard let firstExpiration = store.scoreBoostExpiresAt else {
+            Issue.record("Missing first expiration")
+            return
+        }
+        
+        let secondStart = firstStart.addingTimeInterval(60)
+        #expect(store.purchaseScoreBoost(now: secondStart))
+        guard let secondExpiration = store.scoreBoostExpiresAt else {
+            Issue.record("Missing second expiration")
+            return
+        }
+        
+        #expect(secondExpiration > firstExpiration, "Repurchase should extend the timer")
+        let expected = secondStart.addingTimeInterval(15 * 60)
+        #expect(abs(secondExpiration.timeIntervalSince(expected)) < 0.5, "Expiration should reset to 15 minutes from latest purchase")
+        #expect(store.coins == 2_000, "Two purchases should consume 2,000 gems total")
+    }
 }
 
 private func firstMergeablePair(in board: Board) -> (Position, Position)? {

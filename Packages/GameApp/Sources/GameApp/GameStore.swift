@@ -88,6 +88,28 @@ public final class GameStore {
         "undo": 1
     ]
     
+    private enum ScoreBoostConfig {
+        static let cost = 1_000
+        static let multiplier = 5
+        static let duration: TimeInterval = 15 * 60
+        static let defaultsKey = "scoreBoostExpiresAt"
+    }
+    
+    private static let scoreBoostFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.minute, .second]
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = [.pad]
+        return formatter
+    }()
+    
+    public private(set) var scoreBoostExpiresAt: Date?
+    public private(set) var scoreBoostRemaining: TimeInterval = 0
+    public private(set) var isScoreBoostActive: Bool = false
+    
+    @ObservationIgnored
+    private var scoreBoostTickerTask: Task<Void, Never>? = nil
+    
     public func addPowerUp(_ type: String, count: Int) {
         powerUpInventory[type, default: 0] += count
     }
@@ -106,8 +128,34 @@ public final class GameStore {
         }
     }
     
+    public var scoreBoostCost: Int { ScoreBoostConfig.cost }
+    
+    public var canPurchaseScoreBoost: Bool {
+        state.gems >= ScoreBoostConfig.cost
+    }
+    
+    public var scoreBoostCountdownText: String {
+        if isScoreBoostActive {
+            let seconds = max(0, scoreBoostRemaining)
+            return Self.scoreBoostFormatter.string(from: seconds) ?? "00:00"
+        }
+        if canPurchaseScoreBoost {
+            return "Ready"
+        }
+        let shortfall = max(0, ScoreBoostConfig.cost - state.gems)
+        return "Need \(shortfall)"
+    }
+    
     private func syncEngineGems() {
         engine.overrideGems(with: state.gems)
+    }
+    
+    private func syncEngineScoreBoost() {
+        if isScoreBoostActive {
+            engine.setScoreMultiplier(ScoreBoostConfig.multiplier)
+        } else {
+            engine.setScoreMultiplier(1)
+        }
     }
     
     // Lowest allowed spawn tile based on current highest (mirrors engine logic)
@@ -165,6 +213,7 @@ public final class GameStore {
                 print("💎 Using progress gems: \(progress.gems)")
             }
             syncEngineGems()
+            syncEngineScoreBoost()
             self.state.highestTile = max(self.state.highestTile, sessionState.highestTile)
             
             // Restore power-up inventory
@@ -199,6 +248,7 @@ public final class GameStore {
                     print("💎 Fresh start - Using progress gems: \(progress.gems)")
                 }
                 syncEngineGems()
+                syncEngineScoreBoost()
                 self.powerUpInventory = progress.powerUpInventory
                 self.journey.highestTile = progress.journeyState.highestTile
                 self.journey.claimed = progress.journeyState.claimedTiles
@@ -211,12 +261,14 @@ public final class GameStore {
                     self.state.gems = 305 // Default starter gems
                 }
                 syncEngineGems()
+                syncEngineScoreBoost()
                 print("🆕 Starting fresh game")
             }
         }
         
         // Initialize comprehensive session tracking
         initializeSessionTracking()
+        restoreScoreBoostState(from: loadedProgress)
 
         // Note: restoreProgress() is now handled properly during GameProgress loading
         // Commenting out to prevent duplicate restoration that causes gem rollback
@@ -238,6 +290,7 @@ public final class GameStore {
         Task { @MainActor [weak self] in
             self?.cancelRefillRevealTask()
             self?.cancelMergeCleanupTask()
+            self?.scoreBoostTickerTask?.cancel()
         }
     }
     
@@ -586,6 +639,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
+        syncEngineScoreBoost()
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
         pendingRefillPositions = []
@@ -612,6 +666,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
+        syncEngineScoreBoost()
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
         pendingRefillPositions = []
@@ -645,6 +700,100 @@ public final class GameStore {
         saveProgressToStore()
         print("💰 Spent \(amount) gems. New balance: \(state.gems)")
         return true
+    }
+    
+    @discardableResult
+    public func purchaseScoreBoost(now date: Date = Date()) -> Bool {
+        guard canPurchaseScoreBoost else { return false }
+        guard spendCoins(ScoreBoostConfig.cost) else { return false }
+        let expiration = date.addingTimeInterval(ScoreBoostConfig.duration)
+        activateScoreBoost(expiringAt: expiration, now: date)
+        saveProgressToStore()
+        return true
+    }
+    
+    // MARK: - Score Boost Lifecycle
+    
+    private func activateScoreBoost(expiringAt expiration: Date, now date: Date = Date(), persist: Bool = true) {
+        scoreBoostExpiresAt = expiration
+        scoreBoostRemaining = max(0, expiration.timeIntervalSince(date))
+        isScoreBoostActive = scoreBoostRemaining > 0
+        syncEngineScoreBoost()
+        if persist {
+            persistScoreBoostExpiration(expiration)
+        }
+        refreshScoreBoostCountdown(now: date)
+        startScoreBoostTicker()
+    }
+    
+    private func deactivateScoreBoost(persist: Bool = true) {
+        scoreBoostExpiresAt = nil
+        scoreBoostRemaining = 0
+        isScoreBoostActive = false
+        syncEngineScoreBoost()
+        if persist {
+            persistScoreBoostExpiration(nil)
+        }
+        cancelScoreBoostTicker()
+    }
+    
+    private func refreshScoreBoostCountdown(now date: Date = Date()) {
+        guard let expiration = scoreBoostExpiresAt else {
+            if isScoreBoostActive { deactivateScoreBoost() }
+            return
+        }
+        let remaining = expiration.timeIntervalSince(date)
+        if remaining <= 0 {
+            deactivateScoreBoost()
+        } else {
+            scoreBoostRemaining = remaining
+            if !isScoreBoostActive {
+                isScoreBoostActive = true
+                syncEngineScoreBoost()
+            }
+        }
+    }
+    
+    private func persistScoreBoostExpiration(_ expiration: Date?) {
+        let defaults = UserDefaults.standard
+        if let expiration {
+            defaults.set(expiration, forKey: ScoreBoostConfig.defaultsKey)
+        } else {
+            defaults.removeObject(forKey: ScoreBoostConfig.defaultsKey)
+        }
+    }
+    
+    private func restoreScoreBoostState(from progress: GameProgress?) {
+        let defaultsExpiration = UserDefaults.standard.object(forKey: ScoreBoostConfig.defaultsKey) as? Date
+        let progressExpiration = progress?.activeScoreBoost?.expiresAt
+        let targetExpiration = [progressExpiration, defaultsExpiration].compactMap { $0 }.max()
+        let now = Date()
+        if let expiration = targetExpiration, expiration > now {
+            activateScoreBoost(expiringAt: expiration, now: now)
+        } else {
+            persistScoreBoostExpiration(nil)
+            deactivateScoreBoost(persist: false)
+        }
+    }
+    
+    private func startScoreBoostTicker() {
+        scoreBoostTickerTask?.cancel()
+        guard scoreBoostExpiresAt != nil else { return }
+        scoreBoostTickerTask = Task { @MainActor [weak self] in
+            while let self, self.scoreBoostExpiresAt != nil {
+                do {
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                } catch {
+                    break
+                }
+                self.refreshScoreBoostCountdown()
+            }
+        }
+    }
+    
+    private func cancelScoreBoostTicker() {
+        scoreBoostTickerTask?.cancel()
+        scoreBoostTickerTask = nil
     }
     
     // MARK: - Unlock Rewards
@@ -1045,6 +1194,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
+        syncEngineScoreBoost()
         currentPath = []
         pathValidation = .valid
         cancelRefillRevealTask()
@@ -1183,6 +1333,7 @@ extension GameStore {
         if data.width != 5 || data.height != 8 {
             engine = GameEngine(config: GameConfig(boardWidth: 5, boardHeight: 8, seed: data.seed))
             state = engine.currentState()
+            syncEngineScoreBoost()
         } else {
             let restoredBoard = board(from: data.board, width: data.width, height: data.height)
             let config = GameConfig(boardWidth: data.width, boardHeight: data.height, seed: data.seed)
@@ -1196,6 +1347,7 @@ extension GameStore {
             )
             engine = restoredEngine
             state = restoredEngine.currentState()
+            syncEngineScoreBoost()
         }
         
         // IMPORTANT: Sync JourneyKit with the loaded game state
@@ -1226,6 +1378,7 @@ extension GameStore {
     
     /// Creates a comprehensive GameProgress snapshot from current state
     private func createProgressSnapshot() -> GameProgress {
+        let snapshotDate = Date()
         // Check for infinity achievement
         var hasInfinity = false
         for row in 0..<state.board.height {
@@ -1294,6 +1447,16 @@ extension GameStore {
         let theme = UserDefaults.standard.string(forKey: "theme")
         let rank = UserDefaults.standard.object(forKey: "rank") as? Int
         
+        let boostState: GameProgress.ScoreBoostState?
+        if let expiresAt = scoreBoostExpiresAt, expiresAt > snapshotDate {
+            boostState = GameProgress.ScoreBoostState(
+                multiplier: ScoreBoostConfig.multiplier,
+                expiresAt: expiresAt
+            )
+        } else {
+            boostState = nil
+        }
+        
         return GameProgress(
             highestTile: allTimeHighest,
             bestScore: allTimeBest,
@@ -1302,7 +1465,7 @@ extension GameStore {
             achievements: [],
             theme: theme,
             rank: rank,
-            lastUpdatedAt: Date(),
+            lastUpdatedAt: snapshotDate,
             totalMerges: totalMerges,
             totalTimePlayed: totalTimePlayed,
             unlockedThemes: unlockedThemes,
@@ -1310,6 +1473,7 @@ extension GameStore {
             currentWinStreak: currentWinStreak,
             bestWinStreak: bestWinStreak,
             currentSessionState: sessionState,
+            activeScoreBoost: boostState,
             powerUpInventory: powerUpInventory,
             journeyState: journeyState,
             sessionTracking: sessionTracking,
@@ -1753,6 +1917,7 @@ extension GameStore {
         if hasInfinityAchievement {
             print("   • Infinity Achievement: ✅")
         }
+        restoreScoreBoostState(from: nil)
     }
     
     private func persistPendingGiftBoxes() {
@@ -2045,6 +2210,18 @@ extension GameStore {
     
     func _setHighestTileForTesting(_ value: Int) {
         state.highestTile = value
+    }
+    
+    func _forceScoreBoost(expiration: Date?) {
+        if let expiration {
+            activateScoreBoost(expiringAt: expiration, now: Date(), persist: false)
+        } else {
+            deactivateScoreBoost(persist: false)
+        }
+    }
+    
+    func _refreshScoreBoost(now date: Date) {
+        refreshScoreBoostCountdown(now: date)
     }
 }
 #endif

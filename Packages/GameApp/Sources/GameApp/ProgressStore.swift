@@ -9,7 +9,8 @@ public protocol ProgressStore: Sendable {
 
 // MARK: - UserDefaults Store
 public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable {
-    private let key = "com.yourco.game.progress.v3"
+    private let key = "com.yourco.game.progress.v4"
+    private let legacyV3Key = "com.yourco.game.progress.v3"
     private let legacyV2Key = "com.yourco.game.progress.v2"
     private let legacyKeys = [
         "bestTile", "bestScore", "coins", "gamesPlayed",
@@ -48,7 +49,15 @@ public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable
             return decoded
         }
         
-        // Try to load v2 and migrate to v3
+        // Try to load legacy v3 payload and migrate to v4
+        if let data = ud.data(forKey: legacyV3Key),
+           let decoded = try? decoder.decode(GameProgress.self, from: data) {
+            try? _save(decoded)
+            ud.removeObject(forKey: legacyV3Key)
+            return decoded
+        }
+        
+        // Try to load v2 and migrate forward
         if let data = ud.data(forKey: legacyV2Key),
            let v2Progress = try? decoder.decode(GameProgress.self, from: data) {
             // Migrate v2 to v3 by adding new fields with defaults
@@ -111,6 +120,8 @@ public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable
     public func clear() async throws {
         queue.sync {
             ud.removeObject(forKey: key)
+            ud.removeObject(forKey: legacyV3Key)
+            ud.removeObject(forKey: legacyV2Key)
             clearLegacyKeys()
         }
     }

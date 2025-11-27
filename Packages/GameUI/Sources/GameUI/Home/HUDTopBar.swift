@@ -9,10 +9,12 @@ import Foundation
 struct HUDTopBar: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
+    @Environment(\.gameStore) private var gameStore
     var score: Int? = nil  // Optional score for game context
 
     var body: some View {
         HStack(spacing: 8) {
+            scoreBoostButton
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
             
@@ -78,6 +80,30 @@ struct HUDTopBar: View {
         #else
         EmptyView()
         #endif
+    }
+    
+    private var scoreBoostButton: some View {
+        Button(action: { _ = gameStore.purchaseScoreBoost() }) {
+            HStack(alignment: .center, spacing: 10) {
+                Image(systemName: "bolt.fill")
+                    .font(.headline)
+                    .foregroundStyle(gameStore.isScoreBoostActive ? .yellow : .white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("5× Score • \(gameStore.scoreBoostCost) Gems")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.white)
+                    Text(gameStore.scoreBoostCountdownText)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(gameStore.isScoreBoostActive ? .green : .white.opacity(0.8))
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+        }
+        .modifier(GlassButtonCompat())
+        .opacity(gameStore.canPurchaseScoreBoost ? 1.0 : 0.7)
+        .disabled(!gameStore.canPurchaseScoreBoost)
+        .accessibilityLabel("Five times score boost. \(gameStore.scoreBoostCountdownText)")
     }
 
 #if canImport(GameKit)
