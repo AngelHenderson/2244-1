@@ -857,13 +857,15 @@ public final class GameStore {
     
     @discardableResult
     public func useHammer(at position: Position) -> Bool {
-        guard powerUpInventory["hammer", default: 0] > 0 || spendCoins(PowerUpCost.hammer) else { return false }
+        guard isPowerUpAvailable("hammer") else { return false }
+        
         // Use inventory first, then coins
         if powerUpInventory["hammer", default: 0] > 0 {
             powerUpInventory["hammer", default: 0] -= 1
         } else {
-            _ = spendCoins(PowerUpCost.hammer)
+            guard spendCoins(PowerUpCost.hammer) else { return false }
         }
+        
         let previousBoard = state.board
         let newState = engine.hammer(at: position)
         applyStateUpdate(newState, previousBoard: previousBoard)
@@ -879,13 +881,15 @@ public final class GameStore {
     
     @discardableResult
     public func useSwap(_ a: Position, _ b: Position) -> Bool {
-        guard powerUpInventory["swap", default: 0] > 0 || spendCoins(PowerUpCost.swap) else { return false }
+        guard isPowerUpAvailable("swap") else { return false }
+        
         // Use inventory first, then coins
         if powerUpInventory["swap", default: 0] > 0 {
             powerUpInventory["swap", default: 0] -= 1
         } else {
-            _ = spendCoins(PowerUpCost.swap)
+            guard spendCoins(PowerUpCost.swap) else { return false }
         }
+        
         let previousBoard = state.board
         let newState = engine.swap(a, b)
         applyStateUpdate(newState, previousBoard: previousBoard)
@@ -901,13 +905,15 @@ public final class GameStore {
     
     @discardableResult
     public func useShuffle() -> Bool {
-        guard powerUpInventory["shuffle", default: 0] > 0 || spendCoins(PowerUpCost.shuffle) else { return false }
+        guard isPowerUpAvailable("shuffle") else { return false }
+        
         // Use inventory first, then coins
         if powerUpInventory["shuffle", default: 0] > 0 {
             powerUpInventory["shuffle", default: 0] -= 1
         } else {
-            _ = spendCoins(PowerUpCost.shuffle)
+            guard spendCoins(PowerUpCost.shuffle) else { return false }
         }
+        
         let previousBoard = state.board
         let newState = engine.shuffle()
         applyStateUpdate(newState, previousBoard: previousBoard)
@@ -966,10 +972,8 @@ public final class GameStore {
         // Deduct power-up cost
         if powerUpInventory["magnet", default: 0] > 0 {
             powerUpInventory["magnet", default: 0] -= 1
-        } else if coins >= PowerUpCost.magnet {
-            coins -= PowerUpCost.magnet
         } else {
-            return false
+            guard spendCoins(PowerUpCost.magnet) else { return false }
         }
         
         // Capture previous highest for milestone detection
