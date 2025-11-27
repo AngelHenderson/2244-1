@@ -56,7 +56,7 @@ private struct ParticleGroup: View {
         let startPoint = centerPoint(for: start)
         let endPoint = centerPoint(for: end)
         
-        return ZStack {
+        ZStack {
             // 4 particles representing the broken block
             ForEach(0..<4) { i in
                 particleView(index: i, startPoint: startPoint, endPoint: endPoint)
@@ -91,7 +91,6 @@ private struct ParticleGroup: View {
         return CGPoint(x: originX, y: originY)
     }
     
-    @ViewBuilder
     private func particleView(index: Int, startPoint: CGPoint, endPoint: CGPoint) -> some View {
         let horizontalSign: CGFloat = (index % 2 == 0) ? -1.0 : 1.0
         let verticalSign: CGFloat = (index < 2) ? -1.0 : 1.0
@@ -117,15 +116,12 @@ private struct ParticleGroup: View {
             currentX = startPoint.x + baseOffset.width + explodeOffset.width
             currentY = startPoint.y + baseOffset.height + explodeOffset.height
             
-            // Scale down slightly as it breaks? Or just stay 1?
-            // Let's keep it 1 or slightly smaller to show separation
+            // Slight scale change
             currentScale = 1.0 - (progress * 0.1)
             currentOpacity = 1.0
             
         case .fly:
-            // Start exploded, move to target
-            // Collapse explosion as we move? Or keep it?
-            // Let's collapse it to simulate merging into the target
+            // Start exploded, move to target, collapse explosion
             explodeMagnitude = tileSize * 0.2 * (1 - progress)
             
             let explodeOffset = CGSize(width: horizontalSign * explodeMagnitude,

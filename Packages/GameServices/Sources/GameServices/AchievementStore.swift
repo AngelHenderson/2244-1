@@ -5,7 +5,7 @@ import GameKit
 @MainActor
 @Observable
 public final class AchievementStore {
-    public struct UnlockState: Hashable {
+    public struct UnlockState: Hashable, Codable {
         public var unlocked: Bool
         public var unlockedAt: Date?
         public var claimed: Bool
@@ -84,6 +84,7 @@ public final class AchievementStore {
             defaults.set(movesProgressionTier, forKey: "movesProgressionTier")
             // Reset unlock state when tier advances
             unlocks["moves_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
         }
     }
     
@@ -104,6 +105,7 @@ public final class AchievementStore {
             defaults.set(tileProgressionTier, forKey: "tileProgressionTier")
             // Reset unlock state when tier advances
             unlocks["tile_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
         }
     }
     
@@ -130,6 +132,7 @@ public final class AchievementStore {
         self.defaults = defaults
         self.tileProgressionTier = defaults.integer(forKey: "tileProgressionTier")
         self.movesProgressionTier = defaults.integer(forKey: "movesProgressionTier")
+        loadUnlocks()
     }
     
     public func loadCatalogFromBundle(named filename: String = "2244_achievements", in bundle: Bundle = .main) throws {
@@ -160,10 +163,12 @@ public final class AchievementStore {
                 unlocks[id] = .init(unlocked: true, unlockedAt: gk.lastReportedDate, claimed: alreadyClaimed)
             }
         }
+        saveUnlocks()
     }
     
     public func evaluate(snapshot: GameSnapshot, reportToGameCenter: Bool = true) async {
         lastEvaluatedSnapshot = snapshot
+        var didUnlock = false
         for def in catalog {
             guard unlocks[def.id]?.unlocked != true else { continue }
             
@@ -172,6 +177,7 @@ public final class AchievementStore {
                 let targetValue = currentTileTier.value
                 if Double(snapshot.max_tile) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
                 }
                 continue
             }
@@ -181,12 +187,14 @@ public final class AchievementStore {
                 let targetValue = currentMovesTier.value
                 if Double(snapshot.total_moves) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
                 }
                 continue
             }
             
             if matches(def: def, snapshot: snapshot) {
                 unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                didUnlock = true
                 
                 if reportToGameCenter,
                    GKLocalPlayer.local.isAuthenticated {
@@ -194,6 +202,10 @@ public final class AchievementStore {
                     await gc.reportUnlock(gcIdentifier: gcId)
                 }
             }
+        }
+        
+        if didUnlock {
+            saveUnlocks()
         }
     }
     
@@ -218,6 +230,7 @@ public final class AchievementStore {
                 // Max tier reached - mark as fully claimed
                 state.claimed = true
                 unlocks[definition.id] = state
+                saveUnlocks()
             }
             return
         }
@@ -240,6 +253,7 @@ public final class AchievementStore {
                 // Max tier reached - mark as fully claimed
                 state.claimed = true
                 unlocks[definition.id] = state
+                saveUnlocks()
             }
             return
         }
@@ -247,6 +261,7 @@ public final class AchievementStore {
         // Standard achievement claim
         state.claimed = true
         unlocks[definition.id] = state
+        saveUnlocks()
         
         guard let rewards = definition.rewards else { return }
         
@@ -353,5 +368,18 @@ public final class AchievementStore {
             object: nil,
             userInfo: ["newBalance": newGems, "added": gems]
         )
+    }
+    
+    private func saveUnlocks() {
+        if let data = try? JSONEncoder().encode(unlocks) {
+            defaults.set(data, forKey: "achievementUnlocks")
+        }
+    }
+    
+    private func loadUnlocks() {
+        if let data = defaults.data(forKey: "achievementUnlocks"),
+           let saved = try? JSONDecoder().decode([String: UnlockState].self, from: data) {
+            unlocks = saved
+        }
     }
 }

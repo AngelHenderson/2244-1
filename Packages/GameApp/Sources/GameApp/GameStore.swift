@@ -88,12 +88,49 @@ public final class GameStore {
         "undo": 1
     ]
     
-    private enum ScoreBoostConfig {
-        static let cost = 1_000
-        static let multiplier = 5
-        static let duration: TimeInterval = 15 * 60
-        static let defaultsKey = "scoreBoostExpiresAt"
+    public enum ScoreBoostTierID: String, CaseIterable, Sendable {
+        case fiveX = "boost_5x"
+        case twentyX = "boost_20x"
     }
+    
+    public struct ScoreBoostTier: Equatable, Sendable {
+        public let id: ScoreBoostTierID
+        public let label: String
+        public let multiplier: Int
+        public let cost: Int
+        public let duration: TimeInterval
+        
+        public init(id: ScoreBoostTierID, label: String, multiplier: Int, cost: Int, duration: TimeInterval) {
+            self.id = id
+            self.label = label
+            self.multiplier = multiplier
+            self.cost = cost
+            self.duration = duration
+        }
+    }
+    
+    private enum ScoreBoostDefaultsKey {
+        static let activeTierID = "scoreBoost.activeTierID"
+        static let activeExpiration = "scoreBoost.expiresAt"
+        static let queuedTierID = "scoreBoost.queuedTierID"
+    }
+    
+    private static let scoreBoostCatalog: [ScoreBoostTierID: ScoreBoostTier] = [
+        .fiveX: ScoreBoostTier(
+            id: .fiveX,
+            label: "5× Score",
+            multiplier: 5,
+            cost: 1_000,
+            duration: 15 * 60
+        ),
+        .twentyX: ScoreBoostTier(
+            id: .twentyX,
+            label: "20× Score",
+            multiplier: 20,
+            cost: 5_000,
+            duration: 15 * 60
+        )
+    ]
     
     private static let scoreBoostFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
@@ -103,9 +140,10 @@ public final class GameStore {
         return formatter
     }()
     
+    public private(set) var activeScoreBoostTierID: ScoreBoostTierID?
     public private(set) var scoreBoostExpiresAt: Date?
     public private(set) var scoreBoostRemaining: TimeInterval = 0
-    public private(set) var isScoreBoostActive: Bool = false
+    public private(set) var queuedScoreBoostTierID: ScoreBoostTierID?
     
     @ObservationIgnored
     private var scoreBoostTickerTask: Task<Void, Never>? = nil
@@ -128,22 +166,74 @@ public final class GameStore {
         }
     }
     
-    public var scoreBoostCost: Int { ScoreBoostConfig.cost }
-    
-    public var canPurchaseScoreBoost: Bool {
-        state.gems >= ScoreBoostConfig.cost
+    public var isScoreBoostActive: Bool {
+        guard let expiration = scoreBoostExpiresAt else { return false }
+        return expiration > Date()
     }
     
-    public var scoreBoostCountdownText: String {
-        if isScoreBoostActive {
+    public func scoreBoostTier(_ id: ScoreBoostTierID) -> ScoreBoostTier {
+        Self.scoreBoostCatalog[id]!
+    }
+    
+    public func scoreBoostLabel(for id: ScoreBoostTierID) -> String {
+        scoreBoostTier(id).label
+    }
+    
+    public func scoreBoostCost(for id: ScoreBoostTierID) -> Int {
+        scoreBoostTier(id).cost
+    }
+    
+    public func canPurchaseScoreBoost(_ id: ScoreBoostTierID) -> Bool {
+        state.gems >= scoreBoostCost(for: id)
+    }
+    
+    public func isScoreBoostActive(for id: ScoreBoostTierID) -> Bool {
+        activeScoreBoostTierID == id && isScoreBoostActive
+    }
+    
+    public func isScoreBoostQueued(for id: ScoreBoostTierID) -> Bool {
+        queuedScoreBoostTierID == id
+    }
+    
+    public func scoreBoostCountdownText(for id: ScoreBoostTierID) -> String {
+        if isScoreBoostActive(for: id) {
             let seconds = max(0, scoreBoostRemaining)
             return Self.scoreBoostFormatter.string(from: seconds) ?? "00:00"
         }
-        if canPurchaseScoreBoost {
+        if isScoreBoostQueued(for: id) {
+            return "Queued"
+        }
+        if canPurchaseScoreBoost(id) {
             return "Ready"
         }
-        let shortfall = max(0, ScoreBoostConfig.cost - state.gems)
+        let shortfall = max(0, scoreBoostCost(for: id) - state.gems)
         return "Need \(shortfall)"
+    }
+    
+    public var scoreBoostCountdownText: String {
+        scoreBoostCountdownText(for: .fiveX)
+    }
+    
+    private func activeScoreBoostTier() -> ScoreBoostTier? {
+        guard let tierID = activeScoreBoostTierID else { return nil }
+        return Self.scoreBoostCatalog[tierID]
+    }
+    
+    private func persistScoreBoostState() {
+        let defaults = UserDefaults.standard
+        if let tierID = activeScoreBoostTierID, let expiresAt = scoreBoostExpiresAt {
+            defaults.set(tierID.rawValue, forKey: ScoreBoostDefaultsKey.activeTierID)
+            defaults.set(expiresAt, forKey: ScoreBoostDefaultsKey.activeExpiration)
+        } else {
+            defaults.removeObject(forKey: ScoreBoostDefaultsKey.activeTierID)
+            defaults.removeObject(forKey: ScoreBoostDefaultsKey.activeExpiration)
+        }
+        
+        if let queuedID = queuedScoreBoostTierID {
+            defaults.set(queuedID.rawValue, forKey: ScoreBoostDefaultsKey.queuedTierID)
+        } else {
+            defaults.removeObject(forKey: ScoreBoostDefaultsKey.queuedTierID)
+        }
     }
     
     private func syncEngineGems() {
@@ -151,8 +241,10 @@ public final class GameStore {
     }
     
     private func syncEngineScoreBoost() {
-        if isScoreBoostActive {
-            engine.setScoreMultiplier(ScoreBoostConfig.multiplier)
+        if let tierID = activeScoreBoostTierID,
+           let tier = Self.scoreBoostCatalog[tierID],
+           isScoreBoostActive {
+            engine.setScoreMultiplier(tier.multiplier)
         } else {
             engine.setScoreMultiplier(1)
         }
@@ -703,84 +795,135 @@ public final class GameStore {
     }
     
     @discardableResult
-    public func purchaseScoreBoost(now date: Date = Date()) -> Bool {
-        guard canPurchaseScoreBoost else { return false }
-        guard spendCoins(ScoreBoostConfig.cost) else { return false }
-        let expiration = date.addingTimeInterval(ScoreBoostConfig.duration)
-        activateScoreBoost(expiringAt: expiration, now: date)
+    public func purchaseScoreBoost(_ tierID: ScoreBoostTierID, now date: Date = Date()) -> Bool {
+        let tier = scoreBoostTier(tierID)
+        guard spendCoins(tier.cost) else { return false }
+        
+        if activeScoreBoostTierID == nil {
+            activateScoreBoost(tierID: tierID, now: date)
+        } else if activeScoreBoostTierID == tierID {
+            activateScoreBoost(tierID: tierID, now: date)
+        } else {
+            queuedScoreBoostTierID = tierID
+            persistScoreBoostState()
+            print("⚡️ Queued \(tier.label) boost. It will start after the current boost ends.")
+        }
+        
         saveProgressToStore()
         return true
     }
     
     // MARK: - Score Boost Lifecycle
     
-    private func activateScoreBoost(expiringAt expiration: Date, now date: Date = Date(), persist: Bool = true) {
-        scoreBoostExpiresAt = expiration
-        scoreBoostRemaining = max(0, expiration.timeIntervalSince(date))
-        isScoreBoostActive = scoreBoostRemaining > 0
-        syncEngineScoreBoost()
-        if persist {
-            persistScoreBoostExpiration(expiration)
-        }
-        refreshScoreBoostCountdown(now: date)
-        startScoreBoostTicker()
+    private func activateScoreBoost(tierID: ScoreBoostTierID, now date: Date = Date(), persist: Bool = true) {
+        let tier = scoreBoostTier(tierID)
+        let expiration = date.addingTimeInterval(tier.duration)
+        activateScoreBoost(tierID: tierID, expiresAt: expiration, now: date, persist: persist)
     }
     
-    private func deactivateScoreBoost(persist: Bool = true) {
-        scoreBoostExpiresAt = nil
-        scoreBoostRemaining = 0
-        isScoreBoostActive = false
+    private func activateScoreBoost(tierID: ScoreBoostTierID, expiresAt expiration: Date, now date: Date = Date(), persist: Bool = true) {
+        activeScoreBoostTierID = tierID
+        scoreBoostExpiresAt = expiration
+        scoreBoostRemaining = max(0, expiration.timeIntervalSince(date))
+        if queuedScoreBoostTierID == tierID {
+            queuedScoreBoostTierID = nil
+        }
         syncEngineScoreBoost()
         if persist {
-            persistScoreBoostExpiration(nil)
+            persistScoreBoostState()
         }
+        if expiration > date {
+            startScoreBoostTicker()
+            refreshScoreBoostCountdown(now: date)
+        } else {
+            finishActiveBoost(now: date)
+        }
+    }
+    
+    private func finishActiveBoost(now date: Date = Date()) {
+        activeScoreBoostTierID = nil
+        scoreBoostExpiresAt = nil
+        scoreBoostRemaining = 0
+        syncEngineScoreBoost()
+        persistScoreBoostState()
         cancelScoreBoostTicker()
+        startQueuedBoostIfNeeded(now: date)
+    }
+    
+    private func startQueuedBoostIfNeeded(now date: Date = Date()) {
+        guard let queuedID = queuedScoreBoostTierID else { return }
+        queuedScoreBoostTierID = nil
+        persistScoreBoostState()
+        activateScoreBoost(tierID: queuedID, now: date)
     }
     
     private func refreshScoreBoostCountdown(now date: Date = Date()) {
-        guard let expiration = scoreBoostExpiresAt else {
-            if isScoreBoostActive { deactivateScoreBoost() }
+        guard let expiration = scoreBoostExpiresAt, activeScoreBoostTierID != nil else {
+            if activeScoreBoostTierID != nil {
+                finishActiveBoost(now: date)
+            } else if activeScoreBoostTierID == nil {
+                startQueuedBoostIfNeeded(now: date)
+            }
             return
         }
         let remaining = expiration.timeIntervalSince(date)
         if remaining <= 0 {
-            deactivateScoreBoost()
+            finishActiveBoost(now: date)
         } else {
             scoreBoostRemaining = remaining
-            if !isScoreBoostActive {
-                isScoreBoostActive = true
-                syncEngineScoreBoost()
-            }
-        }
-    }
-    
-    private func persistScoreBoostExpiration(_ expiration: Date?) {
-        let defaults = UserDefaults.standard
-        if let expiration {
-            defaults.set(expiration, forKey: ScoreBoostConfig.defaultsKey)
-        } else {
-            defaults.removeObject(forKey: ScoreBoostConfig.defaultsKey)
         }
     }
     
     private func restoreScoreBoostState(from progress: GameProgress?) {
-        let defaultsExpiration = UserDefaults.standard.object(forKey: ScoreBoostConfig.defaultsKey) as? Date
+        let defaults = UserDefaults.standard
+        let defaultsTierID = defaults.string(forKey: ScoreBoostDefaultsKey.activeTierID).flatMap(ScoreBoostTierID.init(rawValue:))
+        let defaultsExpiration = defaults.object(forKey: ScoreBoostDefaultsKey.activeExpiration) as? Date
+        let progressTierID: ScoreBoostTierID? = {
+            guard let rawValue = progress?.activeScoreBoost?.tierID else { return nil }
+            return ScoreBoostTierID(rawValue: rawValue)
+        }()
         let progressExpiration = progress?.activeScoreBoost?.expiresAt
-        let targetExpiration = [progressExpiration, defaultsExpiration].compactMap { $0 }.max()
         let now = Date()
-        if let expiration = targetExpiration, expiration > now {
-            activateScoreBoost(expiringAt: expiration, now: now)
+        
+        let candidates = [
+            (defaultsTierID, defaultsExpiration),
+            (progressTierID, progressExpiration)
+        ].compactMap { (maybeID, maybeDate) -> (ScoreBoostTierID, Date)? in
+            guard let id = maybeID, let date = maybeDate else { return nil }
+            return (id, date)
+        }.filter { $0.1 > now }
+        
+        if let (tierID, expiration) = candidates.max(by: { $0.1 < $1.1 }) {
+            activateScoreBoost(tierID: tierID, expiresAt: expiration, now: now, persist: false)
         } else {
-            persistScoreBoostExpiration(nil)
-            deactivateScoreBoost(persist: false)
+            activeScoreBoostTierID = nil
+            scoreBoostExpiresAt = nil
+            scoreBoostRemaining = 0
+            syncEngineScoreBoost()
+            persistScoreBoostState()
+        }
+        
+        let queuedFromProgress: ScoreBoostTierID? = {
+            guard let rawValue = progress?.queuedScoreBoostTierID else { return nil }
+            return ScoreBoostTierID(rawValue: rawValue)
+        }()
+        let queuedFromDefaults = defaults.string(forKey: ScoreBoostDefaultsKey.queuedTierID).flatMap(ScoreBoostTierID.init(rawValue:))
+        queuedScoreBoostTierID = queuedFromProgress ?? queuedFromDefaults
+        if queuedScoreBoostTierID == activeScoreBoostTierID {
+            queuedScoreBoostTierID = nil
+        }
+        persistScoreBoostState()
+        refreshScoreBoostCountdown(now: now)
+        if activeScoreBoostTierID != nil {
+            startScoreBoostTicker()
         }
     }
     
     private func startScoreBoostTicker() {
         scoreBoostTickerTask?.cancel()
-        guard scoreBoostExpiresAt != nil else { return }
+        guard activeScoreBoostTierID != nil else { return }
         scoreBoostTickerTask = Task { @MainActor [weak self] in
-            while let self, self.scoreBoostExpiresAt != nil {
+            while let self, self.activeScoreBoostTierID != nil {
                 do {
                     try await Task.sleep(nanoseconds: 1_000_000_000)
                 } catch {
@@ -1448,9 +1591,13 @@ extension GameStore {
         let rank = UserDefaults.standard.object(forKey: "rank") as? Int
         
         let boostState: GameProgress.ScoreBoostState?
-        if let expiresAt = scoreBoostExpiresAt, expiresAt > snapshotDate {
+        if let tierID = activeScoreBoostTierID,
+           let expiresAt = scoreBoostExpiresAt,
+           expiresAt > snapshotDate,
+           let tier = Self.scoreBoostCatalog[tierID] {
             boostState = GameProgress.ScoreBoostState(
-                multiplier: ScoreBoostConfig.multiplier,
+                tierID: tier.id.rawValue,
+                multiplier: tier.multiplier,
                 expiresAt: expiresAt
             )
         } else {
@@ -1477,7 +1624,8 @@ extension GameStore {
             powerUpInventory: powerUpInventory,
             journeyState: journeyState,
             sessionTracking: sessionTracking,
-            hasInfinityAchievement: hasInfinity
+            hasInfinityAchievement: hasInfinity,
+            queuedScoreBoostTierID: queuedScoreBoostTierID?.rawValue
         )
     }
     
@@ -2212,16 +2360,24 @@ extension GameStore {
         state.highestTile = value
     }
     
-    func _forceScoreBoost(expiration: Date?) {
+    func _forceScoreBoost(tier: ScoreBoostTierID, expiration: Date?) {
         if let expiration {
-            activateScoreBoost(expiringAt: expiration, now: Date(), persist: false)
+            activateScoreBoost(tierID: tier, expiresAt: expiration, now: Date(), persist: false)
         } else {
-            deactivateScoreBoost(persist: false)
+            finishActiveBoost()
         }
     }
     
     func _refreshScoreBoost(now date: Date) {
         refreshScoreBoostCountdown(now: date)
+    }
+    
+    func _activeScoreBoostTierIDForTesting() -> ScoreBoostTierID? {
+        activeScoreBoostTierID
+    }
+    
+    func _queuedScoreBoostTierIDForTesting() -> ScoreBoostTierID? {
+        queuedScoreBoostTierID
     }
 }
 #endif

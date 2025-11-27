@@ -3,7 +3,7 @@ import GameCore
 
 /// Canonical, versioned progress that both local and remote stores persist.
 public struct GameProgress: Codable, Equatable, Sendable {
-    public static let schemaVersion = 4 // Bumped to v4 for score boost persistence
+    public static let schemaVersion = 5 // Bumped to v5 for multi-tier score boosts
 
     public var version: Int = schemaVersion
     public var highestTile: Int
@@ -23,6 +23,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public var currentWinStreak: Int
     public var bestWinStreak: Int
     public var activeScoreBoost: ScoreBoostState?
+    public var queuedScoreBoostTierID: String?
     
     // MARK: - Comprehensive Session State (v3)
     
@@ -126,12 +127,38 @@ public struct GameProgress: Codable, Equatable, Sendable {
     }
     
     public struct ScoreBoostState: Codable, Equatable, Sendable {
+        public var tierID: String
         public var multiplier: Int
         public var expiresAt: Date
         
-        public init(multiplier: Int, expiresAt: Date) {
+        public init(tierID: String, multiplier: Int, expiresAt: Date) {
+            self.tierID = tierID
             self.multiplier = multiplier
             self.expiresAt = expiresAt
+        }
+        
+        private enum CodingKeys: String, CodingKey {
+            case tierID
+            case multiplier
+            case expiresAt
+        }
+        
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            expiresAt = try container.decode(Date.self, forKey: .expiresAt)
+            multiplier = (try? container.decode(Int.self, forKey: .multiplier)) ?? 1
+            if let tier = try? container.decode(String.self, forKey: .tierID) {
+                tierID = tier
+            } else {
+                tierID = "boost_\(multiplier)x"
+            }
+        }
+        
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(tierID, forKey: .tierID)
+            try container.encode(multiplier, forKey: .multiplier)
+            try container.encode(expiresAt, forKey: .expiresAt)
         }
     }
 
@@ -155,7 +182,8 @@ public struct GameProgress: Codable, Equatable, Sendable {
         powerUpInventory: [String: Int] = ["hammer": 3, "shuffle": 2, "swap": 2, "undo": 1],
         journeyState: JourneyState = JourneyState(),
         sessionTracking: SessionTracking = SessionTracking(),
-        hasInfinityAchievement: Bool = false
+        hasInfinityAchievement: Bool = false,
+        queuedScoreBoostTierID: String? = nil
     ) {
         self.highestTile = highestTile
         self.bestScore = bestScore
@@ -177,5 +205,6 @@ public struct GameProgress: Codable, Equatable, Sendable {
         self.journeyState = journeyState
         self.sessionTracking = sessionTracking
         self.hasInfinityAchievement = hasInfinityAchievement
+        self.queuedScoreBoostTierID = queuedScoreBoostTierID
     }
 }

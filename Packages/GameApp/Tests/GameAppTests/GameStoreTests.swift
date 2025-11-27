@@ -114,8 +114,8 @@ struct GameStoreTests {
         let store = GameStore()
         store.coins = 2_000
         let now = Date()
-        #expect(store.purchaseScoreBoost(now: now))
-        #expect(store.isScoreBoostActive)
+        #expect(store.purchaseScoreBoost(.fiveX, now: now))
+        #expect(store.isScoreBoostActive(for: .fiveX))
         #expect(store.coins == 1_000)
         #expect(store.scoreBoostExpiresAt != nil)
         
@@ -130,14 +130,14 @@ struct GameStoreTests {
         let store = GameStore()
         store.coins = 4_000
         let firstStart = Date()
-        #expect(store.purchaseScoreBoost(now: firstStart))
+        #expect(store.purchaseScoreBoost(.fiveX, now: firstStart))
         guard let firstExpiration = store.scoreBoostExpiresAt else {
             Issue.record("Missing first expiration")
             return
         }
         
         let secondStart = firstStart.addingTimeInterval(60)
-        #expect(store.purchaseScoreBoost(now: secondStart))
+        #expect(store.purchaseScoreBoost(.fiveX, now: secondStart))
         guard let secondExpiration = store.scoreBoostExpiresAt else {
             Issue.record("Missing second expiration")
             return
@@ -147,6 +147,35 @@ struct GameStoreTests {
         let expected = secondStart.addingTimeInterval(15 * 60)
         #expect(abs(secondExpiration.timeIntervalSince(expected)) < 0.5, "Expiration should reset to 15 minutes from latest purchase")
         #expect(store.coins == 2_000, "Two purchases should consume 2,000 gems total")
+    }
+    
+    @Test
+    @MainActor
+    func testTwentyXQueuesBehindFiveX() {
+        resetUserDefaultsDomain()
+        let store = GameStore()
+        store.coins = 10_000
+        let start = Date()
+        #expect(store.purchaseScoreBoost(.fiveX, now: start))
+        #expect(store.purchaseScoreBoost(.twentyX, now: start.addingTimeInterval(30)))
+        #expect(store.isScoreBoostActive(for: .fiveX))
+        #expect(store._queuedScoreBoostTierIDForTesting() == .twentyX)
+        
+        store._refreshScoreBoost(now: start.addingTimeInterval((15 * 60) + 5))
+        #expect(store.isScoreBoostActive(for: .twentyX))
+        #expect(store._queuedScoreBoostTierIDForTesting() == nil)
+    }
+    
+    @Test
+    @MainActor
+    func testTwentyXStartsImmediatelyWhenNoActiveBoost() {
+        resetUserDefaultsDomain()
+        let store = GameStore()
+        store.coins = 6_000
+        let now = Date()
+        #expect(store.purchaseScoreBoost(.twentyX, now: now))
+        #expect(store.isScoreBoostActive(for: .twentyX))
+        #expect(store.coins == 1_000)
     }
 }
 
