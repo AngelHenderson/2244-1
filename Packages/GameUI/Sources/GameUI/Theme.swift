@@ -13,26 +13,26 @@ public struct Theme {
         (Color(hex: "F16597"), false), // 3: hot pink
         (Color(hex: "BA6597"), false), // 4: pinned for 16
         (Color(hex: "154F7F"), false), // 5: deep blue
-        (Color(hex: "F05B59"), false), // 6: coral red
-        (Color(hex: "39B54A"), false), // 7: green
-        (Color(hex: "7C4DFF"), false), // 8: violet
-        (Color(hex: "FFD300"), true),  // 9: yellow (dark text)
-        (Color(hex: "00C7B7"), false), // 10: teal
-        (Color(hex: "FF6F00"), false), // 11: deep orange
-        (Color(hex: "9C27B0"), false), // 12: purple
-        (Color(hex: "4CAF50"), false), // 13: green
-        (Color(hex: "2196F3"), false), // 14: blue
-        (Color(hex: "E91E63"), false), // 15: magenta
-        (Color(hex: "D4E04A"), true),  // 16: lime (dark text)
-        (Color(hex: "3F51B5"), false), // 17: indigo
-        (Color(hex: "FF5722"), false), // 18: orange red
-        (Color(hex: "03A9F4"), false), // 19: light blue
-        (Color(hex: "8BC34A"), true),  // 20: light green (dark text)
-        (Color(hex: "00BCD4"), false), // 21: cyan
-        (Color(hex: "CDDC39"), true),  // 22: chartreuse (dark text)
-        (Color(hex: "673AB7"), false), // 23: deep purple
-        (Color(hex: "F44336"), false), // 24: red
-        (Color(hex: "009688"), false)  // 25: teal
+        (Color(hex: "#9674FF"), false), // 6: Purple
+        (Color(hex: "#03524B"), false), // 7: Dark Teal
+        (Color(hex: "#FF0039"), false), // 8: Red
+        (Color(hex: "#FF6F96"), true),  // 9: Pink (dark text)
+        (Color(hex: "#07F901"), false), // 10: Bright Green
+        (Color(hex: "#FF3B7B"), false), // 11: Vivid Pink
+        (Color(hex: "#55B9FF"), false), // 12: Blue
+        (Color(hex: "#FFFFEB"), true),  // 13: Cream (dark text)
+        (Color(hex: "#8849D1"), false), // 14: Purple
+        (Color(hex: "#00FFE5"), true),  // 15: Cyan (dark text)
+        (Color(hex: "#FFD300"), true),  // 16: Yellow (dark text)
+        (Color(hex: "#F05B59"), false), // 17: Coral Red
+        (Color(hex: "#55DFFE"), true),  // 18: Light Cyan / Blue (dark text)
+        (Color(hex: "#39B54A"), true),  // 19: Green (dark text)
+        (Color(hex: "#E91E63"), false), // 20: Magenta
+        (Color(hex: "#673AB7"), false), // 21: Deep Purple
+        (Color(hex: "#F44336"), false), // 22: Red
+        (Color(hex: "#1565C0"), false), // 23: Dark Blue
+        (Color(hex: "#EF6C00"), false), // 24: Orange
+        (Color(hex: "#C0CA33"), true)   // 25: Lime (dark text)
     ]
     
     // Exact value overrides - keeping only special cases
@@ -51,23 +51,26 @@ public struct Theme {
 
     // Remainder-based overrides (e % 25) - these colors repeat every 25 blocks!
     private static let overridesByRemainder: [Int: (color: Color, darkText: Bool)] = [
-        5: (Color(hex: "6F0000"), false),      // 32, 32×2^25, 32×2^50... → Dark red
         6: (Color(hex: "9674FF"), false),      // 64, 64×2^25, 64×2^50... → Purple
         7: (Color(hex: "03524B"), false),      // 128, 128×2^25... → Dark teal
         8: (Color(hex: "FF0039"), false),      // 256, 256×2^25... → Red
         9: (Color(hex: "FF6F96"), true),       // 512, 512×2^25... → Pink (dark text)
         10: (Color(hex: "07F901"), false),     // 1024, 1024×2^25... → Bright green
-        11: (Color(hex: "FF3B7B"), false),     // 2048, 2048×2^25... → Vivid pink (was FF0027)
+        11: (Color(hex: "FF3B7B"), false),     // 2048, 2048×2^25... → Vivid pink
         12: (Color(hex: "55B9FF"), false),     // 4096, 4096×2^25... → Blue
         13: (Color(hex: "FFFFEB"), true),      // 8192, 8192×2^25... → Cream (dark text)
         14: (Color(hex: "8849D1"), false),     // 16K, 16K×2^25... → Purple
-        15: (Color(hex: "00FFE5"), true),      // 32K, 32K×2^25... → Bright cyan (dark text)
+        15: (Color(hex: "00FFE5"), true),      // 32K, 32K×2^25... → Cyan (dark text)
         16: (Color(hex: "FFD300"), true),      // 64K, 64K×2^25... → Yellow (dark text)
         17: (Color(hex: "F05B59"), false),     // 131K, 131K×2^25... → Coral red
-        18: (Color(hex: "55DFFE"), true),      // 262K, 262K×2^25... → Light cyan (dark text)
+        18: (Color(hex: "55DFFE"), true),      // 262K, 262K×2^25... → Light Cyan / Blue (dark text)
         19: (Color(hex: "39B54A"), true),      // 524K, 524K×2^25... → Green (dark text)
-        4: (Color(hex: "BA6597"), false),      // 16, 16×2^25... → Pink (existing)
-        23: (Color(hex: "FF0027"), false)      // Kept for backwards compatibility
+        20: (Color(hex: "E91E63"), false),     // 1M, 1M×2^25... → Magenta
+        21: (Color(hex: "673AB7"), false),     // 2M, 2M×2^25... → Deep Purple
+        22: (Color(hex: "F44336"), false),     // 4M, 4M×2^25... → Red
+        23: (Color(hex: "1565C0"), false),     // 8M, 8M×2^25... → Dark Blue
+        24: (Color(hex: "EF6C00"), false),     // 16M, 16M×2^25... → Orange
+        0: (Color(hex: "C0CA33"), true)       // 33M, 33M×2^25... → Lime (dark text)
     ]
 
     // Conditional remainder overrides
@@ -185,9 +188,10 @@ public struct Theme {
         // Wait, 1c is 1 quintillion.
         // If the user means 9c as in 9 * something? No, likely the label "9c".
         
-        // Apply remainder overrides for all cycles to ensure consistent patterning
-        // Step overrides (checked in color(for:)) will protect specific high-value tiles like 2c
-        if let override = overridesByRemainder[remainder] {
+        // Only apply remainder overrides for the first cycle (exponent <= 25)
+        // This prevents high-value tiles from being forced to low-value colors (like 2048's pink)
+        // The user explicitly requested that high tiles NOT look like 2048.
+        if e <= 25, let override = overridesByRemainder[remainder] {
             return override
         }
         
