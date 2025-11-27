@@ -1,25 +1,55 @@
 import SwiftUI
 import GameServices
+import GameApp
 
 public struct AchievementsView: View {
     @Environment(AchievementStore.self) private var achievements
+    @Environment(HomeState.self) private var homeState
     @Environment(\.dismiss) private var dismiss
     
     public init() {}
+    
+    /// Sorted achievements: claimable first, then locked, then claimed last
+    private var sortedAchievements: [AchievementDef] {
+        achievements.catalog.sorted { a, b in
+            let stateA = achievements.unlocks[a.id]
+            let stateB = achievements.unlocks[b.id]
+            
+            let priorityA = sortPriority(for: stateA)
+            let priorityB = sortPriority(for: stateB)
+            
+            return priorityA < priorityB
+        }
+    }
+    
+    /// Sort priority: 0 = claimable (top), 1 = locked (middle), 2 = claimed (bottom)
+    private func sortPriority(for state: AchievementStore.UnlockState?) -> Int {
+        guard let state else { return 1 } // No state = locked
+        if state.isClaimable { return 0 }  // Claimable at top
+        if state.claimed { return 2 }       // Claimed at bottom
+        return 1                            // Locked in middle
+    }
     
     public var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    ForEach(achievements.catalog) { def in
+                    ForEach(sortedAchievements) { def in
                         AchievementRow(
                             definition: def,
                             state: achievements.unlocks[def.id],
-                            onClaim: { achievements.claim(definition: def) }
+                            onClaim: {
+                                // Claim the achievement
+                                achievements.claim(definition: def)
+                                // Immediately sync gems from UserDefaults to HomeState
+                                let updatedGems = UserDefaults.standard.integer(forKey: "coins")
+                                homeState.gems = updatedGems
+                            }
                         )
                     }
                 }
                 .padding()
+                .animation(.easeInOut(duration: 0.3), value: achievements.unlocks)
             }
             .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Achievements")

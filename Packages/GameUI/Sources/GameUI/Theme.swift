@@ -12,7 +12,7 @@ public struct Theme {
         (Color(hex: "F49A3E"), false), // 2: orange
         (Color(hex: "F16597"), false), // 3: hot pink
         (Color(hex: "BA6597"), false), // 4: pinned for 16
-        (Color(hex: "154F7F"), false), // 5: deep blue
+        (Color(hex: "#9E3A46"), false), // 5: Muted Red
         (Color(hex: "#9674FF"), false), // 6: Purple
         (Color(hex: "#03524B"), false), // 7: Dark Teal
         (Color(hex: "#FF0039"), false), // 8: Red
@@ -70,7 +70,8 @@ public struct Theme {
         22: (Color(hex: "F44336"), false),     // 4M, 4M×2^25... → Red
         23: (Color(hex: "1565C0"), false),     // 8M, 8M×2^25... → Dark Blue
         24: (Color(hex: "EF6C00"), false),     // 16M, 16M×2^25... → Orange
-        0: (Color(hex: "C0CA33"), true)       // 33M, 33M×2^25... → Lime (dark text)
+        0: (Color(hex: "C0CA33"), true),      // 33M, 33M×2^25... → Lime (dark text)
+        5: (Color(hex: "#9E3A46"), false)      // 32, 32×2^25... → Muted Red
     ]
 
     // Conditional remainder overrides
