@@ -107,11 +107,13 @@ struct ThemeTests {
                 continue
             }
             
-            let value = 1 << (step + 1)
-            let referenceValue = 1 << (referenceStep + 1)
+            let color = Theme.colorForStep(step)
+            let textColor = Theme.textColorForStep(step)
+            let referenceColor = Theme.colorForStep(referenceStep)
+            let referenceTextColor = Theme.textColorForStep(referenceStep)
             
-            #expect(Theme.color(for: value) == Theme.color(for: referenceValue))
-            #expect(Theme.textColor(for: value) == Theme.textColor(for: referenceValue))
+            #expect(color == referenceColor)
+            #expect(textColor == referenceTextColor)
         }
     }
 }

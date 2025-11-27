@@ -201,7 +201,14 @@ struct TileView: View {
     
     private var fontSize: CGFloat {
         guard let tile = tile else { return size * 0.4 }
-        let label = TileLabelFormatter.format(tile.value)
+        let label: String = {
+            switch tile.type {
+            case .highValue(let step):
+                return TileStepLabelFormatter.labelForStep(step)
+            default:
+                return TileLabelFormatter.format(tile.value)
+            }
+        }()
         let digitCount = label.count
         if useLegacyTypography {
             // Original mapping
@@ -220,7 +227,13 @@ struct TileView: View {
     
     private func kerning(for value: Int) -> CGFloat {
         guard !useLegacyTypography else { return 0.0 }
-        let count = TileLabelFormatter.format(value).count
+        let label: String
+        if case .highValue(let step) = tile?.type {
+            label = TileStepLabelFormatter.labelForStep(step)
+        } else {
+            label = TileLabelFormatter.format(value)
+        }
+        let count = label.count
         if count == 4 { return -1.0 }
         if count >= 5 { return -0.6 }
         return 0.0

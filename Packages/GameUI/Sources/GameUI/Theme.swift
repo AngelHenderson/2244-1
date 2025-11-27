@@ -72,17 +72,6 @@ public struct Theme {
         10: 60
     ]
     
-    // Journey milestone palette overrides keyed by doubling step (0-based)
-    private static let journeyPaletteByStep: [Int: (color: Color, darkText: Bool)] = {
-        var mapping: [Int: (Color, Bool)] = [:]
-        for (ordinal, tier) in JourneyAbbreviationTiers.tiers.enumerated() {
-            guard let step = tier.step else { continue }
-            let entry = palette25[ordinal % palette25.count]
-            mapping[step] = entry
-        }
-        return mapping
-    }()
-    
     public static func color(for value: Int) -> Color {
         if let o = overridesByExactValue[value] { return o.color }
         let entry = paletteEntry(forExponent: exponent(for: value))
@@ -97,19 +86,13 @@ public struct Theme {
     
     // MARK: - Step-based APIs (for highValue tiles) to repeat the palette by step % 25
     public static func colorForStep(_ step: Int) -> Color {
-        if let entry = journeyPaletteByStep[step] {
-            return entry.color
-        }
-        let entry = paletteEntry(forExponent: max(1, step + 1))
-        return entry.color
+        let exponent = max(1, step + 1)
+        return paletteEntry(forExponent: exponent).color
     }
     
     public static func textColorForStep(_ step: Int) -> Color {
-        if let entry = journeyPaletteByStep[step] {
-            return entry.darkText ? .black : .white
-        }
-        let entry = paletteEntry(forExponent: max(1, step + 1))
-        return entry.darkText ? .black : .white
+        let exponent = max(1, step + 1)
+        return paletteEntry(forExponent: exponent).darkText ? .black : .white
     }
     
     private static func colorBucketIndex(for value: Int) -> Int {
@@ -147,10 +130,6 @@ public struct Theme {
     
     private static func paletteEntry(forExponent exponent: Int) -> (color: Color, darkText: Bool) {
         let e = max(1, exponent)
-        let journeyStep = e - 1
-        if let journeyEntry = journeyPaletteByStep[journeyStep] {
-            return journeyEntry
-        }
         let remainder = e % 25
         if let minE = remainder6F0000Thresholds[remainder], e >= minE {
             return (Color(hex: "6F0000"), false)
