@@ -26,14 +26,14 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
 }
 
 public struct WheelReward: Hashable, Sendable {
-        public enum RewardType: Hashable, Sendable {
+    public enum RewardType: Hashable, Sendable {
         case gems
         case hammers
         case magnets
         case spin
-            case swap
-            case multiplier(SpinWheelState.MultiplierTier)
-            case giftBox
+        case swap
+        case multiplier(SpinWheelState.MultiplierTier)
+        case giftBox
     }
     
     public let type: RewardType
@@ -63,28 +63,28 @@ public final class WheelEngine {
     public var snapSpring = (response: 0.35, damping: 0.75)
     
     // Private
-    #if canImport(UIKit)
+#if canImport(UIKit)
     private var displayLink: CADisplayLink?
     private var haptic = UIImpactFeedbackGenerator(style: .light)
-    #endif
+#endif
     private var lastTimestamp: CFTimeInterval?
     private var onComplete: ((WheelSegment) -> Void)?
     private var animationTimer: Timer?
     
     public init(segments: [WheelSegment]? = nil) {
         self.segments = segments ?? WheelEngine.defaultSegments
-        #if canImport(UIKit)
+#if canImport(UIKit)
         haptic.prepare()
-        #endif
+#endif
     }
     
     // Spin with randomized initial energy
     public func spin(onComplete: @escaping (WheelSegment) -> Void) {
         guard !isSpinning else { return }
         self.onComplete = onComplete
-        #if canImport(UIKit)
+#if canImport(UIKit)
         haptic.prepare()
-        #endif
+#endif
         
         // 5.5–8.5 rotations/sec initial => lively, but not crazy
         let rps = Double.random(in: 5.5...8.5)
@@ -112,13 +112,13 @@ public final class WheelEngine {
     // MARK: - Animation
     
     private func startAnimation() {
-        #if canImport(UIKit)
+#if canImport(UIKit)
         guard displayLink == nil else { return }
         lastTimestamp = nil
         let link = CADisplayLink(target: self, selector: #selector(onDisplayLink(_:)))
         link.add(to: .main, forMode: .common)
         displayLink = link
-        #else
+#else
         // Fallback for macOS - use Timer
         animationTimer?.invalidate()
         lastTimestamp = CACurrentMediaTime()
@@ -132,28 +132,28 @@ public final class WheelEngine {
                 self.lastTimestamp = now
             }
         }
-        #endif
+#endif
     }
     
     private func stopAnimation() {
-        #if canImport(UIKit)
+#if canImport(UIKit)
         displayLink?.invalidate()
         displayLink = nil
-        #else
+#else
         animationTimer?.invalidate()
         animationTimer = nil
-        #endif
+#endif
         lastTimestamp = nil
     }
     
-    #if canImport(UIKit)
+#if canImport(UIKit)
     @objc private func onDisplayLink(_ link: CADisplayLink) {
         let t = link.timestamp
         defer { lastTimestamp = t }
         guard let last = lastTimestamp else { return } // wait one frame
         step(dt: CGFloat(t - last))
     }
-    #endif
+#endif
     
     // MARK: - Physics step
     
@@ -200,10 +200,10 @@ public final class WheelEngine {
         
         // Haptic + deflection
         let v = abs(angularVelocity)
-        #if canImport(UIKit)
+#if canImport(UIKit)
         let intensity = CGFloat(min(max(v / (8 * .pi), 0.15), 1.0))
         haptic.impactOccurred(intensity: intensity)
-        #endif
+#endif
         pegDeflect(forVelocity: v)
         
         // Damping depends on speed
@@ -260,40 +260,41 @@ public final class WheelEngine {
     }
     
     public static let defaultSegments: [WheelSegment] = [
-        .init(title: "Gift Box", subtitle: "Mystery prize", icon: "🎁", shortLabel: "?", 
+        .init(title: "Gift Box", subtitle: "Mystery prize", icon: "🎁", shortLabel: "?",
               color: Color(red: 0.97, green: 0.73, blue: 0.20), reward: .init(type: .giftBox, amount: 1)),
-        .init(title: "4X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "4X", 
+        .init(title: "4X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "4X",
               color: Color(red: 0.14, green: 0.41, blue: 0.96), reward: .init(type: .multiplier(.fourX), amount: 1)),
-        .init(title: "2 Swaps", subtitle: "Strategic swaps", icon: "🔁", shortLabel: "2x", 
+        .init(title: "2 Swaps", subtitle: "Strategic swaps", icon: "🔁", shortLabel: "2x",
               color: Color(red: 90.0/255.0, green: 58.0/255.0, blue: 1.0), reward: .init(type: .swap, amount: 2)),
-        .init(title: "1 Hammer", subtitle: "Smash a tile", icon: "🔨", shortLabel: "1x", 
+        .init(title: "1 Hammer", subtitle: "Smash a tile", icon: "🔨", shortLabel: "1x",
               color: Color.orange, reward: .init(type: .hammers, amount: 1)),
-        .init(title: "2 Free Spins", subtitle: "Spin again twice!", icon: "🎡", shortLabel: "+2", 
+        .init(title: "2 Free Spins", subtitle: "Spin again twice!", icon: "🎡", shortLabel: "+2",
               color: Color(red: 0.10, green: 0.60, blue: 0.36), reward: .init(type: .spin, amount: 2)),
-        .init(title: "1 Magnet", subtitle: "Pull tiles in", icon: "🧲", shortLabel: "1x", 
+        .init(title: "1 Magnet", subtitle: "Pull tiles in", icon: "🧲", shortLabel: "1x",
               color: Color.purple, reward: .init(type: .magnets, amount: 1)),
-        .init(title: "500 Gems", subtitle: "Big payout", icon: "💎", shortLabel: "500", 
+        .init(title: "500 Gems", subtitle: "Big payout", icon: "💎", shortLabel: "500",
               color: Color(red: 0.04, green: 0.54, blue: 0.82), reward: .init(type: .gems, amount: 500)),
-        .init(title: "2 Hammers", subtitle: "Double smash", icon: "🛠️", shortLabel: "2x", 
+        .init(title: "2 Hammers", subtitle: "Double smash", icon: "🛠️", shortLabel: "2x",
               color: Color(red: 0.85, green: 0.42, blue: 0.24), reward: .init(type: .hammers, amount: 2)),
-        .init(title: "3X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "3X", 
+        .init(title: "3X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "3X",
               color: Color(red: 0.20, green: 0.64, blue: 0.93), reward: .init(type: .multiplier(.threeX), amount: 1)),
-        .init(title: "1000 Gems", subtitle: "Jackpot", icon: "💎", shortLabel: "1000", 
+        .init(title: "1000 Gems", subtitle: "Jackpot", icon: "💎", shortLabel: "1000",
               color: Color(red: 0.00, green: 0.38, blue: 0.69), reward: .init(type: .gems, amount: 1000)),
-        .init(title: "1 Free Spin", subtitle: "Spin again", icon: "🎡", shortLabel: "+1", 
+        .init(title: "1 Free Spin", subtitle: "Spin again", icon: "🎡", shortLabel: "+1",
               color: Color(red: 0.16, green: 0.78, blue: 0.46), reward: .init(type: .spin, amount: 1)),
-        .init(title: "2 Magnets", subtitle: "Double pull", icon: "🧲", shortLabel: "2x", 
+        .init(title: "2 Magnets", subtitle: "Double pull", icon: "🧲", shortLabel: "2x",
               color: Color(red: 0.64, green: 0.29, blue: 0.99), reward: .init(type: .magnets, amount: 2)),
-        .init(title: "2X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "2X", 
+        .init(title: "2X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "2X",
               color: Color(red: 0.36, green: 0.80, blue: 0.98), reward: .init(type: .multiplier(.twoX), amount: 1)),
-        .init(title: "100 Gems", subtitle: "Shimmering win", icon: "💎", shortLabel: "100", 
+        .init(title: "100 Gems", subtitle: "Shimmering win", icon: "💎", shortLabel: "100",
               color: Color(red: 0.08, green: 0.71, blue: 0.94), reward: .init(type: .gems, amount: 100)),
-        .init(title: "1 Swap", subtitle: "Swap tiles", icon: "🔁", shortLabel: "1x", 
+        .init(title: "1 Swap", subtitle: "Swap tiles", icon: "🔁", shortLabel: "1x",
               color: Color(red: 126.0/255.0, green: 91.0/255.0, blue: 1.0), reward: .init(type: .swap, amount: 1))
     ]
-// MARK: - Environment Injection
+}
 
-// Since WheelEngine is MainActor-isolated, we use optional type for environment key
+// MARK: - Environment Injection (file scope)
+
 private struct WheelEngineKey: EnvironmentKey {
     static let defaultValue: WheelEngine? = nil
 }
@@ -301,16 +302,16 @@ private struct WheelEngineKey: EnvironmentKey {
 public extension EnvironmentValues {
     @MainActor
     var wheelEngine: WheelEngine {
-        get { 
+        get {
             self[WheelEngineKey.self] ?? WheelEngine()
         }
-        set { 
+        set {
             self[WheelEngineKey.self] = newValue
         }
     }
 }
 
-// MARK: - HomeState extension to get shared instance
+// MARK: - HomeState extension (file scope)
 
 public extension HomeState {
     @MainActor
