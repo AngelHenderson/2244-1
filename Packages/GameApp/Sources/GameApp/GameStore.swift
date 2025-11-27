@@ -983,8 +983,9 @@ public final class GameStore {
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
         
-        // Calculate merged value and show milestone notification if applicable
-        // Use safe multiplication to prevent overflow
+        // Calculate merged value - the result of magnetizing all matching tiles
+        // The new tile value after merging all tiles of the same value
+        let mergedValue = state.board[position]?.value ?? (value * matchingPositions.count)
         
         setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
         
