@@ -985,8 +985,7 @@ public final class GameStore {
         
         // Calculate merged value and show milestone notification if applicable
         // Use safe multiplication to prevent overflow
-        let mergedStep = TileStepMath.mergedStep(from: Array(repeating: targetStep, count: matchingPositions.count))
-        let mergedValue = TileStepMath.value(forStep: mergedStep)
+        
         setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
         
         // Track power-up usage
