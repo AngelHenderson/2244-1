@@ -152,6 +152,27 @@ struct GameEngineTests {
     }
     
     @Test
+    func testHighValueChainsAdvanceBeyond9c() {
+        guard let step9c = JourneyAbbreviationTiers.tier(forLabel: "9c")?.step,
+              let step18c = JourneyAbbreviationTiers.tier(forLabel: "18c")?.step else {
+            Issue.record("Unable to resolve steps for 9c or 18c")
+            return
+        }
+        
+        let config = GameConfig(boardWidth: 1, boardHeight: 3, seed: 7, fillMode: .sparse)
+        let engine = GameEngine(config: config)
+        engine._setAllTilesForTesting(value: nil)
+        
+        let positions = (0..<3).map { Position(row: $0, col: 0) }
+        positions.forEach { engine._setHighValueTileForTesting(at: $0, step: step9c) }
+        
+        let state = engine.commitChain(positions)
+        let resultingTile = state.board[positions.last!]
+        
+        #expect(resultingTile?.stepIndex == step18c, "Merging 9c tiles should produce an 18c tile")
+    }
+    
+    @Test
     func testCommitChainCanSkipGravityForAnimationPipeline() {
         let config = GameConfig(boardWidth: 3, boardHeight: 4, seed: 5, fillMode: .alwaysFull)
         let engine = GameEngine(config: config)
