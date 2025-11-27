@@ -140,15 +140,15 @@ struct AlphaMagProgressionTests {
         #expect(AlphaMag.formatScoreDisplay(999_999_999_999) == "999B")  // Shows as 999B
 
         // Test trillion formatting with 'a' suffix - shows full precision with commas
-        #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000) == "1a")  // 1 trillion
-        #expect(AlphaMag.formatScoreDisplay(2_040_584_000_000) == "2,040a")  // 2,040 trillion
-        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000) == "5,500a")  // 5,500 trillion
-        #expect(AlphaMag.formatScoreDisplay(394_567_000_000_000) == "394,567a")  // 394,567 trillion
-        #expect(AlphaMag.formatScoreDisplay(999_999_000_000_000) == "999,999a")  // 999,999 trillion
+        #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000) == "1,000a")  // 1 trillion = 1,000 billion
+        #expect(AlphaMag.formatScoreDisplay(2_040_584_000_000) == "2,040a")  // 2,040.584 billion
+        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000) == "5,500a")  // 5,500 billion
+        #expect(AlphaMag.formatScoreDisplay(394_567_000_000_000) == "394,567a")  // 394,567 billion
+        #expect(AlphaMag.formatScoreDisplay(999_999_000_000_000) == "999,999a")  // 999,999 billion
 
         // Test quadrillion formatting with 'b' suffix
-        #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000_000) == "1b")  // 1 quadrillion
-        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000_000) == "5,500b")  // 5,500 quadrillion
+        #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000_000) == "1,000b")  // 1 quadrillion = 1,000 trillion
+        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000_000) == "5,500b")  // 5,500 trillion
 
         // Test quintillion formatting with 'c' suffix (if Int can hold it)
         if Int.max >= 1_000_000_000_000_000_000 {

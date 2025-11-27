@@ -317,7 +317,9 @@ public extension AlphaMag {
                 divisor = quadrillion  // Divide by quadrillion for 'c'
 
                 // Keep adjusting for higher tiers
-                while magnitude >= divisor * 1_000_000 && tierIndex < 25 {
+                // Use division instead of multiplication to avoid integer overflow
+                // (divisor * 1_000_000 can overflow Int.max)
+                while magnitude / 1_000_000 >= divisor && tierIndex < 25 {
                     divisor *= 1_000
                     tierIndex += 1
                 }
