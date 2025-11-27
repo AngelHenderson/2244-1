@@ -149,38 +149,19 @@ public struct HomeScreen: View {
 
 // MARK: - All Blocks
 private struct AllBlocksView: View {
-    @Environment(\.gameStore) private var gameStore
-    
-    private func allTiles() -> [Tile] {
-        var list: [Tile] = []
-        var x = 2
-        // Cap to a reasonable count for display
-        let limit = 40
-        for _ in 0..<limit {
-            list.append(Tile(value: x))
-            if x > (Int.max >> 1) { break }
-            x = x << 1
-        }
-        list.append(Tile(value: 0, type: .infinity))
-        return list
-    }
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 68), spacing: 12)], spacing: 12) {
-                    ForEach(Array(allTiles().enumerated()), id: \.0) { _, tile in
-                        TileView(tile: tile, isSelected: false, isValid: true, size: 64)
+            JourneyPanel(showAll: true)
+                .navigationTitle("Journey")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Close") { dismiss() }
                     }
                 }
-                .padding()
-            }
-            .navigationTitle("All Blocks")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
         }
     }
-    
-    @Environment(\.dismiss) private var dismiss
 }
 
 // MARK: - Create Challenge
