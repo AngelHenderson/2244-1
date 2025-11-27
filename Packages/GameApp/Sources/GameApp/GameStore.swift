@@ -440,13 +440,11 @@ public final class GameStore {
         let endsOnGift = lastPos.map { BoardIndex($0) }.map { state.board[$0].kind == .gift } ?? false
         
         let newState: GameState
-        let requiresGravityDrop: Bool
+        let requiresGravityDrop = true
         if endsOnGift {
             newState = engine.commitGiftChain(positions)
-            requiresGravityDrop = false
         } else {
             newState = engine.commitChain(positions, applyGravity: false)
-            requiresGravityDrop = true
         }
         
         // Update state but DO NOT schedule refill reveal yet, as refill hasn't happened
@@ -978,9 +976,8 @@ public final class GameStore {
         let previousHighest = state.highestTile
         
         // Use the engine's magnetize method to merge all tiles with the same value
-        let previousBoard = state.board
         let newState = engine.magnetize(value: value, to: position)
-        applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
+        state = newState
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
         
         // Calculate merged value based on updated state at the target position
@@ -995,6 +992,10 @@ public final class GameStore {
         // Track power-up usage
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
         achievementEvaluator?.onPowerUpUsed(type: "magnet")
+        
+        // Apply drop and refill phases (magnet skips shatter but still runs drop/refill)
+        performGravityDrop()
+        performRefill()
         
         // Save progress after magnet use
         saveProgressImmediately(newTile: mergedValue, currentScore: state.score)
