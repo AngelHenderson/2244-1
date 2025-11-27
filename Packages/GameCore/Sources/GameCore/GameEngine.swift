@@ -1431,14 +1431,18 @@ public final class GameEngine {
         
         // Update highest tile
         if mergedValue > state.highestTile {
+            let previousHighest = state.highestTile
             state.highestTile = mergedValue
             highestTileAchieved = mergedValue
             updateLevel()
             checkMilestoneRewards(mergedValue)
+
+            // Apply eliminations for ALL milestones between previous highest and new value
+            applyAllMilestonesBetween(previousHighest, and: mergedValue)
+        } else {
+            // Even if not a new highest, check if this specific value triggers elimination
+            applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         }
-        
-        // Apply milestone elimination if needed
-        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         
         return mergedValue
     }
