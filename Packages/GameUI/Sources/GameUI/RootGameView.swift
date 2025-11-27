@@ -254,10 +254,11 @@ public struct RootGameView: View {
                 } else if gameStore.coins != progress.gems {
                     print("⚠️ Gem sync issue - GameStore: \(gameStore.coins), Progress: \(progress.gems). Keeping GameStore value.")
                     // Update progress to match current gameStore value
-                    var updatedProgress = progress
-                    updatedProgress.gems = gameStore.coins
+                    let currentGems = gameStore.coins
                     Task {
-                        try? await progressCoordinator.save(updatedProgress)
+                        try? await progressCoordinator.apply({ progress in
+                            progress.gems = currentGems
+                        }, userIsSignedIn: false)
                     }
                 }
                 
