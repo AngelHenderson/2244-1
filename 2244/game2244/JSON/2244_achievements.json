@@ -1555,24 +1555,23 @@
     ]
   },
   {
-    "id": "staying_power",
-    "gcIdentifier": "staying_power",
-    "title": "Staying Power",
-    "description": "Survive 200 moves in a single run.",
-    "category": "Survival",
+    "id": "moves_progression",
+    "gcIdentifier": "moves_progression",
+    "title": "Moves Master",
+    "description": "Reach the next moves milestone.",
+    "category": "Career",
     "rewards": {
-      "gems": 500,
+      "gems": 250,
       "spins": 1,
-      "boost2x": 1,
-      "swaps": 2
+      "swaps": 1
     },
     "hidden": false,
     "conditionExpr": "",
     "conditions": [
       {
-        "field": "moves",
+        "field": "total_moves",
         "op": ">=",
-        "value": 200
+        "value": 25
       }
     ]
   },

@@ -75,6 +75,7 @@ public final class AchievementEvaluator {
         snapshot.merge_in_corner = currentGameSnapshot.merge_in_corner
         snapshot.merge_on_edge = currentGameSnapshot.merge_on_edge
         snapshot.merges_first_10 = currentGameSnapshot.merges_first_10
+        snapshot.total_moves = UserDefaults.standard.integer(forKey: "totalMoves") + 1
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true

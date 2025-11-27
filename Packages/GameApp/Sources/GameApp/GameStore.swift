@@ -1429,6 +1429,9 @@ extension GameStore {
         let currentMerges = UserDefaults.standard.integer(forKey: "totalMerges")
         UserDefaults.standard.set(currentMerges + 1, forKey: "totalMerges")
         
+        let currentTotalMoves = UserDefaults.standard.integer(forKey: "totalMoves")
+        UserDefaults.standard.set(currentTotalMoves + 1, forKey: "totalMoves")
+        
         // Update total time played
         if let sessionStart = UserDefaults.standard.object(forKey: "sessionStartTime") as? Date {
             let sessionDuration = Date().timeIntervalSince(sessionStart)

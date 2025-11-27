@@ -56,6 +56,45 @@ public final class AchievementStore {
         ("∞", "∞", Double.infinity)
     ]
     
+    // MARK: - Moves Progression System
+    public static let movesTiers: [(label: String, value: Double)] = [
+        ("25", 25),
+        ("50", 50),
+        ("100", 100),
+        ("500", 500),
+        ("1K", 1000),
+        ("2K", 2000),
+        ("3K", 3000),
+        ("5K", 5000),
+        ("10K", 10000),
+        ("20K", 20000),
+        ("50K", 50000),
+        ("100K", 100000),
+        ("200K", 200000),
+        ("500K", 500000),
+        ("1M", 1000000)
+    ]
+    
+    /// Current tier index for the moves progression achievement (persisted)
+    public var movesProgressionTier: Int {
+        didSet {
+            defaults.set(movesProgressionTier, forKey: "movesProgressionTier")
+            // Reset unlock state when tier advances
+            unlocks["moves_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+        }
+    }
+    
+    /// Get current moves tier info
+    public var currentMovesTier: (label: String, value: Double) {
+        let index = min(movesProgressionTier, Self.movesTiers.count - 1)
+        return Self.movesTiers[index]
+    }
+    
+    /// Check if moves progression is at max tier
+    public var isMovesProgressionMaxed: Bool {
+        movesProgressionTier >= Self.movesTiers.count - 1
+    }
+    
     /// Current tier index for the tile progression achievement (persisted)
     public var tileProgressionTier: Int {
         didSet {
@@ -87,6 +126,7 @@ public final class AchievementStore {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.tileProgressionTier = defaults.integer(forKey: "tileProgressionTier")
+        self.movesProgressionTier = defaults.integer(forKey: "movesProgressionTier")
     }
     
     public func loadCatalogFromBundle(named filename: String = "2244_achievements", in bundle: Bundle = .main) throws {
@@ -133,6 +173,15 @@ public final class AchievementStore {
                 continue
             }
             
+            // Special handling for moves progression achievement
+            if def.id == "moves_progression" {
+                let targetValue = currentMovesTier.value
+                if Double(snapshot.total_moves) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                }
+                continue
+            }
+            
             if matches(def: def, snapshot: snapshot) {
                 unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                 
@@ -162,6 +211,28 @@ public final class AchievementStore {
             if !isTileProgressionMaxed {
                 tileProgressionTier += 1
                 // State is already reset in the didSet of tileProgressionTier
+            } else {
+                // Max tier reached - mark as fully claimed
+                state.claimed = true
+                unlocks[definition.id] = state
+            }
+            return
+        }
+        
+        // Special handling for moves progression achievement
+        if definition.id == "moves_progression" {
+            // Grant rewards
+            if let rewards = definition.rewards {
+                if let gems = rewards.gems, gems > 0 {
+                    grantGemsDirectly(gems)
+                }
+                onReward?(rewards)
+            }
+            
+            // Advance to next tier (don't mark as claimed, reset for next tier)
+            if !isMovesProgressionMaxed {
+                movesProgressionTier += 1
+                // State is already reset in the didSet of movesProgressionTier
             } else {
                 // Max tier reached - mark as fully claimed
                 state.claimed = true
@@ -219,6 +290,7 @@ public final class AchievementStore {
         case "merges_first_10": return .init(s.merges_first_10)
         case "reached_core_target": return b(s.reached_core_target)
         case "moves": return .init(s.moves)
+        case "total_moves": return .init(s.total_moves)
         case "undo_used": return .init(s.undo_used)
         case "powerups_used": return .init(s.powerups_used)
         case "session_pauses": return .init(s.session_pauses)

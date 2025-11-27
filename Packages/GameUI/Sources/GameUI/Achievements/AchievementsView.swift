@@ -23,10 +23,10 @@ public struct AchievementsView: View {
         }
     }
     
-    /// Sort priority: 0 = claimable (top), 1 = tile progression / locked (middle), 2 = claimed (bottom)
+    /// Sort priority: 0 = claimable (top), 1 = tile/moves progression / locked (middle), 2 = claimed (bottom)
     private func sortPriority(for id: String, state: AchievementStore.UnlockState?) -> Int {
-        // Tile progression achievement stays near top (priority 0.5 - between claimable and locked)
-        if id == "tile_progression" {
+        // Progressive achievements stay near top (priority 0.5 - between claimable and locked)
+        if id == "tile_progression" || id == "moves_progression" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
         }
@@ -46,6 +46,7 @@ public struct AchievementsView: View {
                             definition: def,
                             state: achievements.unlocks[def.id],
                             tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
+                            movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
                             onClaim: {
                                 // Claim the achievement
                                 achievements.claim(definition: def)
@@ -77,21 +78,39 @@ private struct AchievementRow: View {
     let definition: AchievementDef
     let state: AchievementStore.UnlockState?
     let tileProgressionTier: (suffix: String, label: String, value: Double)?
+    let movesProgressionTier: (label: String, value: Double)?
     let onClaim: () -> Void
+    
+    public init(
+        definition: AchievementDef,
+        state: AchievementStore.UnlockState?,
+        tileProgressionTier: (suffix: String, label: String, value: Double)? = nil,
+        movesProgressionTier: (label: String, value: Double)? = nil,
+        onClaim: @escaping () -> Void
+    ) {
+        self.definition = definition
+        self.state = state
+        self.tileProgressionTier = tileProgressionTier
+        self.movesProgressionTier = movesProgressionTier
+        self.onClaim = onClaim
+    }
     
     private var isUnlocked: Bool { state?.unlocked == true }
     private var isClaimed: Bool { state?.claimed == true }
     private var isClaimable: Bool { state?.isClaimable == true }
     
-    /// Dynamic title for tile progression achievement
+    /// Dynamic title for progressive achievements
     private var displayTitle: String {
         if let tier = tileProgressionTier {
             return "Reach the \(tier.label) tile"
         }
+        if let tier = movesProgressionTier {
+            return "Make \(tier.label) moves"
+        }
         return definition.title
     }
     
-    /// Dynamic description for tile progression achievement
+    /// Dynamic description for progressive achievements
     private var displayDescription: String {
         if definition.hidden && !isUnlocked {
             return "Complete objectives to reveal this achievement."
@@ -101,6 +120,9 @@ private struct AchievementRow: View {
                 return "Create a tile beyond comprehension. You are infinite."
             }
             return "Create a \(tier.label) tile to claim this reward and unlock the next tier."
+        }
+        if let tier = movesProgressionTier {
+            return "Make \(tier.label) total moves to unlock the next tier."
         }
         return definition.description
     }
@@ -179,6 +201,7 @@ private struct AchievementRow: View {
         case "endless": return "infinity"
         case "patterns": return "square.grid.3x3"
         case "powerups": return "bolt"
+        case "career": return "chart.bar.fill"
         case "hidden": return "questionmark"
         default: return "star"
         }
