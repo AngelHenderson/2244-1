@@ -2,6 +2,14 @@ import Testing
 import Foundation
 @testable import GameCore
 
+private func valueGrid(from board: GameCore.Board) -> [[Int?]] {
+    (0..<board.height).map { row in
+        (0..<board.width).map { col in
+            board[GameCore.Position(row: row, col: col)]?.value
+        }
+    }
+}
+
 struct GameEngineTests {
     @Test
     func testInitialBoardFilled() {
@@ -141,6 +149,71 @@ struct GameEngineTests {
         let expectedValue = 64 << 4
         #expect(state.board[basePositions.last!] == Tile(value: expectedValue), "Long chain should keep doubling")
         #expect(state.score >= expectedValue, "Score should reflect the resulting tile")
+    }
+    
+    @Test
+    func testCommitChainCanSkipGravityForAnimationPipeline() {
+        let config = GameConfig(boardWidth: 3, boardHeight: 4, seed: 5, fillMode: .alwaysFull)
+        let engine = GameEngine(config: config)
+        engine._setAllTilesForTesting(value: nil)
+        
+        let dropColumnPositions = [
+            Position(row: 3, col: 0),
+            Position(row: 2, col: 0),
+            Position(row: 1, col: 0)
+        ]
+        
+        // Chain tiles on the bottom row plus a supporting column above them
+        engine._setTileForTesting(at: dropColumnPositions[0], value: 2)
+        engine._setTileForTesting(at: Position(row: 3, col: 1), value: 2)
+        engine._setTileForTesting(at: dropColumnPositions[1], value: 16)
+        engine._setTileForTesting(at: dropColumnPositions[2], value: 32)
+        
+        let chain = [dropColumnPositions[0], Position(row: 3, col: 1)]
+        let stateWithoutGravity = engine.commitChain(chain, applyGravity: false)
+        
+        // Chain source position should now be empty while supporting tiles stay suspended
+        #expect(stateWithoutGravity.board[dropColumnPositions[0]] == nil, "Source tile should remain empty before gravity resolves")
+        #expect(stateWithoutGravity.board[dropColumnPositions[1]]?.value == 16, "Supporting tiles should not fall until gravity phase")
+        #expect(stateWithoutGravity.board[Position(row: 3, col: 1)]?.value == 4, "Merged tile should land at the target")
+        
+        let postGravityState = engine.applyGravityAfterChain()
+        #expect(postGravityState.board[dropColumnPositions[0]]?.value == 16, "Gravity phase should move the column down into empty space")
+    }
+    
+    @Test
+    func testDeferredGravityMatchesImmediateCommit() {
+        let config = GameConfig(boardWidth: 3, boardHeight: 4, seed: 9, fillMode: .alwaysFull)
+        let immediateEngine = GameEngine(config: config)
+        let deferredEngine = GameEngine(config: config)
+        
+        [immediateEngine, deferredEngine].forEach { engine in
+            engine._setAllTilesForTesting(value: nil)
+            engine._resetScoreForTesting()
+        }
+        
+        let tiles: [(Position, Int)] = [
+            (Position(row: 3, col: 0), 2),
+            (Position(row: 3, col: 1), 2),
+            (Position(row: 2, col: 0), 8),
+            (Position(row: 1, col: 1), 16)
+        ]
+        tiles.forEach { pos, value in
+            immediateEngine._setTileForTesting(at: pos, value: value)
+            deferredEngine._setTileForTesting(at: pos, value: value)
+        }
+        
+        let chain = [Position(row: 3, col: 0), Position(row: 3, col: 1)]
+        let immediateState = immediateEngine.commitChain(chain)
+        
+        _ = deferredEngine.commitChain(chain, applyGravity: false)
+        let deferredState = deferredEngine.applyGravityAfterChain()
+        
+        #expect(
+            valueGrid(from: immediateState.board) == valueGrid(from: deferredState.board),
+            "Deferred gravity should match the immediate commit result"
+        )
+        #expect(immediateState.score == deferredState.score, "Score calculations should stay consistent")
     }
     
     @Test

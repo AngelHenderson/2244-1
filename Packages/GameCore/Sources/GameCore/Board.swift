@@ -174,7 +174,10 @@ public struct Board: Equatable, Sendable, Codable {
             // need at least 2 identical to start
             return nextVal == lastVal
         } else {
-            return nextVal == lastVal || nextVal == lastVal * 2
+            // Use safe multiplication to check for double value
+            let (doubled, overflow) = lastVal.multipliedReportingOverflow(by: 2)
+            let isDouble = !overflow && nextVal == doubled
+            return nextVal == lastVal || isDouble
         }
     }
     
@@ -198,9 +201,15 @@ public struct Board: Equatable, Sendable, Codable {
         }
         
         // Compute result value: twice the highest number in the chain (standard 2244)
+        // Use safe multiplication to prevent overflow
         let valuesOnPath: [Int] = path.compactMap { self[$0].tile?.value }
         let maxVal = valuesOnPath.max() ?? 0
-        let resultVal = max(2 * maxVal, 2) // Ensure minimum result value
+        let resultVal: Int = {
+            if maxVal > (Int.max >> 1) { return Int.max }
+            let (doubled, overflow) = maxVal.multipliedReportingOverflow(by: 2)
+            if overflow { return Int.max }
+            return max(doubled, 2)
+        }()
         
         // Check if ending on gift
         let finalIndex = chain.last!

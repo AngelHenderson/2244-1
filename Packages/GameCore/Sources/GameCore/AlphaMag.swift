@@ -306,8 +306,8 @@ public extension AlphaMag {
                 // Divide by billion to get the value in thousands of billions (which becomes the number before 'a')
                 divisor = 1_000_000_000  // Divide by billion, not trillion
                 suffixChar = "a"
-            } else if magnitude < quadrillion * 1_000 {
-                // Quadrillions - use 'b' suffix
+            } else if magnitude / 1_000 < quadrillion {
+                // Quadrillions - use 'b' suffix (use division to avoid overflow)
                 // Divide by trillion to get the value in thousands of trillions (which becomes the number before 'b')
                 divisor = trillion
                 suffixChar = "b"
@@ -320,6 +320,10 @@ public extension AlphaMag {
                 // Use division instead of multiplication to avoid integer overflow
                 // (divisor * 1_000_000 can overflow Int.max)
                 while magnitude / 1_000_000 >= divisor && tierIndex < 25 {
+                    // Check for potential overflow before multiplying
+                    if divisor > Int.max / 1_000 {
+                        break
+                    }
                     divisor *= 1_000
                     tierIndex += 1
                 }

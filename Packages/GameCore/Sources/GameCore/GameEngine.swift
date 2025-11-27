@@ -282,7 +282,10 @@ public final class GameEngine {
             for index in 2..<values.count {
                 let previous = values[index - 1]
                 let current = values[index]
-                if current != previous && current != previous * 2 {
+                // Use safe multiplication to check if current equals previous * 2
+                let (doubled, overflow) = previous.multipliedReportingOverflow(by: 2)
+                let isDouble = !overflow && current == doubled
+                if current != previous && !isDouble {
                     return .invalid("Tiles must continue with equal or doubled values")
                 }
             }
@@ -324,7 +327,7 @@ public final class GameEngine {
         
         // Update score and game state
         let chainScore = outcome.resultValue
-        state.score += chainScore
+        state.score = safeAddScore(state.score, chainScore)
         state.moves += 1
         
         // Update highest tile and level
@@ -414,7 +417,7 @@ public final class GameEngine {
         return position.row == 0  // Top row is the gift row
     }
     
-    public func commitChain(_ positions: [Position]) -> GameState {
+    public func commitChain(_ positions: [Position], applyGravity: Bool = true) -> GameState {
         guard validateChain(positions).isValid else { return state }
         
         // Save previous state for undo
@@ -423,7 +426,11 @@ public final class GameEngine {
         
         let values = positions.compactMap { state.board[$0]?.value }
         
-        let chainSum = values.reduce(0, +)
+        // Use safe addition to prevent overflow when summing tile values
+        let chainSum = values.reduce(0) { (acc, val) -> Int in
+            let (result, overflow) = acc.addingReportingOverflow(val)
+            return overflow ? Int.max : result
+        }
         let mergedValue: Int = {
             guard chainSum > 0 else { return 0 }
             var value = 1
@@ -459,7 +466,7 @@ public final class GameEngine {
         applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         
         // Award points
-        state.score += chainScore
+        state.score = safeAddScore(state.score, chainScore)
         state.moves += 1
         
         // Award gems for long chains (10+ tiles)
@@ -467,13 +474,13 @@ public final class GameEngine {
             state.gems += positions.count / 5
         }
         
-        // Apply gravity ONLY. Do NOT refill yet.
-        // Refill will be triggered explicitly by the UI/GameStore after animation delay.
-        applyGravityDown()
-        
-        // Check for game over
-        if !hasValidMoves() {
-            state.isGameOver = true
+        if applyGravity {
+            applyGravityDown()
+            
+            // Check for game over only after gravity resolves
+            if !hasValidMoves() {
+                state.isGameOver = true
+            }
         }
         
         return state
@@ -486,6 +493,20 @@ public final class GameEngine {
         } else {
             refillToFull()
         }
+        
+        if !hasValidMoves() {
+            state.isGameOver = true
+        }
+        
+        return state
+    }
+
+    /// Applies gravity and game-over evaluation after a chain has been committed
+    /// without immediately resolving gravity (e.g., during animation pipelines).
+    /// - Returns: The updated `GameState` after gravity settles.
+    @discardableResult
+    public func applyGravityAfterChain() -> GameState {
+        applyGravityDown()
         
         if !hasValidMoves() {
             state.isGameOver = true
@@ -572,8 +593,11 @@ public final class GameEngine {
         }
         
         // Calculate merged value: sum all matching tiles and round up to next power of 2
-        let totalValue = value * matchingPositions.count
+        // Use safe multiplication to prevent overflow
+        let (totalValue, overflow) = value.multipliedReportingOverflow(by: matchingPositions.count)
         let mergedValue: Int = {
+            // If multiplication overflowed, return Int.max
+            if overflow { return Int.max }
             guard totalValue > 0 else { return 0 }
             if totalValue & (totalValue - 1) == 0 { return totalValue }
             if totalValue > (1 << 62) { return Int.max }
@@ -611,8 +635,8 @@ public final class GameEngine {
         // Apply milestone elimination if needed
         applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         
-        // Award score for the merge
-        state.score += mergedValue
+        // Award score for the merge (use safe addition to prevent overflow)
+        state.score = safeAddScore(state.score, mergedValue)
         
         // STEP 3: Apply gravity to make tiles fall down and fill gaps
         // This happens AFTER removal and placement, BEFORE spawning new tiles
@@ -884,7 +908,9 @@ public final class GameEngine {
 
         // For milestones < 67M, use the old logic: min spawn is X*2 where X is eliminated value
         if let removed = latestEliminatedValue() {
-            return max(2, removed << 1)
+            // Protect against overflow when doubling
+            let doubled = removed <= (Int.max >> 1) ? removed << 1 : Int.max
+            return max(2, doubled)
         }
         return 2
     }
@@ -1303,7 +1329,12 @@ public final class GameEngine {
         let value = firstTile.value
         
         // Calculate merged value: sum all tiles and round up to next power of 2
-        let mergedValue = min(value * 2, Int.max)
+        // Use safe multiplication to prevent overflow
+        let mergedValue: Int = {
+            if value > (Int.max >> 1) { return Int.max }
+            let (result, overflow) = value.multipliedReportingOverflow(by: 2)
+            return overflow ? Int.max : result
+        }()
         
         // Find the lowest position in the group (bottom-most, then leftmost)
         let mergePosition = group.sorted { a, b in
@@ -1390,20 +1421,33 @@ public final class GameEngine {
                 break // No more matches found
             }
 
-            totalScore += result.score
+            // Safe addition to prevent overflow
+            let (newTotal, overflow) = totalScore.addingReportingOverflow(result.score)
+            totalScore = overflow ? Int.max : newTotal
             cascadeCount += 1
         }
 
         // Award score with combo multiplier for cascades
         if cascadeCount > 1 {
             // Bonus for combos: 2x for 2 cascades, 3x for 3, etc.
-            let comboBonus = totalScore * (cascadeCount - 1) / 2
-            totalScore += comboBonus
+            // Use safe multiplication to prevent overflow
+            let (bonusProduct, overflowMult) = totalScore.multipliedReportingOverflow(by: cascadeCount - 1)
+            let comboBonus = overflowMult ? Int.max / 2 : bonusProduct / 2
+            let (newTotal, overflowAdd) = totalScore.addingReportingOverflow(comboBonus)
+            totalScore = overflowAdd ? Int.max : newTotal
         }
 
-        state.score += totalScore
+        state.score = safeAddScore(state.score, totalScore)
 
         return totalScore
+    }
+    
+    // MARK: - Safe Arithmetic Helpers
+    
+    /// Safely add two integers, capping at Int.max to prevent overflow
+    private func safeAddScore(_ a: Int, _ b: Int) -> Int {
+        let (result, overflow) = a.addingReportingOverflow(b)
+        return overflow ? Int.max : result
     }
     
     // MARK: - Test Helpers (internal)
