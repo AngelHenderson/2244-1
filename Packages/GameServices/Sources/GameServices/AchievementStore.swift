@@ -15,6 +15,67 @@ public final class AchievementStore {
         }
     }
     
+    // MARK: - Tile Progression System
+    /// The AlphaMag tiers for progressive tile achievement
+    public static let tileTiers: [(suffix: String, label: String, value: Double)] = [
+        ("M", "1M", 1_000_000),
+        ("B", "1B", 1_000_000_000),
+        ("a", "1a", 1e12),
+        ("b", "1b", 1e15),
+        ("c", "1c", 1e18),
+        ("d", "1d", 1e21),
+        ("e", "1e", 1e24),
+        ("f", "1f", 1e27),
+        ("g", "1g", 1e30),
+        ("h", "1h", 1e33),
+        ("i", "1i", 1e36),
+        ("j", "1j", 1e39),
+        ("k", "1k", 1e42),
+        ("l", "1l", 1e45),
+        ("m", "1m", 1e48),
+        ("n", "1n", 1e51),
+        ("o", "1o", 1e54),
+        ("p", "1p", 1e57),
+        ("q", "1q", 1e60),
+        ("r", "1r", 1e63),
+        ("s", "1s", 1e66),
+        ("t", "1t", 1e69),
+        ("u", "1u", 1e72),
+        ("v", "1v", 1e75),
+        ("w", "1w", 1e78),
+        ("x", "1x", 1e81),
+        ("y", "1y", 1e84),
+        ("z", "1z", 1e87),
+        ("aa", "1aa", 1e90),
+        ("ab", "1ab", 1e93),
+        ("az", "1az", 1e165),
+        ("ba", "1ba", 1e168),
+        ("bx", "1bx", 1e237),
+        ("by", "1by", 1e240),
+        ("bz", "1bz", 1e243),
+        ("∞", "∞", Double.infinity)
+    ]
+    
+    /// Current tier index for the tile progression achievement (persisted)
+    public var tileProgressionTier: Int {
+        didSet {
+            defaults.set(tileProgressionTier, forKey: "tileProgressionTier")
+            // Reset unlock state when tier advances
+            unlocks["tile_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+        }
+    }
+    
+    /// Get current tile tier info
+    public var currentTileTier: (suffix: String, label: String, value: Double) {
+        let index = min(tileProgressionTier, Self.tileTiers.count - 1)
+        return Self.tileTiers[index]
+    }
+    
+    /// Check if tile progression is at max tier
+    public var isTileProgressionMaxed: Bool {
+        tileProgressionTier >= Self.tileTiers.count - 1
+    }
+    
     public private(set) var catalog: [AchievementDef] = []
     public private(set) var unlocks: [String: UnlockState] = [:]
     public private(set) var lastEvaluatedSnapshot: GameSnapshot?
@@ -25,6 +86,7 @@ public final class AchievementStore {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        self.tileProgressionTier = defaults.integer(forKey: "tileProgressionTier")
     }
     
     public func loadCatalogFromBundle(named filename: String = "2244_achievements", in bundle: Bundle = .main) throws {
@@ -61,6 +123,16 @@ public final class AchievementStore {
         lastEvaluatedSnapshot = snapshot
         for def in catalog {
             guard unlocks[def.id]?.unlocked != true else { continue }
+            
+            // Special handling for tile progression achievement
+            if def.id == "tile_progression" {
+                let targetValue = currentTileTier.value
+                if Double(snapshot.max_tile) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                }
+                continue
+            }
+            
             if matches(def: def, snapshot: snapshot) {
                 unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                 
@@ -75,6 +147,30 @@ public final class AchievementStore {
     
     public func claim(definition: AchievementDef) {
         guard var state = unlocks[definition.id], state.isClaimable else { return }
+        
+        // Special handling for tile progression achievement
+        if definition.id == "tile_progression" {
+            // Grant rewards
+            if let rewards = definition.rewards {
+                if let gems = rewards.gems, gems > 0 {
+                    grantGemsDirectly(gems)
+                }
+                onReward?(rewards)
+            }
+            
+            // Advance to next tier (don't mark as claimed, reset for next tier)
+            if !isTileProgressionMaxed {
+                tileProgressionTier += 1
+                // State is already reset in the didSet of tileProgressionTier
+            } else {
+                // Max tier reached - mark as fully claimed
+                state.claimed = true
+                unlocks[definition.id] = state
+            }
+            return
+        }
+        
+        // Standard achievement claim
         state.claimed = true
         unlocks[definition.id] = state
         
