@@ -759,8 +759,9 @@ public final class GameStore {
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         pendingDoubleBase = nil
         
-        // Notify JourneyKit if we created a new highest tile  
-        let doubledValue = base * 2
+        // Notify JourneyKit if we created a new highest tile
+        // Use safe multiplication to prevent overflow
+        let doubledValue = base <= (Int.max >> 1) ? base * 2 : Int.max
         journey.didReach(tile: doubledValue)
         
         // Show milestone notification if this created a new highest tile
