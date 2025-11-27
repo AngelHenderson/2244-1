@@ -256,54 +256,62 @@ private let scoreMillionsFormatter: NumberFormatter = {
 }()
 
 public extension AlphaMag {
-    /// Scoreboard-friendly format with K/M/B/a/b/c... notation
+    /// Scoreboard-friendly format with K/M/B/a/b/c... notation with full precision
     /// Examples:
     /// - 999 -> "999"
-    /// - 1,500 -> "2K" (rounded)
+    /// - 1,500 -> "1K" or "2K" (depends on rounding)
     /// - 950,000,000 -> "950M"
     /// - 710,000,000,000 -> "710B"
-    /// - 2,040,584,000,000 -> "2,041a" (rounded to nearest trillion)
-    /// - 5,500,000,000,000,000 -> "5,500b" (quadrillions)
+    /// - 394,567,000,000,000 -> "394,567a" (394,567 trillion)
+    /// - 2,040,584,000,000 -> "2,041a" (2,041 trillion)
+    /// - 5,500,000,000,000,000 -> "5,500b" (5,500 quadrillion)
     static func formatScoreDisplay(_ value: Int) -> String {
         guard value != 0 else { return "0" }
         let isNegative = value < 0
         let magnitude = abs(value)
 
-        // Format using K/M/B/alphabetic notation with rounding
+        // Format using K/M/B/alphabetic notation
         let formatted: String
 
         if magnitude < 1_000 {
             // Display as-is for values under 1K
             formatted = "\(magnitude)"
+        } else if magnitude < 10_000 {
+            // For 1K-9K, show rounded K value
+            let thousands = magnitude / 1_000
+            formatted = "\(thousands)K"
         } else if magnitude < 1_000_000 {
-            // Round to nearest thousand and use K suffix
-            let thousands = (magnitude + 500) / 1_000  // Round to nearest
+            // For 10K-999K, show full value with K
+            let thousands = magnitude / 1_000
             formatted = "\(thousands)K"
         } else if magnitude < 1_000_000_000 {
-            // Round to nearest million and use M suffix
-            let millions = (magnitude + 500_000) / 1_000_000  // Round to nearest
+            // For millions, show full value with M
+            let millions = magnitude / 1_000_000
             formatted = "\(millions)M"
         } else if magnitude < 1_000_000_000_000 {
-            // Round to nearest billion and use B suffix
-            let billions = (magnitude + 500_000_000) / 1_000_000_000  // Round to nearest
+            // For billions, show full value with B
+            let billions = magnitude / 1_000_000_000
             formatted = "\(billions)B"
         } else {
-            // For trillions and beyond, use alphabetic suffixes (a, b, c, ...)
-            // Use the existing format logic but with rounding
-            do {
-                // Convert to Decimal for proper handling
-                let decimalValue = Decimal(magnitude)
+            // For trillions and beyond, use alphabetic suffixes with full precision
+            var divisor: Int = 1_000_000_000_000
+            var suffixIndex = 0
 
-                // Format with no decimal places (integers only)
-                let result = try format(decimalValue, decimals: 0, rounding: .plain)
-
-                // The format function already handles K/M/B/a/b/c... progression
-                // But we need to ensure proper rounding for display
-                formatted = result
-            } catch {
-                // Fallback to simple formatting if there's an error
-                formatted = formatScoreStyle(magnitude)
+            // Find the appropriate tier (each tier is 1000x the previous)
+            while magnitude >= divisor * 1_000_000 && suffixIndex < 25 {
+                divisor *= 1_000
+                suffixIndex += 1
             }
+
+            // Calculate the value in this tier
+            let tierValue = magnitude / divisor
+
+            // Get the alphabetic suffix
+            let suffix = suffix(forOrdinal: suffixIndex + 1)  // +1 because ordinal starts at 1
+
+            // Format with comma separator
+            let formattedNumber = scoreMillionsFormatter.string(from: NSNumber(value: tierValue)) ?? "\(tierValue)"
+            formatted = "\(formattedNumber)\(suffix)"
         }
 
         return isNegative ? "-" + formatted : formatted

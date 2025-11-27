@@ -133,41 +133,43 @@ struct AlphaMagProgressionTests {
         }
     }
     
-    @Test("Score display uses K/M/B/alphabetic notation")
+    @Test("Score display uses K/M/B/alphabetic notation with full precision")
     func testScoreDisplayFormatting() {
         // Test billion formatting
         #expect(AlphaMag.formatScoreDisplay(710_000_000_000) == "710B")
-        #expect(AlphaMag.formatScoreDisplay(999_999_999_999) == "1000B")  // Rounds to 1000B (no comma in billions)
+        #expect(AlphaMag.formatScoreDisplay(999_999_999_999) == "999B")  // Shows as 999B
 
-        // Test trillion formatting with 'a' suffix
+        // Test trillion formatting with 'a' suffix - shows full precision with commas
         #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000) == "1a")  // 1 trillion
-        #expect(AlphaMag.formatScoreDisplay(2_040_584_000_000) == "2a")  // 2.04 trillion rounds to 2a
-        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000) == "6a")  // 5.5 trillion rounds to 6a (plain rounding)
-        #expect(AlphaMag.formatScoreDisplay(999_000_000_000_000) == "999a")  // 999 trillion
+        #expect(AlphaMag.formatScoreDisplay(2_040_584_000_000) == "2,040a")  // 2,040 trillion
+        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000) == "5,500a")  // 5,500 trillion
+        #expect(AlphaMag.formatScoreDisplay(394_567_000_000_000) == "394,567a")  // 394,567 trillion
+        #expect(AlphaMag.formatScoreDisplay(999_999_000_000_000) == "999,999a")  // 999,999 trillion
 
         // Test quadrillion formatting with 'b' suffix
         #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000_000) == "1b")  // 1 quadrillion
-        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000_000) == "6b")  // 5.5 quadrillion rounds to 6b
+        #expect(AlphaMag.formatScoreDisplay(5_500_000_000_000_000) == "5,500b")  // 5,500 quadrillion
 
         // Test quintillion formatting with 'c' suffix (if Int can hold it)
         if Int.max >= 1_000_000_000_000_000_000 {
             #expect(AlphaMag.formatScoreDisplay(1_000_000_000_000_000_000) == "1c")  // 1 quintillion
+            #expect(AlphaMag.formatScoreDisplay(2_345_000_000_000_000_000) == "2,345c")  // 2,345 quintillion
         }
 
         // Test million formatting
         #expect(AlphaMag.formatScoreDisplay(950_000_000) == "950M")
-        #expect(AlphaMag.formatScoreDisplay(1_500_000) == "2M")  // Rounds to nearest million
+        #expect(AlphaMag.formatScoreDisplay(1_500_000) == "1M")  // Shows as 1M
 
         // Test thousand formatting
         #expect(AlphaMag.formatScoreDisplay(512_000) == "512K")
-        #expect(AlphaMag.formatScoreDisplay(1_500) == "2K")  // Rounds to nearest thousand
+        #expect(AlphaMag.formatScoreDisplay(1_500) == "1K")  // Shows as 1K
+        #expect(AlphaMag.formatScoreDisplay(9_999) == "9K")  // Shows as 9K
+        #expect(AlphaMag.formatScoreDisplay(10_000) == "10K")  // Shows as 10K
+        #expect(AlphaMag.formatScoreDisplay(999_000) == "999K")  // Shows as 999K
 
         // Test small values
         #expect(AlphaMag.formatScoreDisplay(999) == "999")
         #expect(AlphaMag.formatScoreDisplay(0) == "0")
-
-        // Additional test for the specific value mentioned
-        #expect(AlphaMag.formatScoreDisplay(2_040_584_000_000) == "2a")  // Should show as 2a not 2,041a
     }
     
     @Test("No artificial capping at any suffix")

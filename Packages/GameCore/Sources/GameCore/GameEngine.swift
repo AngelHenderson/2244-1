@@ -854,8 +854,12 @@ public final class GameEngine {
         // Progressive spawning: always spawn from the seven lowest allowed tiles
         // Window is based on the latest eliminated tier only.
         let minAllowed = minAllowedSpawnValue()
+
+        // For high milestones (>= 67M), ensure we don't spawn below the threshold
+        let actualMin = max(minAllowed, getMinimumSpawnThreshold())
+
         var candidates: [Int] = []
-        var current = minAllowed
+        var current = actualMin
         for _ in 0..<7 {
             candidates.append(current)
             if current > (Int.max >> 1) {
@@ -866,6 +870,15 @@ public final class GameEngine {
         }
         let index = Int(rng.next() % UInt64(candidates.count))
         return candidates[index]
+    }
+
+    private func getMinimumSpawnThreshold() -> Int {
+        // If we have reached high milestones (>= 67M), don't spawn below the elimination threshold
+        if let highestMilestone = eliminatedMilestones.filter({ $0 >= 67_108_864 }).max() {
+            // Don't spawn anything below (milestone >> 14)
+            return highestMilestone >> 14
+        }
+        return 2
     }
 
     private func minAllowedSpawnValue() -> Int {
