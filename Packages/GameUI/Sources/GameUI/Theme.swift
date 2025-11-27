@@ -183,19 +183,12 @@ public struct Theme {
         // Wait, 1c is 1 quintillion.
         // If the user means 9c as in 9 * something? No, likely the label "9c".
         
-        // Let's stick to the requested fix: 2c lost red, 4c lost blue.
-        // 2c is step 60. 4c is step 61.
-        // These are in `stepOverrides`.
-        // My updated `color(for:)` logic prioritizes `stepOverrides`.
-        
-        // Also, `overridesByRemainder` might be interfering if `stepOverrides` wasn't checked first.
-        // In the original code, `color(for:)` checked `stepOverrides` first, but `colorForStep` added +25 to exponent?
-        // `return paletteEntry(forExponent: exponent + 25).color`
-        // This offset might be wrong.
-        
-        if let override = overridesByRemainder[remainder] {
+        // Only apply remainder overrides for the first cycle (exponent <= 25)
+        // This prevents high-value tiles from being forced to low-value colors (like 2048's pink)
+        if e <= 25, let override = overridesByRemainder[remainder] {
             return override
         }
+        
         let idx = bucketIndex(forExponent: e)
         return palette25[idx]
     }
