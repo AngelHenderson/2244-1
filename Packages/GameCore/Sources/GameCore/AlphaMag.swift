@@ -294,24 +294,45 @@ public extension AlphaMag {
             formatted = "\(billions)B"
         } else {
             // For trillions and beyond, use alphabetic suffixes with full precision
-            var divisor: Int = 1_000_000_000_000
-            var suffixIndex = 0
+            // Determine which tier we're in
+            let trillion: Int = 1_000_000_000_000
+            let quadrillion: Int = 1_000_000_000_000_000
 
-            // Find the appropriate tier (each tier is 1000x the previous)
-            while magnitude >= divisor * 1_000_000 && suffixIndex < 25 {
-                divisor *= 1_000
-                suffixIndex += 1
+            var divisor: Int
+            var suffixChar: String
+
+            if magnitude < quadrillion {
+                // Trillions - use 'a' suffix
+                // Divide by billion to get the value in thousands of billions (which becomes the number before 'a')
+                divisor = 1_000_000_000  // Divide by billion, not trillion
+                suffixChar = "a"
+            } else if magnitude < quadrillion * 1_000 {
+                // Quadrillions - use 'b' suffix
+                // Divide by trillion to get the value in thousands of trillions (which becomes the number before 'b')
+                divisor = trillion
+                suffixChar = "b"
+            } else {
+                // For higher values, calculate the tier
+                var tierIndex = 2  // Start at 'c' (quintillions)
+                divisor = quadrillion  // Divide by quadrillion for 'c'
+
+                // Keep adjusting for higher tiers
+                while magnitude >= divisor * 1_000_000 && tierIndex < 25 {
+                    divisor *= 1_000
+                    tierIndex += 1
+                }
+
+                suffixChar = suffix(forOrdinal: tierIndex + 1)
             }
 
             // Calculate the value in this tier
+            // For 'a': we're dividing by billion, so 2,040,584,000,000 / 1,000,000,000 = 2,040
+            // For 'b': we're dividing by trillion, so 5,500,000,000,000,000 / 1,000,000,000,000 = 5,500
             let tierValue = magnitude / divisor
-
-            // Get the alphabetic suffix
-            let suffix = suffix(forOrdinal: suffixIndex + 1)  // +1 because ordinal starts at 1
 
             // Format with comma separator
             let formattedNumber = scoreMillionsFormatter.string(from: NSNumber(value: tierValue)) ?? "\(tierValue)"
-            formatted = "\(formattedNumber)\(suffix)"
+            formatted = "\(formattedNumber)\(suffixChar)"
         }
 
         return isNegative ? "-" + formatted : formatted
