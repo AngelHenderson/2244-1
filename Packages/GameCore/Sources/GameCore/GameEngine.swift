@@ -448,14 +448,18 @@ public final class GameEngine {
         
         // Update highest tile and level
         if mergedValue > state.highestTile {
+            let previousHighest = state.highestTile
             state.highestTile = mergedValue
             highestTileAchieved = mergedValue
             updateLevel()
             checkMilestoneRewards(mergedValue)
+
+            // Apply eliminations for ALL milestones between previous highest and new value
+            applyAllMilestonesBetween(previousHighest, and: mergedValue)
+        } else {
+            // Even if not a new highest, check if this specific value triggers elimination
+            applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         }
-        
-        // Apply milestone elimination if needed
-        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         
         // Award points
         state.score = safeAddScore(state.score, chainScore)
@@ -1143,6 +1147,54 @@ public final class GameEngine {
     }
 
     // MARK: - Milestone elimination helpers
+
+    /// Apply eliminations for all milestones between two values
+    private func applyAllMilestonesBetween(_ previousHighest: Int, and newHighest: Int) {
+        print("🎯 Checking for milestone eliminations between \(formatLargeNumber(previousHighest)) and \(formatLargeNumber(newHighest))")
+
+        // List of all elimination milestones (excluding skipped ones)
+        let eliminationMilestones = [
+            2048, 4096, // 8192 skipped
+            16384, 32768, 65536, // 131072 skipped
+            262144, 524288, 1048576, // 2097152 skipped
+            4194304, 8388608, 16777216, // 33554432 skipped
+            67108864, 134217728
+        ]
+
+        // Apply elimination for each milestone we've passed
+        for milestone in eliminationMilestones {
+            // Check if this milestone is newly reached
+            if milestone > previousHighest && milestone <= newHighest {
+                print("   📍 Passed milestone: \(formatLargeNumber(milestone))")
+                applyMilestoneEliminationIfNeeded(createdValue: milestone)
+            }
+        }
+
+        // Handle milestones beyond 134M using the infinite repeating pattern
+        if newHighest >= 268435456 { // 268M and beyond
+            var currentMilestone = 268435456 // Start at 268M
+            while currentMilestone <= newHighest {
+                if currentMilestone > previousHighest {
+                    // Calculate position relative to 67M
+                    let log67M = 26 // log2(67108864)
+                    let logCurrent = Int(log2(Double(currentMilestone)))
+                    let position = logCurrent - log67M
+
+                    // Every 3rd position (2, 5, 8, 11...) is a skip
+                    if position % 3 != 2 { // Not a skip position
+                        print("   📍 Passed milestone: \(formatLargeNumber(currentMilestone))")
+                        applyMilestoneEliminationIfNeeded(createdValue: currentMilestone)
+                    }
+                }
+
+                // Safeguard against overflow when doubling
+                if currentMilestone > Int.max / 2 {
+                    break
+                }
+                currentMilestone *= 2
+            }
+        }
+    }
 
     private func applyMilestoneEliminationIfNeeded(createdValue: Int) {
         print("🎯 Checking milestone elimination for value: \(formatLargeNumber(createdValue))")
