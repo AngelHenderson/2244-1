@@ -156,8 +156,8 @@ public struct SpinWheelView: View {
                     .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
                     .frame(width: 28, height: 90)
                     .rotationEffect(.degrees(180))
-                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .center)
-                    .offset(y: 170)
+                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .bottom)
+                    .offset(y: -170)
                     .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()
