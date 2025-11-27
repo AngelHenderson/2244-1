@@ -179,7 +179,14 @@ public struct AlphaMag {
         var n = 0
         for u in l.unicodeScalars {
             guard (97...122).contains(Int(u.value)) else { throw AlphaMagError.invalidSuffix(s) }
-            n = n * 26 + (Int(u.value) - 97 + 1)
+            let digit = Int(u.value) - 97 + 1
+            // Use safe multiplication to prevent overflow
+            let (multiplied, multOverflow) = n.multipliedReportingOverflow(by: 26)
+            let (added, addOverflow) = multiplied.addingReportingOverflow(digit)
+            if multOverflow || addOverflow {
+                return Int.max
+            }
+            n = added
         }
         return n
     }

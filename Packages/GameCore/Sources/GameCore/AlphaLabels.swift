@@ -26,7 +26,13 @@ public struct AlphaLabels {
         var value = 0
         for scalar in s.unicodeScalars {
             let digit = Int(scalar.value) - 64
-            value = value * 26 + digit
+            // Use safe multiplication to prevent overflow
+            let (multiplied, multOverflow) = value.multipliedReportingOverflow(by: 26)
+            let (added, addOverflow) = multiplied.addingReportingOverflow(digit)
+            if multOverflow || addOverflow {
+                return Int.max
+            }
+            value = added
         }
         return value
     }
