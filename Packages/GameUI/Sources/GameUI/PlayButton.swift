@@ -6,7 +6,10 @@ struct PlayButton: View {
     var onTap: (() -> Void)? = nil
     
     var body: some View {
-        Button(action: { onTap?() ?? gameStore.resetGame() }) {
+        Button(action: {
+            gameStore.resetGame()
+            onTap?()
+        }) {
             VStack(spacing: 8) {
                 Image(systemName: "play.fill")
                     .font(.system(size: 28, weight: .bold))

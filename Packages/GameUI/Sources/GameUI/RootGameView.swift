@@ -119,7 +119,8 @@ public struct RootGameView: View {
     private func makeHomeActions() -> HomeActions {
         HomeActions(
             play: {
-                // Start playing
+                // Start a fresh run before entering gameplay
+                gameStore.resetGame()
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isPlaying = true
                 }
