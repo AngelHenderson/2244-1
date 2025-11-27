@@ -146,4 +146,29 @@ struct MagnetPowerUpTests {
         // Score should have increased
         #expect(state.score >= 256, "Score should include the merged tile value")
     }
+    
+    @Test("Magnet merges high-value tiles (e.g. 9c -> 18c)")
+    func testMagnetMergesHighValueTiles() {
+        guard let step9c = JourneyAbbreviationTiers.tier(forLabel: "9c")?.step,
+              let step18c = JourneyAbbreviationTiers.tier(forLabel: "18c")?.step else {
+            Issue.record("Unable to resolve steps for 9c/18c")
+            return
+        }
+        
+        let config = GameConfig(boardWidth: 3, boardHeight: 3, seed: 77, fillMode: .sparse)
+        let engine = GameEngine(config: config)
+        engine._setAllTilesForTesting(value: nil)
+        
+        let positions = [
+            Position(row: 0, col: 0),
+            Position(row: 0, col: 1),
+            Position(row: 0, col: 2)
+        ]
+        positions.forEach { engine._setHighValueTileForTesting(at: $0, step: step9c) }
+        
+        let state = engine.magnetize(value: engine.currentState().board[positions[0]]!.value, to: positions[0])
+        let resultTile = state.board[positions[0]]
+        
+        #expect(resultTile?.stepIndex == step18c, "Magnet should advance high-value tiles to the next tier")
+    }
 }

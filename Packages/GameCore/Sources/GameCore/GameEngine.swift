@@ -555,7 +555,8 @@ public final class GameEngine {
     @discardableResult
     public func magnetize(value: Int, to position: Position) -> GameState {
         guard position.isValid(for: state.board) else { return state }
-        guard let targetTile = state.board[position] else { return state }
+        guard let targetTile = state.board[position],
+              let targetStep = TileStepMath.step(for: targetTile) else { return state }
         guard targetTile.value == value else { return state }
         
         // Save state for undo
@@ -567,7 +568,9 @@ public final class GameEngine {
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], tile.value == value {
+                if let tile = state.board[pos],
+                   let step = TileStepMath.step(for: tile),
+                   step == targetStep {
                     matchingPositions.append(pos)
                 }
             }
@@ -580,27 +583,9 @@ public final class GameEngine {
             return state
         }
         
-        // Calculate merged value: sum all matching tiles and round up to next power of 2
-        // Use safe multiplication to prevent overflow
-        let (totalValue, overflow) = value.multipliedReportingOverflow(by: matchingPositions.count)
-        let mergedValue: Int = {
-            // If multiplication overflowed, return Int.max
-            if overflow { return Int.max }
-            guard totalValue > 0 else { return 0 }
-            if totalValue & (totalValue - 1) == 0 { return totalValue }
-            if totalValue > (1 << 62) { return Int.max }
-            var x = totalValue - 1
-            x |= x >> 1
-            x |= x >> 2
-            x |= x >> 4
-            x |= x >> 8
-            x |= x >> 16
-            #if arch(x86_64) || arch(arm64)
-            x |= x >> 32
-            #endif
-            let next = x + 1
-            return next > 0 ? next : Int.max
-        }()
+        let mergedStep = TileStepMath.mergedStep(from: Array(repeating: targetStep, count: matchingPositions.count))
+        let mergedValue = TileStepMath.value(forStep: mergedStep)
+        let mergedTile = Tile.make(forStep: mergedStep)
         
         // STEP 1: Remove all matching tiles (including the target position)
         // This clears the board of all tiles that are being merged
@@ -610,7 +595,7 @@ public final class GameEngine {
         
         // STEP 2: Place the merged result tile at the target position
         // This happens BEFORE gravity, so the tile will fall if needed
-        state.board[position] = Tile(value: mergedValue)
+        state.board[position] = mergedTile
         
         // Update highest tile and level if needed
         if mergedValue > state.highestTile {
