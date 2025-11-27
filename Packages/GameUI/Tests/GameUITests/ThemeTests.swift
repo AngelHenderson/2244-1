@@ -1,5 +1,6 @@
 import Testing
 import SwiftUI
+import GameCore
 @testable import GameUI
 
 struct ThemeTests {
@@ -84,5 +85,33 @@ struct ThemeTests {
         
         #expect(Theme.colorForStep(baseStep) == Theme.colorForStep(wrappedStep))
         #expect(Theme.textColorForStep(baseStep) == Theme.textColorForStep(wrappedStep))
+    }
+    
+    @Test
+    @MainActor
+    func testJourneyMilestonesRepeatEvery25Orders() {
+        let labels = ["35a", "70a", "140a", "281a", "562a", "1b", "1c"]
+        let cycleLength = 25
+        
+        for label in labels {
+            guard let tier = JourneyAbbreviationTiers.tier(forLabel: label),
+                  let step = tier.step else {
+                Issue.record("No tier found for label \(label)")
+                continue
+            }
+            
+            let referenceOrder = tier.order % cycleLength
+            guard let referenceTier = JourneyAbbreviationTiers.tiers.first(where: { $0.order == referenceOrder }),
+                  let referenceStep = referenceTier.step else {
+                Issue.record("Missing reference tier for order \(referenceOrder)")
+                continue
+            }
+            
+            let value = 1 << (step + 1)
+            let referenceValue = 1 << (referenceStep + 1)
+            
+            #expect(Theme.color(for: value) == Theme.color(for: referenceValue))
+            #expect(Theme.textColor(for: value) == Theme.textColor(for: referenceValue))
+        }
     }
 }
