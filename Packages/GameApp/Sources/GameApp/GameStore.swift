@@ -26,13 +26,7 @@ public final class GameStore {
     // Pending unlock reward (base amount before multiplier)
     public private(set) var pendingUnlockRewardBase: Int? = nil
     public private(set) var pendingUnlockTile: Int? = nil
-    // Last merge info for UI board
-    public struct MergeInfo: Equatable, Sendable {
-        public let unlocked: Int?
-        public let added: Int
-        public let excluded: Int?
-    }
-    
+    // Milestone notification pipeline
     public enum MergeNotification: Equatable, Sendable {
         case unlocked(Int)
         case added(Int)
@@ -66,7 +60,6 @@ public final class GameStore {
     
     private var notificationQueue: [MergeNotification] = []
     public private(set) var currentNotification: MergeNotification? = nil
-    public private(set) var lastMergeInfo: MergeInfo? = nil
     public private(set) var lastMagnetEvent: MagnetEvent? = nil
     public private(set) var mergeAnimationState: MergeAnimationState? = nil
     public private(set) var isInputLocked: Bool = false
@@ -500,10 +493,6 @@ public final class GameStore {
         if let unlockedValue {
             setPendingUnlockRewardIfNeeded(for: unlockedValue, previousHigh: previousHighest)
         }
-        // Disable merge info window + notifications (per design request)
-        lastMergeInfo = nil
-        notificationQueue.removeAll()
-        currentNotification = nil
         movesHistory.append(positions)
         
         // Update session analytics
@@ -797,31 +786,6 @@ public final class GameStore {
         return true
     }
     
-    // MARK: - Merge Info
-    public func clearLastMergeInfo() {
-        lastMergeInfo = nil
-    }
-    
-    /// Set merge info when a power-up creates a new milestone tile
-    /// This shows the "Unlocked / Added / Eliminated" notification
-    private func setMergeInfoIfMilestone(previousHighest: Int, newTileValue: Int) {
-        // Only show merge info if this is a new highest tile
-        guard newTileValue > previousHighest else { return }
-        
-        // Calculate the "added" value (7 doublings down from unlocked)
-        let added = newTileValue / 128
-        
-        // Calculate the "excluded" value (14 doublings down from unlocked)
-        // Only set if the milestone is high enough to trigger elimination (>= 16K)
-        let excluded: Int? = {
-            let eliminated = newTileValue / 16_384
-            return eliminated > 0 ? eliminated : nil
-        }()
-        
-        lastMergeInfo = MergeInfo(unlocked: newTileValue, added: added, excluded: excluded)
-        print("🎯 POWER-UP MILESTONE: Unlocked \(newTileValue), Added spawns at \(added), Excluded \(excluded ?? 0)")
-    }
-    
     public func clearLastMagnetEvent() {
         lastMagnetEvent = nil
     }
@@ -837,6 +801,36 @@ public final class GameStore {
     public func dismissCurrentNotification() {
         currentNotification = nil
         showNextNotification()
+    }
+    
+    /// Queue milestone notifications in the order: unlocked → added → eliminated.
+    private func setMergeInfoIfMilestone(previousHighest: Int, newTileValue: Int) {
+        guard newTileValue > previousHighest else { return }
+        
+        var pending: [MergeNotification] = [.unlocked(newTileValue)]
+        
+        let addedValue = newTileValue / 128
+        if addedValue > 0 {
+            pending.append(.added(addedValue))
+        }
+        
+        if newTileValue >= 16_384 {
+            let eliminatedValue = newTileValue / 16_384
+            if eliminatedValue > 0 {
+                pending.append(.excluded(eliminatedValue))
+            }
+        }
+        
+        enqueueNotifications(pending)
+        print("🎯 POWER-UP MILESTONE: Unlocked \(newTileValue), Added spawns at \(addedValue), Queued \(pending.count) milestone notifications")
+    }
+    
+    private func enqueueNotifications(_ notifications: [MergeNotification]) {
+        guard !notifications.isEmpty else { return }
+        notificationQueue.append(contentsOf: notifications)
+        if currentNotification == nil {
+            showNextNotification()
+        }
     }
     
     // MARK: - PowerUps via Engine wrapper
@@ -1480,21 +1474,6 @@ extension GameStore {
         // Save pending gift boxes
         persistPendingGiftBoxes()
         
-        // Save last merge info
-        if let mergeInfo = lastMergeInfo {
-            var mergeInfoData: [String: Any] = [
-                "added": mergeInfo.added
-            ]
-            if let unlocked = mergeInfo.unlocked {
-                mergeInfoData["unlocked"] = unlocked
-            }
-            if let excluded = mergeInfo.excluded {
-                mergeInfoData["excluded"] = excluded
-            }
-            let mergeData = try? JSONSerialization.data(withJSONObject: mergeInfoData)
-            UserDefaults.standard.set(mergeData, forKey: "lastMergeInfo")
-        }
-        
         // Save power-up history (last 10 actions)
         let recentPowerUpHistory = Array(powerUpHistory.suffix(10))
         let powerUpHistoryArray = recentPowerUpHistory.map { action in
@@ -1705,23 +1684,6 @@ extension GameStore {
         }
         
         restorePendingGiftBoxes()
-        
-        // Restore last merge info
-        if let mergeData = UserDefaults.standard.data(forKey: "lastMergeInfo"),
-           let mergeDict = try? JSONSerialization.jsonObject(with: mergeData) as? [String: Any] {
-            let unlocked = mergeDict["unlocked"] as? Int
-            // Recalculate "added" and "excluded" using consistent pattern
-            let added: Int = {
-                guard let unlockedValue = unlocked else { return mergeDict["added"] as? Int ?? 0 }
-                return unlockedValue / 128  // 7 doublings down
-            }()
-            let excluded: Int? = {
-                guard let unlockedValue = unlocked else { return nil }
-                let eliminated = unlockedValue / 16_384  // 14 doublings down
-                return eliminated > 0 ? eliminated : nil
-            }()
-            lastMergeInfo = MergeInfo(unlocked: unlocked, added: added, excluded: excluded)
-        }
         
         // Restore power-up history
         if let powerUpHistoryData = UserDefaults.standard.data(forKey: "powerUpHistory"),
