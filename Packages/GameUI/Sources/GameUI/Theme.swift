@@ -87,12 +87,12 @@ public struct Theme {
     // MARK: - Step-based APIs (for highValue tiles) to repeat the palette by step % 25
     public static func colorForStep(_ step: Int) -> Color {
         let exponent = max(1, step + 1)
-        return paletteEntry(forExponent: exponent).color
+        return paletteEntry(forExponent: exponent + 25).color
     }
     
     public static func textColorForStep(_ step: Int) -> Color {
         let exponent = max(1, step + 1)
-        return paletteEntry(forExponent: exponent).darkText ? .black : .white
+        return paletteEntry(forExponent: exponent + 25).darkText ? .black : .white
     }
     
     private static func colorBucketIndex(for value: Int) -> Int {
