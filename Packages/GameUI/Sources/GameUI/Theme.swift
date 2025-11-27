@@ -77,19 +77,27 @@ public struct Theme {
     
     // Specific high-value step overrides (beyond Int.max) to preserve legacy journey colors.
     // Step indexing matches TileStepLabelFormatter: step 61 -> label "4c".
-    private static let highValueStepOverrides: [Int: (color: Color, darkText: Bool)] = [
+    private static let stepOverrides: [Int: (color: Color, darkText: Bool)] = [
         59: (Color(hex: "39B54A"), false), // 1c legacy green
         60: (Color(hex: "F05B59"), false), // 2c legacy red
         61: (Color(hex: "55B9FF"), false)  // 4c legacy blue
     ]
     
     public static func color(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2),
+           let override = stepOverrides[step] {
+            return override.color
+        }
         if let o = overridesByExactValue[value] { return o.color }
         let entry = paletteEntry(forExponent: exponent(for: value))
         return entry.color
     }
     
     public static func textColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2),
+           let override = stepOverrides[step] {
+            return override.darkText ? .black : .white
+        }
         if let o = overridesByExactValue[value] { return o.darkText ? .black : .white }
         let entry = paletteEntry(forExponent: exponent(for: value))
         return entry.darkText ? .black : .white
@@ -97,13 +105,13 @@ public struct Theme {
     
     // MARK: - Step-based APIs (for highValue tiles) to repeat the palette by step % 25
     public static func colorForStep(_ step: Int) -> Color {
-        if let override = highValueStepOverrides[step] { return override.color }
+        if let override = stepOverrides[step] { return override.color }
         let exponent = max(1, step + 1)
         return paletteEntry(forExponent: exponent + 25).color
     }
     
     public static func textColorForStep(_ step: Int) -> Color {
-        if let override = highValueStepOverrides[step] { return override.darkText ? .black : .white }
+        if let override = stepOverrides[step] { return override.darkText ? .black : .white }
         let exponent = max(1, step + 1)
         return paletteEntry(forExponent: exponent + 25).darkText ? .black : .white
     }
