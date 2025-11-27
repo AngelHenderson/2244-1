@@ -330,14 +330,18 @@ public final class GameEngine {
         
         // Update highest tile and level
         if outcome.resultValue > state.highestTile {
+            let previousHighest = state.highestTile
             state.highestTile = outcome.resultValue
             highestTileAchieved = outcome.resultValue
             updateLevel()
             checkMilestoneRewards(outcome.resultValue)
+
+            // Apply eliminations for ALL milestones between previous highest and new value
+            applyAllMilestonesBetween(previousHighest, and: outcome.resultValue)
+        } else {
+            // Even if not a new highest, check if this specific value triggers elimination
+            applyMilestoneEliminationIfNeeded(createdValue: outcome.resultValue)
         }
-        
-        // Apply milestone elimination if needed (remove specific tier when milestone is created)
-        applyMilestoneEliminationIfNeeded(createdValue: outcome.resultValue)
         
         // Award gems for long chains (10+ tiles)
         if positions.count >= 10 {
@@ -614,14 +618,18 @@ public final class GameEngine {
         
         // Update highest tile and level if needed
         if mergedValue > state.highestTile {
+            let previousHighest = state.highestTile
             state.highestTile = mergedValue
             highestTileAchieved = mergedValue
             updateLevel()
             checkMilestoneRewards(mergedValue)
+
+            // Apply eliminations for ALL milestones between previous highest and new value
+            applyAllMilestonesBetween(previousHighest, and: mergedValue)
+        } else {
+            // Even if not a new highest, check if this specific value triggers elimination
+            applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         }
-        
-        // Apply milestone elimination if needed
-        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         
         // Award score for the merge (use safe addition to prevent overflow)
         state.score = safeAddScore(state.score, mergedValue)
@@ -705,12 +713,17 @@ public final class GameEngine {
         state.board[position] = Tile(value: doubled)
         // Update highest tile & level if needed
         if doubled > state.highestTile {
+            let previousHighest = state.highestTile
             state.highestTile = doubled
             highestTileAchieved = doubled
             updateLevel()
+
+            // Apply eliminations for ALL milestones between previous highest and new value
+            applyAllMilestonesBetween(previousHighest, and: doubled)
+        } else {
+            // Even if not a new highest, check if this specific value triggers elimination
+            applyMilestoneEliminationIfNeeded(createdValue: doubled)
         }
-        // Apply milestone elimination if needed
-        applyMilestoneEliminationIfNeeded(createdValue: doubled)
         
         state.moves += 1
         if !hasValidMoves() { state.isGameOver = true }
