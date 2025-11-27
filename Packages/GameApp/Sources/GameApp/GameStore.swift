@@ -147,17 +147,30 @@ public final class GameStore {
                 boardHeight: sessionState.board.height,
                 seed: sessionState.seed
             )
+            // Use the most recent gem value for engine initialization
+            let currentGems = UserDefaults.standard.integer(forKey: "coins") > 0
+                ? UserDefaults.standard.integer(forKey: "coins")
+                : progress.gems
+
             let restoredEngine = GameEngine(
                 config: restoredConfig,
                 initialBoard: sessionState.board,
                 initialScore: sessionState.score,
                 initialMoves: sessionState.moves,
                 initialLevel: sessionState.level,
-                initialGems: progress.gems
+                initialGems: currentGems
             )
             self.engine = restoredEngine
             self.state = restoredEngine.currentState()
-            self.state.gems = progress.gems
+            // Use the most recent gem value - prefer UserDefaults as it's updated immediately
+            let userDefaultsGems = UserDefaults.standard.integer(forKey: "coins")
+            if userDefaultsGems > 0 {
+                self.state.gems = userDefaultsGems
+                print("💎 Using UserDefaults gems: \(userDefaultsGems) (progress had: \(progress.gems))")
+            } else {
+                self.state.gems = progress.gems
+                print("💎 Using progress gems: \(progress.gems)")
+            }
             syncEngineGems()
             self.state.highestTile = max(self.state.highestTile, sessionState.highestTile)
             
@@ -183,7 +196,15 @@ public final class GameStore {
             
             // Load basic progress if available
             if let progress = loadedProgress {
-                self.state.gems = progress.gems
+                // Use the most recent gem value - prefer UserDefaults as it's updated immediately
+                let userDefaultsGems = UserDefaults.standard.integer(forKey: "coins")
+                if userDefaultsGems > 0 {
+                    self.state.gems = userDefaultsGems
+                    print("💎 Fresh start - Using UserDefaults gems: \(userDefaultsGems) (progress had: \(progress.gems))")
+                } else {
+                    self.state.gems = progress.gems
+                    print("💎 Fresh start - Using progress gems: \(progress.gems)")
+                }
                 syncEngineGems()
                 self.powerUpInventory = progress.powerUpInventory
                 self.journey.highestTile = progress.journeyState.highestTile
