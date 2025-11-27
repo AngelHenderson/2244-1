@@ -28,11 +28,24 @@ struct TileLabelFormatterTests {
 struct CompactNumberFormatterTests {
     @Test
     func testCompact() {
+        // Full numbers up to 999,999
         #expect(CompactNumberFormatter.format(999) == "999")
-        #expect(CompactNumberFormatter.format(1000) == "1K")
-        #expect(CompactNumberFormatter.format(8192) == "8K")
-        #expect(CompactNumberFormatter.format(1_000_000) == "1M")
-        #expect(CompactNumberFormatter.format(1_000_000_000) == "1B")
+        #expect(CompactNumberFormatter.format(1000) == "1000")
+        #expect(CompactNumberFormatter.format(8192) == "8192")
+        #expect(CompactNumberFormatter.format(999_999) == "999999")
+
+        // K suffix for millions (displayed as thousands)
+        #expect(CompactNumberFormatter.format(1_000_000) == "1000K")
+        #expect(CompactNumberFormatter.format(5_000_000) == "5000K")
+        #expect(CompactNumberFormatter.format(999_999_999) == "999999K")
+
+        // M suffix for billions (displayed as millions)
+        #expect(CompactNumberFormatter.format(1_000_000_000) == "1000M")
+        #expect(CompactNumberFormatter.format(5_000_000_000) == "5000M")
+        #expect(CompactNumberFormatter.format(999_999_999_999) == "999999M")
+
+        // B suffix for trillions
+        #expect(CompactNumberFormatter.format(1_000_000_000_000) == "1000B")
     }
 }
 

@@ -944,6 +944,41 @@ public final class GameEngine {
         return 2
     }
     
+    /// Returns all milestones between two values (useful for tracking what was passed)
+    public func milestonesBetween(_ previousHighest: Int, and newHighest: Int) -> [Int] {
+        var milestones: [Int] = []
+
+        // Standard milestones
+        let standardMilestones = [
+            2048, 4096, 8192, 16384, 32768, 65536, 131072,
+            262144, 524288, 1048576, 2097152,
+            4194304, 8388608, 16777216, 33554432,
+            67108864, 134217728
+        ]
+
+        for milestone in standardMilestones {
+            if milestone > previousHighest && milestone <= newHighest {
+                milestones.append(milestone)
+            }
+        }
+
+        // Handle milestones beyond 134M using the infinite repeating pattern
+        if newHighest >= 268435456 {
+            var currentMilestone = 268435456
+            while currentMilestone <= newHighest {
+                if currentMilestone > previousHighest {
+                    milestones.append(currentMilestone)
+                }
+                if currentMilestone > Int.max / 2 {
+                    break
+                }
+                currentMilestone *= 2
+            }
+        }
+
+        return milestones
+    }
+
     /// Returns the tile value that gets added to the spawn pool when reaching a milestone
     /// Returns nil if no new tiles are added for this milestone
     public func milestoneAddedValue(for milestone: Int) -> Int? {
