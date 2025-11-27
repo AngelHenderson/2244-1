@@ -509,7 +509,6 @@ struct WheelFace: View {
                     let r = radius * 0.62
                     let x = rect.midX + r * sin(centerAngle)
                     let y = rect.midY - r * cos(centerAngle)
-                    let rotation = labelRotation(for: centerAngle)
                     HStack(spacing: 6) {
                         Text(segments[i].icon)
                             .font(.system(size: 20))
@@ -522,7 +521,6 @@ struct WheelFace: View {
                     .shadow(color: .black.opacity(0.4), radius: 3)
                     .frame(width: 110, alignment: .center)
                     .position(x: x, y: y)
-                    .rotationEffect(rotation)
                 }
                 
                 Circle()
@@ -540,22 +538,6 @@ struct WheelFace: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
-}
-
-private func labelRotation(for rawAngle: CGFloat) -> Angle {
-    let twoPi = 2 * CGFloat.pi
-    var angle = rawAngle.truncatingRemainder(dividingBy: twoPi)
-    if angle > CGFloat.pi {
-        angle -= twoPi
-    } else if angle < -CGFloat.pi {
-        angle += twoPi
-    }
-    if angle > CGFloat.pi / 2 {
-        angle -= CGFloat.pi
-    } else if angle < -CGFloat.pi / 2 {
-        angle += CGFloat.pi
-    }
-    return .radians(Double(angle))
 }
 
 struct WheelSectorShape: Shape {
