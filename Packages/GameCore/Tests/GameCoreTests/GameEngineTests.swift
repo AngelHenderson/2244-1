@@ -353,11 +353,13 @@ struct GameEngineTests {
         let giftPositions = engine.giftPositions()
         #expect(giftPositions.contains(p02), "Gift should be placed at p02")
         
-        // Commit the gift chain
-        let resultState = engine.commitGiftChain(chain)
+        // Commit the gift chain and resolve drop/refill phases manually
+        let mergedState = engine.commitGiftChain(chain)
+        _ = engine.applyGravityAfterChain()
+        let resultState = engine.refillBoard()
         
         // Verify the merge occurred correctly
-        #expect(resultState.score > 0, "Score should increase after gift merge")
+        #expect(mergedState.score > 0, "Score should increase after gift merge")
         // Note: Positions p00 and p01 are refilled due to applyGravityDown() and refillToFull()
         // so we can't check for nil tiles. Instead we verify the result value and other effects.
         #expect(resultState.board[p02] != nil, "Result tile should be placed at gift position")
@@ -429,8 +431,10 @@ struct GameEngineTests {
         #expect(engine.giftPositions().contains(giftPos), "Gift should be at top")
         #expect(engine.currentState().board[tile3Pos]?.value == 8, "Bottom tile should be 8")
         
-        // Commit the chain
-        let resultState = engine.commitGiftChain(chain)
+        // Commit the chain and process drop/refill
+        _ = engine.commitGiftChain(chain)
+        _ = engine.applyGravityAfterChain()
+        let resultState = engine.refillBoard()
         
         // After merge and gravity:
         // 1. Gift should be consumed and replaced with result tile

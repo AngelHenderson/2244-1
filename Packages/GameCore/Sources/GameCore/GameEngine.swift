@@ -91,6 +91,7 @@ public final class GameEngine {
     private var highestTileAchieved: Int = 0
     private var milestonesReached: Set<Int> = []
     private var lastMergeAtMs: Int? = nil
+    private var pendingGiftRefillValue: Int? = nil
     
     // Track which milestones have already triggered elimination
     private var eliminatedMilestones: Set<Int> = []
@@ -350,21 +351,9 @@ public final class GameEngine {
             // TODO: Fire gift reward logic here (power-ups, etc.)
         }
         
-        // Apply gravity using the enhanced Board method to respect gifts
-        state.board.applyGravity()
-        
-        // If a gift was broken, refill the top row with a new gift
+        // Flag pending gift refill so it can be handled during the refill phase
         if outcome.giftBroken {
-            let giftValue = generateRandomValue()
-            state.board.refillTopRowWithGifts { giftValue }
-        }
-        
-        // Refill board using cascade-aware spawning without reapplying gravity (already applied above)
-        refillAfterGravity(applyGravity: false)
-
-        // Check for game over
-        if !hasValidMoves() {
-            state.isGameOver = true
+            pendingGiftRefillValue = generateRandomValue()
         }
 
         return state
@@ -476,6 +465,7 @@ public final class GameEngine {
     
     // Public method to trigger refill explicitly
     public func refillBoard() -> GameState {
+        processPendingGiftRefillIfNeeded()
         if config.fillMode == .alwaysFull {
             fillBoardToFull()
         } else {
@@ -487,6 +477,12 @@ public final class GameEngine {
         }
         
         return state
+    }
+    
+    private func processPendingGiftRefillIfNeeded() {
+        guard let giftValue = pendingGiftRefillValue else { return }
+        state.board.refillTopRowWithGifts { giftValue }
+        pendingGiftRefillValue = nil
     }
 
     /// Applies gravity and game-over evaluation after a chain has been committed
@@ -611,24 +607,7 @@ public final class GameEngine {
         // Award score for the merge (use safe addition to prevent overflow)
         state.score = safeAddScore(state.score, mergedValue)
         
-        // STEP 3: Apply gravity to make tiles fall down and fill gaps
-        // This happens AFTER removal and placement, BEFORE spawning new tiles
-        applyGravityDown()
-        
-        // STEP 4: Spawn new tiles from top down with gravity for natural cascade
-        // In alwaysFull mode, repeatedly spawn at top and apply gravity
-        // This prevents tiles from appearing mid-board
-        if config.fillMode == .alwaysFull {
-            refillToFullWithCascade()
-        } else {
-            refillToFull()
-        }
-        
         state.moves += 1
-        
-        if !hasValidMoves() {
-            state.isGameOver = true
-        }
         
         return state
     }
@@ -1000,6 +979,7 @@ public final class GameEngine {
         if applyGravity {
             applyGravityDown()
         }
+        processPendingGiftRefillIfNeeded()
         if config.fillMode == .alwaysFull {
             refillToFullWithCascade()
         } else {
