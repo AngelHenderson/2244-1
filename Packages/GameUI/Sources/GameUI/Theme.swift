@@ -42,6 +42,7 @@ public struct Theme {
         68_000_000_000: (Color(hex: "FF3B7B"), false), // Match 2048 styling for 68B request
         274_000_000_000: (Color(hex: "C275FF"), true), // Journey request: vivid purple with black text
         549_000_000_000: (Color(hex: "C275FF"), true),
+        576_460_752_303_423_488: (Color(hex: "39B54A"), false), // Preserve 1c legacy green
         1_152_921_504_606_846_976: (Color(hex: "F05B59"), false), // Preserve 2c legacy red
         1_000_000_000_000_000_000: (Color(hex: "6F0000"), false),
         2_305_843_009_213_693_952: (Color(hex: "55B9FF"), false) // Preserve 4c legacy blue on the journey
@@ -77,7 +78,9 @@ public struct Theme {
     // Specific high-value step overrides (beyond Int.max) to preserve legacy journey colors.
     // Step indexing matches TileStepLabelFormatter: step 61 -> label "4c".
     private static let highValueStepOverrides: [Int: (color: Color, darkText: Bool)] = [
-        61: (Color(hex: "55B9FF"), false) // Keep 4c on its original blue instead of inheriting the next step's palette color
+        59: (Color(hex: "39B54A"), false), // 1c legacy green
+        60: (Color(hex: "F05B59"), false), // 2c legacy red
+        61: (Color(hex: "55B9FF"), false)  // 4c legacy blue
     ]
     
     public static func color(for value: Int) -> Color {
