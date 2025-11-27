@@ -42,6 +42,7 @@ public struct Theme {
         68_000_000_000: (Color(hex: "FF3B7B"), false), // Match 2048 styling for 68B request
         274_000_000_000: (Color(hex: "C275FF"), true), // Journey request: vivid purple with black text
         549_000_000_000: (Color(hex: "C275FF"), true),
+        1_152_921_504_606_846_976: (Color(hex: "F05B59"), false), // Preserve 2c legacy red
         1_000_000_000_000_000_000: (Color(hex: "6F0000"), false),
         2_305_843_009_213_693_952: (Color(hex: "55B9FF"), false) // Preserve 4c legacy blue on the journey
     ]
