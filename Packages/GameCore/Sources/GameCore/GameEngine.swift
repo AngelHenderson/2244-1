@@ -872,10 +872,14 @@ public final class GameEngine {
         // Check if we have any eliminated milestones >= 67M
         let largeMilestones = eliminatedMilestones.filter { $0 >= 67108864 }
         if let highestLargeMilestone = largeMilestones.max() {
-            // For milestones >= 67M, minimum spawn is 7 steps down from milestone
-            // milestone / 2^7 = milestone >> 7
-            let minSpawn = highestLargeMilestone >> 7
-            return max(2, minSpawn)
+            // For milestones >= 67M:
+            // - Minimum spawn should be above the elimination threshold
+            // - We use 7 steps down from the milestone as the spawn base
+            let eliminationThreshold = highestLargeMilestone >> 14  // What gets eliminated
+            let spawnBase = highestLargeMilestone >> 7  // 7 steps down from milestone
+
+            // Use whichever is higher to ensure we don't spawn below elimination threshold
+            return max(eliminationThreshold, spawnBase)
         }
 
         // For milestones < 67M, use the old logic: min spawn is X*2 where X is eliminated value
