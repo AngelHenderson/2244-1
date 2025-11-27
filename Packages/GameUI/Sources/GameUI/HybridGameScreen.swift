@@ -469,6 +469,7 @@ struct SimplePowerupDock: View {
             powerupDockItem(
                 assetName: "hammer",
                 badge: gameStore.powerUpInventory["hammer", default: 0],
+                price: GameStore.PowerUpCost.hammer,
                 isEnabled: gameStore.isPowerUpAvailable("hammer"),
                 action: onHammer
             )
@@ -477,6 +478,7 @@ struct SimplePowerupDock: View {
             powerupDockItem(
                 assetName: "restart",
                 badge: gameStore.powerUpInventory["swap", default: 0],
+                price: GameStore.PowerUpCost.swap,
                 isEnabled: gameStore.isPowerUpAvailable("swap"),
                 action: onSwap
             )
@@ -485,6 +487,7 @@ struct SimplePowerupDock: View {
             powerupDockItem(
                 assetName: "magnet",
                 badge: gameStore.powerUpInventory["magnet", default: 0],
+                price: GameStore.PowerUpCost.magnet,
                 isEnabled: gameStore.isPowerUpAvailable("magnet"),
                 action: onMagnet
             )
@@ -541,6 +544,7 @@ struct SimplePowerupDock: View {
     private func powerupDockItem(
         assetName: String,
         badge: Int = 0,
+        price: Int? = nil,
         isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
@@ -553,7 +557,7 @@ struct SimplePowerupDock: View {
                     .frame(width: 44, height: 44)
                     .opacity(isEnabled ? 1.0 : 0.4)
 
-                // Badge for inventory count
+                // Badge for inventory count or Price
                 if badge > 0 {
                     Text("\(badge)")
                         .font(.system(size: 10, weight: .bold))
@@ -562,6 +566,18 @@ struct SimplePowerupDock: View {
                         .background(Color.blue)
                         .clipShape(Circle())
                         .offset(x: 4, y: -4)
+                } else if let price = price {
+                    HStack(spacing: 1) {
+                        Image(systemName: "diamond.fill")
+                            .font(.system(size: 8))
+                        Text("\(price)")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .background(Color.black.opacity(0.6), in: Capsule())
+                    .offset(x: 12, y: -8)
                 }
             }
             .padding(3)
