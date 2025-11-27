@@ -237,18 +237,45 @@ public final class DailyClaimsStore {
 
 private enum DailyRewardSchedule {
     private static let cycle: [AchievementDef.Rewards] = [
-        AchievementDef.Rewards(gems: 200, spins: nil, hammers: 1),
-        AchievementDef.Rewards(gems: 120, spins: 1, magnets: 1),
-        AchievementDef.Rewards(gems: 150, spins: nil, swaps: 1),
-        AchievementDef.Rewards(gems: 100, spins: 1, hammers: 1),
-        AchievementDef.Rewards(gems: 160, spins: nil, magnets: 1, swaps: 1),
-        AchievementDef.Rewards(gems: 180, spins: 1, boost2x: 1),
-        AchievementDef.Rewards(gems: 250, spins: 1, hammers: 1, swaps: 1)
+        AchievementDef.Rewards(gems: 200, hammers: 1),
+        AchievementDef.Rewards(gems: 220, spins: 1, magnets: 1),
+        AchievementDef.Rewards(gems: 240, swaps: 1),
+        AchievementDef.Rewards(gems: 260, spins: 1, hammers: 1),
+        AchievementDef.Rewards(gems: 280, magnets: 1, swaps: 1),
+        AchievementDef.Rewards(gems: 320, spins: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 360, spins: 1, hammers: 1, swaps: 1)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {
         guard day > 0 else { return AchievementDef.Rewards() }
         let index = (day - 1) % cycle.count
-        return cycle[index]
+        let week = max((day - 1) / cycle.count, 0)
+        return cycle[index].scaled(forWeek: week)
+    }
+}
+
+private extension AchievementDef.Rewards {
+    func scaled(forWeek week: Int) -> AchievementDef.Rewards {
+        AchievementDef.Rewards(
+            gems: scaleLinear(base: gems, week: week, step: 40),
+            spins: scaleFrequency(base: spins, week: week, frequency: 2),
+            hammers: scaleFrequency(base: hammers, week: week, frequency: 3),
+            magnets: scaleFrequency(base: magnets, week: week, frequency: 3),
+            swaps: scaleFrequency(base: swaps, week: week, frequency: 2),
+            boost2x: scaleFrequency(base: boost2x, week: week, frequency: 4),
+            boost3x: scaleFrequency(base: boost3x, week: week, frequency: 4),
+            boost4x: scaleFrequency(base: boost4x, week: week, frequency: 5)
+        )
+    }
+    
+    private func scaleLinear(base: Int?, week: Int, step: Int) -> Int? {
+        guard let base else { return nil }
+        return base + (week * step)
+    }
+    
+    private func scaleFrequency(base: Int?, week: Int, frequency: Int) -> Int? {
+        guard let base else { return nil }
+        guard frequency > 0 else { return base }
+        return base + (week / frequency)
     }
 }

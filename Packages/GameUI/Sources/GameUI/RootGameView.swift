@@ -6,7 +6,7 @@ import GameServices
 /// Root view that manages the flow between Home and Game screens
 public struct RootGameView: View {
     private let managesBackground: Bool
-    @State private var homeState = HomeState()
+    @Environment(HomeState.self) private var homeState
     @Environment(\.gameStore) private var gameStore
     @Environment(\.tileJourney) private var journey
     @State private var isPlaying = false
@@ -61,7 +61,6 @@ public struct RootGameView: View {
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             } else {
                 HomeView(managesBackground: false)
-                    .environment(homeState)
                     .environment(\.homeActions, makeHomeActions())
                     .environment(\.challengeStore, challengeStore)
                     .environment(\.challengeDesignerStore, challengeDesignerStore)
