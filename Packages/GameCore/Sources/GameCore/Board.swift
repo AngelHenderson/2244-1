@@ -165,19 +165,19 @@ public struct Board: Equatable, Sendable, Codable {
         }
         
         guard lastCell.kind == .tile, nextCell.kind == .tile,
-              let lastVal = lastCell.tile?.value, let nextVal = nextCell.tile?.value else { 
+              let lastTile = lastCell.tile,
+              let nextTile = nextCell.tile,
+              let lastStep = TileStepMath.step(for: lastTile),
+              let nextStep = TileStepMath.step(for: nextTile) else { 
             return false 
         }
         
         // 2244 rule: after starting with two equal tiles, you can continue with same or double
         if chain.count < 2 {
             // need at least 2 identical to start
-            return nextVal == lastVal
+            return nextStep == lastStep
         } else {
-            // Use safe multiplication to check for double value
-            let (doubled, overflow) = lastVal.multipliedReportingOverflow(by: 2)
-            let isDouble = !overflow && nextVal == doubled
-            return nextVal == lastVal || isDouble
+            return nextStep == lastStep || nextStep == lastStep + 1
         }
     }
     
@@ -200,16 +200,15 @@ public struct Board: Equatable, Sendable, Codable {
             path.append(idx)
         }
         
-        // Compute result value: twice the highest number in the chain (standard 2244)
-        // Use safe multiplication to prevent overflow
-        let valuesOnPath: [Int] = path.compactMap { self[$0].tile?.value }
-        let maxVal = valuesOnPath.max() ?? 0
-        let resultVal: Int = {
-            if maxVal > (Int.max >> 1) { return Int.max }
-            let (doubled, overflow) = maxVal.multipliedReportingOverflow(by: 2)
-            if overflow { return Int.max }
-            return max(doubled, 2)
-        }()
+        let stepsOnPath: [Int] = path.enumerated().compactMap { offset, index in
+            if endingOnGift && offset == path.count - 1 {
+                return nil
+            }
+            return TileStepMath.step(for: self[index].tile)
+        }
+        guard stepsOnPath.count == (endingOnGift ? path.count - 1 : path.count) else { return nil }
+        let resultStep = TileStepMath.mergedStep(from: stepsOnPath)
+        let resultVal = TileStepMath.value(forStep: resultStep)
         
         // Check if ending on gift
         let finalIndex = chain.last!
@@ -222,14 +221,8 @@ public struct Board: Equatable, Sendable, Codable {
         }
         
         // If ending on gift, consume the gift and place result
-        if giftBroken {
-            let resultTile = Tile(value: resultVal)
-            self[finalIndex] = Cell.withTile(resultTile)
-        } else {
-            // Normal merge - place result at final position
-            let resultTile = Tile(value: resultVal)
-            self[finalIndex] = Cell.withTile(resultTile)
-        }
+        let resultTile = Tile.make(forStep: resultStep)
+        self[finalIndex] = Cell.withTile(resultTile)
         
         return MergeOutcome(
             consumed: consumed,
@@ -357,7 +350,7 @@ public struct Board: Equatable, Sendable, Codable {
                 guard let tile = self[position] else { continue }
                 
                 for neighbor in neighbors(of: position, includeDiagonals: includeDiagonals) {
-                    if let neighborTile = self[neighbor], neighborTile.value == tile.value {
+                    if tilesMatch(self[neighbor], tile) {
                         return true
                     }
                 }
@@ -365,4 +358,9 @@ public struct Board: Equatable, Sendable, Codable {
         }
         return false
     }
+}
+
+private func tilesMatch(_ a: Tile?, _ b: Tile?) -> Bool {
+    guard let left = a, let right = b else { return false }
+    return left.matches(right)
 }

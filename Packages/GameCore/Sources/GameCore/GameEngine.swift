@@ -267,25 +267,22 @@ public final class GameEngine {
             }
         }
         
-        let values = tiles.map { $0.value }
-        guard values.count >= 2 else {
+        let steps = tiles.compactMap { TileStepMath.step(for: $0) }
+        guard steps.count == tiles.count, steps.count >= 2 else {
             return .invalid("Chain must have at least 2 tiles")
         }
         
         // First two tiles must match to start a chain.
-        if values[1] != values[0] {
+        if steps[1] != steps[0] {
             return .invalid("First two tiles must match")
         }
         
         // After the opening pair, each tile may either match the previous tile or double it.
-        if values.count > 2 {
-            for index in 2..<values.count {
-                let previous = values[index - 1]
-                let current = values[index]
-                // Use safe multiplication to check if current equals previous * 2
-                let (doubled, overflow) = previous.multipliedReportingOverflow(by: 2)
-                let isDouble = !overflow && current == doubled
-                if current != previous && !isDouble {
+        if steps.count > 2 {
+            for index in 2..<steps.count {
+                let previous = steps[index - 1]
+                let current = steps[index]
+                if current != previous && current != previous + 1 {
                     return .invalid("Tiles must continue with equal or doubled values")
                 }
             }
@@ -424,22 +421,13 @@ public final class GameEngine {
         previousState = state
         state.undoAvailable = true
         
-        let values = positions.compactMap { state.board[$0]?.value }
-        
-        // Use safe addition to prevent overflow when summing tile values
-        let chainSum = values.reduce(0) { (acc, val) -> Int in
-            let (result, overflow) = acc.addingReportingOverflow(val)
-            return overflow ? Int.max : result
-        }
-        let mergedValue: Int = {
-            guard chainSum > 0 else { return 0 }
-            var value = 1
-            while value < chainSum {
-                if value >= (Int.max >> 1) { return Int.max }
-                value <<= 1
-            }
-            return max(value, 2)
-        }()
+        let tiles = positions.compactMap { state.board[$0] }
+        guard tiles.count == positions.count else { return state }
+        let steps = tiles.compactMap { TileStepMath.step(for: $0) }
+        guard steps.count == tiles.count else { return state }
+        let mergedStep = TileStepMath.mergedStep(from: steps)
+        let mergedValue = TileStepMath.value(forStep: mergedStep)
+        let mergedTile = Tile.make(forStep: mergedStep)
         
         // Score equals the resulting merged tile value
         let chainScore = mergedValue
@@ -451,7 +439,7 @@ public final class GameEngine {
         
         // Place merged tile at the last position in the chain
         if let lastPosition = positions.last {
-            state.board[lastPosition] = Tile(value: mergedValue)
+            state.board[lastPosition] = mergedTile
         }
         
         // Update highest tile and level
@@ -875,9 +863,40 @@ public final class GameEngine {
     }
     
     private func generateRandomValue() -> Int {
-        // Progressive spawning: always spawn from the seven lowest allowed tiles
-        let minAllowed = minAllowedSpawnValue()
+        // For high milestones (>= 67M), spawn tiles close to current progress
+        if state.highestTile >= 67_108_864 {
+            // Spawn tiles from (highest >> 7) up to (highest >> 1)
+            // This gives us a range of 7 values close to the current milestone
+            let maxSpawn = state.highestTile >> 1    // 1 step down
+            let minSpawn = state.highestTile >> 7    // 7 steps down
 
+            // Ensure we don't spawn below elimination threshold
+            let eliminationThreshold = getEliminationThreshold()
+            let actualMinSpawn = max(minSpawn, eliminationThreshold)
+
+            // Generate the 7 spawn candidates
+            var candidates: [Int] = []
+            var current = actualMinSpawn
+            for _ in 0..<7 {
+                if current <= maxSpawn {
+                    candidates.append(current)
+                }
+                if current > (Int.max >> 1) {
+                    break
+                } else {
+                    current = current << 1
+                }
+            }
+
+            // If we have candidates, pick one randomly
+            if !candidates.isEmpty {
+                let index = Int(rng.next() % UInt64(candidates.count))
+                return candidates[index]
+            }
+        }
+
+        // For lower milestones, use the standard progressive spawning
+        let minAllowed = minAllowedSpawnValue()
         var candidates: [Int] = []
         var current = minAllowed
         for _ in 0..<7 {
@@ -890,6 +909,14 @@ public final class GameEngine {
         }
         let index = Int(rng.next() % UInt64(candidates.count))
         return candidates[index]
+    }
+
+    private func getEliminationThreshold() -> Int {
+        // Get the elimination threshold based on reached milestones
+        if let highestLargeMilestone = eliminatedMilestones.filter({ $0 >= 67_108_864 }).max() {
+            return highestLargeMilestone >> 14
+        }
+        return 2
     }
 
     private func minAllowedSpawnValue() -> Int {
@@ -1267,7 +1294,7 @@ public final class GameEngine {
                 // Find all connected tiles with same value using flood fill
                 var group: [Position] = []
                 var queue: [Position] = [pos]
-                let targetValue = tile.value
+                let referenceTile = tile
 
                 while !queue.isEmpty {
                     let current = queue.removeFirst()
@@ -1277,8 +1304,8 @@ public final class GameEngine {
 
                     // Check if this tile matches
                     guard let currentTile = state.board[current],
-                          currentTile.value == targetValue,
-                          currentTile.canMerge else {
+                          currentTile.canMerge,
+                          tilesMatch(currentTile, referenceTile) else {
                         continue
                     }
 
@@ -1320,21 +1347,21 @@ public final class GameEngine {
         return groups
     }
     
+    private func tilesMatch(_ a: Tile?, _ b: Tile?) -> Bool {
+        guard let left = a, let right = b else { return false }
+        return left.matches(right)
+    }
+    
     /// Merge a group of matching tiles and return the score earned
     @discardableResult
     private func mergeGroup(_ group: [Position]) -> Int {
         guard group.count >= 3 else { return 0 }
-        guard let firstTile = state.board[group[0]] else { return 0 }
-        
-        let value = firstTile.value
-        
-        // Calculate merged value: sum all tiles and round up to next power of 2
-        // Use safe multiplication to prevent overflow
-        let mergedValue: Int = {
-            if value > (Int.max >> 1) { return Int.max }
-            let (result, overflow) = value.multipliedReportingOverflow(by: 2)
-            return overflow ? Int.max : result
-        }()
+        let tiles = group.compactMap { state.board[$0] }
+        guard tiles.count == group.count else { return 0 }
+        let steps = tiles.compactMap { TileStepMath.step(for: $0) }
+        guard steps.count == tiles.count else { return 0 }
+        let mergedStep = TileStepMath.mergedStep(from: steps)
+        let mergedValue = TileStepMath.value(forStep: mergedStep)
         
         // Find the lowest position in the group (bottom-most, then leftmost)
         let mergePosition = group.sorted { a, b in
@@ -1350,7 +1377,7 @@ public final class GameEngine {
         }
         
         // Place merged tile at the merge position
-        state.board[mergePosition] = Tile(value: mergedValue)
+        state.board[mergePosition] = Tile.make(forStep: mergedStep)
         
         // Update highest tile
         if mergedValue > state.highestTile {
@@ -1458,6 +1485,10 @@ public final class GameEngine {
         } else {
             state.board[position] = nil
         }
+    }
+
+    func _setHighValueTileForTesting(at position: Position, step: Int) {
+        state.board[position] = Tile.make(forStep: step)
     }
     
     func _setAllTilesForTesting(value: Int?) {

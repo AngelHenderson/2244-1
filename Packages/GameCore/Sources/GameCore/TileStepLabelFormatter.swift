@@ -45,8 +45,8 @@ public enum TileStepLabelFormatter {
             return labelForStep(step, start: 2)
         }
         
-        // Fallback for non-power-of-2 values (shouldn't happen in normal gameplay)
-        return "\(value)"
+        // Fallback for non-power-of-2 values (e.g., overflow clamps) using AlphaMag formatting
+        return AlphaMag.format(value)
     }
 
     // MARK: Internal formatting (shared with value-based path if you want)

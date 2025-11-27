@@ -73,6 +73,8 @@ struct TileStepLabelFormatterTests {
         #expect(TileStepLabelFormatter.formatTileValue(32768) == "32K")
         #expect(TileStepLabelFormatter.formatTileValue(65536) == "65K")
         #expect(TileStepLabelFormatter.formatTileValue(131072) == "131K")
+        #expect(TileStepLabelFormatter.formatTileValue(50_000) == "50K")
+        #expect(TileStepLabelFormatter.formatTileValue(Int.max) == AlphaMag.format(Int.max))
     }
     
     @Test("Step for value conversion")
