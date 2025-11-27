@@ -1,4 +1,5 @@
 import SwiftUI
+import GameCore
 
 @MainActor
 public struct Theme {
@@ -73,39 +74,25 @@ public struct Theme {
     
     public static func color(for value: Int) -> Color {
         if let o = overridesByExactValue[value] { return o.color }
-        let e = exponent(for: value)
-        let r = e % 25
-        if let minE = remainder6F0000Thresholds[r], e >= minE { return Color(hex: "6F0000") }
-        if let o = overridesByRemainder[r] { return o.color }
-        let idx = colorBucketIndex(for: value)
-        return palette25[idx].color
+        let entry = paletteEntry(forExponent: exponent(for: value))
+        return entry.color
     }
     
     public static func textColor(for value: Int) -> Color {
         if let o = overridesByExactValue[value] { return o.darkText ? .black : .white }
-        let e = exponent(for: value)
-        let r = e % 25
-        if let o = overridesByRemainder[r] { return o.darkText ? .black : .white }
-        let idx = bucketIndex(forExponent: e)
-        return palette25[idx].darkText ? .black : .white
+        let entry = paletteEntry(forExponent: exponent(for: value))
+        return entry.darkText ? .black : .white
     }
     
     // MARK: - Step-based APIs (for highValue tiles) to repeat the palette by step % 25
     public static func colorForStep(_ step: Int) -> Color {
-        let e = max(0, step)
-        let r = e % 25
-        if let minE = remainder6F0000Thresholds[r], e >= minE { return Color(hex: "6F0000") }
-        if let o = overridesByRemainder[r] { return o.color }
-        let idx = bucketIndex(forExponent: e)
-        return palette25[idx].color
+        let entry = paletteEntry(forExponent: max(1, step))
+        return entry.color
     }
     
     public static func textColorForStep(_ step: Int) -> Color {
-        let e = max(0, step)
-        let r = e % 25
-        if let o = overridesByRemainder[r] { return o.darkText ? .black : .white }
-        let idx = bucketIndex(forExponent: e)
-        return palette25[idx].darkText ? .black : .white
+        let entry = paletteEntry(forExponent: max(1, step))
+        return entry.darkText ? .black : .white
     }
     
     private static func colorBucketIndex(for value: Int) -> Int {
@@ -114,10 +101,17 @@ public struct Theme {
     }
 
     private static func exponent(for value: Int) -> Int {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            return step + 1
+        }
+        
         let v0 = max(1, value)
         var v = v0
         var floorExp = 0
-        while v > 1 { v >>= 1; floorExp += 1 }
+        while v > 1 {
+            v >>= 1
+            floorExp += 1
+        }
         let isPowerOfTwo = (v0 & (v0 - 1)) == 0
         if v0 >= 1_000_000_000 && !isPowerOfTwo {
             return floorExp + 1
@@ -132,6 +126,19 @@ public struct Theme {
         let r = e % 25
         if r == 0 { return 24 }
         return r - 1
+    }
+    
+    private static func paletteEntry(forExponent exponent: Int) -> (color: Color, darkText: Bool) {
+        let e = max(1, exponent)
+        let remainder = e % 25
+        if let minE = remainder6F0000Thresholds[remainder], e >= minE {
+            return (Color(hex: "6F0000"), false)
+        }
+        if let override = overridesByRemainder[remainder] {
+            return override
+        }
+        let idx = bucketIndex(forExponent: e)
+        return palette25[idx]
     }
 }
 

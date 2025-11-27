@@ -63,4 +63,26 @@ struct ThemeTests {
             #expect(Theme.textColor(for: item.value) == item.color)
         }
     }
+    
+    @Test
+    @MainActor
+    func testPaletteRepeatsPastTrillions() {
+        let lowerExponent = 20  // 1M
+        let higherExponent = 45 // ≈35a (1 << 45)
+        let lowerValue = 1 << lowerExponent
+        let higherValue = 1 << higherExponent
+        
+        #expect(Theme.color(for: lowerValue) == Theme.color(for: higherValue))
+        #expect(Theme.textColor(for: lowerValue) == Theme.textColor(for: higherValue))
+    }
+    
+    @Test
+    @MainActor
+    func testHighValueStepPaletteRepeats() {
+        let baseStep = 70
+        let wrappedStep = baseStep - 25
+        
+        #expect(Theme.colorForStep(baseStep) == Theme.colorForStep(wrappedStep))
+        #expect(Theme.textColorForStep(baseStep) == Theme.textColorForStep(wrappedStep))
+    }
 }
