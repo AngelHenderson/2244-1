@@ -31,15 +31,19 @@ public struct PowerOfTwoPlanner: MilestonePlanner {
             let v = max(2, x)
             if v & (v - 1) == 0 { return v }
             var p = 1
-            while p < v { p <<= 1 }
+            // Protect against overflow: stop if doubling would overflow
+            while p < v && p <= (Int.max >> 1) { p <<= 1 }
             return p
         }
         let cur = nextPow2(capped) == capped ? capped : nextPow2(capped / 2)
         let below = cur >= 4 ? cur / 2 : nil
+        // Protect against overflow when calculating above milestones
+        let above1 = cur <= (Int.max >> 1) ? cur << 1 : Int.max
+        let above2 = cur <= (Int.max >> 2) ? cur << 2 : Int.max
         return Milestones(
             below: below,
             current: cur,
-            above: [cur << 1, cur << 2]
+            above: [above1, above2]
         )
     }
 }

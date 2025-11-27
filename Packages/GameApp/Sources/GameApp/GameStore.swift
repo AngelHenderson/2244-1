@@ -357,13 +357,18 @@ public final class GameStore {
                     return
                 }
                 
-                // 3. Commit (Shatter/Fly complete, now apply logic + gravity)
-                print("[GameStore] Phase 3: Commit (Logic + Gravity)")
-                self.performCommit(positions: positions)
+                // 3. Commit (Shatter/Fly complete, now apply logic)
+                print("[GameStore] Phase 3: Commit (Logic)")
+                let requiresGravityDrop = self.performCommit(positions: positions)
+                
+                if requiresGravityDrop {
+                    print("[GameStore] Phase 3b: Gravity Drop")
+                    self.performGravityDrop()
+                }
                 
                 // Wait for gravity animation (tiles dropping)
                 // Assuming standard spring animation duration ~0.35s
-                try await Task.sleep(nanoseconds: 350_000_000)
+                try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
                 
                 if Task.isCancelled {
                     print("[GameStore] Task cancelled after gravity")
@@ -396,8 +401,14 @@ public final class GameStore {
         // We don't need to protect positions here because the merge is already done
         applyStateUpdate(newState, previousBoard: previousBoard)
     }
+
+    private func performGravityDrop() {
+        let newState = engine.applyGravityAfterChain()
+        state = newState
+    }
     
-    private func performCommit(positions: [Position]) {
+    @discardableResult
+    private func performCommit(positions: [Position]) -> Bool {
         let previousHighest = state.highestTile
         let lastPos = positions.last
 
@@ -407,14 +418,15 @@ public final class GameStore {
         // Check if ending on gift and use appropriate commit method
         let endsOnGift = lastPos.map { BoardIndex($0) }.map { state.board[$0].kind == .gift } ?? false
         
-        let previousBoard = state.board
         let newState: GameState
+        let requiresGravityDrop: Bool
         if endsOnGift {
             newState = engine.commitGiftChain(positions)
+            requiresGravityDrop = false
         } else {
-            newState = engine.commitChain(positions)
+            newState = engine.commitChain(positions, applyGravity: false)
+            requiresGravityDrop = true
         }
-        let protectedPositions = lastPos.map { Set([$0]) } ?? Set<Position>()
         
         // Update state but DO NOT schedule refill reveal yet, as refill hasn't happened
         state = newState
@@ -484,9 +496,12 @@ public final class GameStore {
         
         // Auto-save progress for score changes and achievements
         saveProgressImmediately(newTile: addedValue, currentScore: state.score)
+
+        return requiresGravityDrop
     }
     
     private static let mergeAnimationDelay: UInt64 = 400_000_000
+    private static let gravityAnimationDelay: UInt64 = 350_000_000
     private static let refillRevealDelay: UInt64 = 350_000_000
     
     private func applyStateUpdate(
@@ -943,8 +958,11 @@ public final class GameStore {
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
         
         // Calculate merged value and show milestone notification if applicable
-        let totalValue = value * matchingPositions.count
+        // Use safe multiplication to prevent overflow
+        let (totalValue, overflow) = value.multipliedReportingOverflow(by: matchingPositions.count)
         let mergedValue: Int = {
+            // If multiplication overflowed, return Int.max
+            if overflow { return Int.max }
             guard totalValue > 0 else { return 0 }
             if totalValue & (totalValue - 1) == 0 { return totalValue }
             if totalValue > (1 << 62) { return Int.max }
