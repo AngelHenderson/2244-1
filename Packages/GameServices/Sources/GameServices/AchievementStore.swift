@@ -74,32 +74,19 @@ public final class AchievementStore {
     }
     
     public func claim(definition: AchievementDef) {
-        guard var state = unlocks[definition.id], state.isClaimable else {
-            print("🚫 Claim rejected for \(definition.id): not claimable")
-            return
-        }
+        guard var state = unlocks[definition.id], state.isClaimable else { return }
         state.claimed = true
         unlocks[definition.id] = state
-        print("✅ Achievement claimed: \(definition.id)")
-        guard let rewards = definition.rewards else {
-            print("⚠️ No rewards defined for this achievement")
-            return
-        }
         
-        print("🎁 Rewards to grant: gems=\(rewards.gems ?? 0), hammers=\(rewards.hammers ?? 0), spins=\(rewards.spins ?? 0)")
+        guard let rewards = definition.rewards else { return }
         
+        // Always grant gems directly so UI and wallet stay in sync
         if let gems = rewards.gems, gems > 0 {
-            // Always persist the gem delta so UI and wallet stay in sync, even if no callback is wired.
             grantGemsDirectly(gems)
         }
         
-        if let callback = onReward {
-            print("📞 Calling onReward callback...")
-            callback(rewards)
-            print("📞 onReward callback completed")
-        } else {
-            print("⚠️ onReward callback is nil - rewards were applied directly where possible")
-        }
+        // Call reward callback for power-ups, spins, etc.
+        onReward?(rewards)
     }
     
     public var claimableCount: Int {
@@ -189,7 +176,6 @@ public final class AchievementStore {
         let currentGems = defaults.integer(forKey: "coins")
         let newGems = currentGems + gems
         defaults.set(newGems, forKey: "coins")
-        print("💎 DIRECT GEM GRANT: \(currentGems) + \(gems) = \(newGems) saved to UserDefaults")
         
         NotificationCenter.default.post(
             name: Notification.Name("GemsDidChange"),
