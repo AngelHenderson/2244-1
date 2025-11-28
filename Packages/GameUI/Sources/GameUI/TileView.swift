@@ -137,10 +137,11 @@ struct TileView: View {
                     .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 2)
                     .overlay(content)
             }
+            }
+            .frame(width: max(CGFloat(0), isFinite(size)), height: max(CGFloat(0), isFinite(size)))
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: tile?.value)
+            .animation(.easeInOut(duration: 0.1), value: isSelected)
         }
-        .frame(width: max(CGFloat(0), isFinite(size)), height: max(CGFloat(0), isFinite(size)))
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: tile?.value)
-        .animation(.easeInOut(duration: 0.1), value: isSelected)
     }
     
     // MARK: - Number text builder
