@@ -1,7 +1,9 @@
 import SwiftUI
 import GameCore
 import GameApp
+#if canImport(UIKit)
 import UIKit
+#endif
 
 public struct TileScrollerView: View {
     @Environment(\.gameStore) private var gameStore
@@ -217,6 +219,7 @@ private struct TileRowItem: View {
                 // Crown overlay to match design
                 if showCrown {
                     VStack {
+                        #if canImport(UIKit)
                         if let uiImage = UIImage(named: "crownBadge"), uiImage.size != .zero {
                             Image(uiImage: uiImage)
                                 .resizable()
@@ -229,6 +232,12 @@ private struct TileRowItem: View {
                                 .foregroundStyle(.orange)
                                 .offset(y: -tileSize * 0.62)
                         }
+                        #else
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: tileSize * 0.22))
+                            .foregroundStyle(.orange)
+                            .offset(y: -tileSize * 0.62)
+                        #endif
                     }
                 }
             }

@@ -49,30 +49,9 @@ public struct Theme {
         1_000_000_000_000_000_000: (Color(hex: "6F0000"), false)
     ]
 
-    // Remainder-based overrides (e % 25) - these colors repeat every 25 blocks!
-    private static let overridesByRemainder: [Int: (color: Color, darkText: Bool)] = [
-        6: (Color(hex: "9674FF"), false),      // 64, 64×2^25, 64×2^50... → Purple
-        7: (Color(hex: "03524B"), false),      // 128, 128×2^25... → Dark teal
-        8: (Color(hex: "FF0039"), false),      // 256, 256×2^25... → Red
-        9: (Color(hex: "FF6F96"), true),       // 512, 512×2^25... → Pink (dark text)
-        10: (Color(hex: "07F901"), false),     // 1024, 1024×2^25... → Bright green
-        11: (Color(hex: "FF3B7B"), false),     // 2048, 2048×2^25... → Vivid pink
-        12: (Color(hex: "55B9FF"), false),     // 4096, 4096×2^25... → Blue
-        13: (Color(hex: "FFFFEB"), true),      // 8192, 8192×2^25... → Cream (dark text)
-        14: (Color(hex: "8849D1"), false),     // 16K, 16K×2^25... → Purple
-        15: (Color(hex: "00FFE5"), true),      // 32K, 32K×2^25... → Cyan (dark text)
-        16: (Color(hex: "FFD300"), true),      // 64K, 64K×2^25... → Yellow (dark text)
-        17: (Color(hex: "F05B59"), false),     // 131K, 131K×2^25... → Coral red
-        18: (Color(hex: "55DFFE"), true),      // 262K, 262K×2^25... → Light Cyan / Blue (dark text)
-        19: (Color(hex: "39B54A"), true),      // 524K, 524K×2^25... → Green (dark text)
-        20: (Color(hex: "E91E63"), false),     // 1M, 1M×2^25... → Magenta
-        21: (Color(hex: "673AB7"), false),     // 2M, 2M×2^25... → Deep Purple
-        22: (Color(hex: "F44336"), false),     // 4M, 4M×2^25... → Red
-        23: (Color(hex: "1565C0"), false),     // 8M, 8M×2^25... → Dark Blue
-        24: (Color(hex: "EF6C00"), false),     // 16M, 16M×2^25... → Orange
-        0: (Color(hex: "C0CA33"), true),      // 33M, 33M×2^25... → Lime (dark text)
-        5: (Color(hex: "#9E3A46"), false)      // 32, 32×2^25... → Muted Red
-    ]
+    // Remainder-based overrides removed since they duplicate palette25
+    // The base palette25 already has these exact colors
+    private static let overridesByRemainder: [Int: (color: Color, darkText: Bool)] = [:]
 
     // Conditional remainder overrides
     private static let remainder6F0000Thresholds: [Int: Int] = [
@@ -80,14 +59,9 @@ public struct Theme {
         10: 60
     ]
     
-    // Specific high-value step overrides (beyond Int.max) to preserve legacy journey colors.
-    // Step indexing matches TileStepLabelFormatter: step 61 -> label "4c".
-    private static let stepOverrides: [Int: (color: Color, darkText: Bool)] = [
-        58: (Color(hex: "FF3B7B"), false), // 576b legacy pink
-        59: (Color(hex: "39B54A"), false), // 1c legacy green
-        60: (Color(hex: "F05B59"), false), // 2c legacy red
-        61: (Color(hex: "55B9FF"), false)  // 4c legacy blue
-    ]
+    // Step overrides removed to maintain proper 25-color cycling
+    // The palette should repeat consistently every 25 exponents
+    private static let stepOverrides: [Int: (color: Color, darkText: Bool)] = [:]
     
     public static func color(for value: Int) -> Color {
         if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
@@ -171,14 +145,6 @@ public struct Theme {
     
     private static func paletteEntry(forExponent exponent: Int) -> (color: Color, darkText: Bool) {
         let e = max(1, exponent)
-        let remainder = e % 25
-
-        // Apply remainder overrides consistently across ALL cycles
-        // This ensures colors repeat properly every 25 exponents
-        if let override = overridesByRemainder[remainder] {
-            return override
-        }
-
         let idx = bucketIndex(forExponent: e)
         return palette25[idx]
     }

@@ -1,5 +1,9 @@
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 // MARK: - Share Card View
 
@@ -202,13 +206,28 @@ struct ShareableProfile: Transferable {
         )
         
         renderer.scale = 2.0 // Retina quality
-        
+
+        #if canImport(UIKit)
         guard let uiImage = renderer.uiImage,
               let data = uiImage.pngData() else {
             throw ShareError.imageRenderingFailed
         }
-        
+
         return data
+        #else
+        // On macOS, use nsImage instead
+        guard let nsImage = renderer.nsImage else {
+            throw ShareError.imageRenderingFailed
+        }
+
+        guard let tiffData = nsImage.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData),
+              let data = bitmap.representation(using: .png, properties: [:]) else {
+            throw ShareError.imageRenderingFailed
+        }
+
+        return data
+        #endif
     }
 }
 

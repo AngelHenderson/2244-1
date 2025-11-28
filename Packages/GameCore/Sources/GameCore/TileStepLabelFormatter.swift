@@ -35,18 +35,22 @@ public enum TileStepLabelFormatter {
     
     /// Format a tile value (convenience method that converts value to step)
     public static func formatTileValue(_ value: Int) -> String {
+        // Tiles should never be negative - if we get a negative value,
+        // it's likely due to integer overflow, so treat it as a very large positive value
+        let absoluteValue = abs(value)
+
         // For values < 10_000, show the raw number without grouping
-        if value < 10_000 {
-            return "\(value)"
+        if absoluteValue < 10_000 {
+            return "\(absoluteValue)"
         }
-        
+
         // For values >= 10_000, use step-based formatting if it's a power of 2
-        if let step = stepForValue(value, start: 2) {
+        if let step = stepForValue(absoluteValue, start: 2) {
             return labelForStep(step, start: 2)
         }
-        
+
         // Fallback for non-power-of-2 values (e.g., overflow clamps) using AlphaMag formatting
-        return AlphaMag.format(value)
+        return AlphaMag.format(absoluteValue)
     }
 
     // MARK: Internal formatting (shared with value-based path if you want)
