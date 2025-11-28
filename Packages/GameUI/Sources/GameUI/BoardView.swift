@@ -191,20 +191,21 @@ public struct BoardView: View {
     
     @ViewBuilder
     private func hammerOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
-        guard tileSize > 0, let state = gameStore.hammerAnimationState else { return }
-        let center = centerPoint(for: state.target, tileSize: tileSize, containerSize: containerSize)
-        let offset = hammerOffset(for: state.phase, tileSize: tileSize)
-        let rotation = hammerRotation(for: state.phase)
-        let hammerSize = max(24, tileSize * 0.8)
-        
-        Image(systemName: "hammer.fill")
-            .font(.system(size: hammerSize))
-            .foregroundStyle(Color.orange)
-            .shadow(color: .orange.opacity(0.4), radius: 6, x: 0, y: 4)
-            .rotationEffect(rotation)
-            .position(x: center.x + offset.width, y: center.y + offset.height)
-            .animation(.easeInOut(duration: 0.18), value: state.phase)
-            .allowsHitTesting(false)
+        if tileSize > 0, let state = gameStore.hammerAnimationState {
+            let center = centerPoint(for: state.target, tileSize: tileSize, containerSize: containerSize)
+            let offset = hammerOffset(for: state.phase, tileSize: tileSize)
+            let rotation = hammerRotation(for: state.phase)
+            let hammerSize = max(24, tileSize * 0.8)
+            
+            Image(systemName: "hammer.fill")
+                .font(.system(size: hammerSize))
+                .foregroundStyle(Color.orange)
+                .shadow(color: .orange.opacity(0.4), radius: 6, x: 0, y: 4)
+                .rotationEffect(rotation)
+                .position(x: center.x + offset.width, y: center.y + offset.height)
+                .animation(.easeInOut(duration: 0.18), value: state.phase)
+                .allowsHitTesting(false)
+        }
     }
     
     private func isAnimating(_ position: Position) -> Bool {
