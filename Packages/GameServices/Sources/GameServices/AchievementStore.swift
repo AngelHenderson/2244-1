@@ -373,13 +373,23 @@ public final class AchievementStore {
     private func saveUnlocks() {
         if let data = try? JSONEncoder().encode(unlocks) {
             defaults.set(data, forKey: "achievementUnlocks")
+            defaults.synchronize() // Ensure immediate write
+            print("💾 AchievementStore: Saved \(unlocks.count) unlocks")
+        } else {
+            print("❌ AchievementStore: Failed to encode unlocks")
         }
     }
     
     private func loadUnlocks() {
-        if let data = defaults.data(forKey: "achievementUnlocks"),
-           let saved = try? JSONDecoder().decode([String: UnlockState].self, from: data) {
-            unlocks = saved
+        if let data = defaults.data(forKey: "achievementUnlocks") {
+            if let saved = try? JSONDecoder().decode([String: UnlockState].self, from: data) {
+                unlocks = saved
+                print("📂 AchievementStore: Loaded \(saved.count) unlocks")
+            } else {
+                print("❌ AchievementStore: Failed to decode unlocks")
+            }
+        } else {
+            print("⚠️ AchievementStore: No saved unlocks found")
         }
     }
 }

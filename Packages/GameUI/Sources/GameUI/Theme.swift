@@ -172,30 +172,13 @@ public struct Theme {
     private static func paletteEntry(forExponent exponent: Int) -> (color: Color, darkText: Bool) {
         let e = max(1, exponent)
         let remainder = e % 25
-        
-        // Remove the 6F0000 threshold logic that was forcing dark red on high values
-        // if let minE = remainder6F0000Thresholds[remainder], e >= minE {
-        //    return (Color(hex: "6F0000"), false)
-        // }
-        
-        // Only apply remainder overrides if they are NOT conflicting with the cycling pattern
-        // The issue is that overridesByRemainder is capturing high values too.
-        // We should only apply overrides for the FIRST cycle (e <= 25) if we want to preserve the base palette,
-        // OR we want the overrides to repeat.
-        // The user says "9c color is getting replaced with 18c's".
-        // 9c corresponds to step ~?
-        // 1c = 2^60. 2c = 2^61. 4c = 2^62.
-        // 9c is likely much higher? Or lower?
-        // Wait, 1c is 1 quintillion.
-        // If the user means 9c as in 9 * something? No, likely the label "9c".
-        
-        // Only apply remainder overrides for the first cycle (exponent <= 25)
-        // This prevents high-value tiles from being forced to low-value colors (like 2048's pink)
-        // The user explicitly requested that high tiles NOT look like 2048.
-        if e <= 25, let override = overridesByRemainder[remainder] {
+
+        // Apply remainder overrides consistently across ALL cycles
+        // This ensures colors repeat properly every 25 exponents
+        if let override = overridesByRemainder[remainder] {
             return override
         }
-        
+
         let idx = bucketIndex(forExponent: e)
         return palette25[idx]
     }
