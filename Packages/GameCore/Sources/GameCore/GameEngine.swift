@@ -92,6 +92,7 @@ public final class GameEngine {
     private var milestonesReached: Set<Int> = []
     private var lastMergeAtMs: Int? = nil
     private var pendingGiftRefillValue: Int? = nil
+    private var scoreMultiplier: Int = 1
     
     // Track which milestones have already triggered elimination
     private var eliminatedMilestones: Set<Int> = []
@@ -235,6 +236,11 @@ public final class GameEngine {
     /// Synchronize the engine's gem count with an external source (e.g., GameStore rewards).
     public func overrideGems(with newValue: Int) {
         state.gems = newValue
+    }
+    
+    /// Apply a temporary score multiplier (defaults to 1 when not boosted).
+    public func setScoreMultiplier(_ multiplier: Int) {
+        scoreMultiplier = max(1, multiplier)
     }
     
     public func validateChain(_ positions: [Position]) -> ChainValidation {
@@ -525,7 +531,7 @@ public final class GameEngine {
     // MARK: - Power-ups
     
     @discardableResult
-    public func hammer(at position: Position) -> GameState {
+    public func hammer(at position: Position, applyGravity: Bool = true) -> GameState {
         guard position.isValid(for: state.board), state.board[position] != nil else {
             return state
         }
@@ -536,11 +542,14 @@ public final class GameEngine {
         
         state.board[position] = nil
         state.moves += 1
-        // Keep board full after destructive action
-        refillAfterGravity()
         
-        if !hasValidMoves() {
-            state.isGameOver = true
+        if applyGravity {
+            // Keep board full after destructive action
+            refillAfterGravity()
+            
+            if !hasValidMoves() {
+                state.isGameOver = true
+            }
         }
         
         return state
@@ -1591,8 +1600,15 @@ public final class GameEngine {
     
     /// Safely add two integers, capping at Int.max to prevent overflow
     private func safeAddScore(_ a: Int, _ b: Int) -> Int {
-        let (result, overflow) = a.addingReportingOverflow(b)
+        let gain = applyScoreMultiplier(to: b)
+        let (result, overflow) = a.addingReportingOverflow(gain)
         return overflow ? Int.max : result
+    }
+    
+    private func applyScoreMultiplier(to value: Int) -> Int {
+        guard scoreMultiplier > 1, value > 0 else { return value }
+        let (product, overflow) = value.multipliedReportingOverflow(by: scoreMultiplier)
+        return overflow ? Int.max : product
     }
     
     // MARK: - Test Helpers (internal)

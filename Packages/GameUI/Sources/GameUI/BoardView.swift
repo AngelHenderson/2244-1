@@ -32,6 +32,7 @@ public struct BoardView: View {
                 pathOverlay(tileSize: tileSize, containerSize: geometry.size)
                 mergeAnimationOverlay(tileSize: tileSize, containerSize: geometry.size)
                 magnetOverlay(tileSize: tileSize, containerSize: geometry.size)
+                hammerOverlay(tileSize: tileSize, containerSize: geometry.size)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
@@ -186,6 +187,24 @@ public struct BoardView: View {
             }
             .allowsHitTesting(false)
         }
+    }
+    
+    @ViewBuilder
+    private func hammerOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
+        guard tileSize > 0, let state = gameStore.hammerAnimationState else { return }
+        let center = centerPoint(for: state.target, tileSize: tileSize, containerSize: containerSize)
+        let offset = hammerOffset(for: state.phase, tileSize: tileSize)
+        let rotation = hammerRotation(for: state.phase)
+        let hammerSize = max(24, tileSize * 0.8)
+        
+        Image(systemName: "hammer.fill")
+            .font(.system(size: hammerSize))
+            .foregroundStyle(Color.orange)
+            .shadow(color: .orange.opacity(0.4), radius: 6, x: 0, y: 4)
+            .rotationEffect(rotation)
+            .position(x: center.x + offset.width, y: center.y + offset.height)
+            .animation(.easeInOut(duration: 0.18), value: state.phase)
+            .allowsHitTesting(false)
     }
     
     private func isAnimating(_ position: Position) -> Bool {
@@ -366,6 +385,24 @@ public struct BoardView: View {
                 magnetAnimations.removeAll()
                 gameStore.clearLastMagnetEvent()
             }
+        }
+    }
+    
+    private func hammerOffset(for phase: GameStore.HammerAnimationState.Phase, tileSize: CGFloat) -> CGSize {
+        switch phase {
+        case .windUp:
+            return CGSize(width: tileSize * 0.9, height: -tileSize * 0.9)
+        case .impact:
+            return CGSize(width: tileSize * 0.3, height: -tileSize * 0.2)
+        }
+    }
+    
+    private func hammerRotation(for phase: GameStore.HammerAnimationState.Phase) -> Angle {
+        switch phase {
+        case .windUp:
+            return Angle(degrees: -35)
+        case .impact:
+            return Angle(degrees: 15)
         }
     }
 }

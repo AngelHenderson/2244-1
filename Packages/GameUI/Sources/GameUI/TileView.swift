@@ -172,7 +172,6 @@ struct TileView: View {
     
     private var backgroundColor: Color {
         guard let tile = tile else { return .gray.opacity(0.3) }
-        if tile.isInfinity { return Color.purple }
         if tile.isLocked { return Color.gray.opacity(0.6) }
         if tile.isBomb { return Color.orange.opacity(0.8) }
         if case .highValue(let step) = tile.type {

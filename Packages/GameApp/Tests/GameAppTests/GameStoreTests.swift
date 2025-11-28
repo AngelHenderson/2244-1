@@ -106,18 +106,17 @@ struct GameStoreTests {
             "Gem reward should persist after the next merge"
         )
     }
-<<<<<<< HEAD
-    
+
     @Test
     @MainActor
     func testScoreBoostPurchaseConsumesGemsAndExpires() {
         resetUserDefaultsDomain()
         let store = GameStore()
-        store.coins = 2_000
+        store.coins = 25_000
         let now = Date()
         #expect(store.purchaseScoreBoost(.fiveX, now: now))
         #expect(store.isScoreBoostActive(for: .fiveX))
-        #expect(store.coins == 1_000)
+        #expect(store.coins == 12_500)
         #expect(store.scoreBoostExpiresAt != nil)
         
         store._refreshScoreBoost(now: now.addingTimeInterval((15 * 60) + 1))
@@ -129,7 +128,7 @@ struct GameStoreTests {
     func testScoreBoostRepurchaseExtendsDuration() {
         resetUserDefaultsDomain()
         let store = GameStore()
-        store.coins = 4_000
+        store.coins = 50_000
         let firstStart = Date()
         #expect(store.purchaseScoreBoost(.fiveX, now: firstStart))
         guard let firstExpiration = store.scoreBoostExpiresAt else {
@@ -147,7 +146,7 @@ struct GameStoreTests {
         #expect(secondExpiration > firstExpiration, "Repurchase should extend the timer")
         let expected = secondStart.addingTimeInterval(15 * 60)
         #expect(abs(secondExpiration.timeIntervalSince(expected)) < 0.5, "Expiration should reset to 15 minutes from latest purchase")
-        #expect(store.coins == 2_000, "Two purchases should consume 2,000 gems total")
+        #expect(store.coins == 25_000, "Two purchases should consume 25,000 gems total")
     }
     
     @Test
@@ -155,7 +154,7 @@ struct GameStoreTests {
     func testTwentyXQueuesBehindFiveX() {
         resetUserDefaultsDomain()
         let store = GameStore()
-        store.coins = 10_000
+        store.coins = 100_000
         let start = Date()
         #expect(store.purchaseScoreBoost(.fiveX, now: start))
         #expect(store.purchaseScoreBoost(.twentyX, now: start.addingTimeInterval(30)))
@@ -172,14 +171,12 @@ struct GameStoreTests {
     func testTwentyXStartsImmediatelyWhenNoActiveBoost() {
         resetUserDefaultsDomain()
         let store = GameStore()
-        store.coins = 6_000
+        store.coins = 60_000
         let now = Date()
         #expect(store.purchaseScoreBoost(.twentyX, now: now))
         #expect(store.isScoreBoostActive(for: .twentyX))
-        #expect(store.coins == 1_000)
+        #expect(store.coins == 10_000)
     }
-=======
->>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
 }
 
 private func firstMergeablePair(in board: Board) -> (Position, Position)? {

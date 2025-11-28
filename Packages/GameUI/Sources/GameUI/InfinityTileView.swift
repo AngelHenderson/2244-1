@@ -5,6 +5,7 @@ struct InfinityTileView: View {
     let size: CGFloat
     let isSelected: Bool
     let isValid: Bool
+    var useSubtleAnimation: Bool = false  // Option for less intensive animation
 
     @State private var animationPhase: Double = 0
     @State private var pulseScale: CGFloat = 1.0
@@ -21,18 +22,38 @@ struct InfinityTileView: View {
         Color(hex: "#FFD700"), // Back to Gold for smooth loop
     ]
 
+    private let staticGradientColors = [
+        Color(hex: "#FFD700"), // Gold
+        Color(hex: "#FF69B4"), // Hot Pink
+        Color(hex: "#9370DB"), // Medium Purple
+        Color(hex: "#4169E1"), // Royal Blue
+    ]
+
     var body: some View {
         ZStack {
-            // Background with animated gradient
-            RoundedRectangle(cornerRadius: size * 0.1)
-                .fill(
-                    AngularGradient(
-                        gradient: Gradient(colors: gradientColors),
-                        center: .center,
-                        startAngle: .degrees(animationPhase),
-                        endAngle: .degrees(animationPhase + 360)
+            // Background with gradient
+            if useSubtleAnimation {
+                // Static gradient for better performance
+                RoundedRectangle(cornerRadius: size * 0.1)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: staticGradientColors),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                )
+            } else {
+                // Animated gradient for spectacular effect
+                RoundedRectangle(cornerRadius: size * 0.1)
+                    .fill(
+                        AngularGradient(
+                            gradient: Gradient(colors: gradientColors),
+                            center: .center,
+                            startAngle: .degrees(animationPhase),
+                            endAngle: .degrees(animationPhase + 360)
+                        )
+                    )
+            }
                 .overlay(
                     // Inner glow effect
                     RoundedRectangle(cornerRadius: size * 0.1)

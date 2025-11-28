@@ -39,6 +39,16 @@ public final class GameStore {
         public let value: Int
     }
     
+    public struct HammerAnimationState: Equatable, Sendable {
+        public enum Phase: Equatable, Sendable {
+            case windUp
+            case impact
+        }
+        public let target: Position
+        public let phase: Phase
+        public let startedAt: Date
+    }
+    
     public enum MergePhase: Equatable, Sendable {
         case shatter
         case fly
@@ -75,6 +85,7 @@ public final class GameStore {
     public private(set) var pendingRefillPositions: Set<Position> = []
     private var refillRevealTask: Task<Void, Never>? = nil
     private var mergeCleanupTask: Task<Void, Never>? = nil
+    public private(set) var hammerAnimationState: HammerAnimationState? = nil
     // Gift reward sheet state
     public var pendingGiftReward: GiftReward? = nil
     private let journeyAbbreviationClaimsKey = "journeyAbbreviationClaims"
@@ -120,14 +131,14 @@ public final class GameStore {
             id: .fiveX,
             label: "5× Score",
             multiplier: 5,
-            cost: 1_000,
+            cost: 12_500,
             duration: 15 * 60
         ),
         .twentyX: ScoreBoostTier(
             id: .twentyX,
             label: "20× Score",
             multiplier: 20,
-            cost: 5_000,
+            cost: 50_000,
             duration: 15 * 60
         )
     ]
@@ -656,6 +667,9 @@ public final class GameStore {
     private static let mergeAnimationDelay: UInt64 = 400_000_000
     private static let gravityAnimationDelay: UInt64 = 350_000_000
     private static let refillRevealDelay: UInt64 = 350_000_000
+    private static let magnetSuckDelay: UInt64 = 250_000_000
+    private static let hammerWindupDelay: UInt64 = 250_000_000
+    private static let hammerImpactDelay: UInt64 = 250_000_000
     
     private func applyStateUpdate(
         _ newState: GameState,
@@ -698,6 +712,8 @@ public final class GameStore {
         mergeCleanupTask?.cancel()
         mergeCleanupTask = nil
         mergeAnimationState = nil
+        hammerAnimationState = nil
+        isInputLocked = false
     }
     
     private func detectNewSpawnPositions(previousBoard: Board, newBoard: Board) -> Set<Position> {
@@ -1157,6 +1173,59 @@ public final class GameStore {
         }
     }
     
+    private func runHammerPipeline(at position: Position) {
+        mergeCleanupTask?.cancel()
+        isInputLocked = true
+        hammerAnimationState = HammerAnimationState(target: position, phase: .windUp, startedAt: Date())
+        
+        mergeCleanupTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            
+            do {
+                try await Task.sleep(nanoseconds: Self.hammerWindupDelay)
+            } catch {
+                print("[GameStore] Hammer wind-up sleep failed: \(error)")
+                self.resetHammerAnimation()
+                return
+            }
+            
+            if Task.isCancelled {
+                self.resetHammerAnimation()
+                return
+            }
+            
+            self.hammerAnimationState = HammerAnimationState(target: position, phase: .impact, startedAt: Date())
+            
+            let hammeredState = self.engine.hammer(at: position, applyGravity: false)
+            self.state = hammeredState
+            
+            do {
+                try await Task.sleep(nanoseconds: Self.hammerImpactDelay)
+            } catch {
+                print("[GameStore] Hammer impact sleep failed: \(error)")
+                self.resetHammerAnimation()
+                return
+            }
+            
+            if Task.isCancelled {
+                self.resetHammerAnimation()
+                return
+            }
+            
+            let dropState = self.engine.applyGravityAfterChain()
+            self.state = dropState
+            self.performRefill()
+            self.resetHammerAnimation()
+        }
+    }
+    
+    @MainActor
+    private func resetHammerAnimation() {
+        hammerAnimationState = nil
+        isInputLocked = false
+        mergeCleanupTask = nil
+    }
+    
     // MARK: - PowerUps via Engine wrapper
     public enum PowerUpAction: Codable, Sendable, Equatable {
         case hammer(Position)
@@ -1175,6 +1244,9 @@ public final class GameStore {
     
     @discardableResult
     public func useHammer(at position: Position) -> Bool {
+        guard !isInputLocked else { return false }
+        guard state.board[position] != nil else { return false }
+        guard hammerAnimationState == nil else { return false }
         guard isPowerUpAvailable("hammer") else { return false }
         
         // Use inventory first, then coins
@@ -1184,9 +1256,7 @@ public final class GameStore {
             guard spendCoins(PowerUpCost.hammer) else { return false }
         }
         
-        let previousBoard = state.board
-        let newState = engine.hammer(at: position)
-        applyStateUpdate(newState, previousBoard: previousBoard)
+        runHammerPipeline(at: position)
         powerUpHistory.append(.hammer(position))
         trackPowerUpAnalytics(action: .hammer(position))
         achievementEvaluator?.onPowerUpUsed(type: "hammer")

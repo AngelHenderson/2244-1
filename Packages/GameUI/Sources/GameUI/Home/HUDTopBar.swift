@@ -13,10 +13,6 @@ struct HUDTopBar: View {
 
     var body: some View {
         HStack(spacing: 8) {
-<<<<<<< HEAD
-            scoreBoostButtons
-=======
->>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
             
@@ -83,51 +79,6 @@ struct HUDTopBar: View {
         EmptyView()
         #endif
     }
-<<<<<<< HEAD
-    
-    private var scoreBoostButtons: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            scoreBoostButton(for: .fiveX)
-            scoreBoostButton(for: .twentyX)
-        }
-    }
-    
-    private func scoreBoostButton(for tierID: GameStore.ScoreBoostTierID) -> some View {
-        let label = gameStore.scoreBoostLabel(for: tierID)
-        let cost = gameStore.scoreBoostCost(for: tierID)
-        let countdown = gameStore.scoreBoostCountdownText(for: tierID)
-        let isActive = gameStore.isScoreBoostActive(for: tierID)
-        let isQueued = gameStore.isScoreBoostQueued(for: tierID)
-        let statusColor: Color = {
-            if isActive { return .green }
-            if isQueued { return .yellow }
-            return .white.opacity(0.8)
-        }()
-        
-        return Button(action: { _ = gameStore.purchaseScoreBoost(tierID) }) {
-            HStack(alignment: .center, spacing: 10) {
-                Image(systemName: "bolt.fill")
-                    .font(.headline)
-                    .foregroundStyle(isActive ? .yellow : .white)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(label) • \(cost) Gems")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.white)
-                    Text(countdown)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(statusColor)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-        }
-        .modifier(GlassButtonCompat())
-        .opacity(gameStore.canPurchaseScoreBoost(tierID) ? 1.0 : 0.7)
-        .disabled(!gameStore.canPurchaseScoreBoost(tierID))
-        .accessibilityLabel("\(label) boost. \(countdown)")
-    }
-=======
->>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
 
 #if canImport(GameKit)
 private struct GameCenterAvatarButton: View {

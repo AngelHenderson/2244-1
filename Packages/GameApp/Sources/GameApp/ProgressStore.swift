@@ -9,13 +9,9 @@ public protocol ProgressStore: Sendable {
 
 // MARK: - UserDefaults Store
 public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable {
-<<<<<<< HEAD
     private let key = "com.yourco.game.progress.v5"
     private let legacyV4Key = "com.yourco.game.progress.v4"
     private let legacyV3Key = "com.yourco.game.progress.v3"
-=======
-    private let key = "com.yourco.game.progress.v3"
->>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
     private let legacyV2Key = "com.yourco.game.progress.v2"
     private let legacyKeys = [
         "bestTile", "bestScore", "coins", "gamesPlayed",
@@ -48,13 +44,12 @@ public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable
 
     // Internal implementation (not thread-safe, must be called within queue)
     private func _load() -> GameProgress? {
-        // Try to load v3 format first
+        // Try to load v5 format first
         if let data = ud.data(forKey: key),
            let decoded = try? decoder.decode(GameProgress.self, from: data) {
             return decoded
         }
         
-<<<<<<< HEAD
         // Try to load legacy v4 payload and migrate to v5
         if let data = ud.data(forKey: legacyV4Key),
            let decoded = try? decoder.decode(GameProgress.self, from: data) {
@@ -72,9 +67,6 @@ public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable
         }
         
         // Try to load v2 and migrate forward
-=======
-        // Try to load v2 and migrate to v3
->>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
         if let data = ud.data(forKey: legacyV2Key),
            let v2Progress = try? decoder.decode(GameProgress.self, from: data) {
             // Migrate v2 to v3 by adding new fields with defaults
@@ -137,12 +129,9 @@ public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable
     public func clear() async throws {
         queue.sync {
             ud.removeObject(forKey: key)
-<<<<<<< HEAD
             ud.removeObject(forKey: legacyV4Key)
             ud.removeObject(forKey: legacyV3Key)
             ud.removeObject(forKey: legacyV2Key)
-=======
->>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
             clearLegacyKeys()
         }
     }
