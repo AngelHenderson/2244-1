@@ -35,19 +35,9 @@ public struct Theme {
         (Color(hex: "#C0CA33"), true)   // 25: Lime (dark text)
     ]
     
-    // Exact value overrides - keeping only special cases
-    private static let overridesByExactValue: [Int: (color: Color, darkText: Bool)] = [
-        1_000_000_000: (Color(hex: "6F0000"), false),
-        36_000_000_000: (Color(hex: "6F0000"), false),
-        68_000_000_000: (Color(hex: "FF3B7B"), false), // Match 2048 styling for 68B request
-        274_000_000_000: (Color(hex: "C275FF"), true), // Journey request: vivid purple with black text
-        549_000_000_000: (Color(hex: "C275FF"), true),
-        576_460_752_303_423_488: (Color(hex: "FF3B7B"), false), // 576b legacy pink (2^59)
-        1_152_921_504_606_846_976: (Color(hex: "39B54A"), false), // 1c legacy green (2^60)
-        2_305_843_009_213_693_952: (Color(hex: "F05B59"), false), // 2c legacy red (2^61)
-        4_611_686_018_427_387_904: (Color(hex: "55B9FF"), false), // 4c legacy blue (2^62)
-        1_000_000_000_000_000_000: (Color(hex: "6F0000"), false)
-    ]
+    // Removed exact value overrides to preserve consistent 25-color cycling
+    // All values now use the palette cycling for consistency
+    private static let overridesByExactValue: [Int: (color: Color, darkText: Bool)] = [:]
 
     // Remainder-based overrides removed since they duplicate palette25
     // The base palette25 already has these exact colors

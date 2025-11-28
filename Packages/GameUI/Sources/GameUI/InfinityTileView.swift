@@ -31,88 +31,16 @@ struct InfinityTileView: View {
 
     var body: some View {
         ZStack {
-            // Build background first as a concrete value, then apply shared overlays.
             backgroundView
-                .overlay(
-                    // Inner glow effect
-                    RoundedRectangle(cornerRadius: size * 0.1)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.8),
-                                    Color.white.opacity(0.3),
-                                    Color.clear
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 2
-                        )
-                )
-                .overlay(
-                    // Outer glow/bloom effect
-                    RoundedRectangle(cornerRadius: size * 0.1)
-                        .stroke(
-                            RadialGradient(
-                                colors: [
-                                    Color.white.opacity(glowOpacity),
-                                    Color.purple.opacity(glowOpacity * 0.5),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: size * 0.5
-                            ),
-                            lineWidth: 4
-                        )
-                        .blur(radius: 4)
-                )
+                .overlay(innerGlowOverlay)
+                .overlay(outerGlowOverlay)
 
-            // Selection border
             if isSelected {
-                RoundedRectangle(cornerRadius: size * 0.1)
-                    .strokeBorder(isValid ? Color.green : Color.red, lineWidth: 3)
+                selectionBorder
             }
 
-            // Infinity symbol with special effects
-            ZStack {
-                // Shadow/glow behind symbol
-                Image(systemName: "infinity")
-                    .font(.system(size: size * 0.5, weight: .black))
-                    .foregroundColor(.white)
-                    .blur(radius: 8)
-                    .opacity(0.8)
-                    .scaleEffect(pulseScale * 1.1)
-
-                // Main infinity symbol
-                Image(systemName: "infinity")
-                    .font(.system(size: size * 0.5, weight: .black))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                Color.white,
-                                Color(hex: "#F0F0F0")
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .scaleEffect(pulseScale)
-                    .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
-
-                // Sparkle effects
-                ForEach(0..<4) { index in
-                    Image(systemName: "sparkle")
-                        .font(.system(size: size * 0.08, weight: .bold))
-                        .foregroundColor(.white)
-                        .opacity(glowOpacity * 2)
-                        .offset(
-                            x: cos(animationPhase * .pi / 180 + Double(index) * .pi / 2) * size * 0.3,
-                            y: sin(animationPhase * .pi / 180 + Double(index) * .pi / 2) * size * 0.3
-                        )
-                        .rotationEffect(.degrees(animationPhase + Double(index * 90)))
-                }
-            }
+            infinitySymbol
+                .frame(width: size, height: size)
         }
         .frame(width: size, height: size)
         .onAppear {
@@ -128,31 +56,133 @@ struct InfinityTileView: View {
         }
     }
 
+    // MARK: - Subviews
+
+    private var selectionBorder: some View {
+        RoundedRectangle(cornerRadius: size * 0.1)
+            .strokeBorder(isValid ? Color.green : Color.red, lineWidth: 3)
+    }
+
+    private var innerGlowOverlay: some View {
+        let corner = size * 0.1
+        let lineWidth: CGFloat = 2
+
+        let strokeGradient = LinearGradient(
+            colors: [
+                Color.white.opacity(0.8),
+                Color.white.opacity(0.3),
+                Color.clear
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        return RoundedRectangle(cornerRadius: corner)
+            .stroke(strokeGradient, lineWidth: lineWidth)
+    }
+
+    private var outerGlowOverlay: some View {
+        let corner = size * 0.1
+        let lineWidth: CGFloat = 4
+
+        let radial = RadialGradient(
+            colors: [
+                Color.white.opacity(glowOpacity),
+                Color.purple.opacity(glowOpacity * 0.5),
+                Color.clear
+            ],
+            center: .center,
+            startRadius: 0,
+            endRadius: size * 0.5
+        )
+
+        return RoundedRectangle(cornerRadius: corner)
+            .stroke(radial, lineWidth: lineWidth)
+            .blur(radius: 4)
+    }
+
+    private var infinitySymbol: some View {
+        ZStack {
+            // Shadow/glow behind symbol
+            Image(systemName: "infinity")
+                .font(.system(size: size * 0.5, weight: .black))
+                .foregroundColor(.white)
+                .blur(radius: 8)
+                .opacity(0.8)
+                .scaleEffect(pulseScale * 1.1)
+
+            // Main infinity symbol
+            Image(systemName: "infinity")
+                .font(.system(size: size * 0.5, weight: .black))
+                .foregroundStyle(mainSymbolGradient)
+                .scaleEffect(pulseScale)
+                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
+
+            sparkles
+        }
+    }
+
+    private var mainSymbolGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color.white,
+                Color(hex: "#F0F0F0")
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    private var sparkles: some View {
+        ZStack {
+            ForEach(0..<4) { index in
+                sparkle(at: index)
+            }
+        }
+    }
+
+    private func sparkle(at index: Int) -> some View {
+        let angleRadians = (animationPhase * .pi / 180) + Double(index) * .pi / 2
+        let distance = size * 0.3
+        let x = cos(angleRadians) * distance
+        let y = sin(angleRadians) * distance
+        let rotation = animationPhase + Double(index * 90)
+
+        return Image(systemName: "sparkle")
+            .font(.system(size: size * 0.08, weight: .bold))
+            .foregroundColor(.white)
+            .opacity(glowOpacity * 2)
+            .offset(x: x, y: y)
+            .rotationEffect(.degrees(rotation))
+    }
+
     // MARK: - Background builder
 
     @ViewBuilder
     private var backgroundView: some View {
+        let corner = size * 0.1
+
         if useSubtleAnimation {
-            // Static gradient for better performance
-            RoundedRectangle(cornerRadius: size * 0.1)
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: staticGradientColors),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+            let gradient = LinearGradient(
+                gradient: Gradient(colors: staticGradientColors),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            RoundedRectangle(cornerRadius: corner)
+                .fill(gradient)
         } else {
-            // Animated gradient for spectacular effect
-            RoundedRectangle(cornerRadius: size * 0.1)
-                .fill(
-                    AngularGradient(
-                        gradient: Gradient(colors: gradientColors),
-                        center: .center,
-                        startAngle: .degrees(animationPhase),
-                        endAngle: .degrees(animationPhase + 360)
-                    )
-                )
+            let start: Angle = .degrees(animationPhase)
+            let end: Angle = .degrees(animationPhase + 360)
+            let angular = AngularGradient(
+                gradient: Gradient(colors: gradientColors),
+                center: .center,
+                startAngle: start,
+                endAngle: end
+            )
+
+            RoundedRectangle(cornerRadius: corner)
+                .fill(angular)
         }
     }
 }
@@ -175,33 +205,5 @@ struct InfinityTileView_Previews: PreviewProvider {
         }
         .padding()
         .background(Color.gray.opacity(0.2))
-    }
-}
-
-// Helper for hex colors
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (255, 0, 0, 0)
-        }
-
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
-        )
     }
 }

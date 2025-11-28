@@ -38,19 +38,35 @@ public struct GameConfig: Sendable {
 public struct GameState: Equatable, Sendable {
     public var board: Board
     public var score: Int
+    public var scoreValue: AlphaNumber
     public var moves: Int
     public var isGameOver: Bool
     public var highestTile: Int
+    public var highestTileStep: Int
     public var level: Int
     public var gems: Int
     public var undoAvailable: Bool
     
-    public init(board: Board, score: Int = 0, moves: Int = 0, isGameOver: Bool = false, highestTile: Int = 0, level: Int = 1, gems: Int = 0, undoAvailable: Bool = false) {
+    public init(
+        board: Board,
+        score: Int = 0,
+        scoreValue: AlphaNumber? = nil,
+        moves: Int = 0,
+        isGameOver: Bool = false,
+        highestTile: Int = 0,
+        highestTileStep: Int? = nil,
+        level: Int = 1,
+        gems: Int = 0,
+        undoAvailable: Bool = false
+    ) {
         self.board = board
         self.score = score
+        self.scoreValue = scoreValue ?? AlphaNumber(score)
         self.moves = moves
         self.isGameOver = isGameOver
         self.highestTile = highestTile
+        self.highestTileStep = highestTileStep
+            ?? TileStepLabelFormatter.stepForValue(highestTile, start: 2) ?? 0
         self.level = level
         self.gems = gems
         self.undoAvailable = undoAvailable
@@ -330,15 +346,15 @@ public final class GameEngine {
         state.board = boardCopy
         
         // Update score and game state
-        let chainScore = outcome.resultValue
-        state.score = safeAddScore(state.score, chainScore)
+        addScoreForStep(outcome.resultStep)
         state.moves += 1
         
         // Update highest tile and level
-        if outcome.resultValue > state.highestTile {
+        if outcome.resultStep > state.highestTileStep {
             let previousHighest = state.highestTile
-            state.highestTile = outcome.resultValue
-            highestTileAchieved = outcome.resultValue
+            state.highestTile = max(outcome.resultValue, state.highestTile)
+            state.highestTileStep = outcome.resultStep
+            highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(outcome.resultValue)
 
@@ -443,9 +459,6 @@ public final class GameEngine {
             }
         }
         
-        // Score equals the resulting merged tile value
-        let chainScore = mergedValue
-        
         // Remove all tiles in the chain
         for position in positions.dropLast() {
             state.board[position] = nil
@@ -457,10 +470,11 @@ public final class GameEngine {
         }
         
         // Update highest tile and level
-        if mergedValue > state.highestTile {
+        if mergedStep > state.highestTileStep {
             let previousHighest = state.highestTile
-            state.highestTile = mergedValue
-            highestTileAchieved = mergedValue
+            state.highestTile = max(mergedValue, state.highestTile)
+            state.highestTileStep = mergedStep
+            highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
 
@@ -472,7 +486,7 @@ public final class GameEngine {
         }
         
         // Award points
-        state.score = safeAddScore(state.score, chainScore)
+        addScoreForStep(mergedStep)
         state.moves += 1
         
         // Award gems for long chains (10+ tiles)
@@ -626,10 +640,11 @@ public final class GameEngine {
         state.board[position] = mergedTile
         
         // Update highest tile and level if needed
-        if mergedValue > state.highestTile {
+        if mergedStep > state.highestTileStep {
             let previousHighest = state.highestTile
-            state.highestTile = mergedValue
-            highestTileAchieved = mergedValue
+            state.highestTile = max(mergedValue, state.highestTile)
+            state.highestTileStep = mergedStep
+            highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
 
@@ -641,7 +656,7 @@ public final class GameEngine {
         }
         
         // Award score for the merge (use safe addition to prevent overflow)
-        state.score = safeAddScore(state.score, mergedValue)
+        addScoreForStep(mergedStep)
         
         state.moves += 1
         
@@ -719,12 +734,15 @@ public final class GameEngine {
             let (next, overflow) = baseValue.multipliedReportingOverflow(by: 2)
             return overflow ? Int.max : next
         }()
-        state.board[position] = Tile(value: doubled)
+        let baseStep = TileStepLabelFormatter.stepForValue(baseValue, start: 2) ?? 0
+        let doubledStep = baseStep + 1
+        state.board[position] = Tile.make(forStep: doubledStep)
         // Update highest tile & level if needed
-        if doubled > state.highestTile {
+        if doubledStep > state.highestTileStep {
             let previousHighest = state.highestTile
-            state.highestTile = doubled
-            highestTileAchieved = doubled
+            state.highestTile = max(doubled, state.highestTile)
+            state.highestTileStep = doubledStep
+            highestTileAchieved = state.highestTile
             updateLevel()
 
             // Apply eliminations for ALL milestones between previous highest and new value
@@ -1477,12 +1495,12 @@ public final class GameEngine {
     
     /// Merge a group of matching tiles and return the score earned
     @discardableResult
-    private func mergeGroup(_ group: [Position]) -> Int {
-        guard group.count >= 3 else { return 0 }
+    private func mergeGroup(_ group: [Position]) -> (value: Int, step: Int) {
+        guard group.count >= 3 else { return (0, 0) }
         let tiles = group.compactMap { state.board[$0] }
-        guard tiles.count == group.count else { return 0 }
+        guard tiles.count == group.count else { return (0, 0) }
         let steps = tiles.compactMap { TileStepMath.step(for: $0) }
-        guard steps.count == tiles.count else { return 0 }
+        guard steps.count == tiles.count else { return (0, 0) }
         let mergedStep = TileStepMath.mergedStep(from: steps)
         let mergedValue = TileStepMath.value(forStep: mergedStep)
         
@@ -1503,10 +1521,11 @@ public final class GameEngine {
         state.board[mergePosition] = Tile.make(forStep: mergedStep)
         
         // Update highest tile
-        if mergedValue > state.highestTile {
+        if mergedStep > state.highestTileStep {
             let previousHighest = state.highestTile
-            state.highestTile = mergedValue
-            highestTileAchieved = mergedValue
+            state.highestTile = max(mergedValue, state.highestTile)
+            state.highestTileStep = mergedStep
+            highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
 
@@ -1517,7 +1536,7 @@ public final class GameEngine {
             applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         }
         
-        return mergedValue
+        return (mergedValue, mergedStep)
     }
     
     /// Perform one cascade step: find and merge all matching groups
@@ -1525,19 +1544,24 @@ public final class GameEngine {
     /// - Parameter protectedMilestoneValue: Optional milestone value to protect across all iterations
     /// - Returns: Tuple of (merged: whether any merges occurred, score: points earned)
     @discardableResult
-    private func performCascadeStep(excludePosition: Position? = nil, protectedMilestoneValue: Int? = nil) -> (merged: Bool, score: Int) {
+    private func performCascadeStep(
+        excludePosition: Position? = nil,
+        protectedMilestoneValue: Int? = nil
+    ) -> (merged: Bool, score: Int, alpha: AlphaNumber) {
         let groups = findMatchingGroups(excludePosition: excludePosition, protectedMilestoneValue: protectedMilestoneValue)
 
         guard !groups.isEmpty else {
-            return (false, 0)
+            return (false, 0, .zero)
         }
 
         var totalScore = 0
+        var totalAlpha = AlphaNumber.zero
 
         // Merge all groups
         for group in groups {
-            let score = mergeGroup(group)
-            totalScore += score
+            let result = mergeGroup(group)
+            totalScore += result.value
+            totalAlpha.addPowerStep(result.step)
         }
 
         // Apply gravity and refill from top (creates natural cascade effect)
@@ -1550,7 +1574,7 @@ public final class GameEngine {
             refillToFull()
         }
 
-        return (true, totalScore)
+        return (true, totalScore, totalAlpha)
     }
     
     /// Run the full cascade: repeatedly merge until no more matches exist
@@ -1560,6 +1584,7 @@ public final class GameEngine {
     @discardableResult
     public func runAutoCascade(protectPosition: Position? = nil, protectedValue: Int? = nil) -> Int {
         var totalScore = 0
+        var totalAlpha = AlphaNumber.zero
         var cascadeCount = 0
         let maxCascades = 50 // Safety limit to prevent infinite loops
 
@@ -1578,6 +1603,7 @@ public final class GameEngine {
             // Safe addition to prevent overflow
             let (newTotal, overflow) = totalScore.addingReportingOverflow(result.score)
             totalScore = overflow ? Int.max : newTotal
+            totalAlpha.add(result.alpha)
             cascadeCount += 1
         }
 
@@ -1589,9 +1615,14 @@ public final class GameEngine {
             let comboBonus = overflowMult ? Int.max / 2 : bonusProduct / 2
             let (newTotal, overflowAdd) = totalScore.addingReportingOverflow(comboBonus)
             totalScore = overflowAdd ? Int.max : newTotal
+            
+            totalAlpha.multiply(by: cascadeCount + 1)
+            totalAlpha.halve()
         }
-
-        state.score = safeAddScore(state.score, totalScore)
+        
+        if cascadeCount > 0 {
+            addScoreAlpha(totalAlpha)
+        }
 
         return totalScore
     }
@@ -1609,6 +1640,24 @@ public final class GameEngine {
         guard scoreMultiplier > 1, value > 0 else { return value }
         let (product, overflow) = value.multipliedReportingOverflow(by: scoreMultiplier)
         return overflow ? Int.max : product
+    }
+    
+    private func addScoreForStep(_ step: Int) {
+        state.scoreValue.addPowerStep(step)
+        let mergedValue = TileStepMath.value(forStep: step)
+        state.score = safeAddScore(state.score, mergedValue)
+    }
+    
+    private func addScoreValue(_ value: Int) {
+        guard value > 0 else { return }
+        state.scoreValue.add(value)
+        state.score = safeAddScore(state.score, value)
+    }
+    
+    private func addScoreAlpha(_ alpha: AlphaNumber) {
+        guard !alpha.isZero else { return }
+        state.scoreValue.add(alpha)
+        state.score = safeAddScore(state.score, alpha.toInt())
     }
     
     // MARK: - Test Helpers (internal)

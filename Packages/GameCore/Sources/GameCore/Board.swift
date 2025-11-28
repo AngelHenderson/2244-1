@@ -63,12 +63,20 @@ public struct MergeOutcome: Sendable, Codable {
     public let consumed: [BoardIndex]
     public let resultAt: BoardIndex
     public let resultValue: Int
+    public let resultStep: Int
     public let giftBroken: Bool
     
-    public init(consumed: [BoardIndex], resultAt: BoardIndex, resultValue: Int, giftBroken: Bool = false) {
+    public init(
+        consumed: [BoardIndex],
+        resultAt: BoardIndex,
+        resultValue: Int,
+        resultStep: Int,
+        giftBroken: Bool = false
+    ) {
         self.consumed = consumed
         self.resultAt = resultAt
         self.resultValue = resultValue
+        self.resultStep = resultStep
         self.giftBroken = giftBroken
     }
 }
@@ -228,6 +236,7 @@ public struct Board: Equatable, Sendable, Codable {
             consumed: consumed,
             resultAt: finalIndex,
             resultValue: resultVal,
+            resultStep: resultStep,
             giftBroken: giftBroken
         )
     }
