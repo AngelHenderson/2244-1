@@ -189,9 +189,8 @@ extension Color {
 
     /// Darken a color by a percentage (0.0 = no change, 1.0 = black)
     func darken(by amount: Double) -> Color {
-        // SwiftUI doesn't provide direct RGB access, so we'll use opacity and overlay
-        // to simulate darkening
-        let factor = max(0, min(1, amount))
-        return self.opacity(1.0).overlay(Color.black.opacity(factor))
+        // Use brightness modifier to darken the color
+        let factor = max(0, 1 - amount)
+        return self.brightness(-amount * 0.5)  // Negative brightness darkens the color
     }
 }

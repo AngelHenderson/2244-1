@@ -173,6 +173,27 @@ struct GameEngineTests {
     }
     
     @Test
+    func testScoreValueTracksBeyondIntRange() {
+        let config = GameConfig(boardWidth: 2, boardHeight: 2, seed: 11, fillMode: .sparse)
+        let engine = GameEngine(config: config)
+        engine._setAllTilesForTesting(value: nil)
+        
+        let posA = Position(row: 0, col: 0)
+        let posB = Position(row: 0, col: 1)
+        let highStep = 80
+        engine._setHighValueTileForTesting(at: posA, step: highStep)
+        engine._setHighValueTileForTesting(at: posB, step: highStep)
+        
+        engine._resetScoreForTesting()
+        let state = engine.commitChain([posA, posB])
+        
+        let expectedStep = TileStepMath.mergedStep(from: [highStep, highStep])
+        let expectedScore = AlphaNumber.powerOfTwo(step: expectedStep)
+        #expect(state.scoreValue == expectedScore, "ScoreValue should capture large merges without overflowing Int")
+        #expect(state.score == Int.max, "Legacy Int score should clamp for extremely large merges")
+    }
+    
+    @Test
     func testCommitChainCanSkipGravityForAnimationPipeline() {
         let config = GameConfig(boardWidth: 3, boardHeight: 4, seed: 5, fillMode: .alwaysFull)
         let engine = GameEngine(config: config)

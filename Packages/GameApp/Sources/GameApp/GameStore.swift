@@ -2101,6 +2101,12 @@ extension GameStore {
         let savedBestScore = savedBestScoreAlpha.toInt()
         let savedGems = UserDefaults.standard.integer(forKey: "coins")
         let hasInfinityAchievement = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
+        if let currentScoreString = UserDefaults.standard.string(forKey: ScoreDefaultsKey.currentScoreAlpha),
+           let alpha = AlphaNumber(decimalString: currentScoreString) {
+            state.scoreValue = alpha
+        } else {
+            state.scoreValue = AlphaNumber(state.score)
+        }
         
         // Restore infinity achievement
         if hasInfinityAchievement {
@@ -2251,6 +2257,7 @@ extension GameStore {
         if hasInfinityAchievement {
             print("   • Infinity Achievement: ✅")
         }
+        refreshDerivedState(scoreAlpha: state.scoreValue)
         restoreScoreBoostState(from: nil)
     }
     

@@ -14,8 +14,8 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
     }
     
     public init(_ value: Int) {
+        self.init()
         if value <= 0 {
-            self.init()
             return
         }
         var remaining = value
@@ -25,11 +25,12 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
             digits.append(UInt16(chunk))
             remaining /= Int(Self.base)
         }
-        chunks = digits
+        self.chunks = digits
         normalize()
     }
     
     public init?(decimalString: String) {
+        self.init()
         let trimmed = decimalString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
         let filtered = trimmed.filter { $0.isNumber }
@@ -51,6 +52,7 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
     // MARK: - Codable
     
     public init(from decoder: Decoder) throws {
+        self.init()
         let container = try decoder.singleValueContainer()
         if let chunkArray = try? container.decode([UInt16].self) {
             self.chunks = chunkArray

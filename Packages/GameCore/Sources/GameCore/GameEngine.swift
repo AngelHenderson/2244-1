@@ -1689,6 +1689,7 @@ public final class GameEngine {
     
     func _resetScoreForTesting() {
         state.score = 0
+        state.scoreValue = .zero
         state.moves = 0
     }
 

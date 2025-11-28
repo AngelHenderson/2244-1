@@ -82,7 +82,10 @@ public enum TileStepLabelFormatter {
         // Beyond billions → letters: a,b,...,z,aa,...,bz (lowercase)
         let tierIndex = hi - 3            // 1 -> a (trillion), 2 -> b, ..., 26 -> z, 27 -> aa, ...
         let suffix = excelLetters(for: tierIndex).lowercased()
-        let mantissa = chunks[hi]         // floor(n / 1000^(9+3*tier)) < 1000 always
+        var mantissa = chunks[hi]
+        if mantissa >= 100 {
+            mantissa /= 100
+        }
         return "\(mantissa)\(suffix)"
     }
 
