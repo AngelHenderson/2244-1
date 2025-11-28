@@ -7,26 +7,28 @@ public struct JourneyTileGenerator {
     /// Returns an array of tiles with special handling for values beyond Int.max
     public static func generateFullJourney() -> [Tile] {
         var tiles: [Tile] = []
-        
+
         // Start with normal doubling sequence
         var current = 2
-        var step = 1
-        
-        // Generate tiles up to Int.max/2 (step ~62)
+        var exponent = 1  // Track the exponent (2^exponent = current)
+
+        // Generate tiles up to Int.max/2 (up to 2^62)
         while current > 0 && current <= (Int.max >> 1) {
             tiles.append(Tile(value: current))
             current = current << 1
-            step += 1
+            exponent += 1
         }
-        
-        // After step 62, we can't double anymore without overflow
-        // But we need to continue to step 817 to reach 873bz
+
+        // After 2^62, we can't double anymore without overflow
+        // But we need to continue to 2^817 to reach 873bz
         // Use highValue type to track the step number
-        
-        // For steps 63-817, create tiles with highValue type
-        while step <= 817 {
+
+        // For exponents 63-817, create tiles with highValue type
+        // The step should be consistent with stepForValue: step = exponent - 1
+        while exponent <= 817 {
+            let step = exponent - 1  // Convert to 0-based step
             tiles.append(Tile(value: Int.max, type: .highValue(step: step)))
-            step += 1
+            exponent += 1
         }
         
         // Add infinity tile at the end
@@ -39,7 +41,8 @@ public struct JourneyTileGenerator {
     public static func generateJourney(highest: Int, stepsAhead: Int = 20) -> [Tile] {
         var tiles: [Tile] = []
         var current = 2
-        
+        var exponent = 1  // Track exponent: 2^exponent = current
+
         // First, add all tiles up to highest
         while current > 0 && current <= highest {
             tiles.append(Tile(value: current))
@@ -47,27 +50,22 @@ public struct JourneyTileGenerator {
                 break
             }
             current = current << 1
+            exponent += 1
         }
-        
-        // Calculate what step we're at
-        var currentStep = 1
-        var temp = 2
-        while temp < current && temp > 0 {
-            temp = temp << 1
-            currentStep += 1
-        }
-        
+
         // Then add more tiles beyond highest
         var stepsAdded = 0
         while stepsAdded < stepsAhead {
-            currentStep += 1
             if current > (Int.max >> 1) || current <= 0 {
                 // Use highValue type for tiles we can't represent
-                tiles.append(Tile(value: Int.max, type: .highValue(step: currentStep)))
+                // Step should be consistent with stepForValue: step = exponent - 1
+                let step = exponent - 1
+                tiles.append(Tile(value: Int.max, type: .highValue(step: step)))
             } else {
                 current = current << 1
                 tiles.append(Tile(value: current))
             }
+            exponent += 1
             stepsAdded += 1
         }
         
@@ -79,20 +77,23 @@ public struct JourneyTileGenerator {
     
     /// Format a tile value for a specific step in the doubling sequence
     /// This handles values beyond Int.max by computing the label directly
+    /// Step is 0-based: step 0 = 2^1, step 1 = 2^2, etc.
     public static func formatTileAtStep(_ step: Int) -> String {
-        if step <= 0 { return "∞" }
-        if step == 1 { return "2" }
-        
-        // For small steps, we can compute the actual value
-        if step <= 62 {
-            let value = 1 << step  // 2^step
+        if step < 0 { return "∞" }
+
+        // Convert 0-based step to exponent
+        let exponent = step + 1
+
+        // For small exponents, we can compute the actual value
+        if exponent <= 62 {
+            let value = 1 << exponent  // 2^exponent
             return AlphaMag.formatTileValue(value)
         }
-        
-        // For larger steps, we need to compute the label mathematically
-        // 2^step = mantissa * 10^power
-        // log10(2^step) = step * log10(2) = step * 0.30103
-        let powerOf10 = Double(step) * log10(2.0)
+
+        // For larger exponents, we need to compute the label mathematically
+        // 2^exponent = mantissa * 10^power
+        // log10(2^exponent) = exponent * log10(2) = exponent * 0.30103
+        let powerOf10 = Double(exponent) * log10(2.0)
         let intPower = Int(floor(powerOf10))
         let mantissa = pow(10.0, powerOf10 - Double(intPower))
         

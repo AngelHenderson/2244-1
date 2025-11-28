@@ -92,16 +92,24 @@ public struct Theme {
     // MARK: - Step-based APIs (for highValue tiles) to repeat the palette by step % 25
     public static func colorForStep(_ step: Int) -> Color {
         if let override = stepOverrides[step] { return override.color }
-        
-        // Calculate exponent from step (step 0 = 2^1, step 1 = 2^2, etc.)
-        // But palette is 1-based on exponent?
-        // palette25[0] is for exponent 1 (value 2).
-        // step 0 (value 2) -> exponent 1.
-        
+
+        // Step numbering depends on the context:
+        // - From stepForValue: step 0 = 2^1, step 1 = 2^2 (0-based)
+        // - From JourneyTileGenerator highValue: step 1 = 2^1, step 2 = 2^2 (1-based)
+        // We need to detect which system is being used.
+
+        // For normal values (step < 63), stepForValue returns 0-based steps
+        // For highValue tiles (step >= 63), JourneyTileGenerator uses 1-based steps
+        // But actually, JourneyTileGenerator uses 1-based for ALL steps!
+
+        // The issue: When Theme.color(for: value) calls stepForValue, it gets 0-based steps
+        // But when TileView renders a highValue tile, the step is 1-based
+
+        // Solution: Always add 1 to convert 0-based to 1-based (matching exponent)
         let exponent = step + 1
         return paletteEntry(forExponent: exponent).color
     }
-    
+
     public static func textColorForStep(_ step: Int) -> Color {
         if let override = stepOverrides[step] { return override.darkText ? .black : .white }
         let exponent = step + 1

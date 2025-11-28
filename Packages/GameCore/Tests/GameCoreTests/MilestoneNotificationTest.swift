@@ -24,14 +24,15 @@ func testEliminationMilestones() {
     let engine = GameEngine(config: config)
 
     // Test elimination milestones
+    // When eliminating X, we add X * 128 (7 steps above) to spawn pool
     let testCases: [(milestone: Int, eliminates: Int?, adds: Int?)] = [
-        (2048, 2, 4),      // Eliminates 2s, adds 4s to spawn
-        (4096, 4, 8),      // Eliminates 4s, adds 8s to spawn
-        (8192, nil, nil),  // Skip - no changes
-        (16384, 8, 16),    // Eliminates 8s, adds 16s to spawn
-        (32768, 16, 32),   // Eliminates 16s, adds 32s to spawn
-        (65536, 32, 64),   // Eliminates 32s, adds 64s to spawn
-        (131072, nil, nil), // Skip - no changes
+        (2048, 2, 256),      // Eliminates 2s, adds 256s to spawn (2 * 128)
+        (4096, 4, 512),      // Eliminates 4s, adds 512s to spawn (4 * 128)
+        (8192, nil, nil),    // Skip - no changes
+        (16384, 8, 1024),    // Eliminates 8s, adds 1024s to spawn (8 * 128)
+        (32768, 16, 2048),   // Eliminates 16s, adds 2048s to spawn (16 * 128)
+        (65536, 32, 4096),   // Eliminates 32s, adds 4096s to spawn (32 * 128)
+        (131072, nil, nil),  // Skip - no changes
     ]
 
     for testCase in testCases {
@@ -99,9 +100,9 @@ func testSkipMilestoneNotifications() {
     #expect(eliminatedValues.contains(4), "Should eliminate 4s from 4096 milestone")
     #expect(eliminatedValues.count == 2, "Should eliminate exactly 2 values")
 
-    // Should have added 4s and 8s to spawn pool
-    #expect(addedValues.contains(4), "Should add 4s to spawn from 2048 milestone")
-    #expect(addedValues.contains(8), "Should add 8s to spawn from 4096 milestone")
+    // Should have added 256s and 512s to spawn pool (7 steps above eliminated values)
+    #expect(addedValues.contains(256), "Should add 256s to spawn from 2048 milestone (2 * 128)")
+    #expect(addedValues.contains(512), "Should add 512s to spawn from 4096 milestone (4 * 128)")
     #expect(addedValues.count == 2, "Should add exactly 2 values")
 
     // 8192 itself should not contribute to eliminations or additions

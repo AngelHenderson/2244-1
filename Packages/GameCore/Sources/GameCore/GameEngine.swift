@@ -992,10 +992,10 @@ public final class GameEngine {
             return nil
         }
 
-        // When we eliminate X, we typically add X*2 to the spawn pool
-        // (the minimum spawn value becomes X*2)
+        // When we eliminate X, we add tiles 7 steps (doublings) above X
+        // X << 7 means X * 2^7 = X * 128
         // Safe multiplication to prevent overflow
-        let addedSpawnValue = eliminated <= (Int.max >> 1) ? eliminated * 2 : Int.max
+        let addedSpawnValue = eliminated <= (Int.max >> 7) ? eliminated << 7 : Int.max
 
         // But we only show this as "added" if it's a meaningful change
         // For very early milestones, the spawn pool doesn't change much

@@ -37,7 +37,8 @@ public enum TileStepLabelFormatter {
     public static func formatTileValue(_ value: Int) -> String {
         // Tiles should never be negative - if we get a negative value,
         // it's likely due to integer overflow, so treat it as a very large positive value
-        let absoluteValue = abs(value)
+        // Note: abs(Int.min) overflows, so handle that case specially
+        let absoluteValue = value == Int.min ? Int.max : abs(value)
 
         // For values < 10_000, show the raw number without grouping
         if absoluteValue < 10_000 {
