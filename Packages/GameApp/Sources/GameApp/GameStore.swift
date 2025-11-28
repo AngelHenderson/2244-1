@@ -1315,9 +1315,47 @@ public final class GameStore {
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
         achievementEvaluator?.onPowerUpUsed(type: "magnet")
         
-        // Apply drop and refill phases (magnet skips shatter but still runs drop/refill)
-        performGravityDrop()
-        performRefill()
+        // Run the magnet pipeline: (skip shatter) suck-up → drop → refill
+        isInputLocked = true
+        mergeCleanupTask?.cancel()
+        mergeCleanupTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await Task.sleep(nanoseconds: Self.magnetSuckDelay)
+            } catch {
+                print("[GameStore] Magnet pipeline sleep error: \(error)")
+                self.isInputLocked = false
+                return
+            }
+            
+            if Task.isCancelled {
+                print("[GameStore] Magnet pipeline cancelled before drop")
+                self.isInputLocked = false
+                return
+            }
+            
+            self.performGravityDrop()
+            
+            do {
+                try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
+            } catch {
+                print("[GameStore] Magnet pipeline gravity error: \(error)")
+                self.isInputLocked = false
+                return
+            }
+            
+            if Task.isCancelled {
+                print("[GameStore] Magnet pipeline cancelled before refill")
+                self.isInputLocked = false
+                return
+            }
+            
+            self.performRefill()
+            
+            if !Task.isCancelled {
+                self.isInputLocked = false
+            }
+        }
         
         // Save progress after magnet use
         saveProgressImmediately(newTile: mergedValue, currentScore: state.score)
