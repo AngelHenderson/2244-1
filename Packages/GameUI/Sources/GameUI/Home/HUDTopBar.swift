@@ -9,12 +9,14 @@ import Foundation
 struct HUDTopBar: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
-    @Environment(\.gameStore) private var gameStore
     var score: Int? = nil  // Optional score for game context
 
     var body: some View {
         HStack(spacing: 8) {
+<<<<<<< HEAD
             scoreBoostButtons
+=======
+>>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
             
@@ -81,6 +83,7 @@ struct HUDTopBar: View {
         EmptyView()
         #endif
     }
+<<<<<<< HEAD
     
     private var scoreBoostButtons: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -123,6 +126,8 @@ struct HUDTopBar: View {
         .disabled(!gameStore.canPurchaseScoreBoost(tierID))
         .accessibilityLabel("\(label) boost. \(countdown)")
     }
+=======
+>>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
 
 #if canImport(GameKit)
 private struct GameCenterAvatarButton: View {

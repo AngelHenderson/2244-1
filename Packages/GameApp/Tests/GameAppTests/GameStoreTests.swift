@@ -106,6 +106,7 @@ struct GameStoreTests {
             "Gem reward should persist after the next merge"
         )
     }
+<<<<<<< HEAD
     
     @Test
     @MainActor
@@ -177,6 +178,8 @@ struct GameStoreTests {
         #expect(store.isScoreBoostActive(for: .twentyX))
         #expect(store.coins == 1_000)
     }
+=======
+>>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
 }
 
 private func firstMergeablePair(in board: Board) -> (Position, Position)? {

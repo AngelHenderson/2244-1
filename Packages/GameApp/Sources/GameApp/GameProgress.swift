@@ -3,7 +3,11 @@ import GameCore
 
 /// Canonical, versioned progress that both local and remote stores persist.
 public struct GameProgress: Codable, Equatable, Sendable {
+<<<<<<< HEAD
     public static let schemaVersion = 5 // Bumped to v5 for multi-tier score boosts
+=======
+    public static let schemaVersion = 3 // Bumped to v3 for comprehensive session state
+>>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
 
     public var version: Int = schemaVersion
     public var highestTile: Int
@@ -22,8 +26,11 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public var completedDailyChallenges: Int
     public var currentWinStreak: Int
     public var bestWinStreak: Int
+<<<<<<< HEAD
     public var activeScoreBoost: ScoreBoostState?
     public var queuedScoreBoostTierID: String?
+=======
+>>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
     
     // MARK: - Comprehensive Session State (v3)
     
@@ -125,6 +132,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
             self.sessionEfficiencyScore = sessionEfficiencyScore
         }
     }
+<<<<<<< HEAD
     
     public struct ScoreBoostState: Codable, Equatable, Sendable {
         public var tierID: String
@@ -161,6 +169,8 @@ public struct GameProgress: Codable, Equatable, Sendable {
             try container.encode(expiresAt, forKey: .expiresAt)
         }
     }
+=======
+>>>>>>> parent of 4f8a8f4 (Add score boost feature with persistence and UI)
 
     public init(
         highestTile: Int = 0,
@@ -178,7 +188,6 @@ public struct GameProgress: Codable, Equatable, Sendable {
         currentWinStreak: Int = 0,
         bestWinStreak: Int = 0,
         currentSessionState: SessionState? = nil,
-        activeScoreBoost: ScoreBoostState? = nil,
         powerUpInventory: [String: Int] = ["hammer": 3, "shuffle": 2, "swap": 2, "undo": 1],
         journeyState: JourneyState = JourneyState(),
         sessionTracking: SessionTracking = SessionTracking(),
@@ -200,7 +209,6 @@ public struct GameProgress: Codable, Equatable, Sendable {
         self.currentWinStreak = currentWinStreak
         self.bestWinStreak = bestWinStreak
         self.currentSessionState = currentSessionState
-        self.activeScoreBoost = activeScoreBoost
         self.powerUpInventory = powerUpInventory
         self.journeyState = journeyState
         self.sessionTracking = sessionTracking
