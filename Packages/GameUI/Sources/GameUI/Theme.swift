@@ -144,7 +144,20 @@ public struct Theme {
     private static func paletteEntry(forExponent exponent: Int) -> (color: Color, darkText: Bool) {
         let e = max(1, exponent)
         let idx = bucketIndex(forExponent: e)
-        return palette25[idx]
+        let baseEntry = palette25[idx]
+
+        // Calculate which cycle we're in (0 = first 25, 1 = second 25, etc.)
+        let cycle = (e - 1) / 25
+
+        // Apply darkness adjustment for higher cycles
+        // Each cycle makes the color slightly darker
+        if cycle > 0 {
+            let darknessAmount = min(0.3, Double(cycle) * 0.1) // Max 30% darker
+            let darkenedColor = baseEntry.color.darken(by: darknessAmount)
+            return (darkenedColor, baseEntry.darkText)
+        }
+
+        return baseEntry
     }
 }
 
@@ -164,7 +177,7 @@ extension Color {
         default:
             (a, r, g, b) = (255, 0, 0, 0)
         }
-        
+
         self.init(
             .sRGB,
             red: Double(r) / 255,
@@ -172,5 +185,13 @@ extension Color {
             blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+
+    /// Darken a color by a percentage (0.0 = no change, 1.0 = black)
+    func darken(by amount: Double) -> Color {
+        // SwiftUI doesn't provide direct RGB access, so we'll use opacity and overlay
+        // to simulate darkening
+        let factor = max(0, min(1, amount))
+        return self.opacity(1.0).overlay(Color.black.opacity(factor))
     }
 }

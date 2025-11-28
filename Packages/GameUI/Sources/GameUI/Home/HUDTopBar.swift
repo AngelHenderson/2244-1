@@ -9,7 +9,7 @@ import Foundation
 struct HUDTopBar: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
-    var score: Int? = nil  // Optional score for game context
+    var scoreText: String? = nil  // Optional score for game context
 
     var body: some View {
         HStack(spacing: 8) {
@@ -30,13 +30,12 @@ struct HUDTopBar: View {
             .accessibilityLabel("Rank \(String(state.rank)). Open leaderboard.")
 
             // Score display (only shown if provided)
-            if let score = score {
+            if let scoreText = scoreText {
                 VStack(spacing: 2) {
                     Text("Score")
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.75))
-                    // Use AlphaMag 1_000-step units: K, M, B, a, b, c, ...
-                    Text(AlphaMag.formatScoreDisplay(score))
+                    Text(scoreText)
                         .font(.headline.monospacedDigit())
                         .foregroundStyle(.white)
                 }

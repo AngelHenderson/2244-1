@@ -18,8 +18,8 @@ public struct TileScrollerView: View {
     private let topInset: CGFloat
     private let bottomInset: CGFloat
     
-    private var currentHighestTile: Int {
-        max(2, gameStore.state.highestTile)
+    private var highestTileStep: Int {
+        max(0, gameStore.state.highestTileStep)
     }
     
     private let itemSpacing: CGFloat = 24
@@ -33,9 +33,9 @@ public struct TileScrollerView: View {
     }
     
     private var highestUnlockedIndex: Int? {
-        let highestValue = max(2, gameStore.state.highestTile)
         return tiles.firstIndex { item in
-            !item.tile.isInfinity && item.tile.value == highestValue
+            guard !item.tile.isInfinity else { return false }
+            return tileStep(for: item.tile) == highestTileStep
         }
     }
     
@@ -52,7 +52,7 @@ public struct TileScrollerView: View {
                         TileRowItem(
                             tile: item.tile,
                             isLocked: isLocked(item.tile),
-                            isCurrentHighest: item.tile.value == currentHighestTile && !item.tile.isInfinity,
+                            isCurrentHighest: !item.tile.isInfinity && tileStep(for: item.tile) == highestTileStep,
                             tileSize: tileSize,
                             // Force classic theme for journey to lock legacy color mapping
                             theme: ThemeRegistry.Default.descriptor(for: "classic")
@@ -132,7 +132,7 @@ public struct TileScrollerView: View {
     
     private func isLocked(_ tile: Tile) -> Bool {
         if tile.isInfinity { return true }
-        return tile.value > gameStore.state.highestTile
+        return tileStep(for: tile) > highestTileStep
     }
     
     @MainActor
@@ -155,6 +155,13 @@ public struct TileScrollerView: View {
         if let currentIndex = focusedTileID ?? highestUnlockedIndex {
             scrollPosition.scrollTo(id: currentIndex, anchor: .center)
         }
+    }
+    
+    private func tileStep(for tile: Tile) -> Int {
+        if case .highValue(let step) = tile.type {
+            return step
+        }
+        return TileStepLabelFormatter.stepForValue(tile.value, start: 2) ?? 0
     }
     
     @MainActor

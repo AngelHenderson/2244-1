@@ -196,7 +196,8 @@ public struct RootGameView: View {
     private func updateHomeFromGameProgress() {
         // Capture values from MainActor-isolated properties
         let highestTile = gameStore.state.highestTile
-        let bestScore = gameStore.state.score
+        let bestScoreAlpha = gameStore.state.scoreValue
+        let bestScore = bestScoreAlpha.toInt()
         let gems = gameStore.coins
         
         // Also sync the journey highest tile
@@ -207,7 +208,10 @@ public struct RootGameView: View {
                 // Update progress with game state
                 let progress = try await progressCoordinator.apply({ p in
                     p.highestTile = max(p.highestTile, highestTile)
-                    p.bestScore = max(p.bestScore, bestScore)
+                    let currentAlpha = p.bestScoreAlpha ?? AlphaNumber(p.bestScore)
+                    let updatedAlpha = bestScoreAlpha > currentAlpha ? bestScoreAlpha : currentAlpha
+                    p.bestScoreAlpha = updatedAlpha
+                    p.bestScore = updatedAlpha.toInt()
                     p.gems = gems
                     p.gamesPlayed += 1
                     p.lastUpdatedAt = Date()

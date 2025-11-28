@@ -41,7 +41,7 @@ struct GameView: View {
             // Enhanced auto-save with comprehensive session data
             .onChange(of: gameStore.state.moves) { _, _ in
                 // Use comprehensive session tracking auto-save
-                gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+                gameStore.saveProgressImmediately(newTile: nil)
                 // Also save to autosave slot for compatibility
                 Task { await gameStore.save(to: "autosave", using: storage, theme: selectedThemeId) }
             }
@@ -49,7 +49,7 @@ struct GameView: View {
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase != .active {
                     // Use comprehensive session tracking auto-save
-                    gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+                    gameStore.saveProgressImmediately(newTile: nil)
                     // Also save to autosave slot for compatibility
                     Task { await gameStore.save(to: "autosave", using: storage, theme: selectedThemeId) }
                 }

@@ -106,7 +106,7 @@ Migration is transparent and preserves all existing data.
 gameStore.saveProgressToStore()
 
 // Legacy save (for backward compatibility)
-gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+gameStore.saveProgressImmediately(newTile: nil)
 ```
 
 ### Loading Progress

@@ -62,7 +62,7 @@ public struct HybridGameScreen: View {
     }
     
     public var body: some View {
-        let topHUD = HUDTopBar(score: gameStore.state.score)
+        let topHUD = HUDTopBar(scoreText: gameStore.state.scoreValue.formattedLabel())
             .environment(tempHomeState)
             .environment(\.homeActions, makeGameActions())
 
@@ -195,7 +195,7 @@ public struct HybridGameScreen: View {
             // Enhanced auto-save triggers for comprehensive session data
             .onChange(of: gameStore.state.moves) { _, _ in
                 // Auto-save on every move with comprehensive session data
-                gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+                gameStore.saveProgressImmediately(newTile: nil)
             }
             .onChange(of: gameStore.pendingUnlockRewardBase) { _, newValue in
                 let shouldShow = newValue != nil
@@ -209,12 +209,12 @@ public struct HybridGameScreen: View {
             }
             .onChange(of: gameStore.coins) { _, _ in
                 // Auto-save when gems change
-                gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+                gameStore.saveProgressImmediately(newTile: nil)
             }
             .onChange(of: scenePhase) { _, newPhase in
                 // Comprehensive auto-save when app goes to background
                 if newPhase != .active {
-                    gameStore.saveProgressImmediately(newTile: nil, currentScore: gameStore.state.score)
+                    gameStore.saveProgressImmediately(newTile: nil)
                 }
             }
         

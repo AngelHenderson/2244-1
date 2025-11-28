@@ -8,6 +8,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public var version: Int = schemaVersion
     public var highestTile: Int
     public var bestScore: Int
+    public var bestScoreAlpha: AlphaNumber?
     public var gems: Int
     public var gamesPlayed: Int
     public var achievements: Set<String>
@@ -45,6 +46,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public struct SessionState: Codable, Equatable, Sendable {
         public var board: Board
         public var score: Int
+        public var scoreAlpha: AlphaNumber?
         public var moves: Int
         public var level: Int
         public var highestTile: Int
@@ -62,10 +64,12 @@ public struct GameProgress: Codable, Equatable, Sendable {
             seed: UInt64? = nil,
             brokenGlassTiles: [Position] = [],
             movesHistory: [[Position]] = [],
-            lastDailyDateUTC: String? = nil
+            lastDailyDateUTC: String? = nil,
+            scoreAlpha: AlphaNumber? = nil
         ) {
             self.board = board
             self.score = score
+            self.scoreAlpha = scoreAlpha
             self.moves = moves
             self.level = level
             self.highestTile = highestTile
@@ -165,6 +169,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public init(
         highestTile: Int = 0,
         bestScore: Int = 0,
+        bestScoreAlpha: AlphaNumber? = nil,
         gems: Int = 305, // Starter gems
         gamesPlayed: Int = 0,
         achievements: Set<String> = [],
@@ -187,6 +192,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
     ) {
         self.highestTile = highestTile
         self.bestScore = bestScore
+        self.bestScoreAlpha = bestScoreAlpha
         self.gems = gems
         self.gamesPlayed = gamesPlayed
         self.achievements = achievements

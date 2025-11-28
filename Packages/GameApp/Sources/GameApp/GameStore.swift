@@ -306,6 +306,7 @@ public final class GameStore {
             )
             self.engine = restoredEngine
             self.state = restoredEngine.currentState()
+            refreshDerivedState(scoreAlpha: sessionState.scoreAlpha ?? AlphaNumber(sessionState.score))
             // Use the most recent gem value - prefer UserDefaults as it's updated immediately
             let userDefaultsGems = UserDefaults.standard.integer(forKey: "coins")
             if userDefaultsGems > 0 {
@@ -338,6 +339,7 @@ public final class GameStore {
             let engine = GameEngine(config: config)
             self.engine = engine
             self.state = engine.currentState()
+            refreshDerivedState()
             
             // Load basic progress if available
             if let progress = loadedProgress {
@@ -634,7 +636,7 @@ public final class GameStore {
             }
             
             // CRITICAL: Auto-save progress for any new tile creation
-            saveProgressImmediately(newTile: addedValue, currentScore: state.score)
+            saveProgressImmediately(newTile: addedValue)
         }
         // Offer to double only if we created a tile that is one below the previous highest
         // or another instance of the previous highest.
@@ -659,7 +661,7 @@ public final class GameStore {
         achievementEvaluator?.onChainCommitted(chain: positions, state: state, resultingTileValue: addedValue)
         
         // Auto-save progress for score changes and achievements
-        saveProgressImmediately(newTile: addedValue, currentScore: state.score)
+        saveProgressImmediately(newTile: addedValue)
 
         return requiresGravityDrop
     }
@@ -747,6 +749,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
+        refreshDerivedState()
         syncEngineScoreBoost()
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
@@ -774,6 +777,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
+        refreshDerivedState()
         syncEngineScoreBoost()
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
@@ -1089,7 +1093,7 @@ public final class GameStore {
         }
         
         // Save progress for doubled tile (could be massive achievement)
-        saveProgressImmediately(newTile: doubledValue, currentScore: state.score)
+        saveProgressImmediately(newTile: doubledValue)
         
         return true
     }
@@ -1262,7 +1266,7 @@ public final class GameStore {
         achievementEvaluator?.onPowerUpUsed(type: "hammer")
         
         // Save progress after power-up use
-        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        saveProgressImmediately(newTile: nil)
         
         return true
     }
@@ -1286,7 +1290,7 @@ public final class GameStore {
         achievementEvaluator?.onPowerUpUsed(type: "swap")
         
         // Save progress after swap power-up
-        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        saveProgressImmediately(newTile: nil)
         
         return true
     }
@@ -1310,7 +1314,7 @@ public final class GameStore {
         achievementEvaluator?.onPowerUpUsed(type: "shuffle")
         
         // Save progress after shuffle power-up
-        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        saveProgressImmediately(newTile: nil)
         
         return true
     }
@@ -1327,7 +1331,7 @@ public final class GameStore {
         achievementEvaluator?.onUndoUsed()
         
         // Save progress after undo (could restore significant state)
-        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        saveProgressImmediately(newTile: nil)
         
         return true
     }
@@ -1428,7 +1432,7 @@ public final class GameStore {
         }
         
         // Save progress after magnet use
-        saveProgressImmediately(newTile: mergedValue, currentScore: state.score)
+        saveProgressImmediately(newTile: mergedValue)
         
         return true
     }
@@ -1452,6 +1456,7 @@ public final class GameStore {
     public func enableGiftRow() -> Bool {
         _ = engine.initializeGiftRow()
         state = engine.currentState()
+        refreshDerivedState()
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
         pendingRefillPositions = []
@@ -1477,6 +1482,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
+        refreshDerivedState()
         syncEngineScoreBoost()
         currentPath = []
         pathValidation = .valid
@@ -1592,6 +1598,39 @@ extension GameStore {
         return board
     }
     
+    private enum ScoreDefaultsKey {
+        static let currentScoreAlpha = "currentScoreAlpha"
+        static let savedBestScoreAlpha = "savedBestScoreAlpha"
+    }
+    
+    private func persistedBestScoreAlpha() -> AlphaNumber {
+        if let string = UserDefaults.standard.string(forKey: ScoreDefaultsKey.savedBestScoreAlpha),
+           let alpha = AlphaNumber(decimalString: string) {
+            return alpha
+        }
+        return AlphaNumber(UserDefaults.standard.integer(forKey: "savedBestScore"))
+    }
+    
+    private func refreshDerivedState(scoreAlpha: AlphaNumber? = nil) {
+        if let scoreAlpha {
+            state.scoreValue = scoreAlpha
+        } else if state.scoreValue.isZero && state.score > 0 {
+            state.scoreValue = AlphaNumber(state.score)
+        }
+        
+        var maxStep = state.highestTileStep
+        for row in 0..<state.board.height {
+            for col in 0..<state.board.width {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos],
+                   let step = tile.stepIndex {
+                    maxStep = max(maxStep, step)
+                }
+            }
+        }
+        state.highestTileStep = maxStep
+    }
+    
     public func save(to slotId: String, using storage: any StorageServiceProtocol, theme: String) async {
         let current = state
         let bestExisting = await storage.bestScore()
@@ -1678,6 +1717,7 @@ extension GameStore {
         let sessionState = GameProgress.SessionState(
             board: state.board,
             score: state.score,
+            scoreAlpha: state.scoreValue,
             moves: state.moves,
             level: state.level,
             highestTile: state.highestTile,
@@ -1709,7 +1749,9 @@ extension GameStore {
         
         // Get all-time bests
         let allTimeHighest = max(state.highestTile, UserDefaults.standard.integer(forKey: "savedHighestTile"))
-        let allTimeBest = max(state.score, UserDefaults.standard.integer(forKey: "savedBestScore"))
+        let storedBestAlpha = persistedBestScoreAlpha()
+        let bestAlpha = state.scoreValue > storedBestAlpha ? state.scoreValue : storedBestAlpha
+        let allTimeBest = bestAlpha.toInt()
         
         // Get existing progress data or use defaults
         let totalMerges = UserDefaults.standard.integer(forKey: "totalMerges")
@@ -1747,6 +1789,7 @@ extension GameStore {
         return GameProgress(
             highestTile: allTimeHighest,
             bestScore: allTimeBest,
+            bestScoreAlpha: bestAlpha,
             gems: state.gems,
             gamesPlayed: gamesPlayed,
             achievements: [],
@@ -1790,7 +1833,7 @@ extension GameStore {
     
     // MARK: - Legacy Progress Auto-Save System (for backward compatibility)
     
-    public func saveProgressImmediately(newTile: Int?, currentScore: Int) {
+    public func saveProgressImmediately(newTile: Int?) {
         // SAVE EVERYTHING ON EVERY ACTION - not just new records
         
         // Check for infinity tiles on board
@@ -1836,13 +1879,15 @@ extension GameStore {
         }
         
         // ALWAYS save current score (regardless of all-time best)
-        UserDefaults.standard.set(currentScore, forKey: "currentScore")
+        UserDefaults.standard.set(state.score, forKey: "currentScore")
+        UserDefaults.standard.set(state.scoreValue.decimalString, forKey: ScoreDefaultsKey.currentScoreAlpha)
         
         // ALWAYS update all-time best score if current beats it
-        let allTimeBest = UserDefaults.standard.integer(forKey: "savedBestScore")
-        if currentScore > allTimeBest {
-            UserDefaults.standard.set(currentScore, forKey: "savedBestScore")
-            print("🎯 New all-time best score: \(currentScore)")
+        let previousBestAlpha = persistedBestScoreAlpha()
+        if state.scoreValue > previousBestAlpha {
+            UserDefaults.standard.set(state.score, forKey: "savedBestScore")
+            UserDefaults.standard.set(state.scoreValue.decimalString, forKey: ScoreDefaultsKey.savedBestScoreAlpha)
+            print("🎯 New all-time best score: \(state.scoreValue.formattedLabel())")
         }
         
         // ALWAYS save gems balance
@@ -2052,7 +2097,8 @@ extension GameStore {
     /// Restore progress from saved data (called on app launch)
     public func restoreProgress() {
         let savedHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
-        let savedBestScore = UserDefaults.standard.integer(forKey: "savedBestScore")
+        let savedBestScoreAlpha = persistedBestScoreAlpha()
+        let savedBestScore = savedBestScoreAlpha.toInt()
         let savedGems = UserDefaults.standard.integer(forKey: "coins")
         let hasInfinityAchievement = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
         
@@ -2200,7 +2246,7 @@ extension GameStore {
         
         print("📱 COMPREHENSIVE PROGRESS RESTORATION COMPLETE")
         print("   • Highest Tile: \(state.highestTile)")
-        print("   • Best Score: \(savedBestScore)")
+        print("   • Best Score: \(savedBestScoreAlpha.formattedLabel())")
         print("   • Gems: \(state.gems)")
         if hasInfinityAchievement {
             print("   • Infinity Achievement: ✅")
@@ -2471,19 +2517,20 @@ extension GameStore {
     
     /// Manually save current progress (call anytime)
     public func saveProgress() {
-        saveProgressImmediately(newTile: nil, currentScore: state.score)
+        saveProgressImmediately(newTile: nil)
         print("💾 Manual progress save completed")
     }
     
     /// Get current progress summary
     public func getProgressSummary() -> (highestTile: Int, bestScore: Int, gems: Int, hasInfinity: Bool) {
         let savedHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
-        let savedBestScore = UserDefaults.standard.integer(forKey: "savedBestScore")
+        let savedBestAlpha = persistedBestScoreAlpha()
+        let bestAlpha = state.scoreValue > savedBestAlpha ? state.scoreValue : savedBestAlpha
         let hasInfinity = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
         
         return (
             highestTile: max(savedHighest, state.highestTile),
-            bestScore: max(savedBestScore, state.score),
+            bestScore: bestAlpha.toInt(),
             gems: state.gems,
             hasInfinity: hasInfinity
         )
