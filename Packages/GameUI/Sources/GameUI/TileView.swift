@@ -50,14 +50,16 @@ struct TileView: View {
     var useLegacyTypography: Bool = false   // NEW: allows restoring the old look
     
     var body: some View {
-        let content = AnyView(
-            Group {
-                if let tile = tile {
-                    if tile.isInfinity {
-                        Image(systemName: "infinity")
-                            .font(.system(size: fontSize * 1.2, weight: .bold))
-                            .foregroundColor(textColor)
-                    } else if tile.isLocked {
+        // Special handling for infinity tile
+        if tile?.isInfinity == true {
+            InfinityTileView(size: size, isSelected: isSelected, isValid: isValid)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: tile?.value)
+                .animation(.easeInOut(duration: 0.1), value: isSelected)
+        } else {
+            let content = AnyView(
+                Group {
+                    if let tile = tile {
+                        if tile.isLocked {
                         ZStack {
                             numberText(for: tile.value, locked: true)
                             Image("lockpic")
