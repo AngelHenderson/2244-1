@@ -994,7 +994,8 @@ public final class GameEngine {
 
         // When we eliminate X, we typically add X*2 to the spawn pool
         // (the minimum spawn value becomes X*2)
-        let addedSpawnValue = eliminated * 2
+        // Safe multiplication to prevent overflow
+        let addedSpawnValue = eliminated <= (Int.max >> 1) ? eliminated * 2 : Int.max
 
         // But we only show this as "added" if it's a meaningful change
         // For very early milestones, the spawn pool doesn't change much

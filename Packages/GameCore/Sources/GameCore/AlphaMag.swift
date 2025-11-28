@@ -139,6 +139,7 @@ public struct AlphaMag {
                         decimals: Int = 0,
                         rounding: NSDecimalNumber.RoundingMode = .plain) throws -> String {
         let v = try parse(s)
+        // Decimal has arbitrary precision, no overflow concern
         return try format(v * 2, decimals: decimals, rounding: rounding)
     }
 

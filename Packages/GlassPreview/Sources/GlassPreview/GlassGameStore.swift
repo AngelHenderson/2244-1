@@ -132,7 +132,9 @@ public final class GlassGameStore {
             allowed = (tNext.value == first.value)
         } else {
             // Can continue with same value or exactly double
-            allowed = (tNext.value == last.value || tNext.value == last.value * 2)
+            // Safe multiplication to prevent overflow
+            let (doubled, overflow) = last.value.multipliedReportingOverflow(by: 2)
+            allowed = (tNext.value == last.value || (!overflow && tNext.value == doubled))
         }
         
         return allowed
@@ -192,7 +194,9 @@ public final class GlassGameStore {
         }
         
         // Compute result value: 2 × terminal tile's value
-        let resultValue = (tile(at: last)?.value ?? 2) * 2
+        // Safe multiplication to prevent overflow
+        let baseValue = tile(at: last)?.value ?? 2
+        let resultValue = baseValue <= (Int.max >> 1) ? baseValue * 2 : Int.max
         
         // Calculate score (sum of all tiles in chain)
         let chainScore = chain.compactMap { tile(at: $0)?.value }.reduce(0, +)
