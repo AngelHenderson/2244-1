@@ -121,19 +121,17 @@ struct InfinityTileView: View {
                     .scaleEffect(pulseScale)
                     .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
 
-                // Sparkle effects (only with full animation)
-                if !useSubtleAnimation {
-                    ForEach(0..<4) { index in
-                        Image(systemName: "sparkle")
-                            .font(.system(size: size * 0.08, weight: .bold))
-                            .foregroundColor(.white)
-                            .opacity(glowOpacity * 2)
-                            .offset(
-                                x: cos(animationPhase * .pi / 180 + Double(index) * .pi / 2) * size * 0.3,
-                                y: sin(animationPhase * .pi / 180 + Double(index) * .pi / 2) * size * 0.3
-                            )
-                            .rotationEffect(.degrees(animationPhase + Double(index * 90)))
-                    }
+                // Sparkle effects
+                ForEach(0..<4) { index in
+                    Image(systemName: "sparkle")
+                        .font(.system(size: size * 0.08, weight: .bold))
+                        .foregroundColor(.white)
+                        .opacity(glowOpacity * 2)
+                        .offset(
+                            x: cos(animationPhase * .pi / 180 + Double(index) * .pi / 2) * size * 0.3,
+                            y: sin(animationPhase * .pi / 180 + Double(index) * .pi / 2) * size * 0.3
+                        )
+                        .rotationEffect(.degrees(animationPhase + Double(index * 90)))
                 }
             }
         }
