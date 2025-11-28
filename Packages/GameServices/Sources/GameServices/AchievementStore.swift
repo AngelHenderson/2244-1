@@ -371,9 +371,11 @@ public final class AchievementStore {
     }
     
     private func saveUnlocks() {
-        if let data = try? JSONEncoder().encode(unlocks) {
-            defaults.set(data, forKey: "achievementUnlocks")
-            defaults.synchronize() // Ensure immediate write
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        if let data = try? encoder.encode(unlocks) {
+            defaults.set(data, forKey: "achievementUnlocks_v2")
+            defaults.synchronize()
             print("💾 AchievementStore: Saved \(unlocks.count) unlocks")
         } else {
             print("❌ AchievementStore: Failed to encode unlocks")
@@ -381,15 +383,26 @@ public final class AchievementStore {
     }
     
     private func loadUnlocks() {
-        if let data = defaults.data(forKey: "achievementUnlocks") {
-            if let saved = try? JSONDecoder().decode([String: UnlockState].self, from: data) {
-                unlocks = saved
-                print("📂 AchievementStore: Loaded \(saved.count) unlocks")
-            } else {
-                print("❌ AchievementStore: Failed to decode unlocks")
+        if let data = defaults.data(forKey: "achievementUnlocks_v2") {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            do {
+                unlocks = try decoder.decode([String: UnlockState].self, from: data)
+                print("📂 AchievementStore: Loaded \(unlocks.count) unlocks")
+            } catch {
+                print("❌ AchievementStore: Failed to decode unlocks: \(error)")
             }
         } else {
-            print("⚠️ AchievementStore: No saved unlocks found")
+            // Fallback to legacy key if v2 missing
+            if let data = defaults.data(forKey: "achievementUnlocks") {
+                if let saved = try? JSONDecoder().decode([String: UnlockState].self, from: data) {
+                    unlocks = saved
+                    print("📂 AchievementStore: Migrated \(saved.count) unlocks from legacy")
+                    saveUnlocks() // Save to v2 immediately
+                }
+            } else {
+                print("⚠️ AchievementStore: No saved unlocks found")
+            }
         }
     }
 }
