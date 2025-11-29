@@ -30,7 +30,8 @@ public struct AchievementsView: View {
             || id == "moves_progression"
             || id == "combo_6_10"
             || id == "combo_11_15"
-            || id == "combo_16_20" {
+            || id == "combo_16_20"
+            || id == "combo_21_30" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
         }
@@ -86,6 +87,8 @@ public struct AchievementsView: View {
             return achievements.combo1115Display
         case "combo_16_20":
             return achievements.combo1620Display
+        case "combo_21_30":
+            return achievements.combo2130Display
         default:
             return nil
         }

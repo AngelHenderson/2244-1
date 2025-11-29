@@ -16,9 +16,11 @@ public final class AchievementEvaluator {
     private var combo610Total: Int = 0
     private var combo1115Total: Int = 0
     private var combo1620Total: Int = 0
+    private var combo2130Total: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
+    private let combo2130Key = "combo21to30Total"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
@@ -26,9 +28,11 @@ public final class AchievementEvaluator {
         combo610Total = defaults.integer(forKey: combo610Key)
         combo1115Total = defaults.integer(forKey: combo1115Key)
         combo1620Total = defaults.integer(forKey: combo1620Key)
+        combo2130Total = defaults.integer(forKey: combo2130Key)
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
+        currentGameSnapshot.combo2130Total = combo2130Total
     }
     
     public func onGameStart(state: GameState) {
@@ -41,6 +45,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
+        currentGameSnapshot.combo2130Total = combo2130Total
     }
     
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
@@ -48,6 +53,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
+        currentGameSnapshot.combo2130Total = combo2130Total
         
         if chain.count > 1 {
             mergesThisTurn = 1
@@ -99,6 +105,7 @@ public final class AchievementEvaluator {
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
+        snapshot.combo2130Total = combo2130Total
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
@@ -128,6 +135,7 @@ public final class AchievementEvaluator {
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
+        snapshot.combo2130Total = combo2130Total
         snapshot.reached_core_target = state.highestTile >= 2244
         
         var freeSlots = 0
@@ -151,11 +159,13 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
+        currentGameSnapshot.combo2130Total = combo2130Total
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
+        snapshot.combo2130Total = combo2130Total
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -168,11 +178,13 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
+        currentGameSnapshot.combo2130Total = combo2130Total
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
+        snapshot.combo2130Total = combo2130Total
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -192,8 +204,13 @@ public final class AchievementEvaluator {
             combo1620Total += 1
             defaults.set(combo1620Total, forKey: combo1620Key)
         }
+        if (21...30).contains(chainCount) {
+            combo2130Total += 1
+            defaults.set(combo2130Total, forKey: combo2130Key)
+        }
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
+        currentGameSnapshot.combo2130Total = combo2130Total
     }
 }
