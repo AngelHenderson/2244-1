@@ -50,6 +50,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         public var moves: Int
         public var level: Int
         public var highestTile: Int
+        public var highestTileStep: Int?
         public var seed: UInt64?
         public var brokenGlassTiles: [Position]
         public var movesHistory: [[Position]]
@@ -61,6 +62,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
             moves: Int = 0,
             level: Int = 1,
             highestTile: Int = 0,
+            highestTileStep: Int? = nil,
             seed: UInt64? = nil,
             brokenGlassTiles: [Position] = [],
             movesHistory: [[Position]] = [],
@@ -73,6 +75,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
             self.moves = moves
             self.level = level
             self.highestTile = highestTile
+            self.highestTileStep = highestTileStep
             self.seed = seed
             self.brokenGlassTiles = brokenGlassTiles
             self.movesHistory = movesHistory
