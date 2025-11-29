@@ -306,7 +306,10 @@ public final class GameStore {
             )
             self.engine = restoredEngine
             self.state = restoredEngine.currentState()
-            refreshDerivedState(scoreAlpha: sessionState.scoreAlpha ?? AlphaNumber(sessionState.score))
+            refreshDerivedState(
+                scoreAlpha: sessionState.scoreAlpha ?? persistedScoreAlpha() ?? AlphaNumber(sessionState.score),
+                highestStep: sessionState.highestTileStep ?? persistedHighestTileStep()
+            )
             // Use the most recent gem value - prefer UserDefaults as it's updated immediately
             let userDefaultsGems = UserDefaults.standard.integer(forKey: "coins")
             if userDefaultsGems > 0 {
@@ -339,7 +342,7 @@ public final class GameStore {
             let engine = GameEngine(config: config)
             self.engine = engine
             self.state = engine.currentState()
-            refreshDerivedState()
+            refreshDerivedState(highestStep: persistedHighestTileStep())
             
             // Load basic progress if available
             if let progress = loadedProgress {
@@ -749,7 +752,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
-        refreshDerivedState()
+        refreshDerivedState(highestStep: persistedHighestTileStep())
         syncEngineScoreBoost()
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
@@ -777,7 +780,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
-        refreshDerivedState()
+        refreshDerivedState(highestStep: persistedHighestTileStep())
         syncEngineScoreBoost()
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
@@ -1456,7 +1459,7 @@ public final class GameStore {
     public func enableGiftRow() -> Bool {
         _ = engine.initializeGiftRow()
         state = engine.currentState()
-        refreshDerivedState()
+        refreshDerivedState(highestStep: persistedHighestTileStep())
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
         pendingRefillPositions = []
@@ -1482,7 +1485,7 @@ public final class GameStore {
         // _ = engine.initializeGiftRow()
         
         state = engine.currentState()
-        refreshDerivedState()
+        refreshDerivedState(highestStep: persistedHighestTileStep())
         syncEngineScoreBoost()
         currentPath = []
         pathValidation = .valid
@@ -1677,6 +1680,7 @@ extension GameStore {
         if data.width != 5 || data.height != 8 {
             engine = GameEngine(config: GameConfig(boardWidth: 5, boardHeight: 8, seed: data.seed))
             state = engine.currentState()
+            refreshDerivedState(highestStep: persistedHighestTileStep())
             syncEngineScoreBoost()
         } else {
             let restoredBoard = board(from: data.board, width: data.width, height: data.height)
@@ -1691,6 +1695,7 @@ extension GameStore {
             )
             engine = restoredEngine
             state = restoredEngine.currentState()
+            refreshDerivedState(highestStep: persistedHighestTileStep())
             syncEngineScoreBoost()
         }
         
@@ -1743,6 +1748,7 @@ extension GameStore {
             moves: state.moves,
             level: state.level,
             highestTile: state.highestTile,
+            highestTileStep: state.highestTileStep,
             seed: engine.seedUsed,
             brokenGlassTiles: Array(brokenGlassTiles),
             movesHistory: movesHistory,
@@ -1886,6 +1892,7 @@ extension GameStore {
             UserDefaults.standard.set(currentHighest, forKey: "savedHighestTile")
             print("🏆 New all-time highest tile: \(currentHighest)")
         }
+        UserDefaults.standard.set(state.highestTileStep, forKey: ScoreDefaultsKey.currentHighestStep)
         
         // Log EVERY tile creation (not just records)
         if let tile = newTile, tile > 0 {
@@ -2279,7 +2286,10 @@ extension GameStore {
         if hasInfinityAchievement {
             print("   • Infinity Achievement: ✅")
         }
-        refreshDerivedState(scoreAlpha: state.scoreValue)
+        refreshDerivedState(
+            scoreAlpha: persistedScoreAlpha() ?? state.scoreValue,
+            highestStep: persistedHighestTileStep() ?? state.highestTileStep
+        )
         restoreScoreBoostState(from: nil)
     }
     

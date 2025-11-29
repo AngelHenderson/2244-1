@@ -146,14 +146,23 @@ public struct Theme {
         let idx = bucketIndex(forExponent: e)
         let baseEntry = palette25[idx]
 
-        // Calculate which cycle we're in (0 = first 25, 1 = second 25, etc.)
-        let cycle = (e - 1) / 25
+        // Special darkening for specific values and their 25-block repetitions:
+        // 70a (2^46) and its repetitions should be darker to match 2M (2^21) style
+        // 281a (2^48) and its repetitions should be darker to match 8M (2^23) style
 
-        // Apply darkness adjustment for higher cycles
-        // Each cycle makes the color slightly darker
-        if cycle > 0 {
-            let darknessAmount = min(0.3, Double(cycle) * 0.1) // Max 30% darker
-            let darkenedColor = baseEntry.color.darken(by: darknessAmount)
+        let remainder = e % 25
+
+        // Check if this is a 25-block repetition of 70a (remainder 21 like 2^46)
+        // 70a = 2^46, repetitions at 2^71, 2^96, 2^121, etc.
+        if remainder == 21 && e > 25 {  // 46 % 25 = 21, but only darken after first cycle
+            let darkenedColor = baseEntry.color.darken(by: 0.15)
+            return (darkenedColor, baseEntry.darkText)
+        }
+
+        // Check if this is a 25-block repetition of 281a (remainder 23 like 2^48)
+        // 281a = 2^48, repetitions at 2^73, 2^98, 2^123, etc.
+        if remainder == 23 && e > 25 {  // 48 % 25 = 23, but only darken after first cycle
+            let darkenedColor = baseEntry.color.darken(by: 0.15)
             return (darkenedColor, baseEntry.darkText)
         }
 
