@@ -26,7 +26,11 @@ public struct AchievementsView: View {
     /// Sort priority: 0 = claimable (top), 1 = tile/moves progression / locked (middle), 2 = claimed (bottom)
     private func sortPriority(for id: String, state: AchievementStore.UnlockState?) -> Int {
         // Progressive achievements stay near top (priority 0.5 - between claimable and locked)
-        if id == "tile_progression" || id == "moves_progression" || id == "combo_6_10" || id == "combo_11_15" {
+        if id == "tile_progression"
+            || id == "moves_progression"
+            || id == "combo_6_10"
+            || id == "combo_11_15"
+            || id == "combo_16_20" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
         }
@@ -80,6 +84,8 @@ public struct AchievementsView: View {
             return achievements.combo610Display
         case "combo_11_15":
             return achievements.combo1115Display
+        case "combo_16_20":
+            return achievements.combo1620Display
         default:
             return nil
         }

@@ -15,16 +15,20 @@ public final class AchievementEvaluator {
     private var movesThisGame: Int = 0
     private var combo610Total: Int = 0
     private var combo1115Total: Int = 0
+    private var combo1620Total: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
+    private let combo1620Key = "combo16to20Total"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
         totalGamesPlayed = UserDefaults.standard.integer(forKey: "totalGamesPlayed")
         combo610Total = defaults.integer(forKey: combo610Key)
         combo1115Total = defaults.integer(forKey: combo1115Key)
+        combo1620Total = defaults.integer(forKey: combo1620Key)
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
+        currentGameSnapshot.combo1620Total = combo1620Total
     }
     
     public func onGameStart(state: GameState) {
@@ -36,12 +40,14 @@ public final class AchievementEvaluator {
         consecutiveMergeTurns = 0
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
+        currentGameSnapshot.combo1620Total = combo1620Total
     }
     
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
         movesThisGame += 1
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
+        currentGameSnapshot.combo1620Total = combo1620Total
         
         if chain.count > 1 {
             mergesThisTurn = 1
@@ -92,6 +98,7 @@ public final class AchievementEvaluator {
         snapshot.total_moves = UserDefaults.standard.integer(forKey: "totalMoves") + 1
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
+        snapshot.combo1620Total = combo1620Total
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
@@ -120,6 +127,7 @@ public final class AchievementEvaluator {
         snapshot.run_minutes = elapsedMinutes
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
+        snapshot.combo1620Total = combo1620Total
         snapshot.reached_core_target = state.highestTile >= 2244
         
         var freeSlots = 0
@@ -142,10 +150,12 @@ public final class AchievementEvaluator {
         currentGameSnapshot.powerups_used += 1
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
+        currentGameSnapshot.combo1620Total = combo1620Total
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
+        snapshot.combo1620Total = combo1620Total
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -157,10 +167,12 @@ public final class AchievementEvaluator {
         currentGameSnapshot.undo_used += 1
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
+        currentGameSnapshot.combo1620Total = combo1620Total
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
+        snapshot.combo1620Total = combo1620Total
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -176,7 +188,12 @@ public final class AchievementEvaluator {
             combo1115Total += 1
             defaults.set(combo1115Total, forKey: combo1115Key)
         }
+        if (16...20).contains(chainCount) {
+            combo1620Total += 1
+            defaults.set(combo1620Total, forKey: combo1620Key)
+        }
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
+        currentGameSnapshot.combo1620Total = combo1620Total
     }
 }

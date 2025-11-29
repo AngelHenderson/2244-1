@@ -641,6 +641,22 @@
     ]
   },
   {
+    "id": "combo_16_20",
+    "gcIdentifier": "combo_16_20",
+    "title": "Combo Legend",
+    "description": "Chain combos of 16-20 tiles to master every tier.",
+    "category": "Combo",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "combo_16_20_total",
+        "op": ">=",
+        "value": 10
+      }
+    ]
+  },
+  {
     "id": "speedy_strategist",
     "gcIdentifier": "speedy_strategist",
     "title": "Speedy Strategist",
