@@ -1601,6 +1601,7 @@ extension GameStore {
     private enum ScoreDefaultsKey {
         static let currentScoreAlpha = "currentScoreAlpha"
         static let savedBestScoreAlpha = "savedBestScoreAlpha"
+        static let currentHighestStep = "currentHighestTileStep"
     }
     
     private func persistedBestScoreAlpha() -> AlphaNumber {
@@ -1611,24 +1612,45 @@ extension GameStore {
         return AlphaNumber(UserDefaults.standard.integer(forKey: "savedBestScore"))
     }
     
-    private func refreshDerivedState(scoreAlpha: AlphaNumber? = nil) {
+    private func persistedScoreAlpha() -> AlphaNumber? {
+        guard let string = UserDefaults.standard.string(forKey: ScoreDefaultsKey.currentScoreAlpha) else {
+            return nil
+        }
+        return AlphaNumber(decimalString: string)
+    }
+    
+    private func persistedHighestTileStep() -> Int? {
+        guard let stored = UserDefaults.standard.object(forKey: ScoreDefaultsKey.currentHighestStep) else {
+            return nil
+        }
+        if let number = stored as? NSNumber {
+            return number.intValue
+        }
+        return stored as? Int
+    }
+    
+    private func refreshDerivedState(scoreAlpha: AlphaNumber? = nil, highestStep: Int? = nil) {
         if let scoreAlpha {
             state.scoreValue = scoreAlpha
         } else if state.scoreValue.isZero && state.score > 0 {
             state.scoreValue = AlphaNumber(state.score)
         }
         
-        var maxStep = state.highestTileStep
-        for row in 0..<state.board.height {
-            for col in 0..<state.board.width {
-                let pos = Position(row: row, col: col)
-                if let tile = state.board[pos],
-                   let step = tile.stepIndex {
-                    maxStep = max(maxStep, step)
+        if let highestStep {
+            state.highestTileStep = highestStep
+        } else {
+            var maxStep = state.highestTileStep
+            for row in 0..<state.board.height {
+                for col in 0..<state.board.width {
+                    let pos = Position(row: row, col: col)
+                    if let tile = state.board[pos],
+                       let step = tile.stepIndex {
+                        maxStep = max(maxStep, step)
+                    }
                 }
             }
+            state.highestTileStep = maxStep
         }
-        state.highestTileStep = maxStep
     }
     
     public func save(to slotId: String, using storage: any StorageServiceProtocol, theme: String) async {
