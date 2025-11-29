@@ -13,9 +13,14 @@ public final class AchievementEvaluator {
     private var totalMerges: Int = 0
     private var maxChainThisGame: Int = 0
     private var movesThisGame: Int = 0
+    private var combo610Total: Int = 0
+    private let combo610Key = "combo6to10Total"
+    private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
         totalGamesPlayed = UserDefaults.standard.integer(forKey: "totalGamesPlayed")
+        combo610Total = defaults.integer(forKey: combo610Key)
+        currentGameSnapshot.combo610Total = combo610Total
     }
     
     public func onGameStart(state: GameState) {
@@ -25,15 +30,18 @@ public final class AchievementEvaluator {
         maxChainThisGame = 0
         mergesThisTurn = 0
         consecutiveMergeTurns = 0
+        currentGameSnapshot.combo610Total = combo610Total
     }
     
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
         movesThisGame += 1
+        currentGameSnapshot.combo610Total = combo610Total
         
         if chain.count > 1 {
             mergesThisTurn = 1
             totalMerges += 1
             maxChainThisGame = max(maxChainThisGame, chain.count)
+            updateComboProgressIfNeeded(for: chain.count)
             
             if mergesThisTurn > 0 {
                 consecutiveMergeTurns += 1
@@ -76,6 +84,7 @@ public final class AchievementEvaluator {
         snapshot.merge_on_edge = currentGameSnapshot.merge_on_edge
         snapshot.merges_first_10 = currentGameSnapshot.merges_first_10
         snapshot.total_moves = UserDefaults.standard.integer(forKey: "totalMoves") + 1
+        snapshot.combo610Total = combo610Total
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
@@ -102,6 +111,7 @@ public final class AchievementEvaluator {
         snapshot.win = won
         snapshot.run_completed = true
         snapshot.run_minutes = elapsedMinutes
+        snapshot.combo610Total = combo610Total
         snapshot.reached_core_target = state.highestTile >= 2244
         
         var freeSlots = 0
@@ -122,8 +132,10 @@ public final class AchievementEvaluator {
     
     public func onPowerUpUsed(type: String) {
         currentGameSnapshot.powerups_used += 1
+        currentGameSnapshot.combo610Total = combo610Total
         
         var snapshot = currentGameSnapshot
+        snapshot.combo610Total = combo610Total
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -133,12 +145,20 @@ public final class AchievementEvaluator {
     
     public func onUndoUsed() {
         currentGameSnapshot.undo_used += 1
+        currentGameSnapshot.combo610Total = combo610Total
         
         var snapshot = currentGameSnapshot
+        snapshot.combo610Total = combo610Total
         snapshot.games_played = totalGamesPlayed
         
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }
+    }
+    private func updateComboProgressIfNeeded(for chainCount: Int) {
+        guard (6...10).contains(chainCount) else { return }
+        combo610Total += 1
+        defaults.set(combo610Total, forKey: combo610Key)
+        currentGameSnapshot.combo610Total = combo610Total
     }
 }

@@ -15,6 +15,15 @@ public final class AchievementStore {
         }
     }
     
+    public struct ComboTierDisplay: Sendable {
+        public let milestone: Int
+        public let level: Int
+        public let title: String
+        public let description: String
+        public let categoryLabel: String
+        public let rewards: AchievementDef.Rewards
+    }
+    
     // MARK: - Tile Progression System
     /// The AlphaMag tiers for progressive tile achievement
     public static let tileTiers: [(suffix: String, label: String, value: Double)] = [
@@ -78,6 +87,26 @@ public final class AchievementStore {
         ("1M", 1000000)
     ]
     
+    private struct ComboTierDefinition {
+        let milestone: Int
+        let categoryLabel: String
+        let rewards: AchievementDef.Rewards
+    }
+    
+    private static let combo610Tiers: [ComboTierDefinition] = [
+        .init(milestone: 10, categoryLabel: "10. Good Combo", rewards: .init(gems: 50)),
+        .init(milestone: 25, categoryLabel: "25. Great Combo", rewards: .init(gems: 75)),
+        .init(milestone: 50, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 100, hammers: 1)),
+        .init(milestone: 100, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 100, swaps: 1, spins: 1)),
+        .init(milestone: 200, categoryLabel: "200. Combo Master", rewards: .init(gems: 150, hammers: 1, magnets: 1)),
+        .init(milestone: 300, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 200, spins: 2)),
+        .init(milestone: 400, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 500)),
+        .init(milestone: 500, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 300, spins: 1, hammers: 1, magnets: 1)),
+        .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 400, spins: 2, magnets: 1)),
+        .init(milestone: 750, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 1000, hammers: 1, swaps: 2)),
+        .init(milestone: 1000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1000, spins: 3))
+    ]
+    
     /// Current tier index for the moves progression achievement (persisted)
     public var movesProgressionTier: Int {
         didSet {
@@ -97,6 +126,37 @@ public final class AchievementStore {
     /// Check if moves progression is at max tier
     public var isMovesProgressionMaxed: Bool {
         movesProgressionTier >= Self.movesTiers.count - 1
+    }
+    
+    /// Combo 6-10 tier index (persisted)
+    public var combo610Tier: Int {
+        didSet {
+            defaults.set(combo610Tier, forKey: "combo610Tier")
+            unlocks["combo_6_10"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    public var currentCombo610Tier: ComboTierDefinition {
+        let index = min(combo610Tier, Self.combo610Tiers.count - 1)
+        return Self.combo610Tiers[index]
+    }
+    
+    public var combo610Display: ComboTierDisplay {
+        let tier = currentCombo610Tier
+        let level = min(combo610Tier, Self.combo610Tiers.count - 1) + 1
+        return ComboTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: "Make combo 6-10 \(tier.milestone) times",
+            description: "Trigger combos of 6-10 tiles \(tier.milestone) times across all games to unlock the next level.",
+            categoryLabel: tier.categoryLabel,
+            rewards: tier.rewards
+        )
+    }
+    
+    public var isCombo610Maxed: Bool {
+        combo610Tier >= Self.combo610Tiers.count - 1
     }
     
     /// Current tier index for the tile progression achievement (persisted)
@@ -132,6 +192,7 @@ public final class AchievementStore {
         self.defaults = defaults
         self.tileProgressionTier = defaults.integer(forKey: "tileProgressionTier")
         self.movesProgressionTier = defaults.integer(forKey: "movesProgressionTier")
+        self.combo610Tier = defaults.integer(forKey: "combo610Tier")
         loadUnlocks()
     }
     
@@ -186,6 +247,15 @@ public final class AchievementStore {
             if def.id == "moves_progression" {
                 let targetValue = currentMovesTier.value
                 if Double(snapshot.total_moves) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "combo_6_10" {
+                let targetValue = Double(currentCombo610Tier.milestone)
+                if Double(snapshot.combo610Total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -258,6 +328,23 @@ public final class AchievementStore {
             return
         }
         
+        if definition.id == "combo_6_10" {
+            let rewards = combo610Display.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isCombo610Maxed {
+                combo610Tier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+        
         // Standard achievement claim
         state.claimed = true
         unlocks[definition.id] = state
@@ -309,6 +396,7 @@ public final class AchievementStore {
         case "reached_core_target": return b(s.reached_core_target)
         case "moves": return .init(s.moves)
         case "total_moves": return .init(s.total_moves)
+        case "combo_6_10_total": return .init(s.combo610Total)
         case "undo_used": return .init(s.undo_used)
         case "powerups_used": return .init(s.powerups_used)
         case "session_pauses": return .init(s.session_pauses)

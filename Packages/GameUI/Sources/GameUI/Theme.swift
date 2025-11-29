@@ -144,29 +144,20 @@ public struct Theme {
     private static func paletteEntry(forExponent exponent: Int) -> (color: Color, darkText: Bool) {
         let e = max(1, exponent)
         let idx = bucketIndex(forExponent: e)
-        let baseEntry = palette25[idx]
 
-        // Special darkening for specific values and their 25-block repetitions:
-        // 70a (2^46) and its repetitions should be darker to match 2M (2^21) style
-        // 281a (2^48) and its repetitions should be darker to match 8M (2^23) style
+        // Get the base color from the palette
+        var entry = palette25[idx]
 
-        let remainder = e % 25
-
-        // Check if this is a 25-block repetition of 70a (remainder 21 like 2^46)
-        // 70a = 2^46, repetitions at 2^71, 2^96, 2^121, etc.
-        if remainder == 21 && e > 25 {  // 46 % 25 = 21, but only darken after first cycle
-            let darkenedColor = baseEntry.color.darken(by: 0.15)
-            return (darkenedColor, baseEntry.darkText)
+        // Special case: Lighten 140a (2^47) and its repetitions to match 4M (2^22)
+        // Both use palette index 21, but 140a might need lightening
+        if e == 47 || e == 72 || e == 97 || e == 122 || e == 147 {
+            // These are 140a and its 25-block repetitions
+            // Return a lightened version to match 4M's appearance
+            let lightenedColor = entry.color.lightened(by: 0.15)
+            return (lightenedColor, entry.darkText)
         }
 
-        // Check if this is a 25-block repetition of 281a (remainder 23 like 2^48)
-        // 281a = 2^48, repetitions at 2^73, 2^98, 2^123, etc.
-        if remainder == 23 && e > 25 {  // 48 % 25 = 23, but only darken after first cycle
-            let darkenedColor = baseEntry.color.darken(by: 0.15)
-            return (darkenedColor, baseEntry.darkText)
-        }
-
-        return baseEntry
+        return entry
     }
 }
 
@@ -196,10 +187,23 @@ extension Color {
         )
     }
 
-    /// Darken a color by a percentage (0.0 = no change, 1.0 = black)
-    func darken(by amount: Double) -> Color {
-        // Use brightness modifier to darken the color
-        let factor = max(0, 1 - amount)
-        return self.brightness(-amount * 0.5)  // Negative brightness darkens the color
+    func lightened(by percentage: Double) -> Color {
+        #if canImport(UIKit)
+        var hue: CGFloat = 0
+        var saturation: CGFloat = 0
+        var brightness: CGFloat = 0
+        var alpha: CGFloat = 0
+
+        UIColor(self).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+
+        // Increase brightness, capping at 1.0
+        let newBrightness = min(1.0, brightness + CGFloat(percentage))
+
+        return Color(UIColor(hue: hue, saturation: saturation, brightness: newBrightness, alpha: alpha))
+        #else
+        // For macOS or other platforms, use a simple RGB lightening
+        // This is an approximation since we don't have HSB conversion readily available
+        return self.opacity(1.0 - percentage * 0.5)
+        #endif
     }
 }
