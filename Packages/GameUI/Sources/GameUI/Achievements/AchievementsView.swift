@@ -26,7 +26,7 @@ public struct AchievementsView: View {
     /// Sort priority: 0 = claimable (top), 1 = tile/moves progression / locked (middle), 2 = claimed (bottom)
     private func sortPriority(for id: String, state: AchievementStore.UnlockState?) -> Int {
         // Progressive achievements stay near top (priority 0.5 - between claimable and locked)
-        if id == "tile_progression" || id == "moves_progression" || id == "combo_6_10" {
+        if id == "tile_progression" || id == "moves_progression" || id == "combo_6_10" || id == "combo_11_15" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
         }
@@ -47,7 +47,7 @@ public struct AchievementsView: View {
                             state: achievements.unlocks[def.id],
                             tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
                             movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
-                            comboTier: def.id == "combo_6_10" ? achievements.combo610Display : nil,
+                            comboTier: comboDisplay(for: def.id),
                             onClaim: {
                                 // Claim the achievement
                                 achievements.claim(definition: def)
@@ -71,6 +71,17 @@ public struct AchievementsView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private func comboDisplay(for id: String) -> AchievementStore.ComboTierDisplay? {
+        switch id {
+        case "combo_6_10":
+            return achievements.combo610Display
+        case "combo_11_15":
+            return achievements.combo1115Display
+        default:
+            return nil
         }
     }
 }
@@ -143,6 +154,11 @@ private struct AchievementRow: View {
                 .frame(width: 64, height: 64)
             
             VStack(alignment: .leading, spacing: 8) {
+                Text(categoryLabel)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                
                 Text(displayTitle)
                     .font(.headline)
                     .foregroundStyle(.primary)
@@ -154,10 +170,6 @@ private struct AchievementRow: View {
                     .fixedSize(horizontal: false, vertical: true)
                 
                 HStack(spacing: 8) {
-                    Label(categoryLabel, systemImage: categoryIcon(for: categoryLabel))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
                     if isClaimed {
                         StatusBadge(text: "Completed", color: .green)
                     } else if !isUnlocked {

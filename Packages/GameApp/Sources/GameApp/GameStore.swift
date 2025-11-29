@@ -1744,7 +1744,6 @@ extension GameStore {
         let sessionState = GameProgress.SessionState(
             board: state.board,
             score: state.score,
-            scoreAlpha: state.scoreValue,
             moves: state.moves,
             level: state.level,
             highestTile: state.highestTile,
@@ -1752,7 +1751,8 @@ extension GameStore {
             seed: engine.seedUsed,
             brokenGlassTiles: Array(brokenGlassTiles),
             movesHistory: movesHistory,
-            lastDailyDateUTC: lastDailyDateUTC
+            lastDailyDateUTC: lastDailyDateUTC,
+            scoreAlpha: state.scoreValue
         )
         
         // Create journey state
@@ -2110,7 +2110,7 @@ extension GameStore {
         
         print("💾 COMPREHENSIVE SESSION DATA SAVED")
         print("   • Session highest: \(currentHighest)")
-        print("   • Session score: \(currentScore)")
+        print("   • Session score: \(state.score)")
         print("   • Gems: \(state.gems)")
         print("   • Moves: \(state.moves)")
         print("   • Power-ups: \(powerUpInventory)")

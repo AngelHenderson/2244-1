@@ -144,6 +144,7 @@ public struct GameSnapshot: Sendable {
     public var win: Bool = false
     public var total_moves: Int = 0
     public var combo610Total: Int = 0
+    public var combo1115Total: Int = 0
     
     public init() {}
 }

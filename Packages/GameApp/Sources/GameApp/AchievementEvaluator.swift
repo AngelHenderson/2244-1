@@ -14,13 +14,17 @@ public final class AchievementEvaluator {
     private var maxChainThisGame: Int = 0
     private var movesThisGame: Int = 0
     private var combo610Total: Int = 0
+    private var combo1115Total: Int = 0
     private let combo610Key = "combo6to10Total"
+    private let combo1115Key = "combo11to15Total"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
         totalGamesPlayed = UserDefaults.standard.integer(forKey: "totalGamesPlayed")
         combo610Total = defaults.integer(forKey: combo610Key)
+        combo1115Total = defaults.integer(forKey: combo1115Key)
         currentGameSnapshot.combo610Total = combo610Total
+        currentGameSnapshot.combo1115Total = combo1115Total
     }
     
     public func onGameStart(state: GameState) {
@@ -31,17 +35,19 @@ public final class AchievementEvaluator {
         mergesThisTurn = 0
         consecutiveMergeTurns = 0
         currentGameSnapshot.combo610Total = combo610Total
+        currentGameSnapshot.combo1115Total = combo1115Total
     }
     
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
         movesThisGame += 1
         currentGameSnapshot.combo610Total = combo610Total
+        currentGameSnapshot.combo1115Total = combo1115Total
         
         if chain.count > 1 {
             mergesThisTurn = 1
             totalMerges += 1
             maxChainThisGame = max(maxChainThisGame, chain.count)
-            updateComboProgressIfNeeded(for: chain.count)
+            updateComboProgress(for: chain.count)
             
             if mergesThisTurn > 0 {
                 consecutiveMergeTurns += 1
@@ -85,6 +91,7 @@ public final class AchievementEvaluator {
         snapshot.merges_first_10 = currentGameSnapshot.merges_first_10
         snapshot.total_moves = UserDefaults.standard.integer(forKey: "totalMoves") + 1
         snapshot.combo610Total = combo610Total
+        snapshot.combo1115Total = combo1115Total
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
@@ -112,6 +119,7 @@ public final class AchievementEvaluator {
         snapshot.run_completed = true
         snapshot.run_minutes = elapsedMinutes
         snapshot.combo610Total = combo610Total
+        snapshot.combo1115Total = combo1115Total
         snapshot.reached_core_target = state.highestTile >= 2244
         
         var freeSlots = 0
@@ -133,9 +141,11 @@ public final class AchievementEvaluator {
     public func onPowerUpUsed(type: String) {
         currentGameSnapshot.powerups_used += 1
         currentGameSnapshot.combo610Total = combo610Total
+        currentGameSnapshot.combo1115Total = combo1115Total
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
+        snapshot.combo1115Total = combo1115Total
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -146,19 +156,27 @@ public final class AchievementEvaluator {
     public func onUndoUsed() {
         currentGameSnapshot.undo_used += 1
         currentGameSnapshot.combo610Total = combo610Total
+        currentGameSnapshot.combo1115Total = combo1115Total
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
+        snapshot.combo1115Total = combo1115Total
         snapshot.games_played = totalGamesPlayed
         
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }
     }
-    private func updateComboProgressIfNeeded(for chainCount: Int) {
-        guard (6...10).contains(chainCount) else { return }
-        combo610Total += 1
-        defaults.set(combo610Total, forKey: combo610Key)
+    private func updateComboProgress(for chainCount: Int) {
+        if (6...10).contains(chainCount) {
+            combo610Total += 1
+            defaults.set(combo610Total, forKey: combo610Key)
+        }
+        if (11...15).contains(chainCount) {
+            combo1115Total += 1
+            defaults.set(combo1115Total, forKey: combo1115Key)
+        }
         currentGameSnapshot.combo610Total = combo610Total
+        currentGameSnapshot.combo1115Total = combo1115Total
     }
 }

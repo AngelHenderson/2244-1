@@ -625,6 +625,22 @@
     ]
   },
   {
+    "id": "combo_11_15",
+    "gcIdentifier": "combo_11_15",
+    "title": "Combo Virtuoso",
+    "description": "Chain combos of 11-15 tiles to master every tier.",
+    "category": "Combo",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "combo_11_15_total",
+        "op": ">=",
+        "value": 10
+      }
+    ]
+  },
+  {
     "id": "speedy_strategist",
     "gcIdentifier": "speedy_strategist",
     "title": "Speedy Strategist",
