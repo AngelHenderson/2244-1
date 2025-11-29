@@ -512,12 +512,7 @@ struct SimplePowerupDock: View {
 
                 // Badge for inventory count
                 if badge > 0 {
-                    Text("\(badge)")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 16, height: 16)
-                        .background(Color.blue)
-                        .clipShape(Circle())
+                    badgeLabel(for: badge)
                         .offset(x: 4, y: -4)
                 }
             }
@@ -547,12 +542,7 @@ struct SimplePowerupDock: View {
 
                 // Badge for inventory count or Price
                 if badge > 0 {
-                    Text("\(badge)")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 16, height: 16)
-                        .background(Color.blue)
-                        .clipShape(Circle())
+                    badgeLabel(for: badge)
                         .offset(x: 4, y: -4)
                 } else if let price = price {
                     HStack(spacing: 1) {
@@ -574,6 +564,18 @@ struct SimplePowerupDock: View {
         .glassEffectCompat(cornerRadius: 10)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1.0 : 0.6)
+    }
+
+    private func badgeLabel(for count: Int) -> some View {
+        Text("\(count)")
+            .font(.system(size: 11, weight: .bold))
+            .monospacedDigit()
+            .foregroundStyle(.white)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Color.blue, in: Capsule())
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
     }
 }
 
