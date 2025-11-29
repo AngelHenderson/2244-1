@@ -97,14 +97,18 @@ public final class AchievementStore {
         .init(milestone: 10, categoryLabel: "10. Good Combo", rewards: .init(gems: 50)),
         .init(milestone: 25, categoryLabel: "25. Great Combo", rewards: .init(gems: 75)),
         .init(milestone: 50, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 100, hammers: 1)),
-        .init(milestone: 100, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 100, swaps: 1, spins: 1)),
+        .init(milestone: 100, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 100, spins: 1, swaps: 1)),
         .init(milestone: 200, categoryLabel: "200. Combo Master", rewards: .init(gems: 150, hammers: 1, magnets: 1)),
         .init(milestone: 300, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 200, spins: 2)),
         .init(milestone: 400, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 500)),
         .init(milestone: 500, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 300, spins: 1, hammers: 1, magnets: 1)),
         .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 400, spins: 2, magnets: 1)),
         .init(milestone: 750, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 1000, hammers: 1, swaps: 2)),
-        .init(milestone: 1000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1000, spins: 3))
+        .init(
+            milestone: 1000,
+            categoryLabel: "1000. 1000 IQ Combo Master",
+            rewards: .init(gems: 1000, spins: 1, boost4x: 1)
+        )
     ]
     
     /// Current tier index for the moves progression achievement (persisted)
@@ -137,7 +141,7 @@ public final class AchievementStore {
         }
     }
     
-    public var currentCombo610Tier: ComboTierDefinition {
+    private var currentCombo610Tier: ComboTierDefinition {
         let index = min(combo610Tier, Self.combo610Tiers.count - 1)
         return Self.combo610Tiers[index]
     }
@@ -145,11 +149,19 @@ public final class AchievementStore {
     public var combo610Display: ComboTierDisplay {
         let tier = currentCombo610Tier
         let level = min(combo610Tier, Self.combo610Tiers.count - 1) + 1
+        let description: String
+        if isCombo610Maxed {
+            description = "You've reached the final combo milestone. Claim your mastery reward."
+        } else {
+            description = "Trigger combos of 6-10 tiles \(tier.milestone) times across all games to unlock the next level."
+        }
+        let title = "Level \(level): \(tier.milestone) combos"
+        
         return ComboTierDisplay(
             milestone: tier.milestone,
             level: level,
-            title: "Make combo 6-10 \(tier.milestone) times",
-            description: "Trigger combos of 6-10 tiles \(tier.milestone) times across all games to unlock the next level.",
+            title: title,
+            description: description,
             categoryLabel: tier.categoryLabel,
             rewards: tier.rewards
         )
