@@ -688,6 +688,43 @@ public final class AchievementStore {
         onReward?(rewards)
     }
     
+    public func progress(for definition: AchievementDef) -> AchievementProgress? {
+        guard let snapshot = lastEvaluatedSnapshot else { return nil }
+        
+        func makeProgress(current: Double, target: Double) -> AchievementProgress? {
+            guard target > 0 else { return nil }
+            return AchievementProgress(current: max(0, current), target: target)
+        }
+        
+        switch definition.id {
+        case "tile_progression":
+            return makeProgress(current: Double(snapshot.max_tile), target: currentTileTier.value)
+        case "moves_progression":
+            return makeProgress(current: Double(snapshot.total_moves), target: currentMovesTier.value)
+        case "combo_6_10":
+            return makeProgress(current: Double(snapshot.combo610Total), target: Double(currentCombo610Tier.milestone))
+        case "combo_11_15":
+            return makeProgress(current: Double(snapshot.combo1115Total), target: Double(currentCombo1115Tier.milestone))
+        case "combo_16_20":
+            return makeProgress(current: Double(snapshot.combo1620Total), target: Double(currentCombo1620Tier.milestone))
+        case "combo_21_30":
+            return makeProgress(current: Double(snapshot.combo2130Total), target: Double(currentCombo2130Tier.milestone))
+        case "merge_progression":
+            return makeProgress(current: Double(snapshot.merged_tiles_total), target: Double(currentMergeTier.milestone))
+        default:
+            break
+        }
+        
+        guard let condition = definition.conditions.first,
+              let target = condition.value,
+              condition.op == ">=" || condition.op == ">" else {
+            return nil
+        }
+        
+        let currentValue = value(for: condition.field, in: snapshot)
+        return makeProgress(current: currentValue, target: target)
+    }
+    
     public var claimableCount: Int {
         unlocks.values.filter { $0.isClaimable }.count
     }

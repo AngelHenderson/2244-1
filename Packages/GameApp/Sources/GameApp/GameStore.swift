@@ -156,8 +156,51 @@ public final class GameStore {
     public private(set) var scoreBoostRemaining: TimeInterval = 0
     public private(set) var queuedScoreBoostTierID: ScoreBoostTierID?
     
+    public enum PowerDiscountTierID: String, CaseIterable, Sendable {
+        case quarterOff = "power_discount_25"
+        case halfOff = "power_discount_50"
+    }
+    
+    public struct PowerDiscountTier: Equatable, Sendable {
+        public let id: PowerDiscountTierID
+        public let label: String
+        public let discountPercentage: Int
+        public let cost: Int
+        public let duration: TimeInterval
+    }
+    
+    private enum PowerDiscountDefaultsKey {
+        static let activeTierID = "powerDiscount.activeTierID"
+        static let activeExpiration = "powerDiscount.expiresAt"
+        static let queuedTierID = "powerDiscount.queuedTierID"
+    }
+    
+    private static let powerDiscountCatalog: [PowerDiscountTierID: PowerDiscountTier] = [
+        .quarterOff: PowerDiscountTier(
+            id: .quarterOff,
+            label: "25% Off Power-Ups",
+            discountPercentage: 25,
+            cost: 5_000,
+            duration: 15 * 60
+        ),
+        .halfOff: PowerDiscountTier(
+            id: .halfOff,
+            label: "50% Off Power-Ups",
+            discountPercentage: 50,
+            cost: 15_000,
+            duration: 15 * 60
+        )
+    ]
+    
+    public private(set) var activePowerDiscountTierID: PowerDiscountTierID?
+    public private(set) var powerDiscountExpiresAt: Date?
+    public private(set) var powerDiscountRemaining: TimeInterval = 0
+    public private(set) var queuedPowerDiscountTierID: PowerDiscountTierID?
+    
     @ObservationIgnored
     private var scoreBoostTickerTask: Task<Void, Never>? = nil
+    @ObservationIgnored
+    private var powerDiscountTickerTask: Task<Void, Never>? = nil
     
     public func addPowerUp(_ type: String, count: Int) {
         powerUpInventory[type, default: 0] += count
@@ -230,6 +273,55 @@ public final class GameStore {
         return Self.scoreBoostCatalog[tierID]
     }
     
+    public var isPowerDiscountActive: Bool {
+        guard let expiration = powerDiscountExpiresAt else { return false }
+        return expiration > Date()
+    }
+    
+    public func powerDiscountTier(_ id: PowerDiscountTierID) -> PowerDiscountTier {
+        Self.powerDiscountCatalog[id]!
+    }
+    
+    public func powerDiscountLabel(for id: PowerDiscountTierID) -> String {
+        powerDiscountTier(id).label
+    }
+    
+    public func powerDiscountCost(for id: PowerDiscountTierID) -> Int {
+        powerDiscountTier(id).cost
+    }
+    
+    public func canPurchasePowerDiscount(_ id: PowerDiscountTierID) -> Bool {
+        state.gems >= powerDiscountCost(for: id)
+    }
+    
+    public func isPowerDiscountActive(for id: PowerDiscountTierID) -> Bool {
+        activePowerDiscountTierID == id && isPowerDiscountActive
+    }
+    
+    public func isPowerDiscountQueued(for id: PowerDiscountTierID) -> Bool {
+        queuedPowerDiscountTierID == id
+    }
+    
+    public func powerDiscountCountdownText(for id: PowerDiscountTierID) -> String {
+        if isPowerDiscountActive(for: id) {
+            let seconds = max(0, powerDiscountRemaining)
+            return Self.scoreBoostFormatter.string(from: seconds) ?? "00:00"
+        }
+        if isPowerDiscountQueued(for: id) {
+            return "Queued"
+        }
+        if canPurchasePowerDiscount(id) {
+            return "Ready"
+        }
+        let shortfall = max(0, powerDiscountCost(for: id) - state.gems)
+        return "Need \(shortfall)"
+    }
+    
+    private func activePowerDiscountTier() -> PowerDiscountTier? {
+        guard let tierID = activePowerDiscountTierID else { return nil }
+        return Self.powerDiscountCatalog[tierID]
+    }
+    
     private func persistScoreBoostState() {
         let defaults = UserDefaults.standard
         if let tierID = activeScoreBoostTierID, let expiresAt = scoreBoostExpiresAt {
@@ -244,6 +336,23 @@ public final class GameStore {
             defaults.set(queuedID.rawValue, forKey: ScoreBoostDefaultsKey.queuedTierID)
         } else {
             defaults.removeObject(forKey: ScoreBoostDefaultsKey.queuedTierID)
+        }
+    }
+    
+    private func persistPowerDiscountState() {
+        let defaults = UserDefaults.standard
+        if let tierID = activePowerDiscountTierID, let expiresAt = powerDiscountExpiresAt {
+            defaults.set(tierID.rawValue, forKey: PowerDiscountDefaultsKey.activeTierID)
+            defaults.set(expiresAt, forKey: PowerDiscountDefaultsKey.activeExpiration)
+        } else {
+            defaults.removeObject(forKey: PowerDiscountDefaultsKey.activeTierID)
+            defaults.removeObject(forKey: PowerDiscountDefaultsKey.activeExpiration)
+        }
+        
+        if let queuedID = queuedPowerDiscountTierID {
+            defaults.set(queuedID.rawValue, forKey: PowerDiscountDefaultsKey.queuedTierID)
+        } else {
+            defaults.removeObject(forKey: PowerDiscountDefaultsKey.queuedTierID)
         }
     }
     
@@ -377,6 +486,7 @@ public final class GameStore {
         // Initialize comprehensive session tracking
         initializeSessionTracking()
         restoreScoreBoostState(from: loadedProgress)
+        restorePowerDiscountState(from: loadedProgress)
 
         // Note: restoreProgress() is now handled properly during GameProgress loading
         // Commenting out to prevent duplicate restoration that causes gem rollback
@@ -399,6 +509,7 @@ public final class GameStore {
             self?.cancelRefillRevealTask()
             self?.cancelMergeCleanupTask()
             self?.scoreBoostTickerTask?.cancel()
+            self?.powerDiscountTickerTask?.cancel()
         }
     }
     
@@ -836,6 +947,25 @@ public final class GameStore {
         return true
     }
     
+    @discardableResult
+    public func purchasePowerDiscount(_ tierID: PowerDiscountTierID, now date: Date = Date()) -> Bool {
+        let tier = powerDiscountTier(tierID)
+        guard spendCoins(tier.cost) else { return false }
+        
+        if activePowerDiscountTierID == nil {
+            activatePowerDiscount(tierID: tierID, now: date)
+        } else if activePowerDiscountTierID == tierID {
+            activatePowerDiscount(tierID: tierID, now: date)
+        } else {
+            queuedPowerDiscountTierID = tierID
+            persistPowerDiscountState()
+            print("🪄 Queued \(tier.label). It will start after the current discount ends.")
+        }
+        
+        saveProgressToStore()
+        return true
+    }
+    
     // MARK: - Score Boost Lifecycle
     
     private func activateScoreBoost(tierID: ScoreBoostTierID, now date: Date = Date(), persist: Bool = true) {
@@ -960,6 +1090,129 @@ public final class GameStore {
     private func cancelScoreBoostTicker() {
         scoreBoostTickerTask?.cancel()
         scoreBoostTickerTask = nil
+    }
+    
+    // MARK: - Power Discount Lifecycle
+    
+    private func activatePowerDiscount(tierID: PowerDiscountTierID, now date: Date = Date(), persist: Bool = true) {
+        let tier = powerDiscountTier(tierID)
+        let expiration = date.addingTimeInterval(tier.duration)
+        activatePowerDiscount(tierID: tierID, expiresAt: expiration, now: date, persist: persist)
+    }
+    
+    private func activatePowerDiscount(tierID: PowerDiscountTierID, expiresAt expiration: Date, now date: Date = Date(), persist: Bool = true) {
+        activePowerDiscountTierID = tierID
+        powerDiscountExpiresAt = expiration
+        powerDiscountRemaining = max(0, expiration.timeIntervalSince(date))
+        if queuedPowerDiscountTierID == tierID {
+            queuedPowerDiscountTierID = nil
+        }
+        if persist {
+            persistPowerDiscountState()
+        }
+        if expiration > date {
+            startPowerDiscountTicker()
+            refreshPowerDiscountCountdown(now: date)
+        } else {
+            finishActivePowerDiscount(now: date)
+        }
+    }
+    
+    private func finishActivePowerDiscount(now date: Date = Date()) {
+        activePowerDiscountTierID = nil
+        powerDiscountExpiresAt = nil
+        powerDiscountRemaining = 0
+        persistPowerDiscountState()
+        cancelPowerDiscountTicker()
+        startQueuedPowerDiscountIfNeeded(now: date)
+    }
+    
+    private func startQueuedPowerDiscountIfNeeded(now date: Date = Date()) {
+        guard let queuedID = queuedPowerDiscountTierID else { return }
+        queuedPowerDiscountTierID = nil
+        persistPowerDiscountState()
+        activatePowerDiscount(tierID: queuedID, now: date)
+    }
+    
+    private func refreshPowerDiscountCountdown(now date: Date = Date()) {
+        guard let expiration = powerDiscountExpiresAt, activePowerDiscountTierID != nil else {
+            if activePowerDiscountTierID != nil {
+                finishActivePowerDiscount(now: date)
+            } else if activePowerDiscountTierID == nil {
+                startQueuedPowerDiscountIfNeeded(now: date)
+            }
+            return
+        }
+        let remaining = expiration.timeIntervalSince(date)
+        if remaining <= 0 {
+            finishActivePowerDiscount(now: date)
+        } else {
+            powerDiscountRemaining = remaining
+        }
+    }
+    
+    private func restorePowerDiscountState(from progress: GameProgress?) {
+        let defaults = UserDefaults.standard
+        let defaultsTierID = defaults.string(forKey: PowerDiscountDefaultsKey.activeTierID).flatMap(PowerDiscountTierID.init(rawValue:))
+        let defaultsExpiration = defaults.object(forKey: PowerDiscountDefaultsKey.activeExpiration) as? Date
+        let progressTierID: PowerDiscountTierID? = {
+            guard let rawValue = progress?.activePowerDiscount?.tierID else { return nil }
+            return PowerDiscountTierID(rawValue: rawValue)
+        }()
+        let progressExpiration = progress?.activePowerDiscount?.expiresAt
+        let now = Date()
+        
+        let candidates = [
+            (defaultsTierID, defaultsExpiration),
+            (progressTierID, progressExpiration)
+        ].compactMap { (maybeID, maybeDate) -> (PowerDiscountTierID, Date)? in
+            guard let id = maybeID, let date = maybeDate else { return nil }
+            return (id, date)
+        }.filter { $0.1 > now }
+        
+        if let (tierID, expiration) = candidates.max(by: { $0.1 < $1.1 }) {
+            activatePowerDiscount(tierID: tierID, expiresAt: expiration, now: now, persist: false)
+        } else {
+            activePowerDiscountTierID = nil
+            powerDiscountExpiresAt = nil
+            powerDiscountRemaining = 0
+            persistPowerDiscountState()
+        }
+        
+        let queuedFromProgress: PowerDiscountTierID? = {
+            guard let rawValue = progress?.queuedPowerDiscountTierID else { return nil }
+            return PowerDiscountTierID(rawValue: rawValue)
+        }()
+        let queuedFromDefaults = defaults.string(forKey: PowerDiscountDefaultsKey.queuedTierID).flatMap(PowerDiscountTierID.init(rawValue:))
+        queuedPowerDiscountTierID = queuedFromProgress ?? queuedFromDefaults
+        if queuedPowerDiscountTierID == activePowerDiscountTierID {
+            queuedPowerDiscountTierID = nil
+        }
+        persistPowerDiscountState()
+        refreshPowerDiscountCountdown(now: now)
+        if activePowerDiscountTierID != nil {
+            startPowerDiscountTicker()
+        }
+    }
+    
+    private func startPowerDiscountTicker() {
+        powerDiscountTickerTask?.cancel()
+        guard activePowerDiscountTierID != nil else { return }
+        powerDiscountTickerTask = Task { @MainActor [weak self] in
+            while let self, self.activePowerDiscountTierID != nil {
+                do {
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                } catch {
+                    break
+                }
+                self.refreshPowerDiscountCountdown()
+            }
+        }
+    }
+    
+    private func cancelPowerDiscountTicker() {
+        powerDiscountTickerTask?.cancel()
+        powerDiscountTickerTask = nil
     }
     
     // MARK: - Unlock Rewards
@@ -1257,20 +1510,34 @@ public final class GameStore {
         return milestonesUnlocked * 10
     }
     
+    private func applyPowerDiscount(to price: Int) -> Int {
+        guard price > 0,
+              let tierID = activePowerDiscountTierID,
+              let tier = Self.powerDiscountCatalog[tierID],
+              isPowerDiscountActive else {
+            return price
+        }
+        let percentage = max(0, min(100, tier.discountPercentage))
+        let discounted = price * (100 - percentage) / 100
+        return max(1, discounted)
+    }
+    
     public func powerUpPrice(_ powerUp: String) -> Int {
         let delta = milestonePriceDelta()
+        let basePrice: Int
         switch powerUp {
         case "hammer":
-            return PowerUpCost.hammer + delta
+            basePrice = PowerUpCost.hammer + delta
         case "swap":
-            return PowerUpCost.swap + delta
+            basePrice = PowerUpCost.swap + delta
         case "magnet":
-            return PowerUpCost.magnet + delta
+            basePrice = PowerUpCost.magnet + delta
         case "shuffle":
-            return PowerUpCost.shuffle
+            basePrice = PowerUpCost.shuffle
         default:
-            return PowerUpCost.hammer + delta
+            basePrice = PowerUpCost.hammer + delta
         }
+        return applyPowerDiscount(to: basePrice)
     }
     
     @discardableResult
@@ -1330,7 +1597,7 @@ public final class GameStore {
         if powerUpInventory["shuffle", default: 0] > 0 {
             powerUpInventory["shuffle", default: 0] -= 1
         } else {
-            guard spendCoins(PowerUpCost.shuffle) else { return false }
+            guard spendCoins(powerUpPrice("shuffle")) else { return false }
         }
         
         let previousBoard = state.board
@@ -1471,7 +1738,7 @@ public final class GameStore {
         case "hammer", "swap", "magnet":
             return coins >= powerUpPrice(powerUp)
         case "shuffle":
-            return coins >= PowerUpCost.shuffle
+            return coins >= powerUpPrice("shuffle")
         default: return false
         }
     }
@@ -1838,6 +2105,20 @@ extension GameStore {
             boostState = nil
         }
         
+        let discountState: GameProgress.PowerDiscountState?
+        if let tierID = activePowerDiscountTierID,
+           let expiresAt = powerDiscountExpiresAt,
+           expiresAt > snapshotDate,
+           let tier = Self.powerDiscountCatalog[tierID] {
+            discountState = GameProgress.PowerDiscountState(
+                tierID: tier.id.rawValue,
+                discountPercentage: tier.discountPercentage,
+                expiresAt: expiresAt
+            )
+        } else {
+            discountState = nil
+        }
+        
         return GameProgress(
             highestTile: allTimeHighest,
             bestScore: allTimeBest,
@@ -1860,7 +2141,9 @@ extension GameStore {
             journeyState: journeyState,
             sessionTracking: sessionTracking,
             hasInfinityAchievement: hasInfinity,
-            queuedScoreBoostTierID: queuedScoreBoostTierID?.rawValue
+            queuedScoreBoostTierID: queuedScoreBoostTierID?.rawValue,
+            activePowerDiscount: discountState,
+            queuedPowerDiscountTierID: queuedPowerDiscountTierID?.rawValue
         )
     }
     
@@ -2315,6 +2598,7 @@ extension GameStore {
             highestStep: persistedHighestTileStep() ?? state.highestTileStep
         )
         restoreScoreBoostState(from: nil)
+        restorePowerDiscountState(from: nil)
     }
     
     private func persistPendingGiftBoxes() {
@@ -2628,6 +2912,26 @@ extension GameStore {
     
     func _queuedScoreBoostTierIDForTesting() -> ScoreBoostTierID? {
         queuedScoreBoostTierID
+    }
+    
+    func _forcePowerDiscount(tier: PowerDiscountTierID, expiration: Date?) {
+        if let expiration {
+            activatePowerDiscount(tierID: tier, expiresAt: expiration, now: Date(), persist: false)
+        } else {
+            finishActivePowerDiscount()
+        }
+    }
+    
+    func _refreshPowerDiscount(now date: Date) {
+        refreshPowerDiscountCountdown(now: date)
+    }
+    
+    func _activePowerDiscountTierIDForTesting() -> PowerDiscountTierID? {
+        activePowerDiscountTierID
+    }
+    
+    func _queuedPowerDiscountTierIDForTesting() -> PowerDiscountTierID? {
+        queuedPowerDiscountTierID
     }
 }
 #endif

@@ -54,6 +54,7 @@ public struct AchievementsView: View {
                             tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
                             movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
                             tierDisplay: tierDisplay(for: def.id),
+                            progress: achievements.progress(for: def),
                             onClaim: {
                                 // Claim the achievement
                                 achievements.claim(definition: def)
@@ -80,7 +81,7 @@ public struct AchievementsView: View {
         }
     }
     
-    private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay? {
+private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay? {
         switch id {
         case "combo_6_10":
             return achievements.combo610Display
@@ -104,6 +105,7 @@ private struct AchievementRow: View {
     let tileProgressionTier: (suffix: String, label: String, value: Double)?
     let movesProgressionTier: (label: String, value: Double)?
     let tierDisplay: AchievementStore.ProgressTierDisplay?
+    let progress: AchievementStore.AchievementProgress?
     let onClaim: () -> Void
     
     public init(
@@ -112,6 +114,7 @@ private struct AchievementRow: View {
         tileProgressionTier: (suffix: String, label: String, value: Double)? = nil,
         movesProgressionTier: (label: String, value: Double)? = nil,
         tierDisplay: AchievementStore.ProgressTierDisplay? = nil,
+        progress: AchievementStore.AchievementProgress? = nil,
         onClaim: @escaping () -> Void
     ) {
         self.definition = definition
@@ -119,6 +122,7 @@ private struct AchievementRow: View {
         self.tileProgressionTier = tileProgressionTier
         self.movesProgressionTier = movesProgressionTier
         self.tierDisplay = tierDisplay
+        self.progress = progress
         self.onClaim = onClaim
     }
     
@@ -180,6 +184,27 @@ private struct AchievementRow: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                
+                if let progress = progress {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(progressLabel(for: progress))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(progressValueText(for: progress))
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                        ProgressView(
+                            value: clampedProgressValue(progress).current,
+                            total: clampedProgressValue(progress).target
+                        )
+                        .progressViewStyle(.linear)
+                        .tint(.green)
+                    }
+                    .padding(.top, 2)
+                }
                 
                 HStack(spacing: 8) {
                     if isClaimed {
@@ -247,6 +272,32 @@ private struct AchievementRow: View {
     
     private var rewardsForDisplay: AchievementDef.Rewards? {
         tierDisplay?.rewards ?? definition.rewards
+    }
+    
+    private func clampedProgressValue(_ progress: AchievementStore.AchievementProgress) -> (current: Double, target: Double) {
+        let target = max(progress.target, 1)
+        let current = min(max(progress.current, 0), target)
+        return (current, target)
+    }
+    
+    private func progressValueText(for progress: AchievementStore.AchievementProgress) -> String {
+        let values = clampedProgressValue(progress)
+        return "\(formattedValue(values.current))/\(formattedValue(progress.target))"
+    }
+    
+    private func progressLabel(for progress: AchievementStore.AchievementProgress) -> String {
+        if let tierDisplay {
+            return tierDisplay.title
+        }
+        return definition.title
+    }
+    
+    private func formattedValue(_ value: Double) -> String {
+        if value >= 1_000 {
+            return value.formatted(.number.notation(.compactName).precision(.fractionLength(0...1)))
+        } else {
+            return value.formatted(.number.precision(.fractionLength(0)))
+        }
     }
 }
 

@@ -177,6 +177,53 @@ struct GameStoreTests {
         #expect(store.isScoreBoostActive(for: .twentyX))
         #expect(store.coins == 10_000)
     }
+    
+    @Test
+    @MainActor
+    func testPowerDiscountPurchaseConsumesGemsAndExpires() {
+        resetUserDefaultsDomain()
+        let store = GameStore()
+        store.coins = 30_000
+        let now = Date()
+        #expect(store.purchasePowerDiscount(.quarterOff, now: now))
+        #expect(store.isPowerDiscountActive(for: .quarterOff))
+        #expect(store.coins == 25_000)
+        
+        store._refreshPowerDiscount(now: now.addingTimeInterval((15 * 60) + 1))
+        #expect(!store.isPowerDiscountActive(for: .quarterOff))
+    }
+    
+    @Test
+    @MainActor
+    func testPowerDiscountQueuesAndStartsAfterActiveTier() {
+        resetUserDefaultsDomain()
+        let store = GameStore()
+        store.coins = 50_000
+        let start = Date()
+        #expect(store.purchasePowerDiscount(.quarterOff, now: start))
+        #expect(store.purchasePowerDiscount(.halfOff, now: start.addingTimeInterval(30)))
+        #expect(store.isPowerDiscountActive(for: .quarterOff))
+        #expect(store._queuedPowerDiscountTierIDForTesting() == .halfOff)
+        
+        store._refreshPowerDiscount(now: start.addingTimeInterval((15 * 60) + 5))
+        #expect(store.isPowerDiscountActive(for: .halfOff))
+        #expect(store._queuedPowerDiscountTierIDForTesting() == nil)
+    }
+    
+    @Test
+    @MainActor
+    func testPowerDiscountAppliesToPowerUpPrices() {
+        resetUserDefaultsDomain()
+        let store = GameStore()
+        let baseHammerPrice = store.powerUpPrice("hammer")
+        #expect(baseHammerPrice > 0)
+        
+        store.coins = 20_000
+        let now = Date()
+        #expect(store.purchasePowerDiscount(.halfOff, now: now))
+        let discountedHammerPrice = store.powerUpPrice("hammer")
+        #expect(discountedHammerPrice == max(1, baseHammerPrice / 2))
+    }
 }
 
 private func firstMergeablePair(in board: Board) -> (Position, Position)? {

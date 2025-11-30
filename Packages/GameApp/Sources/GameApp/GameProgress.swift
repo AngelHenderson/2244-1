@@ -3,7 +3,7 @@ import GameCore
 
 /// Canonical, versioned progress that both local and remote stores persist.
 public struct GameProgress: Codable, Equatable, Sendable {
-    public static let schemaVersion = 5 // Includes score-boost persistence
+    public static let schemaVersion = 6 // Adds power discount boost persistence
 
     public var version: Int = schemaVersion
     public var highestTile: Int
@@ -25,6 +25,8 @@ public struct GameProgress: Codable, Equatable, Sendable {
     public var bestWinStreak: Int
     public var activeScoreBoost: ScoreBoostState?
     public var queuedScoreBoostTierID: String?
+    public var activePowerDiscount: PowerDiscountState?
+    public var queuedPowerDiscountTierID: String?
     
     // MARK: - Comprehensive Session State (v3)
     
@@ -169,6 +171,38 @@ public struct GameProgress: Codable, Equatable, Sendable {
         }
     }
 
+    public struct PowerDiscountState: Codable, Equatable, Sendable {
+        public var tierID: String
+        public var discountPercentage: Int
+        public var expiresAt: Date
+
+        public init(tierID: String, discountPercentage: Int, expiresAt: Date) {
+            self.tierID = tierID
+            self.discountPercentage = discountPercentage
+            self.expiresAt = expiresAt
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case tierID
+            case discountPercentage
+            case expiresAt
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            tierID = (try? container.decode(String.self, forKey: .tierID)) ?? "power_discount_unknown"
+            discountPercentage = (try? container.decode(Int.self, forKey: .discountPercentage)) ?? 0
+            expiresAt = try container.decode(Date.self, forKey: .expiresAt)
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(tierID, forKey: .tierID)
+            try container.encode(discountPercentage, forKey: .discountPercentage)
+            try container.encode(expiresAt, forKey: .expiresAt)
+        }
+    }
+
     public init(
         highestTile: Int = 0,
         bestScore: Int = 0,
@@ -191,7 +225,9 @@ public struct GameProgress: Codable, Equatable, Sendable {
         journeyState: JourneyState = JourneyState(),
         sessionTracking: SessionTracking = SessionTracking(),
         hasInfinityAchievement: Bool = false,
-        queuedScoreBoostTierID: String? = nil
+        queuedScoreBoostTierID: String? = nil,
+        activePowerDiscount: PowerDiscountState? = nil,
+        queuedPowerDiscountTierID: String? = nil
     ) {
         self.highestTile = highestTile
         self.bestScore = bestScore
@@ -215,5 +251,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         self.sessionTracking = sessionTracking
         self.hasInfinityAchievement = hasInfinityAchievement
         self.queuedScoreBoostTierID = queuedScoreBoostTierID
+        self.activePowerDiscount = activePowerDiscount
+        self.queuedPowerDiscountTierID = queuedPowerDiscountTierID
     }
 }
