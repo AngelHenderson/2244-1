@@ -24,6 +24,17 @@ public final class AchievementStore {
         public let rewards: AchievementDef.Rewards
     }
     
+    // Add this nested type to satisfy usages in AchievementsView and progress(for:)
+    public struct AchievementProgress: Sendable, Equatable {
+        public let current: Double
+        public let target: Double
+        
+        public init(current: Double, target: Double) {
+            self.current = current
+            self.target = target
+        }
+    }
+    
     // MARK: - Tile Progression System
     /// The AlphaMag tiers for progressive tile achievement
     public static let tileTiers: [(suffix: String, label: String, value: Double)] = [
@@ -146,7 +157,8 @@ public final class AchievementStore {
         .init(milestone: 100, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 350, spins: 2)),
         .init(milestone: 200, categoryLabel: "200. Combo Master", rewards: .init(gems: 300, spins: 1, magnets: 1, boost4x: 1)),
         .init(milestone: 300, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 1000, hammers: 1, boost3x: 1)),
-        .init(milestone: 400, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 850, spins: 1, magnets: 2)),
+        // FIX: ensure 'hammers' precedes 'magnets' per Rewards initializer
+        .init(milestone: 400, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 850, spins: 1, hammers: nil, magnets: 2)),
         .init(milestone: 500, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 1150, spins: 1, boost2x: 1)),
         .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 500, spins: 1, magnets: 1, boost3x: 1, boost4x: 1)),
         .init(milestone: 750, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 1050, magnets: 1)),
@@ -159,7 +171,7 @@ public final class AchievementStore {
         .init(milestone: 5000, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 300, spins: 1)),
         .init(milestone: 15000, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 400, magnets: 1)),
         .init(milestone: 25000, categoryLabel: "200. Combo Master", rewards: .init(gems: 500, spins: 1, swaps: 1)),
-        .init(milestone: 50000, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 650, magnets: 1, hammers: 1)),
+        .init(milestone: 50000, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 650, hammers: 1, magnets: 1)),
         .init(milestone: 100000, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 800, spins: 1, magnets: 1, swaps: 1)),
         .init(milestone: 250000, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
         .init(milestone: 500000, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 1200, spins: 1, magnets: 1, boost2x: 1)),
@@ -514,7 +526,8 @@ public final class AchievementStore {
             
             if def.id == "merge_progression" {
                 let targetValue = Double(currentMergeTier.milestone)
-                if snapshot.merged_tiles_total >= targetValue {
+                // FIX: compare Double to Double
+                if Double(snapshot.merged_tiles_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }

@@ -1486,6 +1486,65 @@ public final class GameStore {
         mergeCleanupTask = nil
     }
     
+    private func runMagnetPipeline(
+        value: Int,
+        position: Position,
+        matchingPositions: [Position],
+        previousHighest: Int
+    ) {
+        mergeCleanupTask?.cancel()
+        isInputLocked = true
+        lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
+        
+        mergeCleanupTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer {
+                self.isInputLocked = false
+                self.mergeCleanupTask = nil
+            }
+            
+            do {
+                try await Task.sleep(nanoseconds: Self.magnetSuckDelay)
+            } catch {
+                print("[GameStore] Magnet pipeline sleep error: \(error)")
+                self.clearLastMagnetEvent()
+                return
+            }
+            
+            if Task.isCancelled {
+                print("[GameStore] Magnet pipeline cancelled before merge")
+                self.clearLastMagnetEvent()
+                return
+            }
+            
+            let newState = self.engine.magnetize(value: value, to: position)
+            self.state = newState
+            
+            let mergedValue = self.state.board[position]?.value ?? {
+                return value <= (Int.max >> 1) ? value * 2 : Int.max
+            }()
+            
+            self.setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
+            
+            self.performGravityDrop()
+            
+            do {
+                try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
+            } catch {
+                print("[GameStore] Magnet pipeline gravity error: \(error)")
+                return
+            }
+            
+            if Task.isCancelled {
+                print("[GameStore] Magnet pipeline cancelled before refill")
+                return
+            }
+            
+            self.performRefill()
+            self.saveProgressImmediately(newTile: mergedValue)
+        }
+    }
+    
     // MARK: - PowerUps via Engine wrapper
     public enum PowerUpAction: Codable, Sendable, Equatable {
         case hammer(Position)
@@ -1618,21 +1677,27 @@ public final class GameStore {
         guard state.undoAvailable else { return false }
         // Undo doesn't use inventory in this implementation
         let previousBoard = state.board
-        let newState = engine.undo()
+        // Preserve the current gems value (coins) before undo
+        let currentGems = state.gems
+        var newState = engine.undo()
+        // Restore the current gems value to prevent reverting purchases
+        newState.gems = currentGems
         applyStateUpdate(newState, previousBoard: previousBoard)
+        // Sync the engine's gems state to match the preserved value
+        syncEngineGems()
         powerUpHistory.append(.undo)
         trackPowerUpAnalytics(action: .undo)
         achievementEvaluator?.onUndoUsed()
-        
+
         // Save progress after undo (could restore significant state)
         saveProgressImmediately(newTile: nil)
-        
+
         return true
     }
     
     @discardableResult
     public func useMagnet(value: Int, to position: Position) -> Bool {
-        // Check if magnet power-up is available
+        guard !isInputLocked else { return false }
         guard isPowerUpAvailable("magnet") else { return false }
         guard let tile = state.board[position],
               tile.value == value,
@@ -1665,68 +1730,15 @@ public final class GameStore {
         // Capture previous highest for milestone detection
         let previousHighest = state.highestTile
         
-        // Use the engine's magnetize method to merge all tiles with the same value
-        let newState = engine.magnetize(value: value, to: position)
-        state = newState
-        lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
-        
-        // Calculate merged value based on updated state at the target position
-        let mergedValue = state.board[position]?.value ?? {
-            // Fallback if tile missing: assume at least doubling (safe-capped)
-            return value <= (Int.max >> 1) ? value * 2 : Int.max
-        }()
-        
-        // Show milestone notification if applicable
-        setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
-        
         // Track power-up usage
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
         achievementEvaluator?.onPowerUpUsed(type: "magnet")
-        
-        // Run the magnet pipeline: (skip shatter) suck-up → drop → refill
-        isInputLocked = true
-        mergeCleanupTask?.cancel()
-        mergeCleanupTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            do {
-                try await Task.sleep(nanoseconds: Self.magnetSuckDelay)
-            } catch {
-                print("[GameStore] Magnet pipeline sleep error: \(error)")
-                self.isInputLocked = false
-                return
-            }
-            
-            if Task.isCancelled {
-                print("[GameStore] Magnet pipeline cancelled before drop")
-                self.isInputLocked = false
-                return
-            }
-            
-            self.performGravityDrop()
-            
-            do {
-                try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
-            } catch {
-                print("[GameStore] Magnet pipeline gravity error: \(error)")
-                self.isInputLocked = false
-                return
-            }
-            
-            if Task.isCancelled {
-                print("[GameStore] Magnet pipeline cancelled before refill")
-                self.isInputLocked = false
-                return
-            }
-            
-            self.performRefill()
-            
-            if !Task.isCancelled {
-                self.isInputLocked = false
-            }
-        }
-        
-        // Save progress after magnet use
-        saveProgressImmediately(newTile: mergedValue)
+        runMagnetPipeline(
+            value: value,
+            position: position,
+            matchingPositions: matchingPositions,
+            previousHighest: previousHighest
+        )
         
         return true
     }
