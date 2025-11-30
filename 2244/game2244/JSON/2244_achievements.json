@@ -308,6 +308,38 @@
     ]
   },
   {
+    "id": "swap_usage_progression",
+    "gcIdentifier": "swap_usage_progression",
+    "title": "Swap Master",
+    "description": "Use swaps across all games to climb every reward tier.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "swap_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "magnet_usage_progression",
+    "gcIdentifier": "magnet_usage_progression",
+    "title": "MegaMerge Master",
+    "description": "Use MegaMerges to reach each mastery level and claim escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "magnet_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
     "id": "moves_progression",
     "gcIdentifier": "moves_progression",
     "title": "Moves Master",
@@ -571,180 +603,6 @@
       {
         "field": "free_slots_at_booster_use",
         "op": "<=",
-        "value": 1
-      }
-    ]
-  },
-  {
-    "id": "southpaw",
-    "gcIdentifier": "southpaw",
-    "title": "Southpaw",
-    "description": "Win a run without ever moving right.",
-    "category": "Hidden",
-    "rewards": {
-      "gems": 900,
-      "spins": 2,
-      "boost2x": 1,
-      "boost3x": 1,
-      "swaps": 3
-    },
-    "hidden": true,
-    "conditionExpr": "",
-    "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "moved_right",
-        "op": "==",
-        "value": 0
-      }
-    ]
-  },
-  {
-    "id": "right_hand_rule",
-    "gcIdentifier": "right_hand_rule",
-    "title": "Right-Hand Rule",
-    "description": "Win a run without ever moving left.",
-    "category": "Hidden",
-    "rewards": {
-      "gems": 900,
-      "spins": 2,
-      "boost2x": 1,
-      "boost3x": 1,
-      "swaps": 3
-    },
-    "hidden": true,
-    "conditionExpr": "",
-    "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "moved_left",
-        "op": "==",
-        "value": 0
-      }
-    ]
-  },
-  {
-    "id": "upward_bound",
-    "gcIdentifier": "upward_bound",
-    "title": "Upward Bound",
-    "description": "Win a run without ever moving down.",
-    "category": "Hidden",
-    "rewards": {
-      "gems": 900,
-      "spins": 2,
-      "boost2x": 1,
-      "boost3x": 1,
-      "swaps": 3
-    },
-    "hidden": true,
-    "conditionExpr": "",
-    "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "moved_down",
-        "op": "==",
-        "value": 0
-      }
-    ]
-  },
-  {
-    "id": "pacifist",
-    "gcIdentifier": "pacifist",
-    "title": "Pacifist",
-    "description": "Reach 50000 score without creating a tile higher than 512.",
-    "category": "Hidden",
-    "rewards": {
-      "gems": 5000,
-      "spins": 6,
-      "hammers": 5,
-      "magnets": 6,
-      "boost2x": 2,
-      "boost3x": 2,
-      "boost4x": 2,
-      "swaps": 10
-    },
-    "hidden": true,
-    "conditionExpr": "",
-    "conditions": [
-      {
-        "field": "score",
-        "op": ">=",
-        "value": 50000
-      },
-      {
-        "field": "max_tile",
-        "op": "<=",
-        "value": 512
-      }
-    ]
-  },
-  {
-    "id": "clarity",
-    "gcIdentifier": "clarity",
-    "title": "Clarity",
-    "description": "Finish a winning run with the board strictly monotonic.",
-    "category": "Hidden",
-    "rewards": {
-      "gems": 1500,
-      "spins": 3,
-      "hammers": 1,
-      "boost2x": 1,
-      "boost3x": 1,
-      "boost4x": 1,
-      "swaps": 5
-    },
-    "hidden": true,
-    "conditionExpr": "",
-    "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "board_monotonic_end",
-        "op": "==",
-        "value": 1
-      }
-    ]
-  },
-  {
-    "id": "twenty_two_forty_four",
-    "gcIdentifier": "twenty_two_forty_four",
-    "title": "Twenty-Two Forty-Four",
-    "description": "Create a 2-2-4-4 square during a winning run.",
-    "category": "Hidden",
-    "rewards": {
-      "gems": 1200,
-      "spins": 2,
-      "magnets": 1,
-      "boost2x": 1,
-      "boost3x": 1,
-      "swaps": 3
-    },
-    "hidden": true,
-    "conditionExpr": "",
-    "conditions": [
-      {
-        "field": "win",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "made_2244_square",
-        "op": "==",
         "value": 1
       }
     ]

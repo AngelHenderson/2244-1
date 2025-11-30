@@ -10,6 +10,11 @@ public final class PurchaseService {
     
     #if os(iOS)
     public private(set) var products: [Product] = []
+    private var productCache: [String: Product] = [:]
+    
+    private var isSimulator: Bool {
+        ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME")
+    }
     #else
     public private(set) var products: [Any] = []
     #endif
@@ -21,7 +26,7 @@ public final class PurchaseService {
         // Defer task setup to avoid referencing actor-isolated 'self' before init completes
         #if os(iOS)
         // Only initialize StoreKit in non-simulator environments to avoid account errors
-        if !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
+        if !isSimulator {
             Task { [weak self] in
                 await self?.loadProducts()
                 await self?.checkPurchaseStatus()
@@ -38,21 +43,61 @@ public final class PurchaseService {
         errorMessage = nil
         
         #if os(iOS)
-        // Skip loading products in simulator to avoid "No active account" errors
-        guard !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") else {
-            isLoading = false
-            return
-        }
-        
-        do {
-            products = try await Product.products(for: [Self.adFreeProductID])
-            isLoading = false
-        } catch {
-            errorMessage = "Failed to load products"
-            isLoading = false
-        }
+        await ensureProductsLoaded(for: [Self.adFreeProductID])
+        isLoading = false
         #else
         isLoading = false
+        #endif
+    }
+    
+    public func ensureProductsLoaded(for ids: [String]) async {
+        #if os(iOS)
+        let uniqueIDs = Array(Set(ids))
+        guard !uniqueIDs.isEmpty else { return }
+        guard !isSimulator else { return }
+        
+        let missing = uniqueIDs.filter { productCache[$0] == nil }
+        guard !missing.isEmpty else { return }
+        
+        do {
+            let fetched = try await Product.products(for: missing)
+            cacheProducts(fetched)
+        } catch {
+            errorMessage = "Failed to load products"
+        }
+        #else
+        // No-op on other platforms
+        #endif
+    }
+    
+    public func product(withID id: String) -> Product? {
+        #if os(iOS)
+        return productCache[id]
+        #else
+        return nil
+        #endif
+    }
+    
+    public func purchase(productID: String) async -> Bool {
+        #if os(iOS)
+        if isSimulator {
+            // Allow simulators to simulate success for development flows
+            return true
+        }
+        
+        if let product = product(withID: productID) {
+            return await purchase(product)
+        }
+        
+        await ensureProductsLoaded(for: [productID])
+        if let product = product(withID: productID) {
+            return await purchase(product)
+        }
+        
+        errorMessage = "Product unavailable"
+        return false
+        #else
+        return true
         #endif
     }
     
@@ -97,6 +142,12 @@ public final class PurchaseService {
             return false
         }
     }
+    private func cacheProducts(_ newProducts: [Product]) {
+        for product in newProducts {
+            productCache[product.id] = product
+        }
+        products = Array(productCache.values)
+    }
     #else
     public func purchaseDummy() async -> Bool { false }
     #endif
@@ -107,7 +158,7 @@ public final class PurchaseService {
         
         #if os(iOS)
         // Skip restore in simulator to avoid "No active account" errors
-        guard !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") else {
+        guard !isSimulator else {
             isLoading = false
             return
         }
@@ -128,7 +179,7 @@ public final class PurchaseService {
     private func checkPurchaseStatus() async {
         #if os(iOS)
         // Skip checking entitlements in simulator to avoid "No active account" errors
-        guard !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") else {
+        guard !isSimulator else {
             return
         }
         
@@ -150,7 +201,7 @@ public final class PurchaseService {
     private func observeTransactionUpdates() async {
         #if os(iOS)
         // Skip observing transaction updates in simulator to avoid "No active account" errors
-        guard !ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") else {
+        guard !isSimulator else {
             return
         }
         

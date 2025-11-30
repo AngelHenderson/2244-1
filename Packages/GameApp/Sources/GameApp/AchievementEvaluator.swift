@@ -63,6 +63,9 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo1620Total = combo1620Total
         currentGameSnapshot.combo2130Total = combo2130Total
         currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
+        currentGameSnapshot.hammer_uses_total = hammerUsesTotal
+        currentGameSnapshot.swap_uses_total = swapUsesTotal
+        currentGameSnapshot.magnet_uses_total = magnetUsesTotal
     }
     
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
@@ -262,5 +265,24 @@ public final class AchievementEvaluator {
         lifetimeMergedTiles += count
         defaults.set(lifetimeMergedTiles, forKey: mergedTilesKey)
         currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
+    }
+    
+    private func recordPowerUpUse(type: String) {
+        switch type {
+        case "hammer":
+            hammerUsesTotal += 1
+            defaults.set(hammerUsesTotal, forKey: hammerUsesKey)
+        case "swap":
+            swapUsesTotal += 1
+            defaults.set(swapUsesTotal, forKey: swapUsesKey)
+        case "magnet":
+            magnetUsesTotal += 1
+            defaults.set(magnetUsesTotal, forKey: magnetUsesKey)
+        default:
+            break
+        }
+        currentGameSnapshot.hammer_uses_total = hammerUsesTotal
+        currentGameSnapshot.swap_uses_total = swapUsesTotal
+        currentGameSnapshot.magnet_uses_total = magnetUsesTotal
     }
 }

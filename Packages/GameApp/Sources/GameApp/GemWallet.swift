@@ -12,6 +12,7 @@ public final class GemWallet {
         case achievement
         case daily
         case manual
+        case purchase
     }
     
     private struct Keys {

@@ -152,83 +152,44 @@
   ],
   "gemBundles": [
     {
-      "id": "gems_300",
-      "gems": 300,
-      "price": 0.99,
-      "tags": [
-        "Micro"
-      ]
-    },
-    {
       "id": "gems_1000",
       "gems": 1000,
-      "price": 1.99
-    },
-    {
-      "id": "gems_2500",
-      "gems": 2500,
-      "price": 3.99
-    },
-    {
-      "id": "gems_4000",
-      "gems": 4000,
-      "price": 5.99
+      "price": 0.99
     },
     {
       "id": "gems_5000",
       "gems": 5000,
-      "price": 6.99
-    },
-    {
-      "id": "gems_7500",
-      "gems": 7500,
-      "price": 8.99,
-      "tags": [
-        "Hot Deal"
-      ]
-    },
-    {
-      "id": "gems_12000",
-      "gems": 12000,
-      "price": 12.49
+      "price": 2.99
     },
     {
       "id": "gems_15000",
       "gems": 15000,
-      "price": 14.99
+      "price": 4.99
     },
     {
       "id": "gems_25000",
       "gems": 25000,
-      "price": 19.99,
-      "tags": [
-        "Popular"
-      ]
+      "price": 7.49
     },
     {
-      "id": "gems_30000",
-      "gems": 30000,
-      "price": 22.99
-    },
-    {
-      "id": "gems_50000",
-      "gems": 50000,
-      "price": 31.99
-    },
-    {
-      "id": "gems_75000",
-      "gems": 75000,
-      "price": 39.99
+      "id": "gems_40000",
+      "gems": 40000,
+      "price": 9.99
     },
     {
       "id": "gems_100000",
       "gems": 100000,
-      "price": 48.99
+      "price": 19.99
     },
     {
-      "id": "gems_200000",
-      "gems": 200000,
-      "price": 89.99
+      "id": "gems_250000",
+      "gems": 250000,
+      "price": 49.99
+    },
+    {
+      "id": "gems_500000",
+      "gems": 500000,
+      "price": 99.99
     }
   ],
   "specialOffers": [

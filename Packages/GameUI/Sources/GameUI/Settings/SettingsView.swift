@@ -122,11 +122,14 @@ public struct SettingsView: View {
                         Button("Remove Ads - \(removeAdsPrice)") {
                             Task {
                                 #if os(iOS)
-                                if let product = purchaseService.products.first {
-                                    let success = await purchaseService.purchase(product)
-                                    if success {
-                                        adsRemoved = true
-                                    }
+                                let success: Bool
+                                if let product = purchaseService.product(withID: PurchaseService.adFreeProductID) {
+                                    success = await purchaseService.purchase(product)
+                                } else {
+                                    success = await purchaseService.purchase(productID: PurchaseService.adFreeProductID)
+                                }
+                                if success {
+                                    adsRemoved = true
                                 }
                                 #endif
                             }
@@ -229,7 +232,7 @@ public struct SettingsView: View {
     private func loadPurchaseInfo() async {
         await purchaseService.loadProducts()
         #if os(iOS)
-        if let product = purchaseService.products.first {
+        if let product = purchaseService.product(withID: PurchaseService.adFreeProductID) {
             removeAdsPrice = product.displayPrice
         } else {
             removeAdsPrice = "$2.99"

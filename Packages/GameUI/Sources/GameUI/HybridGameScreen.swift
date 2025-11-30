@@ -33,7 +33,7 @@ public struct HybridGameScreen: View {
     @State private var topMergeTileValue: Int? = nil
     @State private var isShowingDoublePrompt: Bool = false
     @State private var isShowingPause = false
-    @State private var isShowingStore = false
+    @State private var isShowingShop = false
     @State private var isShowingLeaderboard = false
     @State private var isShowingUnlockReward = false
     
@@ -105,12 +105,12 @@ public struct HybridGameScreen: View {
                 )
             }
         
-        let storeSheet = pauseSheet
-            .sheet(isPresented: $isShowingStore) {
-                StoreView()
+        let shopSheet = pauseSheet
+            .sheet(isPresented: $isShowingShop) {
+                ShopView(initialTab: .gems)
             }
         
-        let leaderboardSheet = storeSheet
+        let leaderboardSheet = shopSheet
             .sheet(isPresented: $isShowingLeaderboard) {
                 LeaderboardView()
             }
@@ -224,7 +224,7 @@ public struct HybridGameScreen: View {
     private func makeGameActions() -> HomeActions {
         HomeActions(
             play: { },
-            openShop: { isShowingStore = true },
+            openShop: { isShowingShop = true },
             buyGems: { },
             watchAd: { 50 },
             openDaily: { },

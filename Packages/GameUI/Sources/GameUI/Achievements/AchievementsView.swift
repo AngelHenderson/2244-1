@@ -32,7 +32,9 @@ public struct AchievementsView: View {
             || id == "combo_11_15"
             || id == "combo_16_20"
             || id == "combo_21_30"
-            || id == "merge_progression" {
+            || id == "merge_progression"
+            || id == "swap_usage_progression"
+            || id == "magnet_usage_progression" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
         }
@@ -93,6 +95,10 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.combo2130Display
         case "merge_progression":
             return achievements.mergeDisplay
+        case "swap_usage_progression":
+            return achievements.swapUsesDisplay
+        case "magnet_usage_progression":
+            return achievements.magnetUsesDisplay
         default:
             return nil
         }

@@ -374,6 +374,10 @@ public struct SpinWheelView: View {
     }
 }
 
+private func labelRotation(for rawAngle: CGFloat) -> Angle {
+    Angle(radians: Double(rawAngle))
+}
+
 // MARK: - Background
 
 private struct BackgroundGradient: View {
@@ -516,6 +520,7 @@ struct WheelFace: View {
                     let r = radius * 0.62
                     let x = rect.midX + r * sin(centerAngle)
                     let y = rect.midY - r * cos(centerAngle)
+                    let rotation = labelRotation(for: centerAngle)
                     HStack(spacing: 6) {
                         Text(segments[i].icon)
                             .font(.system(size: 20))
@@ -528,6 +533,7 @@ struct WheelFace: View {
                     .shadow(color: .black.opacity(0.4), radius: 3)
                     .frame(width: 110, alignment: .center)
                     .position(x: x, y: y)
+                    .rotationEffect(rotation, anchor: .center)
                 }
                 
                 Circle()

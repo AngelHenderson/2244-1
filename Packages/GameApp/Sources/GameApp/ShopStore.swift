@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import Observation
 import GameCore
+import GameServices
 
 // MARK: - Shop Models
 public struct ShopBundle: Identifiable, Codable {
@@ -93,9 +94,17 @@ public final class ShopStore {
     public var availableJourneyTiles: [String] = []
     
     private let journeyStore: JourneyKit.Store
+    private let purchaseService: PurchaseService?
+    private weak var gemWallet: GemWallet?
     
-    public init(journeyStore: JourneyKit.Store) {
+    public init(
+        journeyStore: JourneyKit.Store,
+        purchaseService: PurchaseService? = nil,
+        gemWallet: GemWallet? = nil
+    ) {
         self.journeyStore = journeyStore
+        self.purchaseService = purchaseService
+        self.gemWallet = gemWallet
         Task { await loadCatalog() }
         calculateJourneyTiles()
     }
@@ -136,6 +145,10 @@ public final class ShopStore {
             self.error = "Failed to load shop catalog: \(error.localizedDescription)"
             // Use hardcoded catalog as fallback
             catalog = createDefaultCatalog()
+        }
+        
+        if let gemIDs = catalog?.gemBundles.map(\.id), !gemIDs.isEmpty {
+            await purchaseService?.ensureProductsLoaded(for: gemIDs)
         }
         
         isLoading = false
@@ -205,11 +218,14 @@ public final class ShopStore {
                 )
             ],
             gemBundles: [
-                GemBundle(id: "gems_300", gems: 300, price: 0.99, tags: ["Micro"]),
-                GemBundle(id: "gems_1000", gems: 1000, price: 1.99, tags: nil),
-                GemBundle(id: "gems_2500", gems: 2500, price: 3.99, tags: nil),
-                GemBundle(id: "gems_5000", gems: 5000, price: 6.99, tags: nil),
-                GemBundle(id: "gems_25000", gems: 25000, price: 19.99, tags: ["Popular"])
+                GemBundle(id: "gems_1000", gems: 1000, price: 0.99, tags: nil),
+                GemBundle(id: "gems_5000", gems: 5000, price: 2.99, tags: nil),
+                GemBundle(id: "gems_15000", gems: 15000, price: 4.99, tags: nil),
+                GemBundle(id: "gems_25000", gems: 25000, price: 7.49, tags: nil),
+                GemBundle(id: "gems_40000", gems: 40000, price: 9.99, tags: nil),
+                GemBundle(id: "gems_100000", gems: 100000, price: 19.99, tags: nil),
+                GemBundle(id: "gems_250000", gems: 250000, price: 49.99, tags: ["Popular"]),
+                GemBundle(id: "gems_500000", gems: 500000, price: 99.99, tags: ["Whale"])
             ],
             specialOffers: [
                 ShopBundle(
@@ -249,16 +265,20 @@ public final class ShopStore {
     }
     
     public func purchase(_ bundleId: String) async {
+        guard !isPurchasing else { return }
         isPurchasing = true
+        error = nil
+        defer { isPurchasing = false }
         
-        // Simulate purchase for now
-        // In real app, this would integrate with StoreKit
+        if let gemBundle = gemBundle(for: bundleId) {
+            await purchaseGemBundle(gemBundle)
+            return
+        }
+        
+        // Legacy bundles fallback
         try? await Task.sleep(for: .seconds(1))
-        
         purchasedBundles.insert(bundleId)
-        isPurchasing = false
         
-        // Handle rewards
         if let bundle = catalog?.bundles.first(where: { $0.id == bundleId }) {
             applyBundleRewards(bundle)
         }
@@ -268,6 +288,43 @@ public final class ShopStore {
         // This would integrate with game state to apply rewards
         // For now, just track the purchase
         print("Applied rewards from bundle: \(bundle.title)")
+    }
+    
+    private func gemBundle(for id: String) -> GemBundle? {
+        catalog?.gemBundles.first { $0.id == id }
+    }
+    
+    private func purchaseGemBundle(_ bundle: GemBundle) async {
+        let success = await performPurchase(productID: bundle.id)
+        if success {
+            grantGems(bundle.gems)
+            purchasedBundles.insert(bundle.id)
+        } else {
+            error = "Purchase failed. Please try again."
+        }
+    }
+    
+    private func performPurchase(productID: String) async -> Bool {
+        guard let purchaseService else { return true }
+        return await purchaseService.purchase(productID: productID)
+    }
+    
+    private func grantGems(_ amount: Int) {
+        guard amount > 0 else { return }
+        if let gemWallet {
+            gemWallet.deposit(amount, source: .purchase)
+            return
+        }
+        
+        // Fallback: update UserDefaults directly if wallet is unavailable (e.g., previews)
+        let defaults = UserDefaults.standard
+        let newBalance = defaults.integer(forKey: "coins") + amount
+        defaults.set(newBalance, forKey: "coins")
+        NotificationCenter.default.post(
+            name: Notification.Name("GemsDidChange"),
+            object: nil,
+            userInfo: ["newBalance": newBalance, "added": amount]
+        )
     }
     
     public func formatPrice(_ price: Double) -> String {

@@ -180,6 +180,34 @@ public final class AchievementStore {
         .init(milestone: 2000000, categoryLabel: "1200. Ultimate Combo Master", rewards: .init(gems: 1250, magnets: 1, boost4x: 1))
     ]
     
+    private static let swapUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "Use Swap 5 Times", rewards: .init(gems: 75, swaps: 1)),
+        .init(milestone: 10, categoryLabel: "Use Swap 10 Times", rewards: .init(gems: 100, magnets: 1)),
+        .init(milestone: 20, categoryLabel: "Use Swap 20 Times", rewards: .init(hammers: 1, boost4x: 1)),
+        .init(milestone: 30, categoryLabel: "Use Swap 30 Times", rewards: .init(spins: 1, magnets: 1, swaps: 1)),
+        .init(milestone: 50, categoryLabel: "Use Swap 50 Times", rewards: .init(gems: 500, hammers: 1)),
+        .init(milestone: 75, categoryLabel: "Use Swap 75 Times", rewards: .init(gems: 500, swaps: 1)),
+        .init(milestone: 100, categoryLabel: "Use Swap 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 150, categoryLabel: "Use Swap 150 Times", rewards: .init(gems: 500, boost4x: 1)),
+        .init(milestone: 200, categoryLabel: "Use Swap 200 Times", rewards: .init(gems: 500, hammers: 1, magnets: 1, swaps: 1, boost3x: 1)),
+        .init(milestone: 250, categoryLabel: "Use Swap 250 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
+        .init(milestone: 300, categoryLabel: "Use Swap 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
+    ]
+    
+    private static let magnetUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "Use MegaMerge 5 Times", rewards: .init(gems: 250)),
+        .init(milestone: 10, categoryLabel: "Use MegaMerge 10 Times", rewards: .init(gems: 250, magnets: 1)),
+        .init(milestone: 20, categoryLabel: "Use MegaMerge 20 Times", rewards: .init(gems: 200, spins: 1, hammers: 1, boost4x: 1)),
+        .init(milestone: 30, categoryLabel: "Use MegaMerge 30 Times", rewards: .init(spins: 1, magnets: 1, swaps: 1)),
+        .init(milestone: 50, categoryLabel: "Use MegaMerge 50 Times", rewards: .init(gems: 500, hammers: 1)),
+        .init(milestone: 75, categoryLabel: "Use MegaMerge 75 Times", rewards: .init(gems: 500, swaps: 1)),
+        .init(milestone: 100, categoryLabel: "Use MegaMerge 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 125, categoryLabel: "Use MegaMerge 125 Times", rewards: .init(gems: 500, boost4x: 1)),
+        .init(milestone: 150, categoryLabel: "Use MegaMerge 150 Times", rewards: .init(gems: 500, magnets: 1, swaps: 1, hammers: 1, boost3x: 1)),
+        .init(milestone: 200, categoryLabel: "Use MegaMerge 200 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
+        .init(milestone: 300, categoryLabel: "Use MegaMerge 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
+    ]
+    
     /// Current tier index for the moves progression achievement (persisted)
     public var movesProgressionTier: Int {
         didSet {
@@ -340,6 +368,62 @@ public final class AchievementStore {
         mergeProgressionTier >= Self.mergeTiers.count - 1
     }
     
+    /// Swap usage progression tier index (persisted)
+    public var swapUsesProgressionTier: Int {
+        didSet {
+            defaults.set(swapUsesProgressionTier, forKey: "swapUsesProgressionTier")
+            unlocks["swap_usage_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentSwapUsesTier: ComboTierDefinition {
+        let index = min(swapUsesProgressionTier, Self.swapUseTiers.count - 1)
+        return Self.swapUseTiers[index]
+    }
+    
+    public var swapUsesDisplay: ProgressTierDisplay {
+        makePowerUseDisplay(
+            powerUpLabel: "Swap",
+            tier: currentSwapUsesTier,
+            levelIndex: swapUsesProgressionTier,
+            maxCount: Self.swapUseTiers.count,
+            isMaxed: isSwapUsesProgressionMaxed
+        )
+    }
+    
+    public var isSwapUsesProgressionMaxed: Bool {
+        swapUsesProgressionTier >= Self.swapUseTiers.count - 1
+    }
+    
+    /// MegaMerge (magnet) usage progression tier index (persisted)
+    public var magnetUsesProgressionTier: Int {
+        didSet {
+            defaults.set(magnetUsesProgressionTier, forKey: "magnetUsesProgressionTier")
+            unlocks["magnet_usage_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentMagnetUsesTier: ComboTierDefinition {
+        let index = min(magnetUsesProgressionTier, Self.magnetUseTiers.count - 1)
+        return Self.magnetUseTiers[index]
+    }
+    
+    public var magnetUsesDisplay: ProgressTierDisplay {
+        makePowerUseDisplay(
+            powerUpLabel: "MegaMerge",
+            tier: currentMagnetUsesTier,
+            levelIndex: magnetUsesProgressionTier,
+            maxCount: Self.magnetUseTiers.count,
+            isMaxed: isMagnetUsesProgressionMaxed
+        )
+    }
+    
+    public var isMagnetUsesProgressionMaxed: Bool {
+        magnetUsesProgressionTier >= Self.magnetUseTiers.count - 1
+    }
+    
     private func makeComboDisplay(
         rangeLabel: String,
         tier: ComboTierDefinition,
@@ -390,6 +474,32 @@ public final class AchievementStore {
         )
     }
     
+    private func makePowerUseDisplay(
+        powerUpLabel: String,
+        tier: ComboTierDefinition,
+        levelIndex: Int,
+        maxCount: Int,
+        isMaxed: Bool
+    ) -> ProgressTierDisplay {
+        let clampedIndex = min(levelIndex, maxCount - 1)
+        let level = clampedIndex + 1
+        let description: String
+        if isMaxed {
+            description = "You've mastered the \(powerUpLabel.lowercased()) power-up. Claim your final reward."
+        } else {
+            description = "Use \(powerUpLabel.lowercased())s \(tier.milestone) times across all games to reach the next tier."
+        }
+        let title = "Level \(level): \(tier.milestone) \(powerUpLabel.lowercased()) uses"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: tier.categoryLabel,
+            rewards: tier.rewards
+        )
+    }
+    
     /// Current tier index for the tile progression achievement (persisted)
     public var tileProgressionTier: Int {
         didSet {
@@ -428,6 +538,8 @@ public final class AchievementStore {
         self.combo1620Tier = defaults.integer(forKey: "combo1620Tier")
         self.combo2130Tier = defaults.integer(forKey: "combo2130Tier")
         self.mergeProgressionTier = defaults.integer(forKey: "mergeProgressionTier")
+        self.swapUsesProgressionTier = defaults.integer(forKey: "swapUsesProgressionTier")
+        self.magnetUsesProgressionTier = defaults.integer(forKey: "magnetUsesProgressionTier")
         loadUnlocks()
     }
     
@@ -528,6 +640,24 @@ public final class AchievementStore {
                 let targetValue = Double(currentMergeTier.milestone)
                 // FIX: compare Double to Double
                 if Double(snapshot.merged_tiles_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "swap_usage_progression" {
+                let targetValue = Double(currentSwapUsesTier.milestone)
+                if Double(snapshot.swap_uses_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "magnet_usage_progression" {
+                let targetValue = Double(currentMagnetUsesTier.milestone)
+                if Double(snapshot.magnet_uses_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -685,6 +815,40 @@ public final class AchievementStore {
             return
         }
         
+        if definition.id == "swap_usage_progression" {
+            let rewards = swapUsesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isSwapUsesProgressionMaxed {
+                swapUsesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+        
+        if definition.id == "magnet_usage_progression" {
+            let rewards = magnetUsesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isMagnetUsesProgressionMaxed {
+                magnetUsesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+        
         // Standard achievement claim
         state.claimed = true
         unlocks[definition.id] = state
@@ -724,6 +888,10 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.combo2130Total), target: Double(currentCombo2130Tier.milestone))
         case "merge_progression":
             return makeProgress(current: Double(snapshot.merged_tiles_total), target: Double(currentMergeTier.milestone))
+        case "swap_usage_progression":
+            return makeProgress(current: Double(snapshot.swap_uses_total), target: Double(currentSwapUsesTier.milestone))
+        case "magnet_usage_progression":
+            return makeProgress(current: Double(snapshot.magnet_uses_total), target: Double(currentMagnetUsesTier.milestone))
         default:
             break
         }

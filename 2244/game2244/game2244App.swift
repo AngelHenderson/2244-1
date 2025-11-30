@@ -72,7 +72,14 @@ struct game2244App: App {
                 .environment(homeState)
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
-                .environment(\.shopStore, shopStore ?? ShopStore(journeyStore: gameStore.journey))
+                .environment(
+                    \.shopStore,
+                    shopStore ?? ShopStore(
+                        journeyStore: gameStore.journey,
+                        purchaseService: purchaseService,
+                        gemWallet: gemWallet
+                    )
+                )
                 .environment(\.challengeStore, challengeStore)
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
                 .task {
@@ -90,7 +97,11 @@ struct game2244App: App {
                     }
                     
                     // Initialize shop store
-                    shopStore = ShopStore(journeyStore: gameStore.journey)
+                    shopStore = ShopStore(
+                        journeyStore: gameStore.journey,
+                        purchaseService: purchaseService,
+                        gemWallet: gemWallet
+                    )
                     
                     // Suppress simulator-specific warnings in console
                     if ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
