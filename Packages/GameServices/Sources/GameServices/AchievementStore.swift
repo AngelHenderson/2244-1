@@ -166,18 +166,18 @@ public final class AchievementStore {
     ]
     
     private static let mergeTiers: [ComboTierDefinition] = [
-        .init(milestone: 500, categoryLabel: "10. Good Combo", rewards: .init(gems: 200)),
-        .init(milestone: 1500, categoryLabel: "25. Great Combo", rewards: .init(gems: 250, swaps: 1)),
-        .init(milestone: 5000, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 300, spins: 1)),
-        .init(milestone: 15000, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 400, magnets: 1)),
-        .init(milestone: 25000, categoryLabel: "200. Combo Master", rewards: .init(gems: 500, spins: 1, swaps: 1)),
-        .init(milestone: 50000, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 650, hammers: 1, magnets: 1)),
-        .init(milestone: 100000, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 800, spins: 1, magnets: 1, swaps: 1)),
-        .init(milestone: 250000, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
-        .init(milestone: 500000, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 1200, spins: 1, magnets: 1, boost2x: 1)),
-        .init(milestone: 1000000, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 1500, spins: 2, boost3x: 1)),
-        .init(milestone: 1500000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1800, spins: 2, boost3x: 1, boost4x: 1)),
-        .init(milestone: 2000000, categoryLabel: "1200. Ultimate Combo Master", rewards: .init(gems: 2200, spins: 3, boost4x: 1))
+        .init(milestone: 500, categoryLabel: "10. Good Combo", rewards: .init(gems: 25)),
+        .init(milestone: 1500, categoryLabel: "25. Great Combo", rewards: .init(gems: 50, hammers: 1)),
+        .init(milestone: 5000, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 75, magnets: 1)),
+        .init(milestone: 15000, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 75, hammers: 2)),
+        .init(milestone: 25000, categoryLabel: "200. Combo Master", rewards: .init(gems: 100, spins: 1, hammers: 1, swaps: 1)),
+        .init(milestone: 50000, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 500)),
+        .init(milestone: 100000, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 250, spins: 1, magnets: 1)),
+        .init(milestone: 250000, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 350, magnets: 2)),
+        .init(milestone: 500000, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 350, spins: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 1000000, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 750, swaps: 2)),
+        .init(milestone: 1500000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1075, spins: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 2000000, categoryLabel: "1200. Ultimate Combo Master", rewards: .init(gems: 1250, magnets: 1, boost4x: 1))
     ]
     
     /// Current tier index for the moves progression achievement (persisted)
@@ -729,10 +729,12 @@ public final class AchievementStore {
         }
         
         guard let condition = definition.conditions.first,
-              let target = condition.value,
-              condition.op == ">=" || condition.op == ">" else {
+              let target = condition.value else {
             return nil
         }
+        
+        let op = condition.op.trimmingCharacters(in: .whitespaces)
+        guard op == ">=" || op == ">" else { return nil }
         
         let currentValue = value(for: condition.field, in: snapshot)
         return makeProgress(current: currentValue, target: target)

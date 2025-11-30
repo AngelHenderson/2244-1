@@ -783,7 +783,7 @@ public final class GameStore {
     private static let mergeAnimationDelay: UInt64 = 400_000_000
     private static let gravityAnimationDelay: UInt64 = 350_000_000
     private static let refillRevealDelay: UInt64 = 350_000_000
-    private static let magnetSuckDelay: UInt64 = 250_000_000
+    private static let magnetSuckDelay: UInt64 = 400_000_000
     private static let hammerWindupDelay: UInt64 = 250_000_000
     private static let hammerImpactDelay: UInt64 = 250_000_000
     
@@ -1517,14 +1517,21 @@ public final class GameStore {
                 return
             }
             
-            let newState = self.engine.magnetize(value: value, to: position)
-            self.state = newState
+            let magnetResult = self.engine.magnetize(value: value, to: position)
             
-            let mergedValue = self.state.board[position]?.value ?? {
+            let mergedValue = magnetResult.board[position]?.value ?? {
                 return value <= (Int.max >> 1) ? value * 2 : Int.max
             }()
             
             self.setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
+            self.achievementEvaluator?.onTilesMerged(count: matchingPositions.count)
+            
+            self.state.score = magnetResult.score
+            self.state.moves = magnetResult.moves
+            self.state.highestTile = magnetResult.highestTile
+            self.state.highestTileStep = magnetResult.highestTileStep
+            self.state.undoAvailable = magnetResult.undoAvailable
+            self.state.gems = magnetResult.gems
             
             self.performGravityDrop()
             

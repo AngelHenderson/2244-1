@@ -66,8 +66,7 @@ public final class AchievementEvaluator {
             totalMerges += 1
             maxChainThisGame = max(maxChainThisGame, chain.count)
             updateComboProgress(for: chain.count)
-            lifetimeMergedTiles += chain.count
-            defaults.set(lifetimeMergedTiles, forKey: mergedTilesKey)
+            recordMergedTiles(chain.count)
             
             if mergesThisTurn > 0 {
                 consecutiveMergeTurns += 1
@@ -205,6 +204,10 @@ public final class AchievementEvaluator {
             await achievementStore.evaluate(snapshot: snapshot)
         }
     }
+    public func onTilesMerged(count: Int) {
+        recordMergedTiles(count)
+    }
+    
     private func updateComboProgress(for chainCount: Int) {
         if (6...10).contains(chainCount) {
             combo610Total += 1
@@ -226,6 +229,13 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
         currentGameSnapshot.combo2130Total = combo2130Total
+        currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
+    }
+    
+    private func recordMergedTiles(_ count: Int) {
+        guard count > 0 else { return }
+        lifetimeMergedTiles += count
+        defaults.set(lifetimeMergedTiles, forKey: mergedTilesKey)
         currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
     }
 }
