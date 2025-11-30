@@ -17,10 +17,12 @@ public final class AchievementEvaluator {
     private var combo1115Total: Int = 0
     private var combo1620Total: Int = 0
     private var combo2130Total: Int = 0
+    private var lifetimeMergedTiles: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
     private let combo2130Key = "combo21to30Total"
+    private let mergedTilesKey = "totalMergedTiles"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
@@ -29,10 +31,12 @@ public final class AchievementEvaluator {
         combo1115Total = defaults.integer(forKey: combo1115Key)
         combo1620Total = defaults.integer(forKey: combo1620Key)
         combo2130Total = defaults.integer(forKey: combo2130Key)
+        lifetimeMergedTiles = defaults.integer(forKey: mergedTilesKey)
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
         currentGameSnapshot.combo2130Total = combo2130Total
+        currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
     }
     
     public func onGameStart(state: GameState) {
@@ -46,6 +50,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
         currentGameSnapshot.combo2130Total = combo2130Total
+        currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
     }
     
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
@@ -54,12 +59,15 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
         currentGameSnapshot.combo2130Total = combo2130Total
+        currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
         
         if chain.count > 1 {
             mergesThisTurn = 1
             totalMerges += 1
             maxChainThisGame = max(maxChainThisGame, chain.count)
             updateComboProgress(for: chain.count)
+            lifetimeMergedTiles += chain.count
+            defaults.set(lifetimeMergedTiles, forKey: mergedTilesKey)
             
             if mergesThisTurn > 0 {
                 consecutiveMergeTurns += 1
@@ -106,6 +114,7 @@ public final class AchievementEvaluator {
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
         snapshot.combo2130Total = combo2130Total
+        snapshot.merged_tiles_total = lifetimeMergedTiles
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
@@ -136,6 +145,7 @@ public final class AchievementEvaluator {
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
         snapshot.combo2130Total = combo2130Total
+        snapshot.merged_tiles_total = lifetimeMergedTiles
         snapshot.reached_core_target = state.highestTile >= 2244
         
         var freeSlots = 0
@@ -160,12 +170,14 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
         currentGameSnapshot.combo2130Total = combo2130Total
+        currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
         snapshot.combo2130Total = combo2130Total
+        snapshot.merged_tiles_total = lifetimeMergedTiles
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -179,12 +191,14 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
         currentGameSnapshot.combo2130Total = combo2130Total
+        currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
         snapshot.combo2130Total = combo2130Total
+        snapshot.merged_tiles_total = lifetimeMergedTiles
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -212,5 +226,6 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
         currentGameSnapshot.combo2130Total = combo2130Total
+        currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
     }
 }

@@ -15,7 +15,7 @@ public final class AchievementStore {
         }
     }
     
-    public struct ComboTierDisplay: Sendable {
+    public struct ProgressTierDisplay: Sendable {
         public let milestone: Int
         public let level: Int
         public let title: String
@@ -153,6 +153,21 @@ public final class AchievementStore {
         .init(milestone: 1000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1200, spins: 1, boost4x: 1))
     ]
     
+    private static let mergeTiers: [ComboTierDefinition] = [
+        .init(milestone: 500, categoryLabel: "10. Good Combo", rewards: .init(gems: 200)),
+        .init(milestone: 1500, categoryLabel: "25. Great Combo", rewards: .init(gems: 250, swaps: 1)),
+        .init(milestone: 5000, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 300, spins: 1)),
+        .init(milestone: 15000, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 400, magnets: 1)),
+        .init(milestone: 25000, categoryLabel: "200. Combo Master", rewards: .init(gems: 500, spins: 1, swaps: 1)),
+        .init(milestone: 50000, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 650, magnets: 1, hammers: 1)),
+        .init(milestone: 100000, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 800, spins: 1, magnets: 1, swaps: 1)),
+        .init(milestone: 250000, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
+        .init(milestone: 500000, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 1200, spins: 1, magnets: 1, boost2x: 1)),
+        .init(milestone: 1000000, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 1500, spins: 2, boost3x: 1)),
+        .init(milestone: 1500000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1800, spins: 2, boost3x: 1, boost4x: 1)),
+        .init(milestone: 2000000, categoryLabel: "1200. Ultimate Combo Master", rewards: .init(gems: 2200, spins: 3, boost4x: 1))
+    ]
+    
     /// Current tier index for the moves progression achievement (persisted)
     public var movesProgressionTier: Int {
         didSet {
@@ -188,7 +203,7 @@ public final class AchievementStore {
         return Self.combo610Tiers[index]
     }
     
-    public var combo610Display: ComboTierDisplay {
+    public var combo610Display: ProgressTierDisplay {
         let tier = currentCombo610Tier
         return makeComboDisplay(
             rangeLabel: "6-10",
@@ -217,7 +232,7 @@ public final class AchievementStore {
         return Self.combo1115Tiers[index]
     }
     
-    public var combo1115Display: ComboTierDisplay {
+    public var combo1115Display: ProgressTierDisplay {
         let tier = currentCombo1115Tier
         return makeComboDisplay(
             rangeLabel: "11-15",
@@ -246,7 +261,7 @@ public final class AchievementStore {
         return Self.combo1620Tiers[index]
     }
     
-    public var combo1620Display: ComboTierDisplay {
+    public var combo1620Display: ProgressTierDisplay {
         let tier = currentCombo1620Tier
         return makeComboDisplay(
             rangeLabel: "16-20",
@@ -275,7 +290,7 @@ public final class AchievementStore {
         return Self.combo2130Tiers[index]
     }
     
-    public var combo2130Display: ComboTierDisplay {
+    public var combo2130Display: ProgressTierDisplay {
         let tier = currentCombo2130Tier
         return makeComboDisplay(
             rangeLabel: "21-30",
@@ -290,13 +305,36 @@ public final class AchievementStore {
         combo2130Tier >= Self.combo2130Tiers.count - 1
     }
     
+    /// Merge progression tier index (persisted)
+    public var mergeProgressionTier: Int {
+        didSet {
+            defaults.set(mergeProgressionTier, forKey: "mergeProgressionTier")
+            unlocks["merge_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentMergeTier: ComboTierDefinition {
+        let index = min(mergeProgressionTier, Self.mergeTiers.count - 1)
+        return Self.mergeTiers[index]
+    }
+    
+    public var mergeDisplay: ProgressTierDisplay {
+        let tier = currentMergeTier
+        return makeMergeDisplay(tier: tier, levelIndex: mergeProgressionTier, isMaxed: isMergeProgressionMaxed)
+    }
+    
+    public var isMergeProgressionMaxed: Bool {
+        mergeProgressionTier >= Self.mergeTiers.count - 1
+    }
+    
     private func makeComboDisplay(
         rangeLabel: String,
         tier: ComboTierDefinition,
         levelIndex: Int,
         maxCount: Int,
         isMaxed: Bool
-    ) -> ComboTierDisplay {
+    ) -> ProgressTierDisplay {
         let clampedIndex = min(levelIndex, maxCount - 1)
         let level = clampedIndex + 1
         let description: String
@@ -306,7 +344,31 @@ public final class AchievementStore {
             description = "Trigger combos of \(rangeLabel) tiles \(tier.milestone) times across all games to unlock the next level."
         }
         let title = "Level \(level): \(tier.milestone) combos"
-        return ComboTierDisplay(
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: tier.categoryLabel,
+            rewards: tier.rewards
+        )
+    }
+    
+    private func makeMergeDisplay(
+        tier: ComboTierDefinition,
+        levelIndex: Int,
+        isMaxed: Bool
+    ) -> ProgressTierDisplay {
+        let clampedIndex = min(levelIndex, Self.mergeTiers.count - 1)
+        let level = clampedIndex + 1
+        let description: String
+        if isMaxed {
+            description = "You've merged more tiles than anyone! Claim your final mastery reward."
+        } else {
+            description = "Merge \(tier.milestone) tiles in total to unlock the next reward."
+        }
+        let title = "Level \(level): Merge \(tier.milestone) tiles"
+        return ProgressTierDisplay(
             milestone: tier.milestone,
             level: level,
             title: title,
@@ -353,6 +415,7 @@ public final class AchievementStore {
         self.combo1115Tier = defaults.integer(forKey: "combo1115Tier")
         self.combo1620Tier = defaults.integer(forKey: "combo1620Tier")
         self.combo2130Tier = defaults.integer(forKey: "combo2130Tier")
+        self.mergeProgressionTier = defaults.integer(forKey: "mergeProgressionTier")
         loadUnlocks()
     }
     
@@ -443,6 +506,15 @@ public final class AchievementStore {
             if def.id == "combo_21_30" {
                 let targetValue = Double(currentCombo2130Tier.milestone)
                 if Double(snapshot.combo2130Total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "merge_progression" {
+                let targetValue = Double(currentMergeTier.milestone)
+                if snapshot.merged_tiles_total >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -583,6 +655,23 @@ public final class AchievementStore {
             return
         }
         
+        if definition.id == "merge_progression" {
+            let rewards = mergeDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isMergeProgressionMaxed {
+                mergeProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+        
         // Standard achievement claim
         state.claimed = true
         unlocks[definition.id] = state
@@ -638,6 +727,7 @@ public final class AchievementStore {
         case "combo_11_15_total": return .init(s.combo1115Total)
         case "combo_16_20_total": return .init(s.combo1620Total)
         case "combo_21_30_total": return .init(s.combo2130Total)
+        case "merged_tiles_total": return .init(s.merged_tiles_total)
         case "undo_used": return .init(s.undo_used)
         case "powerups_used": return .init(s.powerups_used)
         case "session_pauses": return .init(s.session_pauses)

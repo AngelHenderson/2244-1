@@ -673,6 +673,25 @@
     ]
   },
   {
+    "id": "merge_progression",
+    "gcIdentifier": "merge_progression",
+    "title": "Tile Fusion Master",
+    "description": "Merge more tiles to unlock ever better rewards.",
+    "category": "Career",
+    "rewards": {
+      "gems": 200
+    },
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "merged_tiles_total",
+        "op": ">=",
+        "value": 500
+      }
+    ]
+  },
+  {
     "id": "daily_warmup",
     "gcIdentifier": "daily_warmup",
     "title": "Daily Warmup",

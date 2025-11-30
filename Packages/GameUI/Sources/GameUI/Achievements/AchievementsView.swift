@@ -31,7 +31,8 @@ public struct AchievementsView: View {
             || id == "combo_6_10"
             || id == "combo_11_15"
             || id == "combo_16_20"
-            || id == "combo_21_30" {
+            || id == "combo_21_30"
+            || id == "merge_progression" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
         }
@@ -52,7 +53,7 @@ public struct AchievementsView: View {
                             state: achievements.unlocks[def.id],
                             tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
                             movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
-                            comboTier: comboDisplay(for: def.id),
+                            tierDisplay: tierDisplay(for: def.id),
                             onClaim: {
                                 // Claim the achievement
                                 achievements.claim(definition: def)
@@ -79,7 +80,7 @@ public struct AchievementsView: View {
         }
     }
     
-    private func comboDisplay(for id: String) -> AchievementStore.ComboTierDisplay? {
+    private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay? {
         switch id {
         case "combo_6_10":
             return achievements.combo610Display
@@ -89,6 +90,8 @@ public struct AchievementsView: View {
             return achievements.combo1620Display
         case "combo_21_30":
             return achievements.combo2130Display
+        case "merge_progression":
+            return achievements.mergeDisplay
         default:
             return nil
         }
@@ -100,7 +103,7 @@ private struct AchievementRow: View {
     let state: AchievementStore.UnlockState?
     let tileProgressionTier: (suffix: String, label: String, value: Double)?
     let movesProgressionTier: (label: String, value: Double)?
-    let comboTier: AchievementStore.ComboTierDisplay?
+    let tierDisplay: AchievementStore.ProgressTierDisplay?
     let onClaim: () -> Void
     
     public init(
@@ -108,14 +111,14 @@ private struct AchievementRow: View {
         state: AchievementStore.UnlockState?,
         tileProgressionTier: (suffix: String, label: String, value: Double)? = nil,
         movesProgressionTier: (label: String, value: Double)? = nil,
-        comboTier: AchievementStore.ComboTierDisplay? = nil,
+        tierDisplay: AchievementStore.ProgressTierDisplay? = nil,
         onClaim: @escaping () -> Void
     ) {
         self.definition = definition
         self.state = state
         self.tileProgressionTier = tileProgressionTier
         self.movesProgressionTier = movesProgressionTier
-        self.comboTier = comboTier
+        self.tierDisplay = tierDisplay
         self.onClaim = onClaim
     }
     
@@ -125,8 +128,8 @@ private struct AchievementRow: View {
     
     /// Dynamic title for progressive achievements
     private var displayTitle: String {
-        if let comboTier {
-            return comboTier.title
+        if let tierDisplay {
+            return tierDisplay.title
         }
         if let tier = tileProgressionTier {
             return "Reach the \(tier.label) tile"
@@ -142,8 +145,8 @@ private struct AchievementRow: View {
         if definition.hidden && !isUnlocked {
             return "Complete objectives to reveal this achievement."
         }
-        if let comboTier {
-            return comboTier.description
+        if let tierDisplay {
+            return tierDisplay.description
         }
         if let tier = tileProgressionTier {
             if tier.label == "∞" {
@@ -239,11 +242,11 @@ private struct AchievementRow: View {
     }
     
     private var categoryLabel: String {
-        comboTier?.categoryLabel ?? definition.category
+        tierDisplay?.categoryLabel ?? definition.category
     }
     
     private var rewardsForDisplay: AchievementDef.Rewards? {
-        comboTier?.rewards ?? definition.rewards
+        tierDisplay?.rewards ?? definition.rewards
     }
 }
 
