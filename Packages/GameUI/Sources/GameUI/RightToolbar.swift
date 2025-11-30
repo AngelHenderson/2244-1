@@ -10,11 +10,26 @@ struct RightToolbar: View {
     var body: some View {
         VStack(spacing: Tokens.Spacing.xl) {
             // Break Any Tile On The Board (Hammer)
-            boosterButton(assetName: "hammer", count: 3, price: GameStore.PowerUpCost.hammer, action: onHammer)
+            boosterButton(
+                assetName: "hammer",
+                count: gameStore.powerUpInventory["hammer", default: 0],
+                price: gameStore.powerUpPrice("hammer"),
+                action: onHammer
+            )
             // Swap Any 2 Tiles With Each Other (Restart/Swap)
-            boosterButton(assetName: "restart", count: 2, price: GameStore.PowerUpCost.shuffle, action: onSwap)
+            boosterButton(
+                assetName: "restart",
+                count: gameStore.powerUpInventory["swap", default: 0],
+                price: gameStore.powerUpPrice("swap"),
+                action: onSwap
+            )
             // Merge Same Tiles On The Board (Magnet)
-            boosterButton(assetName: "magnet", count: 2, price: 75, action: onMagnet)
+            boosterButton(
+                assetName: "magnet",
+                count: gameStore.powerUpInventory["magnet", default: 0],
+                price: gameStore.powerUpPrice("magnet"),
+                action: onMagnet
+            )
         }
     }
     
