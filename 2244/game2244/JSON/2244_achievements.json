@@ -657,6 +657,22 @@
     ]
   },
   {
+    "id": "combo_21_30",
+    "gcIdentifier": "combo_21_30",
+    "title": "Combo Mythic",
+    "description": "Chain combos of 21-30 tiles to master every tier.",
+    "category": "Combo",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "combo_21_30_total",
+        "op": ">=",
+        "value": 10
+      }
+    ]
+  },
+  {
     "id": "daily_warmup",
     "gcIdentifier": "daily_warmup",
     "title": "Daily Warmup",

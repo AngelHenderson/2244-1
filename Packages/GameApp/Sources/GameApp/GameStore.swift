@@ -1244,9 +1244,33 @@ public final class GameStore {
     
     public enum PowerUpCost {
         public static let hammer = 50
-        public static let swap = 75
+        public static let swap = 70
         public static let shuffle = 100
-        public static let magnet = 150
+        public static let magnet = 90
+    }
+    
+    private func milestonePriceDelta() -> Int {
+        let highest = state.highestTile
+        guard highest >= 512 else { return 0 }
+        let exponent = Int.bitWidth - highest.leadingZeroBitCount - 1
+        let milestonesUnlocked = max(0, exponent - 8)
+        return milestonesUnlocked * 10
+    }
+    
+    public func powerUpPrice(_ powerUp: String) -> Int {
+        let delta = milestonePriceDelta()
+        switch powerUp {
+        case "hammer":
+            return PowerUpCost.hammer + delta
+        case "swap":
+            return PowerUpCost.swap + delta
+        case "magnet":
+            return PowerUpCost.magnet + delta
+        case "shuffle":
+            return PowerUpCost.shuffle
+        default:
+            return PowerUpCost.hammer + delta
+        }
     }
     
     @discardableResult
@@ -1260,7 +1284,7 @@ public final class GameStore {
         if powerUpInventory["hammer", default: 0] > 0 {
             powerUpInventory["hammer", default: 0] -= 1
         } else {
-            guard spendCoins(PowerUpCost.hammer) else { return false }
+            guard spendCoins(powerUpPrice("hammer")) else { return false }
         }
         
         runHammerPipeline(at: position)
@@ -1282,7 +1306,7 @@ public final class GameStore {
         if powerUpInventory["swap", default: 0] > 0 {
             powerUpInventory["swap", default: 0] -= 1
         } else {
-            guard spendCoins(PowerUpCost.swap) else { return false }
+            guard spendCoins(powerUpPrice("swap")) else { return false }
         }
         
         let previousBoard = state.board
@@ -1368,7 +1392,7 @@ public final class GameStore {
         if powerUpInventory["magnet", default: 0] > 0 {
             powerUpInventory["magnet", default: 0] -= 1
         } else {
-            guard spendCoins(PowerUpCost.magnet) else { return false }
+            guard spendCoins(powerUpPrice("magnet")) else { return false }
         }
         
         // Capture previous highest for milestone detection
@@ -1444,10 +1468,10 @@ public final class GameStore {
     public func isPowerUpAvailable(_ powerUp: String) -> Bool {
         if powerUpInventory[powerUp, default: 0] > 0 { return true }
         switch powerUp {
-        case "hammer": return coins >= PowerUpCost.hammer
-        case "shuffle": return coins >= PowerUpCost.shuffle
-        case "swap": return coins >= PowerUpCost.swap
-        case "magnet": return coins >= PowerUpCost.magnet
+        case "hammer", "swap", "magnet":
+            return coins >= powerUpPrice(powerUp)
+        case "shuffle":
+            return coins >= PowerUpCost.shuffle
         default: return false
         }
     }

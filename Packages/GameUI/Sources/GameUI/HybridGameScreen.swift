@@ -457,7 +457,7 @@ struct SimplePowerupDock: View {
             powerupDockItem(
                 assetName: "hammer",
                 badge: gameStore.powerUpInventory["hammer", default: 0],
-                price: GameStore.PowerUpCost.hammer,
+                price: gameStore.powerUpPrice("hammer"),
                 isEnabled: gameStore.isPowerUpAvailable("hammer"),
                 action: onHammer
             )
@@ -466,7 +466,7 @@ struct SimplePowerupDock: View {
             powerupDockItem(
                 assetName: "restart",
                 badge: gameStore.powerUpInventory["swap", default: 0],
-                price: GameStore.PowerUpCost.swap,
+                price: gameStore.powerUpPrice("swap"),
                 isEnabled: gameStore.isPowerUpAvailable("swap"),
                 action: onSwap
             )
@@ -475,7 +475,7 @@ struct SimplePowerupDock: View {
             powerupDockItem(
                 assetName: "magnet",
                 badge: gameStore.powerUpInventory["magnet", default: 0],
-                price: GameStore.PowerUpCost.magnet,
+                price: gameStore.powerUpPrice("magnet"),
                 isEnabled: gameStore.isPowerUpAvailable("magnet"),
                 action: onMagnet
             )
