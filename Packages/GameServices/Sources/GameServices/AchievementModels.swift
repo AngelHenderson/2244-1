@@ -148,6 +148,9 @@ public struct GameSnapshot: Sendable {
     public var combo1620Total: Int = 0
     public var combo2130Total: Int = 0
     public var merged_tiles_total: Int = 0
+    public var hammer_uses_total: Int = 0
+    public var swap_uses_total: Int = 0
+    public var magnet_uses_total: Int = 0
     
     public init() {}
 }
