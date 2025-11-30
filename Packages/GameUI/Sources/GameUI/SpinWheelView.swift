@@ -311,7 +311,7 @@ public struct SpinWheelView: View {
         switch reward.type {
         case .gems:
             let amount = reward.amount * multiplier
-            homeState.addGems(amount)
+            grantGems(amount)
             return isGiftBox ? "Gift Box surprise! You won \(amount) gems! 💎" : "You won \(amount) gems! 💎"
             
         case .hammers:
@@ -360,6 +360,12 @@ public struct SpinWheelView: View {
             .init(type: .multiplier(.threeX), amount: 1)
         ]
         return options.randomElement() ?? options[0]
+    }
+    
+    private func grantGems(_ amount: Int) {
+        homeState.addGems(amount)
+        gameStore.addCoins(amount)
+        gameStore.saveProgressToStore()
     }
     
     private func pluralSuffix(for amount: Int) -> String {

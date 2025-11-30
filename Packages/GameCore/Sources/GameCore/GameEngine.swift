@@ -969,8 +969,9 @@ public final class GameEngine {
     public func milestonesBetween(_ previousHighest: Int, and newHighest: Int) -> [Int] {
         var milestones: [Int] = []
 
-        // Standard milestones
+        // ALL milestones including early ones
         let standardMilestones = [
+            128, 256, 512, 1024,  // Early milestones
             2048, 4096, 8192, 16384, 32768, 65536, 131072,
             262144, 524288, 1048576, 2097152,
             4194304, 8388608, 16777216, 33554432,
@@ -1003,25 +1004,44 @@ public final class GameEngine {
     /// Returns the tile value that gets added to the spawn pool when reaching a milestone
     /// Returns nil if no new tiles are added for this milestone
     public func milestoneAddedValue(for milestone: Int) -> Int? {
-        // The spawn pool changes are tied to elimination:
-        // When we eliminate value X, we start spawning X*2 as the minimum
-        // But only if this is an elimination milestone
-
-        // Check if this milestone eliminates anything
-        guard let eliminated = milestoneExcludedValue(for: milestone) else {
-            // Skip milestones (8192, 131072, etc.) don't change spawn pool
+        // Skip milestones don't add anything to spawn pool
+        let skipMilestones = [8192, 131072, 2097152, 33554432]
+        if skipMilestones.contains(milestone) {
             return nil
         }
 
-        // When we eliminate X, we add tiles 7 steps (doublings) above X
-        // X << 7 means X * 2^7 = X * 128
-        // Safe multiplication to prevent overflow
-        let addedSpawnValue = eliminated <= (Int.max >> 7) ? eliminated << 7 : Int.max
+        // For milestones beyond 134M, check skip pattern
+        if milestone >= 268435456 {
+            let log67M = 26 // log2(67108864)
+            let logMilestone = Int(log2(Double(milestone)))
+            let position = logMilestone - log67M
+            // Every 3rd position (2, 5, 8, 11...) is a skip
+            if position % 3 == 2 {
+                return nil // Skip milestone
+            }
+        }
 
-        // But we only show this as "added" if it's a meaningful change
-        // For very early milestones, the spawn pool doesn't change much
-        if milestone >= 2048 && addedSpawnValue > 2 {
+        // For ALL other milestones, calculate what gets added
+        // If there's an explicit elimination, use that to calculate added value
+        if let eliminated = milestoneExcludedValue(for: milestone) {
+            // When we eliminate X, we add tiles 7 steps above X
+            let addedSpawnValue = eliminated <= (Int.max >> 7) ? eliminated << 7 : Int.max
             return addedSpawnValue
+        }
+
+        // For milestones without explicit elimination (like 128, 256, 512, 1024)
+        // They still add new tiles to the spawn pool
+        // The added value is typically the milestone divided by 16 then multiplied by 128
+        // This gives us a value 7 steps above what would be eliminated
+        if milestone >= 128 {
+            // For these milestones, we add tiles based on the milestone value
+            // The pattern is: milestone/16 is roughly what gets "eliminated"
+            // And we add 7 steps above that
+            let implicitEliminated = milestone / 16
+            if implicitEliminated >= 1 {
+                let addedSpawnValue = implicitEliminated <= (Int.max >> 7) ? implicitEliminated << 7 : Int.max
+                return addedSpawnValue
+            }
         }
 
         return nil
@@ -1030,8 +1050,18 @@ public final class GameEngine {
     /// Returns the tile value that gets eliminated when reaching a milestone
     /// Returns nil if the milestone doesn't eliminate anything (skip milestone)
     public func milestoneExcludedValue(for milestone: Int) -> Int? {
-        // New elimination pattern based on specific milestones
+        // Skip milestones don't eliminate anything
+        let skipMilestones = [8192, 131072, 2097152, 33554432]
+        if skipMilestones.contains(milestone) {
+            return nil
+        }
+
+        // Explicit elimination pattern for major milestones
         switch milestone {
+        case 128: return 1         // 128 eliminates 1s (if they exist)
+        case 256: return 1         // 256 eliminates 1s
+        case 512: return 1         // 512 eliminates 1s
+        case 1024: return 1        // 1024 eliminates 1s
         case 2048: return 2        // 2K eliminates 2s
         case 4096: return 4        // 4K eliminates 4s
         case 8192: return nil      // 8K - skip
