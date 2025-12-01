@@ -1,9 +1,11 @@
 import SwiftUI
+import GameApp
 
 @MainActor
 public struct PlayerProfileView: View {
     @Environment(\.profileClient) private var client
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.gameStore) private var gameStore
     @State private var model = ProfileModel()
 
     public init() {}
@@ -22,6 +24,7 @@ public struct PlayerProfileView: View {
             }
             .refreshable {
                 await model.load(using: client)
+                updateTierStatsFromStore()
             }
             .navigationTitle("Player Profile")
             .navigationBarTitleDisplayMode(.inline)
@@ -36,6 +39,7 @@ public struct PlayerProfileView: View {
             }
             .task { 
                 await model.load(using: client)
+                updateTierStatsFromStore()
             }
             .sheet(isPresented: $model.showCustomize) {
                 AvatarCustomizeView(
@@ -69,9 +73,16 @@ public struct PlayerProfileView: View {
                     }
                 )
             }
+            .onChange(of: gameStore.tierMasteryCounts) { _, _ in
+                updateTierStatsFromStore()
+            }
         }
     }
 
+    private func updateTierStatsFromStore() {
+        model.tiers = TierStat.stats(from: gameStore.tierMasteryCounts)
+    }
+    
     // MARK: Sections
 
     private var identityHero: some View {
@@ -197,11 +208,17 @@ public struct PlayerProfileView: View {
                     .font(.headline)
                 Spacer()
             }
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
-                                GridItem(.flexible(), spacing: 12)],
-                      spacing: 12) {
-                ForEach(model.tiers) { tier in
-                    TierCard(tier: tier)
+            if model.tiers.isEmpty {
+                Text("Make higher merges to unlock mastery stats.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
+                                    GridItem(.flexible(), spacing: 12)],
+                          spacing: 12) {
+                    ForEach(model.tiers) { tier in
+                        TierCard(tier: tier)
+                    }
                 }
             }
         }

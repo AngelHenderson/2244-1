@@ -36,6 +36,9 @@ public struct GameProgress: Codable, Equatable, Sendable {
     // Power-up inventory
     public var powerUpInventory: [String: Int]
     
+    // Tier mastery progress keyed by abbreviation suffix (K, M, a, bz, ...)
+    public var tierMasteryCounts: [String: Int]?
+    
     // JourneyKit state
     public var journeyState: JourneyState
     
@@ -222,6 +225,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         currentSessionState: SessionState? = nil,
         activeScoreBoost: ScoreBoostState? = nil,
         powerUpInventory: [String: Int] = ["hammer": 3, "shuffle": 2, "swap": 2, "undo": 1],
+        tierMasteryCounts: [String: Int]? = nil,
         journeyState: JourneyState = JourneyState(),
         sessionTracking: SessionTracking = SessionTracking(),
         hasInfinityAchievement: Bool = false,
@@ -247,6 +251,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         self.currentSessionState = currentSessionState
         self.activeScoreBoost = activeScoreBoost
         self.powerUpInventory = powerUpInventory
+        self.tierMasteryCounts = tierMasteryCounts
         self.journeyState = journeyState
         self.sessionTracking = sessionTracking
         self.hasInfinityAchievement = hasInfinityAchievement

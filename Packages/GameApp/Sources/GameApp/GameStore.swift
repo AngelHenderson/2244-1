@@ -385,12 +385,14 @@ public final class GameStore {
     // Replay recording
     public private(set) var movesHistory: [[Position]] = []
     public private(set) var powerUpHistory: [PowerUpAction] = []
+    public private(set) var tierMasteryCounts: [String: Int] = [:]
     
     public init(config: GameConfig = GameConfig(), progressStore: UserDefaultsProgressStore = UserDefaultsProgressStore()) {
         self.progressStore = progressStore
         
         // Load saved progress synchronously during initialization
         let loadedProgress = progressStore.loadSync()
+        self.tierMasteryCounts = GameStore.decodeTierMasteryCounts(from: loadedProgress)
         
         // Initialize engine with loaded state if available
         if let progress = loadedProgress, let sessionState = progress.currentSessionState {
@@ -487,6 +489,7 @@ public final class GameStore {
         initializeSessionTracking()
         restoreScoreBoostState(from: loadedProgress)
         restorePowerDiscountState(from: loadedProgress)
+        persistTierMasteryCountsToDefaults()
 
         // Note: restoreProgress() is now handled properly during GameProgress loading
         // Commenting out to prevent duplicate restoration that causes gem rollback
@@ -755,6 +758,9 @@ public final class GameStore {
         // Offer to double only if we created a tile that is one below the previous highest
         // or another instance of the previous highest.
         if addedValue > 0 {
+            if let resultPosition = lastPos {
+                incrementTierMasteryCount(for: state.board[resultPosition], value: addedValue)
+            }
             let offerIfOneBelow = (previousHighest >= 4) && (addedValue == previousHighest / 2)
             let offerIfAnotherHighest = (addedValue == previousHighest)
             pendingDoubleBase = (offerIfOneBelow || offerIfAnotherHighest) ? addedValue : nil
@@ -1917,12 +1923,53 @@ extension GameStore {
         static let currentHighestStep = "currentHighestTileStep"
     }
     
+    private enum TierDefaultsKey {
+        static let counts = "tierMasteryCounts"
+    }
+    
     private func persistedBestScoreAlpha() -> AlphaNumber {
         if let string = UserDefaults.standard.string(forKey: ScoreDefaultsKey.savedBestScoreAlpha),
            let alpha = AlphaNumber(decimalString: string) {
             return alpha
         }
         return AlphaNumber(UserDefaults.standard.integer(forKey: "savedBestScore"))
+    }
+    
+    private static func decodeTierMasteryCounts(from progress: GameProgress?) -> [String: Int] {
+        if let counts = progress?.tierMasteryCounts, !counts.isEmpty {
+            return counts
+        }
+        if let data = UserDefaults.standard.data(forKey: TierDefaultsKey.counts),
+           let decoded = try? JSONDecoder().decode([String: Int].self, from: data) {
+            return decoded
+        }
+        return [:]
+    }
+    
+    private func persistTierMasteryCountsToDefaults() {
+        if let data = try? JSONEncoder().encode(tierMasteryCounts) {
+            UserDefaults.standard.set(data, forKey: TierDefaultsKey.counts)
+        }
+    }
+    
+    private func incrementTierMasteryCount(for tile: Tile?, value: Int) {
+        guard let suffix = tierSuffix(for: tile, value: value) else { return }
+        tierMasteryCounts[suffix, default: 0] += 1
+        persistTierMasteryCountsToDefaults()
+    }
+    
+    private func tierSuffix(for tile: Tile?, value: Int) -> String? {
+        guard value > 0 else { return nil }
+        let step: Int?
+        if let tile, let tileStep = tile.stepIndex {
+            step = tileStep
+        } else {
+            step = TileStepLabelFormatter.stepForValue(value)
+        }
+        guard let step else { return nil }
+        let label = TileStepLabelFormatter.labelForStep(step)
+        let suffix = label.trimmingCharacters(in: .decimalDigits)
+        return suffix.isEmpty ? nil : suffix
     }
     
     private func persistedScoreAlpha() -> AlphaNumber? {
@@ -2162,7 +2209,8 @@ extension GameStore {
             hasInfinityAchievement: hasInfinity,
             queuedScoreBoostTierID: queuedScoreBoostTierID?.rawValue,
             activePowerDiscount: discountState,
-            queuedPowerDiscountTierID: queuedPowerDiscountTierID?.rawValue
+            queuedPowerDiscountTierID: queuedPowerDiscountTierID?.rawValue,
+            tierMasteryCounts: tierMasteryCounts
         )
     }
     
@@ -2328,6 +2376,7 @@ extension GameStore {
         
         // Save pending gift boxes
         persistPendingGiftBoxes()
+        persistTierMasteryCountsToDefaults()
         
         // Save power-up history (last 10 actions)
         let recentPowerUpHistory = Array(powerUpHistory.suffix(10))

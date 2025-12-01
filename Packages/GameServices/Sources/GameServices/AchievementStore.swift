@@ -203,7 +203,7 @@ public final class AchievementStore {
         .init(milestone: 75, categoryLabel: "Use MegaMerge 75 Times", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 100, categoryLabel: "Use MegaMerge 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
         .init(milestone: 125, categoryLabel: "Use MegaMerge 125 Times", rewards: .init(gems: 500, boost4x: 1)),
-        .init(milestone: 150, categoryLabel: "Use MegaMerge 150 Times", rewards: .init(gems: 500, magnets: 1, swaps: 1, hammers: 1, boost3x: 1)),
+        .init(milestone: 150, categoryLabel: "Use MegaMerge 150 Times", rewards: .init(gems: 500, hammers: 1, magnets: 1, swaps: 1, boost3x: 1)),
         .init(milestone: 200, categoryLabel: "Use MegaMerge 200 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
         .init(milestone: 300, categoryLabel: "Use MegaMerge 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
     ]

@@ -150,8 +150,22 @@ public actor ProgressSyncCoordinator: Sendable {
             unlockedThemes: a.unlockedThemes.union(b.unlockedThemes),
             completedDailyChallenges: max(a.completedDailyChallenges, b.completedDailyChallenges),
             currentWinStreak: max(a.currentWinStreak, b.currentWinStreak),
-            bestWinStreak: max(a.bestWinStreak, b.bestWinStreak)
+            bestWinStreak: max(a.bestWinStreak, b.bestWinStreak),
+            tierMasteryCounts: mergeTierCounts(a.tierMasteryCounts, b.tierMasteryCounts)
         )
+    }
+    
+    private func mergeTierCounts(_ lhs: [String: Int]?, _ rhs: [String: Int]?) -> [String: Int]? {
+        let left = lhs ?? [:]
+        let right = rhs ?? [:]
+        if left.isEmpty && right.isEmpty {
+            return nil
+        }
+        var merged = left
+        for (key, value) in right {
+            merged[key] = max(value, merged[key] ?? 0)
+        }
+        return merged
     }
 }
 

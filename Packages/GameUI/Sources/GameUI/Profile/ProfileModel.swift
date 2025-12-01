@@ -18,6 +18,43 @@ public struct TierStat: Identifiable, Hashable, Sendable {
     }
 }
 
+public extension TierStat {
+    static func stats(from counts: [String: Int]) -> [TierStat] {
+        counts
+            .filter { $0.value > 0 }
+            .sorted { lhs, rhs in
+                if lhs.value == rhs.value {
+                    return lhs.key < rhs.key
+                }
+                return lhs.value > rhs.value
+            }
+            .map { (key, value) in
+                TierStat(
+                    key: key,
+                    value: value,
+                    color: color(for: key),
+                    label: "\(key.uppercased())-Tier"
+                )
+            }
+    }
+    
+    private static func color(for key: String) -> Color {
+        let lowered = key.lowercased()
+        if let predefined = predefinedColors[lowered] {
+            return predefined
+        }
+        let palette: [Color] = [.purple, .pink, .red, .orange, .yellow, .green, .teal, .cyan, .blue, .indigo]
+        let hash = lowered.unicodeScalars.reduce(0) { $0 + Int($1.value) }
+        return palette[abs(hash) % palette.count]
+    }
+    
+    private static let predefinedColors: [String: Color] = [
+        "k": .purple,
+        "m": .pink,
+        "b": .red
+    ]
+}
+
 public struct SeasonInfo: Equatable, Sendable {
     public var name: String        // "Season 7"
     public var division: String    // "Diamond"
