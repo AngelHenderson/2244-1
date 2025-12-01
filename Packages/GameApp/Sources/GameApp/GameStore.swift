@@ -2204,13 +2204,13 @@ extension GameStore {
             currentSessionState: sessionState,
             activeScoreBoost: boostState,
             powerUpInventory: powerUpInventory,
+            tierMasteryCounts: tierMasteryCounts,
             journeyState: journeyState,
             sessionTracking: sessionTracking,
             hasInfinityAchievement: hasInfinity,
             queuedScoreBoostTierID: queuedScoreBoostTierID?.rawValue,
             activePowerDiscount: discountState,
-            queuedPowerDiscountTierID: queuedPowerDiscountTierID?.rawValue,
-            tierMasteryCounts: tierMasteryCounts
+            queuedPowerDiscountTierID: queuedPowerDiscountTierID?.rawValue
         )
     }
     
