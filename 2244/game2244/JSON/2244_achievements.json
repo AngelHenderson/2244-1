@@ -324,6 +324,22 @@
     ]
   },
   {
+    "id": "hammer_usage_progression",
+    "gcIdentifier": "hammer_usage_progression",
+    "title": "Hammer Master",
+    "description": "Use hammers across all games to unlock the rewards you listed.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "hammer_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
     "id": "magnet_usage_progression",
     "gcIdentifier": "magnet_usage_progression",
     "title": "MegaMerge Master",

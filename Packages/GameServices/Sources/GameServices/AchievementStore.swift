@@ -194,6 +194,20 @@ public final class AchievementStore {
         .init(milestone: 300, categoryLabel: "Use Swap 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
     ]
     
+    private static let hammerUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "Use Hammer 5 Times", rewards: .init(gems: 250)),
+        .init(milestone: 10, categoryLabel: "Use Hammer 10 Times", rewards: .init(gems: 250, magnets: 1)),
+        .init(milestone: 20, categoryLabel: "Use Hammer 20 Times", rewards: .init(gems: 200, spins: 1, hammers: 1, boost4x: 1)),
+        .init(milestone: 30, categoryLabel: "Use Hammer 30 Times", rewards: .init(magnets: 1, swaps: 1, spins: 1)),
+        .init(milestone: 50, categoryLabel: "Use Hammer 50 Times", rewards: .init(gems: 500, hammers: 1)),
+        .init(milestone: 75, categoryLabel: "Use Hammer 75 Times", rewards: .init(gems: 500, swaps: 1)),
+        .init(milestone: 100, categoryLabel: "Use Hammer 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 150, categoryLabel: "Use Hammer 150 Times", rewards: .init(gems: 500, boost4x: 1)),
+        .init(milestone: 200, categoryLabel: "Use Hammer 200 Times", rewards: .init(gems: 500, magnets: 1, swaps: 1, hammers: 1, boost3x: 1)),
+        .init(milestone: 250, categoryLabel: "Use Hammer 250 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
+        .init(milestone: 300, categoryLabel: "Use Hammer 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
+    ]
+    
     private static let magnetUseTiers: [ComboTierDefinition] = [
         .init(milestone: 5, categoryLabel: "Use MegaMerge 5 Times", rewards: .init(gems: 250)),
         .init(milestone: 10, categoryLabel: "Use MegaMerge 10 Times", rewards: .init(gems: 250, magnets: 1)),
@@ -396,6 +410,34 @@ public final class AchievementStore {
         swapUsesProgressionTier >= Self.swapUseTiers.count - 1
     }
     
+    /// Hammer usage progression tier index (persisted)
+    public var hammerUsesProgressionTier: Int {
+        didSet {
+            defaults.set(hammerUsesProgressionTier, forKey: "hammerUsesProgressionTier")
+            unlocks["hammer_usage_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentHammerUsesTier: ComboTierDefinition {
+        let index = min(hammerUsesProgressionTier, Self.hammerUseTiers.count - 1)
+        return Self.hammerUseTiers[index]
+    }
+    
+    public var hammerUsesDisplay: ProgressTierDisplay {
+        makePowerUseDisplay(
+            powerUpLabel: "Hammer",
+            tier: currentHammerUsesTier,
+            levelIndex: hammerUsesProgressionTier,
+            maxCount: Self.hammerUseTiers.count,
+            isMaxed: isHammerUsesProgressionMaxed
+        )
+    }
+    
+    public var isHammerUsesProgressionMaxed: Bool {
+        hammerUsesProgressionTier >= Self.hammerUseTiers.count - 1
+    }
+    
     /// MegaMerge (magnet) usage progression tier index (persisted)
     public var magnetUsesProgressionTier: Int {
         didSet {
@@ -539,6 +581,7 @@ public final class AchievementStore {
         self.combo2130Tier = defaults.integer(forKey: "combo2130Tier")
         self.mergeProgressionTier = defaults.integer(forKey: "mergeProgressionTier")
         self.swapUsesProgressionTier = defaults.integer(forKey: "swapUsesProgressionTier")
+        self.hammerUsesProgressionTier = defaults.integer(forKey: "hammerUsesProgressionTier")
         self.magnetUsesProgressionTier = defaults.integer(forKey: "magnetUsesProgressionTier")
         loadUnlocks()
     }
@@ -649,6 +692,15 @@ public final class AchievementStore {
             if def.id == "swap_usage_progression" {
                 let targetValue = Double(currentSwapUsesTier.milestone)
                 if Double(snapshot.swap_uses_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "hammer_usage_progression" {
+                let targetValue = Double(currentHammerUsesTier.milestone)
+                if Double(snapshot.hammer_uses_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -832,6 +884,23 @@ public final class AchievementStore {
             return
         }
         
+        if definition.id == "hammer_usage_progression" {
+            let rewards = hammerUsesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isHammerUsesProgressionMaxed {
+                hammerUsesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+        
         if definition.id == "magnet_usage_progression" {
             let rewards = magnetUsesDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -890,6 +959,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.merged_tiles_total), target: Double(currentMergeTier.milestone))
         case "swap_usage_progression":
             return makeProgress(current: Double(snapshot.swap_uses_total), target: Double(currentSwapUsesTier.milestone))
+        case "hammer_usage_progression":
+            return makeProgress(current: Double(snapshot.hammer_uses_total), target: Double(currentHammerUsesTier.milestone))
         case "magnet_usage_progression":
             return makeProgress(current: Double(snapshot.magnet_uses_total), target: Double(currentMagnetUsesTier.milestone))
         default:
