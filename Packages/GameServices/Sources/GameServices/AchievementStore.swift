@@ -131,7 +131,7 @@ public final class AchievementStore {
         .init(milestone: 300, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 200, boost2x: 1, boost4x: 1)),
         .init(milestone: 400, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 500, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 750, spins: 1, magnets: 1)),
-        .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(spins: 2, magnets: 1, boost2x: 1)),
+        .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(spins: 2, hammers: nil, magnets: 1, boost2x: 1)),
         .init(milestone: 750, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 500, hammers: 1, magnets: 1, swaps: 1)),
         .init(milestone: 1000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 800, spins: 1, hammers: 1, boost4x: 1))
     ]
@@ -143,9 +143,9 @@ public final class AchievementStore {
         .init(milestone: 100, categoryLabel: "100. Glorious Combo", rewards: .init(spins: 2)),
         .init(milestone: 200, categoryLabel: "200. Combo Master", rewards: .init(magnets: 1, boost4x: 1)),
         .init(milestone: 300, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 500, boost3x: 1)),
-        .init(milestone: 400, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 350, spins: 1, magnets: 1, swaps: 1)),
+        .init(milestone: 400, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 350, spins: 1, hammers: nil, magnets: 1, swaps: 1)),
         .init(milestone: 500, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 1000, spins: 1)),
-        .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 650, spins: 1, magnets: 1, swaps: 1, boost2x: 1)),
+        .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 650, spins: 1, hammers: nil, magnets: 1, swaps: 1, boost2x: 1)),
         .init(milestone: 750, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 800, hammers: 1, magnets: 1, swaps: 1)),
         .init(milestone: 1000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 950, spins: 1, hammers: 1, boost3x: 1, boost4x: 1))
     ]
@@ -155,12 +155,13 @@ public final class AchievementStore {
         .init(milestone: 25, categoryLabel: "25. Great Combo", rewards: .init(gems: 400, magnets: 1)),
         .init(milestone: 50, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 500, swaps: 1, boost2x: 1)),
         .init(milestone: 100, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 350, spins: 2)),
-        .init(milestone: 200, categoryLabel: "200. Combo Master", rewards: .init(gems: 300, spins: 1, magnets: 1, boost4x: 1)),
+        .init(milestone: 200, categoryLabel: "200. Combo Master", rewards: .init(gems: 300, spins: 1, hammers: nil, magnets: 1, boost4x: 1)),
         .init(milestone: 300, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 1000, hammers: 1, boost3x: 1)),
-        // FIX: ensure 'hammers' precedes 'magnets' per Rewards initializer
+        // FIXED ORDER: spins, hammers, magnets
         .init(milestone: 400, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 850, spins: 1, hammers: nil, magnets: 2)),
         .init(milestone: 500, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 1150, spins: 1, boost2x: 1)),
-        .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 500, spins: 1, magnets: 1, boost3x: 1, boost4x: 1)),
+        // FIXED ORDER: spins, hammers, magnets
+        .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 500, spins: 1, hammers: nil, magnets: 1, boost3x: 1, boost4x: 1)),
         .init(milestone: 750, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 1050, magnets: 1)),
         .init(milestone: 1000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1200, spins: 1, boost4x: 1))
     ]
@@ -172,9 +173,9 @@ public final class AchievementStore {
         .init(milestone: 15000, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 75, hammers: 2)),
         .init(milestone: 25000, categoryLabel: "200. Combo Master", rewards: .init(gems: 100, spins: 1, hammers: 1, swaps: 1)),
         .init(milestone: 50000, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 500)),
-        .init(milestone: 100000, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 250, spins: 1, magnets: 1)),
+        .init(milestone: 100000, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 250, spins: 1, hammers: nil, magnets: 1)),
         .init(milestone: 250000, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 350, magnets: 2)),
-        .init(milestone: 500000, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 350, spins: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 500000, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 350, spins: 1, hammers: nil, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1)),
         .init(milestone: 1000000, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 750, swaps: 2)),
         .init(milestone: 1500000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1075, spins: 1, boost3x: 1, boost4x: 1)),
         .init(milestone: 2000000, categoryLabel: "1200. Ultimate Combo Master", rewards: .init(gems: 1250, magnets: 1, boost4x: 1))
@@ -184,7 +185,7 @@ public final class AchievementStore {
         .init(milestone: 5, categoryLabel: "Use Swap 5 Times", rewards: .init(gems: 75, swaps: 1)),
         .init(milestone: 10, categoryLabel: "Use Swap 10 Times", rewards: .init(gems: 100, magnets: 1)),
         .init(milestone: 20, categoryLabel: "Use Swap 20 Times", rewards: .init(hammers: 1, boost4x: 1)),
-        .init(milestone: 30, categoryLabel: "Use Swap 30 Times", rewards: .init(spins: 1, magnets: 1, swaps: 1)),
+        .init(milestone: 30, categoryLabel: "Use Swap 30 Times", rewards: .init(spins: 1, hammers: nil, magnets: 1, swaps: 1)),
         .init(milestone: 50, categoryLabel: "Use Swap 50 Times", rewards: .init(gems: 500, hammers: 1)),
         .init(milestone: 75, categoryLabel: "Use Swap 75 Times", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 100, categoryLabel: "Use Swap 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
@@ -198,12 +199,12 @@ public final class AchievementStore {
         .init(milestone: 5, categoryLabel: "Use Hammer 5 Times", rewards: .init(gems: 250)),
         .init(milestone: 10, categoryLabel: "Use Hammer 10 Times", rewards: .init(gems: 250, magnets: 1)),
         .init(milestone: 20, categoryLabel: "Use Hammer 20 Times", rewards: .init(gems: 200, spins: 1, hammers: 1, boost4x: 1)),
-        .init(milestone: 30, categoryLabel: "Use Hammer 30 Times", rewards: .init(magnets: 1, swaps: 1, spins: 1)),
+        .init(milestone: 30, categoryLabel: "Use Hammer 30 Times", rewards: .init(spins: 1, hammers: nil, magnets: 1, swaps: 1)),
         .init(milestone: 50, categoryLabel: "Use Hammer 50 Times", rewards: .init(gems: 500, hammers: 1)),
         .init(milestone: 75, categoryLabel: "Use Hammer 75 Times", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 100, categoryLabel: "Use Hammer 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
         .init(milestone: 150, categoryLabel: "Use Hammer 150 Times", rewards: .init(gems: 500, boost4x: 1)),
-        .init(milestone: 200, categoryLabel: "Use Hammer 200 Times", rewards: .init(gems: 500, magnets: 1, swaps: 1, hammers: 1, boost3x: 1)),
+        .init(milestone: 200, categoryLabel: "Use Hammer 200 Times", rewards: .init(gems: 500, hammers: nil, magnets: 1, swaps: 1, hammers: 1, boost3x: 1)),
         .init(milestone: 250, categoryLabel: "Use Hammer 250 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
         .init(milestone: 300, categoryLabel: "Use Hammer 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
     ]
@@ -212,7 +213,7 @@ public final class AchievementStore {
         .init(milestone: 5, categoryLabel: "Use MegaMerge 5 Times", rewards: .init(gems: 250)),
         .init(milestone: 10, categoryLabel: "Use MegaMerge 10 Times", rewards: .init(gems: 250, magnets: 1)),
         .init(milestone: 20, categoryLabel: "Use MegaMerge 20 Times", rewards: .init(gems: 200, spins: 1, hammers: 1, boost4x: 1)),
-        .init(milestone: 30, categoryLabel: "Use MegaMerge 30 Times", rewards: .init(spins: 1, magnets: 1, swaps: 1)),
+        .init(milestone: 30, categoryLabel: "Use MegaMerge 30 Times", rewards: .init(spins: 1, hammers: nil, magnets: 1, swaps: 1)),
         .init(milestone: 50, categoryLabel: "Use MegaMerge 50 Times", rewards: .init(gems: 500, hammers: 1)),
         .init(milestone: 75, categoryLabel: "Use MegaMerge 75 Times", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 100, categoryLabel: "Use MegaMerge 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
