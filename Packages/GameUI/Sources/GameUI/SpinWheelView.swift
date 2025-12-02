@@ -391,13 +391,25 @@ private func labelRotation(for rawAngle: CGFloat) -> Angle {
 
 #if canImport(UIKit)
 private func segmentImage(named name: String) -> Image? {
-    guard let image = UIImage(named: name, in: .module, compatibleWith: nil) else { return nil }
-    return Image(uiImage: image).renderingMode(.original)
+    if let uiImage = UIImage(named: name, in: .module, compatibleWith: nil) {
+        return Image(uiImage: uiImage).renderingMode(.original)
+    }
+    if let path = Bundle.module.path(forResource: name, ofType: "png"),
+       let uiImage = UIImage(contentsOfFile: path) {
+        return Image(uiImage: uiImage).renderingMode(.original)
+    }
+    return nil
 }
 #elseif canImport(AppKit)
 private func segmentImage(named name: String) -> Image? {
-    guard let image = Bundle.module.image(forResource: NSImage.Name(name)) else { return nil }
-    return Image(nsImage: image)
+    if let nsImage = Bundle.module.image(forResource: NSImage.Name(name)) {
+        return Image(nsImage: nsImage)
+    }
+    if let path = Bundle.module.path(forResource: name, ofType: "png"),
+       let nsImage = NSImage(contentsOfFile: path) {
+        return Image(nsImage: nsImage)
+    }
+    return nil
 }
 #else
 private func segmentImage(named name: String) -> Image? { nil }
