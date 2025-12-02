@@ -204,7 +204,7 @@ public final class AchievementStore {
         .init(milestone: 75, categoryLabel: "Use Hammer 75 Times", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 100, categoryLabel: "Use Hammer 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
         .init(milestone: 150, categoryLabel: "Use Hammer 150 Times", rewards: .init(gems: 500, boost4x: 1)),
-        .init(milestone: 200, categoryLabel: "Use Hammer 200 Times", rewards: .init(gems: 500, hammers: nil, magnets: 1, swaps: 1, hammers: 1, boost3x: 1)),
+        .init(milestone: 200, categoryLabel: "Use Hammer 200 Times", rewards: .init(gems: 500, hammers: 1, magnets: 1, swaps: 1, boost3x: 1)),
         .init(milestone: 250, categoryLabel: "Use Hammer 250 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
         .init(milestone: 300, categoryLabel: "Use Hammer 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
     ]
@@ -213,7 +213,7 @@ public final class AchievementStore {
         .init(milestone: 5, categoryLabel: "Use MegaMerge 5 Times", rewards: .init(gems: 250)),
         .init(milestone: 10, categoryLabel: "Use MegaMerge 10 Times", rewards: .init(gems: 250, magnets: 1)),
         .init(milestone: 20, categoryLabel: "Use MegaMerge 20 Times", rewards: .init(gems: 200, spins: 1, hammers: 1, boost4x: 1)),
-        .init(milestone: 30, categoryLabel: "Use MegaMerge 30 Times", rewards: .init(spins: 1, hammers: nil, magnets: 1, swaps: 1)),
+        .init(milestone: 30, categoryLabel: "Use MegaMerge 30 Times", rewards: .init(spins: 1, magnets: 1, swaps: 1)),
         .init(milestone: 50, categoryLabel: "Use MegaMerge 50 Times", rewards: .init(gems: 500, hammers: 1)),
         .init(milestone: 75, categoryLabel: "Use MegaMerge 75 Times", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 100, categoryLabel: "Use MegaMerge 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
