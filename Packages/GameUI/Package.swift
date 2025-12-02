@@ -22,6 +22,9 @@ let package = Package(
         .target(
             name: "GameUI",
             dependencies: ["GameCore", "GameApp", "GameServices"],
+            resources: [
+                .process("Resources")
+            ],
             swiftSettings: [
                 .swiftLanguageMode(.v6),
                 .enableExperimentalFeature("StrictConcurrency")

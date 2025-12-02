@@ -1,3 +1,8 @@
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 import SwiftUI
 import Observation
 import GameApp
@@ -375,8 +380,28 @@ public struct SpinWheelView: View {
 }
 
 private func labelRotation(for rawAngle: CGFloat) -> Angle {
-    Angle(radians: Double(rawAngle))
+    var angle = rawAngle
+    if angle > .pi / 2 {
+        angle -= .pi
+    } else if angle < -.pi / 2 {
+        angle += .pi
+    }
+    return .radians(Double(angle))
 }
+
+#if canImport(UIKit)
+private func segmentImage(named name: String) -> Image? {
+    guard let image = UIImage(named: name, in: .module, compatibleWith: nil) else { return nil }
+    return Image(uiImage: image).renderingMode(.original)
+}
+#elseif canImport(AppKit)
+private func segmentImage(named name: String) -> Image? {
+    guard let image = Bundle.module.image(forResource: NSImage.Name(name)) else { return nil }
+    return Image(nsImage: image)
+}
+#else
+private func segmentImage(named name: String) -> Image? { nil }
+#endif
 
 // MARK: - Background
 
@@ -516,14 +541,22 @@ struct WheelFace: View {
                 ForEach(segments.indices, id: \.self) { i in
                     let n = max(segments.count, 1)
                     let span = 2 * .pi / CGFloat(n)
-                    let centerAngle = CGFloat(i) * span
+                    let centerAngle = CGFloat(i) * span - (.pi / 2)
                     let r = radius * 0.62
-                    let x = rect.midX + r * sin(centerAngle)
-                    let y = rect.midY - r * cos(centerAngle)
+                    let x = rect.midX + r * cos(centerAngle)
+                    let y = rect.midY + r * sin(centerAngle)
                     let rotation = labelRotation(for: centerAngle)
                     HStack(spacing: 6) {
-                        Text(segments[i].icon)
-                            .font(.system(size: 20))
+                        if let assetName = segments[i].iconAssetName,
+                           let bundleImage = segmentImage(named: assetName) {
+                            bundleImage
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28, height: 28)
+                        } else {
+                            Text(segments[i].icon)
+                                .font(.system(size: 20))
+                        }
                         Text(segments[i].title)
                             .font(.system(size: 11, weight: .bold, design: .rounded))
                             .foregroundStyle(.white)
