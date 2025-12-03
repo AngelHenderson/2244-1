@@ -379,16 +379,6 @@ public struct SpinWheelView: View {
     }
 }
 
-private func labelRotation(for rawAngle: CGFloat) -> Angle {
-    var angle = rawAngle
-    if angle > .pi / 2 {
-        angle -= .pi
-    } else if angle < -.pi / 2 {
-        angle += .pi
-    }
-    return .radians(Double(angle))
-}
-
 #if canImport(UIKit)
 private func segmentImage(named name: String) -> Image? {
     if let uiImage = UIImage(named: name, in: .module, compatibleWith: nil) {
@@ -553,13 +543,12 @@ struct WheelFace: View {
                 ForEach(segments.indices, id: \.self) { i in
                     let n = max(segments.count, 1)
                     let span = 2 * .pi / CGFloat(n)
-                    var centerAngle = CGFloat(i) * span - (.pi / 2)
-                    centerAngle = (centerAngle + .pi).truncatingRemainder(dividingBy: 2 * .pi) - .pi
+                    let centerAngle = CGFloat(i) * span
                     let r = radius * 0.62
-                    let x = rect.midX + r * cos(centerAngle)
-                    let y = rect.midY + r * sin(centerAngle)
-                    let rotation = labelRotation(for: centerAngle)
-                    HStack(spacing: 6) {
+                    let x = rect.midX + r * sin(centerAngle)
+                    let y = rect.midY - r * cos(centerAngle)
+                    
+                    RadialLabel(angle: centerAngle) {
                         if let assetName = segments[i].iconAssetName,
                            let bundleImage = segmentImage(named: assetName) {
                             bundleImage
@@ -576,10 +565,8 @@ struct WheelFace: View {
                             .lineLimit(2)
                             .multilineTextAlignment(.center)
                     }
-                    .shadow(color: .black.opacity(0.4), radius: 3)
-                    .frame(width: 110, alignment: .center)
+                    .frame(width: 110)
                     .position(x: x, y: y)
-                    .rotationEffect(rotation, anchor: .center)
                 }
                 
                 Circle()
@@ -591,6 +578,9 @@ struct WheelFace: View {
                         ),
                         lineWidth: 6
                     )
+                
+                Ticks(count: segments.count)
+                    .stroke(Color.white.opacity(0.18), style: .init(lineWidth: 2, lineCap: .round))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
