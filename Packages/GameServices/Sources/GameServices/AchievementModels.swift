@@ -83,7 +83,7 @@ public extension AchievementDef.Rewards {
     }
 }
 
-public struct GameSnapshot: Sendable {
+public struct GameSnapshot: Sendable, Codable {
     public var games_played: Int = 0
     public var merges_total: Int = 0
     public var merges_in_single_turn: Int = 0

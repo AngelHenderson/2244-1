@@ -571,6 +571,10 @@ public final class AchievementStore {
     private let gc = GameCenterManager.shared
     public var onReward: (@MainActor (AchievementDef.Rewards) -> Void)?
     private let defaults: UserDefaults
+    
+    private enum SnapshotDefaultsKey {
+        static let lastSnapshot = "achievementLastSnapshot"
+    }
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -585,6 +589,7 @@ public final class AchievementStore {
         self.hammerUsesProgressionTier = defaults.integer(forKey: "hammerUsesProgressionTier")
         self.magnetUsesProgressionTier = defaults.integer(forKey: "magnetUsesProgressionTier")
         loadUnlocks()
+        loadPersistedSnapshot()
     }
     
     public func loadCatalogFromBundle(named filename: String = "2244_achievements", in bundle: Bundle = .main) throws {
@@ -620,6 +625,7 @@ public final class AchievementStore {
     
     public func evaluate(snapshot: GameSnapshot, reportToGameCenter: Bool = true) async {
         lastEvaluatedSnapshot = snapshot
+        persistSnapshot(snapshot)
         var didUnlock = false
         for def in catalog {
             guard unlocks[def.id]?.unlocked != true else { continue }
@@ -1079,6 +1085,21 @@ public final class AchievementStore {
             object: nil,
             userInfo: ["newBalance": newGems, "added": gems]
         )
+    }
+    
+    private func persistSnapshot(_ snapshot: GameSnapshot) {
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(snapshot) {
+            defaults.set(data, forKey: SnapshotDefaultsKey.lastSnapshot)
+        }
+    }
+    
+    private func loadPersistedSnapshot() {
+        guard let data = defaults.data(forKey: SnapshotDefaultsKey.lastSnapshot) else { return }
+        let decoder = JSONDecoder()
+        if let snapshot = try? decoder.decode(GameSnapshot.self, from: data) {
+            lastEvaluatedSnapshot = snapshot
+        }
     }
     
     private func saveUnlocks() {
