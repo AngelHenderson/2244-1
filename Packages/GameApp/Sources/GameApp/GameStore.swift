@@ -1507,6 +1507,7 @@ public final class GameStore {
             defer {
                 self.isInputLocked = false
                 self.mergeCleanupTask = nil
+                self.clearLastMagnetEvent()
             }
             
             do {
@@ -1519,7 +1520,6 @@ public final class GameStore {
             
             if Task.isCancelled {
                 print("[GameStore] Magnet pipeline cancelled before merge")
-                self.clearLastMagnetEvent()
                 return
             }
             
@@ -1531,13 +1531,6 @@ public final class GameStore {
             
             self.setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
             self.achievementEvaluator?.onTilesMerged(count: matchingPositions.count)
-            
-            self.state.score = magnetResult.score
-            self.state.moves = magnetResult.moves
-            self.state.highestTile = magnetResult.highestTile
-            self.state.highestTileStep = magnetResult.highestTileStep
-            self.state.undoAvailable = magnetResult.undoAvailable
-            self.state.gems = magnetResult.gems
             
             self.performGravityDrop()
             
