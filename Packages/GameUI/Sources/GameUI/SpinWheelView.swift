@@ -549,23 +549,27 @@ struct WheelFace: View {
                     let y = rect.midY - r * cos(centerAngle)
                     
                     RadialLabel(angle: centerAngle) {
-                        if let assetName = segments[i].iconAssetName,
-                           let bundleImage = segmentImage(named: assetName) {
-                            bundleImage
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 28, height: 28)
-                        } else {
-                            Text(segments[i].icon)
-                                .font(.system(size: 20))
+                        VStack(spacing: 4) {
+                            if let assetName = segments[i].iconAssetName,
+                               let bundleImage = segmentImage(named: assetName) {
+                                bundleImage
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 32, height: 32)
+                            } else {
+                                Text(segments[i].icon)
+                                    .font(.system(size: 22))
+                            }
+                            Text(segments[i].title)
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        Text(segments[i].title)
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.center)
+                        .frame(width: 90)
                     }
-                    .frame(width: 110)
                     .position(x: x, y: y)
                 }
                 
@@ -645,6 +649,23 @@ struct WheelLights: View {
                     .position(x: x, y: y)
             }
         }
+    }
+}
+
+private struct RadialLabel<Content: View>: View {
+    let angle: CGFloat
+    @ViewBuilder var content: Content
+    
+    var body: some View {
+        let rawAngle = Angle(radians: Double(angle))
+        let counterRotation = Angle(degrees: -rawAngle.degrees)
+        
+        ZStack {
+            content
+                .rotationEffect(counterRotation)
+        }
+        .rotationEffect(rawAngle)
+        .shadow(color: .black.opacity(0.4), radius: 3)
     }
 }
 
