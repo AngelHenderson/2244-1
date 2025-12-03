@@ -548,28 +548,27 @@ struct WheelFace: View {
                     let x = rect.midX + r * sin(centerAngle)
                     let y = rect.midY - r * cos(centerAngle)
                     
-                    RadialLabel(angle: centerAngle) {
-                        VStack(spacing: 4) {
-                            if let assetName = segments[i].iconAssetName,
-                               let bundleImage = segmentImage(named: assetName) {
-                                bundleImage
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 32, height: 32)
-                            } else {
-                                Text(segments[i].icon)
-                                    .font(.system(size: 22))
-                            }
-                            Text(segments[i].title)
-                                .font(.system(size: 11, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
-                                .fixedSize(horizontal: false, vertical: true)
+                    VStack(spacing: 4) {
+                        if let assetName = segments[i].iconAssetName,
+                           let bundleImage = segmentImage(named: assetName) {
+                            bundleImage
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 32, height: 32)
+                        } else {
+                            Text(segments[i].icon)
+                                .font(.system(size: 22))
                         }
-                        .frame(width: 90)
+                        Text(segments[i].title)
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .shadow(color: .black.opacity(0.4), radius: 3)
+                    .frame(width: 90)
                     .position(x: x, y: y)
                 }
                 
