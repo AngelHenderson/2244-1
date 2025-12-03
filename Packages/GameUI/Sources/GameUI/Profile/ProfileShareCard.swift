@@ -34,32 +34,7 @@ struct ProfileShareCard: View {
             // Player identity
             VStack(spacing: 12) {
                 // Avatar with ring
-                ZStack {
-                    Circle()
-                        .fill(LinearGradient(
-                            colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
-                        .frame(width: 80, height: 80)
-                    
-                    Image(systemName: avatarSystemName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 60, height: 60)
-                        .foregroundStyle(.white)
-                    
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: [.blue, .purple],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ),
-                            lineWidth: 3
-                        )
-                        .frame(width: 84, height: 84)
-                }
+                AvatarBadge(option: AvatarCatalog.option(for: avatarSystemName), size: 84)
                 
                 Text(playerName)
                     .font(.title2.weight(.bold))
@@ -261,7 +236,7 @@ extension ProfileShareCard {
             ],
             friendCode: "AJ711-534",
             season: SeasonInfo(name: "Season 7", division: "Diamond"),
-            avatarSystemName: "pawprint.circle.fill"
+            avatarSystemName: AvatarCatalog.default.id
         )
     }
 }
@@ -269,7 +244,7 @@ extension ProfileShareCard {
 #Preview("Share Card - Light", traits: .sizeThatFitsLayout) {
     ProfileShareCard(
         playerName: "Angel Junior711",
-        avatarSystemName: "pawprint.circle.fill",
+        avatarSystemName: AvatarCatalog.default.id,
         bestScore: "3513812",
         globalRank: 534,
         friendCode: "AJ711-534",
@@ -283,7 +258,7 @@ extension ProfileShareCard {
 #Preview("Share Card - Dark", traits: .sizeThatFitsLayout) {
     ProfileShareCard(
         playerName: "Angel Junior711",
-        avatarSystemName: "pawprint.circle.fill",
+        avatarSystemName: AvatarCatalog.default.id,
         bestScore: "3513812",
         globalRank: 534,
         friendCode: "AJ711-534",

@@ -87,18 +87,11 @@ public struct PlayerProfileView: View {
 
     private var identityHero: some View {
         HStack(alignment: .center, spacing: 16) {
-            ZStack {
-                Circle().fill(.ultraThinMaterial)
-                    .frame(width: 76, height: 76)
-                Image(systemName: model.avatarSystemName)
-                    .resizable().scaledToFit()
-                    .frame(width: 56, height: 56)
-                // Cosmetic ring
-                Circle().stroke(LinearGradient(colors: [.blue, .purple], startPoint: .top, endPoint: .bottom), lineWidth: 3)
-                    .frame(width: 80, height: 80)
-            }
-            .onTapGesture { model.showCustomize = true }
-            .accessibilityLabel("Avatar. Double-tap to customize.")
+            AvatarBadge(option: AvatarCatalog.option(for: model.avatarSystemName), size: 80)
+                .onTapGesture { model.showCustomize = true }
+                .accessibilityAction {
+                    model.showCustomize = true
+                }
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
@@ -113,6 +106,14 @@ public struct PlayerProfileView: View {
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel("Edit name")
+                    
+                    Button {
+                        model.showCustomize = true
+                    } label: {
+                        Image(systemName: "pencil.tip.crop.circle")
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Customize avatar")
                 }
 
                 HStack(spacing: 8) {

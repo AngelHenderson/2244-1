@@ -82,7 +82,7 @@ struct MockProfileClient: ProfileClient, Sendable {
             tiers: left + right,
             friendCode: "AJ711-534",
             season: .init(name: "Season 7", division: "Diamond"),
-            avatarSystemName: "pawprint.circle.fill",
+            avatarSystemName: AvatarCatalog.default.id,
             countryCode: "US",
             highestTile: "1an"
         )

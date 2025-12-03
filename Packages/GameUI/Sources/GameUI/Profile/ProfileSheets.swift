@@ -51,28 +51,38 @@ struct AvatarCustomizeView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                Text("Choose Avatar Frame & Icon")
-                    .font(.headline)
-                // Placeholder content: hook into your cosmetics catalog
-                HStack(spacing: 20) {
-                    ForEach(["pawprint.circle.fill", "globe", "star.circle.fill"], id: \.self) { icon in
-                        Button {
-                            selectedAvatar = icon
-                            onSelect(icon)
-                        } label: {
-                            Image(systemName: icon)
-                                .font(.system(size: 60))
-                                .foregroundStyle(selectedAvatar == icon ? .blue : .secondary)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Choose Avatar")
+                        .font(.headline)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 20)], spacing: 20) {
+                        ForEach(AvatarCatalog.all) { option in
+                            Button {
+                                selectedAvatar = option.id
+                                onSelect(option.id)
+                            } label: {
+                                AvatarBadge(option: option, size: 90)
+                                    .overlay(alignment: .topTrailing) {
+                                        if selectedAvatar == option.id {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.white)
+                                                .shadow(radius: 2)
+                                                .offset(x: 8, y: -8)
+                                        }
+                                    }
+                                    .scaleEffect(selectedAvatar == option.id ? 1.05 : 1.0)
+                                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: selectedAvatar)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
+                    Text("Cosmetics are purely for fun and do not affect gameplay.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                 }
-                Text("Cosmetics grant no gameplay advantage.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Spacer()
+                .padding()
             }
-            .padding()
             .navigationTitle("Customize Avatar")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { 

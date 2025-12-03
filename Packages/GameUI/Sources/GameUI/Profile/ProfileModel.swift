@@ -1,5 +1,6 @@
 import SwiftUI
 import Observation
+import GameCore
 
 // MARK: - Domain Models
 
@@ -20,22 +21,20 @@ public struct TierStat: Identifiable, Hashable, Sendable {
 
 public extension TierStat {
     static func stats(from counts: [String: Int]) -> [TierStat] {
-        counts
-            .filter { $0.value > 0 }
-            .sorted { lhs, rhs in
-                if lhs.value == rhs.value {
-                    return lhs.key < rhs.key
-                }
-                return lhs.value > rhs.value
-            }
-            .map { (key, value) in
-                TierStat(
-                    key: key,
-                    value: value,
-                    color: color(for: key),
-                    label: "\(key.uppercased())-Tier"
-                )
-            }
+        var orderedKeys = allTierKeys
+        // include any keys not part of canonical set (future proofing)
+        for key in counts.keys where !orderedKeys.contains(key) {
+            orderedKeys.append(key)
+        }
+        return orderedKeys.map { key in
+            let value = counts[key] ?? 0
+            return TierStat(
+                key: key,
+                value: value,
+                color: color(for: key),
+                label: "\(key.uppercased())-Tier"
+            )
+        }
     }
     
     private static func color(for key: String) -> Color {
@@ -53,6 +52,23 @@ public extension TierStat {
         "m": .pink,
         "b": .red
     ]
+    
+    private static let allTierKeys: [String] = {
+        let suffixes = JourneyAbbreviationTiers.tiers.compactMap { tier -> String? in
+            let label = tier.label.trimmingCharacters(in: .whitespacesAndNewlines)
+            let suffix = label.trimmingCharacters(in: .decimalDigits)
+            return suffix.isEmpty ? nil : suffix
+        }
+        // preserve order while removing duplicates
+        var seen: Set<String> = []
+        return suffixes.compactMap { suffix in
+            if seen.contains(suffix) {
+                return nil
+            }
+            seen.insert(suffix)
+            return suffix
+        }
+    }()
 }
 
 public struct SeasonInfo: Equatable, Sendable {
@@ -76,7 +92,7 @@ public enum SyncStatus: Equatable {
 public final class ProfileModel {
     // Identity
     public var playerName: String = "Angel Junior711"
-    public var avatarSystemName: String = "person.circle.fill" // placeholder for your asset id
+    public var avatarSystemName: String = AvatarCatalog.default.id
     public var friendCode: String = "AJ711-534"
     public var countryCode: String? = nil
     public var highestTile: String? = nil
@@ -136,7 +152,7 @@ public final class ProfileModel {
         tiers = d.tiers
         friendCode = d.friendCode
         season = d.season
-        avatarSystemName = d.avatarSystemName
+        avatarSystemName = AvatarCatalog.option(for: d.avatarSystemName).id
         countryCode = d.countryCode
         highestTile = d.highestTile
     }
