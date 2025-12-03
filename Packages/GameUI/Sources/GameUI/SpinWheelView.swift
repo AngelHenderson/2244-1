@@ -553,7 +553,8 @@ struct WheelFace: View {
                 ForEach(segments.indices, id: \.self) { i in
                     let n = max(segments.count, 1)
                     let span = 2 * .pi / CGFloat(n)
-                    let centerAngle = CGFloat(i) * span - (.pi / 2)
+                    var centerAngle = CGFloat(i) * span - (.pi / 2)
+                    centerAngle = (centerAngle + .pi).truncatingRemainder(dividingBy: 2 * .pi) - .pi
                     let r = radius * 0.62
                     let x = rect.midX + r * cos(centerAngle)
                     let y = rect.midY + r * sin(centerAngle)
@@ -590,8 +591,6 @@ struct WheelFace: View {
                         ),
                         lineWidth: 6
                     )
-                Ticks(count: segments.count)
-                    .stroke(Color.white.opacity(0.2), style: .init(lineWidth: 3, lineCap: .round))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
