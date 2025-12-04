@@ -908,40 +908,50 @@ public final class GameEngine {
     private func generateRandomValue() -> Int {
         // For high milestones (>= 67M), spawn tiles close to current progress
         if state.highestTile >= 67_108_864 {
-            // Spawn tiles from (highest >> 7) up to (highest >> 1)
-            // This gives us a range of 7 values close to the current milestone
-            let maxSpawn = state.highestTile >> 1    // 1 step down
-            let minSpawn = state.highestTile >> 7    // 7 steps down
-
-            // Ensure we don't spawn below elimination threshold
-            let eliminationThreshold = getEliminationThreshold()
-            let actualMinSpawn = max(minSpawn, eliminationThreshold)
-
-            // Generate the 7 spawn candidates
-            var candidates: [Int] = []
-            var current = actualMinSpawn
-            for _ in 0..<7 {
-                if current <= maxSpawn {
-                    candidates.append(current)
-                }
-                if current > (Int.max >> 1) {
-                    break
-                } else {
-                    current = current << 1
-                }
-            }
-
-            // If we have candidates, pick one randomly
-            if !candidates.isEmpty {
-                let index = Int(rng.next() % UInt64(candidates.count))
-                return candidates[index]
+            let highSpawn = spawnNearHighest()
+            if let highSpawn {
+                return highSpawn
             }
         }
+        
+        return spawnProgressively(from: minAllowedSpawnValue())
+    }
 
-        // For lower milestones, use the standard progressive spawning
-        let minAllowed = minAllowedSpawnValue()
+    private func spawnNearHighest() -> Int? {
+        let highest = state.highestTile
+        guard highest >= 2 else { return nil }
+        
+        let maxSpawn = max(2, highest >> 1)
+        let minSpawn = max(2, highest >> 7)
+        let eliminationThreshold = max(2, getEliminationThreshold())
+        var actualMinSpawn = max(minSpawn, eliminationThreshold)
+        
+        guard actualMinSpawn <= maxSpawn else {
+            return nil
+        }
+        
         var candidates: [Int] = []
-        var current = minAllowed
+        var current = actualMinSpawn
+        var iterations = 0
+        while current <= maxSpawn && iterations < 7 {
+            candidates.append(current)
+            if current > (Int.max >> 1) {
+                break
+            }
+            current = current << 1
+            iterations += 1
+        }
+        
+        guard !candidates.isEmpty else {
+            return nil
+        }
+        let index = Int(rng.next() % UInt64(candidates.count))
+        return candidates[index]
+    }
+    
+    private func spawnProgressively(from start: Int) -> Int {
+        var candidates: [Int] = []
+        var current = max(2, start)
         for _ in 0..<7 {
             candidates.append(current)
             if current > (Int.max >> 1) {

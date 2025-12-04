@@ -223,6 +223,20 @@ public final class AchievementStore {
         .init(milestone: 300, categoryLabel: "Use MegaMerge 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
     ]
     
+    private static let spinUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "Use Spin 5 Times", rewards: .init(gems: 25)),
+        .init(milestone: 10, categoryLabel: "Use Spin 10 Times", rewards: .init(gems: 20, magnets: 1)),
+        .init(milestone: 15, categoryLabel: "Use Spin 15 Times", rewards: .init(gems: 100, boost4x: 1)),
+        .init(milestone: 20, categoryLabel: "Use Spin 20 Times", rewards: .init(gems: 25, spins: 2)),
+        .init(milestone: 30, categoryLabel: "Use Spin 30 Times", rewards: .init(gems: 50, hammers: 1, magnets: 1, swaps: 1)),
+        .init(milestone: 40, categoryLabel: "Use Spin 40 Times", rewards: .init(gems: 500)),
+        .init(milestone: 50, categoryLabel: "Use Spin 50 Times", rewards: .init(boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 75, categoryLabel: "Use Spin 75 Times", rewards: .init(gems: 500, boost2x: 1)),
+        .init(milestone: 100, categoryLabel: "Use Spin 100 Times", rewards: .init(gems: 500, hammers: 1, magnets: 1, boost3x: 1)),
+        .init(milestone: 150, categoryLabel: "Use Spin 150 Times", rewards: .init(gems: 500, spins: 1, hammers: 1, swaps: 1, boost2x: 1)),
+        .init(milestone: 200, categoryLabel: "Use Spin 200 Times", rewards: .init(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost3x: 1))
+    ]
+    
     /// Current tier index for the moves progression achievement (persisted)
     public var movesProgressionTier: Int {
         didSet {
@@ -467,6 +481,34 @@ public final class AchievementStore {
         magnetUsesProgressionTier >= Self.magnetUseTiers.count - 1
     }
     
+    /// Spin usage progression tier index (persisted)
+    public var spinUsesProgressionTier: Int {
+        didSet {
+            defaults.set(spinUsesProgressionTier, forKey: "spinUsesProgressionTier")
+            unlocks["spin_usage_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentSpinUsesTier: ComboTierDefinition {
+        let index = min(spinUsesProgressionTier, Self.spinUseTiers.count - 1)
+        return Self.spinUseTiers[index]
+    }
+    
+    public var spinUsesDisplay: ProgressTierDisplay {
+        makePowerUseDisplay(
+            powerUpLabel: "Spin",
+            tier: currentSpinUsesTier,
+            levelIndex: spinUsesProgressionTier,
+            maxCount: Self.spinUseTiers.count,
+            isMaxed: isSpinUsesProgressionMaxed
+        )
+    }
+    
+    public var isSpinUsesProgressionMaxed: Bool {
+        spinUsesProgressionTier >= Self.spinUseTiers.count - 1
+    }
+    
     private func makeComboDisplay(
         rangeLabel: String,
         tier: ComboTierDefinition,
@@ -588,6 +630,7 @@ public final class AchievementStore {
         self.swapUsesProgressionTier = defaults.integer(forKey: "swapUsesProgressionTier")
         self.hammerUsesProgressionTier = defaults.integer(forKey: "hammerUsesProgressionTier")
         self.magnetUsesProgressionTier = defaults.integer(forKey: "magnetUsesProgressionTier")
+        self.spinUsesProgressionTier = defaults.integer(forKey: "spinUsesProgressionTier")
         loadUnlocks()
         loadPersistedSnapshot()
     }
@@ -708,6 +751,15 @@ public final class AchievementStore {
             if def.id == "hammer_usage_progression" {
                 let targetValue = Double(currentHammerUsesTier.milestone)
                 if Double(snapshot.hammer_uses_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "spin_usage_progression" {
+                let targetValue = Double(currentSpinUsesTier.milestone)
+                if Double(snapshot.spin_uses_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -908,6 +960,23 @@ public final class AchievementStore {
             return
         }
         
+        if definition.id == "spin_usage_progression" {
+            let rewards = spinUsesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isSpinUsesProgressionMaxed {
+                spinUsesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+        
         if definition.id == "magnet_usage_progression" {
             let rewards = magnetUsesDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -968,6 +1037,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.swap_uses_total), target: Double(currentSwapUsesTier.milestone))
         case "hammer_usage_progression":
             return makeProgress(current: Double(snapshot.hammer_uses_total), target: Double(currentHammerUsesTier.milestone))
+        case "spin_usage_progression":
+            return makeProgress(current: Double(snapshot.spin_uses_total), target: Double(currentSpinUsesTier.milestone))
         case "magnet_usage_progression":
             return makeProgress(current: Double(snapshot.magnet_uses_total), target: Double(currentMagnetUsesTier.milestone))
         default:
@@ -1059,6 +1130,7 @@ public final class AchievementStore {
         case "square_2x2_identical_value": return .init(s.square_2x2_identical_value)
         case "different_powerups_used": return .init(s.different_powerups_used)
         case "powerups_unused": return .init(s.powerups_unused)
+        case "spin_uses_total": return .init(s.spin_uses_total)
         case "free_slots_at_booster_use": return .init(s.free_slots_at_booster_use)
         case "moved_right": return .init(s.moved_right)
         case "moved_left": return .init(s.moved_left)

@@ -153,6 +153,22 @@
     ]
   },
   {
+    "id": "spin_usage_progression",
+    "gcIdentifier": "spin_usage_progression",
+    "title": "Spin Master",
+    "description": "Use spins to unlock cascading bonus rewards and multipliers.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "spin_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
     "id": "moves_progression",
     "gcIdentifier": "moves_progression",
     "title": "Moves Master",

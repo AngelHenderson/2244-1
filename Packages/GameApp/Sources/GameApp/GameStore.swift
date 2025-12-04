@@ -2244,6 +2244,10 @@ extension GameStore {
         }
     }
     
+    public func registerSpinUse() {
+        achievementEvaluator?.onPowerUpUsed(type: "spin")
+    }
+    
     
     // MARK: - Legacy Progress Auto-Save System (for backward compatibility)
     

@@ -21,6 +21,7 @@ public final class AchievementEvaluator {
     private var hammerUsesTotal: Int = 0
     private var swapUsesTotal: Int = 0
     private var magnetUsesTotal: Int = 0
+    private var spinUsesTotal: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
@@ -29,6 +30,7 @@ public final class AchievementEvaluator {
     private let hammerUsesKey = "powerUses.hammer"
     private let swapUsesKey = "powerUses.swap"
     private let magnetUsesKey = "powerUses.magnet"
+    private let spinUsesKey = "powerUses.spin"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
@@ -41,6 +43,7 @@ public final class AchievementEvaluator {
         hammerUsesTotal = defaults.integer(forKey: hammerUsesKey)
         swapUsesTotal = defaults.integer(forKey: swapUsesKey)
         magnetUsesTotal = defaults.integer(forKey: magnetUsesKey)
+        spinUsesTotal = defaults.integer(forKey: spinUsesKey)
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
@@ -49,6 +52,8 @@ public final class AchievementEvaluator {
         currentGameSnapshot.hammer_uses_total = hammerUsesTotal
         currentGameSnapshot.swap_uses_total = swapUsesTotal
         currentGameSnapshot.magnet_uses_total = magnetUsesTotal
+        currentGameSnapshot.spin_uses_total = spinUsesTotal
+        currentGameSnapshot.spin_uses_total = spinUsesTotal
     }
     
     public func onGameStart(state: GameState) {
@@ -132,6 +137,8 @@ public final class AchievementEvaluator {
         snapshot.hammer_uses_total = hammerUsesTotal
         snapshot.swap_uses_total = swapUsesTotal
         snapshot.magnet_uses_total = magnetUsesTotal
+        snapshot.spin_uses_total = spinUsesTotal
+        snapshot.spin_uses_total = spinUsesTotal
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
@@ -195,6 +202,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.hammer_uses_total = hammerUsesTotal
         currentGameSnapshot.swap_uses_total = swapUsesTotal
         currentGameSnapshot.magnet_uses_total = magnetUsesTotal
+        currentGameSnapshot.spin_uses_total = spinUsesTotal
         
         var snapshot = currentGameSnapshot
         snapshot.combo610Total = combo610Total
@@ -205,6 +213,7 @@ public final class AchievementEvaluator {
         snapshot.hammer_uses_total = hammerUsesTotal
         snapshot.swap_uses_total = swapUsesTotal
         snapshot.magnet_uses_total = magnetUsesTotal
+        snapshot.spin_uses_total = spinUsesTotal
         snapshot.games_played = totalGamesPlayed
         
         Task {
@@ -278,11 +287,15 @@ public final class AchievementEvaluator {
         case "magnet":
             magnetUsesTotal += 1
             defaults.set(magnetUsesTotal, forKey: magnetUsesKey)
+        case "spin":
+            spinUsesTotal += 1
+            defaults.set(spinUsesTotal, forKey: spinUsesKey)
         default:
             break
         }
         currentGameSnapshot.hammer_uses_total = hammerUsesTotal
         currentGameSnapshot.swap_uses_total = swapUsesTotal
         currentGameSnapshot.magnet_uses_total = magnetUsesTotal
+        currentGameSnapshot.spin_uses_total = spinUsesTotal
     }
 }

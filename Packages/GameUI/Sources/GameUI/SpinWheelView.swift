@@ -285,6 +285,7 @@ public struct SpinWheelView: View {
     
     private func startSpin() {
         guard let _ = spinState.beginSpin(now: now) else { return }
+        gameStore.registerSpinUse()
         haptics.mediumImpact()
         engine.spin { segment in
             handleWinning(segment: segment)
