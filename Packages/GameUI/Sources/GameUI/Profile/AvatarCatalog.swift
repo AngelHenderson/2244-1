@@ -1,38 +1,34 @@
 import SwiftUI
+import CoreGraphics
+import Foundation
 
 struct AvatarOption: Identifiable, Hashable {
     let id: String
-    let emoji: String
-    let background: [Color]
-    let accent: Color
+    let spriteColumn: Int
+    let spriteRow: Int
+    let accessibilityLabel: String
     
-    var label: String {
-        "\(emoji) avatar"
-    }
-    
-    var idDescription: String {
-        id
-    }
+    var label: String { accessibilityLabel }
 }
 
 enum AvatarCatalog {
     static let all: [AvatarOption] = [
-        AvatarOption(id: "avatar-dog", emoji: "🐶", background: [.orange, .pink], accent: .white),
-        AvatarOption(id: "avatar-cat", emoji: "🐱", background: [.blue, .purple], accent: .white),
-        AvatarOption(id: "avatar-hat", emoji: "🧢", background: [.yellow, .orange], accent: .white),
-        AvatarOption(id: "avatar-warrior", emoji: "🧑‍🚀", background: [.red, .purple], accent: .white),
-        AvatarOption(id: "avatar-burger", emoji: "🍔", background: [.green, .orange], accent: .white),
-        AvatarOption(id: "avatar-robot", emoji: "🤖", background: [.gray, .blue], accent: .white),
-        AvatarOption(id: "avatar-phoenix", emoji: "🐉", background: [.orange, .red], accent: .white),
-        AvatarOption(id: "avatar-chicken", emoji: "🐔", background: [.pink, Color(red: 1.0, green: 0.75, blue: 0.65)], accent: .white),
-        AvatarOption(id: "avatar-anchor", emoji: "⚓️", background: [.cyan, .blue], accent: .white),
-        AvatarOption(id: "avatar-bear", emoji: "🐻", background: [.brown, .black], accent: .white),
-        AvatarOption(id: "avatar-shark", emoji: "🦈", background: [.black, .blue], accent: .white),
-        AvatarOption(id: "avatar-plane", emoji: "🛩", background: [.yellow, .orange], accent: .white)
+        AvatarOption(id: "avatar-dog", spriteColumn: 0, spriteRow: 0, accessibilityLabel: "Dog avatar"),
+        AvatarOption(id: "avatar-cat", spriteColumn: 1, spriteRow: 0, accessibilityLabel: "Astronaut cat avatar"),
+        AvatarOption(id: "avatar-hat", spriteColumn: 2, spriteRow: 0, accessibilityLabel: "Baseball hat avatar"),
+        AvatarOption(id: "avatar-warrior", spriteColumn: 3, spriteRow: 0, accessibilityLabel: "Warrior avatar"),
+        AvatarOption(id: "avatar-burger", spriteColumn: 0, spriteRow: 1, accessibilityLabel: "Burger avatar"),
+        AvatarOption(id: "avatar-robot", spriteColumn: 1, spriteRow: 1, accessibilityLabel: "Robot avatar"),
+        AvatarOption(id: "avatar-phoenix", spriteColumn: 2, spriteRow: 1, accessibilityLabel: "Phoenix avatar"),
+        AvatarOption(id: "avatar-chicken", spriteColumn: 3, spriteRow: 1, accessibilityLabel: "Chicken avatar"),
+        AvatarOption(id: "avatar-anchor", spriteColumn: 0, spriteRow: 2, accessibilityLabel: "Anchor avatar"),
+        AvatarOption(id: "avatar-bear", spriteColumn: 1, spriteRow: 2, accessibilityLabel: "Bear avatar"),
+        AvatarOption(id: "avatar-shark", spriteColumn: 2, spriteRow: 2, accessibilityLabel: "Shark avatar"),
+        AvatarOption(id: "avatar-plane", spriteColumn: 3, spriteRow: 2, accessibilityLabel: "Paper plane avatar")
     ]
     
     static var `default`: AvatarOption {
-        all.first ?? AvatarOption(id: "avatar-default", emoji: "🙂", background: [.blue, .purple], accent: .white)
+        all.first ?? AvatarOption(id: "avatar-default", spriteColumn: 0, spriteRow: 0, accessibilityLabel: "Default avatar")
     }
     
     static func option(for id: String) -> AvatarOption {
@@ -45,15 +41,61 @@ struct AvatarBadge: View {
     var size: CGFloat = 80
     
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(LinearGradient(colors: option.background, startPoint: .topLeading, endPoint: .bottomTrailing))
-                .frame(width: size, height: size)
-                .shadow(color: Color.black.opacity(0.15), radius: 4, y: 2)
-            Text(option.emoji)
-                .font(.system(size: size * 0.45))
-                .accessibilityHidden(true)
+        AvatarSpriteSheet.image(for: option)
+            .resizable()
+            .scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(Color.white, lineWidth: size * 0.05)
+                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+            )
+            .accessibilityLabel(option.accessibilityLabel)
+    }
+}
+
+@MainActor
+enum AvatarSpriteSheet {
+    private static let columns = 4
+    private static let rows = 3
+    private static var cache: [String: CGImage] = [:]
+    
+    private static let sheet: CGImage? = {
+        guard let url = Bundle.module.url(forResource: "AvatarsSheet", withExtension: "png"),
+              let data = try? Data(contentsOf: url),
+              let provider = CGDataProvider(data: data as CFData),
+              let image = CGImage(pngDataProviderSource: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) else {
+            return nil
         }
-        .accessibilityLabel(option.label)
+        return image
+    }()
+    
+    static func image(for option: AvatarOption) -> Image {
+        if let cached = cache[option.id] {
+            return Image(decorative: cached, scale: 1, orientation: .up)
+        }
+        guard let sheet else {
+            return Image(systemName: "person.circle.fill")
+        }
+        
+        let tileWidth = sheet.width / columns
+        let tileHeight = sheet.height / rows
+        let originX = option.spriteColumn * tileWidth
+        let originY = option.spriteRow * tileHeight
+        // Flip y-axis because CGImage origin is bottom-left
+        let flippedY = sheet.height - originY - tileHeight
+        let rect = CGRect(
+            x: CGFloat(originX),
+            y: CGFloat(flippedY),
+            width: CGFloat(tileWidth),
+            height: CGFloat(tileHeight)
+        )
+        
+        guard let cropped = sheet.cropping(to: rect) else {
+            return Image(systemName: "person.circle.fill")
+        }
+        cache[option.id] = cropped
+        return Image(decorative: cropped, scale: 1, orientation: .up)
     }
 }

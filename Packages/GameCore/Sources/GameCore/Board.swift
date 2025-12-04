@@ -246,28 +246,87 @@ public struct Board: Equatable, Sendable, Codable {
     public mutating func applyGravity() {
         // Compact each column so tiles fall toward bottom
         for col in 0..<width {
-            var compactedColumn: [Cell] = []
-            
-            // Collect all non-empty cells from bottom to top
-            for row in (0..<height).reversed() {
-                let index = BoardIndex(row: row, col: col)
-                let cell = self[index]
-                if cell.kind != .empty {
-                    compactedColumn.append(cell)
-                }
+            collapseColumn(col)
+        }
+    }
+    
+    public mutating func collapseColumns(_ columns: Set<Int>) {
+        guard !columns.isEmpty else { return }
+        for col in columns {
+            collapseColumn(col)
+        }
+    }
+    
+    private mutating func collapseColumn(_ col: Int) {
+        guard col >= 0 && col < width else { return }
+        var compactedColumn: [Cell] = []
+        var fixedGifts: [Int: Cell] = [:]
+        
+        // Collect all non-empty, non-gift cells from bottom to top
+        for row in (0..<height).reversed() {
+            let index = BoardIndex(row: row, col: col)
+            let cell = self[index]
+            switch cell.kind {
+            case .gift:
+                fixedGifts[row] = cell
+            case .empty:
+                continue
+            default:
+                compactedColumn.append(cell)
             }
-            
-            // Clear the column
+        }
+        
+        // Clear the column except for gifts
+        for row in 0..<height {
+            let index = BoardIndex(row: row, col: col)
+            if fixedGifts[row] != nil {
+                continue
+            }
+            self[index] = Cell.empty
+        }
+        
+        // Place compacted cells back from bottom
+        for (i, cell) in compactedColumn.enumerated() {
+            let targetRow = height - 1 - i
+            // Skip rows reserved for gifts
+            var adjustedRow = targetRow
+            while adjustedRow >= 0 && fixedGifts[adjustedRow] != nil {
+                adjustedRow -= 1
+            }
+            if adjustedRow >= 0 {
+                let index = BoardIndex(row: adjustedRow, col: col)
+                self[index] = cell
+            }
+        }
+        
+        // Restore gifts at their original rows
+        for (row, giftCell) in fixedGifts {
+            let index = BoardIndex(row: row, col: col)
+            self[index] = giftCell
+        }
+    }
+    
+    public mutating func refillColumns(_ columns: Set<Int>, fillAll: Bool, generator: () -> Int) {
+        guard !columns.isEmpty else { return }
+        for col in columns {
+            refillColumn(col, fillAll: fillAll, generator: generator)
+        }
+    }
+    
+    private mutating func refillColumn(_ col: Int, fillAll: Bool, generator: () -> Int) {
+        guard col >= 0 && col < width else { return }
+        if fillAll {
             for row in 0..<height {
                 let index = BoardIndex(row: row, col: col)
-                self[index] = Cell.empty
+                guard self[index].kind == .empty else { continue }
+                let value = generator()
+                self[index] = Cell.withTile(Tile(value: value))
             }
-            
-            // Place compacted cells back from bottom
-            for (i, cell) in compactedColumn.enumerated() {
-                let targetRow = height - 1 - i
-                let index = BoardIndex(row: targetRow, col: col)
-                self[index] = cell
+        } else {
+            let topIndex = BoardIndex(row: 0, col: col)
+            if self[topIndex].kind == .empty {
+                let value = generator()
+                self[topIndex] = Cell.withTile(Tile(value: value))
             }
         }
     }

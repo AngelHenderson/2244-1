@@ -1478,9 +1478,24 @@ public final class GameStore {
                 return
             }
             
-            let dropState = self.engine.applyGravityAfterChain()
+            let dropState = self.engine.collapseColumns([position.col])
             self.state = dropState
-            self.performRefill()
+            
+            do {
+                try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
+            } catch {
+                print("[GameStore] Hammer drop sleep failed: \(error)")
+                self.resetHammerAnimation()
+                return
+            }
+            
+            if Task.isCancelled {
+                self.resetHammerAnimation()
+                return
+            }
+            
+            let refillState = self.engine.refillColumns([position.col])
+            self.state = refillState
             self.resetHammerAnimation()
         }
     }
@@ -1501,6 +1516,7 @@ public final class GameStore {
         mergeCleanupTask?.cancel()
         isInputLocked = true
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
+        let affectedColumns = Set(matchingPositions.map { $0.col })
         
         mergeCleanupTask = Task { @MainActor [weak self] in
             guard let self else { return }
@@ -1524,6 +1540,7 @@ public final class GameStore {
             }
             
             let magnetResult = self.engine.magnetize(value: value, to: position)
+            self.state = magnetResult
             
             let mergedValue = magnetResult.board[position]?.value ?? {
                 return value <= (Int.max >> 1) ? value * 2 : Int.max
@@ -1532,7 +1549,8 @@ public final class GameStore {
             self.setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
             self.achievementEvaluator?.onTilesMerged(count: matchingPositions.count)
             
-            self.performGravityDrop()
+            let dropState = self.engine.collapseColumns(affectedColumns)
+            self.state = dropState
             
             do {
                 try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
@@ -1546,7 +1564,8 @@ public final class GameStore {
                 return
             }
             
-            self.performRefill()
+            let refillState = self.engine.refillColumns(affectedColumns)
+            self.state = refillState
             self.saveProgressImmediately(newTile: mergedValue)
         }
     }
