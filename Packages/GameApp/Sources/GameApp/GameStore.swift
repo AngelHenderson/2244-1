@@ -1497,17 +1497,17 @@ public final class GameStore {
             let previousBoard = self.state.board
             let refillState = self.engine.refillColumns([position.col])
             self.state = refillState
-            markColumnRefills(columns: [position.col], previousBoard: previousBoard)
+            markColumnRefills(columns: Set([position.col]), previousBoard: previousBoard)
             self.resetHammerAnimation()
         }
     }
     
     @MainActor
-    private func markColumnRefills(columns: Set<Position>, previousBoard: Board) {
+    private func markColumnRefills(columns: Set<Int>, previousBoard: Board) {
         guard !columns.isEmpty else { return }
         let newPositions = detectNewSpawnPositions(previousBoard: previousBoard, newBoard: state.board)
-            .filter { columns.contains($0) }
-        pendingRefillPositions = newPositions
+            .filter { columns.contains($0.col) }
+        pendingRefillPositions = Set(newPositions)
         
         guard !newPositions.isEmpty else {
             return
