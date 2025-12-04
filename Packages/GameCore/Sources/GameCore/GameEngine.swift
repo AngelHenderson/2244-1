@@ -666,7 +666,9 @@ public final class GameEngine {
     @discardableResult
     public func collapseColumns(_ columns: Set<Int>) -> GameState {
         guard !columns.isEmpty else { return state }
-        state.board.collapseColumns(columns)
+        var board = state.board
+        board.collapseColumns(columns)
+        state.board = board
         return state
     }
     
@@ -674,9 +676,11 @@ public final class GameEngine {
     public func refillColumns(_ columns: Set<Int>) -> GameState {
         guard !columns.isEmpty else { return state }
         let fillAll = config.fillMode == .alwaysFull
-        state.board.refillColumns(columns, fillAll: fillAll) {
+        var board = state.board
+        board.refillColumns(columns, fillAll: fillAll) { [self] in
             generateRandomValue()
         }
+        state.board = board
         if !hasValidMoves() {
             state.isGameOver = true
         }
