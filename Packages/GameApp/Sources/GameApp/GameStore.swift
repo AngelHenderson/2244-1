@@ -1494,9 +1494,32 @@ public final class GameStore {
                 return
             }
             
+            let previousBoard = self.state.board
             let refillState = self.engine.refillColumns([position.col])
             self.state = refillState
+            markColumnRefills(columns: [position.col], previousBoard: previousBoard)
             self.resetHammerAnimation()
+        }
+    }
+    
+    @MainActor
+    private func markColumnRefills(columns: Set<Position>, previousBoard: Board) {
+        guard !columns.isEmpty else { return }
+        let newPositions = detectNewSpawnPositions(previousBoard: previousBoard, newBoard: state.board)
+            .filter { columns.contains($0) }
+        pendingRefillPositions = newPositions
+        
+        guard !newPositions.isEmpty else {
+            return
+        }
+        
+        cancelRefillRevealTask()
+        refillRevealTask = Task { [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(nanoseconds: Self.refillRevealDelay)
+            await MainActor.run {
+                self.pendingRefillPositions.removeAll()
+            }
         }
     }
     
@@ -1564,8 +1587,10 @@ public final class GameStore {
                 return
             }
             
+            let previousBoard = self.state.board
             let refillState = self.engine.refillColumns(affectedColumns)
             self.state = refillState
+            markColumnRefills(columns: affectedColumns, previousBoard: previousBoard)
             self.saveProgressImmediately(newTile: mergedValue)
         }
     }
