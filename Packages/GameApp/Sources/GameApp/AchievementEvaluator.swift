@@ -23,6 +23,7 @@ public final class AchievementEvaluator {
     private var magnetUsesTotal: Int = 0
     private var surviveMovesTotal: Int = 0
     private var spinUsesTotal: Int = 0
+    private var challengeCreationTotal: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
@@ -33,6 +34,7 @@ public final class AchievementEvaluator {
     private let magnetUsesKey = "powerUses.magnet"
     private let surviveMovesKey = "surviveMoves.total"
     private let spinUsesKey = "powerUses.spin"
+    private let challengeCreationTotalKey = "challengeCreation.total"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
@@ -47,6 +49,13 @@ public final class AchievementEvaluator {
         magnetUsesTotal = defaults.integer(forKey: magnetUsesKey)
         spinUsesTotal = defaults.integer(forKey: spinUsesKey)
         surviveMovesTotal = defaults.integer(forKey: surviveMovesKey)
+        challengeCreationTotal = defaults.integer(forKey: challengeCreationTotalKey)
+        if challengeCreationTotal == 0,
+           let data = UserDefaults.standard.data(forKey: "challengeCompletedIds"),
+           let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+            challengeCreationTotal = ids.count
+            defaults.set(challengeCreationTotal, forKey: challengeCreationTotalKey)
+        }
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
@@ -59,6 +68,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.survive_moves_total = surviveMovesTotal
         currentGameSnapshot.spin_uses_total = spinUsesTotal
         currentGameSnapshot.survive_moves_total = surviveMovesTotal
+        currentGameSnapshot.challenge_creations_total = challengeCreationTotal
     }
     
     public func onGameStart(state: GameState) {
@@ -76,6 +86,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.hammer_uses_total = hammerUsesTotal
         currentGameSnapshot.swap_uses_total = swapUsesTotal
         currentGameSnapshot.magnet_uses_total = magnetUsesTotal
+        currentGameSnapshot.challenge_creations_total = challengeCreationTotal
     }
     
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
@@ -144,6 +155,7 @@ public final class AchievementEvaluator {
         snapshot.magnet_uses_total = magnetUsesTotal
         snapshot.spin_uses_total = spinUsesTotal
         snapshot.survive_moves_total = surviveMovesTotal
+        snapshot.challenge_creations_total = challengeCreationTotal
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
@@ -178,6 +190,9 @@ public final class AchievementEvaluator {
         snapshot.hammer_uses_total = hammerUsesTotal
         snapshot.swap_uses_total = swapUsesTotal
         snapshot.magnet_uses_total = magnetUsesTotal
+        snapshot.spin_uses_total = spinUsesTotal
+        snapshot.survive_moves_total = surviveMovesTotal
+        snapshot.challenge_creations_total = challengeCreationTotal
         snapshot.reached_core_target = state.highestTile >= 2244
         
         var freeSlots = 0
@@ -289,6 +304,17 @@ public final class AchievementEvaluator {
         
         var snapshot = currentGameSnapshot
         snapshot.survive_moves_total = surviveMovesTotal
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
+    }
+    
+    public func onChallengeCreationCompleted() {
+        challengeCreationTotal += 1
+        defaults.set(challengeCreationTotal, forKey: challengeCreationTotalKey)
+        currentGameSnapshot.challenge_creations_total = challengeCreationTotal
+        var snapshot = currentGameSnapshot
+        snapshot.challenge_creations_total = challengeCreationTotal
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }

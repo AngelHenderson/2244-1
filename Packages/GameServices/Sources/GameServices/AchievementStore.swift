@@ -128,7 +128,7 @@ public final class AchievementStore {
         .init(gems: 1400),                                // 1at
         .init(gems: 1450),                                // 1au
         .init(spins: 2, magnets: 2, boost2x: 1),          // 1av
-        .init(spins: 2, swaps: 2, hammers: 1),            // 1aw
+        .init(gems: nil, spins: 2, hammers: 1, magnets: nil, swaps: 2), // 1aw
         .init(gems: 1500),                                // 1ax
         .init(gems: 1250, spins: 1, swaps: 1, boost4x: 1), // 1ay
         .init(swaps: 3),                                  // 1az
@@ -163,7 +163,7 @@ public final class AchievementStore {
         .init(hammers: 3, magnets: 1),                    // 1bt
         .init(gems: 2550, spins: 1, hammers: 1, boost4x: 1), // 1bu
         .init(gems: 2700, magnets: 1, boost4x: 1),        // 1bv
-        .init(gems: 2600, magnets: 1, spins: 1, boost3x: 1), // 1bw
+        .init(gems: 2600, spins: 1, hammers: nil, magnets: 1, swaps: nil, boost2x: nil, boost3x: 1), // 1bw
         .init(gems: 2850, spins: 1),                      // 1bx
         .init(gems: 2900),                                // 1by
         .init(gems: 2950, magnets: 1),                    // 1bz
@@ -345,6 +345,17 @@ public final class AchievementStore {
         .init(milestone: 10000, categoryLabel: "10000 Moves", rewards: .init(gems: 885, spins: 2, swaps: 1)),
         .init(milestone: 20000, categoryLabel: "20000 Moves", rewards: .init(gems: 955, spins: 1, magnets: 2)),
         .init(milestone: 50000, categoryLabel: "50000 Moves", rewards: .init(gems: 1100, spins: 1, swaps: 2))
+    ]
+    
+    private static let challengeCreationTiers: [ComboTierDefinition] = [
+        .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
+        .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
+        .init(milestone: 35, categoryLabel: "Create & complete 35", rewards: .init(gems: 300, hammers: 1)),
+        .init(milestone: 50, categoryLabel: "Create & complete 50", rewards: .init(gems: 400, swaps: 1)),
+        .init(milestone: 75, categoryLabel: "Create & complete 75", rewards: .init(gems: 500, magnets: 1)),
+        .init(milestone: 100, categoryLabel: "Create & complete 100", rewards: .init(boost4x: 1)),
+        .init(milestone: 150, categoryLabel: "Create & complete 150", rewards: .init(gems: 500, magnets: 1, boost2x: 1)),
+        .init(milestone: 200, categoryLabel: "Create & complete 200", rewards: .init(gems: 700, spins: 1, magnets: 1, boost3x: 1))
     ]
     
     /// Current tier index for the moves progression achievement (persisted)
@@ -656,6 +667,43 @@ public final class AchievementStore {
         surviveMovesProgressionTier >= Self.surviveMovesTiers.count - 1
     }
     
+    /// Challenge creation progression tier index (persisted)
+    public var challengeCreationTier: Int {
+        didSet {
+            defaults.set(challengeCreationTier, forKey: "challengeCreationTier")
+            unlocks["challenge_creation"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentChallengeCreationTier: ComboTierDefinition {
+        let index = min(challengeCreationTier, Self.challengeCreationTiers.count - 1)
+        return Self.challengeCreationTiers[index]
+    }
+    
+    public var challengeCreationDisplay: ProgressTierDisplay {
+        let tier = currentChallengeCreationTier
+        let clampedIndex = min(challengeCreationTier, Self.challengeCreationTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = challengeCreationTier >= Self.challengeCreationTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered creating challenges. Claim your final reward."
+            : "Create and complete \(tier.milestone) custom challenges to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) completed challenges"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: tier.categoryLabel,
+            rewards: tier.rewards
+        )
+    }
+    
+    public var isChallengeCreationMaxed: Bool {
+        challengeCreationTier >= Self.challengeCreationTiers.count - 1
+    }
+    
     private func makeComboDisplay(
         rangeLabel: String,
         tier: ComboTierDefinition,
@@ -787,6 +835,7 @@ public final class AchievementStore {
         self.magnetUsesProgressionTier = defaults.integer(forKey: "magnetUsesProgressionTier")
         self.spinUsesProgressionTier = defaults.integer(forKey: "spinUsesProgressionTier")
         self.surviveMovesProgressionTier = defaults.integer(forKey: "surviveMovesProgressionTier")
+        self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
         loadPersistedSnapshot()
     }
@@ -925,6 +974,15 @@ public final class AchievementStore {
             if def.id == "survive_moves_progression" {
                 let targetValue = Double(currentSurviveMovesTier.milestone)
                 if Double(snapshot.survive_moves_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "challenge_creation" {
+                let targetValue = Double(currentChallengeCreationTier.milestone)
+                if Double(snapshot.challenge_creations_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1158,6 +1216,23 @@ public final class AchievementStore {
             }
             return
         }
+
+        if definition.id == "challenge_creation" {
+            let rewards = challengeCreationDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isChallengeCreationMaxed {
+                challengeCreationTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
         
         if definition.id == "magnet_usage_progression" {
             let rewards = magnetUsesDisplay.rewards
@@ -1223,6 +1298,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.spin_uses_total), target: Double(currentSpinUsesTier.milestone))
         case "survive_moves_progression":
             return makeProgress(current: Double(snapshot.survive_moves_total), target: Double(currentSurviveMovesTier.milestone))
+        case "challenge_creation":
+            return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":
             return makeProgress(current: Double(snapshot.magnet_uses_total), target: Double(currentMagnetUsesTier.milestone))
         default:
@@ -1285,6 +1362,7 @@ public final class AchievementStore {
         case "undo_used": return .init(s.undo_used)
         case "powerups_used": return .init(s.powerups_used)
         case "session_pauses": return .init(s.session_pauses)
+        case "challenge_creations_total": return .init(s.challenge_creations_total)
         case "highest_tile_corner_moves": return .init(s.highest_tile_corner_moves)
         case "free_slots_end": return .init(s.free_slots_end)
         case "invalid_moves": return .init(s.invalid_moves)

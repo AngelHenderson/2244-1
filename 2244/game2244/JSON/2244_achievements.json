@@ -185,6 +185,22 @@
     ]
   },
   {
+    "id": "challenge_creation",
+    "gcIdentifier": "challenge_creation",
+    "title": "Challenge Creator",
+    "description": "Create and complete custom challenges to earn escalating rewards.",
+    "category": "Challenges",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "challenge_creations_total",
+        "op": ">=",
+        "value": 10
+      }
+    ]
+  },
+  {
     "id": "moves_progression",
     "gcIdentifier": "moves_progression",
     "title": "Moves Master",

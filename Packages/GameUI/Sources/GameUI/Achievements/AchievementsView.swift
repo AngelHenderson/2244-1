@@ -37,7 +37,8 @@ public struct AchievementsView: View {
             || id == "hammer_usage_progression"
             || id == "survive_moves_progression"
             || id == "spin_usage_progression"
-            || id == "magnet_usage_progression" {
+            || id == "magnet_usage_progression"
+            || id == "challenge_creation" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
         }
@@ -108,6 +109,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.spinUsesDisplay
         case "magnet_usage_progression":
             return achievements.magnetUsesDisplay
+        case "challenge_creation":
+            return achievements.challengeCreationDisplay
         default:
             return nil
         }

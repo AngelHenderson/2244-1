@@ -2313,6 +2313,10 @@ extension GameStore {
         achievementEvaluator?.onPowerUpUsed(type: "spin")
     }
     
+    public func registerChallengeCreationCompleted() {
+        achievementEvaluator?.onChallengeCreationCompleted()
+    }
+    
     
     // MARK: - Legacy Progress Auto-Save System (for backward compatibility)
     
