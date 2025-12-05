@@ -648,11 +648,11 @@ public final class GameStore {
                 
                 // 3. Commit (Shatter/Fly complete, now apply logic)
                 print("[GameStore] Phase 3: Commit (Logic)")
-                let (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
+                let requiresGravityDrop = self.performCommit(positions: positions)
                 
                 if requiresGravityDrop {
                     print("[GameStore] Phase 3b: Gravity Drop")
-                    self.performGravityDrop(columns: affectedColumns)
+                    self.performGravityDrop()
                 }
                 
                 // Wait for gravity animation (tiles dropping)
@@ -667,7 +667,7 @@ public final class GameStore {
                 
                 // 4. Refill Phase
                 print("[GameStore] Phase 4: Refill")
-                self.performRefill(columns: affectedColumns)
+                self.performRefill()
                 
                 // Clear animation
                 self.mergeAnimationState = nil
