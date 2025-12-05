@@ -117,7 +117,57 @@ public final class AchievementStore {
         .init(gems: 950, swaps: 2),                       // 1ai
         .init(gems: 1200),                                // 1aj
         .init(gems: 1250),                                // 1ak
-        .init(spins: 2, swaps: 2)                         // 1al
+        .init(spins: 2, swaps: 2),                        // 1al
+        .init(gems: 1300),                                // 1am
+        .init(gems: 1300, hammers: 1),                    // 1an
+        .init(gems: 1150, swaps: 1),                      // 1ao
+        .init(hammers: 3),                                // 1ap
+        .init(gems: 1250, spins: 1),                      // 1aq
+        .init(gems: 1050, boost2x: 1, boost3x: 1, boost4x: 1), // 1ar
+        .init(swaps: 2, boost4x: 1),                      // 1as
+        .init(gems: 1400),                                // 1at
+        .init(gems: 1450),                                // 1au
+        .init(spins: 2, magnets: 2, boost2x: 1),          // 1av
+        .init(spins: 2, swaps: 2, hammers: 1),            // 1aw
+        .init(gems: 1500),                                // 1ax
+        .init(gems: 1250, spins: 1, swaps: 1, boost4x: 1), // 1ay
+        .init(swaps: 3),                                  // 1az
+        .init(gems: 1450, hammers: 1),                    // 1ba
+        .init(magnets: 2, boost2x: 1, boost3x: 1, boost4x: 1), // 1bb
+        .init(spins: 1, swaps: 2, boost2x: 1, boost3x: 1, boost4x: 1), // 1bc
+        .init(gems: 1550),                                // 1bd
+        .init(spins: 3),                                  // 1be
+        .init(gems: 1000, spins: 1, magnets: 3, boost3x: 1), // 1bf
+        .init(gems: 1700),                                // 1bg
+        .init(gems: 1800),                                // 1bh
+        .init(gems: 1650, spins: 1, boost4x: 1),          // 1bi
+        .init(swaps: 3),                                  // 1bj
+        .init(gems: 1450, hammers: 1),                    // 1bk
+        .init(gems: 1350, magnets: 2, boost3x: 1, boost4x: 1), // 1bl
+        .init(
+            gems: 1000,
+            spins: 1,
+            hammers: 1,
+            magnets: 1,
+            swaps: 1,
+            boost2x: 1,
+            boost3x: 1,
+            boost4x: 1
+        ),                                                // 1bm
+        .init(gems: 1850),                                // 1bn
+        .init(gems: 1900),                                // 1bo
+        .init(gems: 2000, spins: 1, boost2x: 1),          // 1bp
+        .init(gems: 1900, magnets: 1),                    // 1bq
+        .init(gems: 2250),                                // 1br
+        .init(gems: 2350, spins: 1),                      // 1bs
+        .init(hammers: 3, magnets: 1),                    // 1bt
+        .init(gems: 2550, spins: 1, hammers: 1, boost4x: 1), // 1bu
+        .init(gems: 2700, magnets: 1, boost4x: 1),        // 1bv
+        .init(gems: 2600, magnets: 1, spins: 1, boost3x: 1), // 1bw
+        .init(gems: 2850, spins: 1),                      // 1bx
+        .init(gems: 2900),                                // 1by
+        .init(gems: 2950, magnets: 1),                    // 1bz
+        .init(gems: 3000, spins: 2, hammers: 1, magnets: 1, boost3x: 1) // Inf
     ]
     
     // MARK: - Moves Progression System
