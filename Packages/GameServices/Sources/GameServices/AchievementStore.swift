@@ -243,11 +243,11 @@ public final class AchievementStore {
         .init(milestone: 150, categoryLabel: "150 Moves", rewards: .init(gems: 100, hammers: 1)),
         .init(milestone: 300, categoryLabel: "300 Moves", rewards: .init(gems: 150, magnets: 1)),
         .init(milestone: 500, categoryLabel: "500 Moves", rewards: .init(gems: 400, spins: 1)),
-        .init(milestone: 1000, categoryLabel: "1000 Moves", rewards: .init(gems: 400, boost4x: 1, swaps: 1)),
-        .init(milestone: 2000, categoryLabel: "2000 Moves", rewards: .init(gems: 500, boost2x: 1, swaps: 1, boost3x: 1, spins: 1)),
+        .init(milestone: 1000, categoryLabel: "1000 Moves", rewards: .init(gems: 400, spins: nil, hammers: nil, magnets: nil, swaps: 1, boost2x: nil, boost3x: nil, boost4x: 1)),
+        .init(milestone: 2000, categoryLabel: "2000 Moves", rewards: .init(gems: 500, spins: 1, hammers: nil, magnets: nil, swaps: 1, boost2x: 1, boost3x: 1, boost4x: nil)),
         .init(milestone: 3000, categoryLabel: "3000 Moves", rewards: .init(gems: 750, spins: 2)),
-        .init(milestone: 5000, categoryLabel: "5000 Moves", rewards: .init(hammers: 1, swaps: 1, magnets: 1, spins: 1, boost2x: 1, boost3x: 1, boost4x: 1)),
-        .init(milestone: 7500, categoryLabel: "7500 Moves", rewards: .init(gems: 850, hammers: 1, spins: 1, boost4x: 1)),
+        .init(milestone: 5000, categoryLabel: "5000 Moves", rewards: .init(gems: nil, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 7500, categoryLabel: "7500 Moves", rewards: .init(gems: 850, spins: 1, hammers: 1, magnets: nil, swaps: nil, boost2x: nil, boost3x: nil, boost4x: 1)),
         .init(milestone: 10000, categoryLabel: "10000 Moves", rewards: .init(gems: 885, spins: 2, swaps: 1)),
         .init(milestone: 20000, categoryLabel: "20000 Moves", rewards: .init(gems: 955, spins: 1, magnets: 2)),
         .init(milestone: 50000, categoryLabel: "50000 Moves", rewards: .init(gems: 1100, spins: 1, swaps: 2))
@@ -1179,6 +1179,7 @@ public final class AchievementStore {
         case "combo_16_20_total": return .init(s.combo1620Total)
         case "combo_21_30_total": return .init(s.combo2130Total)
         case "merged_tiles_total": return .init(s.merged_tiles_total)
+        case "survive_moves_total": return .init(s.survive_moves_total)
         case "undo_used": return .init(s.undo_used)
         case "powerups_used": return .init(s.powerups_used)
         case "session_pauses": return .init(s.session_pauses)

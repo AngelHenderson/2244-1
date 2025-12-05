@@ -357,12 +357,12 @@ public final class GameEngine {
             highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(outcome.resultValue)
-
+        
             // Apply eliminations for ALL milestones between previous highest and new value
             applyAllMilestonesBetween(previousHighest, and: outcome.resultValue)
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-            applyMilestoneEliminationIfNeeded(createdValue: outcome.resultValue)
+        applyMilestoneEliminationIfNeeded(createdValue: outcome.resultValue)
         }
         
         // Award gems for long chains (10+ tiles)
@@ -443,7 +443,7 @@ public final class GameEngine {
         let mergedStep = TileStepMath.mergedStep(from: steps)
         let mergedValue = TileStepMath.value(forStep: mergedStep)
         let mergedTile = Tile.make(forStep: mergedStep)
-
+        
         // Debug logging for large chains
         if positions.count >= 10 {
             print("🔗 LARGE CHAIN DEBUG:")
@@ -477,12 +477,12 @@ public final class GameEngine {
             highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
-
+        
             // Apply eliminations for ALL milestones between previous highest and new value
             applyAllMilestonesBetween(previousHighest, and: mergedValue)
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-            applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         }
         
         // Award points
@@ -558,11 +558,11 @@ public final class GameEngine {
         state.moves += 1
         
         if applyGravity {
-            // Keep board full after destructive action
-            refillAfterGravity()
-            
-            if !hasValidMoves() {
-                state.isGameOver = true
+        // Keep board full after destructive action
+        refillAfterGravity()
+        
+        if !hasValidMoves() {
+            state.isGameOver = true
             }
         }
         
@@ -647,12 +647,12 @@ public final class GameEngine {
             highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
-
+        
             // Apply eliminations for ALL milestones between previous highest and new value
             applyAllMilestonesBetween(previousHighest, and: mergedValue)
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-            applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         }
         
         // Award score for the merge (use safe addition to prevent overflow)
@@ -773,7 +773,7 @@ public final class GameEngine {
             applyAllMilestonesBetween(previousHighest, and: doubled)
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-            applyMilestoneEliminationIfNeeded(createdValue: doubled)
+        applyMilestoneEliminationIfNeeded(createdValue: doubled)
         }
         
         state.moves += 1
@@ -928,31 +928,26 @@ public final class GameEngine {
         let maxSpawn = max(2, highest >> 1)
         let minSpawn = max(2, highest >> 7)
         let eliminationThreshold = max(2, getEliminationThreshold())
-        var actualMinSpawn = max(minSpawn, eliminationThreshold)
-        
-        guard actualMinSpawn <= maxSpawn else {
-            return nil
-        }
+        let actualMinSpawn = min(maxSpawn, max(minSpawn, eliminationThreshold))
+
+        guard actualMinSpawn <= maxSpawn else { return nil }
         
         var candidates: [Int] = []
         var current = actualMinSpawn
         var iterations = 0
+        
         while current <= maxSpawn && iterations < 7 {
             candidates.append(current)
-            if current > (Int.max >> 1) {
-                break
-            }
+            if current > (Int.max >> 1) { break }
             current = current << 1
             iterations += 1
         }
-        
-        guard !candidates.isEmpty else {
-            return nil
-        }
+
+        guard !candidates.isEmpty else { return nil }
         let index = Int(rng.next() % UInt64(candidates.count))
         return candidates[index]
     }
-    
+
     private func spawnProgressively(from start: Int) -> Int {
         var candidates: [Int] = []
         var current = max(2, start)
@@ -1592,12 +1587,12 @@ public final class GameEngine {
             highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
-
+        
             // Apply eliminations for ALL milestones between previous highest and new value
             applyAllMilestonesBetween(previousHighest, and: mergedValue)
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-            applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
         }
         
         return (mergedValue, mergedStep)
@@ -1683,7 +1678,7 @@ public final class GameEngine {
             totalAlpha.multiply(by: cascadeCount + 1)
             totalAlpha.halve()
         }
-        
+
         if cascadeCount > 0 {
             addScoreAlpha(totalAlpha)
         }

@@ -146,7 +146,7 @@ public struct Theme {
         let idx = bucketIndex(forExponent: e)
 
         // Get the base color from the palette
-        var entry = palette25[idx]
+        let entry = palette25[idx]
 
         // Special case: Lighten 140a (2^47) and its repetitions to match 4M (2^22)
         // Both use palette index 21, but 140a might need lightening

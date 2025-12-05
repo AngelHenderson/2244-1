@@ -169,6 +169,22 @@
     ]
   },
   {
+    "id": "survive_moves_progression",
+    "gcIdentifier": "survive_moves_progression",
+    "title": "Survivor",
+    "description": "Keep surviving moves to claim escalating rewards.",
+    "category": "Career",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "survive_moves_total",
+        "op": ">=",
+        "value": 25
+      }
+    ]
+  },
+  {
     "id": "moves_progression",
     "gcIdentifier": "moves_progression",
     "title": "Moves Master",

@@ -1738,10 +1738,10 @@ public final class GameStore {
         powerUpHistory.append(.undo)
         trackPowerUpAnalytics(action: .undo)
         achievementEvaluator?.onUndoUsed()
-
+        
         // Save progress after undo (could restore significant state)
         saveProgressImmediately(newTile: nil)
-
+        
         return true
     }
     
@@ -2256,18 +2256,18 @@ extension GameStore {
         let progress = createProgressSnapshot()
         // Use synchronous save to ensure data is persisted immediately
         // This prevents data loss if the app is terminated shortly after a move
-        do {
+            do {
             try progressStore.saveSync(progress)
             // We don't print the full success message here to avoid log spam, 
             // as this is called frequently.
             // print("💾 Comprehensive progress saved")
             
             // Also ensure UserDefaults is synced for gems/coins
-            UserDefaults.standard.set(progress.gems, forKey: "coins")
-        } catch {
-            print("❌ Failed to save comprehensive progress: \(error)")
+                UserDefaults.standard.set(progress.gems, forKey: "coins")
+            } catch {
+                print("❌ Failed to save comprehensive progress: \(error)")
+            }
         }
-    }
     
     public func registerSpinUse() {
         achievementEvaluator?.onPowerUpUsed(type: "spin")
@@ -2543,7 +2543,6 @@ extension GameStore {
     public func restoreProgress() {
         let savedHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
         let savedBestScoreAlpha = persistedBestScoreAlpha()
-        let savedBestScore = savedBestScoreAlpha.toInt()
         let savedGems = UserDefaults.standard.integer(forKey: "coins")
         let hasInfinityAchievement = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
         if let currentScoreString = UserDefaults.standard.string(forKey: ScoreDefaultsKey.currentScoreAlpha),

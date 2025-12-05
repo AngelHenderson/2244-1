@@ -152,6 +152,7 @@ public struct GameSnapshot: Sendable, Codable {
     public var swap_uses_total: Int = 0
     public var magnet_uses_total: Int = 0
     public var spin_uses_total: Int = 0
+    public var survive_moves_total: Int = 0
     
     public init() {}
 }
