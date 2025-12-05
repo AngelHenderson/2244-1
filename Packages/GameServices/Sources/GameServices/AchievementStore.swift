@@ -237,6 +237,22 @@ public final class AchievementStore {
         .init(milestone: 200, categoryLabel: "Use Spin 200 Times", rewards: .init(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost3x: 1))
     ]
     
+    private static let surviveMovesTiers: [ComboTierDefinition] = [
+        .init(milestone: 25, categoryLabel: "25 Moves", rewards: .init(gems: 25)),
+        .init(milestone: 50, categoryLabel: "50 Moves", rewards: .init(gems: 50)),
+        .init(milestone: 150, categoryLabel: "150 Moves", rewards: .init(gems: 100, hammers: 1)),
+        .init(milestone: 300, categoryLabel: "300 Moves", rewards: .init(gems: 150, magnets: 1)),
+        .init(milestone: 500, categoryLabel: "500 Moves", rewards: .init(gems: 400, spins: 1)),
+        .init(milestone: 1000, categoryLabel: "1000 Moves", rewards: .init(gems: 400, boost4x: 1, swaps: 1)),
+        .init(milestone: 2000, categoryLabel: "2000 Moves", rewards: .init(gems: 500, boost2x: 1, swaps: 1, boost3x: 1, spins: 1)),
+        .init(milestone: 3000, categoryLabel: "3000 Moves", rewards: .init(gems: 750, spins: 2)),
+        .init(milestone: 5000, categoryLabel: "5000 Moves", rewards: .init(hammers: 1, swaps: 1, magnets: 1, spins: 1, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 7500, categoryLabel: "7500 Moves", rewards: .init(gems: 850, hammers: 1, spins: 1, boost4x: 1)),
+        .init(milestone: 10000, categoryLabel: "10000 Moves", rewards: .init(gems: 885, spins: 2, swaps: 1)),
+        .init(milestone: 20000, categoryLabel: "20000 Moves", rewards: .init(gems: 955, spins: 1, magnets: 2)),
+        .init(milestone: 50000, categoryLabel: "50000 Moves", rewards: .init(gems: 1100, spins: 1, swaps: 2))
+    ]
+    
     /// Current tier index for the moves progression achievement (persisted)
     public var movesProgressionTier: Int {
         didSet {
@@ -509,6 +525,43 @@ public final class AchievementStore {
         spinUsesProgressionTier >= Self.spinUseTiers.count - 1
     }
     
+    /// Survive-moves progression tier index (persisted)
+    public var surviveMovesProgressionTier: Int {
+        didSet {
+            defaults.set(surviveMovesProgressionTier, forKey: "surviveMovesProgressionTier")
+            unlocks["survive_moves_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentSurviveMovesTier: ComboTierDefinition {
+        let index = min(surviveMovesProgressionTier, Self.surviveMovesTiers.count - 1)
+        return Self.surviveMovesTiers[index]
+    }
+    
+    public var surviveMovesDisplay: ProgressTierDisplay {
+        let tier = currentSurviveMovesTier
+        let clampedIndex = min(surviveMovesProgressionTier, Self.surviveMovesTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = surviveMovesProgressionTier >= Self.surviveMovesTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered surviving moves. Claim your final reward."
+            : "Survive \(tier.milestone) moves across all games to unlock the next level."
+        let title = "Level \(level): Survive \(tier.milestone) moves"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: tier.categoryLabel,
+            rewards: tier.rewards
+        )
+    }
+    
+    public var isSurviveMovesProgressionMaxed: Bool {
+        surviveMovesProgressionTier >= Self.surviveMovesTiers.count - 1
+    }
+    
     private func makeComboDisplay(
         rangeLabel: String,
         tier: ComboTierDefinition,
@@ -631,6 +684,7 @@ public final class AchievementStore {
         self.hammerUsesProgressionTier = defaults.integer(forKey: "hammerUsesProgressionTier")
         self.magnetUsesProgressionTier = defaults.integer(forKey: "magnetUsesProgressionTier")
         self.spinUsesProgressionTier = defaults.integer(forKey: "spinUsesProgressionTier")
+        self.surviveMovesProgressionTier = defaults.integer(forKey: "surviveMovesProgressionTier")
         loadUnlocks()
         loadPersistedSnapshot()
     }
@@ -760,6 +814,15 @@ public final class AchievementStore {
             if def.id == "spin_usage_progression" {
                 let targetValue = Double(currentSpinUsesTier.milestone)
                 if Double(snapshot.spin_uses_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "survive_moves_progression" {
+                let targetValue = Double(currentSurviveMovesTier.milestone)
+                if Double(snapshot.survive_moves_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -977,6 +1040,23 @@ public final class AchievementStore {
             return
         }
         
+        if definition.id == "survive_moves_progression" {
+            let rewards = surviveMovesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isSurviveMovesProgressionMaxed {
+                surviveMovesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+        
         if definition.id == "magnet_usage_progression" {
             let rewards = magnetUsesDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -1039,6 +1119,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.hammer_uses_total), target: Double(currentHammerUsesTier.milestone))
         case "spin_usage_progression":
             return makeProgress(current: Double(snapshot.spin_uses_total), target: Double(currentSpinUsesTier.milestone))
+        case "survive_moves_progression":
+            return makeProgress(current: Double(snapshot.survive_moves_total), target: Double(currentSurviveMovesTier.milestone))
         case "magnet_usage_progression":
             return makeProgress(current: Double(snapshot.magnet_uses_total), target: Double(currentMagnetUsesTier.milestone))
         default:
