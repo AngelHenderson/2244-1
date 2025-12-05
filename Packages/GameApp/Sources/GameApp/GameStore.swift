@@ -734,10 +734,9 @@ public final class GameStore {
     }
     
     @discardableResult
-    private func performCommit(positions: [Position]) -> (Bool, Set<Int>) {
+    private func performCommit(positions: [Position]) -> Bool {
         let previousHighest = state.highestTile
         let lastPos = positions.last
-        let affectedColumns = Set(positions.map { $0.col })
 
         // Track newly shattered glass tiles (row 0)
         var newlyBrokenGlass: [Position] = []
@@ -824,7 +823,7 @@ public final class GameStore {
         // Auto-save progress for score changes and achievements
         saveProgressImmediately(newTile: addedValue)
 
-        return (requiresGravityDrop, affectedColumns)
+        return requiresGravityDrop
     }
     
     private static let mergeAnimationDelay: UInt64 = 400_000_000
