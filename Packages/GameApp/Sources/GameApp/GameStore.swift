@@ -686,25 +686,51 @@ public final class GameStore {
     
     private func performRefill(columns: Set<Int>? = nil) {
         let previousBoard = state.board
-        if let columns, !columns.isEmpty {
-            let newState = engine.refillColumns(columns)
+        let adjustedColumns = columnsForPendingWork(columns)
+        
+        if let cols = adjustedColumns, !cols.isEmpty {
+            let newState = engine.refillColumns(cols)
             state = newState
-            markColumnRefills(columns: columns, previousBoard: previousBoard)
+            markColumnRefills(columns: cols, previousBoard: previousBoard)
         } else {
             let newState = engine.refillBoard()
-            // We don't need to protect positions here because the merge is already done
             applyStateUpdate(newState, previousBoard: previousBoard)
         }
     }
     
     private func performGravityDrop(columns: Set<Int>? = nil) {
-        if let columns, !columns.isEmpty {
-            let newState = engine.collapseColumns(columns)
+        let adjustedColumns = columnsForPendingWork(columns)
+        if let cols = adjustedColumns, !cols.isEmpty {
+            let newState = engine.collapseColumns(cols)
             state = newState
         } else {
             let newState = engine.applyGravityAfterChain()
             state = newState
         }
+    }
+    
+    private func columnsForPendingWork(_ columns: Set<Int>?) -> Set<Int>? {
+        guard let columns, !columns.isEmpty else { return nil }
+        let columnsWithEmpties = emptyColumns(in: state.board)
+        // If there are empties outside the requested columns, fall back to full.
+        if !columnsWithEmpties.subtracting(columns).isEmpty {
+            return nil
+        }
+        return columns.intersection(columnsWithEmpties)
+    }
+    
+    private func emptyColumns(in board: Board) -> Set<Int> {
+        var result: Set<Int> = []
+        for col in 0..<board.width {
+            for row in 0..<board.height {
+                let idx = BoardIndex(row: row, col: col)
+                if board[idx].kind == .empty {
+                    result.insert(col)
+                    break
+                }
+            }
+        }
+        return result
     }
     
     @discardableResult
@@ -788,6 +814,9 @@ public final class GameStore {
         // Update session analytics
         updateSessionAnalytics()
         trackMoveAnalytics(move: positions)
+        
+        // Track surviving moves (total moves taken while still in play)
+        achievementEvaluator?.onMoveSurvived()
         
         // Evaluate achievements
         achievementEvaluator?.onChainCommitted(chain: positions, state: state, resultingTileValue: addedValue)

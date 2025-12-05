@@ -70,7 +70,6 @@ private extension JourneyPanel {
         } else {
             tiles = JourneyTileGenerator.generateJourney(highest: highestTile, stepsAhead: stepsAhead)
         }
-        
         return tiles.enumerated().map { index, tile in
             let tier = JourneyAbbreviationTiers.tier(for: tile)
             let isUnlocked: Bool
