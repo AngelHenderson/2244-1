@@ -26,7 +26,18 @@ public extension TierStat {
         for key in counts.keys where !orderedKeys.contains(key) {
             orderedKeys.append(key)
         }
-        return orderedKeys.map { key in
+        let mergedKeys = counts.keys.filter { allTierKeys.contains($0) }
+        let unmergedKeys = orderedKeys.filter { !mergedKeys.contains($0) }
+        let orderedWithProgress = mergedKeys.sorted { lhs, rhs in
+            let leftValue = counts[lhs] ?? 0
+            let rightValue = counts[rhs] ?? 0
+            if leftValue == rightValue {
+                return lhs < rhs
+            }
+            return leftValue > rightValue
+        } + unmergedKeys
+        
+        return orderedWithProgress.map { key in
             let value = counts[key] ?? 0
             return TierStat(
                 key: key,
