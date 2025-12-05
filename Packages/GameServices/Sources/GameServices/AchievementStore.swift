@@ -107,7 +107,17 @@ public final class AchievementStore {
         .init(gems: 975),                                 // 1y
         .init(gems: 950, spins: 1),                       // 1z
         .init(gems: 950, swaps: 2),                       // 1aa
-        .init(spins: 2)                                   // 1ab
+        .init(spins: 2),                                  // 1ab
+        .init(gems: 1000),                                // 1ac
+        .init(gems: 1000),                                // 1ad
+        .init(gems: 950, swaps: 1),                       // 1ae
+        .init(gems: 1100),                                // 1af
+        .init(gems: 1150),                                // 1ag
+        .init(gems: 850, spins: 1, hammers: 1, boost2x: 1, boost4x: 1), // 1ah
+        .init(gems: 950, swaps: 2),                       // 1ai
+        .init(gems: 1200),                                // 1aj
+        .init(gems: 1250),                                // 1ak
+        .init(spins: 2, swaps: 2)                         // 1al
     ]
     
     // MARK: - Moves Progression System
