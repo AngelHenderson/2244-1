@@ -648,11 +648,11 @@ public final class GameStore {
                 
                 // 3. Commit (Shatter/Fly complete, now apply logic)
                 print("[GameStore] Phase 3: Commit (Logic)")
-                let requiresGravityDrop = self.performCommit(positions: positions)
+                let (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
                 
                 if requiresGravityDrop {
                     print("[GameStore] Phase 3b: Gravity Drop")
-                    self.performGravityDrop()
+                    self.performGravityDrop(columns: affectedColumns)
                 }
                 
                 // Wait for gravity animation (tiles dropping)
@@ -667,7 +667,7 @@ public final class GameStore {
                 
                 // 4. Refill Phase
                 print("[GameStore] Phase 4: Refill")
-                self.performRefill()
+                self.performRefill(columns: affectedColumns)
                 
                 // Clear animation
                 self.mergeAnimationState = nil
@@ -684,22 +684,34 @@ public final class GameStore {
         }
     }
     
-    private func performRefill() {
+    private func performRefill(columns: Set<Int>? = nil) {
         let previousBoard = state.board
-        let newState = engine.refillBoard()
-        // We don't need to protect positions here because the merge is already done
-        applyStateUpdate(newState, previousBoard: previousBoard)
+        if let columns, !columns.isEmpty {
+            let newState = engine.refillColumns(columns)
+            state = newState
+            markColumnRefills(columns: columns, previousBoard: previousBoard)
+        } else {
+            let newState = engine.refillBoard()
+            // We don't need to protect positions here because the merge is already done
+            applyStateUpdate(newState, previousBoard: previousBoard)
+        }
     }
-
-    private func performGravityDrop() {
-        let newState = engine.applyGravityAfterChain()
-        state = newState
+    
+    private func performGravityDrop(columns: Set<Int>? = nil) {
+        if let columns, !columns.isEmpty {
+            let newState = engine.collapseColumns(columns)
+            state = newState
+        } else {
+            let newState = engine.applyGravityAfterChain()
+            state = newState
+        }
     }
     
     @discardableResult
-    private func performCommit(positions: [Position]) -> Bool {
+    private func performCommit(positions: [Position]) -> (Bool, Set<Int>) {
         let previousHighest = state.highestTile
         let lastPos = positions.last
+        let affectedColumns = Set(positions.map { $0.col })
 
         // Track newly shattered glass tiles (row 0)
         var newlyBrokenGlass: [Position] = []
@@ -783,7 +795,7 @@ public final class GameStore {
         // Auto-save progress for score changes and achievements
         saveProgressImmediately(newTile: addedValue)
 
-        return requiresGravityDrop
+        return (requiresGravityDrop, affectedColumns)
     }
     
     private static let mergeAnimationDelay: UInt64 = 400_000_000
