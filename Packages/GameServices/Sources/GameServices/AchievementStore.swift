@@ -76,6 +76,40 @@ public final class AchievementStore {
         ("∞", "∞", Double.infinity)
     ]
     
+    // Tier-specific rewards for tile progression (indexed to tileTiers)
+    private static let tileTierRewards: [AchievementDef.Rewards?] = [
+        .init(gems: 25),                                  // 1M
+        .init(gems: 35, magnets: 1),                      // 1B
+        .init(gems: 60, spins: 1),                        // 1a
+        .init(gems: 95, swaps: 1),                        // 1b
+        .init(gems: 165),                                 // 1c
+        .init(gems: 180),                                 // 1d
+        .init(boost3x: 1),                                // 1e
+        .init(hammers: 1, boost2x: 1),                    // 1f
+        .init(gems: 350),                                 // 1g
+        .init(gems: 375),                                 // 1h
+        .init(gems: 400),                                 // 1i
+        .init(gems: 335, magnets: 1),                     // 1j
+        .init(spins: 1, hammers: 1),                      // 1k
+        .init(gems: 395, swaps: 1),                       // 1l
+        .init(spins: 1, magnets: 1, swaps: 1),            // 1m
+        .init(gems: 450, spins: 1),                       // 1n
+        .init(gems: 475),                                 // 1o
+        .init(gems: 450, boost4x: 1),                     // 1p
+        .init(gems: 550),                                 // 1q
+        .init(hammers: 2),                                // 1r
+        .init(gems: 750),                                 // 1s
+        .init(gems: 500, spins: 1, magnets: 1, boost2x: 1), // 1t
+        .init(gems: 550, magnets: 1, swaps: 1),           // 1u
+        .init(gems: 850),                                 // 1v
+        .init(gems: 900),                                 // 1w
+        .init(magnets: 2),                                // 1x
+        .init(gems: 975),                                 // 1y
+        .init(gems: 950, spins: 1),                       // 1z
+        .init(gems: 950, swaps: 2),                       // 1aa
+        .init(spins: 2)                                   // 1ab
+    ]
+    
     // MARK: - Moves Progression System
     public static let movesTiers: [(label: String, value: Double)] = [
         ("25", 25),
@@ -638,6 +672,14 @@ public final class AchievementStore {
         )
     }
     
+    private func tileRewards(for definition: AchievementDef) -> AchievementDef.Rewards? {
+        if Self.tileTierRewards.indices.contains(tileProgressionTier),
+           let tierRewards = Self.tileTierRewards[tileProgressionTier] {
+            return tierRewards
+        }
+        return definition.rewards
+    }
+    
     /// Current tier index for the tile progression achievement (persisted)
     public var tileProgressionTier: Int {
         didSet {
@@ -860,8 +902,8 @@ public final class AchievementStore {
         
         // Special handling for tile progression achievement
         if definition.id == "tile_progression" {
-            // Grant rewards
-            if let rewards = definition.rewards {
+            // Grant tier-specific rewards (fallback to definition if unspecified)
+            if let rewards = tileRewards(for: definition) {
                 if let gems = rewards.gems, gems > 0 {
                     grantGemsDirectly(gems)
                 }
