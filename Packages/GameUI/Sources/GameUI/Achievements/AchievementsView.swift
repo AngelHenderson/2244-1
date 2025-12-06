@@ -99,6 +99,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.combo2130Display
         case "merge_progression":
             return achievements.mergeDisplay
+        case "tile_progression":
+            return achievements.tileProgressionDisplay
         case "swap_usage_progression":
             return achievements.swapUsesDisplay
         case "hammer_usage_progression":

@@ -781,11 +781,13 @@ public final class AchievementStore {
     }
     
     private func tileRewards(for definition: AchievementDef) -> AchievementDef.Rewards? {
-        if Self.tileTierRewards.indices.contains(tileProgressionTier),
-           let tierRewards = Self.tileTierRewards[tileProgressionTier] {
-            return tierRewards
-        }
-        return definition.rewards
+        tileReward(forTier: tileProgressionTier) ?? definition.rewards
+    }
+    
+    private func tileReward(forTier tierIndex: Int) -> AchievementDef.Rewards? {
+        guard Self.tileTierRewards.indices.contains(tierIndex),
+              let tierRewards = Self.tileTierRewards[tierIndex] else { return nil }
+        return tierRewards
     }
     
     /// Current tier index for the tile progression achievement (persisted)
@@ -807,6 +809,24 @@ public final class AchievementStore {
     /// Check if tile progression is at max tier
     public var isTileProgressionMaxed: Bool {
         tileProgressionTier >= Self.tileTiers.count - 1
+    }
+    
+    public var tileProgressionDisplay: ProgressTierDisplay {
+        let tier = currentTileTier
+        let level = min(tileProgressionTier, Self.tileTiers.count - 1) + 1
+        let rewards = tileReward(forTier: tileProgressionTier) ?? AchievementDef.Rewards()
+        let isMaxed = isTileProgressionMaxed
+        let description = isMaxed
+            ? "You've mastered tile creation. Claim your final reward."
+            : "Reach tile \(tier.label) to unlock the next level."
+        return ProgressTierDisplay(
+            milestone: Int(tier.value),
+            level: level,
+            title: "Level \(level): \(tier.label) tile",
+            description: description,
+            categoryLabel: "HighestTile",
+            rewards: rewards
+        )
     }
     
     public private(set) var catalog: [AchievementDef] = []
