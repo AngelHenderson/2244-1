@@ -104,11 +104,19 @@ public struct DailyClaimsView: View {
         VStack(spacing: 12) {
             if let nextDay = store.getNextClaimableDay(),
                let claim = store.dailyClaims.first(where: { $0.day == nextDay }) {
+                let combined = store.combinedRewardForNextClaim() ?? claim.rewards
+                
                 Text("Day \(claim.day) Reward Available!")
                     .font(.headline)
                 
-                RewardsDisplay(rewards: claim.rewards)
+                RewardsDisplay(rewards: combined)
                     .font(.title3)
+                
+                if combined.entries.count > claim.rewards.entries.count {
+                    Text("Includes a streak bonus!")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
                 
                 Text("Claim it from the timeline below.")
                     .font(.subheadline)
@@ -191,7 +199,7 @@ public struct DailyClaimsView: View {
     }
     
     private func claimReward(_ rewards: AchievementDef.Rewards) {
-        claimedRewards = rewards
+        claimedRewards = store.combinedRewardForNextClaim() ?? rewards
         showClaimAnimation = true
         store.claimDailyReward()
         

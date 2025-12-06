@@ -191,6 +191,15 @@ public final class DailyClaimsStore {
         return max(0, startOfNextDay.timeIntervalSinceNow)
     }
     
+    public func combinedRewardForNextClaim() -> AchievementDef.Rewards? {
+        guard let nextDay = getNextClaimableDay(),
+              let daily = dailyClaims.first(where: { $0.day == nextDay })?.rewards
+        else { return nil }
+        
+        let streakBonus = pendingStreakRewards(afterClaimingDay: nextDay)
+        return streakBonus.reduce(daily) { $0.merged(with: $1) }
+    }
+    
     public func ensureClaimsCovering(pageIndex: Int) {
         let upperBound = min(max(pageIndex, 0), Int.max / 7) * 7 + 7
         ensureClaims(upTo: max(upperBound, visibleUpperBound()))
@@ -232,6 +241,13 @@ public final class DailyClaimsStore {
             let day = dailyClaims[index].day
             dailyClaims[index].isClaimed = claimedDays.contains(day)
         }
+    }
+    
+    private func pendingStreakRewards(afterClaimingDay day: Int) -> [AchievementDef.Rewards] {
+        let resultingStreak = currentStreak + 1 // streak increments when day is claimed
+        return dailyStreaks
+            .filter { !$0.isUnlocked && $0.day <= resultingStreak }
+            .map(\.rewards)
     }
 }
 

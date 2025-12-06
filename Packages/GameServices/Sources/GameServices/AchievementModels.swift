@@ -81,6 +81,28 @@ public extension AchievementDef.Rewards {
         append(.boost4x, value: boost4x)
         return result
     }
+    
+    func merged(with other: AchievementDef.Rewards) -> AchievementDef.Rewards {
+        AchievementDef.Rewards(
+            gems: sum(gems, other.gems),
+            spins: sum(spins, other.spins),
+            hammers: sum(hammers, other.hammers),
+            magnets: sum(magnets, other.magnets),
+            swaps: sum(swaps, other.swaps),
+            boost2x: sum(boost2x, other.boost2x),
+            boost3x: sum(boost3x, other.boost3x),
+            boost4x: sum(boost4x, other.boost4x)
+        )
+    }
+    
+    private func sum(_ a: Int?, _ b: Int?) -> Int? {
+        switch (a, b) {
+        case let (x?, y?): return x + y
+        case let (x?, nil): return x
+        case let (nil, y?): return y
+        default: return nil
+        }
+    }
 }
 
 public struct GameSnapshot: Sendable, Codable {
