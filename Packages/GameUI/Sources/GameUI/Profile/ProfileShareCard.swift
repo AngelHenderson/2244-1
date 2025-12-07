@@ -106,7 +106,7 @@ struct ProfileShareCard: View {
                                     RoundedRectangle(cornerRadius: 6)
                                         .fill(tier.color.opacity(0.8))
                                         .frame(width: 24, height: 24)
-                                    Text(tier.key)
+                                    Text(tier.displayKey)
                                         .font(.caption.weight(.bold))
                                         .foregroundStyle(.white)
                                 }
