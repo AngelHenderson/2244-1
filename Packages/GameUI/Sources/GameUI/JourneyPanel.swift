@@ -17,7 +17,13 @@ struct JourneyPanel: View {
         
         ScrollView(.vertical, showsIndicators: false) {
             GeometryReader { geometry in
-                let layout = RoadLayout(size: geometry.size, milestones: milestones)
+                let effectiveWidth = max(geometry.size.width, JourneyPanelMetrics.minContentWidth)
+                let effectiveSize = CGSize(
+                    width: effectiveWidth,
+                    height: max(geometry.size.height, RoadLayout.contentHeight(for: milestones.count))
+                )
+                
+                let layout = RoadLayout(size: effectiveSize, milestones: milestones)
                 
                 ZStack(alignment: .top) {
                     RoadBackgroundView(layout: layout)
@@ -31,7 +37,8 @@ struct JourneyPanel: View {
                         .onAppear { handleMilestoneAppear(entry.milestone) }
                     }
                 }
-                .frame(width: geometry.size.width, height: layout.contentHeight, alignment: .top)
+                .frame(width: effectiveWidth, height: layout.contentHeight, alignment: .top)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
             .frame(height: RoadLayout.contentHeight(for: milestones.count))
         }
@@ -441,6 +448,7 @@ private struct RoadMilestone: Identifiable {
 }
 
 private enum JourneyPanelMetrics {
+    static let minContentWidth: CGFloat = 360
     static let verticalSpacing: CGFloat = 190
     static let verticalPadding: CGFloat = 150
     static let roadWidth: CGFloat = 44
