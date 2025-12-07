@@ -20,6 +20,10 @@ public struct TierStat: Identifiable, Hashable, Sendable {
 }
 
 public extension TierStat {
+    var displayKey: String {
+        key == "l" ? "ℓ" : key
+    }
+    
     static func stats(from counts: [String: Int]) -> [TierStat] {
         var orderedKeys = allTierKeys
         // include any keys not part of canonical set (future proofing)

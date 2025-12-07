@@ -341,7 +341,7 @@ private struct TierCard: View {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(tier.color.opacity(0.9))
                     .frame(width: 36, height: 36)
-                Text(tier.key)
+                Text(tier.displayKey)
                     .font(.headline.weight(.bold))
                     .foregroundStyle(.white)
             }
