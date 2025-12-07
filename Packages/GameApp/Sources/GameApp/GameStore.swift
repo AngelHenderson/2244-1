@@ -686,51 +686,15 @@ public final class GameStore {
     
     private func performRefill(columns: Set<Int>? = nil) {
         let previousBoard = state.board
-        let adjustedColumns = columnsForPendingWork(columns)
-        
-        if let cols = adjustedColumns, !cols.isEmpty {
-            let newState = engine.refillColumns(cols)
-            state = newState
-            markColumnRefills(columns: cols, previousBoard: previousBoard)
-        } else {
-            let newState = engine.refillBoard()
-            applyStateUpdate(newState, previousBoard: previousBoard)
-        }
+        // Normal path: always full-board refill to guarantee 5×8 visible grid.
+        let newState = engine.refillBoard()
+        applyStateUpdate(newState, previousBoard: previousBoard)
     }
     
     private func performGravityDrop(columns: Set<Int>? = nil) {
-        let adjustedColumns = columnsForPendingWork(columns)
-        if let cols = adjustedColumns, !cols.isEmpty {
-            let newState = engine.collapseColumns(cols)
-            state = newState
-        } else {
-            let newState = engine.applyGravityAfterChain()
-            state = newState
-        }
-    }
-    
-    private func columnsForPendingWork(_ columns: Set<Int>?) -> Set<Int>? {
-        guard let columns, !columns.isEmpty else { return nil }
-        let columnsWithEmpties = emptyColumns(in: state.board)
-        // If there are empties outside the requested columns, fall back to full.
-        if !columnsWithEmpties.subtracting(columns).isEmpty {
-            return nil
-        }
-        return columns.intersection(columnsWithEmpties)
-    }
-    
-    private func emptyColumns(in board: Board) -> Set<Int> {
-        var result: Set<Int> = []
-        for col in 0..<board.width {
-            for row in 0..<board.height {
-                let idx = BoardIndex(row: row, col: col)
-                if board[idx].kind == .empty {
-                    result.insert(col)
-                    break
-                }
-            }
-        }
-        return result
+        // Normal path: full-board gravity.
+        let newState = engine.applyGravityAfterChain()
+        state = newState
     }
     
     @discardableResult
@@ -1534,32 +1498,8 @@ public final class GameStore {
                 return
             }
             
-            let previousBoard = self.state.board
-            let refillState = self.engine.refillColumns([position.col])
-            self.state = refillState
-            markColumnRefills(columns: Set([position.col]), previousBoard: previousBoard)
+            self.performRefill()
             self.resetHammerAnimation()
-        }
-    }
-    
-    @MainActor
-    private func markColumnRefills(columns: Set<Int>, previousBoard: Board) {
-        guard !columns.isEmpty else { return }
-        let newPositions = detectNewSpawnPositions(previousBoard: previousBoard, newBoard: state.board)
-            .filter { columns.contains($0.col) }
-        pendingRefillPositions = Set(newPositions)
-        
-        guard !newPositions.isEmpty else {
-            return
-        }
-        
-        cancelRefillRevealTask()
-        refillRevealTask = Task { [weak self] in
-            guard let self else { return }
-            try? await Task.sleep(nanoseconds: Self.refillRevealDelay)
-            await MainActor.run {
-                self.pendingRefillPositions.removeAll()
-            }
         }
     }
     
@@ -1612,8 +1552,7 @@ public final class GameStore {
             self.setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
             self.achievementEvaluator?.onTilesMerged(count: matchingPositions.count)
             
-            let dropState = self.engine.collapseColumns(affectedColumns)
-            self.state = dropState
+            self.performGravityDrop()
             
             do {
                 try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
@@ -1627,10 +1566,7 @@ public final class GameStore {
                 return
             }
             
-            let previousBoard = self.state.board
-            let refillState = self.engine.refillColumns(affectedColumns)
-            self.state = refillState
-            markColumnRefills(columns: affectedColumns, previousBoard: previousBoard)
+            self.performRefill()
             self.saveProgressImmediately(newTile: mergedValue)
         }
     }
