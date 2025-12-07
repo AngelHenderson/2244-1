@@ -28,14 +28,27 @@ public extension TierStat {
         }
         let mergedKeys = counts.keys.filter { allTierKeys.contains($0) }
         let unmergedKeys = orderedKeys.filter { !mergedKeys.contains($0) }
-        let orderedWithProgress = mergedKeys.sorted { lhs, rhs in
+        
+        // keep any merged tiers at the top, sorted by value desc then key
+        let mergedOrdered = mergedKeys.sorted { lhs, rhs in
             let leftValue = counts[lhs] ?? 0
             let rightValue = counts[rhs] ?? 0
             if leftValue == rightValue {
                 return lhs < rhs
             }
             return leftValue > rightValue
-        } + unmergedKeys
+        }
+        
+        // place special end-caps (bz and infinity) at the bottom; everything else before them
+        let specialEndCaps: Set<String> = ["bz", "∞", "infinity"]
+        let (endCaps, regularUnmerged) = unmergedKeys.reduce(into: ([String](), [String]())) { partial, key in
+            if specialEndCaps.contains(key.lowercased()) || key == "∞" {
+                partial.0.append(key)
+            } else {
+                partial.1.append(key)
+            }
+        }
+        let orderedWithProgress = mergedOrdered + regularUnmerged + endCaps
         
         return orderedWithProgress.map { key in
             let value = counts[key] ?? 0

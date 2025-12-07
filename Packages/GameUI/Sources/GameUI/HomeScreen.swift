@@ -71,8 +71,12 @@ public struct HomeScreen: View {
                     }
                 }
                 
-                // Journey 5-block preview
-                JourneyPreview()
+                // Journey road preview (live view)
+                JourneyPanel(showAll: false)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 720)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 8)
 
                 // View all blocks button
                 Button(action: { isShowingAllBlocks = true }) {
