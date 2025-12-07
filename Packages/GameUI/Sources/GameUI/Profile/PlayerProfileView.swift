@@ -343,6 +343,7 @@ private struct TierCard: View {
                     .frame(width: 36, height: 36)
                 Text(tier.displayKey)
                     .font(.headline.weight(.bold))
+                    .fontDesign(tier.usesCurvedLStyling ? .rounded : .default)
                     .foregroundStyle(.white)
             }
             Text("\(tier.value)")

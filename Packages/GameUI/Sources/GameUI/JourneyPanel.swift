@@ -5,55 +5,61 @@ import GameCore
 struct JourneyPanel: View {
     @Environment(\.gameStore) private var gameStore
     let showAll: Bool
-    
-    @State private var stepsAhead: Int = JourneyPanelMetrics.initialDynamicSteps
-    
+
+    @State private var stepsAhead: Int = InfiniteRoadMetrics.initialDynamicSteps
+
     init(showAll: Bool = false) {
         self.showAll = showAll
     }
-    
+
     var body: some View {
         let milestones = roadMilestones
-        
-        ScrollView(.vertical, showsIndicators: false) {
-            GeometryReader { geometry in
-                let effectiveWidth = max(geometry.size.width, JourneyPanelMetrics.minContentWidth)
-                let effectiveSize = CGSize(
-                    width: effectiveWidth,
-                    height: max(geometry.size.height, RoadLayout.contentHeight(for: milestones.count))
-                )
-                
-                let layout = RoadLayout(size: effectiveSize, milestones: milestones)
-                
+
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
                 ZStack(alignment: .top) {
-                    RoadBackgroundView(layout: layout)
-                    ForEach(layout.entries) { entry in
-                        RoadMilestoneView(entry: entry) {
-                            if let tier = entry.milestone.tier {
-                                gameStore.presentJourneyReward(for: tier)
+                    InfiniteRoadBackground(milestoneCount: milestones.count)
+
+                    VStack(spacing: 0) {
+                        ForEach(milestones) { milestone in
+                            RoadMilestoneSection(
+                                milestone: milestone,
+                                isFirst: milestone.id == 0,
+                                isLast: milestone.id == milestones.count - 1
+                            ) {
+                                if let tier = milestone.tier {
+                                    gameStore.presentJourneyReward(for: tier)
+                                }
                             }
+                            .id(milestone.id)
+                            .onAppear { handleMilestoneAppear(milestone) }
                         }
-                        .position(entry.position)
-                        .onAppear { handleMilestoneAppear(entry.milestone) }
+
+                        InfinityHorizon()
                     }
                 }
-                .frame(width: effectiveWidth, height: layout.contentHeight, alignment: .top)
-                .frame(maxWidth: .infinity, alignment: .top)
+                .frame(maxWidth: .infinity)
             }
-            .frame(height: RoadLayout.contentHeight(for: milestones.count))
+            .onAppear {
+                if let currentIndex = milestones.firstIndex(where: { $0.status == .current }) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        withAnimation(.easeOut(duration: 0.5)) {
+                            proxy.scrollTo(currentIndex, anchor: .center)
+                        }
+                    }
+                }
+            }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 24)
-        .background(JourneyPanelBackground())
+        .background(InfiniteRoadSky())
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: stepsAhead)
         .onAppear {
             if showAll {
-                stepsAhead = JourneyPanelMetrics.maxDynamicSteps
+                stepsAhead = InfiniteRoadMetrics.maxDynamicSteps
             }
         }
         .onChange(of: showAll) { _, _ in
             if showAll {
-                stepsAhead = JourneyPanelMetrics.maxDynamicSteps
+                stepsAhead = InfiniteRoadMetrics.maxDynamicSteps
             }
         }
     }
@@ -65,11 +71,11 @@ private extension JourneyPanel {
     var highestTile: Int {
         max(2, gameStore.state.highestTile)
     }
-    
+
     var highestStep: Int {
         Tile(value: highestTile).stepIndex ?? 0
     }
-    
+
     var roadMilestones: [RoadMilestone] {
         let tiles: [Tile]
         if showAll {
@@ -94,7 +100,7 @@ private extension JourneyPanel {
                 isUnlocked = tile.value <= highestTile
                 isClaimed = false
             }
-            
+
             let status: RoadMilestone.Status
             if tile.isInfinity {
                 status = .infinity
@@ -113,10 +119,10 @@ private extension JourneyPanel {
             } else {
                 status = .locked
             }
-            
+
             let rewardAvailable = tier != nil ? (isUnlocked && !isClaimed) : false
             let rewardClaimed = tier != nil ? (isUnlocked && isClaimed) : false
-            
+
             return RoadMilestone(
                 id: index,
                 tile: tile,
@@ -129,7 +135,7 @@ private extension JourneyPanel {
             )
         }
     }
-    
+
     static func formatLabel(for tile: Tile) -> String {
         if tile.isInfinity {
             return "∞"
@@ -139,200 +145,445 @@ private extension JourneyPanel {
         }
         return AlphaMag.formatTileValue(tile.value)
     }
-    
+
     func handleMilestoneAppear(_ milestone: RoadMilestone) {
         guard !showAll else { return }
-        let thresholdIndex = max(0, roadMilestones.count - JourneyPanelMetrics.prefetchThreshold)
-        if milestone.id >= thresholdIndex && stepsAhead < JourneyPanelMetrics.maxDynamicSteps {
-            stepsAhead += JourneyPanelMetrics.dynamicStepIncrement
+        let thresholdIndex = max(0, roadMilestones.count - InfiniteRoadMetrics.prefetchThreshold)
+        if milestone.id >= thresholdIndex && stepsAhead < InfiniteRoadMetrics.maxDynamicSteps {
+            stepsAhead += InfiniteRoadMetrics.dynamicStepIncrement
         }
     }
 }
 
-// MARK: - Layout & Rendering
+// MARK: - Infinite Road Background
 
-private struct RoadLayout {
-    struct Entry: Identifiable {
-        let milestone: RoadMilestone
-        let position: CGPoint
-        
-        var id: Int { milestone.id }
-    }
-    
-    let entries: [Entry]
-    let contentHeight: CGFloat
-    
-    init(size: CGSize, milestones: [RoadMilestone]) {
-        contentHeight = RoadLayout.contentHeight(for: milestones.count)
-        let centerX = size.width / 2
-        let amplitude = min(JourneyPanelMetrics.roadAmplitude, (size.width / 2) - 36)
-        let offsets = JourneyPanelMetrics.horizontalOffsets
-        let baseY = JourneyPanelMetrics.verticalPadding
-        let spacing = JourneyPanelMetrics.verticalSpacing
-        
-        entries = milestones.map { milestone in
-            let lane = offsets[milestone.id % offsets.count]
-            let position = CGPoint(
-                x: centerX + amplitude * lane,
-                y: baseY + CGFloat(milestone.id) * spacing
-            )
-            return Entry(milestone: milestone, position: position)
-        }
-    }
-    
-    static func contentHeight(for count: Int) -> CGFloat {
-        let rows = max(count - 1, 0)
-        return JourneyPanelMetrics.verticalPadding * 2 + CGFloat(rows) * JourneyPanelMetrics.verticalSpacing
-    }
-}
-
-private struct JourneyPanelBackground: View {
+private struct InfiniteRoadSky: View {
     var body: some View {
         LinearGradient(
             colors: [
-                Color(red: 0.02, green: 0.02, blue: 0.05),
-                Color(red: 0.09, green: 0.09, blue: 0.17)
+                Color(red: 0.05, green: 0.08, blue: 0.18),
+                Color(red: 0.02, green: 0.03, blue: 0.08),
+                Color(red: 0.0, green: 0.0, blue: 0.02)
             ],
             startPoint: .top,
             endPoint: .bottom
         )
         .overlay(
-            RadialGradient(
-                colors: [Color.white.opacity(0.12), .clear],
-                center: .top,
-                startRadius: 0,
-                endRadius: 380
-            )
+            StarsOverlay()
         )
+        .ignoresSafeArea()
     }
 }
 
-private struct RoadBackgroundView: View {
-    let layout: RoadLayout
-    
+private struct StarsOverlay: View {
     var body: some View {
         Canvas { context, size in
-            let points = layout.entries.map(\.position)
-            guard points.count > 1 else { return }
-            var path = Path()
-            path.move(to: points[0])
-            for index in 1..<points.count {
-                let previous = points[index - 1]
-                let current = points[index]
-                let control = CGPoint(
-                    x: (previous.x + current.x) / 2,
-                    y: (previous.y + current.y) / 2
+            let starCount = 80
+            var rng = SeededRNG(seed: 2244)
+
+            for _ in 0..<starCount {
+                let x = CGFloat.random(in: 0...size.width, using: &rng)
+                let y = CGFloat.random(in: 0...size.height * 0.6, using: &rng)
+                let brightness = CGFloat.random(in: 0.3...0.9, using: &rng)
+                let starSize = CGFloat.random(in: 1...2.5, using: &rng)
+
+                context.fill(
+                    Circle().path(in: CGRect(x: x, y: y, width: starSize, height: starSize)),
+                    with: .color(.white.opacity(brightness))
                 )
-                path.addQuadCurve(to: current, control: control)
             }
-            
-            context.stroke(
-                path,
-                with: .color(JourneyPanelColors.roadBorder),
-                style: StrokeStyle(lineWidth: JourneyPanelMetrics.roadWidth + 18, lineCap: .round)
-            )
-            
-            context.stroke(
-                path,
-                with: .color(JourneyPanelColors.roadFill),
-                style: StrokeStyle(lineWidth: JourneyPanelMetrics.roadWidth, lineCap: .round)
-            )
-            
-            context.stroke(
-                path,
-                with: .color(.white.opacity(0.45)),
-                style: StrokeStyle(
-                    lineWidth: 4,
-                    lineCap: .round,
-                    dash: [28, 20]
-                )
-            )
         }
-        // Placeholder Canvas strokes above mimic road assets. Replace with custom art when ready.
     }
 }
 
-private struct RoadMilestoneView: View {
-    let entry: RoadLayout.Entry
-    let rewardAction: () -> Void
-    
+private struct SeededRNG: RandomNumberGenerator {
+    private var state: UInt64
+
+    init(seed: UInt64) {
+        state = seed
+    }
+
+    mutating func next() -> UInt64 {
+        state = state &* 6364136223846793005 &+ 1442695040888963407
+        return state
+    }
+}
+
+private struct InfiniteRoadBackground: View {
+    let milestoneCount: Int
+
     var body: some View {
-        VStack(spacing: 12) {
-            if let status = entry.milestone.rewardStatus {
-                RewardBadge(status: status, action: rewardAction)
-            }
-            
-            ZStack {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(entry.milestone.background)
-                    .frame(width: 84, height: 84)
-                    .shadow(color: entry.milestone.shadowColor, radius: 12, x: 0, y: 10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .strokeBorder(entry.milestone.borderColor, lineWidth: 3)
+        GeometryReader { geometry in
+            let totalHeight = CGFloat(milestoneCount) * InfiniteRoadMetrics.milestoneSpacing + InfiniteRoadMetrics.horizonHeight
+
+            Canvas { context, size in
+                let roadWidth: CGFloat = InfiniteRoadMetrics.roadWidth
+                let centerX = size.width / 2
+
+                // Road base with asphalt texture
+                let roadRect = CGRect(
+                    x: centerX - roadWidth / 2,
+                    y: 0,
+                    width: roadWidth,
+                    height: totalHeight
+                )
+
+                // Road shadow
+                context.fill(
+                    RoundedRectangle(cornerRadius: 8).path(in: roadRect.insetBy(dx: -8, dy: 0)),
+                    with: .color(.black.opacity(0.5))
+                )
+
+                // Main road
+                context.fill(
+                    Rectangle().path(in: roadRect),
+                    with: .linearGradient(
+                        Gradient(colors: [
+                            Color(red: 0.22, green: 0.24, blue: 0.28),
+                            Color(red: 0.18, green: 0.20, blue: 0.24)
+                        ]),
+                        startPoint: CGPoint(x: roadRect.minX, y: 0),
+                        endPoint: CGPoint(x: roadRect.maxX, y: 0)
                     )
-                
-                VStack(spacing: 2) {
-                    Text(entry.milestone.label)
-                        .font(.system(size: entry.milestone.isCompactLabel ? 16 : 20, weight: .heavy, design: .rounded))
-                        .foregroundStyle(Color.white)
-                        .minimumScaleFactor(0.6)
-                    Text("Level \(entry.milestone.id + 1)")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.85))
-                }
-                .padding(6)
-                
-                if entry.milestone.status == .current {
-                    PlayerMarker()
-                        .offset(y: -70)
-                } else if entry.milestone.status == .infinity {
-                    Image(systemName: "infinity")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(entry.milestone.accessibilityLabel)
-            
-            if entry.milestone.status == .current {
-                Text("Current")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.85))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule()
-                            .fill(Color.white.opacity(0.12))
+                )
+
+                // Road edges (yellow lines)
+                let edgeWidth: CGFloat = 4
+                context.fill(
+                    Rectangle().path(in: CGRect(x: centerX - roadWidth / 2, y: 0, width: edgeWidth, height: totalHeight)),
+                    with: .color(Color(red: 0.9, green: 0.75, blue: 0.2))
+                )
+                context.fill(
+                    Rectangle().path(in: CGRect(x: centerX + roadWidth / 2 - edgeWidth, y: 0, width: edgeWidth, height: totalHeight)),
+                    with: .color(Color(red: 0.9, green: 0.75, blue: 0.2))
+                )
+
+                // Center dashed line
+                let dashLength: CGFloat = 40
+                let dashGap: CGFloat = 30
+                let dashWidth: CGFloat = 6
+                var dashY: CGFloat = 20
+
+                while dashY < totalHeight {
+                    let dashRect = CGRect(
+                        x: centerX - dashWidth / 2,
+                        y: dashY,
+                        width: dashWidth,
+                        height: dashLength
                     )
+                    context.fill(
+                        RoundedRectangle(cornerRadius: 2).path(in: dashRect),
+                        with: .color(.white.opacity(0.85))
+                    )
+                    dashY += dashLength + dashGap
+                }
             }
+            .frame(height: totalHeight)
         }
+        .frame(height: CGFloat(milestoneCount) * InfiniteRoadMetrics.milestoneSpacing + InfiniteRoadMetrics.horizonHeight)
     }
 }
 
-private struct PlayerMarker: View {
+// MARK: - Road Milestone Section
+
+private struct RoadMilestoneSection: View {
+    let milestone: RoadMilestone
+    let isFirst: Bool
+    let isLast: Bool
+    let rewardAction: () -> Void
+
+    var body: some View {
+        ZStack {
+            // Distance marker posts on sides
+            HStack {
+                if milestone.id % 2 == 0 {
+                    DistanceMarkerPost(milestone: milestone)
+                    Spacer()
+                } else {
+                    Spacer()
+                    DistanceMarkerPost(milestone: milestone)
+                }
+            }
+            .padding(.horizontal, 20)
+
+            // Milestone sign on road
+            VStack(spacing: 16) {
+                if let status = milestone.rewardStatus {
+                    RewardBadge(status: status, action: rewardAction)
+                }
+
+                MilestoneRoadSign(milestone: milestone)
+
+                if milestone.status == .current {
+                    PlayerVehicle()
+                        .offset(y: 20)
+                }
+            }
+        }
+        .frame(height: InfiniteRoadMetrics.milestoneSpacing)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+private struct DistanceMarkerPost: View {
+    let milestone: RoadMilestone
+
     var body: some View {
         VStack(spacing: 4) {
-            Image(systemName: "crown.fill")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundStyle(.yellow)
-            RoundedRectangle(cornerRadius: 3)
-                .fill(Color.white.opacity(0.9))
-                .frame(width: 3, height: 16)
+            // Sign plate
+            VStack(spacing: 2) {
+                Text(milestone.label)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(milestone.status == .locked ? .white.opacity(0.5) : .white)
+
+                Text("MILE \(milestone.id + 1)")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(milestone.signBackgroundColor)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(.white.opacity(0.3), lineWidth: 1)
+            )
+
+            // Post
+            Rectangle()
+                .fill(Color(red: 0.4, green: 0.4, blue: 0.4))
+                .frame(width: 4, height: 30)
         }
-        .accessibilityHidden(true)
     }
 }
+
+private struct MilestoneRoadSign: View {
+    let milestone: RoadMilestone
+
+    var body: some View {
+        ZStack {
+            // Sign background
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(milestone.background)
+                .frame(width: 100, height: 100)
+                .shadow(color: milestone.shadowColor, radius: 16, x: 0, y: 8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(milestone.borderColor, lineWidth: 3)
+                )
+
+            VStack(spacing: 4) {
+                if milestone.status == .infinity {
+                    Image(systemName: "infinity")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.cyan, .purple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                } else {
+                    Text(milestone.label)
+                        .font(.system(size: milestone.isCompactLabel ? 18 : 24, weight: .heavy, design: .rounded))
+                        .foregroundStyle(.white)
+                        .minimumScaleFactor(0.5)
+                }
+
+                if milestone.status != .infinity {
+                    Text("Level \(milestone.id + 1)")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+            }
+            .padding(8)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(milestone.accessibilityLabel)
+    }
+}
+
+private struct PlayerVehicle: View {
+    @State private var bounce = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Glowing indicator
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [.yellow, .orange, .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 30
+                    )
+                )
+                .frame(width: 60, height: 60)
+                .blur(radius: 8)
+
+            // Vehicle/marker
+            ZStack {
+                // Shadow
+                Ellipse()
+                    .fill(.black.opacity(0.4))
+                    .frame(width: 50, height: 16)
+                    .offset(y: 20)
+                    .blur(radius: 4)
+
+                // Car body
+                VStack(spacing: 0) {
+                    // Top
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.95, green: 0.25, blue: 0.25),
+                                    Color(red: 0.75, green: 0.15, blue: 0.15)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 36, height: 20)
+
+                    // Body
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.95, green: 0.3, blue: 0.3),
+                                    Color(red: 0.8, green: 0.2, blue: 0.2)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 44, height: 30)
+                }
+                .overlay(
+                    VStack(spacing: 12) {
+                        // Windshield
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.cyan.opacity(0.6))
+                            .frame(width: 28, height: 10)
+
+                        // Headlights
+                        HStack(spacing: 20) {
+                            Circle()
+                                .fill(.yellow)
+                                .frame(width: 6, height: 6)
+                            Circle()
+                                .fill(.yellow)
+                                .frame(width: 6, height: 6)
+                        }
+                    }
+                )
+            }
+            .scaleEffect(bounce ? 1.05 : 1.0)
+            .offset(y: bounce ? -3 : 0)
+
+            // "YOU ARE HERE" label
+            Text("YOU ARE HERE")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.yellow)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(.black.opacity(0.6))
+                )
+                .offset(y: 8)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                bounce = true
+            }
+        }
+    }
+}
+
+private struct InfinityHorizon: View {
+    @State private var shimmer = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Road fading into horizon
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.2, green: 0.22, blue: 0.26),
+                            Color(red: 0.1, green: 0.1, blue: 0.15).opacity(0.5),
+                            .clear
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: InfiniteRoadMetrics.roadWidth, height: 100)
+
+            // Horizon glow
+            ZStack {
+                // Outer glow
+                Ellipse()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.purple.opacity(0.4),
+                                Color.cyan.opacity(0.2),
+                                .clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 150
+                        )
+                    )
+                    .frame(width: 300, height: 150)
+                    .blur(radius: 20)
+
+                // Infinity symbol
+                VStack(spacing: 8) {
+                    Image(systemName: "infinity")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.cyan, .purple, .cyan],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .opacity(shimmer ? 0.7 : 1.0)
+
+                    Text("THE ROAD NEVER ENDS")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.6))
+                        .tracking(2)
+                }
+            }
+            .padding(.top, 20)
+        }
+        .frame(height: InfiniteRoadMetrics.horizonHeight)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                shimmer = true
+            }
+        }
+    }
+}
+
+// MARK: - Reward Badge
 
 private struct RewardBadge: View {
     enum Status {
         case available
         case claimed
     }
-    
+
     let status: Status
     let action: () -> Void
-    
+
     var body: some View {
         Group {
             if status == .available {
@@ -347,7 +598,7 @@ private struct RewardBadge: View {
             }
         }
     }
-    
+
     private var badgeContent: some View {
         HStack(spacing: 6) {
             Image(systemName: "gift.fill")
@@ -359,7 +610,7 @@ private struct RewardBadge: View {
         .padding(.vertical, 6)
         .background(
             Capsule()
-                .fill(status == .available ? JourneyPanelColors.rewardAvailable : JourneyPanelColors.rewardClaimed)
+                .fill(status == .available ? InfiniteRoadColors.rewardAvailable : InfiniteRoadColors.rewardClaimed)
         )
         .foregroundStyle(.white)
     }
@@ -374,7 +625,7 @@ private struct RoadMilestone: Identifiable {
         case locked
         case infinity
     }
-    
+
     let id: Int
     let tile: Tile
     let label: String
@@ -383,30 +634,43 @@ private struct RoadMilestone: Identifiable {
     let isUnlocked: Bool
     let isRewardAvailable: Bool
     let isRewardClaimed: Bool
-    
+
     var rewardStatus: RewardBadge.Status? {
         if isRewardAvailable { return .available }
         if isRewardClaimed { return .claimed }
         return nil
     }
-    
+
     var isCompactLabel: Bool {
         label.count > 4
     }
-    
+
+    var signBackgroundColor: Color {
+        switch status {
+        case .completed:
+            return Color(red: 0.15, green: 0.4, blue: 0.25)
+        case .current:
+            return Color(red: 0.8, green: 0.5, blue: 0.1)
+        case .locked:
+            return Color(red: 0.25, green: 0.25, blue: 0.3)
+        case .infinity:
+            return Color(red: 0.3, green: 0.2, blue: 0.5)
+        }
+    }
+
     var background: LinearGradient {
         switch status {
         case .completed:
-            return JourneyPanelColors.completedGradient
+            return InfiniteRoadColors.completedGradient
         case .current:
-            return JourneyPanelColors.currentGradient
+            return InfiniteRoadColors.currentGradient
         case .locked:
-            return JourneyPanelColors.lockedGradient
+            return InfiniteRoadColors.lockedGradient
         case .infinity:
-            return JourneyPanelColors.infinityGradient
+            return InfiniteRoadColors.infinityGradient
         }
     }
-    
+
     var borderColor: Color {
         switch status {
         case .completed:
@@ -419,84 +683,81 @@ private struct RoadMilestone: Identifiable {
             return .cyan
         }
     }
-    
+
     var shadowColor: Color {
         status == .current ? Color.yellow.opacity(0.45) : Color.black.opacity(0.35)
     }
-    
+
     var accessibilityLabel: String {
-        var base = "Level \(id + 1), \(label)"
+        var base = "Mile \(id + 1), \(label)"
         switch status {
         case .completed:
             base += ", completed"
         case .current:
-            base += ", current level"
+            base += ", current position"
         case .locked:
-            base += ", locked"
+            base += ", ahead on the road"
         case .infinity:
-            base += ", infinity"
+            base += ", infinity - the road never ends"
         }
-        
+
         if isRewardAvailable {
             base += ", reward ready to claim"
         } else if isRewardClaimed {
             base += ", reward claimed"
         }
-        
+
         return base
     }
 }
 
-private enum JourneyPanelMetrics {
-    static let minContentWidth: CGFloat = 360
-    static let verticalSpacing: CGFloat = 190
-    static let verticalPadding: CGFloat = 150
-    static let roadWidth: CGFloat = 44
-    static let roadAmplitude: CGFloat = 140
-    static let horizontalOffsets: [CGFloat] = [-1.0, -0.35, 0.35, 1.0]
+private enum InfiniteRoadMetrics {
+    static let milestoneSpacing: CGFloat = 280
+    static let roadWidth: CGFloat = 80
+    static let horizonHeight: CGFloat = 250
     static let initialDynamicSteps: Int = 80
     static let dynamicStepIncrement: Int = 40
     static let maxDynamicSteps: Int = 640
     static let prefetchThreshold: Int = 8
 }
 
-private enum JourneyPanelColors {
-    static let roadFill = Color(red: 0.17, green: 0.19, blue: 0.28)
-    static let roadBorder = Color.black.opacity(0.75)
-    
+private enum InfiniteRoadColors {
     static let completedGradient = LinearGradient(
         colors: [
-            Color(red: 0.26, green: 0.36, blue: 0.61),
-            Color(red: 0.13, green: 0.22, blue: 0.44)
+            Color(red: 0.2, green: 0.5, blue: 0.35),
+            Color(red: 0.12, green: 0.35, blue: 0.25)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
-    
+
     static let currentGradient = LinearGradient(
         colors: [
-            Color(red: 0.95, green: 0.31, blue: 0.33),
-            Color(red: 0.99, green: 0.64, blue: 0.18)
+            Color(red: 0.95, green: 0.4, blue: 0.2),
+            Color(red: 0.9, green: 0.25, blue: 0.15)
         ],
         startPoint: .top,
         endPoint: .bottom
     )
-    
+
     static let lockedGradient = LinearGradient(
         colors: [
-            Color(red: 0.18, green: 0.18, blue: 0.26),
-            Color(red: 0.11, green: 0.11, blue: 0.15)
+            Color(red: 0.22, green: 0.22, blue: 0.28),
+            Color(red: 0.14, green: 0.14, blue: 0.18)
         ],
         startPoint: .top,
         endPoint: .bottom
     )
-    
+
     static let infinityGradient = LinearGradient(
-        colors: [Color.purple, Color.blue],
+        colors: [
+            Color(red: 0.4, green: 0.2, blue: 0.6),
+            Color(red: 0.2, green: 0.3, blue: 0.7)
+        ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
-    
+
     static let rewardAvailable = Color(red: 0.97, green: 0.37, blue: 0.36)
     static let rewardClaimed = Color.gray.opacity(0.5)
 }

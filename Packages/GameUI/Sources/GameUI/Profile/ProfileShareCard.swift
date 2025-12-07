@@ -108,6 +108,7 @@ struct ProfileShareCard: View {
                                         .frame(width: 24, height: 24)
                                     Text(tier.displayKey)
                                         .font(.caption.weight(.bold))
+                                        .fontDesign(tier.usesCurvedLStyling ? .rounded : .default)
                                         .foregroundStyle(.white)
                                 }
                                 Text(verbatim: String(tier.value))

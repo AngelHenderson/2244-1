@@ -20,9 +20,13 @@ public struct TierStat: Identifiable, Hashable, Sendable {
 }
 
 public extension TierStat {
-    /// Presentation-only glyph to distinguish "l" from the digit "1".
+    /// Presentation glyph; use the raw key but allow special styling hints.
     var displayKey: String {
-        key == "l" ? "ℓ" : key
+        key
+    }
+    
+    var usesCurvedLStyling: Bool {
+        key == "l"
     }
     
     static func stats(from counts: [String: Int]) -> [TierStat] {
