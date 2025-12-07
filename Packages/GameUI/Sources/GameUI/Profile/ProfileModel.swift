@@ -20,6 +20,7 @@ public struct TierStat: Identifiable, Hashable, Sendable {
 }
 
 public extension TierStat {
+    /// Presentation-only glyph to distinguish "l" from the digit "1".
     var displayKey: String {
         key == "l" ? "ℓ" : key
     }
