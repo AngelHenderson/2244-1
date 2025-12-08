@@ -2,17 +2,17 @@ import SwiftUI
 import GameApp
 import GameCore
 
-struct JourneyPanel: View {
+public struct JourneyPanel: View {
     @Environment(\.gameStore) private var gameStore
     let showAll: Bool
 
     @State private var stepsAhead: Int = InfiniteRoadMetrics.initialDynamicSteps
 
-    init(showAll: Bool = false) {
+    public init(showAll: Bool = false) {
         self.showAll = showAll
     }
 
-    var body: some View {
+    public var body: some View {
         let milestones = roadMilestones
         let totalHeight = CGFloat(milestones.count) * InfiniteRoadMetrics.milestoneSpacing + InfiniteRoadMetrics.horizonHeight
 

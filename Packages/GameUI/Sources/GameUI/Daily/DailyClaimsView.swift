@@ -173,11 +173,17 @@ public struct DailyClaimsView: View {
                     let highlightDay = store.getNextClaimableDay() ?? (store.currentClaimDay + 1)
                     ForEach(Array(chunkedClaims.enumerated()), id: \.offset) { index, claims in
                         VStack(spacing: 12) {
+                            let nextDay = store.getNextClaimableDay()
                             ForEach(claims) { claim in
+                                let isNext = (claim.day == nextDay)
+                                let combined = isNext ? (store.combinedRewardForNextClaim() ?? claim.rewards) : claim.rewards
+                                let bonus = isNext ? bonusEntries(base: claim.rewards, combined: combined) : []
                                 DailyRewardRow(
                                     claim: claim,
                                     currentClaimDay: store.currentClaimDay,
                                     highlightDay: highlightDay,
+                                    combinedReward: combined,
+                                    bonusEntries: bonus,
                                     onClaim: claim.isAvailable ? { claimReward(claim.rewards) } : nil
                                 )
                             }
@@ -226,6 +232,8 @@ private struct DailyRewardRow: View {
     let claim: DailyClaimsStore.DailyClaim
     let currentClaimDay: Int
     let highlightDay: Int
+    let combinedReward: AchievementDef.Rewards
+    let bonusEntries: [AchievementDef.Rewards.Entry]
     let onClaim: (() -> Void)?
     
     var body: some View {
@@ -243,8 +251,19 @@ private struct DailyRewardRow: View {
                     }
                 }
                 
-                RewardsTiny(rewards: claim.rewards)
+                RewardsTiny(rewards: combinedReward)
                     .font(.footnote)
+                
+                if !bonusEntries.isEmpty {
+                    HStack(spacing: 6) {
+                        Text("Bonus:")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        ForEach(bonusEntries, id: \.self) { entry in
+                            RewardChip(entry: entry, style: .compact)
+                        }
+                    }
+                }
             }
             
             Spacer()
