@@ -356,9 +356,23 @@ public final class AchievementStore {
         .init(milestone: 60, categoryLabel: "1 hr", rewards: .init(boost3x: 1)),
         .init(milestone: 120, categoryLabel: "2 hr", rewards: .init(boost4x: 1)),
         .init(milestone: 240, categoryLabel: "4 hr", rewards: .init(gems: 100, magnets: 1, boost2x: 1)),
-        .init(milestone: 480, categoryLabel: "8 hr", rewards: .init(gems: 70, hammers: 1, spins: 1)),
+        .init(milestone: 480, categoryLabel: "8 hr", rewards: .init(gems: 70, spins: 1, hammers: 1)),
         .init(milestone: 720, categoryLabel: "12 hr", rewards: .init(spins: 1, boost4x: 1)),
         .init(milestone: 1440, categoryLabel: "24 hr", rewards: .init(gems: 1000))
+    ]
+    
+    private static let infinityTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "5 infinities", rewards: .init(gems: 500)),
+        .init(milestone: 15, categoryLabel: "15 infinities", rewards: .init(gems: 625, swaps: 1)),
+        .init(milestone: 25, categoryLabel: "25 infinities", rewards: .init(gems: 730, hammers: 1)),
+        .init(milestone: 50, categoryLabel: "50 infinities", rewards: .init(gems: 840, magnets: 1)),
+        .init(milestone: 150, categoryLabel: "150 infinities", rewards: .init(gems: 1100, magnets: 1)),
+        .init(milestone: 450, categoryLabel: "450 infinities", rewards: .init(boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 1000, categoryLabel: "1000 infinities", rewards: .init(gems: 1500, boost4x: 1)),
+        .init(milestone: 2000, categoryLabel: "2000 infinities", rewards: .init(gems: 2500, magnets: 1, boost2x: 1)),
+        .init(milestone: 3000, categoryLabel: "3000 infinities", rewards: .init(gems: 3270, spins: 1, hammers: 1)),
+        .init(milestone: 5000, categoryLabel: "5000 infinities", rewards: .init(spins: 3, hammers: 2, magnets: 2, boost3x: 1, boost4x: 1)),
+        .init(milestone: 10000, categoryLabel: "10000 infinities", rewards: .init(gems: 5000))
     ]
     
     private static let challengeCreationTiers: [ComboTierDefinition] = [
@@ -718,6 +732,43 @@ public final class AchievementStore {
         playtimeProgressionTier >= Self.playtimeTiers.count - 1
     }
     
+    /// Infinity creation progression tier index (persisted)
+    public var infinityProgressionTier: Int {
+        didSet {
+            defaults.set(infinityProgressionTier, forKey: "infinityProgressionTier")
+            unlocks["infinity_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentInfinityTier: ComboTierDefinition {
+        let index = min(infinityProgressionTier, Self.infinityTiers.count - 1)
+        return Self.infinityTiers[index]
+    }
+    
+    public var infinityDisplay: ProgressTierDisplay {
+        let tier = currentInfinityTier
+        let clampedIndex = min(infinityProgressionTier, Self.infinityTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = infinityProgressionTier >= Self.infinityTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered creating infinity tiles. Claim your final reward."
+            : "Create \(tier.milestone) infinity tiles to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) infinities"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "Infinity",
+            rewards: tier.rewards
+        )
+    }
+    
+    public var isInfinityProgressionMaxed: Bool {
+        infinityProgressionTier >= Self.infinityTiers.count - 1
+    }
+    
     /// Challenge creation progression tier index (persisted)
     public var challengeCreationTier: Int {
         didSet {
@@ -907,6 +958,7 @@ public final class AchievementStore {
         self.spinUsesProgressionTier = defaults.integer(forKey: "spinUsesProgressionTier")
         self.surviveMovesProgressionTier = defaults.integer(forKey: "surviveMovesProgressionTier")
         self.playtimeProgressionTier = defaults.integer(forKey: "playtimeProgressionTier")
+        self.infinityProgressionTier = defaults.integer(forKey: "infinityProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
         loadPersistedSnapshot()
@@ -1055,6 +1107,15 @@ public final class AchievementStore {
             if def.id == "playtime_progression" {
                 let targetValue = Double(currentPlaytimeTier.milestone)
                 if Double(snapshot.play_minutes_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "infinity_progression" {
+                let targetValue = Double(currentInfinityTier.milestone)
+                if Double(snapshot.infinity_creations_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1315,6 +1376,23 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "infinity_progression" {
+            let rewards = infinityDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isInfinityProgressionMaxed {
+                infinityProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         if definition.id == "challenge_creation" {
             let rewards = challengeCreationDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -1398,6 +1476,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.survive_moves_total), target: Double(currentSurviveMovesTier.milestone))
         case "playtime_progression":
             return makeProgress(current: Double(snapshot.play_minutes_total), target: Double(currentPlaytimeTier.milestone))
+        case "infinity_progression":
+            return makeProgress(current: Double(snapshot.infinity_creations_total), target: Double(currentInfinityTier.milestone))
         case "challenge_creation":
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":
@@ -1477,6 +1557,7 @@ public final class AchievementStore {
         case "seconds_left": return .init(s.seconds_left)
         case "timed_mode": return b(s.timed_mode)
         case "play_minutes_total": return .init(s.play_minutes_total)
+        case "infinity_creations_total": return .init(s.infinity_creations_total)
         case "max_chain_60s": return .init(s.max_chain_60s)
         case "max_tile_300s": return .init(s.max_tile_300s)
         case "daily_completed": return .init(s.daily_completed)

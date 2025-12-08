@@ -55,7 +55,7 @@ public struct DailyClaimsView: View {
         }
         .overlay {
             if showClaimAnimation, let rewards = claimedRewards {
-                ClaimAnimationOverlay(rewards: rewards)
+                ClaimAnimationOverlay(rewards: rewards, baseRewards: claimedBaseRewards)
                     .transition(.scale.combined(with: .opacity))
                     .zIndex(100)
             }
@@ -379,6 +379,11 @@ private struct RewardsDisplay: View {
 private struct ClaimAnimationOverlay: View {
     let rewards: AchievementDef.Rewards
     let baseRewards: AchievementDef.Rewards?
+    
+    init(rewards: AchievementDef.Rewards, baseRewards: AchievementDef.Rewards? = nil) {
+        self.rewards = rewards
+        self.baseRewards = baseRewards
+    }
     
     var body: some View {
         ZStack {

@@ -25,6 +25,7 @@ public final class AchievementEvaluator {
     private var spinUsesTotal: Int = 0
     private var challengeCreationTotal: Int = 0
     private var totalPlayMinutes: Int = 0
+    private var infinityCreationsTotal: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
@@ -37,6 +38,7 @@ public final class AchievementEvaluator {
     private let spinUsesKey = "powerUses.spin"
     private let challengeCreationTotalKey = "challengeCreation.total"
     private let playtimeTotalMinutesKey = "playtime.totalMinutes"
+    private let infinityCreationsKey = "infinity.creations.total"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
@@ -53,6 +55,7 @@ public final class AchievementEvaluator {
         surviveMovesTotal = defaults.integer(forKey: surviveMovesKey)
         challengeCreationTotal = defaults.integer(forKey: challengeCreationTotalKey)
         totalPlayMinutes = defaults.integer(forKey: playtimeTotalMinutesKey)
+        infinityCreationsTotal = defaults.integer(forKey: infinityCreationsKey)
         if challengeCreationTotal == 0,
            let data = UserDefaults.standard.data(forKey: "challengeCompletedIds"),
            let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
@@ -73,6 +76,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.survive_moves_total = surviveMovesTotal
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal
         currentGameSnapshot.play_minutes_total = totalPlayMinutes
+        currentGameSnapshot.infinity_creations_total = infinityCreationsTotal
     }
     
     public func onGameStart(state: GameState) {
@@ -92,6 +96,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.magnet_uses_total = magnetUsesTotal
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal
         currentGameSnapshot.play_minutes_total = totalPlayMinutes
+        currentGameSnapshot.infinity_creations_total = infinityCreationsTotal
     }
     
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
@@ -162,6 +167,8 @@ public final class AchievementEvaluator {
         snapshot.survive_moves_total = surviveMovesTotal
         snapshot.challenge_creations_total = challengeCreationTotal
         snapshot.play_minutes_total = totalPlayMinutes
+        snapshot.infinity_creations_total = infinityCreationsTotal
+        snapshot.infinity_creations_total = infinityCreationsTotal
         
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
@@ -177,8 +184,6 @@ public final class AchievementEvaluator {
         UserDefaults.standard.set(totalGamesPlayed, forKey: "totalGamesPlayed")
         
         let elapsedMinutes = Int(Date().timeIntervalSince(sessionStartTime) / 60)
-        totalPlayMinutes += elapsedMinutes
-        defaults.set(totalPlayMinutes, forKey: playtimeTotalMinutesKey)
         totalPlayMinutes += elapsedMinutes
         defaults.set(totalPlayMinutes, forKey: playtimeTotalMinutesKey)
         
@@ -204,6 +209,7 @@ public final class AchievementEvaluator {
         snapshot.survive_moves_total = surviveMovesTotal
         snapshot.challenge_creations_total = challengeCreationTotal
         snapshot.play_minutes_total = totalPlayMinutes
+        snapshot.infinity_creations_total = infinityCreationsTotal
         snapshot.reached_core_target = state.highestTile >= 2244
         
         var freeSlots = 0
@@ -248,6 +254,7 @@ public final class AchievementEvaluator {
         snapshot.survive_moves_total = surviveMovesTotal
         snapshot.games_played = totalGamesPlayed
         snapshot.play_minutes_total = totalPlayMinutes
+        snapshot.infinity_creations_total = infinityCreationsTotal
         
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
@@ -316,6 +323,18 @@ public final class AchievementEvaluator {
         
         var snapshot = currentGameSnapshot
         snapshot.survive_moves_total = surviveMovesTotal
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
+    }
+    
+    public func onInfinityCreated() {
+        infinityCreationsTotal += 1
+        defaults.set(infinityCreationsTotal, forKey: infinityCreationsKey)
+        currentGameSnapshot.infinity_creations_total = infinityCreationsTotal
+        
+        var snapshot = currentGameSnapshot
+        snapshot.infinity_creations_total = infinityCreationsTotal
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }

@@ -217,6 +217,22 @@
     ]
   },
   {
+    "id": "infinity_progression",
+    "gcIdentifier": "infinity_progression",
+    "title": "Infinity Maker",
+    "description": "Create infinity tiles to unlock escalating rewards.",
+    "category": "HighestTile",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "infinity_creations_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
     "id": "moves_progression",
     "gcIdentifier": "moves_progression",
     "title": "Moves Master",

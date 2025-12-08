@@ -39,6 +39,7 @@ public struct AchievementsView: View {
             || id == "spin_usage_progression"
             || id == "magnet_usage_progression"
             || id == "challenge_creation"
+            || id == "infinity_progression"
             || id == "playtime_progression" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
@@ -104,6 +105,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.tileProgressionDisplay
         case "playtime_progression":
             return achievements.playtimeDisplay
+        case "infinity_progression":
+            return achievements.infinityDisplay
         case "swap_usage_progression":
             return achievements.swapUsesDisplay
         case "hammer_usage_progression":

@@ -765,6 +765,12 @@ public final class GameStore {
                 UserDefaults.standard.set(addedValue, forKey: "highestTile")
             }
             
+            if let lastPos,
+               let tile = state.board[lastPos],
+               tile.isInfinity {
+                achievementEvaluator?.onInfinityCreated()
+            }
+            
             // CRITICAL: Auto-save progress for any new tile creation
             saveProgressImmediately(newTile: addedValue)
         }
