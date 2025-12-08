@@ -936,6 +936,12 @@ public final class GameStore {
         syncEngineGems()
         UserDefaults.standard.set(state.gems, forKey: "coins")
     }
+
+    public func claimJourneyReward(coins: Int) {
+        addCoins(coins)
+        print("🎁 Claimed journey reward: +\(coins) coins")
+        saveProgressToStore()
+    }
     
     public func spendCoins(_ amount: Int) -> Bool {
         guard state.gems >= amount else { return false }

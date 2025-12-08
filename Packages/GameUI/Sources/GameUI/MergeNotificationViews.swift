@@ -37,59 +37,26 @@ struct UnlockedNotificationView: View {
                 .font(.title2.weight(.bold))
                 .padding(.bottom, 8)
 
-            // Journey progression - Simple text display
-            VStack(spacing: 8) {
-                HStack(spacing: 12) {
-                    // Previous tier (if exists)
-                    if let prev = journeyReward.previous {
-                        Text(prev)
-                            .font(.system(size: 20, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 80, height: 80)
-                            .background(Color.gray.opacity(0.2))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-
-                    // Current unlocked tier (highlighted)
-                    Text(journeyReward.current)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .frame(width: 100, height: 100)
-                        .background(
-                            LinearGradient(
-                                colors: [Color.orange, Color.red],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(color: .orange.opacity(0.5), radius: 8)
-                        .overlay(alignment: .top) {
-                            Image(systemName: "crown.fill")
-                                .foregroundStyle(.yellow)
-                                .font(.title3)
-                                .offset(y: -15)
-                        }
-
-                    // Next tier (locked)
-                    if let next = journeyReward.next {
-                        Text(next)
-                            .font(.system(size: 20, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.gray)
-                            .frame(width: 80, height: 80)
-                            .background(Color.gray.opacity(0.15))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(alignment: .topTrailing) {
-                                Image(systemName: "lock.fill")
-                                    .foregroundStyle(.gray)
-                                    .font(.caption)
-                                    .offset(x: 5, y: -5)
-                            }
-                    }
+            // Journey progression tiles
+            HStack(spacing: 12) {
+                // Previous tier (if exists)
+                if let prev = journeyReward.previous {
+                    JourneyTileCard(label: prev, isPrimary: false, size: 80)
                 }
-                Text("New Milestone Unlocked!")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+
+                // Current unlocked tier (highlighted)
+                JourneyTileCard(label: journeyReward.current, isPrimary: true, size: 100)
+                    .overlay(alignment: .top) {
+                        Image(systemName: "crown.fill")
+                            .foregroundStyle(.yellow)
+                            .font(.title3)
+                            .offset(y: -15)
+                    }
+
+                // Next tier (locked)
+                if let next = journeyReward.next {
+                    JourneyTileCard(label: next, isPrimary: false, size: 80, isLocked: true)
+                }
             }
             .padding(.vertical, 8)
 
@@ -114,21 +81,21 @@ struct UnlockedNotificationView: View {
 
             // Multiplier options
             if showClaimOption {
-                // TODO: Add MultiplierSelectorView
-                // MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
-                //     .padding(.vertical, 8)
+                MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
+                    .padding(.vertical, 8)
 
                 Button(action: {
                     // Claim with multiplier (watch ad if > 1)
-                    if selectedMultiplier > 1 {
-                        // Show ad then grant reward
-                    }
                     gameStore.claimJourneyReward(coins: coinReward)
                     onClose()
                 }) {
                     HStack {
-                        Image(systemName: selectedMultiplier > 1 ? "play.rectangle.fill" : "checkmark")
-                        Text(selectedMultiplier > 1 ? "Claim ×\(selectedMultiplier)" : "Claim")
+                        if selectedMultiplier > 1 {
+                            Image(systemName: "play.rectangle.fill")
+                            Text("Claim ×\(selectedMultiplier)")
+                        } else {
+                            Text("Continue")
+                        }
                     }
                     .font(.headline)
                     .foregroundStyle(.white)
@@ -146,7 +113,7 @@ struct UnlockedNotificationView: View {
             }
         }
         .padding(24)
-        .presentationDetents([.height(500)])
+        .presentationDetents([.height(550)])
         .presentationDragIndicator(.visible)
     }
 }
@@ -154,29 +121,103 @@ struct UnlockedNotificationView: View {
 struct AddedNotificationView: View {
     let value: Int
     let onClose: () -> Void
-    
+    @Environment(\.gameStore) private var gameStore
+    @State private var showClaimOption = false
+    @State private var selectedMultiplier = 1
+
+    private var journeyReward: (previous: String?, current: String, next: String?) {
+        if let tile = Tile.makeFromValue(value) {
+            if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
+                let prevTier = currentTier.order > 0 ?
+                    JourneyAbbreviationTiers.tiers[safe: currentTier.order - 1] : nil
+                let nextTier = JourneyAbbreviationTiers.tiers[safe: currentTier.order + 1]
+                return (prevTier?.label, currentTier.label, nextTier?.label)
+            }
+        }
+        return (nil, CompactNumberFormatter.format(value), nil)
+    }
+
+    private var coinReward: Int {
+        let baseReward = min(value / 200, 500)
+        return baseReward * selectedMultiplier
+    }
+
     var body: some View {
-        VStack(spacing: 20) {
-            Text("New Tile Added")
+        VStack(spacing: 16) {
+            Text("SPAWN POOL UPDATED")
                 .font(.title2.weight(.bold))
-            
-            Text("Added")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            
-            TileView(tile: Tile(value: value), isSelected: false, isValid: true, size: 120)
-                .accessibilityLabel("Added tile \(value)")
-            
-            Text(CompactNumberFormatter.format(value))
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.secondary)
-            
-            Button("Continue") { onClose() }
+                .padding(.bottom, 8)
+
+            HStack(spacing: 12) {
+                if let prev = journeyReward.previous {
+                    JourneyTileCard(label: prev, isPrimary: false, size: 80)
+                }
+
+                JourneyTileCard(label: journeyReward.current, isPrimary: true, size: 100, accentColor: .green)
+                    .overlay(alignment: .top) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.green)
+                            .font(.title3)
+                            .offset(y: -15)
+                    }
+
+                if let next = journeyReward.next {
+                    JourneyTileCard(label: next, isPrimary: false, size: 80, isLocked: true)
+                }
+            }
+            .padding(.vertical, 8)
+
+            VStack(spacing: 12) {
+                Text("Your Reward")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 8) {
+                    Image(systemName: "bitcoinsign.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.title2)
+                    Text("+\(coinReward)")
+                        .font(.title2.weight(.semibold))
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(Color.green.opacity(0.15))
+                .cornerRadius(12)
+            }
+
+            if showClaimOption {
+                MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
+                    .padding(.vertical, 8)
+
+                Button(action: {
+                    gameStore.claimJourneyReward(coins: coinReward)
+                    onClose()
+                }) {
+                    HStack {
+                        if selectedMultiplier > 1 {
+                            Image(systemName: "play.rectangle.fill")
+                            Text("Claim ×\(selectedMultiplier)")
+                        } else {
+                            Text("Continue")
+                        }
+                    }
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(selectedMultiplier > 1 ? Color.green : Color.blue)
+                    .cornerRadius(12)
+                }
+            } else {
+                Button("Continue") {
+                    showClaimOption = true
+                }
                 .buttonStyle(.borderedProminent)
-                .padding(.top, 8)
+                .frame(maxWidth: .infinity)
+            }
         }
         .padding(24)
-        .presentationDetents([.height(400)])
+        .presentationDetents([.height(550)])
         .presentationDragIndicator(.visible)
     }
 }
@@ -184,36 +225,205 @@ struct AddedNotificationView: View {
 struct ExcludedNotificationView: View {
     let value: Int
     let onClose: () -> Void
-    
+    @Environment(\.gameStore) private var gameStore
+    @State private var showClaimOption = false
+    @State private var selectedMultiplier = 1
+
+    private var journeyReward: (previous: String?, current: String, next: String?) {
+        if let tile = Tile.makeFromValue(value) {
+            if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
+                let prevTier = currentTier.order > 0 ?
+                    JourneyAbbreviationTiers.tiers[safe: currentTier.order - 1] : nil
+                let nextTier = JourneyAbbreviationTiers.tiers[safe: currentTier.order + 1]
+                return (prevTier?.label, currentTier.label, nextTier?.label)
+            }
+        }
+        return (nil, CompactNumberFormatter.format(value), nil)
+    }
+
+    private var coinReward: Int {
+        let baseReward = min(value / 300, 300)
+        return baseReward * selectedMultiplier
+    }
+
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Tile Excluded")
+        VStack(spacing: 16) {
+            Text("TILE ELIMINATED")
                 .font(.title2.weight(.bold))
-            
-            Text("Eliminated")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            
-            TileView(tile: Tile(value: value), isSelected: false, isValid: true, size: 120)
-                .accessibilityLabel("Excluded tile \(value)")
-                .overlay(alignment: .topTrailing) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.red)
-                        .font(.title2)
-                        .offset(x: 8, y: -8)
+                .padding(.bottom, 8)
+
+            HStack(spacing: 12) {
+                if let prev = journeyReward.previous {
+                    JourneyTileCard(label: prev, isPrimary: false, size: 80)
                 }
-            
-            Text(CompactNumberFormatter.format(value))
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.secondary)
-            
-            Button("Continue") { onClose() }
+
+                JourneyTileCard(label: journeyReward.current, isPrimary: true, size: 100, accentColor: .red)
+                    .overlay(alignment: .topTrailing) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.red)
+                            .font(.title2)
+                            .offset(x: 8, y: -8)
+                    }
+
+                if let next = journeyReward.next {
+                    JourneyTileCard(label: next, isPrimary: false, size: 80, isLocked: true)
+                }
+            }
+            .padding(.vertical, 8)
+
+            VStack(spacing: 12) {
+                Text("Your Reward")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 8) {
+                    Image(systemName: "bitcoinsign.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.title2)
+                    Text("+\(coinReward)")
+                        .font(.title2.weight(.semibold))
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(Color.green.opacity(0.15))
+                .cornerRadius(12)
+            }
+
+            if showClaimOption {
+                MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
+                    .padding(.vertical, 8)
+
+                Button(action: {
+                    gameStore.claimJourneyReward(coins: coinReward)
+                    onClose()
+                }) {
+                    HStack {
+                        if selectedMultiplier > 1 {
+                            Image(systemName: "play.rectangle.fill")
+                            Text("Claim ×\(selectedMultiplier)")
+                        } else {
+                            Text("Continue")
+                        }
+                    }
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(selectedMultiplier > 1 ? Color.green : Color.blue)
+                    .cornerRadius(12)
+                }
+            } else {
+                Button("Continue") {
+                    showClaimOption = true
+                }
                 .buttonStyle(.borderedProminent)
-                .padding(.top, 8)
+                .frame(maxWidth: .infinity)
+            }
         }
         .padding(24)
-        .presentationDetents([.height(400)])
+        .presentationDetents([.height(550)])
         .presentationDragIndicator(.visible)
     }
 }
 
+// MARK: - Helper Views
+
+struct JourneyTileCard: View {
+    let label: String
+    var isPrimary: Bool = false
+    var size: CGFloat = 100
+    var accentColor: Color = .orange
+    var isLocked: Bool = false
+
+    var body: some View {
+        Text(label)
+            .font(.system(size: isPrimary ? 28 : 20, weight: isPrimary ? .bold : .semibold, design: .rounded))
+            .foregroundStyle(isLocked ? .gray : (isPrimary ? .white : .secondary))
+            .frame(width: size, height: size)
+            .background(
+                Group {
+                    if isPrimary {
+                        LinearGradient(
+                            colors: [accentColor, accentColor.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else if isLocked {
+                        Color.gray.opacity(0.15)
+                    } else {
+                        Color.gray.opacity(0.2)
+                    }
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: isPrimary ? 16 : 12))
+            .shadow(color: isPrimary ? accentColor.opacity(0.5) : .clear, radius: isPrimary ? 8 : 0)
+            .overlay(alignment: .topTrailing) {
+                if isLocked {
+                    Image(systemName: "lock.fill")
+                        .foregroundStyle(.gray)
+                        .font(.caption)
+                        .offset(x: 5, y: -5)
+                }
+            }
+    }
+}
+
+struct MultiplierSelectorView: View {
+    @Binding var selectedMultiplier: Int
+    private let multipliers = [2, 3, 4, 5, 4, 3, 2]
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 4) {
+                ForEach(Array(multipliers.enumerated()), id: \.offset) { index, mult in
+                    Text("×\(mult)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(
+                            LinearGradient(
+                                colors: colorForMultiplier(mult),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(selectedMultiplier == mult && index == 3 ? Color.white : Color.clear, lineWidth: 2)
+                        )
+                        .onTapGesture {
+                            if index == 3 {  // Center position (×5)
+                                selectedMultiplier = mult
+                            }
+                        }
+                }
+            }
+
+            // Indicator triangle
+            Image(systemName: "arrowtriangle.up.fill")
+                .foregroundStyle(.gray)
+                .font(.caption)
+        }
+        .padding(.horizontal)
+    }
+
+    private func colorForMultiplier(_ mult: Int) -> [Color] {
+        switch mult {
+        case 2: return [Color.pink, Color.pink.opacity(0.8)]
+        case 3: return [Color.orange, Color.orange.opacity(0.8)]
+        case 4: return [Color.yellow, Color.yellow.opacity(0.8)]
+        case 5: return [Color.green, Color.green.opacity(0.8)]
+        default: return [Color.gray, Color.gray.opacity(0.8)]
+        }
+    }
+}
+
+// MARK: - Collection Extension
+
+extension Collection {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
