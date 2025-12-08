@@ -116,34 +116,105 @@ public enum JourneyTileGenerator {
             return "\(value)"
         }
 
-        // For larger values, use K/M/B notation
-        if value < 1_000_000 {
-            let k = Double(value) / 1000.0
-            if k == Double(Int(k)) {
-                return "\(Int(k))K"
-            }
-            return String(format: "%.1fK", k)
+        // Get the step index to determine the notation
+        if let tile = Tile.makeFromValue(value), let step = tile.stepIndex {
+            return formatStepNotation(step)
         }
 
-        if value < 1_000_000_000 {
-            let m = Double(value) / 1_000_000.0
-            if m == Double(Int(m)) {
-                return "\(Int(m))M"
-            }
-            return String(format: "%.1fM", m)
+        // Fallback for edge cases
+        return formatStepNotation(Int(log2(Double(value))) - 1)
+    }
+
+    /// Format step index into alphabetical notation
+    private static func formatStepNotation(_ step: Int) -> String {
+        // Steps 0-8 are shown as actual numbers (2, 4, 8, 16, 32, 64, 128, 256, 512)
+        if step <= 8 {
+            return "\(1 << (step + 1))"
         }
 
-        if value < 1_000_000_000_000 {
-            let b = Double(value) / 1_000_000_000.0
-            if b == Double(Int(b)) {
-                return "\(Int(b))B"
+        // Steps 9-11: K notation (1K, 2K, 4K)
+        if step == 9 { return "1K" }
+        if step == 10 { return "2K" }
+        if step == 11 { return "4K" }
+
+        // Steps 12-18: More K values
+        if step == 12 { return "8K" }
+        if step == 13 { return "16K" }
+        if step == 14 { return "32K" }
+        if step == 15 { return "64K" }
+        if step == 16 { return "128K" }
+        if step == 17 { return "256K" }
+        if step == 18 { return "512K" }
+
+        // Steps 19-28: M notation
+        if step == 19 { return "1M" }
+        if step == 20 { return "2M" }
+        if step == 21 { return "4M" }
+        if step == 22 { return "8M" }
+        if step == 23 { return "16M" }
+        if step == 24 { return "32M" }
+        if step == 25 { return "64M" }
+        if step == 26 { return "128M" }
+        if step == 27 { return "256M" }
+        if step == 28 { return "512M" }
+
+        // Steps 29-38: B notation
+        if step == 29 { return "1B" }
+        if step == 30 { return "2B" }
+        if step == 31 { return "4B" }
+        if step == 32 { return "8B" }
+        if step == 33 { return "16B" }
+        if step == 34 { return "32B" }
+        if step == 35 { return "64B" }
+        if step == 36 { return "128B" }
+        if step == 37 { return "256B" }
+        if step == 38 { return "512B" }
+
+        // Steps 39+: Use alphabetical notation
+        // First, determine the coefficient (1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
+        let baseStep = (step - 39) % 10  // Which coefficient
+        let letterIndex = (step - 39) / 10  // Which letter(s)
+
+        let coefficient: String = {
+            switch baseStep {
+            case 0: return "1"
+            case 1: return "2"
+            case 2: return "4"
+            case 3: return "8"
+            case 4: return "16"
+            case 5: return "32"
+            case 6: return "64"
+            case 7: return "128"
+            case 8: return "256"
+            case 9: return "512"
+            default: return "1"
             }
-            return String(format: "%.1fB", b)
+        }()
+
+        // Generate letter(s)
+        let letter: String = {
+            if letterIndex < 26 {
+                // Single letter: a-z
+                return String(Character(UnicodeScalar(97 + letterIndex)!))
+            } else if letterIndex < 52 {
+                // Double letter: aa-az
+                let secondLetter = letterIndex - 26
+                return "a" + String(Character(UnicodeScalar(97 + secondLetter)!))
+            } else if letterIndex < 78 {
+                // ba-bz
+                let secondLetter = letterIndex - 52
+                return "b" + String(Character(UnicodeScalar(97 + secondLetter)!))
+            } else {
+                // Beyond bz, just show infinity symbol
+                return "∞"
+            }
+        }()
+
+        if letter == "∞" {
+            return "∞"
         }
 
-        // For very large values, use AlphaNumber
-        let alphaNum = AlphaNumber(value)
-        return "\(alphaNum)"
+        return "\(coefficient)\(letter)"
     }
 }
 
@@ -151,33 +222,33 @@ public enum JourneyTileGenerator {
 
 /// Defines reward tiers for journey milestones
 public enum JourneyAbbreviationTier: String, CaseIterable, Sendable {
-    case tier1K = "1K"     // Step 9
-    case tier32K = "32K"   // Step 14
-    case tier1M = "1M"     // Step 19
-    case tier128M = "128M" // Step 26
-    case tier8B = "8B"     // Step 32
-    case tier512B = "512B" // Step 38
-    case tier128T = "128T" // Step 46
-    case tier64q = "64q"   // Step 55
-    case tier64Q = "64Q"   // Step 65
-    case tier64s = "64s"   // Step 75
-    case tier128S = "128S" // Step 86
-    case tier32o = "32o"   // Step 98
-    case tier16O = "16O"   // Step 111
-    case tier16n = "16n"   // Step 125
-    case tier64N = "64N"   // Step 141
-    case tier8d = "8d"     // Step 150
-    case tier128D = "128D" // Step 170
-    case tier32u = "32u"   // Step 181
-    case tier16U = "16U"   // Step 193
-    case tier16v = "16v"   // Step 206
-    case tier32V = "32V"   // Step 220
-    case tier128g = "128g" // Step 235
-    case tier1G = "1G"     // Step 251
-    case tier16G = "16G"   // Step 268
-    case tier512G = "512G" // Step 286
-    case tier32h = "32h"   // Step 305
-    case tier4H = "4H"     // Step 325
+    case tier1K = "1K"       // Step 9
+    case tier32K = "32K"     // Step 14
+    case tier1M = "1M"       // Step 19
+    case tier128M = "128M"   // Step 26
+    case tier8B = "8B"       // Step 32
+    case tier512B = "512B"   // Step 38
+    case tier128a = "128a"   // Step 46
+    case tier64e = "64e"     // Step 55
+    case tier64i = "64i"     // Step 65
+    case tier64m = "64m"     // Step 75
+    case tier128q = "128q"   // Step 86
+    case tier32w = "32w"     // Step 98
+    case tier16ac = "16ac"   // Step 111
+    case tier16ai = "16ai"   // Step 125
+    case tier64ao = "64ao"   // Step 141
+    case tier8ar = "8ar"     // Step 150
+    case tier128ax = "128ax" // Step 170
+    case tier32be = "32be"   // Step 181
+    case tier16bk = "16bk"   // Step 193
+    case tier16bq = "16bq"   // Step 206
+    case tier32bw = "32bw"   // Step 220
+    case tier128ca = "128ca" // Step 235
+    case tier1cg = "1cg"     // Step 251
+    case tier16cm = "16cm"   // Step 268
+    case tier512cs = "512cs" // Step 286
+    case tier32cy = "32cy"   // Step 305
+    case tier4de = "4de"     // Step 325
 }
 
 /// Tier with order for progression
@@ -204,27 +275,27 @@ public enum JourneyAbbreviationTiers {
         26: .tier128M,
         32: .tier8B,
         38: .tier512B,
-        46: .tier128T,
-        55: .tier64q,
-        65: .tier64Q,
-        75: .tier64s,
-        86: .tier128S,
-        98: .tier32o,
-        111: .tier16O,
-        125: .tier16n,
-        141: .tier64N,
-        150: .tier8d,
-        170: .tier128D,
-        181: .tier32u,
-        193: .tier16U,
-        206: .tier16v,
-        220: .tier32V,
-        235: .tier128g,
-        251: .tier1G,
-        268: .tier16G,
-        286: .tier512G,
-        305: .tier32h,
-        325: .tier4H
+        46: .tier128a,
+        55: .tier64e,
+        65: .tier64i,
+        75: .tier64m,
+        86: .tier128q,
+        98: .tier32w,
+        111: .tier16ac,
+        125: .tier16ai,
+        141: .tier64ao,
+        150: .tier8ar,
+        170: .tier128ax,
+        181: .tier32be,
+        193: .tier16bk,
+        206: .tier16bq,
+        220: .tier32bw,
+        235: .tier128ca,
+        251: .tier1cg,
+        268: .tier16cm,
+        286: .tier512cs,
+        305: .tier32cy,
+        325: .tier4de
     ]
 
     public static let tiers: [JourneyTierInfo] = [
@@ -234,27 +305,27 @@ public enum JourneyAbbreviationTiers {
         JourneyTierInfo(tier: .tier128M, order: 3, label: "128M", step: 26),
         JourneyTierInfo(tier: .tier8B, order: 4, label: "8B", step: 32),
         JourneyTierInfo(tier: .tier512B, order: 5, label: "512B", step: 38),
-        JourneyTierInfo(tier: .tier128T, order: 6, label: "128T", step: 46),
-        JourneyTierInfo(tier: .tier64q, order: 7, label: "64q", step: 55),
-        JourneyTierInfo(tier: .tier64Q, order: 8, label: "64Q", step: 65),
-        JourneyTierInfo(tier: .tier64s, order: 9, label: "64s", step: 75),
-        JourneyTierInfo(tier: .tier128S, order: 10, label: "128S", step: 86),
-        JourneyTierInfo(tier: .tier32o, order: 11, label: "32o", step: 98),
-        JourneyTierInfo(tier: .tier16O, order: 12, label: "16O", step: 111),
-        JourneyTierInfo(tier: .tier16n, order: 13, label: "16n", step: 125),
-        JourneyTierInfo(tier: .tier64N, order: 14, label: "64N", step: 141),
-        JourneyTierInfo(tier: .tier8d, order: 15, label: "8d", step: 150),
-        JourneyTierInfo(tier: .tier128D, order: 16, label: "128D", step: 170),
-        JourneyTierInfo(tier: .tier32u, order: 17, label: "32u", step: 181),
-        JourneyTierInfo(tier: .tier16U, order: 18, label: "16U", step: 193),
-        JourneyTierInfo(tier: .tier16v, order: 19, label: "16v", step: 206),
-        JourneyTierInfo(tier: .tier32V, order: 20, label: "32V", step: 220),
-        JourneyTierInfo(tier: .tier128g, order: 21, label: "128g", step: 235),
-        JourneyTierInfo(tier: .tier1G, order: 22, label: "1G", step: 251),
-        JourneyTierInfo(tier: .tier16G, order: 23, label: "16G", step: 268),
-        JourneyTierInfo(tier: .tier512G, order: 24, label: "512G", step: 286),
-        JourneyTierInfo(tier: .tier32h, order: 25, label: "32h", step: 305),
-        JourneyTierInfo(tier: .tier4H, order: 26, label: "4H", step: 325)
+        JourneyTierInfo(tier: .tier128a, order: 6, label: "128a", step: 46),
+        JourneyTierInfo(tier: .tier64e, order: 7, label: "64e", step: 55),
+        JourneyTierInfo(tier: .tier64i, order: 8, label: "64i", step: 65),
+        JourneyTierInfo(tier: .tier64m, order: 9, label: "64m", step: 75),
+        JourneyTierInfo(tier: .tier128q, order: 10, label: "128q", step: 86),
+        JourneyTierInfo(tier: .tier32w, order: 11, label: "32w", step: 98),
+        JourneyTierInfo(tier: .tier16ac, order: 12, label: "16ac", step: 111),
+        JourneyTierInfo(tier: .tier16ai, order: 13, label: "16ai", step: 125),
+        JourneyTierInfo(tier: .tier64ao, order: 14, label: "64ao", step: 141),
+        JourneyTierInfo(tier: .tier8ar, order: 15, label: "8ar", step: 150),
+        JourneyTierInfo(tier: .tier128ax, order: 16, label: "128ax", step: 170),
+        JourneyTierInfo(tier: .tier32be, order: 17, label: "32be", step: 181),
+        JourneyTierInfo(tier: .tier16bk, order: 18, label: "16bk", step: 193),
+        JourneyTierInfo(tier: .tier16bq, order: 19, label: "16bq", step: 206),
+        JourneyTierInfo(tier: .tier32bw, order: 20, label: "32bw", step: 220),
+        JourneyTierInfo(tier: .tier128ca, order: 21, label: "128ca", step: 235),
+        JourneyTierInfo(tier: .tier1cg, order: 22, label: "1cg", step: 251),
+        JourneyTierInfo(tier: .tier16cm, order: 23, label: "16cm", step: 268),
+        JourneyTierInfo(tier: .tier512cs, order: 24, label: "512cs", step: 286),
+        JourneyTierInfo(tier: .tier32cy, order: 25, label: "32cy", step: 305),
+        JourneyTierInfo(tier: .tier4de, order: 26, label: "4de", step: 325)
     ]
 
     public static func tier(for tile: Tile) -> JourneyTierInfo? {

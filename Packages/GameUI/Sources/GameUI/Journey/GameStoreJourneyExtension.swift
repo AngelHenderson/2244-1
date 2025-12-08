@@ -73,27 +73,27 @@ public extension GameStore {
         case .tier128M: return 26
         case .tier8B: return 32
         case .tier512B: return 38
-        case .tier128T: return 46
-        case .tier64q: return 55
-        case .tier64Q: return 65
-        case .tier64s: return 75
-        case .tier128S: return 86
-        case .tier32o: return 98
-        case .tier16O: return 111
-        case .tier16n: return 125
-        case .tier64N: return 141
-        case .tier8d: return 150
-        case .tier128D: return 170
-        case .tier32u: return 181
-        case .tier16U: return 193
-        case .tier16v: return 206
-        case .tier32V: return 220
-        case .tier128g: return 235
-        case .tier1G: return 251
-        case .tier16G: return 268
-        case .tier512G: return 286
-        case .tier32h: return 305
-        case .tier4H: return 325
+        case .tier128a: return 46
+        case .tier64e: return 55
+        case .tier64i: return 65
+        case .tier64m: return 75
+        case .tier128q: return 86
+        case .tier32w: return 98
+        case .tier16ac: return 111
+        case .tier16ai: return 125
+        case .tier64ao: return 141
+        case .tier8ar: return 150
+        case .tier128ax: return 170
+        case .tier32be: return 181
+        case .tier16bk: return 193
+        case .tier16bq: return 206
+        case .tier32bw: return 220
+        case .tier128ca: return 235
+        case .tier1cg: return 251
+        case .tier16cm: return 268
+        case .tier512cs: return 286
+        case .tier32cy: return 305
+        case .tier4de: return 325
         }
     }
 
@@ -112,47 +112,47 @@ public extension GameStore {
             return (coins: 1000, powerUps: [("magnet", 1)])
         case .tier512B:
             return (coins: 2000, powerUps: [("double", 1)])
-        case .tier128T:
+        case .tier128a:
             return (coins: 5000, powerUps: [("hammer", 3), ("swap", 2)])
-        case .tier64q:
+        case .tier64e:
             return (coins: 10000, powerUps: [("magnet", 2), ("shuffle", 2)])
-        case .tier64Q:
+        case .tier64i:
             return (coins: 20000, powerUps: [("double", 2), ("hammer", 5)])
-        case .tier64s:
+        case .tier64m:
             return (coins: 50000, powerUps: [("magnet", 3), ("swap", 5)])
-        case .tier128S:
+        case .tier128q:
             return (coins: 100000, powerUps: [("double", 3), ("shuffle", 5)])
-        case .tier32o:
+        case .tier32w:
             return (coins: 200000, powerUps: [("hammer", 10), ("swap", 10)])
-        case .tier16O:
+        case .tier16ac:
             return (coins: 500000, powerUps: [("magnet", 5), ("double", 5)])
-        case .tier16n:
+        case .tier16ai:
             return (coins: 1000000, powerUps: [("shuffle", 10), ("hammer", 20)])
-        case .tier64N:
+        case .tier64ao:
             return (coins: 2000000, powerUps: [("double", 10), ("magnet", 10)])
-        case .tier8d:
+        case .tier8ar:
             return (coins: 5000000, powerUps: [("swap", 20), ("shuffle", 20)])
-        case .tier128D:
+        case .tier128ax:
             return (coins: 10000000, powerUps: [("hammer", 50), ("double", 20)])
-        case .tier32u:
+        case .tier32be:
             return (coins: 20000000, powerUps: [("magnet", 20), ("swap", 50)])
-        case .tier16U:
+        case .tier16bk:
             return (coins: 50000000, powerUps: [("shuffle", 50), ("double", 50)])
-        case .tier16v:
+        case .tier16bq:
             return (coins: 100000000, powerUps: [("hammer", 100), ("magnet", 50)])
-        case .tier32V:
+        case .tier32bw:
             return (coins: 200000000, powerUps: [("swap", 100), ("double", 100)])
-        case .tier128g:
+        case .tier128ca:
             return (coins: 500000000, powerUps: [("shuffle", 100), ("hammer", 200)])
-        case .tier1G:
+        case .tier1cg:
             return (coins: 1000000000, powerUps: [("magnet", 100), ("double", 200)])
-        case .tier16G:
+        case .tier16cm:
             return (coins: 2000000000, powerUps: [("swap", 200), ("shuffle", 200)])
-        case .tier512G:
+        case .tier512cs:
             return (coins: 5000000000, powerUps: [("hammer", 500), ("double", 500)])
-        case .tier32h:
+        case .tier32cy:
             return (coins: 10000000000, powerUps: [("magnet", 500), ("swap", 500)])
-        case .tier4H:
+        case .tier4de:
             return (coins: Int.max / 2, powerUps: [("shuffle", 1000), ("double", 1000)])
         }
     }
