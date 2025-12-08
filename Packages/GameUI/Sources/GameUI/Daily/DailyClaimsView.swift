@@ -8,6 +8,7 @@ public struct DailyClaimsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
+    @State private var claimedBaseRewards: AchievementDef.Rewards?
     @State private var selectedPage = 0
     
     public init() {}
@@ -105,6 +106,7 @@ public struct DailyClaimsView: View {
             if let nextDay = store.getNextClaimableDay(),
                let claim = store.dailyClaims.first(where: { $0.day == nextDay }) {
                 let combined = store.combinedRewardForNextClaim() ?? claim.rewards
+                let bonus = bonusEntries(base: claim.rewards, combined: combined)
                 
                 Text("Day \(claim.day) Reward Available!")
                     .font(.headline)
@@ -112,10 +114,17 @@ public struct DailyClaimsView: View {
                 RewardsDisplay(rewards: combined)
                     .font(.title3)
                 
-                if combined.entries.count > claim.rewards.entries.count {
-                    Text("Includes a streak bonus!")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
+                if !bonus.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Includes streak bonus:")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        HStack(spacing: 8) {
+                            ForEach(bonus, id: \.self) { entry in
+                                RewardChip(entry: entry, style: .compact)
+                            }
+                        }
+                    }
                 }
                 
                 Text("Claim it from the timeline below.")
@@ -199,6 +208,7 @@ public struct DailyClaimsView: View {
     }
     
     private func claimReward(_ rewards: AchievementDef.Rewards) {
+        claimedBaseRewards = rewards
         claimedRewards = store.combinedRewardForNextClaim() ?? rewards
         showClaimAnimation = true
         store.claimDailyReward()
@@ -349,6 +359,7 @@ private struct RewardsDisplay: View {
 
 private struct ClaimAnimationOverlay: View {
     let rewards: AchievementDef.Rewards
+    let baseRewards: AchievementDef.Rewards?
     
     var body: some View {
         ZStack {
@@ -369,6 +380,23 @@ private struct ClaimAnimationOverlay: View {
                     .font(.title3)
                     .padding()
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                
+                if let base = baseRewards {
+                    let bonus = bonusEntries(base: base, combined: rewards)
+                    if !bonus.isEmpty {
+                        VStack(spacing: 8) {
+                            Text("Streak Bonus")
+                                .font(.headline)
+                                .foregroundStyle(.orange)
+                            HStack(spacing: 8) {
+                                ForEach(bonus, id: \.self) { entry in
+                                    RewardChip(entry: entry, style: .compact)
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
             }
             .padding()
         }
@@ -493,5 +521,27 @@ private extension Array {
         }
         return result
     }
+}
+
+private func bonusEntries(base: AchievementDef.Rewards, combined: AchievementDef.Rewards) -> [AchievementDef.Rewards.Entry] {
+    var delta: [AchievementDef.Rewards.Entry.Kind: Int] = [:]
+    func add(kind: AchievementDef.Rewards.Entry.Kind, baseAmount: Int?, combinedAmount: Int?) {
+        let b = baseAmount ?? 0
+        let c = combinedAmount ?? 0
+        if c > b {
+            delta[kind] = c - b
+        }
+    }
+    add(kind: .gems, baseAmount: base.gems, combinedAmount: combined.gems)
+    add(kind: .spins, baseAmount: base.spins, combinedAmount: combined.spins)
+    add(kind: .hammers, baseAmount: base.hammers, combinedAmount: combined.hammers)
+    add(kind: .magnets, baseAmount: base.magnets, combinedAmount: combined.magnets)
+    add(kind: .swaps, baseAmount: base.swaps, combinedAmount: combined.swaps)
+    add(kind: .boost2x, baseAmount: base.boost2x, combinedAmount: combined.boost2x)
+    add(kind: .boost3x, baseAmount: base.boost3x, combinedAmount: combined.boost3x)
+    add(kind: .boost4x, baseAmount: base.boost4x, combinedAmount: combined.boost4x)
+    
+    return delta.map { AchievementDef.Rewards.Entry(kind: $0.key, amount: $0.value) }
+        .sorted { $0.kind.displayName < $1.kind.displayName }
 }
 
