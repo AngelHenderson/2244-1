@@ -185,6 +185,22 @@
     ]
   },
   {
+    "id": "playtime_progression",
+    "gcIdentifier": "playtime_progression",
+    "title": "Playtime Master",
+    "description": "Accumulate total playtime to unlock escalating rewards.",
+    "category": "Career",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "play_minutes_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
     "id": "challenge_creation",
     "gcIdentifier": "challenge_creation",
     "title": "Challenge Creator",

@@ -111,15 +111,7 @@ public enum JourneyTileGenerator {
 
     /// Format tile value using abbreviated notation
     public static func formatTileValue(_ value: Int) -> String {
-        // Use the AlphaNumber formatter for consistent display
-        let alphaNum = AlphaNumber(value)
-
-        // Get abbreviated string
-        if let abbreviated = alphaNum.abbreviatedString() {
-            return abbreviated
-        }
-
-        // Fallback to simple number format for small values
+        // Simple formatting for small values
         if value < 1000 {
             return "\(value)"
         }
@@ -141,11 +133,17 @@ public enum JourneyTileGenerator {
             return String(format: "%.1fM", m)
         }
 
-        let b = Double(value) / 1_000_000_000.0
-        if b == Double(Int(b)) {
-            return "\(Int(b))B"
+        if value < 1_000_000_000_000 {
+            let b = Double(value) / 1_000_000_000.0
+            if b == Double(Int(b)) {
+                return "\(Int(b))B"
+            }
+            return String(format: "%.1fB", b)
         }
-        return String(format: "%.1fB", b)
+
+        // For very large values, use AlphaNumber
+        let alphaNum = AlphaNumber(value)
+        return "\(alphaNum)"
     }
 }
 

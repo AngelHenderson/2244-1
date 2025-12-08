@@ -346,6 +346,20 @@ public final class AchievementStore {
         .init(milestone: 20000, categoryLabel: "20000 Moves", rewards: .init(gems: 955, spins: 1, magnets: 2)),
         .init(milestone: 50000, categoryLabel: "50000 Moves", rewards: .init(gems: 1100, spins: 1, swaps: 2))
     ]
+
+    private static let playtimeTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "5 min", rewards: .init(gems: 20)),
+        .init(milestone: 10, categoryLabel: "10 min", rewards: .init(gems: 25, swaps: 1)),
+        .init(milestone: 15, categoryLabel: "15 min", rewards: .init(gems: 30, hammers: 1)),
+        .init(milestone: 20, categoryLabel: "20 min", rewards: .init(gems: 40, magnets: 1)),
+        .init(milestone: 30, categoryLabel: "30 min", rewards: .init(magnets: 1)),
+        .init(milestone: 60, categoryLabel: "1 hr", rewards: .init(boost3x: 1)),
+        .init(milestone: 120, categoryLabel: "2 hr", rewards: .init(boost4x: 1)),
+        .init(milestone: 240, categoryLabel: "4 hr", rewards: .init(gems: 100, magnets: 1, boost2x: 1)),
+        .init(milestone: 480, categoryLabel: "8 hr", rewards: .init(gems: 70, hammers: 1, spins: 1)),
+        .init(milestone: 720, categoryLabel: "12 hr", rewards: .init(spins: 1, boost4x: 1)),
+        .init(milestone: 1440, categoryLabel: "24 hr", rewards: .init(gems: 1000))
+    ]
     
     private static let challengeCreationTiers: [ComboTierDefinition] = [
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
@@ -667,6 +681,43 @@ public final class AchievementStore {
         surviveMovesProgressionTier >= Self.surviveMovesTiers.count - 1
     }
     
+    /// Playtime progression tier index (persisted)
+    public var playtimeProgressionTier: Int {
+        didSet {
+            defaults.set(playtimeProgressionTier, forKey: "playtimeProgressionTier")
+            unlocks["playtime_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+    
+    private var currentPlaytimeTier: ComboTierDefinition {
+        let index = min(playtimeProgressionTier, Self.playtimeTiers.count - 1)
+        return Self.playtimeTiers[index]
+    }
+    
+    public var playtimeDisplay: ProgressTierDisplay {
+        let tier = currentPlaytimeTier
+        let clampedIndex = min(playtimeProgressionTier, Self.playtimeTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = playtimeProgressionTier >= Self.playtimeTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered playtime. Claim your final reward."
+            : "Accumulate \(tier.milestone) minutes of total play to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) min played"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "Playtime",
+            rewards: tier.rewards
+        )
+    }
+    
+    public var isPlaytimeProgressionMaxed: Bool {
+        playtimeProgressionTier >= Self.playtimeTiers.count - 1
+    }
+    
     /// Challenge creation progression tier index (persisted)
     public var challengeCreationTier: Int {
         didSet {
@@ -855,6 +906,7 @@ public final class AchievementStore {
         self.magnetUsesProgressionTier = defaults.integer(forKey: "magnetUsesProgressionTier")
         self.spinUsesProgressionTier = defaults.integer(forKey: "spinUsesProgressionTier")
         self.surviveMovesProgressionTier = defaults.integer(forKey: "surviveMovesProgressionTier")
+        self.playtimeProgressionTier = defaults.integer(forKey: "playtimeProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
         loadPersistedSnapshot()
@@ -994,6 +1046,15 @@ public final class AchievementStore {
             if def.id == "survive_moves_progression" {
                 let targetValue = Double(currentSurviveMovesTier.milestone)
                 if Double(snapshot.survive_moves_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+            
+            if def.id == "playtime_progression" {
+                let targetValue = Double(currentPlaytimeTier.milestone)
+                if Double(snapshot.play_minutes_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1237,6 +1298,23 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "playtime_progression" {
+            let rewards = playtimeDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+            
+            if !isPlaytimeProgressionMaxed {
+                playtimeProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         if definition.id == "challenge_creation" {
             let rewards = challengeCreationDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -1318,6 +1396,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.spin_uses_total), target: Double(currentSpinUsesTier.milestone))
         case "survive_moves_progression":
             return makeProgress(current: Double(snapshot.survive_moves_total), target: Double(currentSurviveMovesTier.milestone))
+        case "playtime_progression":
+            return makeProgress(current: Double(snapshot.play_minutes_total), target: Double(currentPlaytimeTier.milestone))
         case "challenge_creation":
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":
@@ -1396,6 +1476,7 @@ public final class AchievementStore {
         case "seconds_elapsed": return .init(s.seconds_elapsed)
         case "seconds_left": return .init(s.seconds_left)
         case "timed_mode": return b(s.timed_mode)
+        case "play_minutes_total": return .init(s.play_minutes_total)
         case "max_chain_60s": return .init(s.max_chain_60s)
         case "max_tile_300s": return .init(s.max_tile_300s)
         case "daily_completed": return .init(s.daily_completed)

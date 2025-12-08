@@ -237,10 +237,12 @@ private struct InfiniteRoadCanvas: View {
                 path.closeSubpath()
             }
 
-            // Road shadow with perspective
+            // Draw shadow manually by offsetting and using darker color
+            var shadowPath = roadPath
+            shadowPath = shadowPath.offsetBy(dx: 0, dy: 4)
             context.fill(
-                roadPath,
-                with: .shadow(.color(.black.opacity(0.6)), radius: 12, x: 0, y: 4)
+                shadowPath,
+                with: .color(.black.opacity(0.3))
             )
 
             // Main road with gradient
@@ -311,9 +313,10 @@ private struct InfiniteRoadCanvas: View {
                     path.closeSubpath()
                 }
 
+                let fadeOpacity = 0.85 * (1.0 - Double(progress) * 0.5)
                 context.fill(
                     dashPath,
-                    with: .color(.white.opacity(0.85 * (1 - progress * 0.5)))  // Fades with distance
+                    with: .color(.white.opacity(fadeOpacity))  // Fades with distance
                 )
             }
         }
