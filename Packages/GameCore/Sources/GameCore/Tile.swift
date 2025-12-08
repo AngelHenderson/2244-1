@@ -53,7 +53,7 @@ public extension Tile {
             return Tile.stepIndex(forValue: value)
         }
     }
-    
+
     static func make(forStep step: Int) -> Tile {
         let shift = step + 1
         if shift > 0 && shift < Int.bitWidth {
@@ -61,6 +61,15 @@ public extension Tile {
         } else {
             return Tile(value: Int.max, type: .highValue(step: step))
         }
+    }
+
+    static func makeFromValue(_ value: Int) -> Tile? {
+        guard value > 0 else { return nil }
+        return Tile(value: value)
+    }
+
+    static func infinity() -> Tile {
+        return Tile(value: Int.max, type: .infinity)
     }
     
     static func approximateValue(forStep step: Int) -> Int {

@@ -152,7 +152,7 @@ public enum JourneyTileGenerator {
 // MARK: - Journey Abbreviation Tiers
 
 /// Defines reward tiers for journey milestones
-public enum JourneyAbbreviationTier: String, CaseIterable {
+public enum JourneyAbbreviationTier: String, CaseIterable, Sendable {
     case tier1K = "1K"     // Step 9
     case tier32K = "32K"   // Step 14
     case tier1M = "1M"     // Step 19
@@ -180,6 +180,21 @@ public enum JourneyAbbreviationTier: String, CaseIterable {
     case tier512G = "512G" // Step 286
     case tier32h = "32h"   // Step 305
     case tier4H = "4H"     // Step 325
+}
+
+/// Tier with order for progression
+public struct JourneyTierInfo: Sendable {
+    public let tier: JourneyAbbreviationTier
+    public let order: Int
+    public let label: String
+    public let step: Int
+
+    public init(tier: JourneyAbbreviationTier, order: Int, label: String, step: Int) {
+        self.tier = tier
+        self.order = order
+        self.label = label
+        self.step = step
+    }
 }
 
 /// Helper to get tier for a tile
@@ -214,9 +229,40 @@ public enum JourneyAbbreviationTiers {
         325: .tier4H
     ]
 
-    public static func tier(for tile: Tile) -> JourneyAbbreviationTier? {
+    public static let tiers: [JourneyTierInfo] = [
+        JourneyTierInfo(tier: .tier1K, order: 0, label: "1K", step: 9),
+        JourneyTierInfo(tier: .tier32K, order: 1, label: "32K", step: 14),
+        JourneyTierInfo(tier: .tier1M, order: 2, label: "1M", step: 19),
+        JourneyTierInfo(tier: .tier128M, order: 3, label: "128M", step: 26),
+        JourneyTierInfo(tier: .tier8B, order: 4, label: "8B", step: 32),
+        JourneyTierInfo(tier: .tier512B, order: 5, label: "512B", step: 38),
+        JourneyTierInfo(tier: .tier128T, order: 6, label: "128T", step: 46),
+        JourneyTierInfo(tier: .tier64q, order: 7, label: "64q", step: 55),
+        JourneyTierInfo(tier: .tier64Q, order: 8, label: "64Q", step: 65),
+        JourneyTierInfo(tier: .tier64s, order: 9, label: "64s", step: 75),
+        JourneyTierInfo(tier: .tier128S, order: 10, label: "128S", step: 86),
+        JourneyTierInfo(tier: .tier32o, order: 11, label: "32o", step: 98),
+        JourneyTierInfo(tier: .tier16O, order: 12, label: "16O", step: 111),
+        JourneyTierInfo(tier: .tier16n, order: 13, label: "16n", step: 125),
+        JourneyTierInfo(tier: .tier64N, order: 14, label: "64N", step: 141),
+        JourneyTierInfo(tier: .tier8d, order: 15, label: "8d", step: 150),
+        JourneyTierInfo(tier: .tier128D, order: 16, label: "128D", step: 170),
+        JourneyTierInfo(tier: .tier32u, order: 17, label: "32u", step: 181),
+        JourneyTierInfo(tier: .tier16U, order: 18, label: "16U", step: 193),
+        JourneyTierInfo(tier: .tier16v, order: 19, label: "16v", step: 206),
+        JourneyTierInfo(tier: .tier32V, order: 20, label: "32V", step: 220),
+        JourneyTierInfo(tier: .tier128g, order: 21, label: "128g", step: 235),
+        JourneyTierInfo(tier: .tier1G, order: 22, label: "1G", step: 251),
+        JourneyTierInfo(tier: .tier16G, order: 23, label: "16G", step: 268),
+        JourneyTierInfo(tier: .tier512G, order: 24, label: "512G", step: 286),
+        JourneyTierInfo(tier: .tier32h, order: 25, label: "32h", step: 305),
+        JourneyTierInfo(tier: .tier4H, order: 26, label: "4H", step: 325)
+    ]
+
+    public static func tier(for tile: Tile) -> JourneyTierInfo? {
         guard let step = tile.stepIndex else { return nil }
-        return tierMap[step]
+        guard let tierEnum = tierMap[step] else { return nil }
+        return tiers.first { $0.tier == tierEnum }
     }
 }
 

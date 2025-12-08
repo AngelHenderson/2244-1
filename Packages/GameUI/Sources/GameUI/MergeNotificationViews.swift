@@ -37,32 +37,59 @@ struct UnlockedNotificationView: View {
                 .font(.title2.weight(.bold))
                 .padding(.bottom, 8)
 
-            // Journey progression tiles
-            HStack(spacing: 16) {
-                // Previous tier (if exists)
-                if let prev = journeyReward.previous {
-                    JourneyTileView(label: prev, isPrimary: false, size: 80)
-                }
-
-                // Current unlocked tier (highlighted)
-                JourneyTileView(label: journeyReward.current, isPrimary: true, size: 100)
-                    .overlay(alignment: .top) {
-                        Image(systemName: "crown.fill")
-                            .foregroundStyle(.yellow)
-                            .font(.title3)
-                            .offset(y: -15)
+            // Journey progression - Simple text display
+            VStack(spacing: 8) {
+                HStack(spacing: 12) {
+                    // Previous tier (if exists)
+                    if let prev = journeyReward.previous {
+                        Text(prev)
+                            .font(.system(size: 20, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 80, height: 80)
+                            .background(Color.gray.opacity(0.2))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
 
-                // Next tier (locked)
-                if let next = journeyReward.next {
-                    JourneyTileView(label: next, isPrimary: false, size: 80, isLocked: true)
-                        .overlay(alignment: .topTrailing) {
-                            Image(systemName: "lock.fill")
-                                .foregroundStyle(.gray)
-                                .font(.caption)
-                                .offset(x: 5, y: -5)
+                    // Current unlocked tier (highlighted)
+                    Text(journeyReward.current)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(width: 100, height: 100)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.orange, Color.red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .orange.opacity(0.5), radius: 8)
+                        .overlay(alignment: .top) {
+                            Image(systemName: "crown.fill")
+                                .foregroundStyle(.yellow)
+                                .font(.title3)
+                                .offset(y: -15)
                         }
+
+                    // Next tier (locked)
+                    if let next = journeyReward.next {
+                        Text(next)
+                            .font(.system(size: 20, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.gray)
+                            .frame(width: 80, height: 80)
+                            .background(Color.gray.opacity(0.15))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(alignment: .topTrailing) {
+                                Image(systemName: "lock.fill")
+                                    .foregroundStyle(.gray)
+                                    .font(.caption)
+                                    .offset(x: 5, y: -5)
+                            }
+                    }
                 }
+                Text("New Milestone Unlocked!")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             .padding(.vertical, 8)
 
@@ -87,8 +114,9 @@ struct UnlockedNotificationView: View {
 
             // Multiplier options
             if showClaimOption {
-                MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
-                    .padding(.vertical, 8)
+                // TODO: Add MultiplierSelectorView
+                // MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
+                //     .padding(.vertical, 8)
 
                 Button(action: {
                     // Claim with multiplier (watch ad if > 1)

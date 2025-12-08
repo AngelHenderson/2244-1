@@ -162,7 +162,7 @@ struct MusicThemesView: View {
 
     private var buttons: some View {
         VStack(spacing: 12) {
-            let instrument = instruments[safe: selectionIndex] ?? instruments.first!
+            let instrument = instruments.indices.contains(selectionIndex) ? instruments[selectionIndex] : instruments.first!
             // Try Now – host will handle ad presentation later
             primaryButton(title: "Try Now", role: .secondary) {
                 // Set the music theme when trying
@@ -236,13 +236,6 @@ struct MusicThemesView: View {
     private func moveRight() {
         guard !instruments.isEmpty else { return }
         selectionIndex = (selectionIndex + 1) % instruments.count
-    }
-}
-
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        guard indices.contains(index) else { return nil }
-        return self[index]
     }
 }
 

@@ -89,12 +89,12 @@ private extension JourneyPanel {
             tiles = JourneyTileGenerator.generateJourney(highest: highestTile, stepsAhead: stepsAhead)
         }
         return tiles.enumerated().map { index, tile in
-            let tier = JourneyAbbreviationTiers.tier(for: tile)
+            let tierInfo = JourneyAbbreviationTiers.tier(for: tile)
             let isUnlocked: Bool
             let isClaimed: Bool
-            if let tier {
-                isUnlocked = gameStore.isAbbreviationTierUnlocked(tier)
-                isClaimed = gameStore.hasClaimedAbbreviationTier(tier)
+            if let tierInfo {
+                isUnlocked = gameStore.isAbbreviationTierUnlocked(tierInfo.tier)
+                isClaimed = gameStore.hasClaimedAbbreviationTier(tierInfo.tier)
             } else if tile.isInfinity {
                 isUnlocked = true
                 isClaimed = false
@@ -125,14 +125,14 @@ private extension JourneyPanel {
                 status = .locked
             }
 
-            let rewardAvailable = tier != nil ? (isUnlocked && !isClaimed) : false
-            let rewardClaimed = tier != nil ? (isUnlocked && isClaimed) : false
+            let rewardAvailable = tierInfo != nil ? (isUnlocked && !isClaimed) : false
+            let rewardClaimed = tierInfo != nil ? (isUnlocked && isClaimed) : false
 
             return RoadMilestone(
                 id: index,
                 tile: tile,
                 label: JourneyPanel.formatLabel(for: tile),
-                tier: tier,
+                tier: tierInfo?.tier,
                 status: status,
                 isUnlocked: isUnlocked,
                 isRewardAvailable: rewardAvailable,
@@ -222,62 +222,99 @@ private struct InfiniteRoadCanvas: View {
             let roadWidth: CGFloat = InfiniteRoadMetrics.roadWidth
             let centerX = size.width / 2
 
-            // Road base with asphalt texture
-            let roadRect = CGRect(
-                x: centerX - roadWidth / 2,
-                y: 0,
-                width: roadWidth,
-                height: totalHeight
+            // Calculate perspective effect - road narrows towards horizon
+            let perspectiveFactor = 0.3  // Road narrows to 30% at horizon
+
+            // Road base with perspective
+            let roadPath = Path { path in
+                let topWidth = roadWidth * perspectiveFactor
+                let bottomWidth = roadWidth
+
+                path.move(to: CGPoint(x: centerX - bottomWidth / 2, y: totalHeight))
+                path.addLine(to: CGPoint(x: centerX - topWidth / 2, y: 0))
+                path.addLine(to: CGPoint(x: centerX + topWidth / 2, y: 0))
+                path.addLine(to: CGPoint(x: centerX + bottomWidth / 2, y: totalHeight))
+                path.closeSubpath()
+            }
+
+            // Road shadow with perspective
+            context.fill(
+                roadPath,
+                with: .shadow(.color(.black.opacity(0.6)), radius: 12, x: 0, y: 4)
             )
 
-            // Road shadow
+            // Main road with gradient
             context.fill(
-                RoundedRectangle(cornerRadius: 8).path(in: roadRect.insetBy(dx: -8, dy: 0)),
-                with: .color(.black.opacity(0.5))
-            )
-
-            // Main road
-            context.fill(
-                Rectangle().path(in: roadRect),
+                roadPath,
                 with: .linearGradient(
                     Gradient(colors: [
-                        Color(red: 0.22, green: 0.24, blue: 0.28),
+                        Color(red: 0.26, green: 0.28, blue: 0.32),
+                        Color(red: 0.20, green: 0.22, blue: 0.26),
                         Color(red: 0.18, green: 0.20, blue: 0.24)
                     ]),
-                    startPoint: CGPoint(x: roadRect.minX, y: 0),
-                    endPoint: CGPoint(x: roadRect.maxX, y: 0)
+                    startPoint: CGPoint(x: centerX, y: 0),
+                    endPoint: CGPoint(x: centerX, y: totalHeight)
                 )
             )
 
-            // Road edges (yellow lines)
+            // Road edges (yellow lines) with perspective
             let edgeWidth: CGFloat = 4
-            context.fill(
-                Rectangle().path(in: CGRect(x: centerX - roadWidth / 2, y: 0, width: edgeWidth, height: totalHeight)),
-                with: .color(Color(red: 0.9, green: 0.75, blue: 0.2))
-            )
-            context.fill(
-                Rectangle().path(in: CGRect(x: centerX + roadWidth / 2 - edgeWidth, y: 0, width: edgeWidth, height: totalHeight)),
-                with: .color(Color(red: 0.9, green: 0.75, blue: 0.2))
-            )
 
-            // Center dashed line
-            let dashLength: CGFloat = 40
-            let dashGap: CGFloat = 30
-            let dashWidth: CGFloat = 6
-            var dashY: CGFloat = 20
+            // Left edge
+            let leftEdgePath = Path { path in
+                let topWidth = roadWidth * perspectiveFactor
+                let bottomWidth = roadWidth
 
-            while dashY < totalHeight {
-                let dashRect = CGRect(
-                    x: centerX - dashWidth / 2,
-                    y: dashY,
-                    width: dashWidth,
-                    height: dashLength
-                )
+                path.move(to: CGPoint(x: centerX - bottomWidth / 2, y: totalHeight))
+                path.addLine(to: CGPoint(x: centerX - topWidth / 2, y: 0))
+                path.addLine(to: CGPoint(x: centerX - topWidth / 2 + edgeWidth * perspectiveFactor, y: 0))
+                path.addLine(to: CGPoint(x: centerX - bottomWidth / 2 + edgeWidth, y: totalHeight))
+                path.closeSubpath()
+            }
+
+            // Right edge
+            let rightEdgePath = Path { path in
+                let topWidth = roadWidth * perspectiveFactor
+                let bottomWidth = roadWidth
+
+                path.move(to: CGPoint(x: centerX + bottomWidth / 2 - edgeWidth, y: totalHeight))
+                path.addLine(to: CGPoint(x: centerX + topWidth / 2 - edgeWidth * perspectiveFactor, y: 0))
+                path.addLine(to: CGPoint(x: centerX + topWidth / 2, y: 0))
+                path.addLine(to: CGPoint(x: centerX + bottomWidth / 2, y: totalHeight))
+                path.closeSubpath()
+            }
+
+            context.fill(leftEdgePath, with: .color(Color(red: 0.95, green: 0.8, blue: 0.25)))
+            context.fill(rightEdgePath, with: .color(Color(red: 0.95, green: 0.8, blue: 0.25)))
+
+            // Center dashed line with perspective
+            let dashSegments = 30
+            for i in 0..<dashSegments {
+                let progress = CGFloat(i) / CGFloat(dashSegments)
+                let nextProgress = CGFloat(i + 1) / CGFloat(dashSegments)
+
+                // Skip every other segment for dashed effect
+                if i % 2 == 1 { continue }
+
+                let yStart = totalHeight * (1 - progress)
+                let yEnd = totalHeight * (1 - nextProgress)
+
+                // Calculate width at each y position
+                let widthAtStart = 8 * (1 - progress * 0.7)  // Narrows with perspective
+                let widthAtEnd = 8 * (1 - nextProgress * 0.7)
+
+                let dashPath = Path { path in
+                    path.move(to: CGPoint(x: centerX - widthAtStart / 2, y: yStart))
+                    path.addLine(to: CGPoint(x: centerX - widthAtEnd / 2, y: yEnd))
+                    path.addLine(to: CGPoint(x: centerX + widthAtEnd / 2, y: yEnd))
+                    path.addLine(to: CGPoint(x: centerX + widthAtStart / 2, y: yStart))
+                    path.closeSubpath()
+                }
+
                 context.fill(
-                    RoundedRectangle(cornerRadius: 2).path(in: dashRect),
-                    with: .color(.white.opacity(0.85))
+                    dashPath,
+                    with: .color(.white.opacity(0.85 * (1 - progress * 0.5)))  // Fades with distance
                 )
-                dashY += dashLength + dashGap
             }
         }
     }
@@ -711,13 +748,13 @@ private struct RoadMilestone: Identifiable {
 }
 
 private enum InfiniteRoadMetrics {
-    static let milestoneSpacing: CGFloat = 280
-    static let roadWidth: CGFloat = 80
-    static let horizonHeight: CGFloat = 250
-    static let initialDynamicSteps: Int = 80
-    static let dynamicStepIncrement: Int = 40
-    static let maxDynamicSteps: Int = 640
-    static let prefetchThreshold: Int = 8
+    static let milestoneSpacing: CGFloat = 420  // Much farther apart
+    static let roadWidth: CGFloat = 100  // Slightly wider road
+    static let horizonHeight: CGFloat = 300  // Taller horizon
+    static let initialDynamicSteps: Int = 120  // See more ahead initially
+    static let dynamicStepIncrement: Int = 60  // Load more steps at a time
+    static let maxDynamicSteps: Int = 1000  // Much further view distance
+    static let prefetchThreshold: Int = 5  // Load new content earlier
 }
 
 private enum InfiniteRoadColors {
