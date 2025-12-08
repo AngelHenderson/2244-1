@@ -197,7 +197,6 @@ public struct RootGameView: View {
         // Capture values from MainActor-isolated properties
         let highestTile = gameStore.state.highestTile
         let bestScoreAlpha = gameStore.state.scoreValue
-        let bestScore = bestScoreAlpha.toInt()
         let gems = gameStore.coins
         
         // Also sync the journey highest tile

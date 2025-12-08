@@ -14,12 +14,16 @@ struct JourneyPanel: View {
 
     var body: some View {
         let milestones = roadMilestones
+        let totalHeight = CGFloat(milestones.count) * InfiniteRoadMetrics.milestoneSpacing + InfiniteRoadMetrics.horizonHeight
 
         ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
                 ZStack(alignment: .top) {
-                    InfiniteRoadBackground(milestoneCount: milestones.count)
+                    // Road background
+                    InfiniteRoadCanvas(totalHeight: totalHeight)
+                        .frame(height: totalHeight)
 
+                    // Milestones
                     VStack(spacing: 0) {
                         ForEach(milestones) { milestone in
                             RoadMilestoneSection(
@@ -39,12 +43,13 @@ struct JourneyPanel: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
+                .frame(height: totalHeight)
             }
             .onAppear {
-                if let currentIndex = milestones.firstIndex(where: { $0.status == .current }) {
+                if let currentMilestone = milestones.first(where: { $0.status == .current }) {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         withAnimation(.easeOut(duration: 0.5)) {
-                            proxy.scrollTo(currentIndex, anchor: .center)
+                            proxy.scrollTo(currentMilestone.id, anchor: .center)
                         }
                     }
                 }
@@ -209,78 +214,72 @@ private struct SeededRNG: RandomNumberGenerator {
     }
 }
 
-private struct InfiniteRoadBackground: View {
-    let milestoneCount: Int
+private struct InfiniteRoadCanvas: View {
+    let totalHeight: CGFloat
 
     var body: some View {
-        GeometryReader { geometry in
-            let totalHeight = CGFloat(milestoneCount) * InfiniteRoadMetrics.milestoneSpacing + InfiniteRoadMetrics.horizonHeight
+        Canvas { context, size in
+            let roadWidth: CGFloat = InfiniteRoadMetrics.roadWidth
+            let centerX = size.width / 2
 
-            Canvas { context, size in
-                let roadWidth: CGFloat = InfiniteRoadMetrics.roadWidth
-                let centerX = size.width / 2
+            // Road base with asphalt texture
+            let roadRect = CGRect(
+                x: centerX - roadWidth / 2,
+                y: 0,
+                width: roadWidth,
+                height: totalHeight
+            )
 
-                // Road base with asphalt texture
-                let roadRect = CGRect(
-                    x: centerX - roadWidth / 2,
-                    y: 0,
-                    width: roadWidth,
-                    height: totalHeight
+            // Road shadow
+            context.fill(
+                RoundedRectangle(cornerRadius: 8).path(in: roadRect.insetBy(dx: -8, dy: 0)),
+                with: .color(.black.opacity(0.5))
+            )
+
+            // Main road
+            context.fill(
+                Rectangle().path(in: roadRect),
+                with: .linearGradient(
+                    Gradient(colors: [
+                        Color(red: 0.22, green: 0.24, blue: 0.28),
+                        Color(red: 0.18, green: 0.20, blue: 0.24)
+                    ]),
+                    startPoint: CGPoint(x: roadRect.minX, y: 0),
+                    endPoint: CGPoint(x: roadRect.maxX, y: 0)
                 )
+            )
 
-                // Road shadow
+            // Road edges (yellow lines)
+            let edgeWidth: CGFloat = 4
+            context.fill(
+                Rectangle().path(in: CGRect(x: centerX - roadWidth / 2, y: 0, width: edgeWidth, height: totalHeight)),
+                with: .color(Color(red: 0.9, green: 0.75, blue: 0.2))
+            )
+            context.fill(
+                Rectangle().path(in: CGRect(x: centerX + roadWidth / 2 - edgeWidth, y: 0, width: edgeWidth, height: totalHeight)),
+                with: .color(Color(red: 0.9, green: 0.75, blue: 0.2))
+            )
+
+            // Center dashed line
+            let dashLength: CGFloat = 40
+            let dashGap: CGFloat = 30
+            let dashWidth: CGFloat = 6
+            var dashY: CGFloat = 20
+
+            while dashY < totalHeight {
+                let dashRect = CGRect(
+                    x: centerX - dashWidth / 2,
+                    y: dashY,
+                    width: dashWidth,
+                    height: dashLength
+                )
                 context.fill(
-                    RoundedRectangle(cornerRadius: 8).path(in: roadRect.insetBy(dx: -8, dy: 0)),
-                    with: .color(.black.opacity(0.5))
+                    RoundedRectangle(cornerRadius: 2).path(in: dashRect),
+                    with: .color(.white.opacity(0.85))
                 )
-
-                // Main road
-                context.fill(
-                    Rectangle().path(in: roadRect),
-                    with: .linearGradient(
-                        Gradient(colors: [
-                            Color(red: 0.22, green: 0.24, blue: 0.28),
-                            Color(red: 0.18, green: 0.20, blue: 0.24)
-                        ]),
-                        startPoint: CGPoint(x: roadRect.minX, y: 0),
-                        endPoint: CGPoint(x: roadRect.maxX, y: 0)
-                    )
-                )
-
-                // Road edges (yellow lines)
-                let edgeWidth: CGFloat = 4
-                context.fill(
-                    Rectangle().path(in: CGRect(x: centerX - roadWidth / 2, y: 0, width: edgeWidth, height: totalHeight)),
-                    with: .color(Color(red: 0.9, green: 0.75, blue: 0.2))
-                )
-                context.fill(
-                    Rectangle().path(in: CGRect(x: centerX + roadWidth / 2 - edgeWidth, y: 0, width: edgeWidth, height: totalHeight)),
-                    with: .color(Color(red: 0.9, green: 0.75, blue: 0.2))
-                )
-
-                // Center dashed line
-                let dashLength: CGFloat = 40
-                let dashGap: CGFloat = 30
-                let dashWidth: CGFloat = 6
-                var dashY: CGFloat = 20
-
-                while dashY < totalHeight {
-                    let dashRect = CGRect(
-                        x: centerX - dashWidth / 2,
-                        y: dashY,
-                        width: dashWidth,
-                        height: dashLength
-                    )
-                    context.fill(
-                        RoundedRectangle(cornerRadius: 2).path(in: dashRect),
-                        with: .color(.white.opacity(0.85))
-                    )
-                    dashY += dashLength + dashGap
-                }
+                dashY += dashLength + dashGap
             }
-            .frame(height: totalHeight)
         }
-        .frame(height: CGFloat(milestoneCount) * InfiniteRoadMetrics.milestoneSpacing + InfiniteRoadMetrics.horizonHeight)
     }
 }
 

@@ -648,11 +648,11 @@ public final class GameStore {
                 
                 // 3. Commit (Shatter/Fly complete, now apply logic)
                 print("[GameStore] Phase 3: Commit (Logic)")
-                let requiresGravityDrop = self.performCommit(positions: positions)
+                let (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
                 
                 if requiresGravityDrop {
                     print("[GameStore] Phase 3b: Gravity Drop")
-                    self.performGravityDrop()
+                    self.performGravityDrop(columns: affectedColumns)
                 }
                 
                 // Wait for gravity animation (tiles dropping)
@@ -667,7 +667,7 @@ public final class GameStore {
                 
                 // 4. Refill Phase
                 print("[GameStore] Phase 4: Refill")
-                self.performRefill()
+                self.performRefill(columns: affectedColumns)
                 
                 // Clear animation
                 self.mergeAnimationState = nil
@@ -686,21 +686,31 @@ public final class GameStore {
     
     private func performRefill(columns: Set<Int>? = nil) {
         let previousBoard = state.board
-        // Normal path: always full-board refill to guarantee 5×8 visible grid.
-        let newState = engine.refillBoard()
-        applyStateUpdate(newState, previousBoard: previousBoard)
+        if let cols = columns, !cols.isEmpty {
+            let newState = engine.refillColumns(cols)
+            state = newState
+            markRefills(previousBoard: previousBoard, newBoard: newState.board, scopedColumns: cols)
+        } else {
+            let newState = engine.refillBoard()
+            applyStateUpdate(newState, previousBoard: previousBoard)
+        }
     }
     
     private func performGravityDrop(columns: Set<Int>? = nil) {
-        // Normal path: full-board gravity.
-        let newState = engine.applyGravityAfterChain()
-        state = newState
+        if let cols = columns, !cols.isEmpty {
+            let newState = engine.collapseColumns(cols)
+            state = newState
+        } else {
+            let newState = engine.applyGravityAfterChain()
+            state = newState
+        }
     }
     
     @discardableResult
-    private func performCommit(positions: [Position]) -> Bool {
+    private func performCommit(positions: [Position]) -> (Bool, Set<Int>) {
         let previousHighest = state.highestTile
         let lastPos = positions.last
+        var affectedColumns = columnsWithEmpties(in: state.board)
 
         // Track newly shattered glass tiles (row 0)
         var newlyBrokenGlass: [Position] = []
@@ -715,6 +725,8 @@ public final class GameStore {
         } else {
             newState = engine.commitChain(positions, applyGravity: false)
         }
+        
+        affectedColumns = columnsWithEmpties(in: newState.board)
         
         // Update state but DO NOT schedule refill reveal yet, as refill hasn't happened
         state = newState
@@ -787,7 +799,7 @@ public final class GameStore {
         // Auto-save progress for score changes and achievements
         saveProgressImmediately(newTile: addedValue)
 
-        return requiresGravityDrop
+        return (requiresGravityDrop, affectedColumns)
     }
     
     private static let mergeAnimationDelay: UInt64 = 400_000_000
@@ -1498,7 +1510,8 @@ public final class GameStore {
                 return
             }
             
-            self.performRefill()
+            let cols = self.columnsWithEmpties(in: self.state.board)
+            self.performRefill(columns: cols)
             self.resetHammerAnimation()
         }
     }
@@ -1510,6 +1523,39 @@ public final class GameStore {
         mergeCleanupTask = nil
     }
     
+    private func columnsWithEmpties(in board: Board) -> Set<Int> {
+        var result: Set<Int> = []
+        for col in 0..<board.width {
+            for row in 0..<board.height {
+                let idx = BoardIndex(row: row, col: col)
+                if board[idx].kind == .empty {
+                    result.insert(col)
+                    break
+                }
+            }
+        }
+        return result
+    }
+    
+    private func markRefills(previousBoard: Board, newBoard: Board, scopedColumns: Set<Int>? = nil) {
+        var newPositions = detectNewSpawnPositions(previousBoard: previousBoard, newBoard: newBoard)
+        if let scopedColumns {
+            newPositions = newPositions.filter { scopedColumns.contains($0.col) }
+        }
+        pendingRefillPositions = Set(newPositions)
+        
+        guard !pendingRefillPositions.isEmpty else { return }
+        
+        cancelRefillRevealTask()
+        refillRevealTask = Task { [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(nanoseconds: Self.refillRevealDelay)
+            await MainActor.run {
+                self.pendingRefillPositions.removeAll()
+            }
+        }
+    }
+    
     private func runMagnetPipeline(
         value: Int,
         position: Position,
@@ -1519,7 +1565,6 @@ public final class GameStore {
         mergeCleanupTask?.cancel()
         isInputLocked = true
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
-        let affectedColumns = Set(matchingPositions.map { $0.col })
         
         mergeCleanupTask = Task { @MainActor [weak self] in
             guard let self else { return }
@@ -1552,7 +1597,8 @@ public final class GameStore {
             self.setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
             self.achievementEvaluator?.onTilesMerged(count: matchingPositions.count)
             
-            self.performGravityDrop()
+            let cols = self.columnsWithEmpties(in: self.state.board)
+            self.performGravityDrop(columns: cols)
             
             do {
                 try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
@@ -1565,8 +1611,9 @@ public final class GameStore {
                 print("[GameStore] Magnet pipeline cancelled before refill")
                 return
             }
-            
-            self.performRefill()
+
+            let refillCols = self.columnsWithEmpties(in: self.state.board)
+            self.performRefill(columns: refillCols)
             self.saveProgressImmediately(newTile: mergedValue)
         }
     }
