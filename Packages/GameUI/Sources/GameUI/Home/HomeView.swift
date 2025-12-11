@@ -53,8 +53,9 @@ public struct HomeView: View {
                 // Top HUD
                 HUDTopBar()
                     .padding(.top, 8)
-                    // Remove glass background to avoid extra container behind buttons
-                    .background(Color.clear)
+                    // Add background material to prevent scrolling content overlap visibility
+                    .background(.ultraThinMaterial)
+                    .ignoresSafeArea(edges: .top)
                     .overlay(alignment: .top) {
                         // Measure header height so scroller can center correctly
                         GeometryReader { geo in
