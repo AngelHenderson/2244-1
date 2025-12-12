@@ -14,7 +14,7 @@ struct HUDTopBar: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            scoreBoostButtons
+//            scoreBoostButtons
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
             
