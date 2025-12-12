@@ -2032,6 +2032,7 @@ extension GameStore {
     
     private func tierSuffix(for tile: Tile?, value: Int) -> String? {
         guard value > 0 else { return nil }
+        if let tile, tile.isInfinity { return "∞" }
         let step: Int?
         if let tile, let tileStep = tile.stepIndex {
             step = tileStep
@@ -2039,7 +2040,13 @@ extension GameStore {
             step = TileStepLabelFormatter.stepForValue(value)
         }
         guard let step else { return nil }
-        let label = TileStepLabelFormatter.labelForStep(step)
+        
+        // Clamp to supported journey tiers (bz max). Anything beyond bz is recorded as bz.
+        let maxStep = JourneyAbbreviationTiers.maxSupportedStep
+        let clampedStep = min(step, maxStep)
+        let label = (clampedStep == maxStep && step > maxStep)
+            ? "1bz"
+            : TileStepLabelFormatter.labelForStep(clampedStep)
         let suffix = label.trimmingCharacters(in: .decimalDigits)
         return suffix.isEmpty ? nil : suffix
     }
