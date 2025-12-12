@@ -20,14 +20,14 @@ public struct TierStat: Identifiable, Hashable, Sendable {
 }
 
 public extension TierStat {
-    /// Presentation glyph; keep canonical casing for K/M/B, curve l, otherwise use original.
+    /// Presentation glyph; keep canonical casing for K/M/B, curve l, otherwise lowercase.
     var displayKey: String {
         if key == "l" { return "ℓ" }
         let lower = key.lowercased()
         if lower == "k" { return "K" }
         if lower == "m" { return "M" }
         if lower == "b" { return "B" }
-        return key
+        return lower
     }
     
     var usesCurvedLStyling: Bool {
