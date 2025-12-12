@@ -46,7 +46,6 @@ public struct HomeView: View {
             // Background layer: Tile scroller. We pass measured header/footer insets so
             // the current tile appears visually centered upon first appear.
             TileScrollerView(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
-                .zIndex(1)
             
             // Foreground layer: Main UI
             VStack(spacing: 0) {
@@ -234,6 +233,7 @@ public struct HomeView: View {
                     }
                 )
             }
+            .zIndex(1)
             .zIndex(2)
         }
         // Leaderboard sheet

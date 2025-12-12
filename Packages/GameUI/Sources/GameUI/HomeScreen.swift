@@ -138,7 +138,6 @@ public struct HomeScreen: View {
                 isShowingChallenge = false
             })
         }
-        .simultaneousGesture(DragGesture(minimumDistance: .infinity))
         .task {
             if !didLoadAutosave {
                 _ = await gameStore.load(from: "autosave", using: storage)
