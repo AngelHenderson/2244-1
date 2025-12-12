@@ -20,9 +20,14 @@ public struct TierStat: Identifiable, Hashable, Sendable {
 }
 
 public extension TierStat {
-    /// Presentation glyph; use the raw key but allow special styling hints.
+    /// Presentation glyph; keep canonical casing for K/M/B, curve l, otherwise use original.
     var displayKey: String {
-        key
+        if key == "l" { return "ℓ" }
+        let lower = key.lowercased()
+        if lower == "k" { return "K" }
+        if lower == "m" { return "M" }
+        if lower == "b" { return "B" }
+        return key
     }
     
     var usesCurvedLStyling: Bool {
@@ -30,18 +35,40 @@ public extension TierStat {
     }
     
     static func stats(from counts: [String: Int]) -> [TierStat] {
+        // Build canonical map and normalize counts to that casing (K/M/B uppercase; others as defined).
+        var canonicalMap: [String: String] = [:]
+        allTierKeys.forEach { key in
+            let lower = key.lowercased()
+            if canonicalMap[lower] == nil {
+                canonicalMap[lower] = key
+            }
+        }
+        // Ensure K/M/B exist
+        canonicalMap["k"] = canonicalMap["k"] ?? "K"
+        canonicalMap["m"] = canonicalMap["m"] ?? "M"
+        canonicalMap["b"] = canonicalMap["b"] ?? "B"
+        
+        var normalizedCounts: [String: Int] = [:]
+        counts.forEach { rawKey, value in
+            let lower = rawKey.lowercased()
+            if lower == "∞" || lower == "infinity" {
+                normalizedCounts["∞"] = value
+            } else if let canonical = canonicalMap[lower] {
+                normalizedCounts[canonical] = value
+            }
+        }
+        
         var orderedKeys = allTierKeys
-        // include any keys not part of canonical set (future proofing)
-        for key in counts.keys where !orderedKeys.contains(key) {
+        for key in normalizedCounts.keys where !orderedKeys.contains(key) {
             orderedKeys.append(key)
         }
-        let mergedKeys = counts.keys.filter { allTierKeys.contains($0) }
+        let mergedKeys = normalizedCounts.keys.filter { allTierKeys.contains($0) || $0 == "∞" }
         let unmergedKeys = orderedKeys.filter { !mergedKeys.contains($0) }
         
         // keep any merged tiers at the top, sorted by value desc then key
         let mergedOrdered = mergedKeys.sorted { lhs, rhs in
-            let leftValue = counts[lhs] ?? 0
-            let rightValue = counts[rhs] ?? 0
+            let leftValue = normalizedCounts[lhs] ?? 0
+            let rightValue = normalizedCounts[rhs] ?? 0
             if leftValue == rightValue {
                 return lhs < rhs
             }
@@ -60,7 +87,7 @@ public extension TierStat {
         let orderedWithProgress = mergedOrdered + regularUnmerged + endCaps
         
         return orderedWithProgress.map { key in
-            let value = counts[key] ?? 0
+            let value = normalizedCounts[key] ?? 0
             return TierStat(
                 key: key,
                 value: value,
