@@ -550,26 +550,23 @@ struct WheelFace: View {
                     let y = rect.midY - r * cos(centerAngle)
                     
                     RadialLabel(angle: centerAngle - (.pi / 2)) {
-                        VStack(spacing: 4) {
+                        HStack(spacing: 6) {
                             if let assetName = segments[i].iconAssetName,
                                let bundleImage = segmentImage(named: assetName) {
                                 bundleImage
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 30, height: 30)
+                                    .frame(width: 24, height: 24)
                             } else {
                                 Text(segments[i].icon)
-                                    .font(.system(size: 20))
+                                    .font(.system(size: 18))
                             }
                             Text(segments[i].title)
                                 .font(.system(size: 11, weight: .bold, design: .rounded))
                                 .foregroundStyle(.white)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.85)
-                                .fixedSize(horizontal: false, vertical: true)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                         }
-                        .frame(width: 88)
                     }
                     .position(x: x, y: y)
                 }
