@@ -155,7 +155,7 @@ public struct DailyClaimsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Weekly Rewards")
-                    .font(.title2.bold())
+                .font(.title2.bold())
                 Spacer()
                 Text("Week \(selectedPage + 1)")
                     .font(.subheadline)
@@ -261,8 +261,8 @@ private struct DailyRewardRow: View {
                             .foregroundStyle(.orange)
                         ForEach(bonusEntries, id: \.self) { entry in
                             RewardChip(entry: entry, style: .compact)
-                        }
-                    }
+            }
+        }
                 }
             }
             
