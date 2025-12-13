@@ -81,8 +81,8 @@ public extension LeaderboardClient {
                 let playerScope: GKLeaderboard.PlayerScope = {
                     switch filter {
                     case .global: return .global
-                    case .friends: return .friendsOnly
-                    case .nearby: return .global // GK doesn't have nearby, use global
+                    case .hallOfFame: return .global
+                    case .country: return .global
                     }
                 }()
                 

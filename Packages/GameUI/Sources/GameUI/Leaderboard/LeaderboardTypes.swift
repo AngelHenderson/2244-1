@@ -8,10 +8,18 @@ public enum LeaderboardPeriod: String, Codable, CaseIterable, Sendable {
 
 public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifiable {
     case global = "Global"
-    case friends = "Friends"
-    case nearby = "Nearby"
-    
+    case hallOfFame = "Hall of Fame"
+    case country = "US"
+
     public var id: Self { self }
+
+    public var icon: String {
+        switch self {
+        case .global: return "globe.americas.fill"
+        case .hallOfFame: return "crown.fill"
+        case .country: return "flag.fill"
+        }
+    }
 }
 
 public enum Platform: String, Codable, Sendable {

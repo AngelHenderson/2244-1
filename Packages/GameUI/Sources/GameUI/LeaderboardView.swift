@@ -7,29 +7,55 @@ public struct LeaderboardView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model: LeaderboardModel? = nil
     @State private var showError = false
-    
+
+    private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
+
     public init() {}
-    
+
     public var body: some View {
-        NavigationStack {
-            Group {
+        ZStack {
+            darkBackground.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Custom Navigation Bar
+                HStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color.blue)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+
+                    Spacer()
+
+                    Text("LEADERBOARD")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+
+                    Spacer()
+
+                    // Invisible spacer for centering
+                    Color.clear
+                        .frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+
                 if let model {
                     content(model)
                 } else {
+                    Spacer()
                     ProgressView("Loading leaderboard...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .tint(.white)
+                        .foregroundStyle(.white)
                         .task { await setup() }
+                    Spacer()
                 }
             }
-            .navigationTitle("Leaderboard")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
-            }
-            #else
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
-            #endif
         }
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
@@ -53,64 +79,23 @@ public struct LeaderboardView: View {
     @ViewBuilder
     private func content(_ m: LeaderboardModel) -> some View {
         VStack(spacing: 0) {
-            // Period & Scope Selectors
-            VStack(spacing: 12) {
-                // Period Picker
-                Picker("Period", selection: Binding(
-                    get: { m.selectedPeriod },
-                    set: { m.selectedPeriod = $0 }
-                )) {
-                    ForEach(LeaderboardPeriod.allCases, id: \.self) { period in
-                        Text(period.rawValue).tag(period)
+            // Filter Tabs (Global, Hall of Fame, US)
+            HStack(spacing: 8) {
+                ForEach(LeaderboardFilter.allCases) { filter in
+                    filterTab(filter, isSelected: m.selectedFilter == filter) {
+                        m.selectedFilter = filter
                     }
                 }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                
-                // Filter Tabs
-                HStack(spacing: 8) {
-                    ForEach(LeaderboardFilter.allCases) { filter in
-                        filterTab(filter, isSelected: m.selectedFilter == filter) {
-                            m.selectedFilter = filter
-                        }
-                    }
-                }
-                .padding(.horizontal)
             }
+            .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            #if os(iOS)
-            .background(Color(UIColor.secondarySystemBackground))
-            #else
-            .background(Color.secondary.opacity(0.1))
-            #endif
-            
-            // Stats Bar
-            if let total = m.totalPlayers {
-                HStack {
-                    Label("\(total) Players", systemImage: "person.2.fill")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    if let myEntry = m.myEntry {
-                        Text("Your Rank: \(LeaderboardModel.formatRank(myEntry.rank))")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.tint)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                #if os(iOS)
-                .background(Color(UIColor.tertiarySystemBackground))
-                #else
-                .background(Color.secondary.opacity(0.08))
-                #endif
-            }
-            
+
             // Leaderboard List
             if m.isLoading && !m.hasData {
                 Spacer()
                 ProgressView()
                     .progressViewStyle(.circular)
+                    .tint(.white)
                 Spacer()
             } else if m.hasData {
                 ScrollView {
@@ -124,45 +109,47 @@ public struct LeaderboardView: View {
                                     }
                                 }
                         }
-                        
+
                         // Show loading indicator for pagination
                         if m.isLoadingMore {
                             ProgressView()
+                                .tint(.white)
                                 .padding()
                         }
-                        
+
                         // Show "My Entry" if not in the visible list
                         if let myEntry = m.myEntry,
                            !m.entries.contains(where: { $0.id == myEntry.id }) {
                             VStack(spacing: 0) {
-                                Divider()
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.1))
+                                    .frame(height: 1)
                                     .padding(.vertical, 16)
-                                
+
                                 Text("Your Position")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.white.opacity(0.6))
                                     .padding(.bottom, 8)
-                                
+
                                 leaderboardRow(myEntry, index: nil)
-                                    .background(Color.accentColor.opacity(0.1))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .padding(.horizontal)
                             }
                             .padding(.vertical)
                         }
                     }
+                    .padding(.top, 8)
                 }
             } else {
                 Spacer()
                 VStack(spacing: 16) {
                     Image(systemName: "trophy.fill")
                         .font(.system(size: 48))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.4))
                     Text("No leaderboard data")
                         .font(.headline)
+                        .foregroundStyle(.white)
                     Text("Be the first to set a score!")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.6))
                 }
                 Spacer()
             }
@@ -176,102 +163,237 @@ public struct LeaderboardView: View {
     
     private func filterTab(_ filter: LeaderboardFilter, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(filter.rawValue)
-                .font(.subheadline.weight(isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? .white : .primary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                #if os(iOS)
-                .background(isSelected ? Color.accentColor : Color(UIColor.tertiarySystemFill))
-                #else
-                .background(isSelected ? Color.accentColor : Color.secondary.opacity(0.12))
-                #endif
-                .clipShape(Capsule())
+            HStack(spacing: 6) {
+                if filter == .global {
+                    Image(systemName: "globe.americas.fill")
+                        .font(.system(size: 14))
+                } else if filter == .hallOfFame {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 14))
+                } else if filter == .country {
+                    Text(flagEmoji("US"))
+                        .font(.system(size: 14))
+                }
+
+                Text(filter.rawValue)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(filterTabBackground(for: filter, isSelected: isSelected))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
+    }
+
+    private func filterTabBackground(for filter: LeaderboardFilter, isSelected: Bool) -> Color {
+        guard isSelected else {
+            return Color(red: 0.15, green: 0.16, blue: 0.22)
+        }
+        switch filter {
+        case .global:
+            return Color.blue
+        case .hallOfFame:
+            return Color(red: 0.6, green: 0.5, blue: 0.2)
+        case .country:
+            return Color.green
+        }
     }
     
     private func leaderboardRow(_ entry: LeaderboardEntry, index: Int?) -> some View {
         HStack(spacing: 12) {
-            // Rank Badge
-            ZStack {
-                if entry.rank <= 3 {
-                    Image(systemName: rankIcon(for: entry.rank))
-                        .font(.title2)
-                        .foregroundStyle(rankColor(for: entry.rank))
+            // Rank Number
+            Text(verbatim: entry.isMe && entry.rank > 9 ? "▶\(entry.rank)" : "\(entry.rank)")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .frame(width: 44)
+
+            // Avatar with platform badge
+            ZStack(alignment: .bottomTrailing) {
+                if let avatarURL = entry.avatarURL, let url = URL(string: avatarURL) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        avatarPlaceholder(for: entry)
+                    }
+                    .frame(width: 44, height: 44)
+                    .clipShape(Circle())
                 } else {
-                    Text(verbatim: String(entry.rank))
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                    avatarPlaceholder(for: entry)
                 }
-            }
-            .frame(width: 44)
-            
-            // Avatar
-            ZStack {
-                Circle()
-                    .fill(avatarGradient(for: entry.id))
-                    .frame(width: 40, height: 40)
-                
-                Text(String(entry.name.prefix(1)).uppercased())
-                    .font(.headline)
+
+                // Platform badge
+                Image(systemName: platformIcon(for: entry.platform))
+                    .font(.system(size: 10))
                     .foregroundStyle(.white)
+                    .padding(3)
+                    .background(platformColor(for: entry.platform))
+                    .clipShape(Circle())
+                    .offset(x: 2, y: 2)
             }
-            
-            // Name and Score
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(entry.name)
-                        .font(.subheadline.weight(.medium))
-                        .lineLimit(1)
-                    
-                    if entry.isMe {
-                        Image(systemName: "person.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.tint)
-                    }
-                    
-                    if let countryCode = entry.countryCode {
-                        Text(flagEmoji(countryCode))
-                            .font(.caption)
-                    }
-                }
-                
-                HStack(spacing: 8) {
-                    Text(LeaderboardModel.formatScore(entry.score))
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                    
-                    if let highestTile = entry.highestTile {
-                        HStack(spacing: 3) {
-                            Image(systemName: "crown.fill")
-                                .font(.system(size: 8))
-                                .foregroundStyle(.yellow)
-                            Text(highestTile)
-                                .font(.caption2.weight(.bold))
-                                .foregroundStyle(.primary)
-                        }
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.ultraThinMaterial, in: Capsule())
-                    }
-                }
-            }
-            
+
+            // Player Name
+            Text(entry.name)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+
             Spacer()
-            
-            // Platform Icon
-            Image(systemName: platformIcon(for: entry.platform))
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+
+            // Country Flag
+            if let countryCode = entry.countryCode {
+                Text(flagEmoji(countryCode))
+                    .font(.title3)
+            }
+
+            // Milestone Badge (highest tile)
+            if let highestTile = entry.highestTile {
+                Text(highestTile)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(milestoneBadgeColor(for: entry.rank))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(milestoneBorderColor(for: entry.rank), lineWidth: 2)
+                            )
+                    )
+                    .overlay(
+                        rankFrame(for: entry.rank)
+                    )
+            }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-        #if os(iOS)
-        .background(index != nil && index! % 2 == 0 ? Color(UIColor.systemBackground) : Color(UIColor.secondarySystemBackground).opacity(0.3))
-        #else
-        .background(index != nil && index! % 2 == 0 ? Color.clear : Color.secondary.opacity(0.06))
-        #endif
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(rowBackground(for: entry.rank, isMe: entry.isMe))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(entry.isMe ? Color.cyan.opacity(0.6) : Color.clear, lineWidth: 2)
+        )
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func avatarPlaceholder(for entry: LeaderboardEntry) -> some View {
+        ZStack {
+            Circle()
+                .fill(avatarGradient(for: entry.id))
+                .frame(width: 44, height: 44)
+
+            Text(String(entry.name.prefix(1)).uppercased())
+                .font(.headline)
+                .foregroundStyle(.white)
+        }
+    }
+
+    private func rowBackground(for rank: Int, isMe: Bool) -> some ShapeStyle {
+        if isMe {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color(red: 0.1, green: 0.2, blue: 0.3), Color(red: 0.15, green: 0.25, blue: 0.35)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+        }
+        switch rank {
+        case 1:
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color(red: 0.6, green: 0.5, blue: 0.2), Color(red: 0.5, green: 0.4, blue: 0.1)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+        case 2:
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color(red: 0.45, green: 0.45, blue: 0.5), Color(red: 0.35, green: 0.35, blue: 0.4)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+        case 3:
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color(red: 0.55, green: 0.35, blue: 0.2), Color(red: 0.45, green: 0.28, blue: 0.15)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+        default:
+            return AnyShapeStyle(Color(red: 0.12, green: 0.14, blue: 0.18))
+        }
+    }
+
+    private func milestoneBadgeColor(for rank: Int) -> Color {
+        switch rank {
+        case 1: return Color(red: 0.7, green: 0.55, blue: 0.25)
+        case 2: return Color(red: 0.5, green: 0.5, blue: 0.55)
+        case 3: return Color(red: 0.6, green: 0.4, blue: 0.25)
+        default: return Color(red: 0.4, green: 0.3, blue: 0.5)
+        }
+    }
+
+    private func milestoneBorderColor(for rank: Int) -> Color {
+        switch rank {
+        case 1: return Color(red: 0.85, green: 0.7, blue: 0.35)
+        case 2: return Color(red: 0.65, green: 0.65, blue: 0.7)
+        case 3: return Color(red: 0.75, green: 0.5, blue: 0.3)
+        default: return Color(red: 0.55, green: 0.45, blue: 0.65)
+        }
+    }
+
+    @ViewBuilder
+    private func rankFrame(for rank: Int) -> some View {
+        if rank <= 3 {
+            // Decorative corner accents for top 3
+            GeometryReader { geo in
+                let size = geo.size
+                Path { path in
+                    // Top-left corner
+                    path.move(to: CGPoint(x: -4, y: -4))
+                    path.addLine(to: CGPoint(x: 8, y: -4))
+                    path.move(to: CGPoint(x: -4, y: -4))
+                    path.addLine(to: CGPoint(x: -4, y: 8))
+                    // Top-right corner
+                    path.move(to: CGPoint(x: size.width + 4, y: -4))
+                    path.addLine(to: CGPoint(x: size.width - 8, y: -4))
+                    path.move(to: CGPoint(x: size.width + 4, y: -4))
+                    path.addLine(to: CGPoint(x: size.width + 4, y: 8))
+                    // Bottom-left corner
+                    path.move(to: CGPoint(x: -4, y: size.height + 4))
+                    path.addLine(to: CGPoint(x: 8, y: size.height + 4))
+                    path.move(to: CGPoint(x: -4, y: size.height + 4))
+                    path.addLine(to: CGPoint(x: -4, y: size.height - 8))
+                    // Bottom-right corner
+                    path.move(to: CGPoint(x: size.width + 4, y: size.height + 4))
+                    path.addLine(to: CGPoint(x: size.width - 8, y: size.height + 4))
+                    path.move(to: CGPoint(x: size.width + 4, y: size.height + 4))
+                    path.addLine(to: CGPoint(x: size.width + 4, y: size.height - 8))
+                }
+                .stroke(milestoneBorderColor(for: rank), lineWidth: 2)
+            }
+        } else {
+            EmptyView()
+        }
+    }
+
+    private func platformColor(for platform: Platform) -> Color {
+        switch platform {
+        case .ios: return Color(red: 0.2, green: 0.6, blue: 0.2)
+        case .android: return Color(red: 0.2, green: 0.6, blue: 0.2)
+        case .unknown: return .gray
+        }
     }
     
     private func rankIcon(for rank: Int) -> String {
