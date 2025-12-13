@@ -657,6 +657,7 @@ private struct RewardBadge: View {
 
 // MARK: - Models & Constants
 
+@MainActor
 private struct RoadMilestone: Identifiable {
     enum Status {
         case completed
@@ -684,12 +685,26 @@ private struct RoadMilestone: Identifiable {
         label.count > 4
     }
 
+    /// Returns the actual tile color from Theme based on the tile value
+    var tileColor: Color {
+        if tile.isInfinity {
+            return Color.purple
+        }
+        return Theme.color(for: tile.value)
+    }
+
+    /// Returns the text color that contrasts with the tile color
+    var tileTextColor: Color {
+        if tile.isInfinity {
+            return .white
+        }
+        return Theme.textColor(for: tile.value)
+    }
+
     var signBackgroundColor: Color {
         switch status {
-        case .completed:
-            return Color(red: 0.15, green: 0.4, blue: 0.25)
-        case .current:
-            return Color(red: 0.8, green: 0.5, blue: 0.1)
+        case .completed, .current:
+            return tileColor
         case .locked:
             return Color(red: 0.25, green: 0.25, blue: 0.3)
         case .infinity:
@@ -699,10 +714,13 @@ private struct RoadMilestone: Identifiable {
 
     var background: LinearGradient {
         switch status {
-        case .completed:
-            return InfiniteRoadColors.completedGradient
-        case .current:
-            return InfiniteRoadColors.currentGradient
+        case .completed, .current:
+            // Use the actual tile color from Theme
+            return LinearGradient(
+                colors: [tileColor, tileColor.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
         case .locked:
             return InfiniteRoadColors.lockedGradient
         case .infinity:
@@ -724,7 +742,7 @@ private struct RoadMilestone: Identifiable {
     }
 
     var shadowColor: Color {
-        status == .current ? Color.yellow.opacity(0.45) : Color.black.opacity(0.35)
+        status == .current ? tileColor.opacity(0.6) : Color.black.opacity(0.35)
     }
 
     var accessibilityLabel: String {
