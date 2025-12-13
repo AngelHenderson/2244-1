@@ -46,13 +46,127 @@ public protocol ProfileClient: Sendable {
 // MARK: - Environment Key
 
 private struct ProfileClientKey: EnvironmentKey {
-    static let defaultValue: any ProfileClient = MockProfileClient()
+    static let defaultValue: any ProfileClient = LiveProfileClient()
 }
 
 public extension EnvironmentValues {
     var profileClient: ProfileClient {
         get { self[ProfileClientKey.self] }
         set { self[ProfileClientKey.self] = newValue }
+    }
+}
+
+// MARK: - Live Implementation
+
+public struct LiveProfileClient: ProfileClient, Sendable {
+    public init() {}
+
+    public func fetchProfile() async throws -> ProfilePayload {
+        let defaults = UserDefaults.standard
+
+        // Read best score from UserDefaults (same keys as GameStore)
+        let bestScoreText: String
+        if let alphaString = defaults.string(forKey: "savedBestScoreAlpha"), !alphaString.isEmpty {
+            // Format large numbers with commas
+            bestScoreText = formatScoreString(alphaString)
+        } else {
+            let intScore = defaults.integer(forKey: "savedBestScore")
+            bestScoreText = formatScore(intScore)
+        }
+
+        // Read player name (with fallback)
+        let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
+
+        // Read friend code (with fallback)
+        let friendCode = defaults.string(forKey: "profileFriendCode") ?? generateFriendCode()
+
+        // Read country code
+        let countryCode = defaults.string(forKey: "profileCountryCode")
+
+        // Read highest tile and format it
+        let savedHighestTile = defaults.integer(forKey: "savedHighestTile")
+        let highestTile: String? = savedHighestTile > 0 ? formatTileValue(savedHighestTile) : nil
+
+        // Read avatar
+        let avatarId = defaults.string(forKey: "profileAvatarId") ?? AvatarCatalog.default.id
+
+        // Read global rank (placeholder - would come from server)
+        let globalRank = defaults.integer(forKey: "profileGlobalRank")
+
+        // Tier stats are loaded separately from GameStore, so return empty here
+        // The view will update them from gameStore.tierMasteryCounts
+        let tiers: [TierStat] = []
+
+        return .init(
+            playerName: playerName,
+            bestScoreText: bestScoreText,
+            globalRank: globalRank > 0 ? globalRank : 999,
+            tiers: tiers,
+            friendCode: friendCode,
+            season: .init(name: "Season 7", division: "Diamond"),
+            avatarSystemName: avatarId,
+            countryCode: countryCode,
+            highestTile: highestTile
+        )
+    }
+
+    public func updatePlayerName(_ name: String) async throws {
+        UserDefaults.standard.set(name, forKey: "profilePlayerName")
+    }
+
+    public func updateCountry(_ countryCode: String?) async throws {
+        if let code = countryCode {
+            UserDefaults.standard.set(code, forKey: "profileCountryCode")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "profileCountryCode")
+        }
+    }
+
+    public func shareDeepLink(for payload: ProfilePayload) -> URL {
+        return URL(string: "game2244://profile?id=\(payload.friendCode)")!
+    }
+
+    // MARK: - Helpers
+
+    private func formatScore(_ score: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter.string(from: NSNumber(value: score)) ?? "\(score)"
+    }
+
+    private func formatScoreString(_ decimalString: String) -> String {
+        // The decimalString is stored as a plain number string (e.g., "13000000")
+        // We need to format it with commas
+        if let intValue = Int(decimalString) {
+            return formatScore(intValue)
+        }
+        // If it's already a large number beyond Int, just return as-is with basic formatting
+        return decimalString
+    }
+
+    private func formatTileValue(_ value: Int) -> String {
+        // Format tile values like "1an" for large numbers
+        // This matches the game's AlphaNumber formatting
+        if value >= 1_000_000_000_000 {
+            return "\(value / 1_000_000_000_000)T"
+        } else if value >= 1_000_000_000 {
+            return "\(value / 1_000_000_000)B"
+        } else if value >= 1_000_000 {
+            return "\(value / 1_000_000)M"
+        } else if value >= 1_000 {
+            return "\(value / 1_000)K"
+        }
+        return "\(value)"
+    }
+
+    private func generateFriendCode() -> String {
+        // Generate a simple friend code if none exists
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        let randomLetters = String((0..<3).map { _ in letters.randomElement()! })
+        let randomNumbers = String(format: "%03d", Int.random(in: 0...999))
+        let code = "\(randomLetters)-\(randomNumbers)"
+        UserDefaults.standard.set(code, forKey: "profileFriendCode")
+        return code
     }
 }
 
@@ -89,7 +203,7 @@ struct MockProfileClient: ProfileClient, Sendable {
     }
 
     func updatePlayerName(_ name: String) async throws { /* no-op */ }
-    
+
     func updateCountry(_ countryCode: String?) async throws { /* no-op */ }
 
     func shareDeepLink(for payload: ProfilePayload) -> URL {
