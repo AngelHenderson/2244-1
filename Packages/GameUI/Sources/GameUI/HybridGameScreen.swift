@@ -62,7 +62,7 @@ public struct HybridGameScreen: View {
     }
     
     public var body: some View {
-        let topHUD = HUDTopBar(scoreText: gameStore.state.scoreValue.formattedLabel())
+        let topHUD = HUDTopBar(scoreText: gameStore.state.scoreValue.formattedWithCommas())
             .environment(tempHomeState)
             .environment(\.homeActions, makeGameActions())
 

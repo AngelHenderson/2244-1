@@ -128,7 +128,7 @@ struct TopHUD: View {
     private var scoreBadge: some View {
         HStack(spacing: 6) {
             Image(systemName: "circle.grid.cross")
-            Text("Score: \(gameStore.state.scoreValue.formattedLabel())")
+            Text("Score: \(gameStore.state.scoreValue.formattedWithCommas())")
                 .monospacedDigit()
         }
         .font(.footnote.weight(.semibold))
