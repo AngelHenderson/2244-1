@@ -348,7 +348,8 @@ private struct TierCard: View {
             }
             Text("\(tier.value)")
                 .font(.headline.monospacedDigit())
-            Spacer()
+                .fixedSize(horizontal: true, vertical: false)
+            Spacer(minLength: 0)
         }
         .padding(12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
