@@ -89,6 +89,8 @@ struct TopHUD: View {
             gemImage
             Text(verbatim: String(gameStore.coins))
                 .font(.system(size: 16, weight: .bold, design: .rounded))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
             Button(action: onBuy) {
                 Image(systemName: "plus")
                     .font(.system(size: 12, weight: .bold))
@@ -102,6 +104,7 @@ struct TopHUD: View {
         .padding(.vertical, 6)
         .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: Tokens.Radius.pill, style: .continuous))
         .foregroundStyle(.white)
+        .fixedSize(horizontal: true, vertical: false)
     }
 
     private var gemImage: Image {

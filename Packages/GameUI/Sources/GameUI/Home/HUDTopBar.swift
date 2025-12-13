@@ -55,12 +55,14 @@ struct HUDTopBar: View {
                         .frame(width: 28, height: 28)
                     Text(verbatim: String(state.gems))
                         .font(.title3.monospacedDigit())
+                        .lineLimit(1)
                     Image(systemName: "plus.circle.fill")
                         .imageScale(.medium)
                         .foregroundStyle(.green)
                         .accessibilityHidden(true)
                 }
                 .padding(.horizontal, 12).padding(.vertical, 6)
+                .fixedSize(horizontal: true, vertical: false)
             }
             .modifier(GlassButtonCompat())
             .accessibilityLabel("Gems \(String(state.gems)). Open shop.")
