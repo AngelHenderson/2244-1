@@ -656,17 +656,11 @@ struct WheelLights: View {
 private struct RadialLabel<Content: View>: View {
     let angle: CGFloat
     @ViewBuilder var content: Content
-    
+
     var body: some View {
-        let rawAngle = Angle(radians: Double(angle))
-        let counterRotation = Angle(degrees: -rawAngle.degrees)
-        
-        ZStack {
-            content
-                .rotationEffect(counterRotation)
-        }
-        .rotationEffect(rawAngle)
-        .shadow(color: .black.opacity(0.4), radius: 3)
+        content
+            .rotationEffect(.radians(Double(angle)))
+            .shadow(color: .black.opacity(0.4), radius: 3)
     }
 }
 
