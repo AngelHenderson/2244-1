@@ -180,7 +180,63 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
         let ints = chunks.map { Int($0) }
         return TileStepLabelFormatter.label(fromChunks: ints)
     }
-    
+
+    /// Returns the score formatted with commas and a tier suffix (e.g., "16,497K", "1,000M")
+    /// Levels up to next suffix when number would reach 1,000,000 or more.
+    public func formattedWithCommas() -> String {
+        let chunkCount = chunks.count
+
+        // For small numbers (< 1000), show as-is
+        if chunkCount == 1 {
+            return "\(chunks[0])"
+        }
+
+        // Keep at most 2 chunks displayed (max 999,999) to avoid long numbers
+        // Drop extra chunks and use higher tier suffix
+        let chunksToDrop = max(1, chunkCount - 2)
+        let displayChunks = Array(chunks.dropFirst(chunksToDrop))
+        let formatted = formatChunksWithCommas(displayChunks)
+        let suffix = tierSuffix(for: chunksToDrop)
+
+        return "\(formatted)\(suffix)"
+    }
+
+    private func tierSuffix(for droppedChunks: Int) -> String {
+        switch droppedChunks {
+        case 1: return "K"
+        case 2: return "M"
+        case 3: return "B"
+        default:
+            let letterIndex = droppedChunks - 3
+            return alphabeticSuffix(for: letterIndex)
+        }
+    }
+
+    private func alphabeticSuffix(for index: Int) -> String {
+        var i = index
+        var result = ""
+        while i > 0 {
+            let rem = (i - 1) % 26
+            let char = Character(UnicodeScalar(97 + rem)!)
+            result = String(char) + result
+            i = (i - 1) / 26
+        }
+        return result
+    }
+
+    private func formatChunksWithCommas(_ chunks: [UInt16]) -> String {
+        guard !chunks.isEmpty else { return "0" }
+        var result = ""
+        for (index, chunk) in chunks.reversed().enumerated() {
+            if index == 0 {
+                result = "\(chunk)"
+            } else {
+                result += ",\(String(format: "%03d", chunk))"
+            }
+        }
+        return result
+    }
+
     // MARK: - Comparable
     
     public static func < (lhs: AlphaNumber, rhs: AlphaNumber) -> Bool {

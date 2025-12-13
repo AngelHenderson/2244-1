@@ -510,15 +510,15 @@ public final class GameEngine {
     public func refillBoard() -> GameState {
         processPendingGiftRefillIfNeeded()
         if config.fillMode == .alwaysFull {
-            fillBoardToFull()
+            refillToFullWithCascade()
         } else {
             refillToFull()
         }
-        
+
         if !hasValidMoves() {
             state.isGameOver = true
         }
-        
+
         return state
     }
     
@@ -675,16 +675,60 @@ public final class GameEngine {
     @discardableResult
     public func refillColumns(_ columns: Set<Int>) -> GameState {
         guard !columns.isEmpty else { return state }
-        let fillAll = config.fillMode == .alwaysFull
-        var board = state.board
-        board.refillColumns(columns, fillAll: fillAll) { [self] in
-            generateRandomValue()
+        if config.fillMode == .alwaysFull {
+            refillColumnsWithCascade(columns)
+        } else {
+            var board = state.board
+            board.refillColumns(columns, fillAll: false) { [self] in
+                generateRandomValue()
+            }
+            state.board = board
         }
-        state.board = board
         if !hasValidMoves() {
             state.isGameOver = true
         }
         return state
+    }
+
+    private func refillColumnsWithCascade(_ columns: Set<Int>) {
+        // Spawn tiles only at the top of specified columns and apply gravity repeatedly
+        // This creates a natural cascade effect instead of tiles appearing mid-column
+        var maxIterations = config.boardHeight * columns.count // Safety limit
+
+        while maxIterations > 0 {
+            maxIterations -= 1
+
+            // Count empty cells in the specified columns
+            var emptyCount = 0
+            for col in columns {
+                for row in 0..<config.boardHeight {
+                    let pos = Position(row: row, col: col)
+                    let boardIndex = BoardIndex(pos)
+                    if state.board[boardIndex].kind != .gift && state.board[pos] == nil {
+                        emptyCount += 1
+                    }
+                }
+            }
+
+            // If columns are full, we're done
+            if emptyCount == 0 { break }
+
+            // Spawn new tiles ONLY in the TOP ROW for specified columns
+            for col in columns {
+                let pos = Position(row: 0, col: col)
+                let boardIndex = BoardIndex(pos)
+                // Skip gift cells in top row
+                if state.board[boardIndex].kind == .gift {
+                    continue
+                }
+                if state.board[pos] == nil {
+                    state.board[pos] = Tile(value: generateRandomValue())
+                }
+            }
+
+            // Apply gravity to make the newly spawned tiles fall down
+            applyGravityDown()
+        }
     }
     
     @discardableResult
