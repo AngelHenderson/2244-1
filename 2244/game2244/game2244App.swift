@@ -68,7 +68,7 @@ struct game2244App: App {
                 .environment(\.backgroundThemeRegistry, backgroundThemeRegistry)
                 .environment(\.currentBackgroundTheme, backgroundThemeRegistry.theme(for: selectedBackgroundThemeId))
                 .environment(\.tileJourney, gameStore.journey)
-                .environment(\.leaderboardClient, LeaderboardClient.gameCenter())
+                .environment(\.leaderboardClient, .noop)
                 .environment(homeState)
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
