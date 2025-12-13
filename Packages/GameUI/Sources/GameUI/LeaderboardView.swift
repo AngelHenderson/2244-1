@@ -307,25 +307,28 @@ public struct LeaderboardView: View {
         }
         switch rank {
         case 1:
+            // Gold
             return AnyShapeStyle(
                 LinearGradient(
-                    colors: [Color(red: 0.6, green: 0.5, blue: 0.2), Color(red: 0.5, green: 0.4, blue: 0.1)],
+                    colors: [Color(red: 0.85, green: 0.65, blue: 0.13), Color(red: 0.72, green: 0.53, blue: 0.04)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
         case 2:
+            // Silver
             return AnyShapeStyle(
                 LinearGradient(
-                    colors: [Color(red: 0.45, green: 0.45, blue: 0.5), Color(red: 0.35, green: 0.35, blue: 0.4)],
+                    colors: [Color(red: 0.75, green: 0.75, blue: 0.78), Color(red: 0.55, green: 0.55, blue: 0.58)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
         case 3:
+            // Bronze
             return AnyShapeStyle(
                 LinearGradient(
-                    colors: [Color(red: 0.55, green: 0.35, blue: 0.2), Color(red: 0.45, green: 0.28, blue: 0.15)],
+                    colors: [Color(red: 0.80, green: 0.50, blue: 0.20), Color(red: 0.65, green: 0.38, blue: 0.12)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -337,18 +340,18 @@ public struct LeaderboardView: View {
 
     private func milestoneBadgeColor(for rank: Int) -> Color {
         switch rank {
-        case 1: return Color(red: 0.7, green: 0.55, blue: 0.25)
-        case 2: return Color(red: 0.5, green: 0.5, blue: 0.55)
-        case 3: return Color(red: 0.6, green: 0.4, blue: 0.25)
+        case 1: return Color(red: 0.72, green: 0.53, blue: 0.04) // Gold
+        case 2: return Color(red: 0.55, green: 0.55, blue: 0.58) // Silver
+        case 3: return Color(red: 0.65, green: 0.38, blue: 0.12) // Bronze
         default: return Color(red: 0.4, green: 0.3, blue: 0.5)
         }
     }
 
     private func milestoneBorderColor(for rank: Int) -> Color {
         switch rank {
-        case 1: return Color(red: 0.85, green: 0.7, blue: 0.35)
-        case 2: return Color(red: 0.65, green: 0.65, blue: 0.7)
-        case 3: return Color(red: 0.75, green: 0.5, blue: 0.3)
+        case 1: return Color(red: 1.0, green: 0.84, blue: 0.0) // Bright gold
+        case 2: return Color(red: 0.85, green: 0.85, blue: 0.88) // Bright silver
+        case 3: return Color(red: 0.90, green: 0.58, blue: 0.22) // Bright bronze
         default: return Color(red: 0.55, green: 0.45, blue: 0.65)
         }
     }
@@ -442,4 +445,31 @@ public struct LeaderboardView: View {
     }
 }
 
+#Preview("Leaderboard") {
+    LeaderboardView()
+        .environment(\.leaderboardClient, .preview)
+}
 
+public extension LeaderboardClient {
+    static let preview = LeaderboardClient(
+        authenticate: { true },
+        submitScore: { _ in },
+        fetchPage: { _, _, _, _ in
+            .init(entries: previewEntries, myEntry: previewEntries.last, nextCursor: nil, totalPlayers: 12847)
+        },
+        fetchMyRank: { _, _ in previewEntries.last }
+    )
+
+    private static let previewEntries: [LeaderboardEntry] = [
+        LeaderboardEntry(id: "1", rank: 1, name: "OldCentipede46123", score: 208000, countryCode: "US", platform: .ios, highestTile: "208bx"),
+        LeaderboardEntry(id: "2", rank: 2, name: "lalajalay", score: 94000, countryCode: "US", platform: .ios, highestTile: "94bt"),
+        LeaderboardEntry(id: "3", rank: 3, name: "AscertainableDoug", score: 370000, countryCode: "US", platform: .android, highestTile: "370bs"),
+        LeaderboardEntry(id: "4", rank: 4, name: "VelvetyRoyalty17", score: 2000, countryCode: "US", platform: .android, highestTile: "2br"),
+        LeaderboardEntry(id: "5", rank: 5, name: "Player73918", score: 42000, countryCode: "US", platform: .ios, highestTile: "42bo"),
+        LeaderboardEntry(id: "6", rank: 6, name: "Player47812", score: 149000, countryCode: "US", platform: .android, highestTile: "149bj"),
+        LeaderboardEntry(id: "7", rank: 7, name: "ExtensiveFlag8", score: 18000, countryCode: "US", platform: .ios, highestTile: "18bj"),
+        LeaderboardEntry(id: "8", rank: 8, name: "StompingStronghold96", score: 2000, countryCode: "US", platform: .ios, highestTile: "2bi"),
+        LeaderboardEntry(id: "9", rank: 9, name: "Player11104", score: 1000, countryCode: "US", platform: .android, highestTile: "1bi"),
+        LeaderboardEntry(id: "me", rank: 46, name: "Angel Junior711", score: 1000, countryCode: "US", platform: .ios, isMe: true, highestTile: "1an"),
+    ]
+}
