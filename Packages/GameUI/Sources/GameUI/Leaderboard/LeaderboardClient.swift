@@ -231,7 +231,16 @@ public extension LeaderboardClient {
             case .global:
                 entries = globalEntries()
             }
-            return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: filter == .hallOfFame ? hallOfFameEntries().count : 12847)
+            let totalPlayers: Int
+            switch filter {
+            case .hallOfFame:
+                totalPlayers = hallOfFameEntries().count
+            case .country:
+                totalPlayers = 127_493  // 100k+ US players
+            case .global:
+                totalPlayers = 943_817  // 900k+ global players
+            }
+            return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
         },
         fetchMyRank: { _, _ in globalEntries().last }
     )
@@ -272,6 +281,23 @@ public extension LeaderboardClient {
         return entries
     }
 
+    // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
+    private static func usPlayerData(day: Int, milestones: [String]) -> [(index: Int, milestoneIdx: Int)] {
+        var players: [(index: Int, milestoneIdx: Int)] = []
+        for i in 0..<30 {
+            // Use consistent seed and base index for US players
+            let baseIndex = max(0, milestones.count - 80 - (i * 4))
+            let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 500, baseIndex: baseIndex, day: day)
+
+            if currentMilestoneIdx >= milestones.count - 1 {
+                continue
+            }
+
+            players.append((i, currentMilestoneIdx))
+        }
+        return players
+    }
+
     // Global leaderboard - includes all players (international + US)
     private static func globalEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
@@ -293,16 +319,10 @@ public extension LeaderboardClient {
             players.append((i, currentMilestoneIdx, false))
         }
 
-        // US players (30 players) - these will also appear on US leaderboard
-        for i in 0..<30 {
-            let baseIndex = max(0, milestones.count - 45 - (i * 3))
-            let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 200, baseIndex: baseIndex, day: day)
-
-            if currentMilestoneIdx >= milestones.count - 1 {
-                continue
-            }
-
-            players.append((i, currentMilestoneIdx, true))
+        // US players (30 players) - use shared function for consistency
+        let usPlayers = usPlayerData(day: day, milestones: milestones)
+        for player in usPlayers {
+            players.append((player.index, player.milestoneIdx, true))
         }
 
         // Sort all players by milestone descending
@@ -339,10 +359,10 @@ public extension LeaderboardClient {
             ))
         }
 
-        // Add current user entry
+        // Add current user entry (ranked among 900k+ global players)
         entries.append(LeaderboardEntry(
             id: "me",
-            rank: 536,
+            rank: 487_293,
             name: "Angel Junior711",
             score: 1000,
             countryCode: "US",
@@ -354,24 +374,13 @@ public extension LeaderboardClient {
         return entries
     }
 
-    // Country (US) leaderboard - filters global to show only US players
+    // Country (US) leaderboard - shows only US players with same milestones as Global
     private static func countryEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
         let milestones = MockLeaderboardData.allMilestones
 
-        // US players only (same players that appear in global with US country)
-        var players: [(index: Int, milestoneIdx: Int)] = []
-        for i in 0..<30 {
-            let baseIndex = max(0, milestones.count - 45 - (i * 3))
-            let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 200, baseIndex: baseIndex, day: day)
-
-            if currentMilestoneIdx >= milestones.count - 1 {
-                continue
-            }
-
-            players.append((i, currentMilestoneIdx))
-        }
-
+        // Use shared function for US players (ensures same milestones as Global tab)
+        var players = usPlayerData(day: day, milestones: milestones)
         players.sort { $0.milestoneIdx > $1.milestoneIdx }
 
         var entries: [LeaderboardEntry] = []
@@ -392,10 +401,10 @@ public extension LeaderboardClient {
             ))
         }
 
-        // Add current user entry
+        // Add current user entry (ranked among 100k+ US players)
         entries.append(LeaderboardEntry(
             id: "me",
-            rank: 31,
+            rank: 58_472,
             name: "Angel Junior711",
             score: 1000,
             countryCode: "US",

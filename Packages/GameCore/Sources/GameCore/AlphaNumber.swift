@@ -182,18 +182,18 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
     }
 
     /// Returns the score formatted with commas and a tier suffix (e.g., "16,497K", "1,000M")
-    /// Levels up to next suffix when number would reach 1,000,000 or more.
+    /// Shows full number up to 999,999, then abbreviates with K, M, B, a, b, c...
     public func formattedWithCommas() -> String {
         let chunkCount = chunks.count
 
-        // For small numbers (< 1000), show as-is
-        if chunkCount == 1 {
-            return "\(chunks[0])"
+        // For numbers < 1,000,000 (1 or 2 chunks), show full number with commas
+        if chunkCount <= 2 {
+            return formatChunksWithCommas(chunks)
         }
 
-        // Keep at most 2 chunks displayed (max 999,999) to avoid long numbers
-        // Drop extra chunks and use higher tier suffix
-        let chunksToDrop = max(1, chunkCount - 2)
+        // For numbers >= 1,000,000, keep at most 2 chunks displayed (max 999,999)
+        // Drop extra chunks and use tier suffix
+        let chunksToDrop = chunkCount - 2
         let displayChunks = Array(chunks.dropFirst(chunksToDrop))
         let formatted = formatChunksWithCommas(displayChunks)
         let suffix = tierSuffix(for: chunksToDrop)
