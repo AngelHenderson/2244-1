@@ -174,7 +174,20 @@ private enum MockLeaderboardData {
         "NYCGamer01", "LAPlayer99", "ChicagoChamp", "TexasHero", "FloridaFan",
         "CaliforniaDream", "NewYorkNinja", "BostonBoss", "SeattleStar", "DenverDude",
         "PhoenixPro", "HoustonHawk", "AtlantaAce", "MiamiMaster", "DetroitDynamo",
-        "PhillyPhenom", "DCDefender", "VegasVictor", "PortlandPower", "AustinAce"
+        "PhillyPhenom", "DCDefender", "VegasVictor", "PortlandPower", "AustinAce",
+        "SanDiegoSurfer", "DallasDestroyer", "SanJoseSamurai", "JacksonvilleJet", "IndianapolisIcon",
+        "ColumbusChamp", "CharlotteCrush", "SanFranciscoFox", "FortWorthForce", "MemphisMaverick",
+        "BaltimoreBlitz", "MilwaukeeMaster", "AlbuquerqueAce", "TucsonTitan", "FresnoFlash",
+        "SacramentoStar", "KansasCityKing", "MesaMaster", "OmahOracle", "ColoradoComet",
+        "RaleighRaider", "LongBeachLegend", "VirginiaViking", "OaklandOutlaw", "MinneapolisMight",
+        "TulsaTornado", "ArlingtonArrow", "NewOrleansNinja", "WichitaWarrior", "ClevelandCrusher",
+        "TampaTitan", "BakersfieldBoss", "AuroraAce", "AnaheimAssassin", "HonoluluHero",
+        "SantaAnaSniper", "CorpusChristiChamp", "RiversideRuler", "LexingtonLion", "StocktonStorm",
+        "StLouisStriker", "PittsburghPro", "AnchorageAlpha", "CincinnatiCyber", "GreensboroGhost",
+        "PlanoPlayer", "IrvineInferno", "NewarkNinja", "ToledoTerror", "OrlandoOmega",
+        "ChulaChulaChamp", "DurhamDragon", "JerseyJuggernaut", "StPaulPhenomm", "LaRedoLegend",
+        "BuffaloBeast", "GilbertGladiator", "MadisonMarvel", "RennoRocket", "NorthLasVegasNova",
+        "LubbockLancer", "GlendaleeGuru", "WinstonWarrior", "ScottsdaleSnake", "NorfolkNomad"
     ]
 
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
@@ -284,9 +297,9 @@ public extension LeaderboardClient {
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
     private static func usPlayerData(day: Int, milestones: [String]) -> [(index: Int, milestoneIdx: Int)] {
         var players: [(index: Int, milestoneIdx: Int)] = []
-        for i in 0..<30 {
+        for i in 0..<100 {
             // Use consistent seed and base index for US players
-            let baseIndex = max(0, milestones.count - 80 - (i * 4))
+            let baseIndex = max(0, milestones.count - 80 - (i * 2))
             let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 500, baseIndex: baseIndex, day: day)
 
             if currentMilestoneIdx >= milestones.count - 1 {
