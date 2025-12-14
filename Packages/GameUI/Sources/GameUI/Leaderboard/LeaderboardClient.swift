@@ -190,9 +190,11 @@ private enum MockLeaderboardData {
     // Get milestone index for a player on a given day
     static func milestoneIndex(for playerIndex: Int, baseIndex: Int, day: Int) -> Int {
         // Each player progresses at different rates based on their "skill"
+        // Use modulo to cycle days so progression doesn't go to infinity
+        let cycleDays = day % 100  // Reset every 100 days
         let progressRate = seededRandom(seed: playerIndex * 1000, index: 0)
-        let dailyProgress = Int(progressRate * 3) + 1 // 1-3 milestones per day
-        let totalProgress = day * dailyProgress
+        let dailyProgress = progressRate * 0.3 + 0.1 // 0.1-0.4 milestones per day
+        let totalProgress = Int(Double(cycleDays) * dailyProgress)
 
         let newIndex = baseIndex + totalProgress
         return min(newIndex, allMilestones.count - 1)
@@ -270,39 +272,64 @@ public extension LeaderboardClient {
         return entries
     }
 
-    // Global leaderboard - regular players (no infinity)
+    // Global leaderboard - includes all players (international + US)
     private static func globalEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
         let milestones = MockLeaderboardData.allMilestones
 
         // Build player list with current milestones
-        var players: [(index: Int, milestoneIdx: Int)] = []
-        for i in 0..<100 {
-            // Base milestone index (higher ranked players start further)
-            let baseIndex = max(0, milestones.count - 150 + i)
+        // Mix of international players and US players
+        var players: [(index: Int, milestoneIdx: Int, isUS: Bool)] = []
+
+        // International players (70 players from various countries)
+        for i in 0..<70 {
+            let baseIndex = max(0, milestones.count - 50 - (i * 2))
             let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 100, baseIndex: baseIndex, day: day)
 
-            // Skip players who reached infinity (they go to Hall of Fame)
             if currentMilestoneIdx >= milestones.count - 1 {
                 continue
             }
 
-            players.append((i, currentMilestoneIdx))
+            players.append((i, currentMilestoneIdx, false))
         }
 
-        // Sort by milestone descending
+        // US players (30 players) - these will also appear on US leaderboard
+        for i in 0..<30 {
+            let baseIndex = max(0, milestones.count - 45 - (i * 3))
+            let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 200, baseIndex: baseIndex, day: day)
+
+            if currentMilestoneIdx >= milestones.count - 1 {
+                continue
+            }
+
+            players.append((i, currentMilestoneIdx, true))
+        }
+
+        // Sort all players by milestone descending
         players.sort { $0.milestoneIdx > $1.milestoneIdx }
 
         var entries: [LeaderboardEntry] = []
         for (rank, player) in players.prefix(100).enumerated() {
-            let name = MockLeaderboardData.globalNames[player.index % MockLeaderboardData.globalNames.count]
-            let country = MockLeaderboardData.countries[player.index % MockLeaderboardData.countries.count]
+            let name: String
+            let country: String
+            let id: String
+
+            if player.isUS {
+                name = MockLeaderboardData.usNames[player.index % MockLeaderboardData.usNames.count]
+                country = "US"
+                id = "us_\(player.index)"
+            } else {
+                name = MockLeaderboardData.globalNames[player.index % MockLeaderboardData.globalNames.count]
+                country = MockLeaderboardData.countries[player.index % MockLeaderboardData.countries.count]
+                id = "global_\(player.index)"
+            }
+
             let platform: Platform = player.index % 2 == 0 ? .ios : .android
             let milestone = milestones[player.milestoneIdx]
             let score = max(1000, 873000 - (rank * 8500))
 
             entries.append(LeaderboardEntry(
-                id: "\(player.index)",
+                id: id,
                 rank: rank + 1,
                 name: name,
                 score: score,
@@ -327,14 +354,15 @@ public extension LeaderboardClient {
         return entries
     }
 
-    // Country (US) leaderboard - US players only
+    // Country (US) leaderboard - filters global to show only US players
     private static func countryEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
         let milestones = MockLeaderboardData.allMilestones
 
+        // US players only (same players that appear in global with US country)
         var players: [(index: Int, milestoneIdx: Int)] = []
-        for i in 0..<50 {
-            let baseIndex = max(0, milestones.count - 100 + i * 2)
+        for i in 0..<30 {
+            let baseIndex = max(0, milestones.count - 45 - (i * 3))
             let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 200, baseIndex: baseIndex, day: day)
 
             if currentMilestoneIdx >= milestones.count - 1 {
@@ -347,7 +375,7 @@ public extension LeaderboardClient {
         players.sort { $0.milestoneIdx > $1.milestoneIdx }
 
         var entries: [LeaderboardEntry] = []
-        for (rank, player) in players.prefix(50).enumerated() {
+        for (rank, player) in players.enumerated() {
             let name = MockLeaderboardData.usNames[player.index % MockLeaderboardData.usNames.count]
             let platform: Platform = player.index % 2 == 0 ? .ios : .android
             let milestone = milestones[player.milestoneIdx]
@@ -367,7 +395,7 @@ public extension LeaderboardClient {
         // Add current user entry
         entries.append(LeaderboardEntry(
             id: "me",
-            rank: 46,
+            rank: 31,
             name: "Angel Junior711",
             score: 1000,
             countryCode: "US",

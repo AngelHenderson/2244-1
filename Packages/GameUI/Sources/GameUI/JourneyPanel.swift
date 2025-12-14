@@ -427,14 +427,14 @@ private struct MilestoneRoadSign: View {
                 } else {
                     Text(milestone.label)
                         .font(.system(size: milestone.isCompactLabel ? 18 : 24, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(milestone.status == .locked ? .white : milestone.tileTextColor)
                         .minimumScaleFactor(0.5)
                 }
 
                 if milestone.status != .infinity {
                     Text("Level \(milestone.id + 1)")
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.8))
+                        .foregroundStyle(milestone.status == .locked ? .white.opacity(0.8) : milestone.tileTextColor.opacity(0.8))
                 }
             }
             .padding(8)
