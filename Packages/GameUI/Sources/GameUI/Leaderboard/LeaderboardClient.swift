@@ -154,7 +154,11 @@ private enum MockLeaderboardData {
         "PlanoPlayer", "IrvineInferno", "NewarkNinja", "ToledoTerror", "OrlandoOmega",
         "ChulaChulaChamp", "DurhamDragon", "JerseyJuggernaut", "StPaulPhenomm", "LaRedoLegend",
         "BuffaloBeast", "GilbertGladiator", "MadisonMarvel", "RennoRocket", "NorthLasVegasNova",
-        "LubbockLancer", "GlendaleeGuru", "WinstonWarrior", "ScottsdaleSnake", "NorfolkNomad"
+        "LubbockLancer", "GlendaleeGuru", "WinstonWarrior", "ScottsdaleSnake", "NorfolkNomad",
+        "SpokaneSprint", "RichmondRacer", "BoiseBlaster", "FresnFighter", "DesMoinesDynamo",
+        "TacomaTornado", "RochesterRuler", "SaltLakeStar", "BirminghamBoss", "HartfordHawk",
+        "ProvidencePro", "NashvilleNinja", "JerseyShoreJet", "OklahomaOmega", "LouisvilleLion",
+        "MilwaukeeMight", "TucsonTwister", "MobileMarvel", "KnoxvilleKing", "ChattanoogaChamp"
     ]
 
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
@@ -264,7 +268,7 @@ public extension LeaderboardClient {
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
     private static func usPlayerData(day: Int, milestones: [String]) -> [(index: Int, milestoneIdx: Int)] {
         var players: [(index: Int, milestoneIdx: Int)] = []
-        for i in 0..<100 {
+        for i in 0..<120 {
             // Use consistent seed and base index for US players
             let baseIndex = max(0, milestones.count - 80 - (i * 2))
             let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 500, baseIndex: baseIndex, day: day)
