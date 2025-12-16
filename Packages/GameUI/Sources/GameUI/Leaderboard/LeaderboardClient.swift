@@ -121,7 +121,17 @@ private enum MockLeaderboardData {
         "IronWill09", "SteelNerve31", "AluminumLight53", "ZincShield75", "NickelSpin97",
         "CobaltBlue19", "ChromeFinish41", "TungstenTough63", "MolybdenumMax85", "VanadiumVibe07",
         "ManganeseMight29", "PalladiumPure51", "RhodiumRare73", "IridiumIntense95", "OsmiumOdd17",
-        "RheniumRich39", "TantalumTwist61", "HafniumHigh83", "ZirconiumZest05", "NiobiumNova27"
+        "RheniumRich39", "TantalumTwist61", "HafniumHigh83", "ZirconiumZest05", "NiobiumNova27",
+        "TokyoTiger01", "LondonLion22", "ParisPanther33", "BerlinBear44", "SydneySerpent55",
+        "TorontoTornado66", "MadridMaverick77", "RomeRaider88", "SaoPauloStar99", "MumbaiMaster00",
+        "ShanghaiShark11", "MoscowMight23", "DubaiDragon34", "SingaporeSurge45", "HongKongHero56",
+        "SeoulSniper67", "BangkokBolt78", "JakartaJet89", "CairoChamp90", "LagoosLegend01",
+        "NairobiNinja12", "CapeTownCrush23", "BuenosAiresBoss34", "MexicoCityMaster45", "LimaaLion56",
+        "SantiagoStorm67", "BogotaBeast78", "CaracasChamp89", "HavannaHawk90", "KingstonKing01",
+        "MontrealMaverick12", "VancouverVictor23", "MelbourneMight34", "AucklandAce45", "WellingtonWolf56",
+        "OsakaOracle67", "KyotoKnight78", "NagoyaNinja89", "FukuokaaFury90", "SapporoStrike01",
+        "MunichMaster12", "HamburgHero23", "FrankfurtFlash34", "CologneCrusher45", "DusseldorfDragon56",
+        "AmsterdamAce67", "BrussellsBoss78", "ViennaViking89", "ZurichZealot90", "GenevaGhost01"
     ]
 
     static let hallOfFameNames = [
@@ -268,19 +278,38 @@ public extension LeaderboardClient {
         return entries
     }
 
+    // Exact US player milestones from screenshots (ranks 1-150)
+    private static let usPlayerMilestones: [String] = [
+        // Ranks 1-15
+        "106by", "3bw", "76bk", "278bg", "543bf", "506bc", "286ae", "8ae", "573ae", "143ae", "35ae", "8ae", "2ae", "559ad", "279ad",
+        // Ranks 16-30
+        "139ad", "69ad", "34ad", "17ad", "8ad", "4ad", "2ad", "1ad", "546ac", "273ac", "136ac", "68ac", "34ac", "17ac", "8ac",
+        // Ranks 31-45
+        "4ac", "2ac", "1ac", "533ab", "266ab", "133ab", "66ab", "33ab", "16ab", "8ab", "4ab", "2ab", "1ab", "521aa", "260aa",
+        // Ranks 46-60
+        "130aa", "65aa", "32aa", "16aa", "8aa", "4aa", "2aa", "1aa", "509z", "254z", "127z", "63z", "31z", "15z", "7z",
+        // Ranks 61-75
+        "3z", "1z", "994y", "497y", "248y", "124y", "62y", "31y", "15y", "7y", "3y", "1y", "971x", "485x", "242x",
+        // Ranks 76-90
+        "121x", "60x", "30x", "15x", "7x", "3x", "1x", "948w", "474w", "237w", "118w", "59w", "29w", "14w", "7w",
+        // Ranks 91-105
+        "3w", "1w", "926v", "463v", "231v", "115v", "57v", "28v", "14v", "7v", "3v", "1v", "904u", "452u", "226u",
+        // Ranks 106-120
+        "113u", "56u", "28u", "14u", "7u", "3u", "1u", "883t", "441t", "220t", "110t", "55t", "27t", "13t", "6t",
+        // Ranks 121-135
+        "75d", "75d", "37d", "37d", "37d", "18d", "9d", "2d", "1d", "1d", "590c", "295c", "73c", "18c", "18c",
+        // Ranks 136-150
+        "9c", "9c", "4c", "4c", "2c", "1c", "576b", "288b", "144b", "144b", "36b", "18b", "9b", "9b", "9b"
+    ]
+
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
-    private static func usPlayerData(day: Int, milestones: [String]) -> [(index: Int, milestoneIdx: Int)] {
-        var players: [(index: Int, milestoneIdx: Int)] = []
+    private static func usPlayerData(day: Int, milestones: [String]) -> [(index: Int, milestoneIdx: Int, exactMilestone: String)] {
+        var players: [(index: Int, milestoneIdx: Int, exactMilestone: String)] = []
         for i in 0..<150 {
-            // Use consistent seed and base index for US players
-            let baseIndex = max(0, milestones.count - 80 - (i * 2))
-            let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 500, baseIndex: baseIndex, day: day)
-
-            if currentMilestoneIdx >= milestones.count - 1 {
-                continue
-            }
-
-            players.append((i, currentMilestoneIdx))
+            let exactMilestone = usPlayerMilestones[i]
+            // Find the milestone index (for sorting purposes, use array position)
+            let milestoneIdx = 150 - i  // Higher rank = higher milestone index for sorting
+            players.append((i, milestoneIdx, exactMilestone))
         }
         return players
     }
@@ -294,8 +323,8 @@ public extension LeaderboardClient {
         // Mix of international players and US players
         var players: [(index: Int, milestoneIdx: Int, isUS: Bool)] = []
 
-        // International players (70 players from various countries)
-        for i in 0..<70 {
+        // International players (150 players from various countries)
+        for i in 0..<150 {
             let baseIndex = max(0, milestones.count - 50 - (i * 2))
             let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 100, baseIndex: baseIndex, day: day)
 
@@ -306,7 +335,7 @@ public extension LeaderboardClient {
             players.append((i, currentMilestoneIdx, false))
         }
 
-        // US players (30 players) - use shared function for consistency
+        // US players (150 players) - use shared function for consistency
         let usPlayers = usPlayerData(day: day, milestones: milestones)
         for player in usPlayers {
             players.append((player.index, player.milestoneIdx, true))
@@ -316,7 +345,7 @@ public extension LeaderboardClient {
         players.sort { $0.milestoneIdx > $1.milestoneIdx }
 
         var entries: [LeaderboardEntry] = []
-        for (rank, player) in players.prefix(100).enumerated() {
+        for (rank, player) in players.prefix(150).enumerated() {
             let name: String
             let country: String
             let id: String
