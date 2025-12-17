@@ -283,7 +283,7 @@ public extension LeaderboardClient {
         // Ranks 1-15
         "106by", "3bw", "1br", "1bo", "20bm", "76bk", "74bj", "1bj", "9bi", "35bh", "278bg", "543bf", "16bf", "506bc", "30bb",
         // Ranks 16-30
-        "943az", "30ay", "28ax", "1aw", "818at", "24as", "48ar", "2aq", "22ao", "709an", "176an", "1an", "676al", "42al", "661ak",
+        "943az", "28ay", "28ax", "1aw", "818at", "24as", "48ar", "2aq", "22ao", "709an", "176an", "1an", "676al", "42al", "661ak",
         // Ranks 31-45
         "2ak", "20aj", "315ai", "19ai", "9ai", "601ag", "2ag", "4af", "2af", "1af", "1af", "71ae", "17ac", "133ab", "2ab",
         // Ranks 46-60
@@ -314,60 +314,67 @@ public extension LeaderboardClient {
         return players
     }
 
-    // Global leaderboard - includes all players (international + US)
-    private static func globalEntries() -> [LeaderboardEntry] {
-        let day = MockLeaderboardData.daysSinceReference
-        let milestones = MockLeaderboardData.allMilestones
+    // Exact Global player milestones from screenshots (ranks 1-150)
+    private static let globalPlayerMilestones: [String] = [
+        // Ranks 1-15
+        "436bz", "109bz", "13bz", "853by", "213by", "106by", "26by", "6by", "1by", "833bx", "208bx", "208bx", "104bx", "52bx", "3bx",
+        // Ranks 16-30
+        "1bx", "101bw", "25bw", "3bw", "1bw", "794bv", "99bv", "12bv", "1bv", "758bt", "189bt", "94bt", "23bt", "2bt", "370bs",
+        // Ranks 31-45
+        "722br", "180br", "45br", "11br", "5br", "5br", "1br", "2bq", "10bp", "168bo", "21bo", "5bo", "1bo", "657bn", "328bn",
+        // Ranks 46-60
+        "328bn", "164bn", "41bn", "642bm", "80bm", "20bm", "10bm", "78bl", "19bl", "4bl", "1bl", "76bk", "19bk", "4bk", "598bj",
+        // Ranks 61-75
+        "149bj", "149bj", "74bj", "18bj", "4bj", "1bj", "583bi", "291bi", "291bi", "145bi", "72bi", "9bi", "570bh", "285bh", "142bh",
+        // Ranks 76-90
+        "35bh", "556bg", "556bg", "278bg", "139bg", "69bg", "17bg", "543bf", "271bf", "67bf", "16bf", "1bf", "531be", "265be", "66be",
+        // Ranks 91-105
+        "33be", "8be", "1be", "518bd", "259bd", "129bd", "64bd", "32bd", "16bd", "16bd", "506bc", "253bc", "126bc", "63bc", "31bc",
+        // Ranks 106-120
+        "7bc", "989bb", "494bb", "247bb", "30bb", "966ba", "241ba", "15ba", "943az", "471az", "117az", "14az", "921ay", "115ay", "28ay",
+        // Ranks 121-135
+        "899ax", "224ax", "14ax", "878aw", "27aw", "13aw", "1aw", "214av", "107av", "1av", "837au", "209au", "26au", "6au", "818at",
+        // Ranks 136-150
+        "409at", "51at", "799as", "99as", "24as", "3as", "780ar", "97ar", "48ar", "24ar", "762aq", "381aq", "95aq", "47aq", "2aq"
+    ]
 
-        // Build player list with current milestones
-        // Mix of international players and US players
-        var players: [(index: Int, milestoneIdx: Int, isUS: Bool, exactMilestone: String?)] = []
-
-        // International players (150 players from various countries)
-        for i in 0..<150 {
-            let baseIndex = max(0, milestones.count - 50 - (i * 2))
-            let currentMilestoneIdx = MockLeaderboardData.milestoneIndex(for: i + 100, baseIndex: baseIndex, day: day)
-
-            if currentMilestoneIdx >= milestones.count - 1 {
-                continue
+    // Map of milestone -> US player index for matching names across leaderboards
+    private static let milestoneToUSPlayerIndex: [String: Int] = {
+        var map: [String: Int] = [:]
+        for (index, milestone) in usPlayerMilestones.enumerated() {
+            if map[milestone] == nil {
+                map[milestone] = index
             }
-
-            players.append((i, currentMilestoneIdx, false, nil))
         }
+        return map
+    }()
 
-        // US players (150 players) - use shared function for consistency
-        let usPlayers = usPlayerData(day: day, milestones: milestones)
-        for player in usPlayers {
-            players.append((player.index, player.milestoneIdx, true, player.exactMilestone))
-        }
-
-        // Sort all players by milestone descending
-        players.sort { $0.milestoneIdx > $1.milestoneIdx }
-
+    // Global leaderboard - uses exact milestones from screenshots
+    private static func globalEntries() -> [LeaderboardEntry] {
         var entries: [LeaderboardEntry] = []
-        for (rank, player) in players.prefix(150).enumerated() {
+
+        for (index, milestone) in globalPlayerMilestones.enumerated() {
             let name: String
             let country: String
             let id: String
 
-            if player.isUS {
-                name = MockLeaderboardData.usNames[player.index % MockLeaderboardData.usNames.count]
+            // Check if this milestone belongs to a US player
+            if let usIndex = milestoneToUSPlayerIndex[milestone] {
+                name = MockLeaderboardData.usNames[usIndex % MockLeaderboardData.usNames.count]
                 country = "US"
-                id = "us_\(player.index)"
+                id = "us_\(usIndex)"
             } else {
-                name = MockLeaderboardData.globalNames[player.index % MockLeaderboardData.globalNames.count]
-                country = MockLeaderboardData.countries[player.index % MockLeaderboardData.countries.count]
-                id = "global_\(player.index)"
+                name = MockLeaderboardData.globalNames[index % MockLeaderboardData.globalNames.count]
+                country = MockLeaderboardData.countries[index % MockLeaderboardData.countries.count]
+                id = "global_\(index)"
             }
 
-            let platform: Platform = player.index % 2 == 0 ? .ios : .android
-            // Use exact milestone for US players, otherwise use from array
-            let milestone = player.exactMilestone ?? milestones[player.milestoneIdx]
-            let score = max(1000, 873000 - (rank * 5000))
+            let platform: Platform = index % 2 == 0 ? .ios : .android
+            let score = max(1000, 873000 - (index * 5000))
 
             entries.append(LeaderboardEntry(
                 id: id,
-                rank: rank + 1,
+                rank: index + 1,
                 name: name,
                 score: score,
                 countryCode: country,
@@ -385,7 +392,7 @@ public extension LeaderboardClient {
             countryCode: "US",
             platform: .ios,
             isMe: true,
-            highestTile: "2M"
+            highestTile: "16M"
         ))
 
         return entries
@@ -427,7 +434,7 @@ public extension LeaderboardClient {
             countryCode: "US",
             platform: .ios,
             isMe: true,
-            highestTile: "2M"
+            highestTile: "16M"
         ))
 
         return entries
