@@ -314,42 +314,38 @@ public struct SpinWheelView: View {
     
     private func applyReward(_ reward: WheelReward, isGiftBox: Bool = false) -> String {
         let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
-        
+
         switch reward.type {
         case .gems:
             let amount = reward.amount * multiplier
             grantGems(amount)
             return isGiftBox ? "Gift Box surprise! You won \(amount) gems! 💎" : "You won \(amount) gems! 💎"
-            
+
         case .hammers:
-            let amount = reward.amount * multiplier
-            gameStore.addPowerUp("hammer", count: amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
-                             : "You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
-            
+            gameStore.addPowerUp("hammer", count: reward.amount)
+            return isGiftBox ? "Gift Box surprise! You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+                             : "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+
         case .magnets:
-            let amount = reward.amount * multiplier
-            gameStore.addPowerUp("magnet", count: amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) MegaMerge\(pluralSuffix(for: amount))! 🧲"
-                             : "You won \(amount) MegaMerge\(pluralSuffix(for: amount))! 🧲"
-            
+            gameStore.addPowerUp("magnet", count: reward.amount)
+            return isGiftBox ? "Gift Box surprise! You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
+                             : "You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
+
         case .swap:
-            let amount = reward.amount * multiplier
-            gameStore.addPowerUp("swap", count: amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
-                             : "You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
-            
+            gameStore.addPowerUp("swap", count: reward.amount)
+            return isGiftBox ? "Gift Box surprise! You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+                             : "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+
         case .spin:
-            let amount = reward.amount * multiplier
-            spinState.addBonusSpins(amount)
-            let base = amount == 1 ? "Bonus spin added! 🎡" : "\(amount) bonus spins added! 🎡"
+            spinState.addBonusSpins(reward.amount)
+            let base = reward.amount == 1 ? "Bonus spin added! 🎡" : "\(reward.amount) bonus spins added! 🎡"
             return isGiftBox ? "Gift Box surprise! \(base)" : base
-            
+
         case .multiplier(let tier):
             spinState.addMultiplier(tier)
             let base = "You banked a \(tier.displayName) boost for 24 hours!"
             return isGiftBox ? "Gift Box surprise! \(base)" : base
-            
+
         case .giftBox:
             let surprise = randomGiftReward()
             return applyReward(surprise, isGiftBox: true)
