@@ -281,25 +281,25 @@ public extension LeaderboardClient {
     // Exact US player milestones from screenshots (ranks 1-150)
     private static let usPlayerMilestones: [String] = [
         // Ranks 1-15
-        "106by", "3bw", "76bk", "278bg", "543bf", "506bc", "286ae", "8ae", "573ae", "143ae", "35ae", "8ae", "2ae", "559ad", "279ad",
+        "106by", "3bw", "1br", "1bo", "20bm", "76bk", "74bj", "1bj", "9bi", "35bh", "278bg", "543bf", "16bf", "506bc", "30bb",
         // Ranks 16-30
-        "139ad", "69ad", "34ad", "17ad", "8ad", "4ad", "2ad", "1ad", "546ac", "273ac", "136ac", "68ac", "34ac", "17ac", "8ac",
+        "943az", "30ay", "28ax", "1aw", "818at", "24as", "48ar", "2aq", "22ao", "709an", "176an", "1an", "676al", "42al", "661ak",
         // Ranks 31-45
-        "4ac", "2ac", "1ac", "533ab", "266ab", "133ab", "66ab", "33ab", "16ab", "8ab", "4ab", "2ab", "1ab", "521aa", "260aa",
+        "2ak", "20aj", "315ai", "19ai", "9ai", "601ag", "2ag", "4af", "2af", "1af", "1af", "71ae", "17ac", "133ab", "2ab",
         // Ranks 46-60
-        "130aa", "65aa", "32aa", "16aa", "8aa", "4aa", "2aa", "1aa", "509z", "254z", "127z", "63z", "31z", "15z", "7z",
+        "32aa", "2aa", "509z", "63z", "15z", "497y", "3y", "7x", "474w", "7w", "463v", "28v", "3v", "226u", "28u",
         // Ranks 61-75
-        "3z", "1z", "994y", "497y", "248y", "124y", "62y", "31y", "15y", "7y", "3y", "1y", "971x", "485x", "242x",
+        "7u", "1u", "883t", "3t", "26s", "842r", "6r", "102q", "3q", "401p", "401p", "100p", "12p", "784o", "3o",
         // Ranks 76-90
-        "121x", "60x", "30x", "15x", "7x", "3x", "1x", "948w", "474w", "237w", "118w", "59w", "29w", "14w", "7w",
+        "374m", "11m", "1m", "182l", "45l", "11l", "5l", "5l", "2l", "356k", "44k", "11k", "5k", "348j", "680i",
         // Ranks 91-105
-        "3w", "1w", "926v", "463v", "231v", "115v", "57v", "28v", "14v", "7v", "3v", "1v", "904u", "452u", "226u",
+        "340i", "170i", "42i", "83h", "41h", "41h", "41h", "10h", "324g", "324g", "40g", "5g", "1g", "316f", "158f",
         // Ranks 106-120
-        "113u", "56u", "28u", "14u", "7u", "3u", "1u", "883t", "441t", "220t", "110t", "55t", "27t", "13t", "6t",
+        "79f", "79f", "19f", "9f", "4f", "1f", "154e", "77e", "19e", "9e", "4e", "604d", "302d", "151d", "75d",
         // Ranks 121-135
-        "75d", "75d", "37d", "37d", "37d", "18d", "9d", "2d", "1d", "1d", "590c", "295c", "73c", "18c", "18c",
+        "75d", "37d", "37d", "37d", "18d", "9d", "2d", "1d", "1d", "590c", "295c", "73c", "18c", "18c", "9c",
         // Ranks 136-150
-        "9c", "9c", "4c", "4c", "2c", "1c", "576b", "288b", "144b", "144b", "36b", "18b", "9b", "9b", "9b"
+        "9c", "4c", "4c", "2c", "1c", "576b", "288b", "144b", "144b", "36b", "18b", "9b", "9b", "9b", "9b"
     ]
 
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
@@ -321,7 +321,7 @@ public extension LeaderboardClient {
 
         // Build player list with current milestones
         // Mix of international players and US players
-        var players: [(index: Int, milestoneIdx: Int, isUS: Bool)] = []
+        var players: [(index: Int, milestoneIdx: Int, isUS: Bool, exactMilestone: String?)] = []
 
         // International players (150 players from various countries)
         for i in 0..<150 {
@@ -332,13 +332,13 @@ public extension LeaderboardClient {
                 continue
             }
 
-            players.append((i, currentMilestoneIdx, false))
+            players.append((i, currentMilestoneIdx, false, nil))
         }
 
         // US players (150 players) - use shared function for consistency
         let usPlayers = usPlayerData(day: day, milestones: milestones)
         for player in usPlayers {
-            players.append((player.index, player.milestoneIdx, true))
+            players.append((player.index, player.milestoneIdx, true, player.exactMilestone))
         }
 
         // Sort all players by milestone descending
@@ -361,8 +361,9 @@ public extension LeaderboardClient {
             }
 
             let platform: Platform = player.index % 2 == 0 ? .ios : .android
-            let milestone = milestones[player.milestoneIdx]
-            let score = max(1000, 873000 - (rank * 8500))
+            // Use exact milestone for US players, otherwise use from array
+            let milestone = player.exactMilestone ?? milestones[player.milestoneIdx]
+            let score = max(1000, 873000 - (rank * 5000))
 
             entries.append(LeaderboardEntry(
                 id: id,
@@ -390,21 +391,21 @@ public extension LeaderboardClient {
         return entries
     }
 
-    // Country (US) leaderboard - shows only US players with same milestones as Global
+    // Country (US) leaderboard - shows only US players with exact milestones from screenshots
     private static func countryEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
         let milestones = MockLeaderboardData.allMilestones
 
         // Use shared function for US players (ensures same milestones as Global tab)
-        var players = usPlayerData(day: day, milestones: milestones)
-        players.sort { $0.milestoneIdx > $1.milestoneIdx }
+        let players = usPlayerData(day: day, milestones: milestones)
+        // Players are already in rank order (0 = rank 1, etc.)
 
         var entries: [LeaderboardEntry] = []
         for (rank, player) in players.enumerated() {
             let name = MockLeaderboardData.usNames[player.index % MockLeaderboardData.usNames.count]
             let platform: Platform = player.index % 2 == 0 ? .ios : .android
-            let milestone = milestones[player.milestoneIdx]
-            let score = max(1000, 873000 - (rank * 15000))
+            let milestone = player.exactMilestone  // Use exact milestone from screenshots
+            let score = max(1000, 873000 - (rank * 5000))
 
             entries.append(LeaderboardEntry(
                 id: "us_\(player.index)",
