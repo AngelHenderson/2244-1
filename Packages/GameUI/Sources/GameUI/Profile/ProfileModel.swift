@@ -33,6 +33,7 @@ public extension TierStat {
         key == "l"
     }
     
+    @MainActor
     static func stats(from counts: [String: Int]) -> [TierStat] {
         // Use counts directly without normalizing to lowercase to preserve K/M/B vs k/m/b distinction
         // But we still need to handle infinity normalization if needed
@@ -59,31 +60,28 @@ public extension TierStat {
         }
     }
     
+    @MainActor
     private static func color(for key: String) -> Color {
-        // Check exact match first (for K, M, B)
-        if let predefined = predefinedColors[key] {
-            return predefined
+        // Special case for K (thousands) which isn't in JourneyAbbreviationTiers
+        if key.uppercased() == "K" {
+            return Theme.colorForStep(9) // 2^10 = 1024
         }
-        // Fallback to lowercase check
-        let lowered = key.lowercased()
-        if let predefined = predefinedColors[lowered] {
-            return predefined
+
+        // Look up the tier for "1{key}" (e.g., "1M", "1a", "1ah")
+        let lookupLabel = "1\(key)"
+        let tier = JourneyAbbreviationTiers.tiers.first(where: { $0.label.lowercased() == lookupLabel.lowercased() })
+        if let step = tier?.step {
+            return Theme.colorForStep(step)
         }
-        
-        let palette: [Color] = [.purple, .pink, .red, .orange, .yellow, .green, .teal, .cyan, .blue, .indigo]
-        let hash = lowered.unicodeScalars.reduce(0) { $0 + Int($1.value) }
-        return palette[abs(hash) % palette.count]
+
+        // Special case for infinity
+        if key == "∞" {
+            return .purple
+        }
+
+        // Fallback to gray for unknown tiers
+        return .gray
     }
-    
-    private static let predefinedColors: [String: Color] = [
-        "K": .purple,
-        "M": .pink,
-        "B": .red,
-        // Keep lowercase for backward compatibility if needed, though exact match takes precedence
-        "k": .purple,
-        "m": .pink,
-        "b": .red
-    ]
     
     private static var allTierKeys: [String] {
         // Generate a comprehensive hardcoded list of all possible tier keys
