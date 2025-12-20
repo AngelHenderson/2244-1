@@ -135,14 +135,65 @@ private enum MockLeaderboardData {
     ]
 
     static let hallOfFameNames = [
+        // Ranks 1-30
         "InfinityMaster01", "EndlessVoyager", "BeyondLimits99", "EternalChamp", "UltimatePlayer",
         "LegendaryGamer", "InfiniteWinner", "CosmicConqueror", "SupremeVictor", "DivinePlayer",
         "MythicalHero", "TranscendentOne", "OmnipotentGamer", "CelestialKing", "ImmortalPlayer",
         "UnstoppableForce", "PerfectScore99", "FlawlessVictory", "AbsoluteChamp", "MaxLevelPro",
         "GodTierPlayer", "EliteInfinity", "MasterOfAll", "ChampOfChamps", "NumberOneForever",
         "SkillMaxed100", "TopDogForever", "KingOfKings", "QueenSupreme", "UltimateVictory",
+        // Ranks 31-60
         "BeyondPerfect", "EndgameBoss", "FinalFormPro", "MaxPowerUser", "InfiniteGlory",
-        "EternalVictory", "LimitBreaker00", "BoundlessSkill", "NeverEndingWin", "ForeverFirst"
+        "EternalVictory", "LimitBreaker00", "BoundlessSkill", "NeverEndingWin", "ForeverFirst",
+        "AlphaOmega01", "ZenithReached", "ApexPredator99", "PinnaclePlayer", "SummitSeeker",
+        "VanguardVictor", "ParagonPrime", "SupremeSeeker", "TitanTamer", "OlympianOne",
+        "PhoenixRisen", "DragonSlayer99", "ThunderGod01", "StormBringer", "LightningLord",
+        "ShadowMaster", "VoidWalker00", "CosmicRuler", "GalacticKing", "UniversalChamp",
+        // Ranks 61-90
+        "StarForger01", "NebulaNinja", "QuantumKing99", "DimensionLord", "RealityBender",
+        "TimeTraveler", "SpaceConqueror", "MatterMaster", "EnergyElite", "ForceField99",
+        "GravityGuru", "MagneticMight", "AtomicAce", "NuclearNinja", "FusionFighter",
+        "PlasmaPlayer", "PhotonPhenom", "NeutronNinja", "ProtonPro", "ElectronElite",
+        "QuarkQueen", "LeptonLord", "BosonBoss", "HiggsHero", "StringSeeker",
+        "TheoryTitan", "ParticlePro", "WaveMaster", "FieldForce", "QuantumQuest",
+        // Ranks 91-120
+        "InfiniteImpact", "BoundlessBeam", "LimitlessLaser", "EndlessEnergy", "EternalEcho",
+        "TimelessTitan", "AgelessAce", "ForeverFlame", "PerpetualPower", "ConstantChamp",
+        "SteadyStrike", "UnwaveringOne", "RelentlessRuler", "PersistentPro", "EnduringElite",
+        "LastingLegend", "DurableDynamo", "ResilientRacer", "TenaciousTitan", "StubbornStar",
+        "UnyieldingUnit", "UnbreakableBoss", "InvincibleIcon", "ImmortalImpact", "EternalEdge",
+        "InfiniteInsight", "BoundlessBrain", "LimitlessMind", "EndlessEgo", "ForeverFocus",
+        // Ranks 121-150
+        "MindMaster01", "BrainBoss99", "ThoughtTitan", "IdeaIcon", "ConceptChamp",
+        "VisionVictor", "DreamDynamo", "HopeHero", "FaithFighter", "BelieveBoss",
+        "TrustTitan", "LoyalLegend", "HonorHero", "GloryGamer", "FameFlame",
+        "ReputationRuler", "PrestigePro", "StatusStar", "RankRoyal", "TierTitan",
+        "LevelLord", "GradientGuru", "ScaleSeeker", "MeasureMaster", "MetricMight",
+        "UnitUltimate", "ValueVictor", "WorthWinner", "PricePlayer", "CostChamp"
+    ]
+
+    // Exact Hall of Fame infinity counts from screenshots (ranks 1-150)
+    static let hallOfFameInfinityCounts: [Int] = [
+        // Ranks 1-15
+        15552, 11987, 9534, 8923, 8099, 7833, 7344, 7099, 6904, 6654, 6544, 6467, 6400, 6355, 6311,
+        // Ranks 16-30
+        6166, 6161, 6144, 6022, 5866, 5621, 5294, 5102, 4755, 4463, 3776, 3234, 3012, 2975, 2789,
+        // Ranks 31-45
+        2342, 1996, 1775, 1532, 1165, 1002, 888, 855, 828, 777, 764, 749, 732, 721, 709,
+        // Ranks 46-60
+        665, 623, 583, 558, 543, 511, 397, 376, 354, 333, 277, 232, 196, 155, 124,
+        // Ranks 61-75
+        99, 77, 73, 67, 65, 65, 64, 62, 59, 58, 57, 57, 55, 52, 50,
+        // Ranks 76-90
+        48, 47, 47, 46, 46, 45, 44, 42, 41, 40, 39, 37, 33, 32, 32,
+        // Ranks 91-105
+        31, 31, 30, 27, 26, 26, 25, 25, 24, 23, 23, 22, 22, 21, 19,
+        // Ranks 106-120
+        19, 18, 18, 18, 17, 16, 15, 15, 14, 14, 14, 13, 13, 13, 12,
+        // Ranks 121-135
+        11, 11, 10, 10, 9, 9, 9, 9, 8, 8, 8, 8, 8, 7, 7,
+        // Ranks 136-150
+        6, 6, 6, 5, 5, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1
     ]
 
     static let usNames = [
@@ -242,36 +293,84 @@ public extension LeaderboardClient {
         fetchMyRank: { _, _ in globalEntries().last }
     )
 
-    // Hall of Fame - only players who reached ∞, ordered by number of infinity tiles made
+    // Hall of Fame player sources: which leaderboard they came from (US index, Global index, or Hall of Fame only)
+    // Format: (isUS: Bool, sourceIndex: Int?) - if nil, use Hall of Fame names
+    static let hallOfFamePlayerSources: [(isUS: Bool, sourceIndex: Int?)] = [
+        // Ranks 1-15: Mix of US (top performers) and Global players
+        (true, 0), (false, 0), (true, 1), (false, 1), (true, 2),
+        (false, 2), (true, 3), (false, 3), (true, 4), (false, 4),
+        (true, 5), (false, 5), (true, 6), (false, 6), (true, 7),
+        // Ranks 16-30
+        (false, 7), (true, 8), (false, 8), (true, 9), (false, 9),
+        (true, 10), (false, 10), (true, 11), (false, 11), (true, 12),
+        (false, 12), (true, 13), (false, 13), (true, 14), (false, 14),
+        // Ranks 31-45
+        (true, 15), (false, 15), (true, 16), (false, 16), (true, 17),
+        (false, 17), (true, 18), (false, 18), (true, 19), (false, 19),
+        (true, 20), (false, 20), (true, 21), (false, 21), (true, 22),
+        // Ranks 46-60
+        (false, 22), (true, 23), (false, 23), (true, 24), (false, 24),
+        (true, 25), (false, 25), (true, 26), (false, 26), (true, 27),
+        (false, 27), (true, 28), (false, 28), (true, 29), (false, 29),
+        // Ranks 61-75
+        (true, 30), (false, 30), (true, 31), (false, 31), (true, 32),
+        (false, 32), (true, 33), (false, 33), (true, 34), (false, 34),
+        (true, 35), (false, 35), (true, 36), (false, 36), (true, 37),
+        // Ranks 76-90
+        (false, 37), (true, 38), (false, 38), (true, 39), (false, 39),
+        (true, 40), (false, 40), (true, 41), (false, 41), (true, 42),
+        (false, 42), (true, 43), (false, 43), (true, 44), (false, 44),
+        // Ranks 91-105
+        (true, 45), (false, 45), (true, 46), (false, 46), (true, 47),
+        (false, 47), (true, 48), (false, 48), (true, 49), (false, 49),
+        (true, 50), (false, 50), (true, 51), (false, 51), (true, 52),
+        // Ranks 106-120
+        (false, 52), (true, 53), (false, 53), (true, 54), (false, 54),
+        (true, 55), (false, 55), (true, 56), (false, 56), (true, 57),
+        (false, 57), (true, 58), (false, 58), (true, 59), (false, 59),
+        // Ranks 121-135
+        (true, 60), (false, 60), (true, 61), (false, 61), (true, 62),
+        (false, 62), (true, 63), (false, 63), (true, 64), (false, 64),
+        (true, 65), (false, 65), (true, 66), (false, 66), (true, 67),
+        // Ranks 136-150
+        (false, 67), (true, 68), (false, 68), (true, 69), (false, 69),
+        (true, 70), (false, 70), (true, 71), (false, 71), (true, 72),
+        (false, 72), (true, 73), (false, 73), (true, 74), (false, 74)
+    ]
+
+    // Hall of Fame - players who reached ∞, names from US/Global leaderboards
     private static func hallOfFameEntries() -> [LeaderboardEntry] {
-        let day = MockLeaderboardData.daysSinceReference
-        let countries = ["US", "JP", "KR", "DE", "GB", "FR", "CA", "AU", "BR", "IN", "CN", "RU", "IT", "ES", "MX"]
-
-        // Build list of players who reached infinity with their counts
-        var infinityPlayers: [(index: Int, count: Int)] = []
-        for i in 0..<40 {
-            let count = MockLeaderboardData.infinityCount(for: i, day: day)
-            infinityPlayers.append((i, count))
-        }
-
-        // Sort by infinity count descending
-        infinityPlayers.sort { $0.count > $1.count }
-
         var entries: [LeaderboardEntry] = []
-        for (rank, player) in infinityPlayers.enumerated() {
-            let name = MockLeaderboardData.hallOfFameNames[player.index % MockLeaderboardData.hallOfFameNames.count]
-            let country = countries[player.index % countries.count]
-            let platform: Platform = player.index % 2 == 0 ? .ios : .android
-            let score = 9999000 - (rank * 50000)
+
+        for (index, count) in MockLeaderboardData.hallOfFameInfinityCounts.enumerated() {
+            let source = hallOfFamePlayerSources[index]
+            let name: String
+            let country: String
+
+            if let sourceIndex = source.sourceIndex {
+                if source.isUS {
+                    name = MockLeaderboardData.usNames[sourceIndex % MockLeaderboardData.usNames.count]
+                    country = "US"
+                } else {
+                    name = MockLeaderboardData.globalNames[sourceIndex % MockLeaderboardData.globalNames.count]
+                    country = MockLeaderboardData.countries[sourceIndex % MockLeaderboardData.countries.count]
+                }
+            } else {
+                name = MockLeaderboardData.hallOfFameNames[index % MockLeaderboardData.hallOfFameNames.count]
+                country = ["US", "JP", "KR", "DE", "GB", "FR", "CA", "AU", "BR", "IN"][index % 10]
+            }
+
+            let platform: Platform = index % 2 == 0 ? .ios : .android
+            let score = max(1000, 9999000 - (index * 50000))
 
             entries.append(LeaderboardEntry(
-                id: "hof_\(player.index)",
-                rank: rank + 1,
+                id: "hof_\(index)",
+                rank: index + 1,
                 name: name,
                 score: score,
                 countryCode: country,
                 platform: platform,
-                highestTile: "\(player.count)∞"
+                highestTile: "\(count)∞"
             ))
         }
 
