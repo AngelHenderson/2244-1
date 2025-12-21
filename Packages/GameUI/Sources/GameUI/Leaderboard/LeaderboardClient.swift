@@ -172,6 +172,13 @@ private enum MockLeaderboardData {
         "UnitUltimate", "ValueVictor", "WorthWinner", "PricePlayer", "CostChamp"
     ]
 
+    // Avatar IDs from AvatarCatalog (12 options, cycled for all players)
+    static let avatarIDs = [
+        "avatar-dog", "avatar-cat", "avatar-hat", "avatar-warrior",
+        "avatar-burger", "avatar-robot", "avatar-phoenix", "avatar-chicken",
+        "avatar-anchor", "avatar-bear", "avatar-shark", "avatar-plane"
+    ]
+
     // Exact Hall of Fame infinity counts from screenshots (ranks 1-150)
     static let hallOfFameInfinityCounts: [Int] = [
         // Ranks 1-15
@@ -363,6 +370,8 @@ public extension LeaderboardClient {
             let platform: Platform = index % 2 == 0 ? .ios : .android
             let score = max(1000, 9999000 - (index * 50000))
 
+            let avatar = MockLeaderboardData.avatarIDs[index % MockLeaderboardData.avatarIDs.count]
+
             entries.append(LeaderboardEntry(
                 id: "hof_\(index)",
                 rank: index + 1,
@@ -370,6 +379,7 @@ public extension LeaderboardClient {
                 score: score,
                 countryCode: country,
                 platform: platform,
+                avatarURL: avatar,
                 highestTile: "\(count)∞"
             ))
         }
@@ -470,6 +480,7 @@ public extension LeaderboardClient {
 
             let platform: Platform = index % 2 == 0 ? .ios : .android
             let score = max(1000, 873000 - (index * 5000))
+            let avatar = MockLeaderboardData.avatarIDs[index % MockLeaderboardData.avatarIDs.count]
 
             entries.append(LeaderboardEntry(
                 id: id,
@@ -478,19 +489,28 @@ public extension LeaderboardClient {
                 score: score,
                 countryCode: country,
                 platform: platform,
+                avatarURL: avatar,
                 highestTile: milestone
             ))
         }
 
         // Add current user entry (ranked among 900k+ global players)
+        // Rank improves slowly over time (user climbs the leaderboard)
+        let day = MockLeaderboardData.daysSinceReference
+        let baseGlobalRank = 500_000
+        let dailyImprovement = Int(MockLeaderboardData.seededRandom(seed: 999, index: day) * 500) + 100
+        let totalImprovement = (day % 365) * dailyImprovement / 10
+        let globalRank = max(151, baseGlobalRank - totalImprovement)
+
         entries.append(LeaderboardEntry(
             id: "me",
-            rank: 487_293,
+            rank: globalRank,
             name: "Angel Junior711",
             score: 1000,
             countryCode: "US",
             platform: .ios,
             isMe: true,
+            avatarURL: "avatar-dog",
             highestTile: "16M"
         ))
 
@@ -512,6 +532,7 @@ public extension LeaderboardClient {
             let platform: Platform = player.index % 2 == 0 ? .ios : .android
             let milestone = player.exactMilestone  // Use exact milestone from screenshots
             let score = max(1000, 873000 - (rank * 5000))
+            let avatar = MockLeaderboardData.avatarIDs[player.index % MockLeaderboardData.avatarIDs.count]
 
             entries.append(LeaderboardEntry(
                 id: "us_\(player.index)",
@@ -520,19 +541,27 @@ public extension LeaderboardClient {
                 score: score,
                 countryCode: "US",
                 platform: platform,
+                avatarURL: avatar,
                 highestTile: milestone
             ))
         }
 
         // Add current user entry (ranked among 100k+ US players)
+        // Rank improves slowly over time (user climbs the leaderboard)
+        let baseUSRank = 65_000
+        let dailyImprovement = Int(MockLeaderboardData.seededRandom(seed: 888, index: day) * 100) + 20
+        let totalImprovement = (day % 365) * dailyImprovement / 10
+        let usRank = max(151, baseUSRank - totalImprovement)
+
         entries.append(LeaderboardEntry(
             id: "me",
-            rank: 58_472,
+            rank: usRank,
             name: "Angel Junior711",
             score: 1000,
             countryCode: "US",
             platform: .ios,
             isMe: true,
+            avatarURL: "avatar-dog",
             highestTile: "16M"
         ))
 
