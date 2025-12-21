@@ -10,22 +10,22 @@ struct AvatarOption: Identifiable, Hashable {
 
 enum AvatarCatalog {
     static let all: [AvatarOption] = [
-        AvatarOption(id: "avatar-dog", imageName: "avatar_dog", accessibilityLabel: "Dog avatar"),
-        AvatarOption(id: "avatar-cat", imageName: "avatar_cat", accessibilityLabel: "Astronaut cat avatar"),
-        AvatarOption(id: "avatar-hat", imageName: "avatar_hat", accessibilityLabel: "Baseball hat avatar"),
-        AvatarOption(id: "avatar-warrior", imageName: "avatar_warrior", accessibilityLabel: "Warrior avatar"),
-        AvatarOption(id: "avatar-burger", imageName: "avatar_burger", accessibilityLabel: "Burger avatar"),
-        AvatarOption(id: "avatar-robot", imageName: "avatar_robot", accessibilityLabel: "Robot avatar"),
-        AvatarOption(id: "avatar-phoenix", imageName: "avatar_phoenix", accessibilityLabel: "Phoenix avatar"),
-        AvatarOption(id: "avatar-chicken", imageName: "avatar_chicken", accessibilityLabel: "Chicken avatar"),
-        AvatarOption(id: "avatar-anchor", imageName: "avatar_anchor", accessibilityLabel: "Anchor avatar"),
-        AvatarOption(id: "avatar-bear", imageName: "avatar_bear", accessibilityLabel: "Bear avatar"),
-        AvatarOption(id: "avatar-shark", imageName: "avatar_shark", accessibilityLabel: "Shark avatar"),
-        AvatarOption(id: "avatar-plane", imageName: "avatar_plane", accessibilityLabel: "Paper plane avatar")
+        AvatarOption(id: "avatar-shiba-dog", imageName: "avatar_shiba_dog", accessibilityLabel: "Shiba Inu dog avatar"),
+        AvatarOption(id: "avatar-astronaut-cat", imageName: "avatar_astronaut_cat", accessibilityLabel: "Astronaut cat avatar"),
+        AvatarOption(id: "avatar-robot-green", imageName: "avatar_robot_green", accessibilityLabel: "Green robot avatar"),
+        AvatarOption(id: "avatar-phoenix-fire", imageName: "avatar_phoenix_fire", accessibilityLabel: "Fire phoenix avatar"),
+        AvatarOption(id: "avatar-shark-teeth", imageName: "avatar_shark_teeth", accessibilityLabel: "Shark avatar"),
+        AvatarOption(id: "avatar-paper-plane", imageName: "avatar_paper_plane", accessibilityLabel: "Paper plane avatar"),
+        AvatarOption(id: "avatar-baseball-cap", imageName: "avatar_baseball_cap", accessibilityLabel: "Baseball cap avatar"),
+        AvatarOption(id: "avatar-warrior-samurai", imageName: "avatar_warrior_samurai", accessibilityLabel: "Samurai warrior avatar"),
+        AvatarOption(id: "avatar-burger-food", imageName: "avatar_burger_food", accessibilityLabel: "Burger avatar"),
+        AvatarOption(id: "avatar-chicken-bird", imageName: "avatar_chicken_bird", accessibilityLabel: "Chicken avatar"),
+        AvatarOption(id: "avatar-anchor-nautical", imageName: "avatar_anchor_nautical", accessibilityLabel: "Anchor avatar"),
+        AvatarOption(id: "avatar-bear-grizzly", imageName: "avatar_bear_grizzly", accessibilityLabel: "Grizzly bear avatar")
     ]
 
     static var `default`: AvatarOption {
-        all.first ?? AvatarOption(id: "avatar-default", imageName: "avatar_dog", accessibilityLabel: "Default avatar")
+        all.first ?? AvatarOption(id: "avatar-default", imageName: "avatar_shiba_dog", accessibilityLabel: "Default avatar")
     }
 
     static func option(for id: String) -> AvatarOption {
