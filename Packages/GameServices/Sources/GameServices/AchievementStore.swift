@@ -407,6 +407,20 @@ public final class AchievementStore {
         .init(milestone: 400, categoryLabel: "400 uses", rewards: .init(gems: 3500, hammers: 2, magnets: 1))
     ]
 
+    private static let spinPurchaseTiers: [ComboTierDefinition] = [
+        .init(milestone: 1, categoryLabel: "1 purchase", rewards: .init(gems: 10)),
+        .init(milestone: 3, categoryLabel: "3 purchases", rewards: .init(gems: 25, hammers: 1)),
+        .init(milestone: 5, categoryLabel: "5 purchases", rewards: .init(gems: 50)),
+        .init(milestone: 10, categoryLabel: "10 purchases", rewards: .init(gems: 85, spins: 1)),
+        .init(milestone: 25, categoryLabel: "25 purchases", rewards: .init(gems: 150, swaps: 1)),
+        .init(milestone: 50, categoryLabel: "50 purchases", rewards: .init(gems: 210, spins: 1, boost4x: 1)),
+        .init(milestone: 100, categoryLabel: "100 purchases", rewards: .init(gems: 350, magnets: 1)),
+        .init(milestone: 200, categoryLabel: "200 purchases", rewards: .init(gems: 500)),
+        .init(milestone: 500, categoryLabel: "500 purchases", rewards: .init(gems: 975, magnets: 1)),
+        .init(milestone: 1000, categoryLabel: "1000 purchases", rewards: .init(swaps: 3, boost3x: 1)),
+        .init(milestone: 2000, categoryLabel: "2000 purchases", rewards: .init(gems: 2000, spins: 2, hammers: 1, magnets: 2))
+    ]
+
     private static let challengeCreationTiers: [ComboTierDefinition] = [
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
         .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
@@ -912,6 +926,43 @@ public final class AchievementStore {
         boost4xUsesProgressionTier >= Self.boost4xUseTiers.count - 1
     }
 
+    /// Spin purchase progression tier index (persisted)
+    public var spinPurchasesProgressionTier: Int {
+        didSet {
+            defaults.set(spinPurchasesProgressionTier, forKey: "spinPurchasesProgressionTier")
+            unlocks["spin_purchases_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+
+    private var currentSpinPurchasesTier: ComboTierDefinition {
+        let index = min(spinPurchasesProgressionTier, Self.spinPurchaseTiers.count - 1)
+        return Self.spinPurchaseTiers[index]
+    }
+
+    public var spinPurchasesDisplay: ProgressTierDisplay {
+        let tier = currentSpinPurchasesTier
+        let clampedIndex = min(spinPurchasesProgressionTier, Self.spinPurchaseTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = spinPurchasesProgressionTier >= Self.spinPurchaseTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered buying spins. Claim your final reward."
+            : "Buy \(tier.milestone) spin\(tier.milestone == 1 ? "" : "s") to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) purchase\(tier.milestone == 1 ? "" : "s")"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "Buy Spins",
+            rewards: tier.rewards
+        )
+    }
+
+    public var isSpinPurchasesProgressionMaxed: Bool {
+        spinPurchasesProgressionTier >= Self.spinPurchaseTiers.count - 1
+    }
+
     /// Challenge creation progression tier index (persisted)
     public var challengeCreationTier: Int {
         didSet {
@@ -1105,6 +1156,7 @@ public final class AchievementStore {
         self.boost2xUsesProgressionTier = defaults.integer(forKey: "boost2xUsesProgressionTier")
         self.boost3xUsesProgressionTier = defaults.integer(forKey: "boost3xUsesProgressionTier")
         self.boost4xUsesProgressionTier = defaults.integer(forKey: "boost4xUsesProgressionTier")
+        self.spinPurchasesProgressionTier = defaults.integer(forKey: "spinPurchasesProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
         loadPersistedSnapshot()
@@ -1289,6 +1341,15 @@ public final class AchievementStore {
             if def.id == "boost4x_usage_progression" {
                 let targetValue = Double(currentBoost4xUsesTier.milestone)
                 if Double(snapshot.boost4x_uses_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+
+            if def.id == "spin_purchases_progression" {
+                let targetValue = Double(currentSpinPurchasesTier.milestone)
+                if Double(snapshot.spin_purchases_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1617,6 +1678,23 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "spin_purchases_progression" {
+            let rewards = spinPurchasesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+
+            if !isSpinPurchasesProgressionMaxed {
+                spinPurchasesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         if definition.id == "challenge_creation" {
             let rewards = challengeCreationDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -1708,6 +1786,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.boost3x_uses_total), target: Double(currentBoost3xUsesTier.milestone))
         case "boost4x_usage_progression":
             return makeProgress(current: Double(snapshot.boost4x_uses_total), target: Double(currentBoost4xUsesTier.milestone))
+        case "spin_purchases_progression":
+            return makeProgress(current: Double(snapshot.spin_purchases_total), target: Double(currentSpinPurchasesTier.milestone))
         case "challenge_creation":
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":

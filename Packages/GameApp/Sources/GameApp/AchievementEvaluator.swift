@@ -30,6 +30,7 @@ public final class AchievementEvaluator {
     private var boost2xUsesTotal: Int = 0
     private var boost3xUsesTotal: Int = 0
     private var boost4xUsesTotal: Int = 0
+    private var spinPurchasesTotal: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
@@ -47,6 +48,7 @@ public final class AchievementEvaluator {
     private let boost2xUsesKey = "powerUses.boost2x"
     private let boost3xUsesKey = "powerUses.boost3x"
     private let boost4xUsesKey = "powerUses.boost4x"
+    private let spinPurchasesKey = "spinPurchases.total"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
@@ -76,6 +78,7 @@ public final class AchievementEvaluator {
         boost2xUsesTotal = defaults.integer(forKey: boost2xUsesKey)
         boost3xUsesTotal = defaults.integer(forKey: boost3xUsesKey)
         boost4xUsesTotal = defaults.integer(forKey: boost4xUsesKey)
+        spinPurchasesTotal = defaults.integer(forKey: spinPurchasesKey)
         if challengeCreationTotal == 0,
            let data = UserDefaults.standard.data(forKey: "challengeCompletedIds"),
            let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
@@ -100,6 +103,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost2x_uses_total = boost2xUsesTotal
         currentGameSnapshot.boost3x_uses_total = boost3xUsesTotal
         currentGameSnapshot.boost4x_uses_total = boost4xUsesTotal
+        currentGameSnapshot.spin_purchases_total = spinPurchasesTotal
     }
 
     public func onGameStart(state: GameState) {
@@ -123,6 +127,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost2x_uses_total = boost2xUsesTotal
         currentGameSnapshot.boost3x_uses_total = boost3xUsesTotal
         currentGameSnapshot.boost4x_uses_total = boost4xUsesTotal
+        currentGameSnapshot.spin_purchases_total = spinPurchasesTotal
     }
 
     /// Saves accumulated playtime without ending the game session.
@@ -431,6 +436,18 @@ public final class AchievementEvaluator {
 
         var snapshot = currentGameSnapshot
         snapshot.boost4x_uses_total = boost4xUsesTotal
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
+    }
+
+    public func onSpinPurchased(count: Int) {
+        spinPurchasesTotal += count
+        defaults.set(spinPurchasesTotal, forKey: spinPurchasesKey)
+        currentGameSnapshot.spin_purchases_total = spinPurchasesTotal
+
+        var snapshot = currentGameSnapshot
+        snapshot.spin_purchases_total = spinPurchasesTotal
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }

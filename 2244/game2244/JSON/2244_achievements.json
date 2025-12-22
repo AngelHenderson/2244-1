@@ -300,5 +300,21 @@
         "value": 5
       }
     ]
+  },
+  {
+    "id": "spin_purchases_progression",
+    "gcIdentifier": "spin_purchases_progression",
+    "title": "Spin Buyer",
+    "description": "Buy spins to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "spin_purchases_total",
+        "op": ">=",
+        "value": 1
+      }
+    ]
   }
 ]

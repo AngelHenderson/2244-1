@@ -10,49 +10,79 @@ public struct AchievementsView: View {
 
     public init() {}
     
-    /// Sorted achievements: claimable first, then locked, then claimed last
-    /// Tile progression stays near top since it's always in progress
+    /// Sorted achievements: highest level first, then by claimable status
     private var sortedAchievements: [AchievementDef] {
         achievements.catalog.sorted { a, b in
+            let levelA = achievementLevel(for: a.id)
+            let levelB = achievementLevel(for: b.id)
+
+            // Sort by level descending (highest first)
+            if levelA != levelB {
+                return levelA > levelB
+            }
+
+            // If same level, sort by claimable status
             let stateA = achievements.unlocks[a.id]
             let stateB = achievements.unlocks[b.id]
-            
             let priorityA = sortPriority(for: a.id, state: stateA)
             let priorityB = sortPriority(for: b.id, state: stateB)
-            
+
             return priorityA < priorityB
         }
     }
-    
-    /// Sort priority: 0 = claimable (top), 1 = tile/moves progression / locked (middle), 2 = claimed (bottom)
-    private func sortPriority(for id: String, state: AchievementStore.UnlockState?) -> Int {
-        // Progressive achievements stay near top (priority 0.5 - between claimable and locked)
-        if id == "tile_progression"
-            || id == "moves_progression"
-            || id == "combo_6_10"
-            || id == "combo_11_15"
-            || id == "combo_16_20"
-            || id == "combo_21_30"
-            || id == "merge_progression"
-            || id == "swap_usage_progression"
-            || id == "hammer_usage_progression"
-            || id == "survive_moves_progression"
-            || id == "spin_usage_progression"
-            || id == "magnet_usage_progression"
-            || id == "challenge_creation"
-            || id == "infinity_progression"
-            || id == "playtime_progression"
-            || id == "boost2x_usage_progression"
-            || id == "boost3x_usage_progression"
-            || id == "boost4x_usage_progression" {
-            if state?.isClaimable == true { return 0 }  // Claimable at very top
-            return 1  // Otherwise just below claimable items
+
+    /// Get the current level for an achievement
+    private func achievementLevel(for id: String) -> Int {
+        switch id {
+        case "tile_progression":
+            return achievements.tileProgressionDisplay.level
+        case "moves_progression":
+            return achievements.movesProgressionTier + 1
+        case "combo_6_10":
+            return achievements.combo610Display.level
+        case "combo_11_15":
+            return achievements.combo1115Display.level
+        case "combo_16_20":
+            return achievements.combo1620Display.level
+        case "combo_21_30":
+            return achievements.combo2130Display.level
+        case "merge_progression":
+            return achievements.mergeDisplay.level
+        case "swap_usage_progression":
+            return achievements.swapUsesDisplay.level
+        case "hammer_usage_progression":
+            return achievements.hammerUsesDisplay.level
+        case "survive_moves_progression":
+            return achievements.surviveMovesDisplay.level
+        case "spin_usage_progression":
+            return achievements.spinUsesDisplay.level
+        case "magnet_usage_progression":
+            return achievements.magnetUsesDisplay.level
+        case "challenge_creation":
+            return achievements.challengeCreationDisplay.level
+        case "infinity_progression":
+            return achievements.infinityDisplay.level
+        case "playtime_progression":
+            return achievements.playtimeDisplay.level
+        case "boost2x_usage_progression":
+            return achievements.boost2xUsesDisplay.level
+        case "boost3x_usage_progression":
+            return achievements.boost3xUsesDisplay.level
+        case "boost4x_usage_progression":
+            return achievements.boost4xUsesDisplay.level
+        case "spin_purchases_progression":
+            return achievements.spinPurchasesDisplay.level
+        default:
+            return 1
         }
-        
-        guard let state else { return 1 } // No state = locked
+    }
+
+    /// Sort priority: 0 = claimable (top), 1 = in progress (middle), 2 = claimed (bottom)
+    private func sortPriority(for id: String, state: AchievementStore.UnlockState?) -> Int {
+        guard let state else { return 1 } // No state = in progress
         if state.isClaimable { return 0 }  // Claimable at top
         if state.claimed { return 2 }       // Claimed at bottom
-        return 1                            // Locked in middle
+        return 1                            // In progress in middle
     }
     
     public var body: some View {
@@ -133,6 +163,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.boost3xUsesDisplay
         case "boost4x_usage_progression":
             return achievements.boost4xUsesDisplay
+        case "spin_purchases_progression":
+            return achievements.spinPurchasesDisplay
         default:
             return nil
         }
