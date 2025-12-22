@@ -63,8 +63,9 @@ public extension TierStat {
     @MainActor
     private static func color(for key: String) -> Color {
         // Special case for K (thousands) which isn't in JourneyAbbreviationTiers
+        // Use step 13 which corresponds to 16K (2^14 = 16384)
         if key.uppercased() == "K" {
-            return Theme.colorForStep(9) // 2^10 = 1024
+            return Theme.colorForStep(13)
         }
 
         // Look up the tier for "1{key}" (e.g., "1M", "1a", "1ah")
@@ -74,9 +75,9 @@ public extension TierStat {
             return Theme.colorForStep(step)
         }
 
-        // Special case for infinity
+        // Special case for infinity - use the same color as the infinity tile (262K)
         if key == "∞" {
-            return .purple
+            return Theme.color(for: 262_144)
         }
 
         // Fallback to gray for unknown tiers
