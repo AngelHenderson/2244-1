@@ -370,7 +370,7 @@ public extension LeaderboardClient {
             case .hallOfFame:
                 totalPlayers = hallOfFameEntries().count
             case .country:
-                totalPlayers = 127_493  // 100k+ US players
+                totalPlayers = 84_721  // US players
             case .global:
                 totalPlayers = 943_817  // 900k+ global players
             }
@@ -467,7 +467,7 @@ public extension LeaderboardClient {
         return entries
     }
 
-    // Exact US player milestones from screenshots (ranks 1-150)
+    // Exact US player milestones from screenshots (ranks 1-256+)
     private static let usPlayerMilestones: [String] = [
         // Ranks 1-15
         "106by", "3bw", "1br", "1bo", "20bm", "76bk", "74bj", "1bj", "9bi", "35bh", "278bg", "543bf", "16bf", "506bc", "30bb",
@@ -488,13 +488,30 @@ public extension LeaderboardClient {
         // Ranks 121-135
         "75d", "37d", "37d", "37d", "18d", "9d", "2d", "1d", "1d", "590c", "295c", "73c", "18c", "18c", "9c",
         // Ranks 136-150
-        "9c", "4c", "4c", "2c", "1c", "576b", "288b", "144b", "144b", "36b", "18b", "9b", "9b", "9b", "9b"
+        "9c", "4c", "4c", "2c", "1c", "576b", "288b", "144b", "144b", "36b", "18b", "9b", "9b", "9b", "9b",
+        // Ranks 151-165 (extended from screenshot)
+        "4b", "4b", "2b", "1b", "562a", "562a", "562a", "281a", "281a", "281a", "281a", "281a", "281a", "140a", "140a",
+        // Ranks 166-180
+        "140a", "140a", "70a", "70a", "70a", "35a", "35a", "35a", "35a", "35a", "35a", "35a", "35a", "35a", "35a",
+        // Ranks 181-195
+        "35a", "17a", "17a", "17a", "17a", "17a", "17a", "17a", "17a", "17a", "17a", "17a", "17a", "17a", "17a",
+        // Ranks 196-210
+        "8a", "8a", "8a", "8a", "8a", "8a", "8a", "8a", "8a", "8a", "8a", "8a", "8a", "8a", "8a",
+        // Ranks 211-225
+        "4a", "4a", "4a", "4a", "4a", "4a", "4a", "4a", "4a", "4a", "4a", "4a", "4a", "4a", "4a",
+        // Ranks 226-240
+        "4a", "4a", "4a", "4a", "4a", "4a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a",
+        // Ranks 241-255
+        "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a", "2a",
+        // Ranks 256-270
+        "1a", "1a", "1a", "1a", "1a", "1a", "1a", "1a", "1a", "1a", "1a", "1a", "1a", "1a", "1a"
     ]
 
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
+    // Only returns top 150 for display, but extended data exists for rank calculations
     private static func usPlayerData(day: Int, milestones: [String]) -> [(index: Int, milestoneIdx: Int, exactMilestone: String)] {
         var players: [(index: Int, milestoneIdx: Int, exactMilestone: String)] = []
-        for i in 0..<150 {
+        for i in 0..<150 {  // Only show top 150 in leaderboard
             let exactMilestone = usPlayerMilestones[i]
             // Find the milestone index (for sorting purposes, use array position)
             let milestoneIdx = 150 - i  // Higher rank = higher milestone index for sorting
@@ -502,6 +519,40 @@ public extension LeaderboardClient {
         }
         return players
     }
+
+    // Extended US milestone brackets for rank calculation (ranks 151+)
+    // Total US players: 84,721
+    private static let usExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // a-tier brackets (ranks 151-256)
+        ("4b", 151), ("2b", 153), ("1b", 154), ("562a", 155), ("281a", 158),
+        ("140a", 164), ("70a", 168), ("35a", 171), ("17a", 182), ("8a", 196),
+        ("4a", 211), ("2a", 232), ("1a", 256),
+        // B-tier brackets (ranks 287-477)
+        ("549B", 287), ("274B", 304), ("137B", 341), ("68B", 367), ("34B", 400),
+        ("17B", 422), ("8B", 445), ("4B", 459), ("2B", 466), ("1B", 477),
+        // M-tier brackets (ranks 519-1422)
+        ("536M", 519), ("268M", 556), ("134M", 613), ("67M", 657), ("33M", 712),
+        ("16M", 798), ("8M", 921), ("4M", 1055), ("2M", 1199), ("1M", 1422),
+        // K-tier brackets (ranks 1788-7112)
+        ("524K", 1788), ("262K", 2234), ("131K", 2876), ("65K", 4113), ("32K", 5422), ("16K", 7112),
+        // Raw number brackets (ranks 11111-84721)
+        ("8192", 11111), ("4096", 17775), ("2048", 22222), ("1024", 31234), ("512", 37665),
+        ("256", 52260), ("128", 67676), ("64", 74456), ("32", 79657), ("16", 81246),
+        ("8", 83256), ("4", 83765), ("2", 84065), ("0", 84323)  // Score 0 = new players
+    ]
+
+    // Extended Global milestone brackets for rank calculation (ranks 151+)
+    private static let globalExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // a-tier brackets
+        ("1aq", 151), ("562a", 200), ("281a", 300), ("140a", 450), ("70a", 650),
+        ("35a", 900), ("17a", 1300), ("8a", 1900), ("4a", 2800), ("2a", 4200), ("1a", 6500),
+        // B-tier brackets
+        ("549B", 10000), ("274B", 16000), ("137B", 26000), ("68B", 42000), ("34B", 68000),
+        ("17B", 110000), ("8B", 175000), ("4B", 280000), ("2B", 420000), ("1B", 550000),
+        // M-tier brackets
+        ("536M", 620000), ("268M", 680000), ("134M", 740000), ("67M", 800000), ("33M", 850000),
+        ("16M", 890000), ("8M", 915000), ("4M", 930000), ("2M", 940000), ("1M", 943000)
+    ]
 
     // Exact Global player milestones from screenshots (ranks 1-150)
     private static let globalPlayerMilestones: [String] = [
@@ -592,11 +643,16 @@ public extension LeaderboardClient {
             let aboveCutoff = userMilestoneIndex - globalCutoffIndex
             globalRank = max(1, 150 - aboveCutoff)
         } else {
-            // User is below top 150 - rank scales from 151 to totalPlayers
-            // The closer to cutoff, the closer to rank 151
-            let progressRatio = Double(userMilestoneIndex) / Double(globalCutoffIndex)
-            let rankRange = totalPlayers - 151
-            globalRank = totalPlayers - Int(Double(rankRange) * progressRatio)
+            // User is below top 150 - use bracket-based ranking
+            var foundRank = totalPlayers
+            for bracket in globalExtendedRankBrackets.reversed() {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIndex >= bracketIndex {
+                    foundRank = bracket.startRank
+                    break
+                }
+            }
+            globalRank = foundRank
         }
 
         entries.append(LeaderboardEntry(
@@ -653,7 +709,7 @@ public extension LeaderboardClient {
         let usTop150Cutoff = "9b"
         let usCutoffIndex = MockLeaderboardData.allMilestones.firstIndex(of: usTop150Cutoff) ?? 33
         let userMilestoneIndex = MockLeaderboardData.allMilestones.firstIndex(of: userMilestone) ?? 0
-        let totalUSPlayers = 127_493
+        let totalUSPlayers = 84_721
 
         let usRank: Int
         if userMilestoneIndex >= usCutoffIndex {
@@ -661,11 +717,56 @@ public extension LeaderboardClient {
             let aboveCutoff = userMilestoneIndex - usCutoffIndex
             usRank = max(1, 150 - aboveCutoff)
         } else {
-            // User is below top 150 - rank scales from 151 to totalUSPlayers
-            // The closer to cutoff, the closer to rank 151
-            let progressRatio = Double(userMilestoneIndex) / Double(usCutoffIndex)
-            let rankRange = totalUSPlayers - 151
-            usRank = totalUSPlayers - Int(Double(rankRange) * progressRatio)
+            // User is below top 150 - use bracket-based ranking from extended data
+            // Find the bracket and distribute rank within the bracket range
+            var bracketStart = totalUSPlayers
+            var bracketEnd = totalUSPlayers
+            var foundBracket = false
+
+            // For milestones in allMilestones (M-tier and above), use index comparison
+            if userMilestoneIndex > 0 {
+                for (i, bracket) in usExtendedRankBrackets.enumerated().reversed() {
+                    if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                       userMilestoneIndex >= bracketIndex {
+                        bracketStart = bracket.startRank
+                        // Get the next bracket's start rank as our end
+                        if i + 1 < usExtendedRankBrackets.count {
+                            bracketEnd = usExtendedRankBrackets[i + 1].startRank - 1
+                        } else {
+                            bracketEnd = totalUSPlayers
+                        }
+                        foundBracket = true
+                        break
+                    }
+                }
+            }
+
+            // For milestones below 1M (K-tier and raw numbers), find bracket by string matching
+            if !foundBracket {
+                for (i, bracket) in usExtendedRankBrackets.enumerated() {
+                    if userMilestone == bracket.milestone {
+                        bracketStart = bracket.startRank
+                        if i + 1 < usExtendedRankBrackets.count {
+                            bracketEnd = usExtendedRankBrackets[i + 1].startRank - 1
+                        } else {
+                            bracketEnd = totalUSPlayers
+                        }
+                        foundBracket = true
+                        break
+                    }
+                }
+            }
+
+            // Distribute user within the bracket range based on their score
+            // Higher scores get lower (better) ranks within the bracket
+            let range = bracketEnd - bracketStart
+            if range > 0 && foundBracket {
+                // Use score to position within bracket - create deterministic but varied position
+                let scoreHash = abs(userScore.hashValue) % (range + 1)
+                usRank = bracketStart + scoreHash
+            } else {
+                usRank = bracketStart
+            }
         }
 
         entries.append(LeaderboardEntry(

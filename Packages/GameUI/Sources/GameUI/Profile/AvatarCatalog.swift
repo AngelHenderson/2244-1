@@ -43,11 +43,6 @@ struct AvatarBadge: View {
             .scaledToFill()
             .frame(width: size, height: size)
             .clipShape(Circle())
-            .overlay(
-                Circle()
-                    .stroke(Color.white, lineWidth: size * 0.05)
-                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-            )
             .accessibilityLabel(option.accessibilityLabel)
     }
 

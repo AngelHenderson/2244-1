@@ -236,11 +236,47 @@ public struct LiveProfileClient: ProfileClient, Sendable {
             let aboveCutoff = userMilestoneIndex - globalCutoffIndex
             return max(1, 150 - aboveCutoff)
         } else {
-            // User is below top 150 - rank scales from 151 to totalPlayers
-            // The closer to cutoff, the closer to rank 151
-            let progressRatio = Double(userMilestoneIndex) / Double(globalCutoffIndex)
-            let rankRange = totalPlayers - 151
-            return totalPlayers - Int(Double(rankRange) * progressRatio)
+            // User is below top 150 - use bracket-based ranking
+            let globalExtendedBrackets: [(milestone: String, startRank: Int)] = [
+                // a-tier brackets
+                ("1aq", 151), ("562a", 200), ("281a", 300), ("140a", 450), ("70a", 650),
+                ("35a", 900), ("17a", 1300), ("8a", 1900), ("4a", 2800), ("2a", 4200), ("1a", 6500),
+                // B-tier brackets
+                ("549B", 10000), ("274B", 16000), ("137B", 26000), ("68B", 42000), ("34B", 68000),
+                ("17B", 110000), ("8B", 175000), ("4B", 280000), ("2B", 420000), ("1B", 550000),
+                // M-tier brackets
+                ("536M", 620000), ("268M", 680000), ("134M", 740000), ("67M", 800000), ("33M", 850000),
+                ("16M", 890000), ("8M", 915000), ("4M", 930000), ("2M", 940000), ("1M", 943000)
+            ]
+
+            // Find the bracket and distribute rank within the bracket range
+            var bracketStart = totalPlayers
+            var bracketEnd = totalPlayers
+            var foundBracket = false
+
+            for (i, bracket) in globalExtendedBrackets.enumerated().reversed() {
+                if let bracketIndex = allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIndex >= bracketIndex {
+                    bracketStart = bracket.startRank
+                    // Get the next bracket's start rank as our end
+                    if i + 1 < globalExtendedBrackets.count {
+                        bracketEnd = globalExtendedBrackets[i + 1].startRank - 1
+                    } else {
+                        bracketEnd = totalPlayers
+                    }
+                    foundBracket = true
+                    break
+                }
+            }
+
+            // Distribute user within the bracket range
+            let range = bracketEnd - bracketStart
+            if range > 0 && foundBracket {
+                // Use milestone string hash for deterministic but varied position
+                let milestoneHash = abs(userMilestone.hashValue) % (range + 1)
+                return bracketStart + milestoneHash
+            }
+            return bracketStart
         }
     }
 }
