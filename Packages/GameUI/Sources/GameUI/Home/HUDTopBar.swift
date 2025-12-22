@@ -12,6 +12,16 @@ struct HUDTopBar: View {
     @Environment(\.gameStore) private var gameStore
     var scoreText: String? = nil  // Optional score for game context
 
+    private func playtimeText(at date: Date) -> String {
+        let savedSeconds = UserDefaults.standard.integer(forKey: "playtime.totalSeconds")
+        let sessionStart = gameStore.achievementEvaluator?.sessionStartTime ?? date
+        let currentSessionSeconds = Int(date.timeIntervalSince(sessionStart))
+        let totalSeconds = savedSeconds + currentSessionSeconds
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "⏱️ %d:%02d", minutes, seconds)
+    }
+
     var body: some View {
         HStack(spacing: 8) {
             scoreBoostButtons
@@ -33,13 +43,18 @@ struct HUDTopBar: View {
 
             // Score display (only shown if provided)
             if let scoreText = scoreText {
-                VStack(spacing: 2) {
-                    Text("Score")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-                    Text(scoreText)
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    VStack(spacing: 2) {
+                        Text(playtimeText(at: context.date))
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.yellow.opacity(0.9))
+                        Text("Score")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.75))
+                        Text(scoreText)
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.white)
+                    }
                 }
                 .padding(.horizontal, 12).padding(.vertical, 6)
                 .modifier(GlassButtonCompat())

@@ -5,8 +5,9 @@ import GameApp
 public struct AchievementsView: View {
     @Environment(AchievementStore.self) private var achievements
     @Environment(HomeState.self) private var homeState
+    @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
-    
+
     public init() {}
     
     /// Sorted achievements: claimable first, then locked, then claimed last
@@ -79,6 +80,10 @@ public struct AchievementsView: View {
             .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Achievements")
             .navigationBarTitleDisplayMode(.large)
+            .onAppear {
+                // Trigger playtime update when viewing achievements
+                gameStore.achievementEvaluator?.savePlaytimeProgress(state: gameStore.state)
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {

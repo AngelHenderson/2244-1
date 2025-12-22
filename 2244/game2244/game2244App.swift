@@ -172,10 +172,13 @@ struct game2244App: App {
                     
                     // Setup achievement evaluator with reward handler
                     achievementStore.onReward = applyRewards
-                    
+
                     let evaluator = AchievementEvaluator(achievementStore: achievementStore)
                     gameStore.achievementEvaluator = evaluator
-                    
+
+                    // Start tracking playtime for the initial session
+                    evaluator.onGameStart(state: gameStore.state)
+
                     // Setup daily claims reward handler
                     dailyClaimsStore.onReward = applyRewards
                     

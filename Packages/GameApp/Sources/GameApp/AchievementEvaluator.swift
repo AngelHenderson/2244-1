@@ -6,7 +6,7 @@ import GameServices
 public final class AchievementEvaluator {
     private let achievementStore: AchievementStore
     private var currentGameSnapshot = GameSnapshot()
-    private var sessionStartTime = Date()
+    public private(set) var sessionStartTime = Date()
     private var totalGamesPlayed: Int = 0
     private var mergesThisTurn: Int = 0
     private var consecutiveMergeTurns: Int = 0
@@ -25,6 +25,7 @@ public final class AchievementEvaluator {
     private var spinUsesTotal: Int = 0
     private var challengeCreationTotal: Int = 0
     private var totalPlayMinutes: Int = 0
+    private var totalPlaySeconds: Int = 0
     private var infinityCreationsTotal: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
@@ -38,6 +39,7 @@ public final class AchievementEvaluator {
     private let spinUsesKey = "powerUses.spin"
     private let challengeCreationTotalKey = "challengeCreation.total"
     private let playtimeTotalMinutesKey = "playtime.totalMinutes"
+    private let playtimeTotalSecondsKey = "playtime.totalSeconds"
     private let infinityCreationsKey = "infinity.creations.total"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
@@ -54,7 +56,16 @@ public final class AchievementEvaluator {
         spinUsesTotal = defaults.integer(forKey: spinUsesKey)
         surviveMovesTotal = defaults.integer(forKey: surviveMovesKey)
         challengeCreationTotal = defaults.integer(forKey: challengeCreationTotalKey)
-        totalPlayMinutes = defaults.integer(forKey: playtimeTotalMinutesKey)
+        totalPlaySeconds = defaults.integer(forKey: playtimeTotalSecondsKey)
+        // Migrate old minutes-only data if seconds is 0 but minutes exists
+        if totalPlaySeconds == 0 {
+            let oldMinutes = defaults.integer(forKey: playtimeTotalMinutesKey)
+            if oldMinutes > 0 {
+                totalPlaySeconds = oldMinutes * 60
+                defaults.set(totalPlaySeconds, forKey: playtimeTotalSecondsKey)
+            }
+        }
+        totalPlayMinutes = totalPlaySeconds / 60
         infinityCreationsTotal = defaults.integer(forKey: infinityCreationsKey)
         if challengeCreationTotal == 0,
            let data = UserDefaults.standard.data(forKey: "challengeCompletedIds"),
@@ -98,7 +109,33 @@ public final class AchievementEvaluator {
         currentGameSnapshot.play_minutes_total = totalPlayMinutes
         currentGameSnapshot.infinity_creations_total = infinityCreationsTotal
     }
-    
+
+    /// Saves accumulated playtime without ending the game session.
+    /// Call this when the app backgrounds or viewing achievements.
+    public func savePlaytimeProgress(state: GameState) {
+        let elapsedSeconds = Int(Date().timeIntervalSince(sessionStartTime))
+        totalPlaySeconds += elapsedSeconds
+        totalPlayMinutes = totalPlaySeconds / 60
+        defaults.set(totalPlaySeconds, forKey: playtimeTotalSecondsKey)
+        defaults.set(totalPlayMinutes, forKey: playtimeTotalMinutesKey)
+        print("⏱️ Playtime saved: +\(elapsedSeconds)s, Total: \(totalPlaySeconds)s (\(totalPlayMinutes) min)")
+
+        // Reset session start for when app resumes
+        sessionStartTime = Date()
+
+        // Update snapshot and evaluate achievements
+        currentGameSnapshot.play_minutes_total = totalPlayMinutes
+        var snapshot = currentGameSnapshot
+        snapshot.play_minutes_total = totalPlayMinutes
+        snapshot.games_played = totalGamesPlayed
+        snapshot.max_tile = state.highestTile
+        snapshot.score = state.score
+
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
+    }
+
     public func onChainCommitted(chain: [Position], state: GameState, resultingTileValue: Int?) {
         movesThisGame += 1
         currentGameSnapshot.combo610Total = combo610Total
