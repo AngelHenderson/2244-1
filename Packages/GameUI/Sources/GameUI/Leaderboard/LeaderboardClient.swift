@@ -1,6 +1,27 @@
 import SwiftUI
 import Foundation
 
+// MARK: - User Milestone Storage (for mock leaderboard)
+public enum UserLeaderboardData {
+    /// The user's current highest milestone (e.g., "16M", "33M", "1B")
+    /// Reads from UserDefaults "leaderboard.milestone" (set by GameStore)
+    public static var currentMilestone: String {
+        UserDefaults.standard.string(forKey: "leaderboard.milestone") ?? "16M"
+    }
+
+    /// The user's display name
+    /// Reads from UserDefaults "playerName" (set by profile)
+    public static var playerName: String {
+        UserDefaults.standard.string(forKey: "playerName") ?? "Player"
+    }
+
+    /// The user's avatar ID
+    /// Reads from UserDefaults "avatarSystemName" (set by profile)
+    public static var avatarID: String {
+        UserDefaults.standard.string(forKey: "avatarSystemName") ?? "avatar-shiba-dog"
+    }
+}
+
 public struct LeaderboardClient: Sendable {
     public var authenticate: @Sendable () async throws -> Bool
     public var submitScore: @Sendable (_ score: Int) async throws -> Void
@@ -172,11 +193,69 @@ private enum MockLeaderboardData {
         "UnitUltimate", "ValueVictor", "WorthWinner", "PricePlayer", "CostChamp"
     ]
 
+    // Convert milestone string to a score value
+    // Higher milestones = exponentially higher scores
+    // Returns a scaled score that fits in Int while preserving relative ordering
+    static func scoreForMilestone(_ milestone: String) -> Int {
+        // For infinity milestones (e.g., "15552∞"), parse the count
+        // Score is based on infinity count - higher count = higher score
+        if milestone.hasSuffix("∞") {
+            let countStr = milestone.dropLast()
+            if let count = Int(countStr) {
+                // Base score for infinity players starts very high
+                // Each infinity adds to the score, scaled to fit in Int
+                let baseScore = 999_000_000_000  // 999 billion base
+                let perInfinityScore = 1_000_000  // 1 million per infinity
+                return baseScore + (count * perInfinityScore)
+            }
+        }
+
+        // Find milestone index in allMilestones array
+        if let index = allMilestones.firstIndex(of: milestone) {
+            // Score grows with milestone tier
+            // Use a logarithmic scale to prevent overflow
+            let baseScore = 1_000_000  // 1 million base
+            let tierBonus = index * 10_000_000  // 10 million per tier
+            return baseScore + tierBonus
+        }
+
+        // Fallback: try to estimate based on suffix
+        let suffixes = ["M", "B", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+        let doubleSuffixes = ["aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak", "al", "am", "an", "ao", "ap", "aq", "ar", "as", "at", "au", "av", "aw", "ax", "ay", "az", "ba", "bb", "bc", "bd", "be", "bf", "bg", "bh", "bi", "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu", "bv", "bw", "bx", "by", "bz"]
+
+        // Extract mantissa and suffix
+        var mantissa = 1
+        var suffix = ""
+        for (i, char) in milestone.enumerated() {
+            if char.isLetter {
+                suffix = String(milestone.dropFirst(i))
+                mantissa = Int(milestone.prefix(i)) ?? 1
+                break
+            }
+        }
+
+        // Calculate tier index
+        var tierIndex = 0
+        if let idx = doubleSuffixes.firstIndex(of: suffix.lowercased()) {
+            tierIndex = 28 + idx  // After single letters (28 = M, B, a-z)
+        } else if let idx = suffixes.firstIndex(of: suffix.uppercased()) {
+            tierIndex = idx
+        } else if let idx = suffixes.firstIndex(of: suffix.lowercased()) {
+            tierIndex = idx + 2  // a-z after M, B
+        }
+
+        // Score based on tier and mantissa
+        // Use multiplication that won't overflow
+        let tierScore = tierIndex * 10_000_000  // 10 million per tier
+        let mantissaBonus = mantissa * 10_000   // 10k per mantissa unit
+        return 1_000_000 + tierScore + mantissaBonus
+    }
+
     // Avatar IDs from AvatarCatalog (12 options, cycled for all players)
     static let avatarIDs = [
-        "avatar-dog", "avatar-cat", "avatar-hat", "avatar-warrior",
-        "avatar-burger", "avatar-robot", "avatar-phoenix", "avatar-chicken",
-        "avatar-anchor", "avatar-bear", "avatar-shark", "avatar-plane"
+        "avatar-shiba-dog", "avatar-astronaut-cat", "avatar-robot-green", "avatar-phoenix-fire",
+        "avatar-shark-teeth", "avatar-paper-plane", "avatar-baseball-cap", "avatar-warrior-samurai",
+        "avatar-burger-food", "avatar-chicken-bird", "avatar-anchor-nautical", "avatar-bear-grizzly"
     ]
 
     // Exact Hall of Fame infinity counts from screenshots (ranks 1-150)
@@ -368,7 +447,8 @@ public extension LeaderboardClient {
             }
 
             let platform: Platform = index % 2 == 0 ? .ios : .android
-            let score = max(1000, 9999000 - (index * 50000))
+            // Score based on infinity tile count
+            let score = MockLeaderboardData.scoreForMilestone("\(count)∞")
 
             let avatar = MockLeaderboardData.avatarIDs[index % MockLeaderboardData.avatarIDs.count]
 
@@ -479,7 +559,8 @@ public extension LeaderboardClient {
             }
 
             let platform: Platform = index % 2 == 0 ? .ios : .android
-            let score = max(1000, 873000 - (index * 5000))
+            // Score based on milestone value
+            let score = MockLeaderboardData.scoreForMilestone(milestone)
             let avatar = MockLeaderboardData.avatarIDs[index % MockLeaderboardData.avatarIDs.count]
 
             entries.append(LeaderboardEntry(
@@ -495,23 +576,39 @@ public extension LeaderboardClient {
         }
 
         // Add current user entry (ranked among 900k+ global players)
-        // Rank improves slowly over time (user climbs the leaderboard)
-        let day = MockLeaderboardData.daysSinceReference
-        let baseGlobalRank = 500_000
-        let dailyImprovement = Int(MockLeaderboardData.seededRandom(seed: 999, index: day) * 500) + 100
-        let totalImprovement = (day % 365) * dailyImprovement / 10
-        let globalRank = max(151, baseGlobalRank - totalImprovement)
+        // Rank is calculated based on user's milestone relative to top 150 cutoff
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+
+        // Global top 150 cutoff is "2aq" - need this or higher to be in top 150
+        let globalTop150Cutoff = "2aq"
+        let globalCutoffIndex = MockLeaderboardData.allMilestones.firstIndex(of: globalTop150Cutoff) ?? 480
+        let userMilestoneIndex = MockLeaderboardData.allMilestones.firstIndex(of: userMilestone) ?? 0
+        let totalPlayers = 943_817
+
+        let globalRank: Int
+        if userMilestoneIndex >= globalCutoffIndex {
+            // User is in top 150 - rank based on position above cutoff
+            let aboveCutoff = userMilestoneIndex - globalCutoffIndex
+            globalRank = max(1, 150 - aboveCutoff)
+        } else {
+            // User is below top 150 - rank scales from 151 to totalPlayers
+            // The closer to cutoff, the closer to rank 151
+            let progressRatio = Double(userMilestoneIndex) / Double(globalCutoffIndex)
+            let rankRange = totalPlayers - 151
+            globalRank = totalPlayers - Int(Double(rankRange) * progressRatio)
+        }
 
         entries.append(LeaderboardEntry(
             id: "me",
             rank: globalRank,
-            name: "Angel Junior711",
-            score: 1000,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
             countryCode: "US",
             platform: .ios,
             isMe: true,
-            avatarURL: "avatar-dog",
-            highestTile: "16M"
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
         ))
 
         return entries
@@ -531,7 +628,8 @@ public extension LeaderboardClient {
             let name = MockLeaderboardData.usNames[player.index % MockLeaderboardData.usNames.count]
             let platform: Platform = player.index % 2 == 0 ? .ios : .android
             let milestone = player.exactMilestone  // Use exact milestone from screenshots
-            let score = max(1000, 873000 - (rank * 5000))
+            // Score based on milestone value
+            let score = MockLeaderboardData.scoreForMilestone(milestone)
             let avatar = MockLeaderboardData.avatarIDs[player.index % MockLeaderboardData.avatarIDs.count]
 
             entries.append(LeaderboardEntry(
@@ -547,22 +645,39 @@ public extension LeaderboardClient {
         }
 
         // Add current user entry (ranked among 100k+ US players)
-        // Rank improves slowly over time (user climbs the leaderboard)
-        let baseUSRank = 65_000
-        let dailyImprovement = Int(MockLeaderboardData.seededRandom(seed: 888, index: day) * 100) + 20
-        let totalImprovement = (day % 365) * dailyImprovement / 10
-        let usRank = max(151, baseUSRank - totalImprovement)
+        // Rank is calculated based on user's milestone relative to top 150 cutoff
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+
+        // US top 150 cutoff is "9b" - need this or higher to be in top 150
+        let usTop150Cutoff = "9b"
+        let usCutoffIndex = MockLeaderboardData.allMilestones.firstIndex(of: usTop150Cutoff) ?? 33
+        let userMilestoneIndex = MockLeaderboardData.allMilestones.firstIndex(of: userMilestone) ?? 0
+        let totalUSPlayers = 127_493
+
+        let usRank: Int
+        if userMilestoneIndex >= usCutoffIndex {
+            // User is in top 150 - rank based on position above cutoff
+            let aboveCutoff = userMilestoneIndex - usCutoffIndex
+            usRank = max(1, 150 - aboveCutoff)
+        } else {
+            // User is below top 150 - rank scales from 151 to totalUSPlayers
+            // The closer to cutoff, the closer to rank 151
+            let progressRatio = Double(userMilestoneIndex) / Double(usCutoffIndex)
+            let rankRange = totalUSPlayers - 151
+            usRank = totalUSPlayers - Int(Double(rankRange) * progressRatio)
+        }
 
         entries.append(LeaderboardEntry(
             id: "me",
             rank: usRank,
-            name: "Angel Junior711",
-            score: 1000,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
             countryCode: "US",
             platform: .ios,
             isMe: true,
-            avatarURL: "avatar-dog",
-            highestTile: "16M"
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
         ))
 
         return entries

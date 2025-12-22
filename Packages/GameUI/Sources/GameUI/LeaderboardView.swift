@@ -212,7 +212,10 @@ public struct LeaderboardView: View {
 
             // Avatar with platform badge
             ZStack(alignment: .bottomTrailing) {
-                if let avatarURL = entry.avatarURL, let url = URL(string: avatarURL) {
+                if let avatarID = entry.avatarURL, avatarID.hasPrefix("avatar-") {
+                    // Local avatar from AvatarCatalog
+                    AvatarBadge(option: AvatarCatalog.option(for: avatarID), size: 44)
+                } else if let avatarURL = entry.avatarURL, let url = URL(string: avatarURL) {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()
