@@ -486,10 +486,13 @@ private struct MultiplierInventoryCard: View {
                         .frame(width: 36, alignment: .trailing)
                     Button("Use") {
                         if spinState.activateMultiplier(tier, now: now) {
-                            if tier == .twoX {
+                            switch tier {
+                            case .twoX:
                                 gameStore.achievementEvaluator?.onBoost2xUsed()
-                            } else if tier == .threeX {
+                            case .threeX:
                                 gameStore.achievementEvaluator?.onBoost3xUsed()
+                            case .fourX:
+                                gameStore.achievementEvaluator?.onBoost4xUsed()
                             }
                         }
                     }

@@ -180,6 +180,7 @@ public struct GameSnapshot: Sendable, Codable {
     public var infinity_creations_total: Int = 0
     public var boost2x_uses_total: Int = 0
     public var boost3x_uses_total: Int = 0
+    public var boost4x_uses_total: Int = 0
 
     public init() {}
 }

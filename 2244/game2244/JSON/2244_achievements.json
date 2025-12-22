@@ -284,5 +284,21 @@
         "value": 5
       }
     ]
+  },
+  {
+    "id": "boost4x_usage_progression",
+    "gcIdentifier": "boost4x_usage_progression",
+    "title": "4× Boost Master",
+    "description": "Use 4× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost4x_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
   }
 ]

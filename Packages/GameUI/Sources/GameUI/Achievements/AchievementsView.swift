@@ -43,7 +43,8 @@ public struct AchievementsView: View {
             || id == "infinity_progression"
             || id == "playtime_progression"
             || id == "boost2x_usage_progression"
-            || id == "boost3x_usage_progression" {
+            || id == "boost3x_usage_progression"
+            || id == "boost4x_usage_progression" {
             if state?.isClaimable == true { return 0 }  // Claimable at very top
             return 1  // Otherwise just below claimable items
         }
@@ -130,6 +131,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.boost2xUsesDisplay
         case "boost3x_usage_progression":
             return achievements.boost3xUsesDisplay
+        case "boost4x_usage_progression":
+            return achievements.boost4xUsesDisplay
         default:
             return nil
         }

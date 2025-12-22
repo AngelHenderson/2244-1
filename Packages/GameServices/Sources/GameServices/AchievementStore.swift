@@ -396,6 +396,17 @@ public final class AchievementStore {
         .init(milestone: 250, categoryLabel: "250 uses", rewards: .init(gems: 5000))
     ]
 
+    private static let boost4xUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "5 uses", rewards: .init(gems: 400, spins: 1)),
+        .init(milestone: 15, categoryLabel: "15 uses", rewards: .init(gems: 900)),
+        .init(milestone: 30, categoryLabel: "30 uses", rewards: .init(gems: 1150, magnets: 1)),
+        .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1800, hammers: 1)),
+        .init(milestone: 100, categoryLabel: "100 uses", rewards: .init(gems: 2100, swaps: 1)),
+        .init(milestone: 200, categoryLabel: "200 uses", rewards: .init(gems: 2700)),
+        .init(milestone: 300, categoryLabel: "300 uses", rewards: .init(gems: 3210, spins: 1, boost3x: 1)),
+        .init(milestone: 400, categoryLabel: "400 uses", rewards: .init(gems: 3500, hammers: 2, magnets: 1))
+    ]
+
     private static let challengeCreationTiers: [ComboTierDefinition] = [
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
         .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
@@ -864,6 +875,43 @@ public final class AchievementStore {
         boost3xUsesProgressionTier >= Self.boost3xUseTiers.count - 1
     }
 
+    /// 4X Boost usage progression tier index (persisted)
+    public var boost4xUsesProgressionTier: Int {
+        didSet {
+            defaults.set(boost4xUsesProgressionTier, forKey: "boost4xUsesProgressionTier")
+            unlocks["boost4x_usage_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+
+    private var currentBoost4xUsesTier: ComboTierDefinition {
+        let index = min(boost4xUsesProgressionTier, Self.boost4xUseTiers.count - 1)
+        return Self.boost4xUseTiers[index]
+    }
+
+    public var boost4xUsesDisplay: ProgressTierDisplay {
+        let tier = currentBoost4xUsesTier
+        let clampedIndex = min(boost4xUsesProgressionTier, Self.boost4xUseTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = boost4xUsesProgressionTier >= Self.boost4xUseTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered using 4X Boosts. Claim your final reward."
+            : "Use 4X Boost \(tier.milestone) times to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) uses"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "4X Boost",
+            rewards: tier.rewards
+        )
+    }
+
+    public var isBoost4xUsesProgressionMaxed: Bool {
+        boost4xUsesProgressionTier >= Self.boost4xUseTiers.count - 1
+    }
+
     /// Challenge creation progression tier index (persisted)
     public var challengeCreationTier: Int {
         didSet {
@@ -1056,6 +1104,7 @@ public final class AchievementStore {
         self.infinityProgressionTier = defaults.integer(forKey: "infinityProgressionTier")
         self.boost2xUsesProgressionTier = defaults.integer(forKey: "boost2xUsesProgressionTier")
         self.boost3xUsesProgressionTier = defaults.integer(forKey: "boost3xUsesProgressionTier")
+        self.boost4xUsesProgressionTier = defaults.integer(forKey: "boost4xUsesProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
         loadPersistedSnapshot()
@@ -1231,6 +1280,15 @@ public final class AchievementStore {
             if def.id == "boost3x_usage_progression" {
                 let targetValue = Double(currentBoost3xUsesTier.milestone)
                 if Double(snapshot.boost3x_uses_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+
+            if def.id == "boost4x_usage_progression" {
+                let targetValue = Double(currentBoost4xUsesTier.milestone)
+                if Double(snapshot.boost4x_uses_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1542,6 +1600,23 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "boost4x_usage_progression" {
+            let rewards = boost4xUsesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+
+            if !isBoost4xUsesProgressionMaxed {
+                boost4xUsesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         if definition.id == "challenge_creation" {
             let rewards = challengeCreationDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -1631,6 +1706,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.boost2x_uses_total), target: Double(currentBoost2xUsesTier.milestone))
         case "boost3x_usage_progression":
             return makeProgress(current: Double(snapshot.boost3x_uses_total), target: Double(currentBoost3xUsesTier.milestone))
+        case "boost4x_usage_progression":
+            return makeProgress(current: Double(snapshot.boost4x_uses_total), target: Double(currentBoost4xUsesTier.milestone))
         case "challenge_creation":
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":
@@ -1713,6 +1790,7 @@ public final class AchievementStore {
         case "infinity_creations_total": return .init(s.infinity_creations_total)
         case "boost2x_uses_total": return .init(s.boost2x_uses_total)
         case "boost3x_uses_total": return .init(s.boost3x_uses_total)
+        case "boost4x_uses_total": return .init(s.boost4x_uses_total)
         case "max_chain_60s": return .init(s.max_chain_60s)
         case "max_tile_300s": return .init(s.max_tile_300s)
         case "daily_completed": return .init(s.daily_completed)
