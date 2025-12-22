@@ -252,5 +252,21 @@
         "value": 25
       }
     ]
+  },
+  {
+    "id": "boost2x_usage_progression",
+    "gcIdentifier": "boost2x_usage_progression",
+    "title": "2× Boost Master",
+    "description": "Use 2× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost2x_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
   }
 ]

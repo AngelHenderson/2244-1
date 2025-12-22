@@ -178,6 +178,7 @@ public struct GameSnapshot: Sendable, Codable {
     public var challenge_creations_total: Int = 0
     public var play_minutes_total: Int = 0
     public var infinity_creations_total: Int = 0
-    
+    public var boost2x_uses_total: Int = 0
+
     public init() {}
 }

@@ -27,6 +27,7 @@ public final class AchievementEvaluator {
     private var totalPlayMinutes: Int = 0
     private var totalPlaySeconds: Int = 0
     private var infinityCreationsTotal: Int = 0
+    private var boost2xUsesTotal: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
@@ -41,6 +42,7 @@ public final class AchievementEvaluator {
     private let playtimeTotalMinutesKey = "playtime.totalMinutes"
     private let playtimeTotalSecondsKey = "playtime.totalSeconds"
     private let infinityCreationsKey = "infinity.creations.total"
+    private let boost2xUsesKey = "powerUses.boost2x"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
@@ -67,6 +69,7 @@ public final class AchievementEvaluator {
         }
         totalPlayMinutes = totalPlaySeconds / 60
         infinityCreationsTotal = defaults.integer(forKey: infinityCreationsKey)
+        boost2xUsesTotal = defaults.integer(forKey: boost2xUsesKey)
         if challengeCreationTotal == 0,
            let data = UserDefaults.standard.data(forKey: "challengeCompletedIds"),
            let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
@@ -88,8 +91,9 @@ public final class AchievementEvaluator {
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal
         currentGameSnapshot.play_minutes_total = totalPlayMinutes
         currentGameSnapshot.infinity_creations_total = infinityCreationsTotal
+        currentGameSnapshot.boost2x_uses_total = boost2xUsesTotal
     }
-    
+
     public func onGameStart(state: GameState) {
         sessionStartTime = Date()
         movesThisGame = 0
@@ -108,6 +112,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal
         currentGameSnapshot.play_minutes_total = totalPlayMinutes
         currentGameSnapshot.infinity_creations_total = infinityCreationsTotal
+        currentGameSnapshot.boost2x_uses_total = boost2xUsesTotal
     }
 
     /// Saves accumulated playtime without ending the game session.
@@ -205,17 +210,17 @@ public final class AchievementEvaluator {
         snapshot.challenge_creations_total = challengeCreationTotal
         snapshot.play_minutes_total = totalPlayMinutes
         snapshot.infinity_creations_total = infinityCreationsTotal
-        snapshot.infinity_creations_total = infinityCreationsTotal
-        
+        snapshot.boost2x_uses_total = boost2xUsesTotal
+
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
         }
-        
+
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }
     }
-    
+
     public func onGameEnd(state: GameState, won: Bool) {
         totalGamesPlayed += 1
         UserDefaults.standard.set(totalGamesPlayed, forKey: "totalGamesPlayed")
@@ -247,8 +252,9 @@ public final class AchievementEvaluator {
         snapshot.challenge_creations_total = challengeCreationTotal
         snapshot.play_minutes_total = totalPlayMinutes
         snapshot.infinity_creations_total = infinityCreationsTotal
+        snapshot.boost2x_uses_total = boost2xUsesTotal
         snapshot.reached_core_target = state.highestTile >= 2244
-        
+
         var freeSlots = 0
         for row in 0..<6 {
             for col in 0..<6 {
@@ -292,12 +298,13 @@ public final class AchievementEvaluator {
         snapshot.games_played = totalGamesPlayed
         snapshot.play_minutes_total = totalPlayMinutes
         snapshot.infinity_creations_total = infinityCreationsTotal
-        
+        snapshot.boost2x_uses_total = boost2xUsesTotal
+
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }
     }
-    
+
     public func onUndoUsed() {
         currentGameSnapshot.undo_used += 1
         currentGameSnapshot.combo610Total = combo610Total
@@ -369,14 +376,26 @@ public final class AchievementEvaluator {
         infinityCreationsTotal += 1
         defaults.set(infinityCreationsTotal, forKey: infinityCreationsKey)
         currentGameSnapshot.infinity_creations_total = infinityCreationsTotal
-        
+
         var snapshot = currentGameSnapshot
         snapshot.infinity_creations_total = infinityCreationsTotal
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }
     }
-    
+
+    public func onBoost2xUsed() {
+        boost2xUsesTotal += 1
+        defaults.set(boost2xUsesTotal, forKey: boost2xUsesKey)
+        currentGameSnapshot.boost2x_uses_total = boost2xUsesTotal
+
+        var snapshot = currentGameSnapshot
+        snapshot.boost2x_uses_total = boost2xUsesTotal
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
+    }
+
     public func onChallengeCreationCompleted() {
         challengeCreationTotal += 1
         defaults.set(challengeCreationTotal, forKey: challengeCreationTotalKey)

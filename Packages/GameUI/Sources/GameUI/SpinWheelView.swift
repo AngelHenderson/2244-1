@@ -156,14 +156,28 @@ public struct SpinWheelView: View {
                 
                 WheelLights(count: max(engine.segments.count, 1))
                 
-                PegShape()
-                    .fill(.ultraThinMaterial)
-                    .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
-                    .frame(width: 28, height: 90)
-                    .rotationEffect(.degrees(180))
+                LocationPinShape()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(red: 0.4, green: 0.85, blue: 0.4), Color(red: 0.2, green: 0.65, blue: 0.2)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .overlay(
+                        LocationPinShape()
+                            .stroke(Color.white.opacity(0.5), lineWidth: 1.5)
+                    )
+                    .overlay(
+                        Circle()
+                            .fill(Color.white.opacity(0.9))
+                            .frame(width: 12, height: 12)
+                            .offset(y: -18)
+                    )
+                    .frame(width: 32, height: 48)
                     .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .bottom)
-                    .offset(y: -170)
-                    .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
+                    .offset(y: -175)
+                    .shadow(color: Color(red: 0.2, green: 0.5, blue: 0.2).opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()
                     .fill(.ultraThickMaterial)
@@ -443,9 +457,10 @@ private struct GemBalancePill: View {
 // MARK: - Inventory Card
 
 private struct MultiplierInventoryCard: View {
+    @Environment(\.gameStore) private var gameStore
     @Bindable var spinState: SpinWheelState
     let now: Date
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Boost Inventory")
@@ -454,9 +469,10 @@ private struct MultiplierInventoryCard: View {
             
             ForEach(SpinWheelState.MultiplierTier.allCases, id: \.self) { tier in
                 let canActivate = spinState.count(for: tier) > 0 && spinState.activeMultiplier == nil
+                let durationHours = Int(tier.duration / 3600)
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("\(tier.displayName) for 24h")
+                        Text("\(tier.displayName) for \(durationHours)h")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                             .foregroundStyle(.white)
                         Text("Stacks until you use it")
@@ -469,7 +485,11 @@ private struct MultiplierInventoryCard: View {
                         .foregroundStyle(.white)
                         .frame(width: 36, alignment: .trailing)
                     Button("Use") {
-                        _ = spinState.activateMultiplier(tier, now: now)
+                        if spinState.activateMultiplier(tier, now: now) {
+                            if tier == .twoX {
+                                gameStore.achievementEvaluator?.onBoost2xUsed()
+                            }
+                        }
                     }
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .padding(.horizontal, 10)
@@ -664,6 +684,43 @@ struct PegShape: Shape {
         p.move(to: CGPoint(x: w * 0.5, y: 0))
         p.addLine(to: CGPoint(x: 0, y: rect.height))
         p.addLine(to: CGPoint(x: w, y: rect.height))
+        p.closeSubpath()
+        return p
+    }
+}
+
+struct LocationPinShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let w = rect.width
+        let h = rect.height
+        let circleRadius = w / 2
+        let circleCenter = CGPoint(x: w / 2, y: circleRadius)
+
+        // Start at the bottom point
+        p.move(to: CGPoint(x: w / 2, y: h))
+
+        // Draw left curve up to circle
+        p.addQuadCurve(
+            to: CGPoint(x: 0, y: circleRadius),
+            control: CGPoint(x: 0, y: h * 0.5)
+        )
+
+        // Draw the circle arc (top half)
+        p.addArc(
+            center: circleCenter,
+            radius: circleRadius,
+            startAngle: .degrees(180),
+            endAngle: .degrees(0),
+            clockwise: false
+        )
+
+        // Draw right curve down to point
+        p.addQuadCurve(
+            to: CGPoint(x: w / 2, y: h),
+            control: CGPoint(x: w, y: h * 0.5)
+        )
+
         p.closeSubpath()
         return p
     }
