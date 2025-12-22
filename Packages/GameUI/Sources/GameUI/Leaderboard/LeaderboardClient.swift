@@ -721,28 +721,31 @@ public extension LeaderboardClient {
             // Find the bracket and distribute rank within the bracket range
             var bracketStart = totalUSPlayers
             var bracketEnd = totalUSPlayers
-            var foundBracket = false
+            var foundBracketIndex = -1
 
-            // For milestones in allMilestones (M-tier and above), use index comparison
+            // For milestones in allMilestones (M-tier and above), iterate forward
+            // and find the LAST bracket where user's milestone index >= bracket's index
             if userMilestoneIndex > 0 {
-                for (i, bracket) in usExtendedRankBrackets.enumerated().reversed() {
+                for (i, bracket) in usExtendedRankBrackets.enumerated() {
                     if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
                        userMilestoneIndex >= bracketIndex {
-                        bracketStart = bracket.startRank
-                        // Get the next bracket's start rank as our end
-                        if i + 1 < usExtendedRankBrackets.count {
-                            bracketEnd = usExtendedRankBrackets[i + 1].startRank - 1
-                        } else {
-                            bracketEnd = totalUSPlayers
-                        }
-                        foundBracket = true
-                        break
+                        // Keep updating - we want the highest matching bracket (last one found)
+                        foundBracketIndex = i
+                    }
+                }
+
+                if foundBracketIndex >= 0 {
+                    bracketStart = usExtendedRankBrackets[foundBracketIndex].startRank
+                    if foundBracketIndex + 1 < usExtendedRankBrackets.count {
+                        bracketEnd = usExtendedRankBrackets[foundBracketIndex + 1].startRank - 1
+                    } else {
+                        bracketEnd = totalUSPlayers
                     }
                 }
             }
 
             // For milestones below 1M (K-tier and raw numbers), find bracket by string matching
-            if !foundBracket {
+            if foundBracketIndex < 0 {
                 for (i, bracket) in usExtendedRankBrackets.enumerated() {
                     if userMilestone == bracket.milestone {
                         bracketStart = bracket.startRank
@@ -751,7 +754,7 @@ public extension LeaderboardClient {
                         } else {
                             bracketEnd = totalUSPlayers
                         }
-                        foundBracket = true
+                        foundBracketIndex = i
                         break
                     }
                 }
@@ -760,7 +763,7 @@ public extension LeaderboardClient {
             // Distribute user within the bracket range based on their score
             // Higher scores get lower (better) ranks within the bracket
             let range = bracketEnd - bracketStart
-            if range > 0 && foundBracket {
+            if range > 0 && foundBracketIndex >= 0 {
                 // Use score to position within bracket - create deterministic but varied position
                 let scoreHash = abs(userScore.hashValue) % (range + 1)
                 usRank = bracketStart + scoreHash
