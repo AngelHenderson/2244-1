@@ -488,6 +488,8 @@ private struct MultiplierInventoryCard: View {
                         if spinState.activateMultiplier(tier, now: now) {
                             if tier == .twoX {
                                 gameStore.achievementEvaluator?.onBoost2xUsed()
+                            } else if tier == .threeX {
+                                gameStore.achievementEvaluator?.onBoost3xUsed()
                             }
                         }
                     }

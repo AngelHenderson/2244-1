@@ -268,5 +268,21 @@
         "value": 5
       }
     ]
+  },
+  {
+    "id": "boost3x_usage_progression",
+    "gcIdentifier": "boost3x_usage_progression",
+    "title": "3× Boost Master",
+    "description": "Use 3× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost3x_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
   }
 ]
