@@ -724,13 +724,15 @@ public extension LeaderboardClient {
             var foundBracketIndex = -1
 
             // For milestones in allMilestones (M-tier and above), iterate forward
-            // and find the LAST bracket where user's milestone index >= bracket's index
+            // and find the FIRST bracket where user's milestone index >= bracket's index
+            // (brackets are ordered high-to-low milestone, so first match is the correct one)
             if userMilestoneIndex > 0 {
                 for (i, bracket) in usExtendedRankBrackets.enumerated() {
                     if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
                        userMilestoneIndex >= bracketIndex {
-                        // Keep updating - we want the highest matching bracket (last one found)
+                        // First match is the correct bracket (highest milestone user qualifies for)
                         foundBracketIndex = i
+                        break
                     }
                 }
 
