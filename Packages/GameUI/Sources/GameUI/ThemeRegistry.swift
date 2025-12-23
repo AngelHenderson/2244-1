@@ -185,8 +185,90 @@ extension ThemeRegistry {
             }
         )
 
+        // Simple Sage theme (nature-inspired muted tones)
+        let simpleSage = ThemeDescriptor(
+            id: "simple-sage",
+            name: "Simple Sage",
+            tileShape: .rounded,
+            tileStyle: .flat,
+            color: { value in
+                Theme.simpleSageColor(for: value)
+            }
+        )
+
+        let simpleSageSquare = ThemeDescriptor(
+            id: "simple-sage-square",
+            name: "Simple Sage Square",
+            tileShape: .square,
+            tileStyle: .flat,
+            color: { value in
+                Theme.simpleSageColor(for: value)
+            }
+        )
+
+        let simpleSage3D = ThemeDescriptor(
+            id: "simple-sage-3d",
+            name: "Simple Sage 3D",
+            tileShape: .rounded,
+            tileStyle: .raised3D,
+            color: { value in
+                Theme.simpleSageColor(for: value)
+            }
+        )
+
+        let simpleSage3DSquare = ThemeDescriptor(
+            id: "simple-sage-3d-square",
+            name: "Simple Sage 3D Square",
+            tileShape: .square,
+            tileStyle: .raised3D,
+            color: { value in
+                Theme.simpleSageColor(for: value)
+            }
+        )
+
+        // Mellow Yellow theme (warm earth tones with yellow accents)
+        let mellowYellow = ThemeDescriptor(
+            id: "mellow-yellow",
+            name: "Mellow Yellow",
+            tileShape: .rounded,
+            tileStyle: .flat,
+            color: { value in
+                Theme.mellowYellowColor(for: value)
+            }
+        )
+
+        let mellowYellowSquare = ThemeDescriptor(
+            id: "mellow-yellow-square",
+            name: "Mellow Yellow Square",
+            tileShape: .square,
+            tileStyle: .flat,
+            color: { value in
+                Theme.mellowYellowColor(for: value)
+            }
+        )
+
+        let mellowYellow3D = ThemeDescriptor(
+            id: "mellow-yellow-3d",
+            name: "Mellow Yellow 3D",
+            tileShape: .rounded,
+            tileStyle: .raised3D,
+            color: { value in
+                Theme.mellowYellowColor(for: value)
+            }
+        )
+
+        let mellowYellow3DSquare = ThemeDescriptor(
+            id: "mellow-yellow-3d-square",
+            name: "Mellow Yellow 3D Square",
+            tileShape: .square,
+            tileStyle: .raised3D,
+            color: { value in
+                Theme.mellowYellowColor(for: value)
+            }
+        )
+
         return ThemeRegistry(
-            descriptors: [classic, classicSquare, raised3D, raised3DSquare, neon, pastel, mono, highContrast],
+            descriptors: [classic, classicSquare, raised3D, raised3DSquare, neon, pastel, mono, highContrast, simpleSage, simpleSageSquare, simpleSage3D, simpleSage3DSquare, mellowYellow, mellowYellowSquare, mellowYellow3D, mellowYellow3DSquare],
             defaultId: "raised-3d-square"
         )
     }

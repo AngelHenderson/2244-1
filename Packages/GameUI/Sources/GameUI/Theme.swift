@@ -48,6 +48,108 @@ public struct Theme {
         5: 30,
         10: 60
     ]
+
+    // MARK: - Simple Sage Palette (25-step, nature-inspired muted tones)
+    public static let simpleSagePalette: [(color: Color, darkText: Bool)] = [
+        (Color(hex: "A7B4BE"), true),   // 1 (2): Gray-blue
+        (Color(hex: "F2A355"), false),  // 2 (4): Peach/Orange
+        (Color(hex: "3B8B8B"), false),  // 3 (8): Dark teal
+        (Color(hex: "9CA880"), true),   // 4 (16): Sage green
+        (Color(hex: "A97B7B"), false),  // 5 (32): Dusty rose
+        (Color(hex: "E8A5A3"), true),   // 6 (64): Salmon pink
+        (Color(hex: "A783B2"), false),  // 7 (128): Lavender
+        (Color(hex: "3FD0E7"), true),   // 8 (256): Cyan
+        (Color(hex: "A9C54A"), true),   // 9 (512): Yellow-green
+        (Color(hex: "E55C5C"), false),  // 10 (1024): Coral red
+        (Color(hex: "7378D6"), false),  // 11 (2048): Blue-purple
+        (Color(hex: "E8A5C2"), true),   // 12 (4096): Pink
+        (Color(hex: "D65B8F"), false),  // 13 (8192): Magenta
+        (Color(hex: "384E7A"), false),  // 14 (16K): Dark blue
+        (Color(hex: "808A5C"), false),  // 15 (32K): Olive
+        (Color(hex: "CD7C5C"), false),  // 16 (65K): Terracotta
+        (Color(hex: "6E4378"), false),  // 17 (131K): Purple
+        (Color(hex: "8E9957"), true),   // 18 (262K): Yellow-olive
+        (Color(hex: "F5B880"), true),   // 19 (524K): Light peach
+        (Color(hex: "522A2B"), false),  // 20 (1M): Burgundy
+        (Color(hex: "2B5555"), false),  // 21 (2M): Dark teal
+        (Color(hex: "3B5533"), false),  // 22 (4M): Dark green
+        (Color(hex: "6AC5B8"), true),   // 23 (8M): Mint
+        (Color(hex: "C87B3E"), false),  // 24 (16M): Burnt orange
+        (Color(hex: "8B5EA0"), false),  // 25 (33M): Purple
+    ]
+
+    public static func simpleSageColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            let exponent = step + 1
+            let idx = (max(1, exponent) - 1) % 25
+            return simpleSagePalette[idx].color
+        }
+        let exp = exponent(for: value)
+        let idx = (max(1, exp) - 1) % 25
+        return simpleSagePalette[idx].color
+    }
+
+    public static func simpleSageTextColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            let exponent = step + 1
+            let idx = (max(1, exponent) - 1) % 25
+            return simpleSagePalette[idx].darkText ? .black : .white
+        }
+        let exp = exponent(for: value)
+        let idx = (max(1, exp) - 1) % 25
+        return simpleSagePalette[idx].darkText ? .black : .white
+    }
+
+    // MARK: - Mellow Yellow Palette (25-step, warm earth tones with yellow accents)
+    public static let mellowYellowPalette: [(color: Color, darkText: Bool)] = [
+        (Color(hex: "4A6FA5"), false),  // 1 (2): Dark blue
+        (Color(hex: "8B7B8B"), false),  // 2 (4): Grayish purple
+        (Color(hex: "C4B454"), true),   // 3 (8): Yellow/olive
+        (Color(hex: "B87B7B"), false),  // 4 (16): Dusty rose
+        (Color(hex: "5B8DC9"), false),  // 5 (32): Medium blue
+        (Color(hex: "E07B6B"), false),  // 6 (64): Coral/salmon
+        (Color(hex: "9CA896"), true),   // 7 (128): Gray/sage
+        (Color(hex: "8B6B8B"), false),  // 8 (256): Mauve/purple
+        (Color(hex: "5DAA68"), false),  // 9 (512): Green
+        (Color(hex: "CC9966"), true),   // 10 (1024): Orange/tan
+        (Color(hex: "D95B5B"), false),  // 11 (2048): Red/coral
+        (Color(hex: "9B4DCA"), false),  // 12 (4096): Purple/magenta
+        (Color(hex: "5BB8B8"), true),   // 13 (8192): Teal/cyan
+        (Color(hex: "A4B545"), true),   // 14 (16K): Yellow-green
+        (Color(hex: "9A9A6B"), true),   // 15 (32K): Olive/khaki
+        (Color(hex: "7B5BA5"), false),  // 16 (65K): Purple/violet
+        (Color(hex: "4D9B5D"), false),  // 17 (131K): Green
+        (Color(hex: "8B5B7B"), false),  // 18 (262K): Mauve/purple
+        (Color(hex: "A5A56B"), true),   // 19 (524K): Olive/khaki
+        (Color(hex: "6B8B5B"), false),  // 20 (1M): Green/olive
+        (Color(hex: "CCA07B"), true),   // 21 (2M): Tan/orange
+        (Color(hex: "E08B7B"), false),  // 22 (4M): Coral/salmon
+        (Color(hex: "9B5BA5"), false),  // 23 (8M): Purple/magenta
+        (Color(hex: "6B5BAB"), false),  // 24 (16M): Blue/indigo
+        (Color(hex: "A07B8B"), false),  // 25 (33M): Dusty rose/mauve
+    ]
+
+    public static func mellowYellowColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            let exponent = step + 1
+            let idx = (max(1, exponent) - 1) % 25
+            return mellowYellowPalette[idx].color
+        }
+        let exp = exponent(for: value)
+        let idx = (max(1, exp) - 1) % 25
+        return mellowYellowPalette[idx].color
+    }
+
+    public static func mellowYellowTextColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            let exponent = step + 1
+            let idx = (max(1, exponent) - 1) % 25
+            return mellowYellowPalette[idx].darkText ? .black : .white
+        }
+        let exp = exponent(for: value)
+        let idx = (max(1, exp) - 1) % 25
+        return mellowYellowPalette[idx].darkText ? .black : .white
+    }
     
     // Step overrides removed to maintain proper 25-color cycling
     // The palette should repeat consistently every 25 exponents
