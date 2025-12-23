@@ -229,7 +229,7 @@ public struct LiveProfileClient: ProfileClient, Sendable {
         let globalTop150Cutoff = "2aq"
         let globalCutoffIndex = allMilestones.firstIndex(of: globalTop150Cutoff) ?? 480
         let userMilestoneIndex = allMilestones.firstIndex(of: userMilestone) ?? 0
-        let totalPlayers = 943_817
+        let totalPlayers = 885_676
 
         if userMilestoneIndex >= globalCutoffIndex {
             // User is in top 150 - rank based on position above cutoff
@@ -323,17 +323,19 @@ public struct LiveProfileClient: ProfileClient, Sendable {
                 // a-tier brackets (ranks 456-687)
                 ("562a", 456), ("281a", 463), ("140a", 472), ("70a", 479), ("35a", 484),
                 ("17a", 497), ("8a", 512), ("4a", 529), ("2a", 554), ("1a", 687),
-                // B-tier brackets (ranks 734-1248+)
+                // B-tier brackets (ranks 734-1633)
                 ("549B", 734), ("274B", 774), ("137B", 810), ("68B", 945), ("34B", 1002),
-                ("17B", 1134), ("8B", 1248),
-                // Continue with estimated brackets for lower B-tier and M-tier
-                ("4B", 1400), ("2B", 1600), ("1B", 1850),
-                // M-tier brackets (estimated for very high ranks)
-                ("536M", 2200), ("268M", 2700), ("134M", 3400), ("67M", 4300), ("33M", 5500),
-                ("16M", 7200), ("8M", 9500), ("4M", 13000), ("2M", 18000), ("1M", 26000),
-                // M-tier brackets
-                ("536M", 940000), ("268M", 941000), ("134M", 942000), ("67M", 942500), ("33M", 943000),
-                ("16M", 943200), ("8M", 943400), ("4M", 943550), ("2M", 943650), ("1M", 943750)
+                ("17B", 1134), ("8B", 1248), ("4B", 1404), ("2B", 1467), ("1B", 1633),
+                // M-tier brackets (ranks 1743-11248)
+                ("536M", 1743), ("268M", 1902), ("134M", 2123), ("67M", 2975), ("33M", 3784),
+                ("16M", 4564), ("8M", 5223), ("4M", 6530), ("2M", 7399), ("1M", 11248),
+                // K-tier brackets (ranks 17132-67412)
+                ("524K", 17132), ("262K", 23582), ("131K", 32486), ("65K", 42421), ("32K", 54867), ("16K", 67412),
+                // Raw number brackets (ranks 76767-877890+)
+                ("8192", 76767), ("4096", 112486), ("2048", 157780), ("1024", 248624),
+                ("512", 402486), ("256", 577398), ("128", 676767), ("64", 733337),
+                ("32", 789012), ("16", 822228), ("8", 847790), ("4", 863074), ("2", 877890),
+                ("0", 882349)  // Score 0 = new players (ranks 882349-885676)
             ]
 
             // Find the bracket and distribute rank within the bracket range
