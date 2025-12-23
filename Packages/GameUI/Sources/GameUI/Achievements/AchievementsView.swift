@@ -72,6 +72,8 @@ public struct AchievementsView: View {
             return achievements.boost4xUsesDisplay.level
         case "spin_purchases_progression":
             return achievements.spinPurchasesDisplay.level
+        case "daily_claims_progression":
+            return achievements.dailyClaimsDisplay.level
         default:
             return 1
         }
@@ -165,6 +167,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.boost4xUsesDisplay
         case "spin_purchases_progression":
             return achievements.spinPurchasesDisplay
+        case "daily_claims_progression":
+            return achievements.dailyClaimsDisplay
         default:
             return nil
         }
@@ -376,10 +380,14 @@ private struct AchievementRow: View {
 private struct RewardSummary: View {
     let rewards: AchievementDef.Rewards?
 
+    private enum RewardIcon {
+        case asset(String)
+        case system(String, Color)
+    }
+
     private struct RewardItem: Identifiable {
         let id = UUID()
-        let icon: String
-        let color: Color
+        let icon: RewardIcon
         let text: String
     }
 
@@ -387,30 +395,44 @@ private struct RewardSummary: View {
         guard let rewards else { return [] }
         var items: [RewardItem] = []
         if let gems = rewards.gems, gems > 0 {
-            items.append(RewardItem(icon: "diamond.fill", color: .cyan, text: "\(gems) Gems"))
+            items.append(RewardItem(icon: .asset("gem"), text: "\(gems) Gems"))
         }
         if let hammers = rewards.hammers, hammers > 0 {
-            items.append(RewardItem(icon: "hammer.fill", color: .orange, text: "\(hammers) Hammer\(hammers == 1 ? "" : "s")"))
+            items.append(RewardItem(icon: .asset("hammer"), text: "\(hammers) Hammer\(hammers == 1 ? "" : "s")"))
         }
         if let magnets = rewards.magnets, magnets > 0 {
-            items.append(RewardItem(icon: "arrow.triangle.merge", color: .purple, text: "\(magnets) MegaMerge\(magnets == 1 ? "" : "s")"))
+            items.append(RewardItem(icon: .asset("magnet"), text: "\(magnets) MegaMerge\(magnets == 1 ? "" : "s")"))
         }
         if let swaps = rewards.swaps, swaps > 0 {
-            items.append(RewardItem(icon: "arrow.left.arrow.right", color: .blue, text: "\(swaps) Swap\(swaps == 1 ? "" : "s")"))
+            items.append(RewardItem(icon: .asset("swap"), text: "\(swaps) Swap\(swaps == 1 ? "" : "s")"))
         }
         if let spins = rewards.spins, spins > 0 {
-            items.append(RewardItem(icon: "arrow.trianglehead.2.clockwise.rotate.90", color: .green, text: "\(spins) Spin\(spins == 1 ? "" : "s")"))
+            items.append(RewardItem(icon: .asset("spinthewheel"), text: "\(spins) Spin\(spins == 1 ? "" : "s")"))
         }
         if let boost2x = rewards.boost2x, boost2x > 0 {
-            items.append(RewardItem(icon: "2.circle.fill", color: .mint, text: "\(boost2x)× 2X Boost"))
+            items.append(RewardItem(icon: .asset("boost2x"), text: "\(boost2x)× 2X Boost"))
         }
         if let boost3x = rewards.boost3x, boost3x > 0 {
-            items.append(RewardItem(icon: "3.circle.fill", color: .yellow, text: "\(boost3x)× 3X Boost"))
+            items.append(RewardItem(icon: .asset("boost3x"), text: "\(boost3x)× 3X Boost"))
         }
         if let boost4x = rewards.boost4x, boost4x > 0 {
-            items.append(RewardItem(icon: "4.circle.fill", color: .pink, text: "\(boost4x)× 4X Boost"))
+            items.append(RewardItem(icon: .asset("boost4x"), text: "\(boost4x)× 4X Boost"))
         }
         return items
+    }
+
+    @ViewBuilder
+    private func iconView(for icon: RewardIcon) -> some View {
+        switch icon {
+        case .asset(let name):
+            Image(name)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+        case .system(let name, let color):
+            Image(systemName: name)
+                .foregroundStyle(color)
+        }
     }
 
     var body: some View {
@@ -428,8 +450,7 @@ private struct RewardSummary: View {
             // Single reward - show its specific icon
             let item = items[0]
             HStack(spacing: 6) {
-                Image(systemName: item.icon)
-                    .foregroundStyle(item.color)
+                iconView(for: item.icon)
                 Text(item.text)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -437,8 +458,10 @@ private struct RewardSummary: View {
         } else {
             // Multiple rewards - show gift icon
             HStack(spacing: 6) {
-                Image(systemName: "gift.fill")
-                    .foregroundStyle(.orange)
+                Image("gift")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
                 Text(items.map { $0.text }.joined(separator: ", "))
                     .font(.footnote)
                     .foregroundStyle(.secondary)

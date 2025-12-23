@@ -5,6 +5,7 @@ import GameServices
 @MainActor
 public struct DailyClaimsView: View {
     @Environment(DailyClaimsStore.self) private var store
+    @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
@@ -218,7 +219,8 @@ public struct DailyClaimsView: View {
         claimedRewards = store.combinedRewardForNextClaim() ?? rewards
         showClaimAnimation = true
         store.claimDailyReward()
-        
+        gameStore.achievementEvaluator?.onDailyClaimed()
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation {
                 showClaimAnimation = false

@@ -316,5 +316,21 @@
         "value": 1
       }
     ]
+  },
+  {
+    "id": "daily_claims_progression",
+    "gcIdentifier": "daily_claims_progression",
+    "title": "Daily Collector",
+    "description": "Claim daily rewards to unlock escalating bonuses.",
+    "category": "Daily",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claims_total",
+        "op": ">=",
+        "value": 1
+      }
+    ]
   }
 ]

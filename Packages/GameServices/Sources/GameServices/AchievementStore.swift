@@ -421,6 +421,20 @@ public final class AchievementStore {
         .init(milestone: 2000, categoryLabel: "2000 purchases", rewards: .init(gems: 2000, spins: 2, hammers: 1, magnets: 2))
     ]
 
+    private static let dailyClaimsTiers: [ComboTierDefinition] = [
+        .init(milestone: 1, categoryLabel: "1 day", rewards: .init(gems: 5)),
+        .init(milestone: 2, categoryLabel: "2 days", rewards: .init(gems: 10)),
+        .init(milestone: 3, categoryLabel: "3 days", rewards: .init(hammers: 1)),
+        .init(milestone: 5, categoryLabel: "5 days", rewards: .init(gems: 25)),
+        .init(milestone: 7, categoryLabel: "7 days", rewards: .init(gems: 35, swaps: 1)),
+        .init(milestone: 10, categoryLabel: "10 days", rewards: .init(gems: 23, spins: 1, boost3x: 1)),
+        .init(milestone: 14, categoryLabel: "14 days", rewards: .init(gems: 35, magnets: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 21, categoryLabel: "21 days", rewards: .init(gems: 50)),
+        .init(milestone: 30, categoryLabel: "30 days", rewards: .init(magnets: 1)),
+        .init(milestone: 98, categoryLabel: "98 days", rewards: .init(boost2x: 1)),
+        .init(milestone: 365, categoryLabel: "365 days", rewards: .init(gems: 1000))
+    ]
+
     private static let challengeCreationTiers: [ComboTierDefinition] = [
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
         .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
@@ -963,6 +977,43 @@ public final class AchievementStore {
         spinPurchasesProgressionTier >= Self.spinPurchaseTiers.count - 1
     }
 
+    /// Daily claims progression tier index (persisted)
+    public var dailyClaimsProgressionTier: Int {
+        didSet {
+            defaults.set(dailyClaimsProgressionTier, forKey: "dailyClaimsProgressionTier")
+            unlocks["daily_claims_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+
+    private var currentDailyClaimsTier: ComboTierDefinition {
+        let index = min(dailyClaimsProgressionTier, Self.dailyClaimsTiers.count - 1)
+        return Self.dailyClaimsTiers[index]
+    }
+
+    public var dailyClaimsDisplay: ProgressTierDisplay {
+        let tier = currentDailyClaimsTier
+        let clampedIndex = min(dailyClaimsProgressionTier, Self.dailyClaimsTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = dailyClaimsProgressionTier >= Self.dailyClaimsTiers.count - 1
+        let description = isMaxed
+            ? "You've claimed daily rewards for a full year! Claim your final reward."
+            : "Claim daily rewards \(tier.milestone) time\(tier.milestone == 1 ? "" : "s") to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) day\(tier.milestone == 1 ? "" : "s")"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "Daily Rewards",
+            rewards: tier.rewards
+        )
+    }
+
+    public var isDailyClaimsProgressionMaxed: Bool {
+        dailyClaimsProgressionTier >= Self.dailyClaimsTiers.count - 1
+    }
+
     /// Challenge creation progression tier index (persisted)
     public var challengeCreationTier: Int {
         didSet {
@@ -1157,6 +1208,7 @@ public final class AchievementStore {
         self.boost3xUsesProgressionTier = defaults.integer(forKey: "boost3xUsesProgressionTier")
         self.boost4xUsesProgressionTier = defaults.integer(forKey: "boost4xUsesProgressionTier")
         self.spinPurchasesProgressionTier = defaults.integer(forKey: "spinPurchasesProgressionTier")
+        self.dailyClaimsProgressionTier = defaults.integer(forKey: "dailyClaimsProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
         loadPersistedSnapshot()
@@ -1350,6 +1402,15 @@ public final class AchievementStore {
             if def.id == "spin_purchases_progression" {
                 let targetValue = Double(currentSpinPurchasesTier.milestone)
                 if Double(snapshot.spin_purchases_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+
+            if def.id == "daily_claims_progression" {
+                let targetValue = Double(currentDailyClaimsTier.milestone)
+                if Double(snapshot.daily_claims_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1695,6 +1756,23 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "daily_claims_progression" {
+            let rewards = dailyClaimsDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+
+            if !isDailyClaimsProgressionMaxed {
+                dailyClaimsProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         if definition.id == "challenge_creation" {
             let rewards = challengeCreationDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -1788,6 +1866,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.boost4x_uses_total), target: Double(currentBoost4xUsesTier.milestone))
         case "spin_purchases_progression":
             return makeProgress(current: Double(snapshot.spin_purchases_total), target: Double(currentSpinPurchasesTier.milestone))
+        case "daily_claims_progression":
+            return makeProgress(current: Double(snapshot.daily_claims_total), target: Double(currentDailyClaimsTier.milestone))
         case "challenge_creation":
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":

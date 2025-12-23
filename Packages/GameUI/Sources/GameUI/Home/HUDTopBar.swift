@@ -24,7 +24,9 @@ struct HUDTopBar: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            scoreBoostButtons
+            // Compact boost status button (replaces stacked boost buttons)
+            BoostStatusButton()
+
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
             
@@ -96,85 +98,6 @@ struct HUDTopBar: View {
         #else
         EmptyView()
         #endif
-    }
-
-    private var scoreBoostButtons: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            scoreBoostButton(for: .fiveX)
-            scoreBoostButton(for: .twentyX)
-            powerDiscountButton(for: .quarterOff)
-            powerDiscountButton(for: .halfOff)
-        }
-    }
-    
-    private func scoreBoostButton(for tierID: GameStore.ScoreBoostTierID) -> some View {
-        let label = gameStore.scoreBoostLabel(for: tierID)
-        let cost = gameStore.scoreBoostCost(for: tierID)
-        let countdown = gameStore.scoreBoostCountdownText(for: tierID)
-        let isActive = gameStore.isScoreBoostActive(for: tierID)
-        let isQueued = gameStore.isScoreBoostQueued(for: tierID)
-        let statusColor: Color = {
-            if isActive { return .green }
-            if isQueued { return .yellow }
-            return .white.opacity(0.8)
-        }()
-        
-        return Button(action: { _ = gameStore.purchaseScoreBoost(tierID) }) {
-            HStack(alignment: .center, spacing: 10) {
-                Image(systemName: "bolt.fill")
-                    .font(.headline)
-                    .foregroundStyle(isActive ? .yellow : .white)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(label) • \(cost.formatted(.number.grouping(.automatic))) Gems")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.white)
-                    Text(countdown)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(statusColor)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-        }
-        .modifier(GlassButtonCompat())
-        .opacity(gameStore.canPurchaseScoreBoost(tierID) ? 1.0 : 0.7)
-        .disabled(!gameStore.canPurchaseScoreBoost(tierID))
-        .accessibilityLabel("\(label) boost. \(countdown)")
-    }
-
-    private func powerDiscountButton(for tierID: GameStore.PowerDiscountTierID) -> some View {
-        let label = gameStore.powerDiscountLabel(for: tierID)
-        let cost = gameStore.powerDiscountCost(for: tierID)
-        let countdown = gameStore.powerDiscountCountdownText(for: tierID)
-        let isActive = gameStore.isPowerDiscountActive(for: tierID)
-        let isQueued = gameStore.isPowerDiscountQueued(for: tierID)
-        let statusColor: Color = {
-            if isActive { return .green }
-            if isQueued { return .yellow }
-            return .white.opacity(0.8)
-        }()
-        
-        return Button(action: { _ = gameStore.purchasePowerDiscount(tierID) }) {
-            HStack(alignment: .center, spacing: 10) {
-                Image(systemName: "wand.and.stars")
-                    .font(.headline)
-                    .foregroundStyle(isActive ? .yellow : .white)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(label) • \(cost.formatted(.number.grouping(.automatic))) Gems")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.white)
-                    Text(countdown)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(statusColor)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-        }
-        .modifier(GlassButtonCompat())
-        .opacity(gameStore.canPurchasePowerDiscount(tierID) ? 1.0 : 0.7)
-        .disabled(!gameStore.canPurchasePowerDiscount(tierID))
-        .accessibilityLabel("\(label) discount. \(countdown)")
     }
 
 #if canImport(GameKit)
