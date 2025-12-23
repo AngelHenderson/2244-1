@@ -49,9 +49,6 @@ public struct PlayerProfileView: View {
                     }
                 )
             }
-            .sheet(isPresented: $model.showSeasonHistory) {
-                SeasonHistoryView(season: model.season) 
-            }
             .sheet(isPresented: $model.showCompare) {
                 CompareView(friendCode: model.friendCode) 
             }
@@ -128,22 +125,6 @@ public struct PlayerProfileView: View {
                             }
                             ShareLink("Share Code", item: URL(string: "game2244://add-friend?code=\(model.friendCode)")!)
                         }
-
-                    Spacer(minLength: 0)
-
-                    Button {
-                        model.showSeasonHistory = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Label("\(model.season.name)", systemImage: "shield.checkerboard")
-                            Text("• \(model.season.division)")
-                        }
-                        .font(.footnote.weight(.semibold))
-                        .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Season history")
                 }
                 
                 // Country and Highest Tile Row

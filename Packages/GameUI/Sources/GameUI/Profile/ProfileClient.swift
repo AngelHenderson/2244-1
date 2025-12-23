@@ -250,28 +250,33 @@ public struct LiveProfileClient: ProfileClient, Sendable {
             ]
 
             // Find the bracket and distribute rank within the bracket range
+            // Iterate forward and find the FIRST bracket where user's milestone index >= bracket's index
+            // (brackets are ordered high-to-low milestone, so first match is the correct one)
             var bracketStart = totalPlayers
             var bracketEnd = totalPlayers
-            var foundBracket = false
+            var foundBracketIndex = -1
 
-            for (i, bracket) in globalExtendedBrackets.enumerated().reversed() {
+            for (i, bracket) in globalExtendedBrackets.enumerated() {
                 if let bracketIndex = allMilestones.firstIndex(of: bracket.milestone),
                    userMilestoneIndex >= bracketIndex {
-                    bracketStart = bracket.startRank
-                    // Get the next bracket's start rank as our end
-                    if i + 1 < globalExtendedBrackets.count {
-                        bracketEnd = globalExtendedBrackets[i + 1].startRank - 1
-                    } else {
-                        bracketEnd = totalPlayers
-                    }
-                    foundBracket = true
+                    // First match is the correct bracket (highest milestone user qualifies for)
+                    foundBracketIndex = i
                     break
+                }
+            }
+
+            if foundBracketIndex >= 0 {
+                bracketStart = globalExtendedBrackets[foundBracketIndex].startRank
+                if foundBracketIndex + 1 < globalExtendedBrackets.count {
+                    bracketEnd = globalExtendedBrackets[foundBracketIndex + 1].startRank - 1
+                } else {
+                    bracketEnd = totalPlayers
                 }
             }
 
             // Distribute user within the bracket range
             let range = bracketEnd - bracketStart
-            if range > 0 && foundBracket {
+            if range > 0 && foundBracketIndex >= 0 {
                 // Use milestone string hash for deterministic but varied position
                 let milestoneHash = abs(userMilestone.hashValue) % (range + 1)
                 return bracketStart + milestoneHash
