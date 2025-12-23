@@ -375,28 +375,74 @@ private struct AchievementRow: View {
 
 private struct RewardSummary: View {
     let rewards: AchievementDef.Rewards?
-    
-    private var summary: String {
-        guard let rewards else { return "Bragging rights" }
-        var parts: [String] = []
-        if let gems = rewards.gems, gems > 0 { parts.append("\(gems) Gems") }
-        if let hammers = rewards.hammers, hammers > 0 { parts.append("\(hammers) Hammers") }
-        if let magnets = rewards.magnets, magnets > 0 { parts.append("\(magnets) MegaMerges") }
-        if let swaps = rewards.swaps, swaps > 0 { parts.append("\(swaps) Swaps") }
-        if let spins = rewards.spins, spins > 0 { parts.append("\(spins) Spins") }
-        if let boost2x = rewards.boost2x, boost2x > 0 { parts.append("\(boost2x)× 2X Boost") }
-        if let boost3x = rewards.boost3x, boost3x > 0 { parts.append("\(boost3x)× 3X Boost") }
-        if let boost4x = rewards.boost4x, boost4x > 0 { parts.append("\(boost4x)× 4X Boost") }
-        return parts.isEmpty ? "Bragging rights" : parts.joined(separator: ", ")
+
+    private struct RewardItem: Identifiable {
+        let id = UUID()
+        let icon: String
+        let color: Color
+        let text: String
     }
-    
+
+    private var rewardItems: [RewardItem] {
+        guard let rewards else { return [] }
+        var items: [RewardItem] = []
+        if let gems = rewards.gems, gems > 0 {
+            items.append(RewardItem(icon: "diamond.fill", color: .cyan, text: "\(gems) Gems"))
+        }
+        if let hammers = rewards.hammers, hammers > 0 {
+            items.append(RewardItem(icon: "hammer.fill", color: .orange, text: "\(hammers) Hammer\(hammers == 1 ? "" : "s")"))
+        }
+        if let magnets = rewards.magnets, magnets > 0 {
+            items.append(RewardItem(icon: "arrow.triangle.merge", color: .purple, text: "\(magnets) MegaMerge\(magnets == 1 ? "" : "s")"))
+        }
+        if let swaps = rewards.swaps, swaps > 0 {
+            items.append(RewardItem(icon: "arrow.left.arrow.right", color: .blue, text: "\(swaps) Swap\(swaps == 1 ? "" : "s")"))
+        }
+        if let spins = rewards.spins, spins > 0 {
+            items.append(RewardItem(icon: "arrow.trianglehead.2.clockwise.rotate.90", color: .green, text: "\(spins) Spin\(spins == 1 ? "" : "s")"))
+        }
+        if let boost2x = rewards.boost2x, boost2x > 0 {
+            items.append(RewardItem(icon: "2.circle.fill", color: .mint, text: "\(boost2x)× 2X Boost"))
+        }
+        if let boost3x = rewards.boost3x, boost3x > 0 {
+            items.append(RewardItem(icon: "3.circle.fill", color: .yellow, text: "\(boost3x)× 3X Boost"))
+        }
+        if let boost4x = rewards.boost4x, boost4x > 0 {
+            items.append(RewardItem(icon: "4.circle.fill", color: .pink, text: "\(boost4x)× 4X Boost"))
+        }
+        return items
+    }
+
     var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "gift.fill")
-                .foregroundStyle(.orange)
-            Text(summary)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+        let items = rewardItems
+
+        if items.isEmpty {
+            HStack(spacing: 6) {
+                Image(systemName: "star.fill")
+                    .foregroundStyle(.yellow)
+                Text("Bragging rights")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        } else if items.count == 1 {
+            // Single reward - show its specific icon
+            let item = items[0]
+            HStack(spacing: 6) {
+                Image(systemName: item.icon)
+                    .foregroundStyle(item.color)
+                Text(item.text)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            // Multiple rewards - show gift icon
+            HStack(spacing: 6) {
+                Image(systemName: "gift.fill")
+                    .foregroundStyle(.orange)
+                Text(items.map { $0.text }.joined(separator: ", "))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
