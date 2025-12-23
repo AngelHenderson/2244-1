@@ -315,6 +315,7 @@ public struct SpinWheelView: View {
         spinState.addBonusSpins(count)
         haptics.success()
         purchaseFeedback = "Bought \(count) bonus spin\(count == 1 ? "" : "s")!"
+        gameStore.achievementEvaluator?.onSpinPurchased(count: count)
     }
     
     private func handleWinning(segment: WheelSegment) {
