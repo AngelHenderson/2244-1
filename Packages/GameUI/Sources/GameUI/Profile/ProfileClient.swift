@@ -229,7 +229,18 @@ public struct LiveProfileClient: ProfileClient, Sendable {
         let globalTop150Cutoff = "2aq"
         let globalCutoffIndex = allMilestones.firstIndex(of: globalTop150Cutoff) ?? 480
         let userMilestoneIndex = allMilestones.firstIndex(of: userMilestone) ?? 0
-        let totalPlayers = 885_676
+        // Calculate dynamic total players based on days since reference and joining rate
+        let referenceDate = DateComponents(calendar: .current, year: 2025, month: 1, day: 1).date ?? Date()
+        let day = max(0, Calendar.current.dateComponents([.day], from: referenceDate, to: Date()).day ?? 0)
+        let baseGlobalPlayers = 885_676
+        var totalNewPlayers = 0
+        for d in 0...day {
+            // 10-1000 new players per day (deterministic based on day)
+            let seed = 67890
+            let random = Double((seed * 31 + d * 17) % 1000) / 1000.0
+            totalNewPlayers += 10 + Int(random * 990)
+        }
+        let totalPlayers = baseGlobalPlayers + totalNewPlayers
 
         if userMilestoneIndex >= globalCutoffIndex {
             // User is in top 150 - rank based on position above cutoff

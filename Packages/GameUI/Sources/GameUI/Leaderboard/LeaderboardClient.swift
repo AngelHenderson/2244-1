@@ -251,13 +251,49 @@ private enum MockLeaderboardData {
         return 1_000_000 + tierScore + mantissaBonus
     }
 
+    // Base player counts (starting values)
+    static let baseUSPlayers = 84_721
+    static let baseGlobalPlayers = 885_676
+
+    // Calculate new players joining on a given day (10-1000 per day)
+    static func newPlayersJoining(on day: Int, isUS: Bool) -> Int {
+        let seed = isUS ? 12345 : 67890
+        let random = seededRandom(seed: seed, index: day)
+        return 10 + Int(random * 990)  // 10 to 1000 new players per day
+    }
+
+    // Calculate total players including all who joined up to this day
+    static func totalPlayers(on day: Int, isUS: Bool) -> Int {
+        let basePlayers = isUS ? baseUSPlayers : baseGlobalPlayers
+        var totalNew = 0
+        for d in 0...day {
+            totalNew += newPlayersJoining(on: d, isUS: isUS)
+        }
+        return basePlayers + totalNew
+    }
+
     // Calculate score with daily progression for a player
-    // - Players with score 0: add 2 per day
+    // - Players with score 0: gain 2 points the next day, then multiplier starts
     // - Other players: multiply by 1.01x-1.5x per day
     static func scoreWithDailyProgression(baseScore: Int, playerIndex: Int, day: Int) -> Int {
         if baseScore == 0 {
-            // New players (score 0) gain 2 points per day
-            return day * 2
+            // New players (score 0) gain 2 points on day 1, then multiplier starts
+            if day == 0 {
+                return 0  // Still score 0 on day they joined
+            } else {
+                // Day 1: score becomes 2, then multiplier applies from day 2+
+                let startingScore = 2
+                let daysWithMultiplier = day - 1  // Days after getting the initial 2 points
+                if daysWithMultiplier <= 0 {
+                    return startingScore
+                }
+                // Apply multiplier for remaining days
+                let dailyMultiplier = 1.01 + seededRandom(seed: playerIndex * 777, index: day) * 0.49
+                let effectiveDays = min(daysWithMultiplier, 365)
+                let totalMultiplier = pow(dailyMultiplier, Double(effectiveDays) * 0.01)
+                let newScore = Double(startingScore) * totalMultiplier
+                return min(Int(newScore), Int.max / 2)
+            }
         } else {
             // Other players get 1.01x-1.5x multiplier per day
             // Use seeded random for consistent daily results per player
@@ -385,14 +421,15 @@ public extension LeaderboardClient {
             case .global:
                 entries = globalEntries()
             }
+            let day = MockLeaderboardData.daysSinceReference
             let totalPlayers: Int
             switch filter {
             case .hallOfFame:
                 totalPlayers = hallOfFameEntries().count
             case .country:
-                totalPlayers = 84_721  // US players
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
             case .global:
-                totalPlayers = 885_676  // ~885k global players
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: false)
             }
             return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
         },
@@ -749,7 +786,7 @@ public extension LeaderboardClient {
         let globalTop150Cutoff = "2aq"
         let globalCutoffIndex = MockLeaderboardData.allMilestones.firstIndex(of: globalTop150Cutoff) ?? 480
         let userMilestoneIndex = MockLeaderboardData.allMilestones.firstIndex(of: userMilestone) ?? 0
-        let totalPlayers = 943_817
+        let totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: false)
 
         let globalRank: Int
         if userMilestoneIndex >= globalCutoffIndex {
@@ -824,7 +861,7 @@ public extension LeaderboardClient {
         let usTop150Cutoff = "9b"
         let usCutoffIndex = MockLeaderboardData.allMilestones.firstIndex(of: usTop150Cutoff) ?? 33
         let userMilestoneIndex = MockLeaderboardData.allMilestones.firstIndex(of: userMilestone) ?? 0
-        let totalUSPlayers = 84_721
+        let totalUSPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
 
         let usRank: Int
         if userMilestoneIndex >= usCutoffIndex {
