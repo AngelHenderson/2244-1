@@ -199,6 +199,8 @@ public struct LeaderboardView: View {
             return Color(red: 0.6, green: 0.5, blue: 0.2)
         case .country:
             return Color.green
+        case .countryUK:
+            return Color.red
         }
     }
     

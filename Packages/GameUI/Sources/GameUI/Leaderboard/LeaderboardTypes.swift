@@ -10,6 +10,7 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
     case global = "Global"
     case hallOfFame = "Hall of Fame"
     case country = "US"
+    case countryUK = "UK"
 
     public var id: Self { self }
 
@@ -18,6 +19,15 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
         case .global: return "globe.americas.fill"
         case .hallOfFame: return "crown.fill"
         case .country: return "flag.fill"
+        case .countryUK: return "flag.fill"
+        }
+    }
+
+    public var countryCode: String? {
+        switch self {
+        case .country: return "US"
+        case .countryUK: return "GB"
+        default: return nil
         }
     }
 }

@@ -83,6 +83,7 @@ public extension LeaderboardClient {
                     case .global: return .global
                     case .hallOfFame: return .global
                     case .country: return .global
+                    case .countryUK: return .global
                     }
                 }()
                 
