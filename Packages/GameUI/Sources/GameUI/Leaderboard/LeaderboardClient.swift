@@ -262,6 +262,27 @@ private enum MockLeaderboardData {
         return 10 + Int(random * 990)  // 10 to 1000 new players per day
     }
 
+    // Starting milestones for active new players (players who start making progress immediately)
+    // These are lower-tier milestones that new players might achieve on day 1
+    static let newPlayerStartingMilestones = [
+        "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192",
+        "16K", "32K", "65K", "131K", "262K", "524K"
+    ]
+
+    // Determine if a new player is "active" (starts with a milestone) vs "inactive" (starts at 0)
+    // 75% of new players are active and start making milestones immediately
+    static func isActiveNewPlayer(playerIndex: Int, joinDay: Int) -> Bool {
+        let random = seededRandom(seed: playerIndex * 999 + joinDay * 13, index: joinDay)
+        return random < 0.75  // 75% chance to be active
+    }
+
+    // Get starting milestone for an active new player
+    static func startingMilestoneForNewPlayer(playerIndex: Int, joinDay: Int) -> String {
+        let random = seededRandom(seed: playerIndex * 555 + joinDay * 7, index: playerIndex)
+        let index = Int(random * Double(newPlayerStartingMilestones.count))
+        return newPlayerStartingMilestones[min(index, newPlayerStartingMilestones.count - 1)]
+    }
+
     // Calculate total players including all who joined up to this day
     static func totalPlayers(on day: Int, isUS: Bool) -> Int {
         let basePlayers = isUS ? baseUSPlayers : baseGlobalPlayers
@@ -273,21 +294,55 @@ private enum MockLeaderboardData {
     }
 
     // Calculate score with daily progression for a player
-    // - Players with score 0: gain 2 points the next day, then multiplier starts
-    // - Other players: multiply by 1.01x-1.5x per day
-    static func scoreWithDailyProgression(baseScore: Int, playerIndex: Int, day: Int) -> Int {
-        if baseScore == 0 {
-            // New players (score 0) gain 2 points on day 1, then multiplier starts
-            if day == 0 {
-                return 0  // Still score 0 on day they joined
+    // - 75% of new players are "active" and start with a milestone immediately
+    // - 25% of new players start at score 0, gain 2 points the next day, then multiplier starts
+    // - Existing players: multiply by 1.01x-1.5x per day
+    static func scoreWithDailyProgression(baseScore: Int, playerIndex: Int, day: Int, isNewPlayer: Bool = false, joinDay: Int = 0) -> Int {
+        if isNewPlayer {
+            // New player - check if they're active (75%) or inactive (25%)
+            if isActiveNewPlayer(playerIndex: playerIndex, joinDay: joinDay) {
+                // Active new player - starts with a milestone immediately
+                let startingMilestone = startingMilestoneForNewPlayer(playerIndex: playerIndex, joinDay: joinDay)
+                let startingScore = scoreForMilestone(startingMilestone)
+                let daysSinceJoin = day - joinDay
+                if daysSinceJoin <= 0 {
+                    return startingScore
+                }
+                // Apply multiplier for days since joining
+                let dailyMultiplier = 1.01 + seededRandom(seed: playerIndex * 777, index: day) * 0.49
+                let effectiveDays = min(daysSinceJoin, 365)
+                let totalMultiplier = pow(dailyMultiplier, Double(effectiveDays) * 0.01)
+                let newScore = Double(startingScore) * totalMultiplier
+                return min(Int(newScore), Int.max / 2)
             } else {
-                // Day 1: score becomes 2, then multiplier applies from day 2+
+                // Inactive new player - starts at score 0
+                let daysSinceJoin = day - joinDay
+                if daysSinceJoin == 0 {
+                    return 0  // Still score 0 on day they joined
+                } else {
+                    // Day 1 after join: score becomes 2, then multiplier applies
+                    let startingScore = 2
+                    let daysWithMultiplier = daysSinceJoin - 1
+                    if daysWithMultiplier <= 0 {
+                        return startingScore
+                    }
+                    let dailyMultiplier = 1.01 + seededRandom(seed: playerIndex * 777, index: day) * 0.49
+                    let effectiveDays = min(daysWithMultiplier, 365)
+                    let totalMultiplier = pow(dailyMultiplier, Double(effectiveDays) * 0.01)
+                    let newScore = Double(startingScore) * totalMultiplier
+                    return min(Int(newScore), Int.max / 2)
+                }
+            }
+        } else if baseScore == 0 {
+            // Existing player at score 0 (from base data) - gain 2 points next day, then multiplier
+            if day == 0 {
+                return 0
+            } else {
                 let startingScore = 2
-                let daysWithMultiplier = day - 1  // Days after getting the initial 2 points
+                let daysWithMultiplier = day - 1
                 if daysWithMultiplier <= 0 {
                     return startingScore
                 }
-                // Apply multiplier for remaining days
                 let dailyMultiplier = 1.01 + seededRandom(seed: playerIndex * 777, index: day) * 0.49
                 let effectiveDays = min(daysWithMultiplier, 365)
                 let totalMultiplier = pow(dailyMultiplier, Double(effectiveDays) * 0.01)
@@ -295,15 +350,12 @@ private enum MockLeaderboardData {
                 return min(Int(newScore), Int.max / 2)
             }
         } else {
-            // Other players get 1.01x-1.5x multiplier per day
-            // Use seeded random for consistent daily results per player
-            let dailyMultiplier = 1.01 + seededRandom(seed: playerIndex * 777, index: day) * 0.49  // 1.01 to 1.5
-            // Apply multiplier cumulatively but cap to prevent overflow
-            // Use log scale for many days
-            let effectiveDays = min(day, 365)  // Cap at 1 year of progression
-            let totalMultiplier = pow(dailyMultiplier, Double(effectiveDays) * 0.01)  // Slower growth
+            // Existing player with score - multiply by 1.01x-1.5x per day
+            let dailyMultiplier = 1.01 + seededRandom(seed: playerIndex * 777, index: day) * 0.49
+            let effectiveDays = min(day, 365)
+            let totalMultiplier = pow(dailyMultiplier, Double(effectiveDays) * 0.01)
             let newScore = Double(baseScore) * totalMultiplier
-            return min(Int(newScore), Int.max / 2)  // Prevent overflow
+            return min(Int(newScore), Int.max / 2)
         }
     }
 
