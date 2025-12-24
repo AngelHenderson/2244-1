@@ -11,6 +11,7 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
     case hallOfFame = "Hall of Fame"
     case country = "US"
     case countryUK = "UK"
+    case countryCA = "Canada"
 
     public var id: Self { self }
 
@@ -20,6 +21,7 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
         case .hallOfFame: return "crown.fill"
         case .country: return "flag.fill"
         case .countryUK: return "flag.fill"
+        case .countryCA: return "flag.fill"
         }
     }
 
@@ -27,7 +29,22 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
         switch self {
         case .country: return "US"
         case .countryUK: return "GB"
+        case .countryCA: return "CA"
         default: return nil
+        }
+    }
+
+    /// Returns available filters based on user's country
+    public static func availableFilters(for countryCode: String) -> [LeaderboardFilter] {
+        switch countryCode {
+        case "US":
+            return [.global, .hallOfFame, .country]
+        case "GB":
+            return [.global, .hallOfFame, .countryUK]
+        case "CA":
+            return [.global, .hallOfFame, .countryCA]
+        default:
+            return [.global, .hallOfFame]
         }
     }
 }

@@ -79,9 +79,9 @@ public struct LeaderboardView: View {
     @ViewBuilder
     private func content(_ m: LeaderboardModel) -> some View {
         VStack(spacing: 0) {
-            // Filter Tabs (Global, Hall of Fame, US)
+            // Filter Tabs (based on user's country)
             HStack(spacing: 8) {
-                ForEach(LeaderboardFilter.allCases) { filter in
+                ForEach(LeaderboardFilter.availableFilters(for: UserLeaderboardData.currentCountry)) { filter in
                     filterTab(filter, isSelected: m.selectedFilter == filter) {
                         m.selectedFilter = filter
                     }
@@ -170,8 +170,8 @@ public struct LeaderboardView: View {
                 } else if filter == .hallOfFame {
                     Image(systemName: "crown.fill")
                         .font(.system(size: 14))
-                } else if filter == .country {
-                    Text(flagEmoji("US"))
+                } else if let countryCode = filter.countryCode {
+                    Text(flagEmoji(countryCode))
                         .font(.system(size: 14))
                 }
 
@@ -201,6 +201,8 @@ public struct LeaderboardView: View {
             return Color.green
         case .countryUK:
             return Color.red
+        case .countryCA:
+            return Color.red  // Canada - red like the maple leaf
         }
     }
     
