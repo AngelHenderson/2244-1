@@ -607,9 +607,8 @@ public extension LeaderboardClient {
             case .countryCA:
                 totalPlayers = 12_847  // Canada player count
             case .global:
-                // Global = sum of all country players (US + UK + more to come)
-                // Note: Canada not yet added to global until data is complete
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676
+                // Global = sum of all country players (US + UK + Canada)
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847
             }
             return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
         },
@@ -810,9 +809,21 @@ public extension LeaderboardClient {
     // Extended Canada milestone brackets for rank calculation (ranks 151+)
     // Total Canada players: ~12,847
     private static let canadaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
-        // Raw number brackets (ranks 151-12847)
-        ("2", 151), ("0", 200),
-        ("0", 12847)  // Score 0 = new players
+        // a-tier brackets (ranks 151-179)
+        ("1b", 151), ("562a", 152), ("281a", 153), ("140a", 155), ("70a", 158), ("35a", 160),
+        ("17a", 165), ("8a", 167), ("4a", 169), ("2a", 170), ("1a", 175),
+        // B-tier brackets (ranks 180-248)
+        ("549B", 180), ("274B", 184), ("137B", 189), ("68B", 192), ("34B", 197),
+        ("17B", 208), ("8B", 216), ("4B", 223), ("2B", 232), ("1B", 246),
+        // M-tier brackets (ranks 249-675)
+        ("536M", 249), ("268M", 250), ("134M", 264), ("67M", 315), ("33M", 355),
+        ("16M", 396), ("8M", 448), ("4M", 551), ("2M", 600), ("1M", 666),
+        // K-tier brackets (ranks 676-1885)
+        ("524K", 676), ("262K", 767), ("131K", 837), ("65K", 955), ("32K", 1167), ("16K", 1443),
+        // Raw number brackets (ranks 1886-12847)
+        ("8192", 1886), ("4096", 2234), ("2048", 2877), ("1024", 3581),
+        ("512", 4456), ("256", 5676), ("128", 6767), ("64", 8067), ("32", 8745),
+        ("16", 9341), ("8", 9867), ("4", 10211), ("2", 10657), ("0", 10899)
     ]
 
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
@@ -1033,6 +1044,19 @@ public extension LeaderboardClient {
             playerData.append((i, i + 5000, baseMilestone, milestoneIdx, name, "GB", platform, avatar, "uk_\(i)"))
         }
 
+        // Add Canada players
+        for i in 0..<min(150, canadaPlayerMilestones.count) {
+            let baseMilestone = canadaPlayerMilestones[i]
+            let name = MockLeaderboardData.canadaNames[i % MockLeaderboardData.canadaNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 12) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // Canada milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, i + 10000, baseMilestone, milestoneIdx, name, "CA", platform, avatar, "ca_\(i)"))
+        }
+
         // Sort by milestone index (highest first = best milestone)
         playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
 
@@ -1055,13 +1079,14 @@ public extension LeaderboardClient {
         }
 
         // Add current user entry
-        // Total global players = sum of all country players (US + UK + more to come)
+        // Total global players = sum of all country players (US + UK + Canada)
         let userMilestone = UserLeaderboardData.currentMilestone
         let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
         let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
         let totalUSPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
         let totalUKPlayers = 17_676
-        let totalPlayers = totalUSPlayers + totalUKPlayers  // Combined total (will grow as more countries added)
+        let totalCanadaPlayers = 12_847
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers
 
         // Find user's rank based on milestone compared to sorted players
         var globalRank = totalPlayers
