@@ -32,6 +32,7 @@ public final class AchievementEvaluator {
     private var boost4xUsesTotal: Int = 0
     private var spinPurchasesTotal: Int = 0
     private var dailyClaimsTotal: Int = 0
+    private var boost5xUsesTotal: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
@@ -51,6 +52,7 @@ public final class AchievementEvaluator {
     private let boost4xUsesKey = "powerUses.boost4x"
     private let spinPurchasesKey = "spinPurchases.total"
     private let dailyClaimsKey = "dailyClaims.total"
+    private let boost5xUsesKey = "powerUses.boost5x"
     private let defaults = UserDefaults.standard
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
@@ -82,6 +84,7 @@ public final class AchievementEvaluator {
         boost4xUsesTotal = defaults.integer(forKey: boost4xUsesKey)
         spinPurchasesTotal = defaults.integer(forKey: spinPurchasesKey)
         dailyClaimsTotal = defaults.integer(forKey: dailyClaimsKey)
+        boost5xUsesTotal = defaults.integer(forKey: boost5xUsesKey)
         if challengeCreationTotal == 0,
            let data = UserDefaults.standard.data(forKey: "challengeCompletedIds"),
            let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
@@ -108,6 +111,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost4x_uses_total = boost4xUsesTotal
         currentGameSnapshot.spin_purchases_total = spinPurchasesTotal
         currentGameSnapshot.daily_claims_total = dailyClaimsTotal
+        currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
     }
 
     public func onGameStart(state: GameState) {
@@ -133,6 +137,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost4x_uses_total = boost4xUsesTotal
         currentGameSnapshot.spin_purchases_total = spinPurchasesTotal
         currentGameSnapshot.daily_claims_total = dailyClaimsTotal
+        currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
     }
 
     /// Saves accumulated playtime without ending the game session.
@@ -465,6 +470,18 @@ public final class AchievementEvaluator {
 
         var snapshot = currentGameSnapshot
         snapshot.daily_claims_total = dailyClaimsTotal
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
+    }
+
+    public func onBoost5xUsed() {
+        boost5xUsesTotal += 1
+        defaults.set(boost5xUsesTotal, forKey: boost5xUsesKey)
+        currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
+
+        var snapshot = currentGameSnapshot
+        snapshot.boost5x_uses_total = boost5xUsesTotal
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }

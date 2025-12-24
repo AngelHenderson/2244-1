@@ -435,6 +435,15 @@ public final class AchievementStore {
         .init(milestone: 365, categoryLabel: "365 days", rewards: .init(gems: 1000))
     ]
 
+    private static let boost5xUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 1, categoryLabel: "1 use", rewards: .init(gems: 250)),
+        .init(milestone: 3, categoryLabel: "3 uses", rewards: .init(gems: 750)),
+        .init(milestone: 5, categoryLabel: "5 uses", rewards: .init(magnets: 1)),
+        .init(milestone: 10, categoryLabel: "10 uses", rewards: .init(gems: 600, boost4x: 1)),
+        .init(milestone: 25, categoryLabel: "25 uses", rewards: .init(boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1500))
+    ]
+
     private static let challengeCreationTiers: [ComboTierDefinition] = [
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
         .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
@@ -1014,6 +1023,43 @@ public final class AchievementStore {
         dailyClaimsProgressionTier >= Self.dailyClaimsTiers.count - 1
     }
 
+    /// 5X Score boost usage progression tier index (persisted)
+    public var boost5xUsesProgressionTier: Int {
+        didSet {
+            defaults.set(boost5xUsesProgressionTier, forKey: "boost5xUsesProgressionTier")
+            unlocks["boost5x_usage_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+
+    private var currentBoost5xUsesTier: ComboTierDefinition {
+        let index = min(boost5xUsesProgressionTier, Self.boost5xUseTiers.count - 1)
+        return Self.boost5xUseTiers[index]
+    }
+
+    public var boost5xUsesDisplay: ProgressTierDisplay {
+        let tier = currentBoost5xUsesTier
+        let clampedIndex = min(boost5xUsesProgressionTier, Self.boost5xUseTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = boost5xUsesProgressionTier >= Self.boost5xUseTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered using 5X Score Boosts. Claim your final reward."
+            : "Use 5X Score Boost \(tier.milestone) time\(tier.milestone == 1 ? "" : "s") to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) use\(tier.milestone == 1 ? "" : "s")"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "5X Score",
+            rewards: tier.rewards
+        )
+    }
+
+    public var isBoost5xUsesProgressionMaxed: Bool {
+        boost5xUsesProgressionTier >= Self.boost5xUseTiers.count - 1
+    }
+
     /// Challenge creation progression tier index (persisted)
     public var challengeCreationTier: Int {
         didSet {
@@ -1209,6 +1255,7 @@ public final class AchievementStore {
         self.boost4xUsesProgressionTier = defaults.integer(forKey: "boost4xUsesProgressionTier")
         self.spinPurchasesProgressionTier = defaults.integer(forKey: "spinPurchasesProgressionTier")
         self.dailyClaimsProgressionTier = defaults.integer(forKey: "dailyClaimsProgressionTier")
+        self.boost5xUsesProgressionTier = defaults.integer(forKey: "boost5xUsesProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
         loadPersistedSnapshot()
@@ -1411,6 +1458,15 @@ public final class AchievementStore {
             if def.id == "daily_claims_progression" {
                 let targetValue = Double(currentDailyClaimsTier.milestone)
                 if Double(snapshot.daily_claims_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+
+            if def.id == "boost5x_usage_progression" {
+                let targetValue = Double(currentBoost5xUsesTier.milestone)
+                if Double(snapshot.boost5x_uses_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1773,6 +1829,23 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "boost5x_usage_progression" {
+            let rewards = boost5xUsesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+
+            if !isBoost5xUsesProgressionMaxed {
+                boost5xUsesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         if definition.id == "challenge_creation" {
             let rewards = challengeCreationDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -1868,6 +1941,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.spin_purchases_total), target: Double(currentSpinPurchasesTier.milestone))
         case "daily_claims_progression":
             return makeProgress(current: Double(snapshot.daily_claims_total), target: Double(currentDailyClaimsTier.milestone))
+        case "boost5x_usage_progression":
+            return makeProgress(current: Double(snapshot.boost5x_uses_total), target: Double(currentBoost5xUsesTier.milestone))
         case "challenge_creation":
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":

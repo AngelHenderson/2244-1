@@ -332,5 +332,21 @@
         "value": 1
       }
     ]
+  },
+  {
+    "id": "boost5x_usage_progression",
+    "gcIdentifier": "boost5x_usage_progression",
+    "title": "5× Boost Master",
+    "description": "Use 5× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost5x_uses_total",
+        "op": ">=",
+        "value": 1
+      }
+    ]
   }
 ]
