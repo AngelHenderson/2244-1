@@ -1380,8 +1380,11 @@ public final class GameStore {
         // Persist if this is a new highest tile
         if doubledValue > state.highestTile {
             UserDefaults.standard.set(doubledValue, forKey: "highestTile")
+            // Save formatted milestone for leaderboard display
+            let formattedMilestone = TileStepLabelFormatter.formatTileValue(doubledValue)
+            UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
         }
-        
+
         // Save progress for doubled tile (could be massive achievement)
         saveProgressImmediately(newTile: doubledValue)
         

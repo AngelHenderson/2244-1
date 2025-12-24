@@ -492,8 +492,8 @@ public final class AchievementEvaluator {
         }
     }
 
-    public func onWheelCollected() {
-        wheelCollectsTotal += 1
+    public func onWheelCollected(count: Int) {
+        wheelCollectsTotal += count
         defaults.set(wheelCollectsTotal, forKey: wheelCollectsKey)
         currentGameSnapshot.wheel_collects_total = wheelCollectsTotal
 

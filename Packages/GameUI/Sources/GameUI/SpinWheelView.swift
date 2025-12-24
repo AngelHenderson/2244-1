@@ -320,48 +320,57 @@ public struct SpinWheelView: View {
     
     private func handleWinning(segment: WheelSegment) {
         Task { @MainActor in
-            let message = applyReward(segment.reward)
+            let (message, powerupCount) = applyReward(segment.reward)
             haptics.success()
             rewardMessage = message
             showReward = true
-            // Track wheel collect for achievement
-            gameStore.achievementEvaluator?.onWheelCollected()
+            // Track powerups collected for achievement (count = number of powerups won)
+            if powerupCount > 0 {
+                gameStore.achievementEvaluator?.onWheelCollected(count: powerupCount)
+            }
         }
     }
-    
-    private func applyReward(_ reward: WheelReward, isGiftBox: Bool = false) -> String {
+
+    /// Returns (message, powerupCount) - powerupCount is the number of powerups collected (excludes gems)
+    private func applyReward(_ reward: WheelReward, isGiftBox: Bool = false) -> (String, Int) {
         let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
 
         switch reward.type {
         case .gems:
             let amount = reward.amount * multiplier
             grantGems(amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) gems! 💎" : "You won \(amount) gems! 💎"
+            let message = isGiftBox ? "Gift Box surprise! You won \(amount) gems! 💎" : "You won \(amount) gems! 💎"
+            return (message, 0) // Gems don't count as powerups
 
         case .hammers:
             gameStore.addPowerUp("hammer", count: reward.amount)
-            return isGiftBox ? "Gift Box surprise! You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
-                             : "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+                                    : "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+            return (message, reward.amount)
 
         case .magnets:
             gameStore.addPowerUp("magnet", count: reward.amount)
-            return isGiftBox ? "Gift Box surprise! You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
-                             : "You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
+                                    : "You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
+            return (message, reward.amount)
 
         case .swap:
             gameStore.addPowerUp("swap", count: reward.amount)
-            return isGiftBox ? "Gift Box surprise! You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
-                             : "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+                                    : "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+            return (message, reward.amount)
 
         case .spin:
             spinState.addBonusSpins(reward.amount)
             let base = reward.amount == 1 ? "Bonus spin added! 🎡" : "\(reward.amount) bonus spins added! 🎡"
-            return isGiftBox ? "Gift Box surprise! \(base)" : base
+            let message = isGiftBox ? "Gift Box surprise! \(base)" : base
+            return (message, reward.amount) // Spins count as powerups
 
         case .multiplier(let tier):
             spinState.addMultiplier(tier)
             let base = "You banked a \(tier.displayName) boost for 24 hours!"
-            return isGiftBox ? "Gift Box surprise! \(base)" : base
+            let message = isGiftBox ? "Gift Box surprise! \(base)" : base
+            return (message, 1) // Multiplier counts as 1 powerup
 
         case .giftBox:
             let surprise = randomGiftReward()
