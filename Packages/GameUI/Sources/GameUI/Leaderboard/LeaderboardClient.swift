@@ -537,6 +537,27 @@ private enum MockLeaderboardData {
         "CharlottetownChaser", "SummersideStar", "StratfordStriker", "MontagueMaster", "SourisSerpent"
     ]
 
+    static let australiaNames = [
+        "SydneyStar", "MelbourneMaverick", "BrisbaneBoss", "PerthProwler", "AdelaideAce",
+        "GoldCoastGladiator", "NewcastleNinja", "CanberraCrusher", "WollongongWarrior", "HobartHero",
+        "GeelongGhost", "TownsvilleTitan", "CairnsChamp", "ToowoombaThunder", "DarwinDestroyer",
+        "LauncestonLegend", "AlburyAssassin", "BallaratBrawler", "BendigoBeast", "MackayMaster",
+        "RockhamptonRaider", "BundabergBolt", "HerveyBayHawk", "WaggaWaggaWolf", "MilduraMaverick",
+        "SheppartonShadow", "GladstoneGladiator", "TamworthTornado", "OrangeOracle", "DubboDestroyer",
+        "BathurstBoss", "GeraldtonGhost", "KalgoorlieKnight", "BunburyBrawler", "AliceSpringsAce",
+        "BroomeBlaze", "KarrathaKiller", "PortHedlandProwler", "MountIsaMaster", "SunshineCoastStar",
+        "FremantleFlash", "MandurahMaverick", "RockinghamRogue", "PalmerstonProdigy", "LismoreeLion",
+        "GraftonGladiator", "CoffsHarbourChamp", "PortMacquariePro", "ArmidaleeAce", "TareeeTitan",
+        "NowraaNinja", "QueanbeyanQuake", "GoulburnGhost", "MurrayBridgeMaster", "MountGambierGladiator",
+        "WhyallaWarrior", "PortAugustaaProwler", "PortLincolnLegend", "CedunaChamp", "PortPiriePro",
+        "DevonportDestroyer", "BurnieBoss", "UlverstoneeUltra", "KingstonKnight", "QueenstownQuake",
+        "ZeehanZealot", "SmithtonStar", "WynyardWarrior", "PengguinProwler", "GeorgetownGhost",
+        "KatherineKnight", "TennantCreekTitan", "NhulunbuyNinja", "JabbiruuJuggernaut", "YulendumuYeti",
+        "ArnhemAce", "BarklyBrawler", "VictoriaRiverVictor", "WadeeyeWarrior", "GrooteeGladiator",
+        "NarrabriiNinja", "MooreeMaster", "InverellImpact", "GlenInnesGhost", "TenterfieldTitan",
+        "MuswellbrookMaverick", "SingletonStar", "MaitlandMaster", "CessnockChamp", "KuriKuriKnight"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -592,6 +613,8 @@ public extension LeaderboardClient {
                 entries = ukEntries()
             case .countryCA:
                 entries = canadaEntries()
+            case .countryAU:
+                entries = australiaEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -606,8 +629,11 @@ public extension LeaderboardClient {
                 totalPlayers = 17_676  // UK player count
             case .countryCA:
                 totalPlayers = 12_847  // Canada player count
+            case .countryAU:
+                totalPlayers = 9_234  // Australia player count
             case .global:
                 // Global = sum of all country players (US + UK + Canada)
+                // Note: Australia not yet added to global until data is complete
                 totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847
             }
             return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
@@ -824,6 +850,37 @@ public extension LeaderboardClient {
         ("8192", 1886), ("4096", 2234), ("2048", 2877), ("1024", 3581),
         ("512", 4456), ("256", 5676), ("128", 6767), ("64", 8067), ("32", 8745),
         ("16", 9341), ("8", 9867), ("4", 10211), ("2", 10657), ("0", 10899)
+    ]
+
+    // Australia player milestones from screenshots (ranks 1-150)
+    private static let australiaPlayerMilestones: [String] = [
+        // Ranks 1-30 (from screenshot)
+        "13bz", "794bv", "2br", "657bn", "1bm", "9bk", "556bg", "278bg", "69bg", "989bb",
+        "463ay", "3a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
+        "2af", "69ad", "4ac", "1ab", "127z", "1z", "971x", "30x", "1x", "452u",
+        // Ranks 31-60 (placeholder - will be updated)
+        "113u", "28u", "7u", "883t", "110t", "27t", "862s", "215s", "26s", "13s",
+        "842r", "210r", "52r", "13r", "822q", "205q", "51q", "25q", "803p", "200p",
+        "50p", "12p", "784o", "196o", "49o", "12o", "766n", "191n", "47n", "23n",
+        // Ranks 61-90 (placeholder - will be updated)
+        "374m", "93m", "23m", "730l", "182l", "45l", "11l", "356k", "89k", "22k",
+        "5k", "696j", "174j", "43j", "10j", "680i", "170i", "42i", "10i", "664h",
+        "166h", "41h", "10h", "5h", "324g", "81g", "20g", "5g", "1g", "316f",
+        // Ranks 91-120 (placeholder - will be updated)
+        "79f", "19f", "4f", "1f", "309e", "77e", "19e", "4e", "1e", "604d",
+        "151d", "37d", "9d", "2d", "590c", "147c", "36c", "9c", "2c", "576b",
+        "144b", "36b", "9b", "2b", "562a", "140a", "35a", "8a", "2a", "549B",
+        // Ranks 121-150 (placeholder - will be updated)
+        "137B", "34B", "8B", "2B", "536M", "134M", "33M", "8M", "2M", "524K",
+        "131K", "32K", "8K", "2K", "8192", "2048", "512", "128", "32", "16",
+        "8", "4", "2", "2", "2", "2", "2", "2", "2", "2"
+    ]
+
+    // Extended Australia milestone brackets for rank calculation (ranks 151+)
+    // Total Australia players: ~9,234
+    private static let australiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // Placeholder - will be updated with real data
+        ("2", 151), ("0", 200)
     ]
 
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
@@ -1380,6 +1437,92 @@ public extension LeaderboardClient {
             name: UserLeaderboardData.playerName,
             score: userScore,
             countryCode: "CA",
+            platform: .ios,
+            isMe: true,
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
+        ))
+
+        return entries
+    }
+
+    // Australia leaderboard - shows top 150 Australian players
+    private static func australiaEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // First, build player data with milestones
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String)] = []
+
+        for i in 0..<min(150, australiaPlayerMilestones.count) {
+            let baseMilestone = australiaPlayerMilestones[i]
+            let name = MockLeaderboardData.australiaNames[i % MockLeaderboardData.australiaNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+
+            // Australia milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar))
+        }
+
+        // Sort by milestone index (highest first = best milestone)
+        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+
+        // Build entries with ranks based on sorted order
+        var entries: [LeaderboardEntry] = []
+        for (rank, player) in playerData.enumerated() {
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 15000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: "au_\(player.originalIndex)",
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "AU",
+                platform: player.platform,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // Add current user entry
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+        let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let totalAustraliaPlayers = 9_234  // Australia player count
+
+        // Find user's rank based on milestone compared to sorted players
+        var australiaRank = totalAustraliaPlayers
+
+        // Check if user would be in top 150 based on milestone
+        if let lastTop150 = playerData.last {
+            if userMilestoneIndex > lastTop150.milestoneIdx {
+                // User's milestone is better than some in top 150, find exact position
+                for (rank, player) in playerData.enumerated() {
+                    if userMilestoneIndex >= player.milestoneIdx {
+                        australiaRank = rank + 1
+                        break
+                    }
+                }
+            } else {
+                // User is below top 150 - use bracket-based ranking
+                for bracket in australiaExtendedRankBrackets {
+                    if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                       userMilestoneIndex >= bracketIndex {
+                        australiaRank = bracket.startRank
+                        break
+                    }
+                }
+            }
+        }
+
+        entries.append(LeaderboardEntry(
+            id: "me",
+            rank: australiaRank,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
+            countryCode: "AU",
             platform: .ios,
             isMe: true,
             avatarURL: UserLeaderboardData.avatarID,

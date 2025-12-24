@@ -203,6 +203,8 @@ public struct LeaderboardView: View {
             return Color.red
         case .countryCA:
             return Color.red  // Canada - red like the maple leaf
+        case .countryAU:
+            return Color.green  // Australia - green and gold
         }
     }
     
