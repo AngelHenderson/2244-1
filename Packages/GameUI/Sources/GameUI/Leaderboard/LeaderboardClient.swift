@@ -1103,7 +1103,7 @@ public extension LeaderboardClient {
                 }
             } else {
                 // User is below top 150 - use bracket-based ranking
-                for bracket in globalExtendedRankBrackets.reversed() {
+                for bracket in globalExtendedRankBrackets {
                     if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
                        userMilestoneIndex >= bracketIndex {
                         globalRank = bracket.startRank
@@ -1190,7 +1190,8 @@ public extension LeaderboardClient {
                 }
             } else {
                 // User is below top 150 - use bracket-based ranking
-                for bracket in usExtendedRankBrackets.reversed() {
+                // Iterate forward (high tier to low tier) to find best matching bracket
+                for bracket in usExtendedRankBrackets {
                     if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
                        userMilestoneIndex >= bracketIndex {
                         usRank = bracket.startRank
@@ -1277,7 +1278,7 @@ public extension LeaderboardClient {
                 }
             } else {
                 // User is below top 150 - use bracket-based ranking
-                for bracket in ukExtendedRankBrackets.reversed() {
+                for bracket in ukExtendedRankBrackets {
                     if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
                        userMilestoneIndex >= bracketIndex {
                         ukRank = bracket.startRank
@@ -1363,7 +1364,7 @@ public extension LeaderboardClient {
                 }
             } else {
                 // User is below top 150 - use bracket-based ranking
-                for bracket in canadaExtendedRankBrackets.reversed() {
+                for bracket in canadaExtendedRankBrackets {
                     if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
                        userMilestoneIndex >= bracketIndex {
                         canadaRank = bracket.startRank
