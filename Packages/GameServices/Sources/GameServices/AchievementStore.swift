@@ -444,6 +444,17 @@ public final class AchievementStore {
         .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1500))
     ]
 
+    private static let wheelCollectsTiers: [ComboTierDefinition] = [
+        .init(milestone: 3, categoryLabel: "3 collects", rewards: .init(gems: 50)),
+        .init(milestone: 5, categoryLabel: "5 collects", rewards: .init(gems: 80, swaps: 1)),
+        .init(milestone: 10, categoryLabel: "10 collects", rewards: .init(gems: 80, boost4x: 1)),
+        .init(milestone: 25, categoryLabel: "25 collects", rewards: .init(magnets: 1, boost4x: 1)),
+        .init(milestone: 50, categoryLabel: "50 collects", rewards: .init(gems: 500)),
+        .init(milestone: 100, categoryLabel: "100 collects", rewards: .init(gems: 1000)),
+        .init(milestone: 250, categoryLabel: "250 collects", rewards: .init(gems: 1500, hammers: 1, magnets: 2)),
+        .init(milestone: 500, categoryLabel: "500 collects", rewards: .init(gems: 4500))
+    ]
+
     private static let challengeCreationTiers: [ComboTierDefinition] = [
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
         .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
@@ -1060,6 +1071,43 @@ public final class AchievementStore {
         boost5xUsesProgressionTier >= Self.boost5xUseTiers.count - 1
     }
 
+    /// Wheel collects progression tier index (persisted)
+    public var wheelCollectsProgressionTier: Int {
+        didSet {
+            defaults.set(wheelCollectsProgressionTier, forKey: "wheelCollectsProgressionTier")
+            unlocks["wheel_collects_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+
+    private var currentWheelCollectsTier: ComboTierDefinition {
+        let index = min(wheelCollectsProgressionTier, Self.wheelCollectsTiers.count - 1)
+        return Self.wheelCollectsTiers[index]
+    }
+
+    public var wheelCollectsDisplay: ProgressTierDisplay {
+        let tier = currentWheelCollectsTier
+        let clampedIndex = min(wheelCollectsProgressionTier, Self.wheelCollectsTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = wheelCollectsProgressionTier >= Self.wheelCollectsTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered collecting from the wheel. Claim your final reward."
+            : "Collect powerups from the wheel \(tier.milestone) time\(tier.milestone == 1 ? "" : "s") to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) collect\(tier.milestone == 1 ? "" : "s")"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "Wheel Collects",
+            rewards: tier.rewards
+        )
+    }
+
+    public var isWheelCollectsProgressionMaxed: Bool {
+        wheelCollectsProgressionTier >= Self.wheelCollectsTiers.count - 1
+    }
+
     /// Challenge creation progression tier index (persisted)
     public var challengeCreationTier: Int {
         didSet {
@@ -1256,6 +1304,7 @@ public final class AchievementStore {
         self.spinPurchasesProgressionTier = defaults.integer(forKey: "spinPurchasesProgressionTier")
         self.dailyClaimsProgressionTier = defaults.integer(forKey: "dailyClaimsProgressionTier")
         self.boost5xUsesProgressionTier = defaults.integer(forKey: "boost5xUsesProgressionTier")
+        self.wheelCollectsProgressionTier = defaults.integer(forKey: "wheelCollectsProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
         loadPersistedSnapshot()
@@ -1467,6 +1516,15 @@ public final class AchievementStore {
             if def.id == "boost5x_usage_progression" {
                 let targetValue = Double(currentBoost5xUsesTier.milestone)
                 if Double(snapshot.boost5x_uses_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+
+            if def.id == "wheel_collects_progression" {
+                let targetValue = Double(currentWheelCollectsTier.milestone)
+                if Double(snapshot.wheel_collects_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1846,6 +1904,23 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "wheel_collects_progression" {
+            let rewards = wheelCollectsDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+
+            if !isWheelCollectsProgressionMaxed {
+                wheelCollectsProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         if definition.id == "challenge_creation" {
             let rewards = challengeCreationDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -1943,6 +2018,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.daily_claims_total), target: Double(currentDailyClaimsTier.milestone))
         case "boost5x_usage_progression":
             return makeProgress(current: Double(snapshot.boost5x_uses_total), target: Double(currentBoost5xUsesTier.milestone))
+        case "wheel_collects_progression":
+            return makeProgress(current: Double(snapshot.wheel_collects_total), target: Double(currentWheelCollectsTier.milestone))
         case "challenge_creation":
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":

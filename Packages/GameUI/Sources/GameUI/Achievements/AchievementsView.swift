@@ -76,6 +76,8 @@ public struct AchievementsView: View {
             return achievements.dailyClaimsDisplay.level
         case "boost5x_usage_progression":
             return achievements.boost5xUsesDisplay.level
+        case "wheel_collects_progression":
+            return achievements.wheelCollectsDisplay.level
         default:
             return 1
         }
@@ -173,6 +175,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.dailyClaimsDisplay
         case "boost5x_usage_progression":
             return achievements.boost5xUsesDisplay
+        case "wheel_collects_progression":
+            return achievements.wheelCollectsDisplay
         default:
             return nil
         }

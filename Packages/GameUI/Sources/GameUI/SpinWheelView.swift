@@ -324,6 +324,8 @@ public struct SpinWheelView: View {
             haptics.success()
             rewardMessage = message
             showReward = true
+            // Track wheel collect for achievement
+            gameStore.achievementEvaluator?.onWheelCollected()
         }
     }
     
