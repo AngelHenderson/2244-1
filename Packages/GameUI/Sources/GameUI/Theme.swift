@@ -150,6 +150,57 @@ public struct Theme {
         let idx = (max(1, exp) - 1) % 25
         return mellowYellowPalette[idx].darkText ? .black : .white
     }
+
+    // MARK: - Relaxed Rust Palette (25-step, earthy tones and rusts)
+    public static let relaxedRustPalette: [(color: Color, darkText: Bool)] = [
+        (Color(hex: "F9F1F0"), true),   // 1 (2): Near white/blush
+        (Color(hex: "EAD5C9"), true),   // 2 (4): Pale clay
+        (Color(hex: "DDBEA9"), true),   // 3 (8): Beige
+        (Color(hex: "CB997E"), false),  // 4 (16): Terracotta light
+        (Color(hex: "B7B7A4"), true),   // 5 (32): Sage grey
+        (Color(hex: "A5A58D"), true),   // 6 (64): Olive grey
+        (Color(hex: "6B705C"), false),  // 7 (128): Dark olive
+        (Color(hex: "A47148"), false),  // 8 (256): Rust orange
+        (Color(hex: "BC6C25"), false),  // 9 (512): Deep orange
+        (Color(hex: "DDA15E"), true),   // 10 (1024): Golden
+        (Color(hex: "FEFAE0"), true),   // 11 (2048): Cream
+        (Color(hex: "283618"), false),  // 12 (4096): Forest green
+        (Color(hex: "606C38"), false),  // 13 (8192): Moss green
+        (Color(hex: "8D5B4C"), false),  // 14 (16K): Red brown
+        (Color(hex: "5F4B3B"), false),  // 15 (32K): Coffee
+        (Color(hex: "8A817C"), false),  // 16 (65K): Taupe
+        (Color(hex: "463F3A"), false),  // 17 (131K): Dark grey/brown
+        (Color(hex: "F4F1DE"), true),   // 18 (262K): Off white
+        (Color(hex: "E07A5F"), false),  // 19 (524K): Soft Red
+        (Color(hex: "3D405B"), false),  // 20 (1M): Slate Blue
+        (Color(hex: "81B29A"), true),   // 21 (2M): Soft Teal
+        (Color(hex: "F2CC8F"), true),   // 22 (4M): Soft Yellow
+        (Color(hex: "9A8C98"), false),  // 23 (8M): Mauve grey
+        (Color(hex: "4A4E69"), false),  // 24 (16M): Purple grey
+        (Color(hex: "22223B"), false),  // 25 (33M): Deep navy/purple
+    ]
+
+    public static func relaxedRustColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            let exponent = step + 1
+            let idx = (max(1, exponent) - 1) % 25
+            return relaxedRustPalette[idx].color
+        }
+        let exp = exponent(for: value)
+        let idx = (max(1, exp) - 1) % 25
+        return relaxedRustPalette[idx].color
+    }
+
+    public static func relaxedRustTextColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            let exponent = step + 1
+            let idx = (max(1, exponent) - 1) % 25
+            return relaxedRustPalette[idx].darkText ? .black : .white
+        }
+        let exp = exponent(for: value)
+        let idx = (max(1, exp) - 1) % 25
+        return relaxedRustPalette[idx].darkText ? .black : .white
+    }
     
     // Step overrides removed to maintain proper 25-color cycling
     // The palette should repeat consistently every 25 exponents

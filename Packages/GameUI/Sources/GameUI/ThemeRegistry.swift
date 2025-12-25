@@ -267,8 +267,49 @@ extension ThemeRegistry {
             }
         )
 
+        // Relaxed Rust theme (earthy tones and rusts)
+        let relaxedRust = ThemeDescriptor(
+            id: "relaxed-rust",
+            name: "Relaxed Rust",
+            tileShape: .rounded,
+            tileStyle: .flat,
+            color: { value in
+                Theme.relaxedRustColor(for: value)
+            }
+        )
+
+        let relaxedRustSquare = ThemeDescriptor(
+            id: "relaxed-rust-square",
+            name: "Relaxed Rust Square",
+            tileShape: .square,
+            tileStyle: .flat,
+            color: { value in
+                Theme.relaxedRustColor(for: value)
+            }
+        )
+
+        let relaxedRust3D = ThemeDescriptor(
+            id: "relaxed-rust-3d",
+            name: "Relaxed Rust 3D",
+            tileShape: .rounded,
+            tileStyle: .raised3D,
+            color: { value in
+                Theme.relaxedRustColor(for: value)
+            }
+        )
+
+        let relaxedRust3DSquare = ThemeDescriptor(
+            id: "relaxed-rust-3d-square",
+            name: "Relaxed Rust 3D Square",
+            tileShape: .square,
+            tileStyle: .raised3D,
+            color: { value in
+                Theme.relaxedRustColor(for: value)
+            }
+        )
+
         return ThemeRegistry(
-            descriptors: [classic, classicSquare, raised3D, raised3DSquare, neon, pastel, mono, highContrast, simpleSage, simpleSageSquare, simpleSage3D, simpleSage3DSquare, mellowYellow, mellowYellowSquare, mellowYellow3D, mellowYellow3DSquare],
+            descriptors: [classic, classicSquare, raised3D, raised3DSquare, neon, pastel, mono, highContrast, simpleSage, simpleSageSquare, simpleSage3D, simpleSage3DSquare, mellowYellow, mellowYellowSquare, mellowYellow3D, mellowYellow3DSquare, relaxedRust, relaxedRustSquare, relaxedRust3D, relaxedRust3DSquare],
             defaultId: "raised-3d-square"
         )
     }
