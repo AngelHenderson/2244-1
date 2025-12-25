@@ -7,6 +7,7 @@ public struct HomeView: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
+    @Environment(\.toastManager) private var toastManager
     @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
     @State private var isShowingAchievements: Bool = false
@@ -268,6 +269,8 @@ public struct HomeView: View {
         .sheet(isPresented: $isShowingSettings) {
             SettingsView()
         }
+        // Floating toast notification overlay
+        .toastOverlay(manager: toastManager)
     }
 
     private func dockItem(system: String, title: String, badge: Bool = false, action: @escaping () -> Void) -> some View {
@@ -403,6 +406,7 @@ public extension View {
     let gameCenter = DefaultGameCenterService()
     let storage = UserDefaultsStorageService()
     let themeRegistry = ThemeRegistry.Default
+    let toastManager = ToastManager()
 
     // Seed some demo state for a nicer preview
     homeState.gems = 305
@@ -444,6 +448,7 @@ public extension View {
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
+        .environment(\.toastManager, toastManager)
 }
 
 #Preview("Home - Best Offer") {
@@ -456,6 +461,7 @@ public extension View {
     let gameCenter = DefaultGameCenterService()
     let storage = UserDefaultsStorageService()
     let themeRegistry = ThemeRegistry.Default
+    let toastManager = ToastManager()
 
     // Seed demo state with an active best offer
     homeState.gems = 520
@@ -496,4 +502,5 @@ public extension View {
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
+        .environment(\.toastManager, toastManager)
 }
