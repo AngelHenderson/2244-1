@@ -156,7 +156,7 @@ public struct Theme {
         (Color(hex: "F9F1F0"), true),   // 1 (2): Near white/blush
         (Color(hex: "EAD5C9"), true),   // 2 (4): Pale clay
         (Color(hex: "DDBEA9"), true),   // 3 (8): Beige
-        (Color(hex: "CB997E"), false),  // 4 (16): Terracotta light
+        (Color(hex: "CB997E"), true),   // 4 (16): Terracotta light
         (Color(hex: "B7B7A4"), true),   // 5 (32): Sage grey
         (Color(hex: "A5A58D"), true),   // 6 (64): Olive grey
         (Color(hex: "6B705C"), false),  // 7 (128): Dark olive
@@ -171,7 +171,7 @@ public struct Theme {
         (Color(hex: "8A817C"), false),  // 16 (65K): Taupe
         (Color(hex: "463F3A"), false),  // 17 (131K): Dark grey/brown
         (Color(hex: "F4F1DE"), true),   // 18 (262K): Off white
-        (Color(hex: "E07A5F"), false),  // 19 (524K): Soft Red
+        (Color(hex: "E07A5F"), true),   // 19 (524K): Soft Red
         (Color(hex: "3D405B"), false),  // 20 (1M): Slate Blue
         (Color(hex: "81B29A"), true),   // 21 (2M): Soft Teal
         (Color(hex: "F2CC8F"), true),   // 22 (4M): Soft Yellow
