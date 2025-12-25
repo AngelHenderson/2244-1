@@ -305,7 +305,7 @@ public final class ShopStore {
     }
     
     private func performPurchase(productID: String) async -> Bool {
-        guard let purchaseService else { return true }
+        guard let purchaseService else { return false }
         return await purchaseService.purchase(productID: productID)
     }
     
