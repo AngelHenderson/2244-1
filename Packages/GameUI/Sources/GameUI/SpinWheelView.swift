@@ -16,8 +16,7 @@ public struct SpinWheelView: View {
     @Environment(\.gameStore) private var gameStore
     @Environment(\.hapticsService) private var haptics
     @Environment(HomeState.self) private var homeState
-    
-    @State private var spinState = SpinWheelState()
+    @Environment(\.spinWheelState) private var spinState
     @State private var showReward = false
     @State private var rewardMessage = ""
     @State private var purchaseFeedback: String?
