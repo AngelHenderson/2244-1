@@ -345,19 +345,25 @@ private struct RewardsTiny: View {
 
 private struct TimerView: View {
     let timeRemaining: TimeInterval
-    @State private var currentTime = Date()
-    
+    @State private var startTime: Date?
+    @State private var elapsedTime: TimeInterval = 0
+
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
+
     var body: some View {
         Text(timeString)
-            .onReceive(timer) { _ in
-                currentTime = Date()
+            .onAppear {
+                startTime = Date()
+            }
+            .onReceive(timer) { now in
+                if let start = startTime {
+                    elapsedTime = now.timeIntervalSince(start)
+                }
             }
     }
-    
+
     private var timeString: String {
-        let remaining = max(0, timeRemaining - Date().timeIntervalSince(currentTime))
+        let remaining = max(0, timeRemaining - elapsedTime)
         let hours = Int(remaining) / 3600
         let minutes = (Int(remaining) % 3600) / 60
         let seconds = Int(remaining) % 60
