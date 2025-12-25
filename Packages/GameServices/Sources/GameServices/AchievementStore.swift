@@ -348,6 +348,7 @@ public final class AchievementStore {
     ]
 
     private static let playtimeTiers: [ComboTierDefinition] = [
+        // Tiers 1-11 (existing)
         .init(milestone: 5, categoryLabel: "5 min", rewards: .init(gems: 20)),
         .init(milestone: 10, categoryLabel: "10 min", rewards: .init(gems: 25, swaps: 1)),
         .init(milestone: 15, categoryLabel: "15 min", rewards: .init(gems: 30, hammers: 1)),
@@ -358,7 +359,27 @@ public final class AchievementStore {
         .init(milestone: 240, categoryLabel: "4 hr", rewards: .init(gems: 100, magnets: 1, boost2x: 1)),
         .init(milestone: 480, categoryLabel: "8 hr", rewards: .init(gems: 70, spins: 1, hammers: 1)),
         .init(milestone: 720, categoryLabel: "12 hr", rewards: .init(spins: 1, boost4x: 1)),
-        .init(milestone: 1440, categoryLabel: "24 hr", rewards: .init(gems: 1000))
+        .init(milestone: 1440, categoryLabel: "24 hr", rewards: .init(gems: 1000)),
+        // Tiers 12-31 (new)
+        .init(milestone: 2880, categoryLabel: "48 hr", rewards: .init(gems: 2000)),
+        .init(milestone: 4320, categoryLabel: "72 hr", rewards: .init(gems: 3000)),
+        .init(milestone: 5760, categoryLabel: "96 hr", rewards: .init(magnets: 1)),
+        .init(milestone: 7200, categoryLabel: "120 hr", rewards: .init(gems: 5000)),
+        .init(milestone: 8640, categoryLabel: "144 hr", rewards: .init(gems: 6000)),
+        .init(milestone: 10080, categoryLabel: "168 hr", rewards: .init(gems: 7000)),
+        .init(milestone: 20160, categoryLabel: "336 hr", rewards: .init(gems: 14000)),
+        .init(milestone: 43200, categoryLabel: "720 hr", rewards: .init(spins: 1, boost4x: 1)),
+        .init(milestone: 86400, categoryLabel: "1440 hr", rewards: .init(gems: 30000)),
+        .init(milestone: 129600, categoryLabel: "2160 hr", rewards: .init(gems: 33000)),
+        .init(milestone: 172800, categoryLabel: "2880 hr", rewards: .init(gems: 36000)),
+        .init(milestone: 216000, categoryLabel: "3600 hr", rewards: .init(gems: 39000)),
+        .init(milestone: 259200, categoryLabel: "4320 hr", rewards: .init(boost4x: 1)),
+        .init(milestone: 302400, categoryLabel: "5040 hr", rewards: .init(hammers: 1)),
+        .init(milestone: 345600, categoryLabel: "5760 hr", rewards: .init(gems: 40000)),
+        .init(milestone: 388800, categoryLabel: "6480 hr", rewards: .init(gems: 40000, magnets: 1)),
+        .init(milestone: 432000, categoryLabel: "7200 hr", rewards: .init(gems: 44850, spins: 1, boost2x: 1)),
+        .init(milestone: 475200, categoryLabel: "7920 hr", rewards: .init(gems: 50000, swaps: 1)),
+        .init(milestone: 518400, categoryLabel: "8640 hr", rewards: .init(spins: 5))
     ]
     
     private static let infinityTiers: [ComboTierDefinition] = [
