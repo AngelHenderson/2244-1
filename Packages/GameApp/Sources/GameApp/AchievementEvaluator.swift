@@ -165,6 +165,7 @@ public final class AchievementEvaluator {
         snapshot.games_played = totalGamesPlayed
         snapshot.max_tile = state.highestTile
         snapshot.score = state.score
+        snapshot.total_moves = defaults.integer(forKey: "totalMoves")
 
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
