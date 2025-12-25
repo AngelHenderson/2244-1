@@ -81,12 +81,32 @@ public extension EnvironmentValues {
         get { self[ColorBlindModeKey.self] }
         set { self[ColorBlindModeKey.self] = newValue }
     }
+
+    var spinWheelState: SpinWheelState {
+        get { self[SpinWheelStateKey.self] }
+        set { self[SpinWheelStateKey.self] = newValue }
+    }
 }
 
 
 public struct ColorBlindModeKey: EnvironmentKey {
     public static var defaultValue: Bool {
         UserDefaults.standard.bool(forKey: "colorBlindMode")
+    }
+}
+
+private struct DefaultSpinWheelState: Sendable {
+    @MainActor
+    static func make() -> SpinWheelState {
+        SpinWheelState()
+    }
+}
+
+public struct SpinWheelStateKey: EnvironmentKey {
+    nonisolated public static var defaultValue: SpinWheelState {
+        MainActor.assumeIsolated {
+            DefaultSpinWheelState.make()
+        }
     }
 }
 
