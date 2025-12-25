@@ -630,11 +630,10 @@ public extension LeaderboardClient {
             case .countryCA:
                 totalPlayers = 12_847  // Canada player count
             case .countryAU:
-                totalPlayers = 9_234  // Australia player count
+                totalPlayers = 63_213  // Australia player count
             case .global:
-                // Global = sum of all country players (US + UK + Canada)
-                // Note: Australia not yet added to global until data is complete
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847
+                // Global = sum of all country players (US + UK + Canada + Australia)
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213
             }
             return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
         },
@@ -858,29 +857,36 @@ public extension LeaderboardClient {
         "13bz", "794bv", "2br", "657bn", "1bm", "9bk", "556bg", "278bg", "69bg", "989bb",
         "463ay", "3a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
         "2af", "69ad", "4ac", "1ab", "127z", "1z", "971x", "30x", "1x", "452u",
-        // Ranks 31-60 (placeholder - will be updated)
-        "113u", "28u", "7u", "883t", "110t", "27t", "862s", "215s", "26s", "13s",
-        "842r", "210r", "52r", "13r", "822q", "205q", "51q", "25q", "803p", "200p",
-        "50p", "12p", "784o", "196o", "49o", "12o", "766n", "191n", "47n", "23n",
-        // Ranks 61-90 (placeholder - will be updated)
-        "374m", "93m", "23m", "730l", "182l", "45l", "11l", "356k", "89k", "22k",
-        "5k", "696j", "174j", "43j", "10j", "680i", "170i", "42i", "10i", "664h",
-        "166h", "41h", "10h", "5h", "324g", "81g", "20g", "5g", "1g", "316f",
-        // Ranks 91-120 (placeholder - will be updated)
-        "79f", "19f", "4f", "1f", "309e", "77e", "19e", "4e", "1e", "604d",
-        "151d", "37d", "9d", "2d", "590c", "147c", "36c", "9c", "2c", "576b",
-        "144b", "36b", "9b", "2b", "562a", "140a", "35a", "8a", "2a", "549B",
-        // Ranks 121-150 (placeholder - will be updated)
-        "137B", "34B", "8B", "2B", "536M", "134M", "33M", "8M", "2M", "524K",
-        "131K", "32K", "8K", "2K", "8192", "2048", "512", "128", "32", "16",
-        "8", "4", "2", "2", "2", "2", "2", "2", "2", "2"
+        // Ranks 31-60 (from screenshot)
+        "113u", "14u", "883t", "27t", "431s", "3s", "210r", "52r", "3r", "411q",
+        "51q", "401p", "3o", "383n", "95n", "23n", "11n", "2n", "748m", "187m",
+        "46m", "23m", "11m", "730l", "5l", "356k", "22k", "11k", "696j", "87j",
+        // Ranks 61-90 (from screenshot)
+        "10j", "2j", "680i", "85i", "21i", "2i", "332h", "41h", "5h", "649g",
+        "81g", "20g", "2g", "316f", "79f", "39f", "9f", "2f", "309e", "77e",
+        "19e", "4e", "604d", "75d", "18d", "18d", "9d", "4d", "4d", "1d",
+        // Ranks 91-120 (from screenshot)
+        "1d", "590c", "295c", "147c", "36c", "18c", "4c", "2c", "2c", "576b",
+        "576b", "288b", "144b", "72b", "72b", "9b", "4b", "2b", "2b", "1b",
+        "562a", "281a", "140a", "35a", "17a", "8a", "8a", "4a", "4a", "2a",
+        // Ranks 121-150 (from screenshot)
+        "1a", "274B", "137B", "137B", "68B", "34B", "34B", "34B", "17B", "17B",
+        "8B", "8B", "8B", "8B", "4B", "4B", "4B", "2B", "2B", "1B",
+        "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B"
     ]
 
     // Extended Australia milestone brackets for rank calculation (ranks 151+)
-    // Total Australia players: ~9,234
+    // Total Australia players: ~63,213
     private static let australiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
-        // Placeholder - will be updated with real data
-        ("2", 151), ("0", 200)
+        // B-tier brackets
+        ("1B", 140), ("536M", 175), ("268M", 183), ("134M", 198), ("67M", 199),
+        ("33M", 202), ("16M", 223), ("8M", 240), ("4M", 287), ("2M", 333), ("1M", 388),
+        // K-tier brackets
+        ("524K", 447), ("262K", 669), ("131K", 922), ("65K", 1234), ("32K", 1955), ("16K", 2533),
+        // Raw number brackets
+        ("8192", 3513), ("4096", 4225), ("2048", 5533), ("1024", 6767), ("512", 8499),
+        ("256", 11988), ("128", 14676), ("64", 16767), ("32", 21116), ("16", 26002),
+        ("8", 31288), ("4", 35526), ("2", 40000), ("0", 59333)
     ]
 
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
@@ -1114,6 +1120,19 @@ public extension LeaderboardClient {
             playerData.append((i, i + 10000, baseMilestone, milestoneIdx, name, "CA", platform, avatar, "ca_\(i)"))
         }
 
+        // Add Australia players
+        for i in 0..<min(150, australiaPlayerMilestones.count) {
+            let baseMilestone = australiaPlayerMilestones[i]
+            let name = MockLeaderboardData.australiaNames[i % MockLeaderboardData.australiaNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 18) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // Australia milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, i + 15000, baseMilestone, milestoneIdx, name, "AU", platform, avatar, "au_\(i)"))
+        }
+
         // Sort by milestone index (highest first = best milestone)
         playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
 
@@ -1136,14 +1155,15 @@ public extension LeaderboardClient {
         }
 
         // Add current user entry
-        // Total global players = sum of all country players (US + UK + Canada)
+        // Total global players = sum of all country players (US + UK + Canada + Australia)
         let userMilestone = UserLeaderboardData.currentMilestone
         let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
         let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
         let totalUSPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
         let totalUKPlayers = 17_676
         let totalCanadaPlayers = 12_847
-        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers
+        let totalAustraliaPlayers = 63_213
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers
 
         // Find user's rank based on milestone compared to sorted players
         var globalRank = totalPlayers
@@ -1490,7 +1510,7 @@ public extension LeaderboardClient {
         let userMilestone = UserLeaderboardData.currentMilestone
         let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
         let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
-        let totalAustraliaPlayers = 9_234  // Australia player count
+        let totalAustraliaPlayers = 63_213  // Australia player count
 
         // Find user's rank based on milestone compared to sorted players
         var australiaRank = totalAustraliaPlayers
