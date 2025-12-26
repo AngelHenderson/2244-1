@@ -314,7 +314,17 @@ public final class AchievementStore {
         .init(milestone: 125, categoryLabel: "Use MegaMerge 125 Times", rewards: .init(gems: 500, boost4x: 1)),
         .init(milestone: 150, categoryLabel: "Use MegaMerge 150 Times", rewards: .init(gems: 500, hammers: 1, magnets: 1, swaps: 1, boost3x: 1)),
         .init(milestone: 200, categoryLabel: "Use MegaMerge 200 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
-        .init(milestone: 300, categoryLabel: "Use MegaMerge 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
+        .init(milestone: 300, categoryLabel: "Use MegaMerge 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1)),
+        // Tiers 12-20
+        .init(milestone: 500, categoryLabel: "Use MegaMerge 500 Times", rewards: .init(gems: 1500)),
+        .init(milestone: 750, categoryLabel: "Use MegaMerge 750 Times", rewards: .init(gems: 1500, hammers: 1)),
+        .init(milestone: 1000, categoryLabel: "Use MegaMerge 1000 Times", rewards: .init(magnets: 2)),
+        .init(milestone: 1500, categoryLabel: "Use MegaMerge 1500 Times", rewards: .init(spins: 2, boost4x: 1)),
+        .init(milestone: 2000, categoryLabel: "Use MegaMerge 2000 Times", rewards: .init(spins: 2, boost2x: 1, boost4x: 1)),
+        .init(milestone: 2500, categoryLabel: "Use MegaMerge 2500 Times", rewards: .init(gems: 2000, magnets: 1)),
+        .init(milestone: 3750, categoryLabel: "Use MegaMerge 3750 Times", rewards: .init(gems: 2300)),
+        .init(milestone: 5000, categoryLabel: "Use MegaMerge 5000 Times", rewards: .init(gems: 2445, swaps: 1)),
+        .init(milestone: 6500, categoryLabel: "Use MegaMerge 6500 Times", rewards: .init(gems: 2500))
     ]
     
     private static let spinUseTiers: [ComboTierDefinition] = [

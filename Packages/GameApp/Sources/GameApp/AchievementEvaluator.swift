@@ -539,4 +539,33 @@ public final class AchievementEvaluator {
         currentGameSnapshot.spin_uses_total = spinUsesTotal
         currentGameSnapshot.survive_moves_total = surviveMovesTotal
     }
+
+    /// Called when magnet (MegaMerge) is used - tracks usage, combos, merges, and moves
+    public func onMagnetUsed(mergeCount: Int) {
+        // Track magnet usage
+        magnetUsesTotal += 1
+        defaults.set(magnetUsesTotal, forKey: magnetUsesKey)
+        currentGameSnapshot.magnet_uses_total = magnetUsesTotal
+
+        // Count as merged tiles
+        lifetimeMergedTiles += mergeCount
+        defaults.set(lifetimeMergedTiles, forKey: mergedTilesKey)
+        currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
+
+        // Count as a move
+        let currentTotalMoves = defaults.integer(forKey: "totalMoves")
+        defaults.set(currentTotalMoves + 1, forKey: "totalMoves")
+
+        // Count towards combo achievements based on merge count
+        updateComboProgress(for: mergeCount)
+
+        // Evaluate achievements
+        var snapshot = currentGameSnapshot
+        snapshot.magnet_uses_total = magnetUsesTotal
+        snapshot.merged_tiles_total = lifetimeMergedTiles
+        snapshot.total_moves = defaults.integer(forKey: "totalMoves")
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
+    }
 }
