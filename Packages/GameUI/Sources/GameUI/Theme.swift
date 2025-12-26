@@ -360,3 +360,66 @@ extension Color {
         #endif
     }
 }
+
+// MARK: - Adaptive Sheet Modifier (Full Screen on iPad)
+
+/// A view modifier that presents content as a sheet on iPhone (compact)
+/// and as a full screen cover on iPad (regular size class)
+private struct AdaptiveSheetModifier<SheetContent: View>: ViewModifier {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Binding var isPresented: Bool
+    let onDismiss: (() -> Void)?
+    @ViewBuilder let sheetContent: () -> SheetContent
+
+    func body(content: Content) -> some View {
+        if horizontalSizeClass == .regular {
+            content.fullScreenCover(isPresented: $isPresented, onDismiss: onDismiss, content: sheetContent)
+        } else {
+            content.sheet(isPresented: $isPresented, onDismiss: onDismiss, content: sheetContent)
+        }
+    }
+}
+
+/// A view modifier for item-based adaptive presentation
+private struct AdaptiveSheetItemModifier<Item: Identifiable, SheetContent: View>: ViewModifier {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Binding var item: Item?
+    let onDismiss: (() -> Void)?
+    @ViewBuilder let sheetContent: (Item) -> SheetContent
+
+    func body(content: Content) -> some View {
+        if horizontalSizeClass == .regular {
+            content.fullScreenCover(item: $item, onDismiss: onDismiss, content: sheetContent)
+        } else {
+            content.sheet(item: $item, onDismiss: onDismiss, content: sheetContent)
+        }
+    }
+}
+
+public extension View {
+    /// Presents content adaptively: sheet on iPhone, full screen cover on iPad
+    func adaptiveSheet<Content: View>(
+        isPresented: Binding<Bool>,
+        onDismiss: (() -> Void)? = nil,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
+        self.modifier(AdaptiveSheetModifier(
+            isPresented: isPresented,
+            onDismiss: onDismiss,
+            sheetContent: content
+        ))
+    }
+
+    /// Presents content adaptively based on an item: sheet on iPhone, full screen cover on iPad
+    func adaptiveSheet<Item: Identifiable, Content: View>(
+        item: Binding<Item?>,
+        onDismiss: (() -> Void)? = nil,
+        @ViewBuilder content: @escaping (Item) -> Content
+    ) -> some View {
+        self.modifier(AdaptiveSheetItemModifier(
+            item: item,
+            onDismiss: onDismiss,
+            sheetContent: content
+        ))
+    }
+}
