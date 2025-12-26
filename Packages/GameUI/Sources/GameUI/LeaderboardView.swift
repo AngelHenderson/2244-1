@@ -207,6 +207,8 @@ public struct LeaderboardView: View {
             return Color.green  // Australia - green and gold
         case .countryDE:
             return Color.red  // Germany - black, red, gold flag
+        case .countryFR:
+            return Color.blue  // France - blue, white, red flag
         }
     }
     
