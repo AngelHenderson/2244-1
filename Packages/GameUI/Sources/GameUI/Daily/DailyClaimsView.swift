@@ -44,7 +44,10 @@ public struct DailyClaimsView: View {
                 }
             }
         }
-        .onAppear(perform: syncSelectedPage)
+        .onAppear {
+            store.updateAvailability()
+            syncSelectedPage()
+        }
         .onChange(of: store.currentClaimDay) { _, _ in
             syncSelectedPage()
         }
@@ -345,19 +348,26 @@ private struct RewardsTiny: View {
 
 private struct TimerView: View {
     let timeRemaining: TimeInterval
-    @State private var currentTime = Date()
-    
+    @State private var deadline: Date?
+    @State private var now = Date()
+
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
+
     var body: some View {
         Text(timeString)
+            .onAppear {
+                deadline = Date().addingTimeInterval(timeRemaining)
+            }
             .onReceive(timer) { _ in
-                currentTime = Date()
+                now = Date()
             }
     }
-    
+
     private var timeString: String {
-        let remaining = max(0, timeRemaining - Date().timeIntervalSince(currentTime))
+        guard let deadline else {
+            return String(format: "%02d:%02d:%02d", 0, 0, 0)
+        }
+        let remaining = max(0, deadline.timeIntervalSince(now))
         let hours = Int(remaining) / 3600
         let minutes = (Int(remaining) % 3600) / 60
         let seconds = Int(remaining) % 60

@@ -182,13 +182,14 @@ public final class DailyClaimsStore {
     }
     
     public func getTimeUntilNextClaim() -> TimeInterval? {
-        guard !canClaimToday, let lastClaim = lastClaimDate else { return nil }
-        
+        guard !canClaimToday else { return nil }
+
         let calendar = Calendar.current
-        guard let nextMidnight = calendar.date(byAdding: .day, value: 1, to: lastClaim) else { return nil }
-        let startOfNextDay = calendar.startOfDay(for: nextMidnight)
-        
-        return max(0, startOfNextDay.timeIntervalSinceNow)
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday) else { return nil }
+
+        return max(0, startOfTomorrow.timeIntervalSince(now))
     }
     
     public func combinedRewardForNextClaim() -> AchievementDef.Rewards? {
