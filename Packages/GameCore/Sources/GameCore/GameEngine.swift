@@ -1248,52 +1248,29 @@ public final class GameEngine {
     }
 
     /// Fill empty cells with tiles that are above the elimination threshold
+    /// Uses cascade behavior to spawn from top and let gravity pull them down
     private func fillEmptyCellsWithValidTiles() {
-        for row in 0..<config.boardHeight {
-            for col in 0..<config.boardWidth {
-                let pos = Position(row: row, col: col)
-                let boardIndex = BoardIndex(pos)
-                if state.board[boardIndex].kind == .gift {
-                    continue
-                }
-                if state.board[pos] == nil {
-                    state.board[pos] = Tile(value: generateRandomValue())
-                }
-            }
+        // Use cascade refill to maintain Tetris-like behavior
+        if config.fillMode == .alwaysFull {
+            refillToFullWithCascade()
+        } else {
+            refillToFull()
         }
     }
 
     private func refillToFull() {
-        // In alwaysFull mode, fill ALL empty cells to keep board completely full
-        // In match-3 auto-cascade gameplay, this ensures continuous action
-        if config.fillMode == .alwaysFull {
-            // Fill entire board
-            for row in 0..<config.boardHeight {
-                for col in 0..<config.boardWidth {
-                    let pos = Position(row: row, col: col)
-                    let boardIndex = BoardIndex(pos)
-                    // Skip gift cells in top row
-                    if state.board[boardIndex].kind == .gift {
-                        continue
-                    }
-                    if state.board[pos] == nil {
-                        state.board[pos] = Tile(value: generateRandomValue())
-                    }
-                }
+        // ALWAYS spawn new tiles only in the TOP ROW (row 0)
+        // Tiles will fall down via gravity creating a Tetris-like effect
+        // This applies to both alwaysFull and sparse modes
+        for col in 0..<config.boardWidth {
+            let pos = Position(row: 0, col: col)
+            let boardIndex = BoardIndex(pos)
+            // Skip gift cells in top row
+            if state.board[boardIndex].kind == .gift {
+                continue
             }
-        } else {
-            // Sparse mode: only spawn new tiles in the TOP ROW (row 0)
-            // Tiles will fall down via gravity on next move
-            for col in 0..<config.boardWidth {
-                let pos = Position(row: 0, col: col)
-                let boardIndex = BoardIndex(pos)
-                // Skip gift cells in top row
-                if state.board[boardIndex].kind == .gift {
-                    continue
-                }
-                if state.board[pos] == nil {
-                    state.board[pos] = Tile(value: generateRandomValue())
-                }
+            if state.board[pos] == nil {
+                state.board[pos] = Tile(value: generateRandomValue())
             }
         }
     }
@@ -1502,7 +1479,8 @@ public final class GameEngine {
 
     private func formatLargeNumber(_ value: Int) -> String {
         if value >= 1_000_000_000_000 {
-            return "\(value / 1_000_000_000_000)T"
+            // Use alphabetic suffixes for trillions+: a, b, c, ..., z, aa, ab, ..., az, ba, ..., bz
+            return TileStepLabelFormatter.formatTileValue(value)
         } else if value >= 1_000_000_000 {
             return "\(value / 1_000_000_000)B"
         } else if value >= 1_000_000 {
@@ -1813,20 +1791,29 @@ public final class GameEngine {
     }
     
     private func addScoreForStep(_ step: Int) {
-        state.scoreValue.addPowerStep(step)
+        var scoreToAdd = AlphaNumber.powerOfTwo(step: step)
+        if scoreMultiplier > 1 {
+            scoreToAdd.multiply(by: scoreMultiplier)
+        }
+        state.scoreValue.add(scoreToAdd)
         let mergedValue = TileStepMath.value(forStep: step)
         state.score = safeAddScore(state.score, mergedValue)
     }
     
     private func addScoreValue(_ value: Int) {
         guard value > 0 else { return }
-        state.scoreValue.add(value)
+        let multipliedValue = applyScoreMultiplier(to: value)
+        state.scoreValue.add(multipliedValue)
         state.score = safeAddScore(state.score, value)
     }
     
     private func addScoreAlpha(_ alpha: AlphaNumber) {
         guard !alpha.isZero else { return }
-        state.scoreValue.add(alpha)
+        var multipliedAlpha = alpha
+        if scoreMultiplier > 1 {
+            multipliedAlpha.multiply(by: scoreMultiplier)
+        }
+        state.scoreValue.add(multipliedAlpha)
         state.score = safeAddScore(state.score, alpha.toInt())
     }
     
