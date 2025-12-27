@@ -237,16 +237,16 @@ public struct HomeView: View {
             .zIndex(1)
             .zIndex(2)
         }
-        // Leaderboard sheet
-        .sheet(isPresented: $isShowingLeaderboard) {
+        // Leaderboard (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingLeaderboard) {
             LeaderboardView()
         }
-        // Achievements sheet
-        .sheet(isPresented: $isShowingAchievements) {
+        // Achievements (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingAchievements) {
             AchievementsView()
         }
-        // Music Themes sheet
-        .sheet(isPresented: $isShowingMusic) {
+        // Music Themes (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingMusic) {
             MusicThemesView(
                 onTry: { instrument in
                     // Placeholder: ad presentation to be implemented by host later
@@ -257,16 +257,16 @@ public struct HomeView: View {
                 }
             )
         }
-        // Shop sheet
-        .sheet(isPresented: $isShowingShop) {
+        // Shop (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingShop) {
             ShopView()
         }
-        // Profile sheet
-        .sheet(isPresented: $isShowingProfile) {
+        // Profile (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingProfile) {
             PlayerProfileView()
         }
-        // Settings sheet
-        .sheet(isPresented: $isShowingSettings) {
+        // Settings (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingSettings) {
             SettingsView()
         }
         // Floating toast notification overlay
