@@ -76,6 +76,8 @@ public struct AchievementsView: View {
             return achievements.dailyClaimsDisplay.level
         case "boost5x_usage_progression":
             return achievements.boost5xUsesDisplay.level
+        case "boost20x_usage_progression":
+            return achievements.boost20xUsesDisplay.level
         case "wheel_collects_progression":
             return achievements.wheelCollectsDisplay.level
         default:
@@ -175,6 +177,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.dailyClaimsDisplay
         case "boost5x_usage_progression":
             return achievements.boost5xUsesDisplay
+        case "boost20x_usage_progression":
+            return achievements.boost20xUsesDisplay
         case "wheel_collects_progression":
             return achievements.wheelCollectsDisplay
         default:
@@ -377,11 +381,44 @@ private struct AchievementRow: View {
     }
     
     private func formattedValue(_ value: Double) -> String {
-        if value >= 1_000 {
-            return value.formatted(.number.notation(.compactName).precision(.fractionLength(0...1)))
-        } else {
+        if value < 1_000 {
             return value.formatted(.number.precision(.fractionLength(0)))
+        } else if value < 1_000_000 {
+            let k = value / 1_000
+            return k.formatted(.number.precision(.fractionLength(0...1))) + "K"
+        } else if value < 1_000_000_000 {
+            let m = value / 1_000_000
+            return m.formatted(.number.precision(.fractionLength(0...1))) + "M"
+        } else if value < 1_000_000_000_000 {
+            let b = value / 1_000_000_000
+            return b.formatted(.number.precision(.fractionLength(0...1))) + "B"
+        } else {
+            // Use alphabetic suffixes for trillions+: a, b, c, ..., z, aa, ab, ..., az, ba, ..., bz
+            var remaining = value
+            var tierIndex = 0
+            while remaining >= 1_000 && tierIndex < 100 {
+                remaining /= 1_000
+                tierIndex += 1
+            }
+            // tierIndex 4 = trillions = 'a', 5 = quadrillions = 'b', etc.
+            let letterIndex = tierIndex - 3 // 4->1 (a), 5->2 (b), etc.
+            let suffix = excelStyleLetters(for: letterIndex)
+            return remaining.formatted(.number.precision(.fractionLength(0...1))) + suffix
         }
+    }
+
+    /// Excel-style letters: 1->"a", 26->"z", 27->"aa", 52->"az", 53->"ba", 78->"bz"
+    private func excelStyleLetters(for index: Int) -> String {
+        guard index >= 1 else { return "a" }
+        var i = index
+        var result = ""
+        while i > 0 {
+            let rem = (i - 1) % 26
+            let scalar = UnicodeScalar(97 + rem)! // 'a'..'z'
+            result = String(scalar) + result
+            i = (i - 1) / 26
+        }
+        return result
     }
 }
 

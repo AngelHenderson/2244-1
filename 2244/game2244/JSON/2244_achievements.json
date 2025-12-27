@@ -350,6 +350,22 @@
     ]
   },
   {
+    "id": "boost20x_usage_progression",
+    "gcIdentifier": "boost20x_usage_progression",
+    "title": "20× Boost Master",
+    "description": "Use 20× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost20x_uses_total",
+        "op": ">=",
+        "value": 1
+      }
+    ]
+  },
+  {
     "id": "wheel_collects_progression",
     "gcIdentifier": "wheel_collects_progression",
     "title": "Wheel Collector",

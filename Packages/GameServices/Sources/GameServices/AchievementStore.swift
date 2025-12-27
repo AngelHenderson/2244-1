@@ -478,6 +478,24 @@ public final class AchievementStore {
         .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1500))
     ]
 
+    private static let boost20xUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 1, categoryLabel: "1 use", rewards: .init(gems: 650)),
+        .init(milestone: 2, categoryLabel: "2 uses", rewards: .init(magnets: 1)),
+        .init(milestone: 3, categoryLabel: "3 uses", rewards: .init(boost4x: 1)),
+        .init(milestone: 5, categoryLabel: "5 uses", rewards: .init(gems: 1000, hammers: 1)),
+        .init(milestone: 7, categoryLabel: "7 uses", rewards: .init(boost3x: 1)),
+        .init(milestone: 10, categoryLabel: "10 uses", rewards: .init(spins: 1)),
+        .init(milestone: 15, categoryLabel: "15 uses", rewards: .init(swaps: 1)),
+        .init(milestone: 20, categoryLabel: "20 uses", rewards: .init(gems: 1000, magnets: 1, boost3x: 1)),
+        .init(milestone: 27, categoryLabel: "27 uses", rewards: .init(gems: 1100)),
+        .init(milestone: 35, categoryLabel: "35 uses", rewards: .init(magnets: 2)),
+        .init(milestone: 45, categoryLabel: "45 uses", rewards: .init(gems: 1200)),
+        .init(milestone: 55, categoryLabel: "55 uses", rewards: .init(gems: 1300)),
+        .init(milestone: 70, categoryLabel: "70 uses", rewards: .init(gems: 1350, swaps: 1)),
+        .init(milestone: 85, categoryLabel: "85 uses", rewards: .init(gems: 1450)),
+        .init(milestone: 100, categoryLabel: "100 uses", rewards: .init(spins: 4))
+    ]
+
     private static let wheelCollectsTiers: [ComboTierDefinition] = [
         .init(milestone: 3, categoryLabel: "3 collects", rewards: .init(gems: 50)),
         .init(milestone: 5, categoryLabel: "5 collects", rewards: .init(gems: 80, swaps: 1)),
@@ -1105,6 +1123,43 @@ public final class AchievementStore {
         boost5xUsesProgressionTier >= Self.boost5xUseTiers.count - 1
     }
 
+    /// 20X Score boost usage progression tier index (persisted)
+    public var boost20xUsesProgressionTier: Int {
+        didSet {
+            defaults.set(boost20xUsesProgressionTier, forKey: "boost20xUsesProgressionTier")
+            unlocks["boost20x_usage_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+
+    private var currentBoost20xUsesTier: ComboTierDefinition {
+        let index = min(boost20xUsesProgressionTier, Self.boost20xUseTiers.count - 1)
+        return Self.boost20xUseTiers[index]
+    }
+
+    public var boost20xUsesDisplay: ProgressTierDisplay {
+        let tier = currentBoost20xUsesTier
+        let clampedIndex = min(boost20xUsesProgressionTier, Self.boost20xUseTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = boost20xUsesProgressionTier >= Self.boost20xUseTiers.count - 1
+        let description = isMaxed
+            ? "You've mastered using 20X Score Boosts. Claim your final reward."
+            : "Use 20X Score Boost \(tier.milestone) time\(tier.milestone == 1 ? "" : "s") to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) use\(tier.milestone == 1 ? "" : "s")"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "20X Score",
+            rewards: tier.rewards
+        )
+    }
+
+    public var isBoost20xUsesProgressionMaxed: Bool {
+        boost20xUsesProgressionTier >= Self.boost20xUseTiers.count - 1
+    }
+
     /// Wheel collects progression tier index (persisted)
     public var wheelCollectsProgressionTier: Int {
         didSet {
@@ -1294,8 +1349,10 @@ public final class AchievementStore {
         let description = isMaxed
             ? "You've mastered tile creation. Claim your final reward."
             : "Reach tile \(tier.label) to unlock the next level."
+        // Clamp tier.value to Int.max to prevent overflow for very large tile values (e.g., infinity)
+        let safeMilestone = tier.value > Double(Int.max) ? Int.max : Int(tier.value)
         return ProgressTierDisplay(
-            milestone: Int(tier.value),
+            milestone: safeMilestone,
             level: level,
             title: "Level \(level): \(tier.label) tile",
             description: description,
@@ -1338,6 +1395,7 @@ public final class AchievementStore {
         self.spinPurchasesProgressionTier = defaults.integer(forKey: "spinPurchasesProgressionTier")
         self.dailyClaimsProgressionTier = defaults.integer(forKey: "dailyClaimsProgressionTier")
         self.boost5xUsesProgressionTier = defaults.integer(forKey: "boost5xUsesProgressionTier")
+        self.boost20xUsesProgressionTier = defaults.integer(forKey: "boost20xUsesProgressionTier")
         self.wheelCollectsProgressionTier = defaults.integer(forKey: "wheelCollectsProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         loadUnlocks()
@@ -1550,6 +1608,15 @@ public final class AchievementStore {
             if def.id == "boost5x_usage_progression" {
                 let targetValue = Double(currentBoost5xUsesTier.milestone)
                 if Double(snapshot.boost5x_uses_total) >= targetValue {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+
+            if def.id == "boost20x_usage_progression" {
+                let targetValue = Double(currentBoost20xUsesTier.milestone)
+                if Double(snapshot.boost20x_uses_total) >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                 }
@@ -1938,6 +2005,23 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "boost20x_usage_progression" {
+            let rewards = boost20xUsesDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+
+            if !isBoost20xUsesProgressionMaxed {
+                boost20xUsesProgressionTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         if definition.id == "wheel_collects_progression" {
             let rewards = wheelCollectsDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
@@ -2052,6 +2136,8 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.daily_claims_total), target: Double(currentDailyClaimsTier.milestone))
         case "boost5x_usage_progression":
             return makeProgress(current: Double(snapshot.boost5x_uses_total), target: Double(currentBoost5xUsesTier.milestone))
+        case "boost20x_usage_progression":
+            return makeProgress(current: Double(snapshot.boost20x_uses_total), target: Double(currentBoost20xUsesTier.milestone))
         case "wheel_collects_progression":
             return makeProgress(current: Double(snapshot.wheel_collects_total), target: Double(currentWheelCollectsTier.milestone))
         case "challenge_creation":
