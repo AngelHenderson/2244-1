@@ -90,9 +90,11 @@ public struct BoostsSheet: View {
                 let wasActive = isActive
                 let wasQueued = isQueued
                 if gameStore.purchaseScoreBoost(tierID) {
-                    // Track achievement for 5x boost usage
+                    // Track achievement for boost usage
                     if tierID == .fiveX {
                         gameStore.achievementEvaluator?.onBoost5xUsed()
+                    } else if tierID == .twentyX {
+                        gameStore.achievementEvaluator?.onBoost20xUsed()
                     }
                     if wasActive || wasQueued {
                         toastManager.show("\(label) Extended!", icon: "clock.arrow.circlepath", iconColor: .green)
