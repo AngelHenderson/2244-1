@@ -727,9 +727,13 @@ public final class GameStore {
         }
         
         affectedColumns = columnsWithEmpties(in: newState.board)
-        
+
         // Update state but DO NOT schedule refill reveal yet, as refill hasn't happened
+        // IMPORTANT: Preserve gems from UserDefaults - the engine doesn't track spending correctly
+        let savedGems = UserDefaults.standard.integer(forKey: "coins")
+        let gemsToPreserve = savedGems > 0 ? savedGems : state.gems
         state = newState
+        state.gems = gemsToPreserve  // Restore gems after state update
         // We manually handle refill reveal later in performRefill
         
         // Break glass tiles for any positions in row 0 that were part of this connection
@@ -778,7 +782,7 @@ public final class GameStore {
         // or another instance of the previous highest.
         if addedValue > 0 {
             if let resultPosition = lastPos {
-                incrementTierMasteryCount(for: state.board[resultPosition], value: addedValue)
+                incrementTierMasteryCount(for: state.board[resultPosition], value: addedValue, chainLength: positions.count)
             }
             let offerIfOneBelow = (previousHighest >= 4) && (addedValue == previousHighest / 2)
             let offerIfAnotherHighest = (addedValue == previousHighest)
@@ -820,7 +824,11 @@ public final class GameStore {
         previousBoard: Board,
         refillProtectedPositions: Set<Position> = []
     ) {
+        // ALWAYS preserve gems from UserDefaults - this is the source of truth for spending
+        let savedGems = UserDefaults.standard.integer(forKey: "coins")
+        let gemsToUse = savedGems > 0 ? savedGems : state.gems
         state = newState
+        state.gems = gemsToUse
         scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: refillProtectedPositions)
     }
     
@@ -1820,7 +1828,7 @@ public final class GameStore {
         
         // Track power-up usage
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
-        achievementEvaluator?.onPowerUpUsed(type: "magnet")
+        achievementEvaluator?.onMagnetUsed(mergeCount: matchingPositions.count)
         runMagnetPipeline(
             value: value,
             position: position,
@@ -2027,9 +2035,9 @@ extension GameStore {
         }
     }
     
-    private func incrementTierMasteryCount(for tile: Tile?, value: Int) {
+    private func incrementTierMasteryCount(for tile: Tile?, value: Int, chainLength: Int = 1) {
         guard let suffix = tierSuffix(for: tile, value: value) else { return }
-        tierMasteryCounts[suffix, default: 0] += 1
+        tierMasteryCounts[suffix, default: 0] += chainLength
         persistTierMasteryCountsToDefaults()
     }
     
