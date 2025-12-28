@@ -53,7 +53,9 @@ public struct BoostsSheet: View {
                             color: .orange
                         )
 
-                        achievementBoostRow()
+                        ForEach(GameStore.AchievementBoostTierID.allCases, id: \.self) { tierID in
+                            achievementBoostRow(for: tierID)
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -157,12 +159,12 @@ public struct BoostsSheet: View {
         )
     }
 
-    private func achievementBoostRow() -> some View {
-        let label = gameStore.achievementBoostLabel
-        let cost = gameStore.achievementBoostCost
-        let countdown = gameStore.achievementBoostCountdownText
-        let isActive = gameStore.isAchievementBoostActive
-        let canPurchase = gameStore.canPurchaseAchievementBoost
+    private func achievementBoostRow(for tierID: GameStore.AchievementBoostTierID) -> some View {
+        let label = gameStore.achievementBoostLabel(for: tierID)
+        let cost = gameStore.achievementBoostCost(for: tierID)
+        let countdown = gameStore.achievementBoostCountdownText(for: tierID)
+        let isActive = gameStore.isAchievementBoostActive(for: tierID)
+        let canPurchase = gameStore.canPurchaseAchievementBoost(tierID)
 
         return boostRow(
             icon: "trophy.fill",
@@ -175,7 +177,7 @@ public struct BoostsSheet: View {
             canPurchase: canPurchase,
             action: {
                 let wasActive = isActive
-                if gameStore.purchaseAchievementBoost() {
+                if gameStore.purchaseAchievementBoost(tierID) {
                     if wasActive {
                         toastManager.show("\(label) Extended!", icon: "clock.arrow.circlepath", iconColor: .green)
                     } else {
@@ -355,9 +357,11 @@ public struct BoostStatusButton: View {
                 if text != "Ready" { return text }
             }
         }
-        if gameStore.isAchievementBoostActive {
-            let text = gameStore.achievementBoostCountdownText
-            if text != "Ready" { return text }
+        for tierID in GameStore.AchievementBoostTierID.allCases {
+            if gameStore.isAchievementBoostActive(for: tierID) {
+                let text = gameStore.achievementBoostCountdownText(for: tierID)
+                if text != "Ready" { return text }
+            }
         }
         return nil
     }

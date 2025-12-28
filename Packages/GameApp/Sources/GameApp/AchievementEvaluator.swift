@@ -617,6 +617,11 @@ public final class AchievementEvaluator {
         let currentTotalMoves = defaults.integer(forKey: "totalMoves")
         defaults.set(currentTotalMoves + 1, forKey: "totalMoves")
 
+        // Count as a survived move (magnet doesn't cause game over)
+        surviveMovesTotal += multiplier
+        defaults.set(surviveMovesTotal, forKey: surviveMovesKey)
+        currentGameSnapshot.survive_moves_total = surviveMovesTotal
+
         // Count towards combo achievements based on merge count
         updateComboProgress(for: mergeCount)
 
@@ -625,6 +630,7 @@ public final class AchievementEvaluator {
         snapshot.magnet_uses_total = magnetUsesTotal
         snapshot.merged_tiles_total = lifetimeMergedTiles
         snapshot.total_moves = defaults.integer(forKey: "totalMoves")
+        snapshot.survive_moves_total = surviveMovesTotal
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }

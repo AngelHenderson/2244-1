@@ -202,7 +202,13 @@ public final class GameStore {
 
     // MARK: - Achievement Boost System
 
-    public struct AchievementBoost: Equatable, Sendable {
+    public enum AchievementBoostTierID: String, CaseIterable, Sendable {
+        case twoX = "achievement_boost_2x"
+        case threeX = "achievement_boost_3x"
+    }
+
+    public struct AchievementBoostTier: Equatable, Sendable {
+        public let id: AchievementBoostTierID
         public let label: String
         public let multiplier: Int
         public let cost: Int
@@ -210,15 +216,26 @@ public final class GameStore {
     }
 
     private enum AchievementBoostDefaultsKey {
+        static let activeTierID = "achievementBoost.activeTierID"
         static let activeExpiration = "achievementBoost.expiresAt"
     }
 
-    public static let achievementBoost = AchievementBoost(
-        label: "2× Achievement Progress",
-        multiplier: 2,
-        cost: 2_500,
-        duration: 20 * 60  // 20 minutes
-    )
+    private static let achievementBoostCatalog: [AchievementBoostTierID: AchievementBoostTier] = [
+        .twoX: AchievementBoostTier(
+            id: .twoX,
+            label: "2× Achievement Progress",
+            multiplier: 2,
+            cost: 2_500,
+            duration: 20 * 60  // 20 minutes
+        ),
+        .threeX: AchievementBoostTier(
+            id: .threeX,
+            label: "3× Achievement Progress",
+            multiplier: 3,
+            cost: 6_000,
+            duration: 18 * 60  // 18 minutes
+        )
+    ]
 
     private static let achievementBoostFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
@@ -228,6 +245,7 @@ public final class GameStore {
         return formatter
     }()
 
+    public private(set) var activeAchievementBoostTierID: AchievementBoostTierID?
     public private(set) var achievementBoostExpiresAt: Date?
     public private(set) var achievementBoostRemaining: TimeInterval = 0
 
@@ -365,38 +383,48 @@ public final class GameStore {
         return expiration > Date()
     }
 
+    public func achievementBoostTier(_ id: AchievementBoostTierID) -> AchievementBoostTier {
+        Self.achievementBoostCatalog[id]!
+    }
+
+    public func achievementBoostLabel(for id: AchievementBoostTierID) -> String {
+        achievementBoostTier(id).label
+    }
+
+    public func achievementBoostCost(for id: AchievementBoostTierID) -> Int {
+        achievementBoostTier(id).cost
+    }
+
+    public func canPurchaseAchievementBoost(_ id: AchievementBoostTierID) -> Bool {
+        state.gems >= achievementBoostCost(for: id)
+    }
+
+    public func isAchievementBoostActive(for id: AchievementBoostTierID) -> Bool {
+        activeAchievementBoostTierID == id && isAchievementBoostActive
+    }
+
     public var achievementBoostMultiplier: Int {
-        isAchievementBoostActive ? Self.achievementBoost.multiplier : 1
+        guard isAchievementBoostActive, let tierID = activeAchievementBoostTierID else { return 1 }
+        return achievementBoostTier(tierID).multiplier
     }
 
-    public var achievementBoostLabel: String {
-        Self.achievementBoost.label
-    }
-
-    public var achievementBoostCost: Int {
-        Self.achievementBoost.cost
-    }
-
-    public var canPurchaseAchievementBoost: Bool {
-        state.gems >= achievementBoostCost
-    }
-
-    public var achievementBoostCountdownText: String {
-        if isAchievementBoostActive {
+    public func achievementBoostCountdownText(for id: AchievementBoostTierID) -> String {
+        if isAchievementBoostActive(for: id) {
             let seconds = max(0, achievementBoostRemaining)
             return Self.achievementBoostFormatter.string(from: seconds) ?? "00:00"
         }
-        if canPurchaseAchievementBoost {
+        if canPurchaseAchievementBoost(id) {
             return "Ready"
         }
-        let shortfall = max(0, achievementBoostCost - state.gems)
+        let shortfall = max(0, achievementBoostCost(for: id) - state.gems)
         return "Need \(shortfall)"
     }
 
     @discardableResult
-    public func purchaseAchievementBoost(now date: Date = Date()) -> Bool {
-        guard spendCoins(Self.achievementBoost.cost) else { return false }
-        activateAchievementBoost(now: date)
+    public func purchaseAchievementBoost(_ tierID: AchievementBoostTierID, now date: Date = Date()) -> Bool {
+        let tier = achievementBoostTier(tierID)
+        guard spendCoins(tier.cost) else { return false }
+        activateAchievementBoost(tierID: tierID, now: date)
         saveProgressToStore()
         return true
     }
@@ -1355,15 +1383,17 @@ public final class GameStore {
 
     // MARK: - Achievement Boost Lifecycle
 
-    private func activateAchievementBoost(now date: Date = Date(), persist: Bool = true) {
-        let boost = Self.achievementBoost
-        // If already active, extend the duration
-        if let existingExpiration = achievementBoostExpiresAt, existingExpiration > date {
-            let newExpiration = existingExpiration.addingTimeInterval(boost.duration)
+    private func activateAchievementBoost(tierID: AchievementBoostTierID, now date: Date = Date(), persist: Bool = true) {
+        let tier = achievementBoostTier(tierID)
+        // If same tier is already active, extend the duration
+        if activeAchievementBoostTierID == tierID, let existingExpiration = achievementBoostExpiresAt, existingExpiration > date {
+            let newExpiration = existingExpiration.addingTimeInterval(tier.duration)
             achievementBoostExpiresAt = newExpiration
             achievementBoostRemaining = max(0, newExpiration.timeIntervalSince(date))
         } else {
-            let expiration = date.addingTimeInterval(boost.duration)
+            // New activation or different tier - start fresh
+            activeAchievementBoostTierID = tierID
+            let expiration = date.addingTimeInterval(tier.duration)
             achievementBoostExpiresAt = expiration
             achievementBoostRemaining = max(0, expiration.timeIntervalSince(date))
         }
@@ -1371,10 +1401,11 @@ public final class GameStore {
             persistAchievementBoostState()
         }
         startAchievementBoostTicker()
-        print("🏆 Achievement Boost activated! 2× progress for \(Int(boost.duration / 60)) minutes")
+        print("🏆 Achievement Boost activated! \(tier.multiplier)× progress for \(Int(tier.duration / 60)) minutes")
     }
 
     private func finishAchievementBoost() {
+        activeAchievementBoostTierID = nil
         achievementBoostExpiresAt = nil
         achievementBoostRemaining = 0
         persistAchievementBoostState()
@@ -1396,24 +1427,30 @@ public final class GameStore {
 
     private func persistAchievementBoostState() {
         let defaults = UserDefaults.standard
-        if let expiresAt = achievementBoostExpiresAt {
+        if let tierID = activeAchievementBoostTierID, let expiresAt = achievementBoostExpiresAt {
+            defaults.set(tierID.rawValue, forKey: AchievementBoostDefaultsKey.activeTierID)
             defaults.set(expiresAt, forKey: AchievementBoostDefaultsKey.activeExpiration)
         } else {
+            defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeTierID)
             defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeExpiration)
         }
     }
 
     private func restoreAchievementBoostState() {
         let defaults = UserDefaults.standard
-        guard let expiration = defaults.object(forKey: AchievementBoostDefaultsKey.activeExpiration) as? Date else {
+        guard let tierIDRaw = defaults.string(forKey: AchievementBoostDefaultsKey.activeTierID),
+              let tierID = AchievementBoostTierID(rawValue: tierIDRaw),
+              let expiration = defaults.object(forKey: AchievementBoostDefaultsKey.activeExpiration) as? Date else {
             return
         }
         let now = Date()
         if expiration > now {
+            activeAchievementBoostTierID = tierID
             achievementBoostExpiresAt = expiration
             achievementBoostRemaining = expiration.timeIntervalSince(now)
             startAchievementBoostTicker()
         } else {
+            defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeTierID)
             defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeExpiration)
         }
     }
