@@ -262,10 +262,17 @@ public final class AchievementEvaluator {
     public func onGameEnd(state: GameState, won: Bool) {
         totalGamesPlayed += 1
         UserDefaults.standard.set(totalGamesPlayed, forKey: "totalGamesPlayed")
-        
-        let elapsedMinutes = Int(Date().timeIntervalSince(sessionStartTime) / 60)
-        totalPlayMinutes += elapsedMinutes
+
+        // Track playtime using seconds for precision (same as savePlaytimeProgress)
+        let elapsedSeconds = Int(Date().timeIntervalSince(sessionStartTime))
+        totalPlaySeconds += elapsedSeconds
+        totalPlayMinutes = totalPlaySeconds / 60
+        defaults.set(totalPlaySeconds, forKey: playtimeTotalSecondsKey)
         defaults.set(totalPlayMinutes, forKey: playtimeTotalMinutesKey)
+        print("⏱️ Game ended - Playtime: +\(elapsedSeconds)s, Total: \(totalPlaySeconds)s (\(totalPlayMinutes) min)")
+
+        // Reset session start for next game
+        sessionStartTime = Date()
         
         var snapshot = GameSnapshot()
         snapshot.games_played = totalGamesPlayed
@@ -276,7 +283,7 @@ public final class AchievementEvaluator {
         snapshot.max_tile = state.highestTile
         snapshot.win = won
         snapshot.run_completed = true
-        snapshot.run_minutes = elapsedMinutes
+        snapshot.run_minutes = elapsedSeconds / 60
         snapshot.combo610Total = combo610Total
         snapshot.combo1115Total = combo1115Total
         snapshot.combo1620Total = combo1620Total
