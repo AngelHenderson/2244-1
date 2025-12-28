@@ -95,7 +95,7 @@ public struct HybridGameScreen: View {
             }
         
         let pauseSheet = baseView
-            .sheet(isPresented: $isShowingPause) {
+            .adaptiveSheet(isPresented: $isShowingPause) {
                 PauseSheet(
                     onResume: { isShowingPause = false },
                     onRestart: {
@@ -104,28 +104,28 @@ public struct HybridGameScreen: View {
                     }
                 )
             }
-        
+
         let shopSheet = pauseSheet
-            .sheet(isPresented: $isShowingShop) {
+            .adaptiveSheet(isPresented: $isShowingShop) {
                 ShopView(initialTab: .gems)
             }
-        
+
         let leaderboardSheet = shopSheet
-            .sheet(isPresented: $isShowingLeaderboard) {
+            .adaptiveSheet(isPresented: $isShowingLeaderboard) {
                 LeaderboardView()
             }
-        
+
         let giftSheet = leaderboardSheet
-            .sheet(isPresented: giftRewardBinding) {
+            .adaptiveSheet(isPresented: giftRewardBinding) {
                 if let giftReward = gameStore.pendingGiftReward {
                     GiftRewardView(giftReward: giftReward) {
                         gameStore.claimGiftReward()
                     }
                 }
             }
-        
+
         let unlockSheet = giftSheet
-            .sheet(isPresented: $isShowingUnlockReward) {
+            .adaptiveSheet(isPresented: $isShowingUnlockReward) {
                 if let baseAmount = gameStore.pendingUnlockRewardBase,
                    let tileValue = gameStore.pendingUnlockTile {
                     RewardSpinnerView(
@@ -137,9 +137,9 @@ public struct HybridGameScreen: View {
                     EmptyView()
                 }
             }
-        
+
         let notificationSheet = unlockSheet
-            .sheet(isPresented: notificationBinding) {
+            .adaptiveSheet(isPresented: notificationBinding) {
                 if let notification = gameStore.currentNotification {
                     Group {
                         switch notification {
