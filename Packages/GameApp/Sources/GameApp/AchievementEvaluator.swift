@@ -81,6 +81,17 @@ public final class AchievementEvaluator {
         magnetUsesTotal = defaults.integer(forKey: magnetUsesKey)
         spinUsesTotal = defaults.integer(forKey: spinUsesKey)
         surviveMovesTotal = defaults.integer(forKey: surviveMovesKey)
+
+        // Sync surviveMovesTotal with totalMoves if there's a significant discrepancy
+        // This handles the case where totalMoves was tracked before surviveMovesTotal
+        let totalMoves = defaults.integer(forKey: "totalMoves")
+        if totalMoves > 0 && surviveMovesTotal < totalMoves {
+            // Survive moves should roughly equal total moves (minus game overs)
+            // If surviveMovesTotal is much lower, it wasn't being tracked properly before
+            surviveMovesTotal = totalMoves
+            defaults.set(surviveMovesTotal, forKey: surviveMovesKey)
+            print("🔄 Synced surviveMovesTotal to totalMoves: \(surviveMovesTotal)")
+        }
         challengeCreationTotal = defaults.integer(forKey: challengeCreationTotalKey)
         totalPlaySeconds = defaults.integer(forKey: playtimeTotalSecondsKey)
         // Migrate old minutes-only data if seconds is 0 but minutes exists
