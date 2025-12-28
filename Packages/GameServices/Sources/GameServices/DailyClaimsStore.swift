@@ -254,13 +254,13 @@ public final class DailyClaimsStore {
 
 private enum DailyRewardSchedule {
     private static let cycle: [AchievementDef.Rewards] = [
-        AchievementDef.Rewards(gems: 200, hammers: 1),
-        AchievementDef.Rewards(gems: 220, spins: 1, magnets: 1),
-        AchievementDef.Rewards(gems: 240, swaps: 1),
-        AchievementDef.Rewards(gems: 260, spins: 1, hammers: 1),
-        AchievementDef.Rewards(gems: 280, magnets: 1, swaps: 1),
-        AchievementDef.Rewards(gems: 320, spins: 1, boost2x: 1),
-        AchievementDef.Rewards(gems: 360, spins: 1, hammers: 1, swaps: 1)
+        AchievementDef.Rewards(gems: 15),
+        AchievementDef.Rewards(gems: 25),
+        AchievementDef.Rewards(hammers: 1),
+        AchievementDef.Rewards(gems: 40),
+        AchievementDef.Rewards(gems: 50),
+        AchievementDef.Rewards(boost2x: 1),
+        AchievementDef.Rewards(gems: 75, hammers: 1)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {
