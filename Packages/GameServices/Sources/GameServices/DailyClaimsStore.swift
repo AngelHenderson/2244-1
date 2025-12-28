@@ -254,13 +254,62 @@ public final class DailyClaimsStore {
 
 private enum DailyRewardSchedule {
     private static let cycle: [AchievementDef.Rewards] = [
+        // Week 1
         AchievementDef.Rewards(gems: 15),
         AchievementDef.Rewards(gems: 25),
         AchievementDef.Rewards(hammers: 1),
         AchievementDef.Rewards(gems: 40),
         AchievementDef.Rewards(gems: 50),
         AchievementDef.Rewards(boost2x: 1),
-        AchievementDef.Rewards(gems: 75, hammers: 1)
+        AchievementDef.Rewards(gems: 75, hammers: 1),
+        // Week 2
+        AchievementDef.Rewards(magnets: 1),
+        AchievementDef.Rewards(boost3x: 1),
+        AchievementDef.Rewards(spins: 1),
+        AchievementDef.Rewards(gems: 110),
+        AchievementDef.Rewards(gems: 125),
+        AchievementDef.Rewards(swaps: 1),
+        AchievementDef.Rewards(gems: 200),
+        // Week 3
+        AchievementDef.Rewards(gems: 100, hammers: 1, magnets: 1, boost2x: 1),
+        AchievementDef.Rewards(swaps: 2),
+        AchievementDef.Rewards(magnets: 1),
+        AchievementDef.Rewards(spins: 1, boost4x: 1),
+        AchievementDef.Rewards(hammers: 1),
+        AchievementDef.Rewards(gems: 150, magnets: 2),
+        AchievementDef.Rewards(gems: 175),
+        // Week 4
+        AchievementDef.Rewards(gems: 220, spins: 1),
+        AchievementDef.Rewards(magnets: 2, boost4x: 1),
+        AchievementDef.Rewards(boost2x: 1, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 250, magnets: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 244, boost4x: 1),
+        AchievementDef.Rewards(spins: 2),
+        AchievementDef.Rewards(spins: 2, boost2x: 1),
+        // Week 5
+        AchievementDef.Rewards(spins: 1, boost3x: 1),
+        AchievementDef.Rewards(boost4x: 1),
+        AchievementDef.Rewards(magnets: 2, boost2x: 1),
+        AchievementDef.Rewards(gems: 273, spins: 1, swaps: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 222, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 300, swaps: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 331, spins: 1, swaps: 2),
+        // Week 6
+        AchievementDef.Rewards(gems: 344, magnets: 1, boost4x: 1),
+        AchievementDef.Rewards(swaps: 3, boost3x: 1),
+        AchievementDef.Rewards(spins: 1, magnets: 1, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 373, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 400, spins: 1, swaps: 1, boost3x: 1),
+        AchievementDef.Rewards(spins: 2),
+        AchievementDef.Rewards(boost4x: 1),
+        // Week 7
+        AchievementDef.Rewards(boost4x: 1),
+        AchievementDef.Rewards(gems: 403, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 465, magnets: 1),
+        AchievementDef.Rewards(gems: 466, magnets: 1),
+        AchievementDef.Rewards(gems: 445, spins: 2, hammers: 1, magnets: 1, boost2x: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 435, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(magnets: 5)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {
