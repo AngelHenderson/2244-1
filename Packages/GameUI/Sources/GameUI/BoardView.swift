@@ -47,16 +47,18 @@ public struct BoardView: View {
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
         VStack(spacing: spacing) {
-            // Compute current max tile value
-            let currentMax: Int = {
-                var maxVal = 0
+            // Compute current max tile step (handles highValue tiles correctly)
+            let currentMaxStep: Int = {
+                var maxStep = -1
                 for r in 0..<gameStore.state.board.height {
                     for c in 0..<gameStore.state.board.width {
                         let p = Position(row: r, col: c)
-                        if let t = gameStore.state.board[p], t.value > maxVal { maxVal = t.value }
+                        if let t = gameStore.state.board[p], let step = t.stepIndex, step > maxStep {
+                            maxStep = step
+                        }
                     }
                 }
-                return maxVal
+                return maxStep
             }()
             ForEach(0..<gameStore.state.board.height, id: \.self) { row in
                 HStack(spacing: spacing) {
@@ -84,7 +86,7 @@ public struct BoardView: View {
                                     }
                             }
                             
-                            if let t = gameStore.state.board[position], t.value == currentMax {
+                            if let t = gameStore.state.board[position], t.stepIndex == currentMaxStep {
                                 Image(systemName: "crown.fill")
                                     .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
                                     .foregroundStyle(.yellow)
