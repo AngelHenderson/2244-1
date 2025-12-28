@@ -72,23 +72,23 @@ public struct RootGameView: View {
                         // Update daily claims availability
                         dailyClaimsStore.updateAvailability()
                     }
-                    .sheet(isPresented: $showShop) {
+                    .adaptiveSheet(isPresented: $showShop) {
                         ShopView(initialTab: .gems)
                     }
-                    .sheet(isPresented: $showDailyClaims) {
+                    .adaptiveSheet(isPresented: $showDailyClaims) {
                         DailyClaimsView()
                             .environment(dailyClaimsStore)
                     }
-                    .sheet(isPresented: $showDailyStreaks) {
+                    .adaptiveSheet(isPresented: $showDailyStreaks) {
                         DailyStreaksView()
                             .environment(dailyClaimsStore)
                     }
-                    .sheet(isPresented: $showFreeSpin) {
+                    .adaptiveSheet(isPresented: $showFreeSpin) {
                         SpinWheelView()
                             .environment(\.wheelEngine, wheelEngine)
                             .environment(homeState)
                     }
-                    .sheet(isPresented: $showChallenge) {
+                    .adaptiveSheet(isPresented: $showChallenge) {
                         ChallengeModeView { challenge in
                             // Start challenge game
                             print("Starting challenge: \(challenge.id)")
@@ -99,7 +99,7 @@ public struct RootGameView: View {
                         }
                         .environment(\.challengeStore, challengeStore)
                     }
-                    .sheet(isPresented: $showChallengeDesigner) {
+                    .adaptiveSheet(isPresented: $showChallengeDesigner) {
                         ChallengeDesignerView { config in
                             // Start custom challenge
                             print("Starting custom challenge with config: \(config)")

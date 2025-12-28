@@ -145,10 +145,18 @@ public struct LiveProfileClient: ProfileClient, Sendable {
     }
 
     private func formatTileValue(_ value: Int) -> String {
-        // Format tile values like "1an" for large numbers
-        // This matches the game's AlphaNumber formatting
+        // Format tile values using K, M, B, then alphabetic suffixes (a, b, c, ..., z, aa, ab, ..., bz)
         if value >= 1_000_000_000_000 {
-            return "\(value / 1_000_000_000_000)T"
+            // Use alphabetic suffixes for trillions+
+            var remaining = Double(value)
+            var tierIndex = 0
+            while remaining >= 1_000 && tierIndex < 100 {
+                remaining /= 1_000
+                tierIndex += 1
+            }
+            let letterIndex = tierIndex - 3 // 4->1 (a), 5->2 (b), etc.
+            let suffix = excelStyleLetters(for: letterIndex)
+            return "\(Int(remaining))\(suffix)"
         } else if value >= 1_000_000_000 {
             return "\(value / 1_000_000_000)B"
         } else if value >= 1_000_000 {
@@ -157,6 +165,20 @@ public struct LiveProfileClient: ProfileClient, Sendable {
             return "\(value / 1_000)K"
         }
         return "\(value)"
+    }
+
+    /// Excel-style letters: 1->"a", 26->"z", 27->"aa", 52->"az", 53->"ba", 78->"bz"
+    private func excelStyleLetters(for index: Int) -> String {
+        guard index >= 1 else { return "a" }
+        var i = index
+        var result = ""
+        while i > 0 {
+            let rem = (i - 1) % 26
+            let scalar = UnicodeScalar(97 + rem)! // 'a'..'z'
+            result = String(scalar) + result
+            i = (i - 1) / 26
+        }
+        return result
     }
 
     private func generateFriendCode() -> String {
