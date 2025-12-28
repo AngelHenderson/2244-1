@@ -18,7 +18,10 @@ public final class GameStore {
     public private(set) var currentPath: [Position] = []
     public private(set) var pathValidation: ChainValidation = .valid
     public var achievementEvaluator: AchievementEvaluator?
-    
+
+    // Track if game over has been processed for this session (reset on new game)
+    private var gameOverProcessed: Bool = false
+
     // Progress store for comprehensive auto-save
     private let progressStore: UserDefaultsProgressStore
     // Track if we're building a chain that may end on a gift
@@ -191,16 +194,49 @@ public final class GameStore {
             duration: 15 * 60
         )
     ]
-    
+
     public private(set) var activePowerDiscountTierID: PowerDiscountTierID?
     public private(set) var powerDiscountExpiresAt: Date?
     public private(set) var powerDiscountRemaining: TimeInterval = 0
     public private(set) var queuedPowerDiscountTierID: PowerDiscountTierID?
-    
+
+    // MARK: - Achievement Boost System
+
+    public struct AchievementBoost: Equatable, Sendable {
+        public let label: String
+        public let multiplier: Int
+        public let cost: Int
+        public let duration: TimeInterval
+    }
+
+    private enum AchievementBoostDefaultsKey {
+        static let activeExpiration = "achievementBoost.expiresAt"
+    }
+
+    public static let achievementBoost = AchievementBoost(
+        label: "2× Achievement Progress",
+        multiplier: 2,
+        cost: 2_500,
+        duration: 20 * 60  // 20 minutes
+    )
+
+    private static let achievementBoostFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.minute, .second]
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = [.pad]
+        return formatter
+    }()
+
+    public private(set) var achievementBoostExpiresAt: Date?
+    public private(set) var achievementBoostRemaining: TimeInterval = 0
+
     @ObservationIgnored
     private var scoreBoostTickerTask: Task<Void, Never>? = nil
     @ObservationIgnored
     private var powerDiscountTickerTask: Task<Void, Never>? = nil
+    @ObservationIgnored
+    private var achievementBoostTickerTask: Task<Void, Never>? = nil
     
     public func addPowerUp(_ type: String, count: Int) {
         powerUpInventory[type, default: 0] += count
@@ -321,7 +357,50 @@ public final class GameStore {
         guard let tierID = activePowerDiscountTierID else { return nil }
         return Self.powerDiscountCatalog[tierID]
     }
-    
+
+    // MARK: - Achievement Boost Public API
+
+    public var isAchievementBoostActive: Bool {
+        guard let expiration = achievementBoostExpiresAt else { return false }
+        return expiration > Date()
+    }
+
+    public var achievementBoostMultiplier: Int {
+        isAchievementBoostActive ? Self.achievementBoost.multiplier : 1
+    }
+
+    public var achievementBoostLabel: String {
+        Self.achievementBoost.label
+    }
+
+    public var achievementBoostCost: Int {
+        Self.achievementBoost.cost
+    }
+
+    public var canPurchaseAchievementBoost: Bool {
+        state.gems >= achievementBoostCost
+    }
+
+    public var achievementBoostCountdownText: String {
+        if isAchievementBoostActive {
+            let seconds = max(0, achievementBoostRemaining)
+            return Self.achievementBoostFormatter.string(from: seconds) ?? "00:00"
+        }
+        if canPurchaseAchievementBoost {
+            return "Ready"
+        }
+        let shortfall = max(0, achievementBoostCost - state.gems)
+        return "Need \(shortfall)"
+    }
+
+    @discardableResult
+    public func purchaseAchievementBoost(now date: Date = Date()) -> Bool {
+        guard spendCoins(Self.achievementBoost.cost) else { return false }
+        activateAchievementBoost(now: date)
+        saveProgressToStore()
+        return true
+    }
+
     private func persistScoreBoostState() {
         let defaults = UserDefaults.standard
         if let tierID = activeScoreBoostTierID, let expiresAt = scoreBoostExpiresAt {
@@ -489,6 +568,7 @@ public final class GameStore {
         initializeSessionTracking()
         restoreScoreBoostState(from: loadedProgress)
         restorePowerDiscountState(from: loadedProgress)
+        restoreAchievementBoostState()
         persistTierMasteryCountsToDefaults()
 
         // Note: restoreProgress() is now handled properly during GameProgress loading
@@ -513,6 +593,7 @@ public final class GameStore {
             self?.cancelMergeCleanupTask()
             self?.scoreBoostTickerTask?.cancel()
             self?.powerDiscountTickerTask?.cancel()
+            self?.achievementBoostTickerTask?.cancel()
         }
     }
     
@@ -805,13 +886,25 @@ public final class GameStore {
         
         // Evaluate achievements
         achievementEvaluator?.onChainCommitted(chain: positions, state: state, resultingTileValue: addedValue)
-        
+
+        // Check if game just ended and notify achievement evaluator
+        checkAndProcessGameOver()
+
         // Auto-save progress for score changes and achievements
         saveProgressImmediately(newTile: addedValue)
 
         return (requiresGravityDrop, affectedColumns)
     }
-    
+
+    /// Check if game just ended and notify achievement evaluator (only once per game)
+    private func checkAndProcessGameOver() {
+        guard state.isGameOver, !gameOverProcessed else { return }
+        gameOverProcessed = true
+        // Game ended - notify achievement evaluator to save playtime and other stats
+        achievementEvaluator?.onGameEnd(state: state, won: state.highestTile >= 2244)
+        print("🎮 Game over processed - playtime saved")
+    }
+
     private static let mergeAnimationDelay: UInt64 = 400_000_000
     private static let gravityAnimationDelay: UInt64 = 350_000_000
     private static let refillRevealDelay: UInt64 = 350_000_000
@@ -914,11 +1007,12 @@ public final class GameStore {
         movesHistory = []
         powerUpHistory = []
         persistPendingGiftBoxes()
-        
+        gameOverProcessed = false  // Reset for new game session
+
         // Notify achievement evaluator
         achievementEvaluator?.onGameStart(state: state)
     }
-    
+
     // Start a new game with a custom seed (user-designed challenge)
     public func startCustomGame(seed: UInt64) {
         engine = GameEngine(config: GameConfig(seed: seed))
@@ -942,8 +1036,10 @@ public final class GameStore {
         movesHistory = []
         powerUpHistory = []
         persistPendingGiftBoxes()
+        gameOverProcessed = false  // Reset for new game session
     }
-    
+
+
     // MARK: - Economy
     public func addCoins(_ amount: Int) {
         state.gems = max(0, state.gems + amount)
@@ -1256,7 +1352,92 @@ public final class GameStore {
         powerDiscountTickerTask?.cancel()
         powerDiscountTickerTask = nil
     }
-    
+
+    // MARK: - Achievement Boost Lifecycle
+
+    private func activateAchievementBoost(now date: Date = Date(), persist: Bool = true) {
+        let boost = Self.achievementBoost
+        // If already active, extend the duration
+        if let existingExpiration = achievementBoostExpiresAt, existingExpiration > date {
+            let newExpiration = existingExpiration.addingTimeInterval(boost.duration)
+            achievementBoostExpiresAt = newExpiration
+            achievementBoostRemaining = max(0, newExpiration.timeIntervalSince(date))
+        } else {
+            let expiration = date.addingTimeInterval(boost.duration)
+            achievementBoostExpiresAt = expiration
+            achievementBoostRemaining = max(0, expiration.timeIntervalSince(date))
+        }
+        if persist {
+            persistAchievementBoostState()
+        }
+        startAchievementBoostTicker()
+        print("🏆 Achievement Boost activated! 2× progress for \(Int(boost.duration / 60)) minutes")
+    }
+
+    private func finishAchievementBoost() {
+        achievementBoostExpiresAt = nil
+        achievementBoostRemaining = 0
+        persistAchievementBoostState()
+        cancelAchievementBoostTicker()
+        print("🏆 Achievement Boost expired")
+    }
+
+    private func refreshAchievementBoostCountdown(now date: Date = Date()) {
+        guard let expiration = achievementBoostExpiresAt else {
+            return
+        }
+        let remaining = expiration.timeIntervalSince(date)
+        if remaining <= 0 {
+            finishAchievementBoost()
+        } else {
+            achievementBoostRemaining = remaining
+        }
+    }
+
+    private func persistAchievementBoostState() {
+        let defaults = UserDefaults.standard
+        if let expiresAt = achievementBoostExpiresAt {
+            defaults.set(expiresAt, forKey: AchievementBoostDefaultsKey.activeExpiration)
+        } else {
+            defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeExpiration)
+        }
+    }
+
+    private func restoreAchievementBoostState() {
+        let defaults = UserDefaults.standard
+        guard let expiration = defaults.object(forKey: AchievementBoostDefaultsKey.activeExpiration) as? Date else {
+            return
+        }
+        let now = Date()
+        if expiration > now {
+            achievementBoostExpiresAt = expiration
+            achievementBoostRemaining = expiration.timeIntervalSince(now)
+            startAchievementBoostTicker()
+        } else {
+            defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeExpiration)
+        }
+    }
+
+    private func startAchievementBoostTicker() {
+        achievementBoostTickerTask?.cancel()
+        guard achievementBoostExpiresAt != nil else { return }
+        achievementBoostTickerTask = Task { @MainActor [weak self] in
+            while let self, self.achievementBoostExpiresAt != nil {
+                do {
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                } catch {
+                    break
+                }
+                self.refreshAchievementBoostCountdown()
+            }
+        }
+    }
+
+    private func cancelAchievementBoostTicker() {
+        achievementBoostTickerTask?.cancel()
+        achievementBoostTickerTask = nil
+    }
+
     // MARK: - Unlock Rewards
     private func baseUnlockReward(for tileValue: Int) -> Int {
         // Milestone rewards start at 512 (2^9) with +2 gems per subsequent milestone.
@@ -2764,6 +2945,7 @@ extension GameStore {
         )
         restoreScoreBoostState(from: nil)
         restorePowerDiscountState(from: nil)
+        restoreAchievementBoostState()
     }
     
     private func persistPendingGiftBoxes() {
