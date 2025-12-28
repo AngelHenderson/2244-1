@@ -57,15 +57,26 @@ public final class AchievementEvaluator {
     private let boost5xUsesKey = "powerUses.boost5x"
     private let boost20xUsesKey = "powerUses.boost20x"
     private let wheelCollectsKey = "wheelCollects.total"
+    private let achievementBoostTierKey = "achievementBoost.activeTierID"
     private let achievementBoostExpirationKey = "achievementBoost.expiresAt"
     private let defaults = UserDefaults.standard
 
-    /// Returns the current achievement boost multiplier (2 if boost is active, 1 otherwise)
+    /// Returns the current achievement boost multiplier (2 or 3 if boost is active, 1 otherwise)
     private var achievementBoostMultiplier: Int {
-        guard let expiration = defaults.object(forKey: achievementBoostExpirationKey) as? Date else {
+        guard let expiration = defaults.object(forKey: achievementBoostExpirationKey) as? Date,
+              expiration > Date(),
+              let tierIDRaw = defaults.string(forKey: achievementBoostTierKey) else {
             return 1
         }
-        return expiration > Date() ? 2 : 1
+        // Match the tier to get the multiplier
+        switch tierIDRaw {
+        case "achievement_boost_2x":
+            return 2
+        case "achievement_boost_3x":
+            return 3
+        default:
+            return 1
+        }
     }
 
     public init(achievementStore: AchievementStore) {
