@@ -159,11 +159,9 @@ public struct DailyClaimsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Weekly Rewards")
-                .font(.title2.bold())
+                    .font(.title2.bold())
                 Spacer()
-                Text("Week \(selectedPage + 1)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                weekNavigator
             }
             
             if chunkedClaims.isEmpty {
@@ -229,6 +227,53 @@ public struct DailyClaimsView: View {
                 showClaimAnimation = false
                 claimedRewards = nil
             }
+        }
+    }
+
+    private var weekNavigator: some View {
+        HStack(spacing: 12) {
+            Button {
+                if selectedPage > 0 {
+                    withAnimation { selectedPage -= 1 }
+                }
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.headline)
+                    .foregroundStyle(selectedPage > 0 ? .primary : .tertiary)
+            }
+            .disabled(selectedPage == 0)
+
+            Menu {
+                ForEach(0..<52, id: \.self) { week in
+                    Button("Week \(week + 1)") {
+                        store.ensureClaimsCovering(pageIndex: week)
+                        withAnimation { selectedPage = week }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Week \(selectedPage + 1)")
+                        .font(.subheadline.bold())
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption)
+                }
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.ultraThinMaterial, in: Capsule())
+            }
+
+            Button {
+                if selectedPage < 51 {
+                    store.ensureClaimsCovering(pageIndex: selectedPage + 1)
+                    withAnimation { selectedPage += 1 }
+                }
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.headline)
+                    .foregroundStyle(selectedPage < 51 ? .primary : .tertiary)
+            }
+            .disabled(selectedPage >= 51)
         }
     }
 }
