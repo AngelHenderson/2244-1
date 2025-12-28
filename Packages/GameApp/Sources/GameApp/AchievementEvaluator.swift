@@ -57,7 +57,17 @@ public final class AchievementEvaluator {
     private let boost5xUsesKey = "powerUses.boost5x"
     private let boost20xUsesKey = "powerUses.boost20x"
     private let wheelCollectsKey = "wheelCollects.total"
+    private let achievementBoostExpirationKey = "achievementBoost.expiresAt"
     private let defaults = UserDefaults.standard
+
+    /// Returns the current achievement boost multiplier (2 if boost is active, 1 otherwise)
+    private var achievementBoostMultiplier: Int {
+        guard let expiration = defaults.object(forKey: achievementBoostExpirationKey) as? Date else {
+            return 1
+        }
+        return expiration > Date() ? 2 : 1
+    }
+
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
         totalGamesPlayed = UserDefaults.standard.integer(forKey: "totalGamesPlayed")
@@ -271,6 +281,15 @@ public final class AchievementEvaluator {
         defaults.set(totalPlayMinutes, forKey: playtimeTotalMinutesKey)
         print("⏱️ Game ended - Playtime: +\(elapsedSeconds)s, Total: \(totalPlaySeconds)s (\(totalPlayMinutes) min)")
 
+        // If game ended due to game over (not a win), the last move caused it
+        // so it should not count as a survived move - decrement by 1
+        if !won && surviveMovesTotal > 0 {
+            surviveMovesTotal -= 1
+            defaults.set(surviveMovesTotal, forKey: surviveMovesKey)
+            currentGameSnapshot.survive_moves_total = surviveMovesTotal
+            print("🎯 Game over - Survived moves decremented to: \(surviveMovesTotal)")
+        }
+
         // Reset session start for next game
         sessionStartTime = Date()
         
@@ -379,20 +398,21 @@ public final class AchievementEvaluator {
     }
     
     private func updateComboProgress(for chainCount: Int) {
+        let multiplier = achievementBoostMultiplier
         if (6...10).contains(chainCount) {
-            combo610Total += 1
+            combo610Total += multiplier
             defaults.set(combo610Total, forKey: combo610Key)
         }
         if (11...15).contains(chainCount) {
-            combo1115Total += 1
+            combo1115Total += multiplier
             defaults.set(combo1115Total, forKey: combo1115Key)
         }
         if (16...20).contains(chainCount) {
-            combo1620Total += 1
+            combo1620Total += multiplier
             defaults.set(combo1620Total, forKey: combo1620Key)
         }
         if (21...30).contains(chainCount) {
-            combo2130Total += 1
+            combo2130Total += multiplier
             defaults.set(combo2130Total, forKey: combo2130Key)
         }
         currentGameSnapshot.combo610Total = combo610Total
@@ -401,16 +421,18 @@ public final class AchievementEvaluator {
         currentGameSnapshot.combo2130Total = combo2130Total
         currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
     }
-    
+
     private func recordMergedTiles(_ count: Int) {
         guard count > 0 else { return }
-        lifetimeMergedTiles += count
+        let multiplier = achievementBoostMultiplier
+        lifetimeMergedTiles += count * multiplier
         defaults.set(lifetimeMergedTiles, forKey: mergedTilesKey)
         currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
     }
     
     public func onMoveSurvived() {
-        surviveMovesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        surviveMovesTotal += multiplier
         defaults.set(surviveMovesTotal, forKey: surviveMovesKey)
         currentGameSnapshot.survive_moves_total = surviveMovesTotal
         
@@ -422,7 +444,8 @@ public final class AchievementEvaluator {
     }
     
     public func onInfinityCreated() {
-        infinityCreationsTotal += 1
+        let multiplier = achievementBoostMultiplier
+        infinityCreationsTotal += multiplier
         defaults.set(infinityCreationsTotal, forKey: infinityCreationsKey)
         currentGameSnapshot.infinity_creations_total = infinityCreationsTotal
 
@@ -541,18 +564,19 @@ public final class AchievementEvaluator {
     }
     
     private func recordPowerUpUse(type: String) {
+        let multiplier = achievementBoostMultiplier
         switch type {
         case "hammer":
-            hammerUsesTotal += 1
+            hammerUsesTotal += multiplier
             defaults.set(hammerUsesTotal, forKey: hammerUsesKey)
         case "swap":
-            swapUsesTotal += 1
+            swapUsesTotal += multiplier
             defaults.set(swapUsesTotal, forKey: swapUsesKey)
         case "magnet":
-            magnetUsesTotal += 1
+            magnetUsesTotal += multiplier
             defaults.set(magnetUsesTotal, forKey: magnetUsesKey)
         case "spin":
-            spinUsesTotal += 1
+            spinUsesTotal += multiplier
             defaults.set(spinUsesTotal, forKey: spinUsesKey)
         default:
             break
@@ -566,13 +590,15 @@ public final class AchievementEvaluator {
 
     /// Called when magnet (MegaMerge) is used - tracks usage, combos, merges, and moves
     public func onMagnetUsed(mergeCount: Int) {
+        let multiplier = achievementBoostMultiplier
+
         // Track magnet usage
-        magnetUsesTotal += 1
+        magnetUsesTotal += multiplier
         defaults.set(magnetUsesTotal, forKey: magnetUsesKey)
         currentGameSnapshot.magnet_uses_total = magnetUsesTotal
 
         // Count as merged tiles
-        lifetimeMergedTiles += mergeCount
+        lifetimeMergedTiles += mergeCount * multiplier
         defaults.set(lifetimeMergedTiles, forKey: mergedTilesKey)
         currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
 

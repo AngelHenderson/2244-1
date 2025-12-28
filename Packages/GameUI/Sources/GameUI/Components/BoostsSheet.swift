@@ -41,6 +41,20 @@ public struct BoostsSheet: View {
                             powerDiscountRow(for: tierID)
                         }
                     }
+
+                    Divider()
+                        .background(.white.opacity(0.2))
+
+                    // Achievement Boost Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        sectionHeader(
+                            title: "Achievement Boost",
+                            icon: "trophy.fill",
+                            color: .orange
+                        )
+
+                        achievementBoostRow()
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
@@ -136,6 +150,36 @@ public struct BoostsSheet: View {
                         toastManager.showDiscountActivated(label)
                     } else {
                         toastManager.showBoostQueued(label)
+                    }
+                    dismiss()
+                }
+            }
+        )
+    }
+
+    private func achievementBoostRow() -> some View {
+        let label = gameStore.achievementBoostLabel
+        let cost = gameStore.achievementBoostCost
+        let countdown = gameStore.achievementBoostCountdownText
+        let isActive = gameStore.isAchievementBoostActive
+        let canPurchase = gameStore.canPurchaseAchievementBoost
+
+        return boostRow(
+            icon: "trophy.fill",
+            iconColor: isActive ? .orange : .white,
+            label: label,
+            cost: cost,
+            statusText: countdown,
+            isActive: isActive,
+            isQueued: false,
+            canPurchase: canPurchase,
+            action: {
+                let wasActive = isActive
+                if gameStore.purchaseAchievementBoost() {
+                    if wasActive {
+                        toastManager.show("\(label) Extended!", icon: "clock.arrow.circlepath", iconColor: .green)
+                    } else {
+                        toastManager.showBoostActivated(label)
                     }
                     dismiss()
                 }
@@ -255,8 +299,14 @@ public struct BoostStatusButton: View {
                         .foregroundStyle(.purple)
                 }
 
+                if hasActiveAchievementBoost {
+                    Image(systemName: "trophy.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.orange)
+                }
+
                 // If nothing active, show general boost icon
-                if !hasActiveScoreBoost && !hasActivePowerDiscount {
+                if !hasActiveScoreBoost && !hasActivePowerDiscount && !hasActiveAchievementBoost {
                     Image(systemName: "bolt.circle")
                         .font(.body.weight(.semibold))
                         .foregroundStyle(.white.opacity(0.8))
@@ -287,6 +337,10 @@ public struct BoostStatusButton: View {
         GameStore.PowerDiscountTierID.allCases.contains { gameStore.isPowerDiscountActive(for: $0) }
     }
 
+    private var hasActiveAchievementBoost: Bool {
+        gameStore.isAchievementBoostActive
+    }
+
     private var activeCountdownText: String? {
         // Find first active boost and return its countdown
         for tierID in GameStore.ScoreBoostTierID.allCases {
@@ -301,6 +355,10 @@ public struct BoostStatusButton: View {
                 if text != "Ready" { return text }
             }
         }
+        if gameStore.isAchievementBoostActive {
+            let text = gameStore.achievementBoostCountdownText
+            if text != "Ready" { return text }
+        }
         return nil
     }
 
@@ -308,6 +366,7 @@ public struct BoostStatusButton: View {
         var parts: [String] = []
         if hasActiveScoreBoost { parts.append("Score boost active") }
         if hasActivePowerDiscount { parts.append("Power discount active") }
+        if hasActiveAchievementBoost { parts.append("Achievement boost active") }
         if parts.isEmpty { parts.append("No active boosts") }
         parts.append("Tap to open boosts menu")
         return parts.joined(separator: ". ")
