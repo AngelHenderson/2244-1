@@ -174,8 +174,8 @@ public struct SpinWheelView: View {
                             .offset(y: -18)
                     )
                     .frame(width: 32, height: 48)
-                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .bottom)
-                    .offset(y: -175)
+                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
+                    .offset(y: -199)
                     .shadow(color: Color(red: 0.2, green: 0.5, blue: 0.2).opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()
