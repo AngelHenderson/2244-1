@@ -308,8 +308,49 @@ extension ThemeRegistry {
             }
         )
 
+        // Cozy Coral theme (warm pinks, peaches, and corals)
+        let cozyCoral = ThemeDescriptor(
+            id: "cozy-coral",
+            name: "Cozy Coral",
+            tileShape: .rounded,
+            tileStyle: .flat,
+            color: { value in
+                Theme.cozyCoralColor(for: value)
+            }
+        )
+
+        let cozyCoralSquare = ThemeDescriptor(
+            id: "cozy-coral-square",
+            name: "Cozy Coral Square",
+            tileShape: .square,
+            tileStyle: .flat,
+            color: { value in
+                Theme.cozyCoralColor(for: value)
+            }
+        )
+
+        let cozyCoral3D = ThemeDescriptor(
+            id: "cozy-coral-3d",
+            name: "Cozy Coral 3D",
+            tileShape: .rounded,
+            tileStyle: .raised3D,
+            color: { value in
+                Theme.cozyCoralColor(for: value)
+            }
+        )
+
+        let cozyCoral3DSquare = ThemeDescriptor(
+            id: "cozy-coral-3d-square",
+            name: "Cozy Coral 3D Square",
+            tileShape: .square,
+            tileStyle: .raised3D,
+            color: { value in
+                Theme.cozyCoralColor(for: value)
+            }
+        )
+
         return ThemeRegistry(
-            descriptors: [classic, classicSquare, raised3D, raised3DSquare, neon, pastel, mono, highContrast, simpleSage, simpleSageSquare, simpleSage3D, simpleSage3DSquare, mellowYellow, mellowYellowSquare, mellowYellow3D, mellowYellow3DSquare, relaxedRust, relaxedRustSquare, relaxedRust3D, relaxedRust3DSquare],
+            descriptors: [classic, classicSquare, raised3D, raised3DSquare, neon, pastel, mono, highContrast, simpleSage, simpleSageSquare, simpleSage3D, simpleSage3DSquare, mellowYellow, mellowYellowSquare, mellowYellow3D, mellowYellow3DSquare, relaxedRust, relaxedRustSquare, relaxedRust3D, relaxedRust3DSquare, cozyCoral, cozyCoralSquare, cozyCoral3D, cozyCoral3DSquare],
             defaultId: "raised-3d-square"
         )
     }
