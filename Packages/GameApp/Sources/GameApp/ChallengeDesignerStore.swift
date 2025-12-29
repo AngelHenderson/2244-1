@@ -143,8 +143,9 @@ public final class ChallengeDesignerStore: Sendable {
     }
     
     public var predictedReward: Int {
+        // Use a fixed target (1M) so milestone selection doesn't affect reward
         DifficultyEstimator.estimateReward(
-            target: .score(targetValue),
+            target: .score(1_000_000),
             timeLimit: timeLimitSeconds,
             minTileLevel: minTileLevel,
             levels: levels,
