@@ -9,17 +9,19 @@ public enum TileStepMath {
     /// Creates a tile for the given step index.
     public static func tile(forStep step: Int) -> Tile {
         let shift = step + 1
-        if shift > 0 && shift < Int.bitWidth {
+        // Use shift < 63 to avoid the sign bit (1 << 63 is negative in signed Int)
+        if shift > 0 && shift < 63 {
             return Tile(value: 1 << shift)
         } else {
             return Tile(value: Int.max, type: .highValue(step: step))
         }
     }
-    
+
     /// Returns the approximate Int value for a given step (clamped to Int.max).
     public static func value(forStep step: Int) -> Int {
         let shift = step + 1
-        if shift > 0 && shift < Int.bitWidth {
+        // Use shift < 63 to avoid the sign bit (1 << 63 is negative in signed Int)
+        if shift > 0 && shift < 63 {
             return 1 << shift
         }
         return Int.max
