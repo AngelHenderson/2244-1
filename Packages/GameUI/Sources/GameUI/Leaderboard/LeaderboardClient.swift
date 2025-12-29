@@ -621,6 +621,27 @@ private enum MockLeaderboardData {
         "AkitaAssassin", "YamagataYusha", "FukushimaFury", "MitoMaster", "TsuchiuraTiger"
     ]
 
+    static let indiaNames = [
+        "MumbaiMaster", "DelhiDestroyer", "BangaloreBlitz", "HyderabadHero", "ChennaiChamp",
+        "KolkataKing", "PuneProdigy", "AhmedabadAce", "JaipurJuggler", "LucknowLegend",
+        "KanpurKnight", "NagpurNinja", "IndoreInvader", "ThaneThunder", "BhopalBoss",
+        "VisakhapatnamVictor", "PimpriProwler", "PatnaPhantom", "VadodaraViper", "GhaziabadGhost",
+        "LudhianaLion", "AggraAvenger", "NashikNomad", "FaridabadFury", "MeerutMarvel",
+        "RajkotRaider", "KalyanKaze", "VasaiViking", "VaranasiVanguard", "SrinagarStar",
+        "AurangabadAssassin", "DhanbadDragon", "AmritsarArcher", "NaviNinja", "AllahabadAce",
+        "RanchRogue", "HowrahHawk", "CoimbatoreChampion", "JabalpurJuggernaut", "GwaliorGladiator",
+        "VijayawadaVortex", "JodhpurJester", "MaduraiMaster", "RaipurRanger", "KotaKrusher",
+        "ChandigarhCrusader", "GuwahatiGuru", "SolapurSlayer", "HubliHero", "MysoreMystic",
+        "TirupurTitan", "BareilliBrawler", "AligarhAvenger", "MoradabadMage", "GorakhpurGiant",
+        "BhiwandiBlaster", "JamshedpurJinx", "BhilaiBlaze", "AmravatiAssault", "CuttackCyclone",
+        "BikanerBolt", "BhavnagarBeast", "DehradunDemon", "DurgapurDestiny", "AsansolAce",
+        "NandedNinja", "KolhapurKing", "AjmerArrow", "GulbargaGuard", "JamnagarJolt",
+        "UjjainUltra", "LoniLancer", "SiligurShadow", "JhansiJudge", "UlhasnagarUltra",
+        "JammuJaguar", "SangliStorm", "MangoMaster", "BelgaumBlade", "MangaloreMaverick",
+        "AmbatturAce", "TirunelveliTiger", "MalegaonMarauder", "GayaGhost", "JalgaonJet",
+        "UdaipurUnicorn", "MaheshtalaMinotaur", "DavangereDynamo", "BellaryBoss", "PaliBolt"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -684,6 +705,8 @@ public extension LeaderboardClient {
                 entries = franceEntries()
             case .countryJP:
                 entries = japanEntries()
+            case .countryIN:
+                entries = indiaEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -1118,6 +1141,41 @@ public extension LeaderboardClient {
         ("16", 733), ("8", 756), ("4", 771), ("2", 781), ("1", 787),
         // Score 0 bracket (ranks 788-894)
         ("0", 788)
+    ]
+
+    // India player milestones (ranks 1-150)
+    private static let indiaPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "47bt", "1bo", "4bl", "583bi", "1bh", "2bf", "4be", "32bd", "230ay", "25at",
+        "1as", "11an", "330ak", "20aj", "307ah", "587af", "35ae", "546ac", "16aa", "7z",
+        "883t", "3t", "210r", "12q", "784o", "1o", "5n", "23m", "11l", "89k",
+        // Ranks 31-60
+        "2k", "174j", "10j", "340i", "21i", "2i", "166h", "20h", "2h", "324g",
+        "162g", "40g", "1g", "2f", "309e", "154e", "38e", "19e", "4e", "1e",
+        "302d", "75d", "37d", "9d", "2d", "1d", "295c", "73c", "18c", "9c",
+        // Ranks 61-90
+        "2c", "576b", "288b", "72b", "36b", "18b", "9b", "9b", "4b", "2b",
+        "2b", "1b", "281a", "35a", "17a", "8a", "4a", "4a", "1a", "549B",
+        "274B", "137B", "137B", "68B", "34B", "34B", "17B", "8B", "8B", "4B",
+        // Ranks 91-120
+        "4B", "2B", "2B", "2B", "1B", "1B", "1B", "536M", "536M", "536M",
+        "268M", "268M", "268M", "134M", "67M", "67M", "33M", "33M", "33M", "16M",
+        "16M", "16M", "16M", "8M", "8M", "8M", "8M", "4M", "1M", "1M",
+        // Ranks 121-150
+        "524K", "524K", "524K", "524K", "262K", "262K", "262K", "131K", "131K", "131K",
+        "131K", "65K", "65K", "65K", "65K", "65K", "32K", "32K", "32K", "32K",
+        "32K", "16K", "16K", "16K", "16K", "16K", "16K", "8192", "8192", "8192"
+    ]
+
+    // Extended India milestone brackets for rank calculation (ranks 151+)
+    // Total India players: ~1,488
+    private static let indiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // Raw number brackets (ranks 151-1210)
+        ("8192", 151), ("4096", 162), ("2048", 171), ("1024", 180), ("512", 196),
+        ("256", 222), ("128", 258), ("64", 300), ("32", 377), ("16", 512),
+        ("8", 666), ("4", 835), ("2", 1033),
+        // Score 0 bracket (ranks 1211-1488)
+        ("0", 1211)
     ]
 
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
