@@ -3251,6 +3251,23 @@ extension GameStore {
         saveProgressImmediately(newTile: nil)
         print("💾 Manual progress save completed")
     }
+
+    /// Force sync gems from GameStore to Progress store
+    /// Use when gems are out of sync (e.g., Progress has stale higher value)
+    public func forceGemSync() {
+        let gameStoreGems = state.gems
+        let progressGems = progressStore.loadSync()?.gems ?? 0
+
+        print("💎 Force gem sync: GameStore=\(gameStoreGems), Progress=\(progressGems)")
+
+        // Ensure UserDefaults coins matches state.gems
+        UserDefaults.standard.set(gameStoreGems, forKey: "coins")
+
+        // Save full progress snapshot (uses state.gems)
+        saveProgressToStore()
+
+        print("💎 Gem sync complete: All stores now have \(gameStoreGems) gems")
+    }
     
     /// Get current progress summary
     public func getProgressSummary() -> (highestTile: Int, bestScore: Int, gems: Int, hasInfinity: Bool) {
