@@ -99,6 +99,61 @@ public struct AchievementsView: View {
         if state.claimed { return 2 }       // Claimed at bottom
         return 1                            // In progress in middle
     }
+
+    /// Check if an achievement has reached its maximum tier (all tiers completed)
+    private func isMaxed(for id: String) -> Bool {
+        switch id {
+        case "tile_progression":
+            return achievements.isTileProgressionMaxed
+        case "moves_progression":
+            return achievements.isMovesProgressionMaxed
+        case "combo_6_10":
+            return achievements.isCombo610Maxed
+        case "combo_11_15":
+            return achievements.isCombo1115Maxed
+        case "combo_16_20":
+            return achievements.isCombo1620Maxed
+        case "combo_21_30":
+            return achievements.isCombo2130Maxed
+        case "merge_progression":
+            return achievements.isMergeProgressionMaxed
+        case "swap_usage_progression":
+            return achievements.isSwapUsesProgressionMaxed
+        case "hammer_usage_progression":
+            return achievements.isHammerUsesProgressionMaxed
+        case "survive_moves_progression":
+            return achievements.isSurviveMovesProgressionMaxed
+        case "spin_usage_progression":
+            return achievements.isSpinUsesProgressionMaxed
+        case "magnet_usage_progression":
+            return achievements.isMagnetUsesProgressionMaxed
+        case "challenge_creation":
+            return achievements.isChallengeCreationMaxed
+        case "infinity_progression":
+            return achievements.isInfinityProgressionMaxed
+        case "playtime_progression":
+            return achievements.isPlaytimeProgressionMaxed
+        case "boost2x_usage_progression":
+            return achievements.isBoost2xUsesProgressionMaxed
+        case "boost3x_usage_progression":
+            return achievements.isBoost3xUsesProgressionMaxed
+        case "boost4x_usage_progression":
+            return achievements.isBoost4xUsesProgressionMaxed
+        case "spin_purchases_progression":
+            return achievements.isSpinPurchasesProgressionMaxed
+        case "daily_claims_progression":
+            return achievements.isDailyClaimsProgressionMaxed
+        case "boost5x_usage_progression":
+            return achievements.isBoost5xUsesProgressionMaxed
+        case "boost20x_usage_progression":
+            return achievements.isBoost20xUsesProgressionMaxed
+        case "wheel_collects_progression":
+            return achievements.isWheelCollectsProgressionMaxed
+        default:
+            // For non-progressive achievements, check if claimed
+            return achievements.unlocks[id]?.claimed == true
+        }
+    }
     
     public var body: some View {
         NavigationStack {
@@ -112,6 +167,7 @@ public struct AchievementsView: View {
                             movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
                             tierDisplay: tierDisplay(for: def.id),
                             progress: achievements.progress(for: def),
+                            isMaxed: isMaxed(for: def.id),
                             onClaim: {
                                 // Claim the achievement
                                 achievements.claim(definition: def)
@@ -201,8 +257,9 @@ private struct AchievementRow: View {
     let movesProgressionTier: (label: String, value: Double)?
     let tierDisplay: AchievementStore.ProgressTierDisplay?
     let progress: AchievementStore.AchievementProgress?
+    let isMaxed: Bool
     let onClaim: () -> Void
-    
+
     public init(
         definition: AchievementDef,
         state: AchievementStore.UnlockState?,
@@ -210,6 +267,7 @@ private struct AchievementRow: View {
         movesProgressionTier: (label: String, value: Double)? = nil,
         tierDisplay: AchievementStore.ProgressTierDisplay? = nil,
         progress: AchievementStore.AchievementProgress? = nil,
+        isMaxed: Bool = false,
         onClaim: @escaping () -> Void
     ) {
         self.definition = definition
@@ -218,9 +276,10 @@ private struct AchievementRow: View {
         self.movesProgressionTier = movesProgressionTier
         self.tierDisplay = tierDisplay
         self.progress = progress
+        self.isMaxed = isMaxed
         self.onClaim = onClaim
     }
-    
+
     private var isUnlocked: Bool { state?.unlocked == true }
     private var isClaimed: Bool { state?.claimed == true }
     private var isClaimable: Bool { state?.isClaimable == true }
@@ -261,7 +320,7 @@ private struct AchievementRow: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            LockupIcon(isUnlocked: isUnlocked)
+            LockupIcon(isUnlocked: isUnlocked, isMaxed: isMaxed)
                 .frame(width: 64, height: 64)
             
             VStack(alignment: .leading, spacing: 8) {
@@ -291,15 +350,14 @@ private struct AchievementRow: View {
                                 .font(.caption.monospacedDigit())
                                 .foregroundStyle(.secondary)
                         }
-                        .frame(width: 160)
                         ProgressView(
                             value: clampedProgressValue(progress).current,
                             total: clampedProgressValue(progress).target
                         )
                         .progressViewStyle(.linear)
                         .tint(.green)
-                        .frame(width: 160)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 2)
                 }
                 
@@ -526,13 +584,49 @@ private struct RewardSummary: View {
 
 private struct LockupIcon: View {
     let isUnlocked: Bool
-    
+    let isMaxed: Bool
+
+    init(isUnlocked: Bool, isMaxed: Bool = false) {
+        self.isUnlocked = isUnlocked
+        self.isMaxed = isMaxed
+    }
+
+    private var iconName: String {
+        if isMaxed {
+            return "checkmark.circle.fill"
+        } else if isUnlocked {
+            return "lock.open.fill"
+        } else {
+            return "lock.fill"
+        }
+    }
+
+    private var iconColor: Color {
+        if isMaxed {
+            return .green
+        } else if isUnlocked {
+            return .green
+        } else {
+            return .white
+        }
+    }
+
+    private var backgroundColors: [Color] {
+        if isMaxed {
+            return [.green.opacity(0.4), .green.opacity(0.2)]
+        } else if isUnlocked {
+            return [.green.opacity(0.3), .green.opacity(0.15)]
+        } else {
+            return [.purple.opacity(0.2), .blue.opacity(0.1)]
+        }
+    }
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: isUnlocked ? [.green.opacity(0.3), .green.opacity(0.15)] : [.purple.opacity(0.2), .blue.opacity(0.1)],
+                        colors: backgroundColors,
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -541,12 +635,12 @@ private struct LockupIcon: View {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.4), lineWidth: 1)
                 )
-            
-            Image(systemName: isUnlocked ? "lock.open.fill" : "lock.fill")
+
+            Image(systemName: iconName)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 28, height: 28)
-                .foregroundStyle(isUnlocked ? .green : .white)
+                .foregroundStyle(iconColor)
                 .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
         }
     }
