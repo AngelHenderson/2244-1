@@ -729,9 +729,11 @@ public extension LeaderboardClient {
                 totalPlayers = 127_676  // France player count
             case .countryJP:
                 totalPlayers = 894  // Japan player count
+            case .countryIN:
+                totalPlayers = 1_488  // India player count
             case .global:
-                // Global = sum of all country players (US + UK + Canada + Australia + Germany + France + Japan)
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894
+                // Global = sum of all country players (US + UK + Canada + Australia + Germany + France + Japan + India)
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488
             }
             return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
         },
@@ -1461,6 +1463,19 @@ public extension LeaderboardClient {
             playerData.append((i, i + 30000, baseMilestone, milestoneIdx, name, "JP", platform, avatar, "jp_\(i)"))
         }
 
+        // Add India players
+        for i in 0..<min(150, indiaPlayerMilestones.count) {
+            let baseMilestone = indiaPlayerMilestones[i]
+            let name = MockLeaderboardData.indiaNames[i % MockLeaderboardData.indiaNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 42) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // India milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, i + 35000, baseMilestone, milestoneIdx, name, "IN", platform, avatar, "in_\(i)"))
+        }
+
         // Sort by milestone index (highest first = best milestone)
         playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
 
@@ -2131,6 +2146,92 @@ public extension LeaderboardClient {
             name: UserLeaderboardData.playerName,
             score: userScore,
             countryCode: "JP",
+            platform: .ios,
+            isMe: true,
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
+        ))
+
+        return entries
+    }
+
+    // India leaderboard - shows only Indian players with exact milestones
+    private static func indiaEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // First, build player data with milestones
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String)] = []
+
+        for i in 0..<min(150, indiaPlayerMilestones.count) {
+            let baseMilestone = indiaPlayerMilestones[i]
+            let name = MockLeaderboardData.indiaNames[i % MockLeaderboardData.indiaNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+
+            // India milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar))
+        }
+
+        // Sort by milestone index (highest first = best milestone)
+        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+
+        // Build entries with ranks based on sorted order
+        var entries: [LeaderboardEntry] = []
+        for (rank, player) in playerData.enumerated() {
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 35000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: "in_\(player.originalIndex)",
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "IN",
+                platform: player.platform,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // Add current user entry
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+        let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let totalIndiaPlayers = 1_488  // India player count
+
+        // Find user's rank based on milestone compared to sorted players
+        var indiaRank = totalIndiaPlayers
+
+        // Check if user would be in top 150 based on milestone
+        if let lastTop150 = playerData.last {
+            if userMilestoneIndex > lastTop150.milestoneIdx {
+                // User's milestone is better than some in top 150, find exact position
+                for (rank, player) in playerData.enumerated() {
+                    if userMilestoneIndex >= player.milestoneIdx {
+                        indiaRank = rank + 1
+                        break
+                    }
+                }
+            } else {
+                // User is below top 150 - use bracket-based ranking
+                for bracket in indiaExtendedRankBrackets {
+                    if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                       userMilestoneIndex >= bracketIndex {
+                        indiaRank = bracket.startRank
+                        break
+                    }
+                }
+            }
+        }
+
+        entries.append(LeaderboardEntry(
+            id: "me",
+            rank: indiaRank,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
+            countryCode: "IN",
             platform: .ios,
             isMe: true,
             avatarURL: UserLeaderboardData.avatarID,
