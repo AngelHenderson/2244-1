@@ -201,6 +201,57 @@ public struct Theme {
         let idx = (max(1, exp) - 1) % 25
         return relaxedRustPalette[idx].darkText ? .black : .white
     }
+
+    // MARK: - Cozy Coral Palette (25-step, warm pinks, peaches, and corals)
+    public static let cozyCoralPalette: [(color: Color, darkText: Bool)] = [
+        (Color(hex: "FFF1F0"), true),   // 1 (2): Blush White
+        (Color(hex: "FFDAC1"), true),   // 2 (4): Peach Whip
+        (Color(hex: "FFB7B2"), true),   // 3 (8): Soft Coral
+        (Color(hex: "FF9E99"), true),   // 4 (16): Coral Pink
+        (Color(hex: "FF6F69"), false),  // 5 (32): Living Coral
+        (Color(hex: "FF8364"), false),  // 6 (64): Terracotta Coral
+        (Color(hex: "FF4D4D"), false),  // 7 (128): Bright Coral Red
+        (Color(hex: "D93D3D"), false),  // 8 (256): Deep Coral Red
+        (Color(hex: "FFD1BA"), true),   // 9 (512): Apricot
+        (Color(hex: "FFAD8F"), true),   // 10 (1024): Cantaloupe
+        (Color(hex: "FF8A5C"), false),  // 11 (2048): Burnt Coral
+        (Color(hex: "D85C3A"), false),  // 12 (4096): Rust Coral
+        (Color(hex: "FAE3D9"), true),   // 13 (8192): Shell Pink
+        (Color(hex: "F8B8A8"), true),   // 14 (16K): Dusty Coral
+        (Color(hex: "E07C66"), false),  // 15 (32K): Muted Terra
+        (Color(hex: "B85B4A"), false),  // 16 (65K): Deep Earth
+        (Color(hex: "FFC4C4"), true),   // 17 (131K): Baby Pink
+        (Color(hex: "FF9494"), true),   // 18 (262K): Salmon Pink
+        (Color(hex: "FF5C5C"), false),  // 19 (524K): Warm Red
+        (Color(hex: "D63447"), false),  // 20 (1M): Crimson
+        (Color(hex: "F5E6CA"), true),   // 21 (2M): Cream
+        (Color(hex: "F0D9B5"), true),   // 22 (4M): Warm Beige
+        (Color(hex: "E6B89C"), true),   // 23 (8M): Sand
+        (Color(hex: "D98E73"), false),  // 24 (16M): Dark Sand
+        (Color(hex: "BF6B50"), false),  // 25 (33M): Clay
+    ]
+
+    public static func cozyCoralColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            let exponent = step + 1
+            let idx = (max(1, exponent) - 1) % 25
+            return cozyCoralPalette[idx].color
+        }
+        let exp = exponent(for: value)
+        let idx = (max(1, exp) - 1) % 25
+        return cozyCoralPalette[idx].color
+    }
+
+    public static func cozyCoralTextColor(for value: Int) -> Color {
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            let exponent = step + 1
+            let idx = (max(1, exponent) - 1) % 25
+            return cozyCoralPalette[idx].darkText ? .black : .white
+        }
+        let exp = exponent(for: value)
+        let idx = (max(1, exp) - 1) % 25
+        return cozyCoralPalette[idx].darkText ? .black : .white
+    }
     
     // Step overrides removed to maintain proper 25-color cycling
     // The palette should repeat consistently every 25 exponents
