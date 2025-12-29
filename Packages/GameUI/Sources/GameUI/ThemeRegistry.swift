@@ -107,84 +107,6 @@ extension ThemeRegistry {
             }
         )
 
-        // Neon theme
-        let neonPalette: [Color] = [
-            Color(hex: "39FF14"), // neon green
-            Color(hex: "00E5FF"), // neon cyan
-            Color(hex: "FF2079"), // neon magenta
-            Color(hex: "FFD300"), // neon yellow
-            Color(hex: "7C4DFF")  // neon violet
-        ]
-        let neon = ThemeDescriptor(
-            id: "neon",
-            name: "Neon",
-            tileShape: .rounded,
-            tileStyle: .flat,
-            color: { value in
-                var v = max(1, value)
-                var e = 0
-                while v > 1 { v >>= 1; e += 1 }
-                let idx = e == 0 ? 0 : (e - 1) % neonPalette.count
-                return neonPalette[idx]
-            }
-        )
-
-        // Pastel theme
-        let pastelPalette: [Color] = [
-            Color(hex: "AEC6CF"), // pastel blue
-            Color(hex: "FFB3BA"), // pastel pink
-            Color(hex: "B5EAD7"), // pastel mint
-            Color(hex: "FFDFBA"), // pastel orange
-            Color(hex: "C7CEEA")  // pastel purple
-        ]
-        let pastel = ThemeDescriptor(
-            id: "pastel",
-            name: "Pastel",
-            tileShape: .rounded,
-            tileStyle: .flat,
-            color: { value in
-                var v = max(1, value)
-                var e = 0
-                while v > 1 { v >>= 1; e += 1 }
-                let idx = e == 0 ? 0 : (e - 1) % pastelPalette.count
-                return pastelPalette[idx]
-            }
-        )
-
-        // Monochrome theme (shades of gray by exponent)
-        let mono = ThemeDescriptor(
-            id: "mono",
-            name: "Monochrome",
-            tileShape: .square,
-            tileStyle: .flat,
-            color: { value in
-                var v = max(1, value)
-                var e = 0
-                while v > 1 { v >>= 1; e += 1 }
-                let shadeIndex = e == 0 ? 0 : (e - 1) % 10
-                let t = Double(shadeIndex) / 10.0
-                return Color(white: 0.2 + 0.7 * t)
-            }
-        )
-
-        // High Contrast theme (few bold colors)
-        let hcPalette: [Color] = [
-            .red, .blue, .green, .orange, .purple, .pink, .yellow
-        ]
-        let highContrast = ThemeDescriptor(
-            id: "high-contrast",
-            name: "High Contrast",
-            tileShape: .square,
-            tileStyle: .raised3D,
-            color: { value in
-                var v = max(1, value)
-                var e = 0
-                while v > 1 { v >>= 1; e += 1 }
-                let idx = e == 0 ? 0 : (e - 1) % hcPalette.count
-                return hcPalette[idx]
-            }
-        )
-
         // Simple Sage theme (nature-inspired muted tones)
         let simpleSage = ThemeDescriptor(
             id: "simple-sage",
@@ -350,7 +272,7 @@ extension ThemeRegistry {
         )
 
         return ThemeRegistry(
-            descriptors: [classic, classicSquare, raised3D, raised3DSquare, neon, pastel, mono, highContrast, simpleSage, simpleSageSquare, simpleSage3D, simpleSage3DSquare, mellowYellow, mellowYellowSquare, mellowYellow3D, mellowYellow3DSquare, relaxedRust, relaxedRustSquare, relaxedRust3D, relaxedRust3DSquare, cozyCoral, cozyCoralSquare, cozyCoral3D, cozyCoral3DSquare],
+            descriptors: [classic, classicSquare, raised3D, raised3DSquare, simpleSage, simpleSageSquare, simpleSage3D, simpleSage3DSquare, mellowYellow, mellowYellowSquare, mellowYellow3D, mellowYellow3DSquare, relaxedRust, relaxedRustSquare, relaxedRust3D, relaxedRust3DSquare, cozyCoral, cozyCoralSquare, cozyCoral3D, cozyCoral3DSquare],
             defaultId: "raised-3d-square"
         )
     }
