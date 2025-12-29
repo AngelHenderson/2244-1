@@ -21,7 +21,7 @@ public final class AchievementEvaluator {
     private var hammerUsesTotal: Int = 0
     private var swapUsesTotal: Int = 0
     private var magnetUsesTotal: Int = 0
-    private var surviveMovesTotal: Int = 0
+    private var totalGameOvers: Int = 0
     private var spinUsesTotal: Int = 0
     private var challengeCreationTotal: Int = 0
     private var totalPlayMinutes: Int = 0
@@ -43,7 +43,7 @@ public final class AchievementEvaluator {
     private let hammerUsesKey = "powerUses.hammer"
     private let swapUsesKey = "powerUses.swap"
     private let magnetUsesKey = "powerUses.magnet"
-    private let surviveMovesKey = "surviveMoves.total"
+    private let totalGameOversKey = "gameOvers.total"
     private let spinUsesKey = "powerUses.spin"
     private let challengeCreationTotalKey = "challengeCreation.total"
     private let playtimeTotalMinutesKey = "playtime.totalMinutes"
@@ -79,6 +79,13 @@ public final class AchievementEvaluator {
         }
     }
 
+    /// Computed survive moves = total moves - game overs
+    /// This is more reliable than tracking separately on each move
+    private var surviveMovesTotal: Int {
+        let totalMoves = defaults.integer(forKey: "totalMoves")
+        return max(0, totalMoves - totalGameOvers)
+    }
+
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
         totalGamesPlayed = UserDefaults.standard.integer(forKey: "totalGamesPlayed")
@@ -91,18 +98,7 @@ public final class AchievementEvaluator {
         swapUsesTotal = defaults.integer(forKey: swapUsesKey)
         magnetUsesTotal = defaults.integer(forKey: magnetUsesKey)
         spinUsesTotal = defaults.integer(forKey: spinUsesKey)
-        surviveMovesTotal = defaults.integer(forKey: surviveMovesKey)
-
-        // Sync surviveMovesTotal with totalMoves if there's a significant discrepancy
-        // This handles the case where totalMoves was tracked before surviveMovesTotal
-        let totalMoves = defaults.integer(forKey: "totalMoves")
-        if totalMoves > 0 && surviveMovesTotal < totalMoves {
-            // Survive moves should roughly equal total moves (minus game overs)
-            // If surviveMovesTotal is much lower, it wasn't being tracked properly before
-            surviveMovesTotal = totalMoves
-            defaults.set(surviveMovesTotal, forKey: surviveMovesKey)
-            print("🔄 Synced surviveMovesTotal to totalMoves: \(surviveMovesTotal)")
-        }
+        totalGameOvers = defaults.integer(forKey: totalGameOversKey)
         challengeCreationTotal = defaults.integer(forKey: challengeCreationTotalKey)
         totalPlaySeconds = defaults.integer(forKey: playtimeTotalSecondsKey)
         // Migrate old minutes-only data if seconds is 0 but minutes exists
@@ -303,14 +299,14 @@ public final class AchievementEvaluator {
         defaults.set(totalPlayMinutes, forKey: playtimeTotalMinutesKey)
         print("⏱️ Game ended - Playtime: +\(elapsedSeconds)s, Total: \(totalPlaySeconds)s (\(totalPlayMinutes) min)")
 
-        // If game ended due to game over (not a win), the last move caused it
-        // so it should not count as a survived move - decrement by 1
-        if !won && surviveMovesTotal > 0 {
-            surviveMovesTotal -= 1
-            defaults.set(surviveMovesTotal, forKey: surviveMovesKey)
-            currentGameSnapshot.survive_moves_total = surviveMovesTotal
-            print("🎯 Game over - Survived moves decremented to: \(surviveMovesTotal)")
+        // If game ended due to game over (not a win), increment game over count
+        // surviveMovesTotal is calculated as: totalMoves - totalGameOvers
+        if !won {
+            totalGameOvers += 1
+            defaults.set(totalGameOvers, forKey: totalGameOversKey)
+            print("🎯 Game over #\(totalGameOvers) - Survived moves: \(surviveMovesTotal)")
         }
+        currentGameSnapshot.survive_moves_total = surviveMovesTotal
 
         // Reset session start for next game
         sessionStartTime = Date()
@@ -453,11 +449,10 @@ public final class AchievementEvaluator {
     }
     
     public func onMoveSurvived() {
-        let multiplier = achievementBoostMultiplier
-        surviveMovesTotal += multiplier
-        defaults.set(surviveMovesTotal, forKey: surviveMovesKey)
+        // surviveMovesTotal is now computed as: totalMoves - totalGameOvers
+        // Just update the snapshot with the current value
         currentGameSnapshot.survive_moves_total = surviveMovesTotal
-        
+
         var snapshot = currentGameSnapshot
         snapshot.survive_moves_total = surviveMovesTotal
         Task {
@@ -624,13 +619,9 @@ public final class AchievementEvaluator {
         defaults.set(lifetimeMergedTiles, forKey: mergedTilesKey)
         currentGameSnapshot.merged_tiles_total = lifetimeMergedTiles
 
-        // Count as a move
+        // Count as a move (surviveMovesTotal is computed from totalMoves - gameOvers)
         let currentTotalMoves = defaults.integer(forKey: "totalMoves")
         defaults.set(currentTotalMoves + 1, forKey: "totalMoves")
-
-        // Count as a survived move (magnet doesn't cause game over)
-        surviveMovesTotal += multiplier
-        defaults.set(surviveMovesTotal, forKey: surviveMovesKey)
         currentGameSnapshot.survive_moves_total = surviveMovesTotal
 
         // Count towards combo achievements based on merge count

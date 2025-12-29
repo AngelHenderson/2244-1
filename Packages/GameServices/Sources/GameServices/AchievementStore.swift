@@ -28,10 +28,16 @@ public final class AchievementStore {
     public struct AchievementProgress: Sendable, Equatable {
         public let current: Double
         public let target: Double
-        
+
         public init(current: Double, target: Double) {
             self.current = current
             self.target = target
+        }
+
+        /// Progress percentage (0.0 to 1.0)
+        public var percentage: Double {
+            guard target > 0 else { return 0 }
+            return min(1.0, current / target)
         }
     }
     

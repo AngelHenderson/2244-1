@@ -10,7 +10,7 @@ public struct AchievementsView: View {
 
     public init() {}
     
-    /// Sorted achievements: highest level first, then by claimable status
+    /// Sorted achievements: highest level first, then by progress bar (highest first), then by claimable status
     private var sortedAchievements: [AchievementDef] {
         achievements.catalog.sorted { a, b in
             let levelA = achievementLevel(for: a.id)
@@ -21,7 +21,14 @@ public struct AchievementsView: View {
                 return levelA > levelB
             }
 
-            // If same level, sort by claimable status
+            // If same level, sort by progress bar percentage (highest first)
+            let progressA = achievements.progress(for: a)?.percentage ?? 0
+            let progressB = achievements.progress(for: b)?.percentage ?? 0
+            if progressA != progressB {
+                return progressA > progressB
+            }
+
+            // If same level and progress, sort by claimable status
             let stateA = achievements.unlocks[a.id]
             let stateB = achievements.unlocks[b.id]
             let priorityA = sortPriority(for: a.id, state: stateA)
@@ -284,12 +291,14 @@ private struct AchievementRow: View {
                                 .font(.caption.monospacedDigit())
                                 .foregroundStyle(.secondary)
                         }
+                        .frame(width: 160)
                         ProgressView(
                             value: clampedProgressValue(progress).current,
                             total: clampedProgressValue(progress).target
                         )
                         .progressViewStyle(.linear)
                         .tint(.green)
+                        .frame(width: 160)
                     }
                     .padding(.top, 2)
                 }
