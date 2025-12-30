@@ -44,22 +44,24 @@ public struct BoardView: View {
         }
     }
     
+    /// Compute current max tile step on the board (handles highValue tiles correctly)
+    private var currentMaxStep: Int {
+        var maxStep = -1
+        for r in 0..<gameStore.state.board.height {
+            for c in 0..<gameStore.state.board.width {
+                let p = Position(row: r, col: c)
+                if let t = gameStore.state.board[p], let step = t.stepIndex, step > maxStep {
+                    maxStep = step
+                }
+            }
+        }
+        return maxStep
+    }
+
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
+        let maxStep = currentMaxStep  // Capture for use in view builder
         VStack(spacing: spacing) {
-            // Compute current max tile step (handles highValue tiles correctly)
-            let currentMaxStep: Int = {
-                var maxStep = -1
-                for r in 0..<gameStore.state.board.height {
-                    for c in 0..<gameStore.state.board.width {
-                        let p = Position(row: r, col: c)
-                        if let t = gameStore.state.board[p], let step = t.stepIndex, step > maxStep {
-                            maxStep = step
-                        }
-                    }
-                }
-                return maxStep
-            }()
             ForEach(0..<gameStore.state.board.height, id: \.self) { row in
                 HStack(spacing: spacing) {
                     ForEach(0..<gameStore.state.board.width, id: \.self) { col in
@@ -86,7 +88,7 @@ public struct BoardView: View {
                                     }
                             }
                             
-                            if let t = gameStore.state.board[position], t.stepIndex == currentMaxStep {
+                            if let t = gameStore.state.board[position], t.stepIndex == maxStep {
                                 Image(systemName: "crown.fill")
                                     .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
                                     .foregroundStyle(.yellow)
