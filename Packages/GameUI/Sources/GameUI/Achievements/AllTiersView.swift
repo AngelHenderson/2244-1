@@ -149,40 +149,60 @@ private struct TierRow: View {
 private struct TierRewardSummary: View {
     let rewards: AchievementDef.Rewards
 
+    private enum RewardIcon {
+        case asset(String)
+        case system(String, Color)
+    }
+
     private struct RewardItem: Identifiable {
         let id = UUID()
-        let iconName: String
-        let isAsset: Bool
-        let text: String
+        let icon: RewardIcon
+        let label: String
+        let amount: Int
     }
 
     private var rewardItems: [RewardItem] {
         var items: [RewardItem] = []
         if let gems = rewards.gems, gems > 0 {
-            items.append(RewardItem(iconName: "gem", isAsset: true, text: "\(gems)"))
+            items.append(RewardItem(icon: .asset("gem"), label: "Gems", amount: gems))
         }
         if let hammers = rewards.hammers, hammers > 0 {
-            items.append(RewardItem(iconName: "hammer", isAsset: true, text: "\(hammers)"))
+            items.append(RewardItem(icon: .asset("hammer"), label: "Hammer", amount: hammers))
         }
         if let magnets = rewards.magnets, magnets > 0 {
-            items.append(RewardItem(iconName: "magnet", isAsset: true, text: "\(magnets)"))
+            items.append(RewardItem(icon: .asset("magnet"), label: "MegaMerge", amount: magnets))
         }
         if let swaps = rewards.swaps, swaps > 0 {
-            items.append(RewardItem(iconName: "swap", isAsset: true, text: "\(swaps)"))
+            items.append(RewardItem(icon: .asset("swap"), label: "Swap", amount: swaps))
         }
         if let spins = rewards.spins, spins > 0 {
-            items.append(RewardItem(iconName: "spinthewheel", isAsset: true, text: "\(spins)"))
+            items.append(RewardItem(icon: .asset("spinthewheel"), label: "Spin", amount: spins))
         }
         if let boost2x = rewards.boost2x, boost2x > 0 {
-            items.append(RewardItem(iconName: "boost2x", isAsset: true, text: "\(boost2x)"))
+            items.append(RewardItem(icon: .system("2.circle.fill", .blue), label: "2X", amount: boost2x))
         }
         if let boost3x = rewards.boost3x, boost3x > 0 {
-            items.append(RewardItem(iconName: "boost3x", isAsset: true, text: "\(boost3x)"))
+            items.append(RewardItem(icon: .system("3.circle.fill", .purple), label: "3X", amount: boost3x))
         }
         if let boost4x = rewards.boost4x, boost4x > 0 {
-            items.append(RewardItem(iconName: "boost4x", isAsset: true, text: "\(boost4x)"))
+            items.append(RewardItem(icon: .system("4.circle.fill", .orange), label: "4X", amount: boost4x))
         }
         return items
+    }
+
+    @ViewBuilder
+    private func iconView(for icon: RewardIcon) -> some View {
+        switch icon {
+        case .asset(let name):
+            Image(name)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 14, height: 14)
+        case .system(let name, let color):
+            Image(systemName: name)
+                .font(.caption)
+                .foregroundStyle(color)
+        }
     }
 
     var body: some View {
@@ -193,16 +213,8 @@ private struct TierRewardSummary: View {
             HStack(spacing: 8) {
                 ForEach(items) { item in
                     HStack(spacing: 3) {
-                        if item.isAsset {
-                            Image(item.iconName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 14, height: 14)
-                        } else {
-                            Image(systemName: item.iconName)
-                                .font(.caption)
-                        }
-                        Text(item.text)
+                        iconView(for: item.icon)
+                        Text("\(item.amount)")
                             .font(.caption2.bold())
                     }
                     .foregroundStyle(.secondary)
