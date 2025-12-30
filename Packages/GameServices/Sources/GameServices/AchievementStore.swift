@@ -197,7 +197,29 @@ public final class AchievementStore {
         ("750K", 750000),
         ("1M", 1000000)
     ]
-    
+
+    // Tier-specific rewards for moves progression (indexed to movesTiers)
+    private static let movesTierRewards: [AchievementDef.Rewards] = [
+        .init(gems: 25),                                  // 25 moves
+        .init(gems: 50),                                  // 50 moves
+        .init(gems: 75, hammers: 1),                      // 100 moves
+        .init(gems: 100, magnets: 1),                     // 200 moves
+        .init(gems: 150, spins: 1),                       // 500 moves
+        .init(gems: 200, swaps: 1),                       // 1K moves
+        .init(gems: 250, boost2x: 1),                     // 2K moves
+        .init(gems: 300, boost3x: 1),                     // 3K moves
+        .init(gems: 400, hammers: 1, magnets: 1),         // 5K moves
+        .init(gems: 500, spins: 1, boost4x: 1),           // 10K moves
+        .init(gems: 600, hammers: 2),                     // 30K moves
+        .init(gems: 750, magnets: 2),                     // 50K moves
+        .init(gems: 1000, spins: 2),                      // 100K moves
+        .init(gems: 1250, swaps: 2, boost3x: 1),          // 200K moves
+        .init(gems: 1500, hammers: 1, magnets: 1, swaps: 1), // 300K moves
+        .init(gems: 2000, spins: 2, boost4x: 1),          // 500K moves
+        .init(gems: 2500, hammers: 2, magnets: 2),        // 750K moves
+        .init(gems: 3000, spins: 3, boost2x: 1, boost3x: 1, boost4x: 1) // 1M moves
+    ]
+
     private struct ComboTierDefinition {
         let milestone: Int
         let categoryLabel: String
@@ -1727,14 +1749,15 @@ public final class AchievementStore {
         
         // Special handling for moves progression achievement
         if definition.id == "moves_progression" {
-            // Grant rewards
-            if let rewards = definition.rewards {
-                if let gems = rewards.gems, gems > 0 {
-                    grantGemsDirectly(gems)
-                }
-                onReward?(rewards)
+            // Grant rewards from tier-specific rewards array
+            let rewards = Self.movesTierRewards.indices.contains(movesProgressionTier)
+                ? Self.movesTierRewards[movesProgressionTier]
+                : AchievementDef.Rewards()
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
             }
-            
+            onReward?(rewards)
+
             // Advance to next tier (don't mark as claimed, reset for next tier)
             if !isMovesProgressionMaxed {
                 movesProgressionTier += 1
@@ -2370,6 +2393,182 @@ public final class AchievementStore {
             } else {
                 print("⚠️ AchievementStore: No saved unlocks found")
             }
+        }
+    }
+
+    // MARK: - All Tiers Display
+
+    /// Represents a single tier in a progression achievement for display purposes
+    public struct TierEntry: Identifiable, Sendable {
+        public let id: Int  // tier index (0-based)
+        public let level: Int  // display level (1-based)
+        public let milestone: Int
+        public let milestoneLabel: String
+        public let title: String
+        public let description: String
+        public let rewards: AchievementDef.Rewards
+        public let isCompleted: Bool
+        public let isCurrent: Bool
+    }
+
+    /// Get all tiers for a given achievement ID
+    public func allTiers(for achievementId: String) -> [TierEntry] {
+        switch achievementId {
+        case "tile_progression":
+            return allTileTiers()
+        case "moves_progression":
+            return allMovesTiers()
+        case "combo_6_10":
+            return allComboTiers(tiers: Self.combo610Tiers, currentTierIndex: combo610Tier)
+        case "combo_11_15":
+            return allComboTiers(tiers: Self.combo1115Tiers, currentTierIndex: combo1115Tier)
+        case "combo_16_20":
+            return allComboTiers(tiers: Self.combo1620Tiers, currentTierIndex: combo1620Tier)
+        case "combo_21_30":
+            return allComboTiers(tiers: Self.combo2130Tiers, currentTierIndex: combo2130Tier)
+        case "merge_progression":
+            return allComboTiers(tiers: Self.mergeTiers, currentTierIndex: mergeProgressionTier)
+        case "swap_usage_progression":
+            return allComboTiers(tiers: Self.swapUseTiers, currentTierIndex: swapUsesProgressionTier)
+        case "hammer_usage_progression":
+            return allComboTiers(tiers: Self.hammerUseTiers, currentTierIndex: hammerUsesProgressionTier)
+        case "survive_moves_progression":
+            return allComboTiers(tiers: Self.surviveMovesTiers, currentTierIndex: surviveMovesProgressionTier)
+        case "spin_usage_progression":
+            return allComboTiers(tiers: Self.spinUseTiers, currentTierIndex: spinUsesProgressionTier)
+        case "magnet_usage_progression":
+            return allComboTiers(tiers: Self.magnetUseTiers, currentTierIndex: magnetUsesProgressionTier)
+        case "challenge_creation":
+            return allComboTiers(tiers: Self.challengeCreationTiers, currentTierIndex: challengeCreationTier)
+        case "infinity_progression":
+            return allComboTiers(tiers: Self.infinityTiers, currentTierIndex: infinityProgressionTier)
+        case "playtime_progression":
+            return allPlaytimeTiers()
+        case "boost2x_usage_progression":
+            return allComboTiers(tiers: Self.boost2xUseTiers, currentTierIndex: boost2xUsesProgressionTier)
+        case "boost3x_usage_progression":
+            return allComboTiers(tiers: Self.boost3xUseTiers, currentTierIndex: boost3xUsesProgressionTier)
+        case "boost4x_usage_progression":
+            return allComboTiers(tiers: Self.boost4xUseTiers, currentTierIndex: boost4xUsesProgressionTier)
+        case "spin_purchases_progression":
+            return allComboTiers(tiers: Self.spinPurchaseTiers, currentTierIndex: spinPurchasesProgressionTier)
+        case "daily_claims_progression":
+            return allComboTiers(tiers: Self.dailyClaimsTiers, currentTierIndex: dailyClaimsProgressionTier)
+        case "boost5x_usage_progression":
+            return allComboTiers(tiers: Self.boost5xUseTiers, currentTierIndex: boost5xUsesProgressionTier)
+        case "boost20x_usage_progression":
+            return allComboTiers(tiers: Self.boost20xUseTiers, currentTierIndex: boost20xUsesProgressionTier)
+        case "wheel_collects_progression":
+            return allComboTiers(tiers: Self.wheelCollectsTiers, currentTierIndex: wheelCollectsProgressionTier)
+        default:
+            return []
+        }
+    }
+
+    /// Check if an achievement has multiple tiers
+    public func hasMultipleTiers(for achievementId: String) -> Bool {
+        !allTiers(for: achievementId).isEmpty
+    }
+
+    private func allTileTiers() -> [TierEntry] {
+        Self.tileTiers.enumerated().map { index, tier in
+            let rewards = Self.tileTierRewards.indices.contains(index)
+                ? (Self.tileTierRewards[index] ?? AchievementDef.Rewards())
+                : AchievementDef.Rewards()
+            let safeMilestone = tier.value > Double(Int.max) ? Int.max : Int(tier.value)
+            return TierEntry(
+                id: index,
+                level: index + 1,
+                milestone: safeMilestone,
+                milestoneLabel: tier.label,
+                title: "Reach \(tier.label) tile",
+                description: tier.label == "∞"
+                    ? "Create a tile beyond comprehension."
+                    : "Create a \(tier.label) tile.",
+                rewards: rewards,
+                isCompleted: index < tileProgressionTier,
+                isCurrent: index == tileProgressionTier
+            )
+        }
+    }
+
+    private func allMovesTiers() -> [TierEntry] {
+        Self.movesTiers.enumerated().map { index, tier in
+            let rewards = Self.movesTierRewards.indices.contains(index)
+                ? Self.movesTierRewards[index]
+                : AchievementDef.Rewards()
+            return TierEntry(
+                id: index,
+                level: index + 1,
+                milestone: Int(tier.value),
+                milestoneLabel: tier.label,
+                title: "Make \(tier.label) moves",
+                description: "Accumulate \(tier.label) total moves.",
+                rewards: rewards,
+                isCompleted: index < movesProgressionTier,
+                isCurrent: index == movesProgressionTier
+            )
+        }
+    }
+
+    private func allPlaytimeTiers() -> [TierEntry] {
+        Self.playtimeTiers.enumerated().map { index, tier in
+            let label = formatPlaytime(tier.milestone)
+            return TierEntry(
+                id: index,
+                level: index + 1,
+                milestone: tier.milestone,
+                milestoneLabel: label,
+                title: "Play for \(label)",
+                description: "Accumulate \(label) of total playtime.",
+                rewards: tier.rewards,
+                isCompleted: index < playtimeProgressionTier,
+                isCurrent: index == playtimeProgressionTier
+            )
+        }
+    }
+
+    private func formatPlaytime(_ minutes: Int) -> String {
+        if minutes < 60 {
+            return "\(minutes) min"
+        } else if minutes < 1440 {
+            let hours = minutes / 60
+            return "\(hours) hr"
+        } else {
+            let days = minutes / 1440
+            return "\(days) day\(days == 1 ? "" : "s")"
+        }
+    }
+
+    private func allComboTiers(tiers: [ComboTierDefinition], currentTierIndex: Int) -> [TierEntry] {
+        tiers.enumerated().map { index, tier in
+            TierEntry(
+                id: index,
+                level: index + 1,
+                milestone: tier.milestone,
+                milestoneLabel: formatMilestone(tier.milestone),
+                title: tier.categoryLabel,
+                description: "Reach \(formatMilestone(tier.milestone)) to complete this tier.",
+                rewards: tier.rewards,
+                isCompleted: index < currentTierIndex,
+                isCurrent: index == currentTierIndex
+            )
+        }
+    }
+
+    private func formatMilestone(_ value: Int) -> String {
+        if value < 1000 {
+            return "\(value)"
+        } else if value < 1_000_000 {
+            let k = Double(value) / 1000
+            return k.truncatingRemainder(dividingBy: 1) == 0
+                ? "\(Int(k))K"
+                : String(format: "%.1fK", k)
+        } else {
+            let m = Double(value) / 1_000_000
+            return m.truncatingRemainder(dividingBy: 1) == 0
+                ? "\(Int(m))M"
+                : String(format: "%.1fM", m)
         }
     }
 }

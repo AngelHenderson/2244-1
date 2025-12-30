@@ -8,6 +8,8 @@ public struct AchievementsView: View {
     @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
 
+    @State private var selectedAchievementForTiers: AchievementDef?
+
     public init() {}
     
     /// Sorted achievements: highest level first, then by progress bar (highest first), then by claimable status
@@ -168,12 +170,16 @@ public struct AchievementsView: View {
                             tierDisplay: tierDisplay(for: def.id),
                             progress: achievements.progress(for: def),
                             isMaxed: isMaxed(for: def.id),
+                            hasMultipleTiers: achievements.hasMultipleTiers(for: def.id),
                             onClaim: {
                                 // Claim the achievement
                                 achievements.claim(definition: def)
                                 // Immediately sync gems from UserDefaults to HomeState
                                 let updatedGems = UserDefaults.standard.integer(forKey: "coins")
                                 homeState.gems = updatedGems
+                            },
+                            onTapTiers: {
+                                selectedAchievementForTiers = def
                             }
                         )
                     }
@@ -194,6 +200,12 @@ public struct AchievementsView: View {
                         dismiss()
                     }
                 }
+            }
+            .sheet(item: $selectedAchievementForTiers) { def in
+                AllTiersView(
+                    achievementTitle: tierDisplay(for: def.id)?.title ?? def.title,
+                    tiers: achievements.allTiers(for: def.id)
+                )
             }
         }
     }
@@ -258,7 +270,9 @@ private struct AchievementRow: View {
     let tierDisplay: AchievementStore.ProgressTierDisplay?
     let progress: AchievementStore.AchievementProgress?
     let isMaxed: Bool
+    let hasMultipleTiers: Bool
     let onClaim: () -> Void
+    let onTapTiers: () -> Void
 
     public init(
         definition: AchievementDef,
@@ -268,7 +282,9 @@ private struct AchievementRow: View {
         tierDisplay: AchievementStore.ProgressTierDisplay? = nil,
         progress: AchievementStore.AchievementProgress? = nil,
         isMaxed: Bool = false,
-        onClaim: @escaping () -> Void
+        hasMultipleTiers: Bool = false,
+        onClaim: @escaping () -> Void,
+        onTapTiers: @escaping () -> Void = {}
     ) {
         self.definition = definition
         self.state = state
@@ -277,7 +293,9 @@ private struct AchievementRow: View {
         self.tierDisplay = tierDisplay
         self.progress = progress
         self.isMaxed = isMaxed
+        self.hasMultipleTiers = hasMultipleTiers
         self.onClaim = onClaim
+        self.onTapTiers = onTapTiers
     }
 
     private var isUnlocked: Bool { state?.unlocked == true }
@@ -369,18 +387,34 @@ private struct AchievementRow: View {
                     } else if isClaimable {
                         StatusBadge(text: "Ready!", color: .green)
                     }
+
+                    if hasMultipleTiers {
+                        Button(action: onTapTiers) {
+                            HStack(spacing: 4) {
+                                Text("View All Tiers")
+                                    .font(.caption2.bold())
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.15), in: Capsule())
+                            .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
-            
+
             Spacer()
-            
+
             VStack(alignment: .trailing, spacing: 12) {
                 ClaimButton(
                     title: isClaimed ? "Done" : "Claim",
                     enabled: isClaimable,
                     action: onClaim
                 )
-                
+
                 RewardSummary(rewards: rewardsForDisplay)
             }
         }
