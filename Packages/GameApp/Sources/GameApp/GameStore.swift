@@ -524,9 +524,16 @@ public final class GameStore {
             )
             self.engine = restoredEngine
             self.state = restoredEngine.currentState()
+            let restoredStep = sessionState.highestTileStep ?? persistedHighestTileStep()
+            #if DEBUG
+            print("🔄 Restoring highestTileStep:")
+            print("   From sessionState: \(String(describing: sessionState.highestTileStep))")
+            print("   From UserDefaults: \(String(describing: persistedHighestTileStep()))")
+            print("   Final restored step: \(String(describing: restoredStep))")
+            #endif
             refreshDerivedState(
                 scoreAlpha: sessionState.scoreAlpha ?? persistedScoreAlpha() ?? AlphaNumber(sessionState.score),
-                highestStep: sessionState.highestTileStep ?? persistedHighestTileStep()
+                highestStep: restoredStep
             )
             // Use the most recent gem value - prefer UserDefaults as it's updated immediately
             let userDefaultsGems = UserDefaults.standard.integer(forKey: "coins")
@@ -592,6 +599,9 @@ public final class GameStore {
             }
         }
         
+        // CRITICAL: Verify and fix highestTileStep if it seems corrupted
+        verifyAndFixHighestTileStep()
+
         // Initialize comprehensive session tracking
         initializeSessionTracking()
         restoreScoreBoostState(from: loadedProgress)
@@ -2303,11 +2313,18 @@ extension GameStore {
         } else if state.scoreValue.isZero && state.score > 0 {
             state.scoreValue = AlphaNumber(state.score)
         }
-        
+
+        // CRITICAL FIX: Always use the persisted highestTileStep as the source of truth
+        // This fixes the bug where tiles with step >= 62 lose their .highValue(step:) type
+        // during save/restore, causing them to be recalculated as step 62 (from Int.max)
+        let persistedStep = persistedHighestTileStep() ?? 0
+
         if let highestStep {
-            state.highestTileStep = highestStep
+            // Use the maximum of provided step and persisted step
+            state.highestTileStep = max(highestStep, persistedStep)
         } else {
-            var maxStep = state.highestTileStep
+            // Calculate from board tiles, but always consider persisted value as floor
+            var maxStep = max(state.highestTileStep, persistedStep)
             for row in 0..<state.board.height {
                 for col in 0..<state.board.width {
                     let pos = Position(row: row, col: col)
@@ -2319,8 +2336,69 @@ extension GameStore {
             }
             state.highestTileStep = maxStep
         }
+
+        print("📐 refreshDerivedState: highestTileStep = \(state.highestTileStep) (persisted was: \(persistedStep))")
     }
-    
+
+    /// Verifies that highestTileStep matches the actual tiles on the board.
+    /// This fixes corruption where high-step tiles lost their .highValue(step:) type.
+    private func verifyAndFixHighestTileStep() {
+        // Scan board for the highest tile, checking BOTH stepIndex and the tile's actual type
+        var maxStepFromBoard = 0
+        var highestValueOnBoard: Int = 0
+        var foundHighValueTile = false
+
+        for row in 0..<state.board.height {
+            for col in 0..<state.board.width {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos] {
+                    // Check if tile has explicit .highValue step (most reliable)
+                    if case .highValue(let step) = tile.type {
+                        maxStepFromBoard = max(maxStepFromBoard, step)
+                        foundHighValueTile = true
+                        print("   Found .highValue tile at \(pos) with step \(step)")
+                    } else if let step = tile.stepIndex {
+                        maxStepFromBoard = max(maxStepFromBoard, step)
+                    }
+                    highestValueOnBoard = max(highestValueOnBoard, tile.value)
+                }
+            }
+        }
+
+        let persistedStep = persistedHighestTileStep() ?? 0
+
+        print("🔍 verifyAndFixHighestTileStep:")
+        print("   Max step from board tiles: \(maxStepFromBoard)")
+        print("   Found explicit .highValue tile: \(foundHighValueTile)")
+        print("   Highest value on board: \(highestValueOnBoard)")
+        print("   Persisted highestTileStep: \(persistedStep)")
+        print("   Current state.highestTileStep: \(state.highestTileStep)")
+
+        // Use the maximum of all sources
+        let correctedStep = max(state.highestTileStep, max(maxStepFromBoard, persistedStep))
+
+        if correctedStep > state.highestTileStep {
+            print("   ⚠️ FIXING: Updating highestTileStep from \(state.highestTileStep) to \(correctedStep)")
+            state.highestTileStep = correctedStep
+            // Also update the persisted value
+            UserDefaults.standard.set(correctedStep, forKey: ScoreDefaultsKey.currentHighestStep)
+        } else {
+            print("   ✅ highestTileStep looks correct")
+        }
+    }
+
+    /// Force-update the highest tile step to a specific value.
+    /// Use this to fix corrupted achievement progress.
+    /// Step calculation: step = log2(tileValue) - 1
+    /// Examples: 36c (3.6e19) ≈ step 64, 100c (1e20) ≈ step 66
+    public func forceUpdateHighestTileStep(toStep step: Int) {
+        print("🔧 FORCE UPDATE: Setting highestTileStep to \(step)")
+        state.highestTileStep = step
+        UserDefaults.standard.set(step, forKey: ScoreDefaultsKey.currentHighestStep)
+        saveProgressImmediately(newTile: nil)
+        print("   ✅ Done. Achievement should now show: \(String(format: "%.2e", pow(2.0, Double(step + 1))))")
+    }
+
     public func save(to slotId: String, using storage: any StorageServiceProtocol, theme: String) async {
         let current = state
         let bestExisting = await storage.bestScore()
@@ -2583,6 +2661,9 @@ extension GameStore {
             print("🏆 New all-time highest tile: \(currentHighest)")
         }
         UserDefaults.standard.set(state.highestTileStep, forKey: ScoreDefaultsKey.currentHighestStep)
+        #if DEBUG
+        print("💾 Saved highestTileStep: \(state.highestTileStep)")
+        #endif
         
         // Log EVERY tile creation (not just records)
         if let tile = newTile, tile > 0 {
