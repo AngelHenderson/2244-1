@@ -213,6 +213,8 @@ public struct LeaderboardView: View {
             return Color.red  // Japan - red circle on white
         case .countryIN:
             return Color.orange  // India - saffron from the flag
+        case .countryBR:
+            return Color.green  // Brazil - green from the flag
         }
     }
     
