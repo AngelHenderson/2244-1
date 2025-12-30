@@ -372,12 +372,64 @@ public struct SpinWheelView: View {
             return (message, 1) // Multiplier counts as 1 powerup
 
         case .giftBox:
-            let surprise = randomGiftReward()
-            return applyReward(surprise, isGiftBox: true)
+            return applyGiftBoxRewards()
         }
     }
-    
-    private func randomGiftReward() -> WheelReward {
+
+    private func applyGiftBoxRewards() -> (String, Int) {
+        let isMultiReward = Bool.random()
+
+        if isMultiReward {
+            // 50%: Multiple rewards (2-3 different rewards)
+            let rewards = randomMultipleGiftRewards()
+            var messages: [String] = []
+            var totalPowerups = 0
+
+            for reward in rewards {
+                let (msg, count) = applySingleReward(reward)
+                messages.append(msg)
+                totalPowerups += count
+            }
+
+            let combined = messages.joined(separator: ", ")
+            return ("Gift Box Jackpot! 🎁 \(combined)", totalPowerups)
+        } else {
+            // 50%: Single reward
+            let reward = randomSingleGiftReward()
+            let (msg, count) = applySingleReward(reward)
+            return ("Gift Box surprise! \(msg)", count)
+        }
+    }
+
+    private func applySingleReward(_ reward: WheelReward) -> (String, Int) {
+        let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
+
+        switch reward.type {
+        case .gems:
+            let amount = reward.amount * multiplier
+            grantGems(amount)
+            return ("\(amount) Gems 💎", 0)
+        case .hammers:
+            gameStore.addPowerUp("hammer", count: reward.amount)
+            return ("\(reward.amount) Hammer\(pluralSuffix(for: reward.amount)) 🔨", reward.amount)
+        case .magnets:
+            gameStore.addPowerUp("magnet", count: reward.amount)
+            return ("\(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount)) 🧲", reward.amount)
+        case .swap:
+            gameStore.addPowerUp("swap", count: reward.amount)
+            return ("\(reward.amount) Swap\(pluralSuffix(for: reward.amount)) 🔁", reward.amount)
+        case .spin:
+            spinState.addBonusSpins(reward.amount)
+            return ("\(reward.amount) Spin\(pluralSuffix(for: reward.amount)) 🎡", reward.amount)
+        case .multiplier(let tier):
+            spinState.addMultiplier(tier)
+            return ("\(tier.displayName) Boost ⚡", 1)
+        case .giftBox:
+            return ("", 0)
+        }
+    }
+
+    private func randomSingleGiftReward() -> WheelReward {
         let options: [WheelReward] = [
             .init(type: .gems, amount: 2000),
             .init(type: .magnets, amount: 2),
@@ -388,6 +440,47 @@ public struct SpinWheelView: View {
             .init(type: .multiplier(.threeX), amount: 1)
         ]
         return options.randomElement() ?? options[0]
+    }
+
+    private func randomMultipleGiftRewards() -> [WheelReward] {
+        let allOptions: [WheelReward] = [
+            .init(type: .gems, amount: 300),
+            .init(type: .gems, amount: 500),
+            .init(type: .magnets, amount: 1),
+            .init(type: .hammers, amount: 2),
+            .init(type: .swap, amount: 1),
+            .init(type: .spin, amount: 1),
+            .init(type: .multiplier(.twoX), amount: 1),
+            .init(type: .multiplier(.threeX), amount: 1)
+        ]
+
+        var selected: [WheelReward] = []
+        var usedTypes: Set<String> = []
+        let rewardCount = Int.random(in: 2...3)
+
+        var shuffled = allOptions.shuffled()
+        while selected.count < rewardCount && !shuffled.isEmpty {
+            let reward = shuffled.removeFirst()
+            let typeKey = rewardTypeKey(reward.type)
+            if !usedTypes.contains(typeKey) {
+                usedTypes.insert(typeKey)
+                selected.append(reward)
+            }
+        }
+
+        return selected
+    }
+
+    private func rewardTypeKey(_ type: WheelReward.RewardType) -> String {
+        switch type {
+        case .gems: return "gems"
+        case .hammers: return "hammers"
+        case .magnets: return "magnets"
+        case .swap: return "swap"
+        case .spin: return "spin"
+        case .multiplier(_): return "multiplier"
+        case .giftBox: return "giftBox"
+        }
     }
     
     private func grantGems(_ amount: Int) {
