@@ -205,6 +205,7 @@ public final class AchievementStore {
     }
     
     private static let combo610Tiers: [ComboTierDefinition] = [
+        // Tiers 1-11 (original)
         .init(milestone: 10, categoryLabel: "10. Good Combo", rewards: .init(gems: 50)),
         .init(milestone: 25, categoryLabel: "25. Great Combo", rewards: .init(gems: 75)),
         .init(milestone: 50, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 100, hammers: 1)),
@@ -215,11 +216,27 @@ public final class AchievementStore {
         .init(milestone: 500, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 300, spins: 1, hammers: 1, magnets: 1)),
         .init(milestone: 600, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 400, spins: 2, magnets: 1)),
         .init(milestone: 750, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 1000, hammers: 1, swaps: 2)),
-        .init(
-            milestone: 1000,
-            categoryLabel: "1000. 1000 IQ Combo Master",
-            rewards: .init(gems: 1000, spins: 1, boost4x: 1)
-        )
+        .init(milestone: 1000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1000, spins: 1, boost4x: 1)),
+        // Tiers 12-30 (extended)
+        .init(milestone: 1250, categoryLabel: "1250 combos", rewards: .init(gems: 1100)),
+        .init(milestone: 1500, categoryLabel: "1500 combos", rewards: .init(gems: 1200)),
+        .init(milestone: 1750, categoryLabel: "1750 combos", rewards: .init(hammers: 1, magnets: 1)),
+        .init(milestone: 2000, categoryLabel: "2000 combos", rewards: .init(spins: 1)),
+        .init(milestone: 2250, categoryLabel: "2250 combos", rewards: .init(gems: 1250, boost2x: 1)),
+        .init(milestone: 2500, categoryLabel: "2500 combos", rewards: .init(magnets: 1)),
+        .init(milestone: 3000, categoryLabel: "3000 combos", rewards: .init(gems: 1300, hammers: 1)),
+        .init(milestone: 3500, categoryLabel: "3500 combos", rewards: .init(gems: 1325)),
+        .init(milestone: 4000, categoryLabel: "4000 combos", rewards: .init(spins: 1, boost4x: 1)),
+        .init(milestone: 4500, categoryLabel: "4500 combos", rewards: .init(gems: 1350)),
+        .init(milestone: 5000, categoryLabel: "5000 combos", rewards: .init(hammers: 2)),
+        .init(milestone: 6000, categoryLabel: "6000 combos", rewards: .init(swaps: 2)),
+        .init(milestone: 7500, categoryLabel: "7500 combos", rewards: .init(magnets: 2)),
+        .init(milestone: 10000, categoryLabel: "10000 combos", rewards: .init(spins: 2, boost3x: 1)),
+        .init(milestone: 15000, categoryLabel: "15000 combos", rewards: .init(gems: 1500)),
+        .init(milestone: 25000, categoryLabel: "25000 combos", rewards: .init(gems: 1750)),
+        .init(milestone: 100000, categoryLabel: "100000 combos", rewards: .init(gems: 2000, magnets: 2, boost4x: 1)),
+        .init(milestone: 250000, categoryLabel: "250000 combos", rewards: .init(hammers: 2, magnets: 2, swaps: 2)),
+        .init(milestone: 500000, categoryLabel: "500000 combos", rewards: .init(gems: 3000))
     ]
     
     private static let combo1115Tiers: [ComboTierDefinition] = [
