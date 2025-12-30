@@ -162,7 +162,7 @@ public struct GameSnapshot: Sendable, Codable {
     public var board_monotonic_end: Bool = false
     public var made_2244_square: Bool = false
     
-    public var max_tile: Int = 0
+    public var max_tile: Double = 0
     public var win: Bool = false
     public var total_moves: Int = 0
     public var combo610Total: Int = 0

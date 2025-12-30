@@ -1440,6 +1440,7 @@ public final class AchievementStore {
     }
     
     public func evaluate(snapshot: GameSnapshot, reportToGameCenter: Bool = true) async {
+        print("🔍 EVALUATE CALLED with snapshot.max_tile = \(snapshot.max_tile) (\(String(format: "%.2e", snapshot.max_tile)))")
         lastEvaluatedSnapshot = snapshot
         persistSnapshot(snapshot)
         var didUnlock = false
@@ -1449,9 +1450,17 @@ public final class AchievementStore {
             // Special handling for tile progression achievement
             if def.id == "tile_progression" {
                 let targetValue = currentTileTier.value
-                if Double(snapshot.max_tile) >= targetValue {
+                let tierLabel = currentTileTier.label
+                print("🎯 TILE PROGRESSION EVALUATION:")
+                print("   Current tileProgressionTier index: \(tileProgressionTier)")
+                print("   Current tier label: \(tierLabel)")
+                print("   Target value: \(targetValue) (\(String(format: "%.2e", targetValue)))")
+                print("   Snapshot max_tile: \(snapshot.max_tile) (\(String(format: "%.2e", snapshot.max_tile)))")
+                print("   Comparison result: \(snapshot.max_tile >= targetValue ? "PASSED ✓" : "NOT YET (\(String(format: "%.2f", snapshot.max_tile / targetValue * 100))% progress)")")
+                if snapshot.max_tile >= targetValue {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
+                    print("   ✅ TIER UNLOCKED! Ready to claim.")
                 }
                 continue
             }
@@ -2105,7 +2114,14 @@ public final class AchievementStore {
         
         switch definition.id {
         case "tile_progression":
-            return makeProgress(current: Double(snapshot.max_tile), target: currentTileTier.value)
+            let current = snapshot.max_tile
+            let target = currentTileTier.value
+            let pct = target > 0 ? (current / target * 100) : 0
+            print("📊 TILE PROGRESS BAR:")
+            print("   Current max_tile: \(current) (\(String(format: "%.2e", current)))")
+            print("   Target (\(currentTileTier.label)): \(target) (\(String(format: "%.2e", target)))")
+            print("   Progress: \(String(format: "%.2f", pct))%")
+            return makeProgress(current: current, target: target)
         case "moves_progression":
             return makeProgress(current: Double(snapshot.total_moves), target: currentMovesTier.value)
         case "combo_6_10":
@@ -2279,14 +2295,28 @@ public final class AchievementStore {
         let encoder = JSONEncoder()
         if let data = try? encoder.encode(snapshot) {
             defaults.set(data, forKey: SnapshotDefaultsKey.lastSnapshot)
+            #if DEBUG
+            print("💾 Persisted snapshot - max_tile: \(snapshot.max_tile) (\(String(format: "%.2e", snapshot.max_tile)))")
+            #endif
         }
     }
     
     private func loadPersistedSnapshot() {
         guard let data = defaults.data(forKey: SnapshotDefaultsKey.lastSnapshot) else { return }
         let decoder = JSONDecoder()
-        if let snapshot = try? decoder.decode(GameSnapshot.self, from: data) {
+        do {
+            let snapshot = try decoder.decode(GameSnapshot.self, from: data)
             lastEvaluatedSnapshot = snapshot
+            #if DEBUG
+            print("📂 Loaded persisted snapshot - max_tile: \(snapshot.max_tile) (\(String(format: "%.2e", snapshot.max_tile)))")
+            #endif
+        } catch {
+            #if DEBUG
+            print("⚠️ Failed to decode persisted snapshot: \(error)")
+            print("   Clearing stale snapshot data...")
+            #endif
+            // Clear the stale data so next evaluation will persist a fresh snapshot
+            defaults.removeObject(forKey: SnapshotDefaultsKey.lastSnapshot)
         }
     }
     

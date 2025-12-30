@@ -86,6 +86,16 @@ public final class AchievementEvaluator {
         return max(0, totalMoves - totalGameOvers)
     }
 
+    /// Convert tile step to Double value to handle values beyond Int.max
+    /// Step 0 = 2, Step 1 = 4, Step n = 2^(n+1)
+    private func tileValueFromStep(_ step: Int) -> Double {
+        let value = pow(2.0, Double(step + 1))
+        #if DEBUG
+        print("🔢 tileValueFromStep(\(step)) = \(value) (\(String(format: "%.2e", value)))")
+        #endif
+        return value
+    }
+
     public init(achievementStore: AchievementStore) {
         self.achievementStore = achievementStore
         totalGamesPlayed = UserDefaults.standard.integer(forKey: "totalGamesPlayed")
@@ -196,7 +206,7 @@ public final class AchievementEvaluator {
         var snapshot = currentGameSnapshot
         snapshot.play_minutes_total = totalPlayMinutes
         snapshot.games_played = totalGamesPlayed
-        snapshot.max_tile = state.highestTile
+        snapshot.max_tile = tileValueFromStep(state.highestTileStep)
         snapshot.score = state.score
         snapshot.total_moves = defaults.integer(forKey: "totalMoves")
 
@@ -255,7 +265,10 @@ public final class AchievementEvaluator {
         snapshot.max_chain = maxChainThisGame
         snapshot.score = state.score
         snapshot.moves = movesThisGame
-        snapshot.max_tile = state.highestTile
+        snapshot.max_tile = tileValueFromStep(state.highestTileStep)
+        #if DEBUG
+        print("🏆 onChainCommitted: highestTileStep=\(state.highestTileStep), max_tile=\(String(format: "%.2e", snapshot.max_tile))")
+        #endif
         snapshot.consecutive_merge_turns = consecutiveMergeTurns
         snapshot.merge_in_corner = currentGameSnapshot.merge_in_corner
         snapshot.merge_on_edge = currentGameSnapshot.merge_on_edge
@@ -317,7 +330,7 @@ public final class AchievementEvaluator {
         snapshot.max_chain = maxChainThisGame
         snapshot.score = state.score
         snapshot.moves = movesThisGame
-        snapshot.max_tile = state.highestTile
+        snapshot.max_tile = tileValueFromStep(state.highestTileStep)
         snapshot.win = won
         snapshot.run_completed = true
         snapshot.run_minutes = elapsedSeconds / 60
