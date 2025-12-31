@@ -93,12 +93,12 @@ public final class ChallengeDesignerStore: Sendable {
         targetIndex = (targetIndex - 1 + targetLabels.count) % targetLabels.count
     }
     
-    public func decTime() { 
-        timeLimitSeconds = max(15, timeLimitSeconds - 5) 
+    public func decTime() {
+        timeLimitSeconds = max(60, timeLimitSeconds - 10)
     }
-    
-    public func incTime() { 
-        timeLimitSeconds = min(600, timeLimitSeconds + 5) 
+
+    public func incTime() {
+        timeLimitSeconds = min(1500, timeLimitSeconds + 10)
     }
     
     public func decMinTile() { 
