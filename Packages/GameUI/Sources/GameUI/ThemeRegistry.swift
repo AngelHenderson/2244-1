@@ -7,7 +7,7 @@ public struct ThemeDescriptor {
         case rounded
         case square
     }
-    
+
     public enum TileStyle: String {
         case flat      // Original flat style
         case raised3D  // New 3D raised style
@@ -19,23 +19,37 @@ public struct ThemeDescriptor {
     public let tileStyle: TileStyle
 
     private let colorProvider: (Int) -> Color
+    private let stepColorProvider: (Int) -> Color
+    private let stepTextColorProvider: (Int) -> Color
 
     public init(
         id: String,
         name: String,
         tileShape: TileShape,
         tileStyle: TileStyle = .flat,
-        color: @escaping (Int) -> Color
+        color: @escaping (Int) -> Color,
+        colorForStep: @escaping (Int) -> Color = { Theme.colorForStep($0) },
+        textColorForStep: @escaping (Int) -> Color = { Theme.textColorForStep($0) }
     ) {
         self.id = id
         self.name = name
         self.tileShape = tileShape
         self.tileStyle = tileStyle
         self.colorProvider = color
+        self.stepColorProvider = colorForStep
+        self.stepTextColorProvider = textColorForStep
     }
 
     public func color(for value: Int) -> Color {
         colorProvider(value)
+    }
+
+    public func colorForStep(_ step: Int) -> Color {
+        stepColorProvider(step)
+    }
+
+    public func textColorForStep(_ step: Int) -> Color {
+        stepTextColorProvider(step)
     }
 }
 
