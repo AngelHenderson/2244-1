@@ -22,9 +22,10 @@ public struct ChallengeModeView: View {
                             timelineSpine
                             
                             VStack(spacing: 24) {
-                                ForEach(store.challenges) { challenge in
+                                ForEach(Array(store.challenges.enumerated()), id: \.element.id) { index, challenge in
                                     ChallengeCard(
                                         challenge: challenge,
+                                        challengeNumber: index + 1,
                                         status: store.status(for: challenge)
                                     )
                                     .id(challenge.id)
@@ -90,44 +91,20 @@ public struct ChallengeModeView: View {
 
 private struct ChallengeCard: View {
     let challenge: Challenge
+    let challengeNumber: Int
     let status: ChallengeStatus
 
-    // Format tile target for display (27 -> "1a", 28 -> "1b", etc.)
+    // Format tile target for display using TileStepLabelFormatter
     private var targetTileLabel: String {
         guard let targetTile = challenge.targetTile else { return "??" }
 
-        // Map tile levels to display labels
-        // 27-36 correspond to "1a" through "1j"
-        let baseLabel = targetTile - 26
-        if baseLabel >= 1 && baseLabel <= 10 {
-            let suffix = String(Character(UnicodeScalar(96 + baseLabel)!))
-            return "1\(suffix)"
+        // Special case for Infinity
+        if targetTile == Int.max {
+            return "∞"
         }
 
-        // For other values, just show the raw number
-        return "\(targetTile)"
-    }
-
-    // Get a sequential challenge number for display
-    private var challengeNumber: Int {
-        // Use the last part of the UUID string as a stable identifier
-        let uuidString = challenge.id.uuidString
-        if let lastChar = uuidString.last {
-            switch lastChar {
-            case "1": return 1
-            case "2": return 2
-            case "3": return 3
-            case "4": return 4
-            case "5": return 5
-            case "6": return 6
-            case "7": return 7
-            case "8": return 8
-            case "9": return 9
-            case "A", "a": return 10
-            default: return 0
-            }
-        }
-        return 0
+        // Use TileStepLabelFormatter for proper step-to-label conversion
+        return TileStepLabelFormatter.labelForStep(targetTile, start: 2)
     }
 
     var body: some View {
