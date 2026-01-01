@@ -99,7 +99,7 @@ public struct SpinWheelView: View {
                     .font(.title2.weight(.bold))
                     .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
-                    .background(Color.white.opacity(0.08), in: Circle())
+                    .glassOrMaterialBackground(cornerRadius: 22)
             }
             
             Spacer()
@@ -263,11 +263,9 @@ public struct SpinWheelView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(homeState.gems >= cost ? Color.blue : Color.gray.opacity(0.5))
-            )
             .foregroundStyle(.white)
+            .glassOrMaterialBackground(cornerRadius: 20)
+            .opacity(homeState.gems >= cost ? 1.0 : 0.5)
         }
         .buttonStyle(.plain)
         .disabled(homeState.gems < cost)
@@ -279,20 +277,23 @@ public struct SpinWheelView: View {
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)
-                .background(
+                .foregroundStyle(.white)
+                .glassOrMaterialBackground(cornerRadius: 28)
+                .overlay(
                     RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(
+                        .stroke(
                             LinearGradient(
                                 colors: canSpin ? [Color(red: 0.29, green: 0.96, blue: 0.52), Color(red: 0.17, green: 0.76, blue: 0.99)]
                                                  : [Color.gray.opacity(0.4)],
                                 startPoint: .leading,
                                 endPoint: .trailing
-                            )
+                            ),
+                            lineWidth: 2
                         )
                 )
-                .foregroundStyle(.white)
                 .shadow(color: canSpin ? Color.black.opacity(0.4) : .clear, radius: 12, y: 8)
         }
+        .opacity(canSpin ? 1.0 : 0.6)
         .disabled(!canSpin)
     }
     
