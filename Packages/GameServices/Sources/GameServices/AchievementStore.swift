@@ -499,6 +499,7 @@ public final class AchievementStore {
     ]
 
     private static let spinUseTiers: [ComboTierDefinition] = [
+        // Tiers 1-11 (existing)
         .init(milestone: 5, categoryLabel: "Use Spin 5 Times", rewards: .init(gems: 25)),
         .init(milestone: 10, categoryLabel: "Use Spin 10 Times", rewards: .init(gems: 20, magnets: 1)),
         .init(milestone: 15, categoryLabel: "Use Spin 15 Times", rewards: .init(gems: 100, boost4x: 1)),
@@ -509,7 +510,27 @@ public final class AchievementStore {
         .init(milestone: 75, categoryLabel: "Use Spin 75 Times", rewards: .init(gems: 500, boost2x: 1)),
         .init(milestone: 100, categoryLabel: "Use Spin 100 Times", rewards: .init(gems: 500, hammers: 1, magnets: 1, boost3x: 1)),
         .init(milestone: 150, categoryLabel: "Use Spin 150 Times", rewards: .init(gems: 500, spins: 1, hammers: 1, swaps: 1, boost2x: 1)),
-        .init(milestone: 200, categoryLabel: "Use Spin 200 Times", rewards: .init(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost3x: 1))
+        .init(milestone: 200, categoryLabel: "Use Spin 200 Times", rewards: .init(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost3x: 1)),
+        // Tiers 12-30 (extended)
+        .init(milestone: 250, categoryLabel: "Use Spin 250 Times", rewards: .init(gems: 750)),
+        .init(milestone: 300, categoryLabel: "Use Spin 300 Times", rewards: .init(gems: 765, magnets: 1)),
+        .init(milestone: 350, categoryLabel: "Use Spin 350 Times", rewards: .init(gems: 800, spins: 1, boost2x: 1)),
+        .init(milestone: 400, categoryLabel: "Use Spin 400 Times", rewards: .init(magnets: 1)),
+        .init(milestone: 450, categoryLabel: "Use Spin 450 Times", rewards: .init(boost4x: 1)),
+        .init(milestone: 500, categoryLabel: "Use Spin 500 Times", rewards: .init(gems: 500, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 600, categoryLabel: "Use Spin 600 Times", rewards: .init(hammers: 3)),
+        .init(milestone: 700, categoryLabel: "Use Spin 700 Times", rewards: .init(swaps: 3)),
+        .init(milestone: 800, categoryLabel: "Use Spin 800 Times", rewards: .init(magnets: 3)),
+        .init(milestone: 900, categoryLabel: "Use Spin 900 Times", rewards: .init(gems: 350, spins: 3, boost3x: 1)),
+        .init(milestone: 1000, categoryLabel: "Use Spin 1000 Times", rewards: .init(boost2x: 1)),
+        .init(milestone: 1100, categoryLabel: "Use Spin 1100 Times", rewards: .init(boost3x: 1)),
+        .init(milestone: 1250, categoryLabel: "Use Spin 1250 Times", rewards: .init(spins: 2, hammers: 2, swaps: 2, boost2x: 1)),
+        .init(milestone: 1500, categoryLabel: "Use Spin 1500 Times", rewards: .init(magnets: 3, boost3x: 1)),
+        .init(milestone: 1750, categoryLabel: "Use Spin 1750 Times", rewards: .init(gems: 780, spins: 2, boost4x: 1)),
+        .init(milestone: 2000, categoryLabel: "Use Spin 2000 Times", rewards: .init(gems: 800, magnets: 1)),
+        .init(milestone: 3000, categoryLabel: "Use Spin 3000 Times", rewards: .init(gems: 850, magnets: 1, swaps: 1)),
+        .init(milestone: 5000, categoryLabel: "Use Spin 5000 Times", rewards: .init(gems: 900, boost2x: 1)),
+        .init(milestone: 10000, categoryLabel: "Use Spin 10000 Times", rewards: .init(gems: 1000))
     ]
     
     private static let surviveMovesTiers: [ComboTierDefinition] = [
@@ -2352,7 +2373,95 @@ public final class AchievementStore {
     public var claimableCount: Int {
         unlocks.values.filter { $0.isClaimable }.count
     }
-    
+
+    /// Claims all currently claimable achievements and returns the merged rewards
+    public func claimAll() -> AchievementDef.Rewards {
+        var mergedRewards = AchievementDef.Rewards()
+
+        // Find all claimable achievement definitions
+        let claimableDefinitions = catalog.filter { def in
+            unlocks[def.id]?.isClaimable == true
+        }
+
+        // Temporarily disable onReward callback to prevent multiple UI updates
+        let originalCallback = onReward
+        onReward = nil
+
+        // Claim each achievement and merge rewards
+        for def in claimableDefinitions {
+            // Get the rewards before claiming (for progressive achievements this gets current tier rewards)
+            let rewards = rewardsForClaim(definition: def)
+            if let rewards {
+                mergedRewards = mergedRewards.merged(with: rewards)
+            }
+
+            // Claim the achievement (this handles tier advancement, etc.)
+            claim(definition: def)
+        }
+
+        // Restore callback and fire once with merged rewards
+        onReward = originalCallback
+        onReward?(mergedRewards)
+
+        return mergedRewards
+    }
+
+    /// Get the rewards that would be granted for claiming a specific achievement
+    private func rewardsForClaim(definition: AchievementDef) -> AchievementDef.Rewards? {
+        switch definition.id {
+        case "tile_progression":
+            return tileRewards(for: definition)
+        case "moves_progression":
+            return Self.movesTierRewards.indices.contains(movesProgressionTier)
+                ? Self.movesTierRewards[movesProgressionTier]
+                : nil
+        case "combo_6_10":
+            return combo610Display.rewards
+        case "combo_11_15":
+            return combo1115Display.rewards
+        case "combo_16_20":
+            return combo1620Display.rewards
+        case "combo_21_30":
+            return combo2130Display.rewards
+        case "merge_progression":
+            return mergeDisplay.rewards
+        case "swap_usage_progression":
+            return swapUsesDisplay.rewards
+        case "hammer_usage_progression":
+            return hammerUsesDisplay.rewards
+        case "spin_usage_progression":
+            return spinUsesDisplay.rewards
+        case "survive_moves_progression":
+            return surviveMovesDisplay.rewards
+        case "playtime_progression":
+            return playtimeDisplay.rewards
+        case "infinity_progression":
+            return infinityDisplay.rewards
+        case "boost2x_usage_progression":
+            return boost2xUsesDisplay.rewards
+        case "boost3x_usage_progression":
+            return boost3xUsesDisplay.rewards
+        case "boost4x_usage_progression":
+            return boost4xUsesDisplay.rewards
+        case "spin_purchases_progression":
+            return spinPurchasesDisplay.rewards
+        case "daily_claims_progression":
+            return dailyClaimsDisplay.rewards
+        case "boost5x_usage_progression":
+            return boost5xUsesDisplay.rewards
+        case "boost20x_usage_progression":
+            return boost20xUsesDisplay.rewards
+        case "wheel_collects_progression":
+            return wheelCollectsDisplay.rewards
+        case "challenge_creation":
+            return challengeCreationDisplay.rewards
+        case "magnet_usage_progression":
+            return magnetUsesDisplay.rewards
+        default:
+            return definition.rewards
+        }
+    }
+
     private func matches(def: AchievementDef, snapshot s: GameSnapshot) -> Bool {
         def.conditions.allSatisfy { cond in
             let lhs = value(for: cond.field, in: s)

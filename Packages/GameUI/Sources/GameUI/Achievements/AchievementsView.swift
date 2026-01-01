@@ -159,33 +159,48 @@ public struct AchievementsView: View {
     
     public var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(sortedAchievements) { def in
-                        AchievementRow(
-                            definition: def,
-                            state: achievements.unlocks[def.id],
-                            tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
-                            movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
-                            tierDisplay: tierDisplay(for: def.id),
-                            progress: achievements.progress(for: def),
-                            isMaxed: isMaxed(for: def.id),
-                            hasMultipleTiers: achievements.hasMultipleTiers(for: def.id),
-                            onClaim: {
-                                // Claim the achievement
-                                achievements.claim(definition: def)
-                                // Immediately sync gems from UserDefaults to HomeState
-                                let updatedGems = UserDefaults.standard.integer(forKey: "coins")
-                                homeState.gems = updatedGems
-                            },
-                            onTapTiers: {
-                                selectedAchievementForTiers = def
-                            }
-                        )
+            VStack(spacing: 0) {
+                // Show "Claim All" button at top when there are multiple claimable achievements
+                if achievements.claimableCount >= 2 {
+                    ClaimAllButton(count: achievements.claimableCount) {
+                        _ = achievements.claimAll()
+                        // Sync gems from UserDefaults to HomeState
+                        let updatedGems = UserDefaults.standard.integer(forKey: "coins")
+                        homeState.gems = updatedGems
                     }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .background(Color(UIColor.systemGroupedBackground))
                 }
-                .padding()
-                .animation(.easeInOut(duration: 0.3), value: achievements.unlocks)
+
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(sortedAchievements) { def in
+                            AchievementRow(
+                                definition: def,
+                                state: achievements.unlocks[def.id],
+                                tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
+                                movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
+                                tierDisplay: tierDisplay(for: def.id),
+                                progress: achievements.progress(for: def),
+                                isMaxed: isMaxed(for: def.id),
+                                hasMultipleTiers: achievements.hasMultipleTiers(for: def.id),
+                                onClaim: {
+                                    // Claim the achievement
+                                    achievements.claim(definition: def)
+                                    // Immediately sync gems from UserDefaults to HomeState
+                                    let updatedGems = UserDefaults.standard.integer(forKey: "coins")
+                                    homeState.gems = updatedGems
+                                },
+                                onTapTiers: {
+                                    selectedAchievementForTiers = def
+                                }
+                            )
+                        }
+                    }
+                    .padding()
+                    .animation(.easeInOut(duration: 0.3), value: achievements.unlocks)
+                }
             }
             .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Achievements")
@@ -698,7 +713,7 @@ private struct ClaimButton: View {
     let title: String
     let enabled: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(title)
@@ -716,7 +731,7 @@ private struct ClaimButton: View {
         .disabled(!enabled)
         .opacity(enabled ? 1 : 0.6)
     }
-    
+
     private var buttonBackground: AnyShapeStyle {
         if enabled {
             return AnyShapeStyle(
@@ -729,5 +744,40 @@ private struct ClaimButton: View {
         } else {
             return AnyShapeStyle(Color.gray.opacity(0.3))
         }
+    }
+}
+
+private struct ClaimAllButton: View {
+    let count: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: "gift.fill")
+                    .font(.title3)
+                Text("Claim All (\(count))")
+                    .font(.headline.bold())
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.green, Color.green.opacity(0.75)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
+            )
+            .foregroundStyle(.white)
+            .shadow(color: .green.opacity(0.4), radius: 10, x: 0, y: 4)
+        }
+        .buttonStyle(.plain)
     }
 }
