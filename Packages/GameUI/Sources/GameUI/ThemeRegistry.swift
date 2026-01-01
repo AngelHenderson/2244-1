@@ -129,6 +129,12 @@ extension ThemeRegistry {
             tileStyle: .flat,
             color: { value in
                 Theme.simpleSageColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.simpleSageColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.simpleSageTextColorForStep(step)
             }
         )
 
@@ -139,6 +145,12 @@ extension ThemeRegistry {
             tileStyle: .flat,
             color: { value in
                 Theme.simpleSageColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.simpleSageColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.simpleSageTextColorForStep(step)
             }
         )
 
@@ -149,6 +161,12 @@ extension ThemeRegistry {
             tileStyle: .raised3D,
             color: { value in
                 Theme.simpleSageColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.simpleSageColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.simpleSageTextColorForStep(step)
             }
         )
 
@@ -159,6 +177,12 @@ extension ThemeRegistry {
             tileStyle: .raised3D,
             color: { value in
                 Theme.simpleSageColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.simpleSageColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.simpleSageTextColorForStep(step)
             }
         )
 
@@ -170,6 +194,12 @@ extension ThemeRegistry {
             tileStyle: .flat,
             color: { value in
                 Theme.mellowYellowColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.mellowYellowColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.mellowYellowTextColorForStep(step)
             }
         )
 
@@ -180,6 +210,12 @@ extension ThemeRegistry {
             tileStyle: .flat,
             color: { value in
                 Theme.mellowYellowColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.mellowYellowColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.mellowYellowTextColorForStep(step)
             }
         )
 
@@ -190,6 +226,12 @@ extension ThemeRegistry {
             tileStyle: .raised3D,
             color: { value in
                 Theme.mellowYellowColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.mellowYellowColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.mellowYellowTextColorForStep(step)
             }
         )
 
@@ -200,6 +242,12 @@ extension ThemeRegistry {
             tileStyle: .raised3D,
             color: { value in
                 Theme.mellowYellowColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.mellowYellowColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.mellowYellowTextColorForStep(step)
             }
         )
 
@@ -211,6 +259,12 @@ extension ThemeRegistry {
             tileStyle: .flat,
             color: { value in
                 Theme.relaxedRustColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.relaxedRustColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.relaxedRustTextColorForStep(step)
             }
         )
 
@@ -221,6 +275,12 @@ extension ThemeRegistry {
             tileStyle: .flat,
             color: { value in
                 Theme.relaxedRustColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.relaxedRustColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.relaxedRustTextColorForStep(step)
             }
         )
 
@@ -231,6 +291,12 @@ extension ThemeRegistry {
             tileStyle: .raised3D,
             color: { value in
                 Theme.relaxedRustColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.relaxedRustColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.relaxedRustTextColorForStep(step)
             }
         )
 
@@ -241,6 +307,12 @@ extension ThemeRegistry {
             tileStyle: .raised3D,
             color: { value in
                 Theme.relaxedRustColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.relaxedRustColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.relaxedRustTextColorForStep(step)
             }
         )
 
