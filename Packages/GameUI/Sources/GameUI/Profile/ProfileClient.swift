@@ -1,4 +1,5 @@
 import SwiftUI
+import GameCore
 
 // MARK: - Service Protocol
 
@@ -129,18 +130,18 @@ public struct LiveProfileClient: ProfileClient, Sendable {
     // MARK: - Helpers
 
     private func formatScore(_ score: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        return formatter.string(from: NSNumber(value: score)) ?? "\(score)"
+        // Use abbreviated format (K/M/B/a/b/etc.) for scores
+        let alpha = AlphaNumber(score)
+        return alpha.formattedWithCommas()
     }
 
     private func formatScoreString(_ decimalString: String) -> String {
         // The decimalString is stored as a plain number string (e.g., "13000000")
-        // We need to format it with commas
+        // Parse as Int first, then format with abbreviations
         if let intValue = Int(decimalString) {
             return formatScore(intValue)
         }
-        // If it's already a large number beyond Int, just return as-is with basic formatting
+        // For very large numbers beyond Int range, return as-is
         return decimalString
     }
 

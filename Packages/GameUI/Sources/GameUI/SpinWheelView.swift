@@ -144,8 +144,8 @@ public struct SpinWheelView: View {
                         RadialGradient(
                             colors: [Color(red: 0.13, green: 0.14, blue: 0.33), Color(red: 0.05, green: 0.06, blue: 0.14)],
                             center: .center,
-                            startRadius: 40,
-                            endRadius: 170
+                            startRadius: 50,
+                            endRadius: 200
                         )
                     )
                     .shadow(color: .black.opacity(0.6), radius: 16, x: 0, y: 12)
@@ -175,7 +175,7 @@ public struct SpinWheelView: View {
                     )
                     .frame(width: 32, height: 48)
                     .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
-                    .offset(y: -199)
+                    .offset(y: -229)
                     .shadow(color: Color(red: 0.2, green: 0.5, blue: 0.2).opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()
@@ -191,7 +191,7 @@ public struct SpinWheelView: View {
                         .frame(width: 90, height: 90)
                 }
             }
-            .frame(width: 340, height: 340)
+            .frame(width: 400, height: 400)
         }
     }
     

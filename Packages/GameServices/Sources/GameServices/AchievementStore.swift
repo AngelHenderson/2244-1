@@ -561,7 +561,7 @@ public final class AchievementStore {
         .init(milestone: 21600, categoryLabel: "15 days", rewards: .init(spins: 1, swaps: 1, boost2x: 1)),
         .init(milestone: 23040, categoryLabel: "16 days", rewards: .init(magnets: 1, boost3x: 1)),
         .init(milestone: 24480, categoryLabel: "17 days", rewards: .init(gems: 9300, magnets: 1)),
-        .init(milestone: 25920, categoryLabel: "18 days", rewards: .init(swaps: 1, magnets: 1)),
+        .init(milestone: 25920, categoryLabel: "18 days", rewards: .init(magnets: 1, swaps: 1)),
         .init(milestone: 27360, categoryLabel: "19 days", rewards: .init(gems: 8500, hammers: 1)),
         .init(milestone: 30240, categoryLabel: "21 days", rewards: .init(magnets: 3, boost3x: 1))
     ]
