@@ -100,6 +100,18 @@ public struct Theme {
         return simpleSagePalette[idx].darkText ? .black : .white
     }
 
+    public static func simpleSageColorForStep(_ step: Int) -> Color {
+        let exponent = step + 1
+        let idx = (max(1, exponent) - 1) % 25
+        return simpleSagePalette[idx].color
+    }
+
+    public static func simpleSageTextColorForStep(_ step: Int) -> Color {
+        let exponent = step + 1
+        let idx = (max(1, exponent) - 1) % 25
+        return simpleSagePalette[idx].darkText ? .black : .white
+    }
+
     // MARK: - Mellow Yellow Palette (25-step, warm earth tones with yellow accents)
     public static let mellowYellowPalette: [(color: Color, darkText: Bool)] = [
         (Color(hex: "4A6FA5"), false),  // 1 (2): Dark blue
@@ -148,6 +160,18 @@ public struct Theme {
         }
         let exp = exponent(for: value)
         let idx = (max(1, exp) - 1) % 25
+        return mellowYellowPalette[idx].darkText ? .black : .white
+    }
+
+    public static func mellowYellowColorForStep(_ step: Int) -> Color {
+        let exponent = step + 1
+        let idx = (max(1, exponent) - 1) % 25
+        return mellowYellowPalette[idx].color
+    }
+
+    public static func mellowYellowTextColorForStep(_ step: Int) -> Color {
+        let exponent = step + 1
+        let idx = (max(1, exponent) - 1) % 25
         return mellowYellowPalette[idx].darkText ? .black : .white
     }
 
@@ -202,6 +226,18 @@ public struct Theme {
         return relaxedRustPalette[idx].darkText ? .black : .white
     }
 
+    public static func relaxedRustColorForStep(_ step: Int) -> Color {
+        let exponent = step + 1
+        let idx = (max(1, exponent) - 1) % 25
+        return relaxedRustPalette[idx].color
+    }
+
+    public static func relaxedRustTextColorForStep(_ step: Int) -> Color {
+        let exponent = step + 1
+        let idx = (max(1, exponent) - 1) % 25
+        return relaxedRustPalette[idx].darkText ? .black : .white
+    }
+
     // MARK: - Cozy Coral Palette (25-step, warm pinks, peaches, and corals)
     public static let cozyCoralPalette: [(color: Color, darkText: Bool)] = [
         (Color(hex: "FFF1F0"), true),   // 1 (2): Blush White
@@ -252,7 +288,19 @@ public struct Theme {
         let idx = (max(1, exp) - 1) % 25
         return cozyCoralPalette[idx].darkText ? .black : .white
     }
-    
+
+    public static func cozyCoralColorForStep(_ step: Int) -> Color {
+        let exponent = step + 1
+        let idx = (max(1, exponent) - 1) % 25
+        return cozyCoralPalette[idx].color
+    }
+
+    public static func cozyCoralTextColorForStep(_ step: Int) -> Color {
+        let exponent = step + 1
+        let idx = (max(1, exponent) - 1) % 25
+        return cozyCoralPalette[idx].darkText ? .black : .white
+    }
+
     // Step overrides removed to maintain proper 25-color cycling
     // The palette should repeat consistently every 25 exponents
     private static let stepOverrides: [Int: (color: Color, darkText: Bool)] = [:]
