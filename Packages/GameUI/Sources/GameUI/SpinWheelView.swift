@@ -604,11 +604,9 @@ private struct MultiplierInventoryCard: View {
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(canActivate ? Color.blue : Color.gray.opacity(0.4))
-                    )
                     .foregroundColor(.white)
+                    .glassOrMaterialBackground(cornerRadius: 12)
+                    .opacity(canActivate ? 1.0 : 0.5)
                     .disabled(!canActivate)
                 }
             }
