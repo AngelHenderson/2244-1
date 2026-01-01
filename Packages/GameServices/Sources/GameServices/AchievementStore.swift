@@ -411,20 +411,38 @@ public final class AchievementStore {
     ]
     
     private static let mergeTiers: [ComboTierDefinition] = [
-        .init(milestone: 500, categoryLabel: "10. Good Combo", rewards: .init(gems: 25)),
-        .init(milestone: 1500, categoryLabel: "25. Great Combo", rewards: .init(gems: 50, hammers: 1)),
-        .init(milestone: 5000, categoryLabel: "50. Amazing Combo", rewards: .init(gems: 75, magnets: 1)),
-        .init(milestone: 15000, categoryLabel: "100. Glorious Combo", rewards: .init(gems: 75, hammers: 2)),
-        .init(milestone: 25000, categoryLabel: "200. Combo Master", rewards: .init(gems: 100, spins: 1, hammers: 1, swaps: 1)),
-        .init(milestone: 50000, categoryLabel: "300. Good Combo Master", rewards: .init(gems: 500)),
-        .init(milestone: 100000, categoryLabel: "400. Great Combo Master", rewards: .init(gems: 250, spins: 1, hammers: nil, magnets: 1)),
-        .init(milestone: 250000, categoryLabel: "500. Glorious Combo Master", rewards: .init(gems: 350, magnets: 2)),
-        .init(milestone: 500000, categoryLabel: "600. Unbelievable Combo", rewards: .init(gems: 350, spins: 1, hammers: nil, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1)),
-        .init(milestone: 1000000, categoryLabel: "750. 750 IQ Combo Master", rewards: .init(gems: 750, swaps: 2)),
-        .init(milestone: 1500000, categoryLabel: "1000. 1000 IQ Combo Master", rewards: .init(gems: 1075, spins: 1, boost3x: 1, boost4x: 1)),
-        .init(milestone: 2000000, categoryLabel: "1200. Ultimate Combo Master", rewards: .init(gems: 1250, magnets: 1, boost4x: 1))
+        .init(milestone: 250, categoryLabel: "250 tiles", rewards: .init(gems: 15)),
+        .init(milestone: 500, categoryLabel: "500 tiles", rewards: .init(gems: 25)),
+        .init(milestone: 1000, categoryLabel: "1000 tiles", rewards: .init(gems: 35, boost2x: 1)),
+        .init(milestone: 1500, categoryLabel: "1500 tiles", rewards: .init(gems: 50, hammers: 1)),
+        .init(milestone: 2500, categoryLabel: "2500 tiles", rewards: .init(gems: 60, swaps: 1)),
+        .init(milestone: 5000, categoryLabel: "5000 tiles", rewards: .init(gems: 75, magnets: 1)),
+        .init(milestone: 10000, categoryLabel: "10000 tiles", rewards: .init(gems: 75, hammers: 1, swaps: 1)),
+        .init(milestone: 15000, categoryLabel: "15000 tiles", rewards: .init(gems: 75, hammers: 2)),
+        .init(milestone: 25000, categoryLabel: "25000 tiles", rewards: .init(gems: 100, spins: 1, hammers: 1, swaps: 1)),
+        .init(milestone: 50000, categoryLabel: "50000 tiles", rewards: .init(gems: 500)),
+        .init(milestone: 75000, categoryLabel: "75000 tiles", rewards: .init(magnets: 1, swaps: 1, boost4x: 1)),
+        .init(milestone: 100000, categoryLabel: "100000 tiles", rewards: .init(gems: 250, spins: 1, magnets: 1)),
+        .init(milestone: 150000, categoryLabel: "150000 tiles", rewards: .init(gems: 300, magnets: 1, boost2x: 1)),
+        .init(milestone: 250000, categoryLabel: "250000 tiles", rewards: .init(gems: 350, magnets: 2)),
+        .init(milestone: 375000, categoryLabel: "375000 tiles", rewards: .init(spins: 1, magnets: 1, boost3x: 1)),
+        .init(milestone: 500000, categoryLabel: "500000 tiles", rewards: .init(gems: 350, spins: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 750000, categoryLabel: "750000 tiles", rewards: .init(gems: 550, hammers: 1, magnets: 1, boost2x: 1)),
+        .init(milestone: 1000000, categoryLabel: "1000000 tiles", rewards: .init(gems: 750, swaps: 2)),
+        .init(milestone: 1250000, categoryLabel: "1250000 tiles", rewards: .init(spins: 1, hammers: 1, boost4x: 1)),
+        .init(milestone: 1500000, categoryLabel: "1500000 tiles", rewards: .init(gems: 1075, spins: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 1750000, categoryLabel: "1750000 tiles", rewards: .init(gems: 1125, swaps: 1)),
+        .init(milestone: 2000000, categoryLabel: "2000000 tiles", rewards: .init(gems: 1250, magnets: 1, boost4x: 1)),
+        .init(milestone: 2250000, categoryLabel: "2250000 tiles", rewards: .init(gems: 1300, hammers: 1, boost2x: 1)),
+        .init(milestone: 2500000, categoryLabel: "2500000 tiles", rewards: .init(gems: 1600)),
+        .init(milestone: 3000000, categoryLabel: "3000000 tiles", rewards: .init(magnets: 1)),
+        .init(milestone: 3500000, categoryLabel: "3500000 tiles", rewards: .init(boost3x: 1)),
+        .init(milestone: 4000000, categoryLabel: "4000000 tiles", rewards: .init(gems: 2000)),
+        .init(milestone: 4500000, categoryLabel: "4500000 tiles", rewards: .init(gems: 1900, magnets: 1)),
+        .init(milestone: 5000000, categoryLabel: "5000000 tiles", rewards: .init(spins: 1, swaps: 1)),
+        .init(milestone: 6000000, categoryLabel: "6000000 tiles", rewards: .init(magnets: 2))
     ]
-    
+
     private static let swapUseTiers: [ComboTierDefinition] = [
         .init(milestone: 5, categoryLabel: "Use Swap 5 Times", rewards: .init(gems: 75, swaps: 1)),
         .init(milestone: 10, categoryLabel: "Use Swap 10 Times", rewards: .init(gems: 100, magnets: 1)),
@@ -511,7 +529,7 @@ public final class AchievementStore {
     ]
 
     private static let playtimeTiers: [ComboTierDefinition] = [
-        // Tiers 1-11 (existing)
+        // Tiers 1-14 (existing)
         .init(milestone: 5, categoryLabel: "5 min", rewards: .init(gems: 20)),
         .init(milestone: 10, categoryLabel: "10 min", rewards: .init(gems: 25, swaps: 1)),
         .init(milestone: 15, categoryLabel: "15 min", rewards: .init(gems: 30, hammers: 1)),
@@ -523,26 +541,29 @@ public final class AchievementStore {
         .init(milestone: 480, categoryLabel: "8 hr", rewards: .init(gems: 70, spins: 1, hammers: 1)),
         .init(milestone: 720, categoryLabel: "12 hr", rewards: .init(spins: 1, boost4x: 1)),
         .init(milestone: 1440, categoryLabel: "24 hr", rewards: .init(gems: 1000)),
-        // Tiers 12-31 (new)
         .init(milestone: 2880, categoryLabel: "48 hr", rewards: .init(gems: 2000)),
         .init(milestone: 4320, categoryLabel: "72 hr", rewards: .init(gems: 3000)),
         .init(milestone: 5760, categoryLabel: "96 hr", rewards: .init(magnets: 1)),
+        // Tiers 15-17 (kept)
         .init(milestone: 7200, categoryLabel: "120 hr", rewards: .init(gems: 5000)),
         .init(milestone: 8640, categoryLabel: "144 hr", rewards: .init(gems: 6000)),
         .init(milestone: 10080, categoryLabel: "168 hr", rewards: .init(gems: 7000)),
-        .init(milestone: 20160, categoryLabel: "336 hr", rewards: .init(gems: 14000)),
-        .init(milestone: 43200, categoryLabel: "720 hr", rewards: .init(spins: 1, boost4x: 1)),
-        .init(milestone: 86400, categoryLabel: "1440 hr", rewards: .init(gems: 30000)),
-        .init(milestone: 129600, categoryLabel: "2160 hr", rewards: .init(gems: 33000)),
-        .init(milestone: 172800, categoryLabel: "2880 hr", rewards: .init(gems: 36000)),
-        .init(milestone: 216000, categoryLabel: "3600 hr", rewards: .init(gems: 39000)),
-        .init(milestone: 259200, categoryLabel: "4320 hr", rewards: .init(boost4x: 1)),
-        .init(milestone: 302400, categoryLabel: "5040 hr", rewards: .init(hammers: 1)),
-        .init(milestone: 345600, categoryLabel: "5760 hr", rewards: .init(gems: 40000)),
-        .init(milestone: 388800, categoryLabel: "6480 hr", rewards: .init(gems: 40000, magnets: 1)),
-        .init(milestone: 432000, categoryLabel: "7200 hr", rewards: .init(gems: 44850, spins: 1, boost2x: 1)),
-        .init(milestone: 475200, categoryLabel: "7920 hr", rewards: .init(gems: 50000, swaps: 1)),
-        .init(milestone: 518400, categoryLabel: "8640 hr", rewards: .init(spins: 5))
+        // Tiers 18-23 (new day-based tiers)
+        .init(milestone: 11520, categoryLabel: "8 days", rewards: .init(gems: 8300)),
+        .init(milestone: 12960, categoryLabel: "9 days", rewards: .init(swaps: 1)),
+        .init(milestone: 14400, categoryLabel: "10 days", rewards: .init(gems: 5500, hammers: 1)),
+        .init(milestone: 15840, categoryLabel: "11 days", rewards: .init(magnets: 2, boost3x: 1)),
+        .init(milestone: 17280, categoryLabel: "12 days", rewards: .init(gems: 6000)),
+        .init(milestone: 18720, categoryLabel: "13 days", rewards: .init(magnets: 1, boost2x: 1)),
+        // Tier 24 (kept 14 day tier)
+        .init(milestone: 20160, categoryLabel: "14 days", rewards: .init(gems: 14000)),
+        // Tiers 25-30 (new day-based tiers)
+        .init(milestone: 21600, categoryLabel: "15 days", rewards: .init(spins: 1, swaps: 1, boost2x: 1)),
+        .init(milestone: 23040, categoryLabel: "16 days", rewards: .init(magnets: 1, boost3x: 1)),
+        .init(milestone: 24480, categoryLabel: "17 days", rewards: .init(gems: 9300, magnets: 1)),
+        .init(milestone: 25920, categoryLabel: "18 days", rewards: .init(swaps: 1, magnets: 1)),
+        .init(milestone: 27360, categoryLabel: "19 days", rewards: .init(gems: 8500, hammers: 1)),
+        .init(milestone: 30240, categoryLabel: "21 days", rewards: .init(magnets: 3, boost3x: 1))
     ]
     
     private static let infinityTiers: [ComboTierDefinition] = [
