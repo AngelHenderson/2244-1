@@ -85,32 +85,40 @@ public final class ChallengeStore: Sendable {
             return ChallengeReward(coins: baseCoins, experience: baseXP)
         }
 
-        // Step calculations:
-        // - 1M: step 19 (2^20 ≈ 1M)
-        // - 1B: step 29 (2^30 ≈ 1B)
-        // - 1a: step 39 (2^40 ≈ 1 trillion)
-        // - Each subsequent tier is +10 steps
+        // Calculate the exact step for a "1X" milestone at a given base-1000 tier (hi).
+        // For mantissa = 1 at tier hi: step = ceil(hi * log2(1000) - 1)
+        // log2(1000) ≈ 9.96578
+        // Tier mapping:
+        //   hi=2 → M, hi=3 → B
+        //   hi=4 → 'a', hi=5 → 'b', ..., hi=29 → 'z'
+        //   hi=30 → 'aa', hi=31 → 'ab', ..., hi=55 → 'az'
+        //   hi=56 → 'ba', hi=57 → 'bb', ..., hi=81 → 'bz'
+        let log2Of1000 = 9.96578428
 
-        // 1. 1M milestone (step 19)
+        func stepForTier(_ hi: Int) -> Int {
+            return Int(ceil(Double(hi) * log2Of1000 - 1))
+        }
+
+        // 1. 1M milestone (hi=2)
         allChallenges.append(Challenge(
             id: stableUUID(for: challengeIndex),
             name: "Million Milestone",
             description: "Reach the 1M tile",
             mode: .custom,
             difficulty: .easy,
-            targetTile: 19,
+            targetTile: stepForTier(2),
             reward: reward(for: challengeIndex)
         ))
         challengeIndex += 1
 
-        // 2. 1B milestone (step 29)
+        // 2. 1B milestone (hi=3)
         allChallenges.append(Challenge(
             id: stableUUID(for: challengeIndex),
             name: "Billion Milestone",
             description: "Reach the 1B tile",
             mode: .custom,
             difficulty: .easy,
-            targetTile: 29,
+            targetTile: stepForTier(3),
             reward: reward(for: challengeIndex)
         ))
         challengeIndex += 1
@@ -118,49 +126,52 @@ public final class ChallengeStore: Sendable {
         // Total milestones for difficulty calculation
         let totalMilestones = 2 + 26 + 26 + 26 + 1  // M, B, a-z, aa-az, ba-bz, Infinity
 
-        // 3. 1a through 1z (26 milestones, steps 39-289)
+        // 3. 1a through 1z (26 milestones)
+        // hi = 4 for 'a', hi = 29 for 'z'
         for letterIndex in 0..<26 {
             let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
-            let step = 39 + (letterIndex * 10)
+            let hi = 4 + letterIndex
             allChallenges.append(Challenge(
                 id: stableUUID(for: challengeIndex),
                 name: "Reach 1\(letter)",
                 description: "Reach the 1\(letter) tile",
                 mode: .custom,
                 difficulty: difficulty(for: challengeIndex, total: totalMilestones),
-                targetTile: step,
+                targetTile: stepForTier(hi),
                 reward: reward(for: challengeIndex)
             ))
             challengeIndex += 1
         }
 
-        // 4. 1aa through 1az (26 milestones, steps 299-549)
+        // 4. 1aa through 1az (26 milestones)
+        // hi = 30 for 'aa', hi = 55 for 'az'
         for letterIndex in 0..<26 {
             let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
-            let step = 299 + (letterIndex * 10)
+            let hi = 30 + letterIndex
             allChallenges.append(Challenge(
                 id: stableUUID(for: challengeIndex),
                 name: "Reach 1a\(letter)",
                 description: "Reach the 1a\(letter) tile",
                 mode: .custom,
                 difficulty: difficulty(for: challengeIndex, total: totalMilestones),
-                targetTile: step,
+                targetTile: stepForTier(hi),
                 reward: reward(for: challengeIndex)
             ))
             challengeIndex += 1
         }
 
-        // 5. 1ba through 1bz (26 milestones, steps 559-809)
+        // 5. 1ba through 1bz (26 milestones)
+        // hi = 56 for 'ba', hi = 81 for 'bz'
         for letterIndex in 0..<26 {
             let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
-            let step = 559 + (letterIndex * 10)
+            let hi = 56 + letterIndex
             allChallenges.append(Challenge(
                 id: stableUUID(for: challengeIndex),
                 name: "Reach 1b\(letter)",
                 description: "Reach the 1b\(letter) tile",
                 mode: .custom,
                 difficulty: difficulty(for: challengeIndex, total: totalMilestones),
-                targetTile: step,
+                targetTile: stepForTier(hi),
                 reward: reward(for: challengeIndex)
             ))
             challengeIndex += 1
