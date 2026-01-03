@@ -38,7 +38,11 @@ public struct HybridGameScreen: View {
     @State private var isShowingUnlockReward = false
     
     // Temporary HomeState for HUDTopBar (initialized with game values)
-    @State private var tempHomeState = HomeState()
+    @State private var tempHomeState: HomeState = {
+        let state = HomeState()
+        state.rank = 1  // Default rank until properly loaded
+        return state
+    }()
     
     // Power-up selection modes
     @State private var isHammerMode = false
