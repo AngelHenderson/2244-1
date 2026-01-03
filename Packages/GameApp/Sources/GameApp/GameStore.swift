@@ -205,6 +205,7 @@ public final class GameStore {
     public enum AchievementBoostTierID: String, CaseIterable, Sendable {
         case twoX = "achievement_boost_2x"
         case threeX = "achievement_boost_3x"
+        case fiveX = "achievement_boost_5x"
     }
 
     public struct AchievementBoostTier: Equatable, Sendable {
@@ -234,6 +235,13 @@ public final class GameStore {
             multiplier: 3,
             cost: 6_000,
             duration: 18 * 60  // 18 minutes
+        ),
+        .fiveX: AchievementBoostTier(
+            id: .fiveX,
+            label: "5× Achievement Progress",
+            multiplier: 5,
+            cost: 12_500,
+            duration: 15 * 60  // 15 minutes
         )
     ]
 
