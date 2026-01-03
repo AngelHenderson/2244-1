@@ -617,12 +617,12 @@ private struct RewardSummary: View {
                     .foregroundStyle(.secondary)
             }
         } else {
-            // Multiple rewards - show gift icon
+            // Multiple rewards - show mystery box icon
             HStack(spacing: 6) {
-                Image("gift")
+                Image("mysterybox")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 16, height: 16)
+                    .frame(width: 18, height: 18)
                 Text(items.map { $0.text }.joined(separator: ", "))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
