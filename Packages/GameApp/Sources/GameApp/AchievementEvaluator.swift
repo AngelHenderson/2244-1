@@ -128,6 +128,12 @@ public final class AchievementEvaluator {
         boost4xUsesTotal = defaults.integer(forKey: boost4xUsesKey)
         spinPurchasesTotal = defaults.integer(forKey: spinPurchasesKey)
         dailyClaimsTotal = defaults.integer(forKey: dailyClaimsKey)
+        // Sync dailyClaimsTotal with DailyClaimsStore's currentClaimDay if out of sync
+        let dailyClaimDay = defaults.integer(forKey: "dailyClaimDay")
+        if dailyClaimDay > dailyClaimsTotal {
+            dailyClaimsTotal = dailyClaimDay
+            defaults.set(dailyClaimsTotal, forKey: dailyClaimsKey)
+        }
         boost5xUsesTotal = defaults.integer(forKey: boost5xUsesKey)
         boost20xUsesTotal = defaults.integer(forKey: boost20xUsesKey)
         wheelCollectsTotal = defaults.integer(forKey: wheelCollectsKey)
