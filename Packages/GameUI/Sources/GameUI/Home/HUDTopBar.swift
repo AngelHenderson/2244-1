@@ -23,68 +23,79 @@ struct HUDTopBar: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
+            Spacer()
+
             // Compact boost status button (replaces stacked boost buttons)
             BoostStatusButton()
 
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
-            
+
+            // Rank button
             Button(action: { actions.openLeaderboard() }) {
-                HStack(spacing: 4) {
-                    Text("Rank:")
+                HStack(spacing: 3) {
+                    Text("#")
+                        .foregroundStyle(.white.opacity(0.7))
                     Text(verbatim: String(state.rank))
+                        .foregroundStyle(.white)
                         .monospacedDigit()
                 }
-                .font(.headline)
-                .padding(.horizontal, 12)
+                .font(.subheadline.bold())
+                .lineLimit(1)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 6)
             }
             .modifier(GlassButtonCompat())
+            .fixedSize(horizontal: true, vertical: false)
             .accessibilityLabel("Rank \(String(state.rank)). Open leaderboard.")
 
             // Score display (only shown if provided)
             if let scoreText = scoreText {
                 TimelineView(.periodic(from: .now, by: 1)) { context in
-                    VStack(spacing: 2) {
+                    VStack(spacing: 1) {
                         Text(playtimeText(at: context.date))
                             .font(.caption2.monospacedDigit())
                             .foregroundStyle(.yellow.opacity(0.9))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                         Text("Score")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundStyle(.white.opacity(0.75))
+                            .lineLimit(1)
                         Text(scoreText)
-                            .font(.headline.monospacedDigit())
+                            .font(.subheadline.bold().monospacedDigit())
                             .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
                     }
                 }
-                .padding(.horizontal, 12).padding(.vertical, 6)
+                .padding(.horizontal, 8).padding(.vertical, 4)
                 .modifier(GlassButtonCompat())
             }
 
-            Spacer()
-
             Button(action: { actions.openShop() }) {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Image("gem")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 28, height: 28)
+                        .frame(width: 24, height: 24)
                     Text(verbatim: String(state.gems))
-                        .font(.title3.monospacedDigit())
+                        .font(.subheadline.bold().monospacedDigit())
                         .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                     Image(systemName: "plus.circle.fill")
-                        .imageScale(.medium)
+                        .imageScale(.small)
                         .foregroundStyle(.green)
                         .accessibilityHidden(true)
                 }
-                .padding(.horizontal, 12).padding(.vertical, 6)
+                .padding(.horizontal, 10).padding(.vertical, 6)
                 .fixedSize(horizontal: true, vertical: false)
             }
             .modifier(GlassButtonCompat())
             .accessibilityLabel("Gems \(String(state.gems)). Open shop.")
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
         .padding(.top, 8)
     }
 
