@@ -22,7 +22,7 @@ public struct ChallengeModeView: View {
                             timelineSpine
                             
                             VStack(spacing: 24) {
-                                ForEach(Array(store.challenges.enumerated()), id: \.element.id) { index, challenge in
+                                ForEach(Array(store.challenges.enumerated().reversed()), id: \.element.id) { index, challenge in
                                     ChallengeCard(
                                         challenge: challenge,
                                         challengeNumber: index + 1,
