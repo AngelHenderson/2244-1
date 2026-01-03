@@ -324,6 +324,12 @@ extension ThemeRegistry {
             tileStyle: .flat,
             color: { value in
                 Theme.cozyCoralColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.cozyCoralColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.cozyCoralTextColorForStep(step)
             }
         )
 
@@ -334,6 +340,12 @@ extension ThemeRegistry {
             tileStyle: .flat,
             color: { value in
                 Theme.cozyCoralColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.cozyCoralColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.cozyCoralTextColorForStep(step)
             }
         )
 
@@ -344,6 +356,12 @@ extension ThemeRegistry {
             tileStyle: .raised3D,
             color: { value in
                 Theme.cozyCoralColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.cozyCoralColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.cozyCoralTextColorForStep(step)
             }
         )
 
@@ -354,6 +372,12 @@ extension ThemeRegistry {
             tileStyle: .raised3D,
             color: { value in
                 Theme.cozyCoralColor(for: value)
+            },
+            colorForStep: { step in
+                Theme.cozyCoralColorForStep(step)
+            },
+            textColorForStep: { step in
+                Theme.cozyCoralTextColorForStep(step)
             }
         )
 
