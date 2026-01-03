@@ -444,17 +444,38 @@ public final class AchievementStore {
     ]
 
     private static let swapUseTiers: [ComboTierDefinition] = [
+        // Tiers 1-11 (existing)
         .init(milestone: 5, categoryLabel: "Use Swap 5 Times", rewards: .init(gems: 75, swaps: 1)),
         .init(milestone: 10, categoryLabel: "Use Swap 10 Times", rewards: .init(gems: 100, magnets: 1)),
         .init(milestone: 20, categoryLabel: "Use Swap 20 Times", rewards: .init(hammers: 1, boost4x: 1)),
-        .init(milestone: 30, categoryLabel: "Use Swap 30 Times", rewards: .init(spins: 1, hammers: nil, magnets: 1, swaps: 1)),
+        .init(milestone: 30, categoryLabel: "Use Swap 30 Times", rewards: .init(spins: 1, magnets: 1, swaps: 1)),
         .init(milestone: 50, categoryLabel: "Use Swap 50 Times", rewards: .init(gems: 500, hammers: 1)),
         .init(milestone: 75, categoryLabel: "Use Swap 75 Times", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 100, categoryLabel: "Use Swap 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
         .init(milestone: 150, categoryLabel: "Use Swap 150 Times", rewards: .init(gems: 500, boost4x: 1)),
         .init(milestone: 200, categoryLabel: "Use Swap 200 Times", rewards: .init(gems: 500, hammers: 1, magnets: 1, swaps: 1, boost3x: 1)),
         .init(milestone: 250, categoryLabel: "Use Swap 250 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
-        .init(milestone: 300, categoryLabel: "Use Swap 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
+        .init(milestone: 300, categoryLabel: "Use Swap 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1)),
+        // Tiers 12-30 (extended)
+        .init(milestone: 350, categoryLabel: "Use Swap 350 Times", rewards: .init(gems: 725, magnets: 3)),
+        .init(milestone: 400, categoryLabel: "Use Swap 400 Times", rewards: .init(spins: 5)),
+        .init(milestone: 450, categoryLabel: "Use Swap 450 Times", rewards: .init(magnets: 1, boost2x: 1)),
+        .init(milestone: 500, categoryLabel: "Use Swap 500 Times", rewards: .init(magnets: 1, boost3x: 1)),
+        .init(milestone: 600, categoryLabel: "Use Swap 600 Times", rewards: .init(gems: 880)),
+        .init(milestone: 700, categoryLabel: "Use Swap 700 Times", rewards: .init(gems: 700, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 850, categoryLabel: "Use Swap 850 Times", rewards: .init(hammers: 2, swaps: 1)),
+        .init(milestone: 1000, categoryLabel: "Use Swap 1000 Times", rewards: .init(magnets: 1, swaps: 2)),
+        .init(milestone: 1250, categoryLabel: "Use Swap 1250 Times", rewards: .init(magnets: 3)),
+        .init(milestone: 1500, categoryLabel: "Use Swap 1500 Times", rewards: .init(gems: 400, spins: 3, magnets: 3, boost3x: 1)),
+        .init(milestone: 2000, categoryLabel: "Use Swap 2000 Times", rewards: .init(boost3x: 1)),
+        .init(milestone: 2500, categoryLabel: "Use Swap 2500 Times", rewards: .init(gems: 600, boost3x: 1)),
+        .init(milestone: 3000, categoryLabel: "Use Swap 3000 Times", rewards: .init(gems: 550, spins: 2, hammers: 2, magnets: 2, swaps: 2)),
+        .init(milestone: 5000, categoryLabel: "Use Swap 5000 Times", rewards: .init(spins: 4)),
+        .init(milestone: 7500, categoryLabel: "Use Swap 7500 Times", rewards: .init(gems: 680, spins: 2, boost2x: 1)),
+        .init(milestone: 10000, categoryLabel: "Use Swap 10000 Times", rewards: .init(gems: 800, swaps: 1)),
+        .init(milestone: 15000, categoryLabel: "Use Swap 15000 Times", rewards: .init(gems: 950, magnets: 1, swaps: 1, boost2x: 1)),
+        .init(milestone: 25000, categoryLabel: "Use Swap 25000 Times", rewards: .init(gems: 1000, boost3x: 1)),
+        .init(milestone: 50000, categoryLabel: "Use Swap 50000 Times", rewards: .init(gems: 1050))
     ]
     
     private static let hammerUseTiers: [ComboTierDefinition] = [
