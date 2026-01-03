@@ -82,7 +82,7 @@ public struct ChallengeDesignerView: View {
             
             StepperBox(
                 title: "Min Tile",
-                value: "\(1 << store.minTileLevel)",
+                value: "\(store.minTileLevel)",
                 onDecrease: { store.decMinTile() },
                 onIncrease: { store.incMinTile() }
             )
