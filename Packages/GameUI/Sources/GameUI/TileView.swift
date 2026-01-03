@@ -161,7 +161,8 @@ struct TileView: View {
         if tile.isLocked { return Color.gray.opacity(0.6) }
         if tile.isBomb { return Color.orange.opacity(0.8) }
         if case .highValue(let step) = tile.type {
-            // For high-value (beyond Int.max), repeat the palette by step
+            // For high-value (beyond Int.max), use theme's step-based color
+            if let theme { return theme.colorForStep(step) }
             return Theme.colorForStep(step)
         }
         if let override = MilestoneAppearance.colorOverride(for: tile.value) { return override }
@@ -177,7 +178,8 @@ struct TileView: View {
     private var textColor: Color {
         guard let tile = tile else { return .clear }
         if case .highValue(let step) = tile.type {
-            // Match text contrast for step-based color
+            // Match text contrast for step-based color using theme
+            if let theme { return theme.textColorForStep(step) }
             return Theme.textColorForStep(step)
         }
         // Check for milestone text color override first
