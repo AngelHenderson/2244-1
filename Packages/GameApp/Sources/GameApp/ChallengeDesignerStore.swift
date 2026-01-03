@@ -74,7 +74,7 @@ public final class ChallengeDesignerStore: Sendable {
         CustomChallengeConfig(
             target: .score(targetValue),
             timeLimitSeconds: timeLimitSeconds,
-            minTileLevel: minTileLevel,
+            minTileLevel: actualMinTilePower,
             levels: levels,
             tileAssignments: tileAssignments,
             predictedRewardGems: predictedReward
@@ -101,20 +101,27 @@ public final class ChallengeDesignerStore: Sendable {
         timeLimitSeconds = min(1500, timeLimitSeconds + 10)
     }
     
-    public func decMinTile() { 
-        minTileLevel = max(6, minTileLevel - 1) 
+    public func decMinTile() {
+        // Display: 5-10, maps to tile values: 1024 (2^10) to 32K (2^15)
+        minTileLevel = max(5, minTileLevel - 1)
+    }
+
+    public func incMinTile() {
+        minTileLevel = min(10, minTileLevel + 1)
+    }
+
+    /// The actual power of 2 for the min tile (minTileLevel + 5)
+    /// Display 5 → 2^10 = 1024, Display 10 → 2^15 = 32K
+    public var actualMinTilePower: Int {
+        minTileLevel + 5
     }
     
-    public func incMinTile() { 
-        minTileLevel = min(16, minTileLevel + 1) 
+    public func decLevels() {
+        levels = max(5, levels - 1)
     }
-    
-    public func decLevels() { 
-        levels = max(1, levels - 1) 
-    }
-    
-    public func incLevels() { 
-        levels = min(10, levels + 1) 
+
+    public func incLevels() {
+        levels = min(10, levels + 1)
     }
     
     public func cycleBucket(for tile: Int) {
@@ -137,8 +144,9 @@ public final class ChallengeDesignerStore: Sendable {
     }
     
     public var candidateTiles: [Int] {
-        let start = max(6, minTileLevel)
-        let end = 16
+        // Candidate tiles from actualMinTilePower up to 32K (2^15)
+        let start = actualMinTilePower
+        let end = 15
         return (start...end).map { 1 << $0 }
     }
     
@@ -147,7 +155,7 @@ public final class ChallengeDesignerStore: Sendable {
         DifficultyEstimator.estimateReward(
             target: .score(1_000_000),
             timeLimit: timeLimitSeconds,
-            minTileLevel: minTileLevel,
+            minTileLevel: actualMinTilePower,
             levels: levels,
             assignments: tileAssignments
         )
