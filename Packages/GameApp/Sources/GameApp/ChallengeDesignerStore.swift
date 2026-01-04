@@ -82,7 +82,8 @@ public final class ChallengeDesignerStore: Sendable {
     }
 
     public var isPlayable: Bool {
-        !tileAssignments.isEmpty && timeLimitSeconds > 0
+        // Tiles are auto-generated from Min Tile and Levels, so just check time
+        timeLimitSeconds > 0
     }
 
     public func nextTarget() {
@@ -110,10 +111,15 @@ public final class ChallengeDesignerStore: Sendable {
         minTileLevel = min(10, minTileLevel + 1)
     }
 
-    /// The actual power of 2 for the min tile (minTileLevel + 5)
-    /// Display 5 → 2^10 = 1024, Display 10 → 2^15 = 32K
+    /// The max tile power (20 - minTileLevel)
+    /// Min Tile 10 → max 2^10 = 1024, Min Tile 5 → max 2^15 = 32K
+    public var maxTilePower: Int {
+        20 - minTileLevel
+    }
+
+    /// The starting tile power based on max tile and levels
     public var actualMinTilePower: Int {
-        minTileLevel + 5
+        maxTilePower - levels + 1
     }
     
     public func decLevels() {
@@ -144,9 +150,9 @@ public final class ChallengeDesignerStore: Sendable {
     }
     
     public var candidateTiles: [Int] {
-        // Candidate tiles from actualMinTilePower up to 32K (2^15)
+        // Number of tiles = levels, ending at maxTilePower
         let start = actualMinTilePower
-        let end = 15
+        let end = maxTilePower
         return (start...end).map { 1 << $0 }
     }
     
