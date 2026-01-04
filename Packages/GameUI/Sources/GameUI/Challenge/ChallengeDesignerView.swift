@@ -18,7 +18,7 @@ public struct ChallengeDesignerView: View {
                 VStack(spacing: 24) {
                     targetSection
                     steppersSection
-                    bucketsSection
+                    tilesSection
                 }
                 .padding()
             }
@@ -96,22 +96,21 @@ public struct ChallengeDesignerView: View {
         }
     }
     
-    private var bucketsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                ForEach(TileBucket.allCases, id: \.self) { bucket in
-                    Text(bucketTitle(for: bucket))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
+    private var tilesSection: some View {
+        VStack(spacing: 12) {
+            Text("TILES")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            // Display auto-generated tiles based on Min Tile and Levels
+            HStack(spacing: 8) {
+                ForEach(store.candidateTiles, id: \.self) { tile in
+                    TileChip(value: tile)
                 }
             }
-            
-            HStack(alignment: .top, spacing: 12) {
-                ForEach(TileBucket.allCases, id: \.self) { bucket in
-                    BucketColumn(bucket: bucket, store: store)
-                }
-            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
         }
     }
     
@@ -148,71 +147,6 @@ public struct ChallengeDesignerView: View {
         .background(.ultraThinMaterial)
     }
     
-    private func bucketTitle(for bucket: TileBucket) -> String {
-        switch bucket {
-        case .low: return "Low Tiles"
-        case .mid: return "Mid Tiles"
-        case .high: return "High Tiles"
-        }
-    }
-}
-
-private struct BucketColumn: View {
-    let bucket: TileBucket
-    let store: ChallengeDesignerStore
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            let tiles = store.tileAssignments
-                .filter { $0.value == bucket }
-                .map(\.key)
-                .sorted()
-            
-            ScrollView {
-                if tiles.isEmpty {
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                        .fill(Color.secondary.opacity(0.3))
-                        .frame(height: 96)
-                        .overlay(
-                            Text("Tap + to add")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        )
-                } else {
-                    VStack(spacing: 8) {
-                        ForEach(tiles, id: \.self) { tile in
-                            TileChip(value: tile) {
-                                store.cycleBucket(for: tile)
-                            }
-                        }
-                    }
-                }
-            }
-            .frame(maxHeight: 200)
-            
-            Menu {
-                ForEach(availableTiles, id: \.self) { value in
-                    Button("\(value)") {
-                        store.addTile(value, to: bucket)
-                    }
-                }
-            } label: {
-                Label("Add", systemImage: "plus.circle.fill")
-                    .labelStyle(.iconOnly)
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-            }
-            .disabled(availableTiles.isEmpty)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .top)
-        .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
-    }
-    
-    private var availableTiles: [Int] {
-        store.candidateTiles.filter { store.tileAssignments[$0] == nil }
-    }
 }
 
 private struct StepperBox: View {
@@ -258,17 +192,13 @@ private struct StepperBox: View {
 
 private struct TileChip: View {
     let value: Int
-    let onTap: () -> Void
-    
+
     var body: some View {
-        Button(action: onTap) {
-            Text("\(value)")
-                .font(.system(.callout, design: .rounded).weight(.semibold))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color.accentColor.opacity(0.18)))
-        }
-        .buttonStyle(.plain)
+        Text("\(value)")
+            .font(.system(.callout, design: .rounded).weight(.semibold))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.accentColor.opacity(0.18)))
     }
 }
 
