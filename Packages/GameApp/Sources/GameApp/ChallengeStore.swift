@@ -49,117 +49,146 @@ public final class ChallengeStore: Sendable {
     }
     
     private func loadChallenges() {
-        // Create challenges with stable UUIDs for consistent ordering
-
-        challenges = [
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000001")!, //Thread 1: Fatal error: Unexpectedly found nil while unwrapping an Optional value
-                name: "First Steps",
-                description: "Reach tile 1a (27) within 5 minutes",
-                mode: .custom,
-                difficulty: .easy,
-                targetTile: 27,
-                timeLimit: 300,
-                reward: ChallengeReward(coins: 50, experience: 100)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000002")!,
-                name: "Speed Run",
-                description: "Reach tile 1b (28) within 4 minutes",
-                mode: .custom,
-                difficulty: .easy,
-                targetTile: 28,
-                timeLimit: 240,
-                reward: ChallengeReward(coins: 75, experience: 150)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000003")!,
-                name: "Quick Thinking",
-                description: "Reach tile 1c (29) within 3 minutes",
-                mode: .custom,
-                difficulty: .medium,
-                targetTile: 29,
-                timeLimit: 180,
-                reward: ChallengeReward(coins: 100, experience: 200)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000004")!,
-                name: "Move Master",
-                description: "Reach tile 1d (30) in 100 moves or less",
-                mode: .custom,
-                difficulty: .medium,
-                targetTile: 30,
-                moveLimit: 100,
-                reward: ChallengeReward(coins: 125, experience: 250)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000005")!,
-                name: "No Tools",
-                description: "Reach tile 1e (31) without Hammer or Magnet power-ups",
-                mode: .custom,
-                difficulty: .hard,
-                targetTile: 31,
-                timeLimit: 180,
-                bannedPowerUps: [.hammer, .magnet],
-                reward: ChallengeReward(coins: 150, experience: 300)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000006")!,
-                name: "Lightning Fast",
-                description: "Reach tile 1f (32) in 2.5 minutes",
-                mode: .custom,
-                difficulty: .hard,
-                targetTile: 32,
-                timeLimit: 150,
-                reward: ChallengeReward(coins: 175, experience: 350)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000007")!,
-                name: "Precision",
-                description: "Reach tile 1g (33) in 75 moves or less",
-                mode: .custom,
-                difficulty: .hard,
-                targetTile: 33,
-                moveLimit: 75,
-                reward: ChallengeReward(coins: 200, experience: 400)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000008")!,
-                name: "Extreme Speed",
-                description: "Reach tile 1h (34) in just 2 minutes",
-                mode: .custom,
-                difficulty: .expert,
-                targetTile: 34,
-                timeLimit: 120,
-                reward: ChallengeReward(coins: 250, experience: 500)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-000000000009")!,
-                name: "Ultimate Test",
-                description: "Reach tile 1i (35) in 2 minutes with 60 moves max",
-                mode: .custom,
-                difficulty: .expert,
-                targetTile: 35,
-                timeLimit: 120,
-                moveLimit: 60,
-                reward: ChallengeReward(coins: 300, experience: 600)
-            ),
-            Challenge(
-                id: UUID(uuidString: "22449999-0001-4000-8000-00000000000A")!,
-                name: "Master Challenge",
-                description: "Reach tile 1j (36) in 90 seconds",
-                mode: .custom,
-                difficulty: .expert,
-                targetTile: 36,
-                timeLimit: 90,
-                reward: ChallengeReward(coins: 400, experience: 800)
-            )
-        ]
+        // Generate all milestone challenges programmatically
+        // Milestones: 1M, 1B, 1a-1z, 1aa-1az, 1ba-1bz, Infinity
+        challenges = generateAllMilestoneChallenges()
 
         // Set up the order of challenges
         challengeOrder = challenges.map { $0.id }
 
         loadProgress()
+    }
+
+    private func generateAllMilestoneChallenges() -> [Challenge] {
+        var allChallenges: [Challenge] = []
+        var challengeIndex = 0
+
+        // Helper to create stable UUID from index
+        func stableUUID(for index: Int) -> UUID {
+            let hex = String(format: "%012X", index)
+            return UUID(uuidString: "22449999-0001-4000-8000-\(hex)")!
+        }
+
+        // Helper to get difficulty based on milestone position
+        func difficulty(for index: Int, total: Int) -> ChallengeDifficulty {
+            let progress = Double(index) / Double(total)
+            if progress < 0.25 { return .easy }
+            if progress < 0.50 { return .medium }
+            if progress < 0.75 { return .hard }
+            return .expert
+        }
+
+        // Helper to calculate reward based on milestone index
+        func reward(for index: Int) -> ChallengeReward {
+            let baseCoins = 50 + (index * 25)
+            let baseXP = 100 + (index * 50)
+            return ChallengeReward(coins: baseCoins, experience: baseXP)
+        }
+
+        // Calculate the exact step for a "1X" milestone at a given base-1000 tier (hi).
+        // For mantissa = 1 at tier hi: step = ceil(hi * log2(1000) - 1)
+        // log2(1000) ≈ 9.96578
+        // Tier mapping:
+        //   hi=2 → M, hi=3 → B
+        //   hi=4 → 'a', hi=5 → 'b', ..., hi=29 → 'z'
+        //   hi=30 → 'aa', hi=31 → 'ab', ..., hi=55 → 'az'
+        //   hi=56 → 'ba', hi=57 → 'bb', ..., hi=81 → 'bz'
+        let log2Of1000 = 9.96578428
+
+        func stepForTier(_ hi: Int) -> Int {
+            return Int(ceil(Double(hi) * log2Of1000 - 1))
+        }
+
+        // 1. 1M milestone (hi=2)
+        allChallenges.append(Challenge(
+            id: stableUUID(for: challengeIndex),
+            name: "Million Milestone",
+            description: "Reach the 1M tile",
+            mode: .custom,
+            difficulty: .easy,
+            targetTile: stepForTier(2),
+            reward: reward(for: challengeIndex)
+        ))
+        challengeIndex += 1
+
+        // 2. 1B milestone (hi=3)
+        allChallenges.append(Challenge(
+            id: stableUUID(for: challengeIndex),
+            name: "Billion Milestone",
+            description: "Reach the 1B tile",
+            mode: .custom,
+            difficulty: .easy,
+            targetTile: stepForTier(3),
+            reward: reward(for: challengeIndex)
+        ))
+        challengeIndex += 1
+
+        // Total milestones for difficulty calculation
+        let totalMilestones = 2 + 26 + 26 + 26 + 1  // M, B, a-z, aa-az, ba-bz, Infinity
+
+        // 3. 1a through 1z (26 milestones)
+        // hi = 4 for 'a', hi = 29 for 'z'
+        for letterIndex in 0..<26 {
+            let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
+            let hi = 4 + letterIndex
+            allChallenges.append(Challenge(
+                id: stableUUID(for: challengeIndex),
+                name: "Reach 1\(letter)",
+                description: "Reach the 1\(letter) tile",
+                mode: .custom,
+                difficulty: difficulty(for: challengeIndex, total: totalMilestones),
+                targetTile: stepForTier(hi),
+                reward: reward(for: challengeIndex)
+            ))
+            challengeIndex += 1
+        }
+
+        // 4. 1aa through 1az (26 milestones)
+        // hi = 30 for 'aa', hi = 55 for 'az'
+        for letterIndex in 0..<26 {
+            let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
+            let hi = 30 + letterIndex
+            allChallenges.append(Challenge(
+                id: stableUUID(for: challengeIndex),
+                name: "Reach 1a\(letter)",
+                description: "Reach the 1a\(letter) tile",
+                mode: .custom,
+                difficulty: difficulty(for: challengeIndex, total: totalMilestones),
+                targetTile: stepForTier(hi),
+                reward: reward(for: challengeIndex)
+            ))
+            challengeIndex += 1
+        }
+
+        // 5. 1ba through 1bz (26 milestones)
+        // hi = 56 for 'ba', hi = 81 for 'bz'
+        for letterIndex in 0..<26 {
+            let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
+            let hi = 56 + letterIndex
+            allChallenges.append(Challenge(
+                id: stableUUID(for: challengeIndex),
+                name: "Reach 1b\(letter)",
+                description: "Reach the 1b\(letter) tile",
+                mode: .custom,
+                difficulty: difficulty(for: challengeIndex, total: totalMilestones),
+                targetTile: stepForTier(hi),
+                reward: reward(for: challengeIndex)
+            ))
+            challengeIndex += 1
+        }
+
+        // 6. Infinity milestone (special case)
+        allChallenges.append(Challenge(
+            id: stableUUID(for: challengeIndex),
+            name: "Infinity",
+            description: "Reach the ultimate milestone",
+            mode: .custom,
+            difficulty: .expert,
+            targetTile: Int.max,
+            reward: ChallengeReward(coins: 10000, experience: 50000)
+        ))
+
+        return allChallenges
     }
     
     private func loadProgress() {

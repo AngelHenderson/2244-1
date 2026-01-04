@@ -17,6 +17,13 @@ public final class SpinWheelState {
             case .fourX: return 4
             }
         }
+        public var duration: TimeInterval {
+            switch self {
+            case .twoX: return 24 * 60 * 60   // 24 hours
+            case .threeX: return 18 * 60 * 60 // 18 hours
+            case .fourX: return 12 * 60 * 60  // 12 hours
+            }
+        }
     }
     
     public enum SpinSource: Sendable {
@@ -46,7 +53,6 @@ public final class SpinWheelState {
     
     private static let slotInterval: TimeInterval = 4 * 60 * 60 // 4 hours
     private static let slotsPerDay = 6
-    private static let multiplierDuration: TimeInterval = 24 * 60 * 60
     
     private let defaults: UserDefaults
     
@@ -160,7 +166,7 @@ public final class SpinWheelState {
         if inventory[tier, default: 0] <= 0 {
             inventory[tier] = nil
         }
-        let expires = date.addingTimeInterval(Self.multiplierDuration)
+        let expires = date.addingTimeInterval(tier.duration)
         activeMultiplier = ActiveMultiplier(tier: tier, expiresAt: expires)
         saveInventory()
         saveActiveMultiplier()

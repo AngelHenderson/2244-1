@@ -18,7 +18,10 @@ public final class GameStore {
     public private(set) var currentPath: [Position] = []
     public private(set) var pathValidation: ChainValidation = .valid
     public var achievementEvaluator: AchievementEvaluator?
-    
+
+    // Track if game over has been processed for this session (reset on new game)
+    private var gameOverProcessed: Bool = false
+
     // Progress store for comprehensive auto-save
     private let progressStore: UserDefaultsProgressStore
     // Track if we're building a chain that may end on a gift
@@ -191,16 +194,75 @@ public final class GameStore {
             duration: 15 * 60
         )
     ]
-    
+
     public private(set) var activePowerDiscountTierID: PowerDiscountTierID?
     public private(set) var powerDiscountExpiresAt: Date?
     public private(set) var powerDiscountRemaining: TimeInterval = 0
     public private(set) var queuedPowerDiscountTierID: PowerDiscountTierID?
-    
+
+    // MARK: - Achievement Boost System
+
+    public enum AchievementBoostTierID: String, CaseIterable, Sendable {
+        case twoX = "achievement_boost_2x"
+        case threeX = "achievement_boost_3x"
+        case fiveX = "achievement_boost_5x"
+    }
+
+    public struct AchievementBoostTier: Equatable, Sendable {
+        public let id: AchievementBoostTierID
+        public let label: String
+        public let multiplier: Int
+        public let cost: Int
+        public let duration: TimeInterval
+    }
+
+    private enum AchievementBoostDefaultsKey {
+        static let activeTierID = "achievementBoost.activeTierID"
+        static let activeExpiration = "achievementBoost.expiresAt"
+    }
+
+    private static let achievementBoostCatalog: [AchievementBoostTierID: AchievementBoostTier] = [
+        .twoX: AchievementBoostTier(
+            id: .twoX,
+            label: "2× Achievement Progress",
+            multiplier: 2,
+            cost: 2_500,
+            duration: 20 * 60  // 20 minutes
+        ),
+        .threeX: AchievementBoostTier(
+            id: .threeX,
+            label: "3× Achievement Progress",
+            multiplier: 3,
+            cost: 6_000,
+            duration: 18 * 60  // 18 minutes
+        ),
+        .fiveX: AchievementBoostTier(
+            id: .fiveX,
+            label: "5× Achievement Progress",
+            multiplier: 5,
+            cost: 12_500,
+            duration: 15 * 60  // 15 minutes
+        )
+    ]
+
+    private static let achievementBoostFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.minute, .second]
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = [.pad]
+        return formatter
+    }()
+
+    public private(set) var activeAchievementBoostTierID: AchievementBoostTierID?
+    public private(set) var achievementBoostExpiresAt: Date?
+    public private(set) var achievementBoostRemaining: TimeInterval = 0
+
     @ObservationIgnored
     private var scoreBoostTickerTask: Task<Void, Never>? = nil
     @ObservationIgnored
     private var powerDiscountTickerTask: Task<Void, Never>? = nil
+    @ObservationIgnored
+    private var achievementBoostTickerTask: Task<Void, Never>? = nil
     
     public func addPowerUp(_ type: String, count: Int) {
         powerUpInventory[type, default: 0] += count
@@ -321,7 +383,60 @@ public final class GameStore {
         guard let tierID = activePowerDiscountTierID else { return nil }
         return Self.powerDiscountCatalog[tierID]
     }
-    
+
+    // MARK: - Achievement Boost Public API
+
+    public var isAchievementBoostActive: Bool {
+        guard let expiration = achievementBoostExpiresAt else { return false }
+        return expiration > Date()
+    }
+
+    public func achievementBoostTier(_ id: AchievementBoostTierID) -> AchievementBoostTier {
+        Self.achievementBoostCatalog[id]!
+    }
+
+    public func achievementBoostLabel(for id: AchievementBoostTierID) -> String {
+        achievementBoostTier(id).label
+    }
+
+    public func achievementBoostCost(for id: AchievementBoostTierID) -> Int {
+        achievementBoostTier(id).cost
+    }
+
+    public func canPurchaseAchievementBoost(_ id: AchievementBoostTierID) -> Bool {
+        state.gems >= achievementBoostCost(for: id)
+    }
+
+    public func isAchievementBoostActive(for id: AchievementBoostTierID) -> Bool {
+        activeAchievementBoostTierID == id && isAchievementBoostActive
+    }
+
+    public var achievementBoostMultiplier: Int {
+        guard isAchievementBoostActive, let tierID = activeAchievementBoostTierID else { return 1 }
+        return achievementBoostTier(tierID).multiplier
+    }
+
+    public func achievementBoostCountdownText(for id: AchievementBoostTierID) -> String {
+        if isAchievementBoostActive(for: id) {
+            let seconds = max(0, achievementBoostRemaining)
+            return Self.achievementBoostFormatter.string(from: seconds) ?? "00:00"
+        }
+        if canPurchaseAchievementBoost(id) {
+            return "Ready"
+        }
+        let shortfall = max(0, achievementBoostCost(for: id) - state.gems)
+        return "Need \(shortfall)"
+    }
+
+    @discardableResult
+    public func purchaseAchievementBoost(_ tierID: AchievementBoostTierID, now date: Date = Date()) -> Bool {
+        let tier = achievementBoostTier(tierID)
+        guard spendCoins(tier.cost) else { return false }
+        activateAchievementBoost(tierID: tierID, now: date)
+        saveProgressToStore()
+        return true
+    }
+
     private func persistScoreBoostState() {
         let defaults = UserDefaults.standard
         if let tierID = activeScoreBoostTierID, let expiresAt = scoreBoostExpiresAt {
@@ -417,9 +532,16 @@ public final class GameStore {
             )
             self.engine = restoredEngine
             self.state = restoredEngine.currentState()
+            let restoredStep = sessionState.highestTileStep ?? persistedHighestTileStep()
+            #if DEBUG
+            print("🔄 Restoring highestTileStep:")
+            print("   From sessionState: \(String(describing: sessionState.highestTileStep))")
+            print("   From UserDefaults: \(String(describing: persistedHighestTileStep()))")
+            print("   Final restored step: \(String(describing: restoredStep))")
+            #endif
             refreshDerivedState(
                 scoreAlpha: sessionState.scoreAlpha ?? persistedScoreAlpha() ?? AlphaNumber(sessionState.score),
-                highestStep: sessionState.highestTileStep ?? persistedHighestTileStep()
+                highestStep: restoredStep
             )
             // Use the most recent gem value - prefer UserDefaults as it's updated immediately
             let userDefaultsGems = UserDefaults.standard.integer(forKey: "coins")
@@ -485,10 +607,14 @@ public final class GameStore {
             }
         }
         
+        // CRITICAL: Verify and fix highestTileStep if it seems corrupted
+        verifyAndFixHighestTileStep()
+
         // Initialize comprehensive session tracking
         initializeSessionTracking()
         restoreScoreBoostState(from: loadedProgress)
         restorePowerDiscountState(from: loadedProgress)
+        restoreAchievementBoostState()
         persistTierMasteryCountsToDefaults()
 
         // Note: restoreProgress() is now handled properly during GameProgress loading
@@ -513,6 +639,7 @@ public final class GameStore {
             self?.cancelMergeCleanupTask()
             self?.scoreBoostTickerTask?.cancel()
             self?.powerDiscountTickerTask?.cancel()
+            self?.achievementBoostTickerTask?.cancel()
         }
     }
     
@@ -727,9 +854,13 @@ public final class GameStore {
         }
         
         affectedColumns = columnsWithEmpties(in: newState.board)
-        
+
         // Update state but DO NOT schedule refill reveal yet, as refill hasn't happened
+        // IMPORTANT: Preserve gems from UserDefaults - the engine doesn't track spending correctly
+        let savedGems = UserDefaults.standard.integer(forKey: "coins")
+        let gemsToPreserve = savedGems > 0 ? savedGems : state.gems
         state = newState
+        state.gems = gemsToPreserve  // Restore gems after state update
         // We manually handle refill reveal later in performRefill
         
         // Break glass tiles for any positions in row 0 that were part of this connection
@@ -778,7 +909,7 @@ public final class GameStore {
         // or another instance of the previous highest.
         if addedValue > 0 {
             if let resultPosition = lastPos {
-                incrementTierMasteryCount(for: state.board[resultPosition], value: addedValue)
+                incrementTierMasteryCount(for: state.board[resultPosition], value: addedValue, chainLength: positions.count)
             }
             let offerIfOneBelow = (previousHighest >= 4) && (addedValue == previousHighest / 2)
             let offerIfAnotherHighest = (addedValue == previousHighest)
@@ -801,13 +932,25 @@ public final class GameStore {
         
         // Evaluate achievements
         achievementEvaluator?.onChainCommitted(chain: positions, state: state, resultingTileValue: addedValue)
-        
+
+        // Check if game just ended and notify achievement evaluator
+        checkAndProcessGameOver()
+
         // Auto-save progress for score changes and achievements
         saveProgressImmediately(newTile: addedValue)
 
         return (requiresGravityDrop, affectedColumns)
     }
-    
+
+    /// Check if game just ended and notify achievement evaluator (only once per game)
+    private func checkAndProcessGameOver() {
+        guard state.isGameOver, !gameOverProcessed else { return }
+        gameOverProcessed = true
+        // Game ended - notify achievement evaluator to save playtime and other stats
+        achievementEvaluator?.onGameEnd(state: state, won: state.highestTile >= 2244)
+        print("🎮 Game over processed - playtime saved")
+    }
+
     private static let mergeAnimationDelay: UInt64 = 400_000_000
     private static let gravityAnimationDelay: UInt64 = 350_000_000
     private static let refillRevealDelay: UInt64 = 350_000_000
@@ -820,7 +963,11 @@ public final class GameStore {
         previousBoard: Board,
         refillProtectedPositions: Set<Position> = []
     ) {
+        // ALWAYS preserve gems from UserDefaults - this is the source of truth for spending
+        let savedGems = UserDefaults.standard.integer(forKey: "coins")
+        let gemsToUse = savedGems > 0 ? savedGems : state.gems
         state = newState
+        state.gems = gemsToUse
         scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: refillProtectedPositions)
     }
     
@@ -906,11 +1053,12 @@ public final class GameStore {
         movesHistory = []
         powerUpHistory = []
         persistPendingGiftBoxes()
-        
+        gameOverProcessed = false  // Reset for new game session
+
         // Notify achievement evaluator
         achievementEvaluator?.onGameStart(state: state)
     }
-    
+
     // Start a new game with a custom seed (user-designed challenge)
     public func startCustomGame(seed: UInt64) {
         engine = GameEngine(config: GameConfig(seed: seed))
@@ -934,8 +1082,10 @@ public final class GameStore {
         movesHistory = []
         powerUpHistory = []
         persistPendingGiftBoxes()
+        gameOverProcessed = false  // Reset for new game session
     }
-    
+
+
     // MARK: - Economy
     public func addCoins(_ amount: Int) {
         state.gems = max(0, state.gems + amount)
@@ -1248,7 +1398,101 @@ public final class GameStore {
         powerDiscountTickerTask?.cancel()
         powerDiscountTickerTask = nil
     }
-    
+
+    // MARK: - Achievement Boost Lifecycle
+
+    private func activateAchievementBoost(tierID: AchievementBoostTierID, now date: Date = Date(), persist: Bool = true) {
+        let tier = achievementBoostTier(tierID)
+        // If same tier is already active, extend the duration
+        if activeAchievementBoostTierID == tierID, let existingExpiration = achievementBoostExpiresAt, existingExpiration > date {
+            let newExpiration = existingExpiration.addingTimeInterval(tier.duration)
+            achievementBoostExpiresAt = newExpiration
+            achievementBoostRemaining = max(0, newExpiration.timeIntervalSince(date))
+        } else {
+            // New activation or different tier - start fresh
+            activeAchievementBoostTierID = tierID
+            let expiration = date.addingTimeInterval(tier.duration)
+            achievementBoostExpiresAt = expiration
+            achievementBoostRemaining = max(0, expiration.timeIntervalSince(date))
+        }
+        if persist {
+            persistAchievementBoostState()
+        }
+        startAchievementBoostTicker()
+        print("🏆 Achievement Boost activated! \(tier.multiplier)× progress for \(Int(tier.duration / 60)) minutes")
+    }
+
+    private func finishAchievementBoost() {
+        activeAchievementBoostTierID = nil
+        achievementBoostExpiresAt = nil
+        achievementBoostRemaining = 0
+        persistAchievementBoostState()
+        cancelAchievementBoostTicker()
+        print("🏆 Achievement Boost expired")
+    }
+
+    private func refreshAchievementBoostCountdown(now date: Date = Date()) {
+        guard let expiration = achievementBoostExpiresAt else {
+            return
+        }
+        let remaining = expiration.timeIntervalSince(date)
+        if remaining <= 0 {
+            finishAchievementBoost()
+        } else {
+            achievementBoostRemaining = remaining
+        }
+    }
+
+    private func persistAchievementBoostState() {
+        let defaults = UserDefaults.standard
+        if let tierID = activeAchievementBoostTierID, let expiresAt = achievementBoostExpiresAt {
+            defaults.set(tierID.rawValue, forKey: AchievementBoostDefaultsKey.activeTierID)
+            defaults.set(expiresAt, forKey: AchievementBoostDefaultsKey.activeExpiration)
+        } else {
+            defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeTierID)
+            defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeExpiration)
+        }
+    }
+
+    private func restoreAchievementBoostState() {
+        let defaults = UserDefaults.standard
+        guard let tierIDRaw = defaults.string(forKey: AchievementBoostDefaultsKey.activeTierID),
+              let tierID = AchievementBoostTierID(rawValue: tierIDRaw),
+              let expiration = defaults.object(forKey: AchievementBoostDefaultsKey.activeExpiration) as? Date else {
+            return
+        }
+        let now = Date()
+        if expiration > now {
+            activeAchievementBoostTierID = tierID
+            achievementBoostExpiresAt = expiration
+            achievementBoostRemaining = expiration.timeIntervalSince(now)
+            startAchievementBoostTicker()
+        } else {
+            defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeTierID)
+            defaults.removeObject(forKey: AchievementBoostDefaultsKey.activeExpiration)
+        }
+    }
+
+    private func startAchievementBoostTicker() {
+        achievementBoostTickerTask?.cancel()
+        guard achievementBoostExpiresAt != nil else { return }
+        achievementBoostTickerTask = Task { @MainActor [weak self] in
+            while let self, self.achievementBoostExpiresAt != nil {
+                do {
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                } catch {
+                    break
+                }
+                self.refreshAchievementBoostCountdown()
+            }
+        }
+    }
+
+    private func cancelAchievementBoostTicker() {
+        achievementBoostTickerTask?.cancel()
+        achievementBoostTickerTask = nil
+    }
+
     // MARK: - Unlock Rewards
     private func baseUnlockReward(for tileValue: Int) -> Int {
         // Milestone rewards start at 512 (2^9) with +2 gems per subsequent milestone.
@@ -1380,8 +1624,11 @@ public final class GameStore {
         // Persist if this is a new highest tile
         if doubledValue > state.highestTile {
             UserDefaults.standard.set(doubledValue, forKey: "highestTile")
+            // Save formatted milestone for leaderboard display
+            let formattedMilestone = TileStepLabelFormatter.formatTileValue(doubledValue)
+            UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
         }
-        
+
         // Save progress for doubled tile (could be massive achievement)
         saveProgressImmediately(newTile: doubledValue)
         
@@ -1817,7 +2064,7 @@ public final class GameStore {
         
         // Track power-up usage
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
-        achievementEvaluator?.onPowerUpUsed(type: "magnet")
+        achievementEvaluator?.onMagnetUsed(mergeCount: matchingPositions.count)
         runMagnetPipeline(
             value: value,
             position: position,
@@ -2024,14 +2271,15 @@ extension GameStore {
         }
     }
     
-    private func incrementTierMasteryCount(for tile: Tile?, value: Int) {
+    private func incrementTierMasteryCount(for tile: Tile?, value: Int, chainLength: Int = 1) {
         guard let suffix = tierSuffix(for: tile, value: value) else { return }
-        tierMasteryCounts[suffix, default: 0] += 1
+        tierMasteryCounts[suffix, default: 0] += chainLength
         persistTierMasteryCountsToDefaults()
     }
     
     private func tierSuffix(for tile: Tile?, value: Int) -> String? {
         guard value > 0 else { return nil }
+        if let tile, tile.isInfinity { return "∞" }
         let step: Int?
         if let tile, let tileStep = tile.stepIndex {
             step = tileStep
@@ -2039,7 +2287,13 @@ extension GameStore {
             step = TileStepLabelFormatter.stepForValue(value)
         }
         guard let step else { return nil }
-        let label = TileStepLabelFormatter.labelForStep(step)
+        
+        // Clamp to supported journey tiers (bz max). Anything beyond bz is recorded as bz.
+        let maxStep = JourneyAbbreviationTiers.maxSupportedStep
+        let clampedStep = min(step, maxStep)
+        let label = (clampedStep == maxStep && step > maxStep)
+            ? "1bz"
+            : TileStepLabelFormatter.labelForStep(clampedStep)
         let suffix = label.trimmingCharacters(in: .decimalDigits)
         return suffix.isEmpty ? nil : suffix
     }
@@ -2067,11 +2321,18 @@ extension GameStore {
         } else if state.scoreValue.isZero && state.score > 0 {
             state.scoreValue = AlphaNumber(state.score)
         }
-        
+
+        // CRITICAL FIX: Always use the persisted highestTileStep as the source of truth
+        // This fixes the bug where tiles with step >= 62 lose their .highValue(step:) type
+        // during save/restore, causing them to be recalculated as step 62 (from Int.max)
+        let persistedStep = persistedHighestTileStep() ?? 0
+
         if let highestStep {
-            state.highestTileStep = highestStep
+            // Use the maximum of provided step and persisted step
+            state.highestTileStep = max(highestStep, persistedStep)
         } else {
-            var maxStep = state.highestTileStep
+            // Calculate from board tiles, but always consider persisted value as floor
+            var maxStep = max(state.highestTileStep, persistedStep)
             for row in 0..<state.board.height {
                 for col in 0..<state.board.width {
                     let pos = Position(row: row, col: col)
@@ -2083,8 +2344,69 @@ extension GameStore {
             }
             state.highestTileStep = maxStep
         }
+
+        print("📐 refreshDerivedState: highestTileStep = \(state.highestTileStep) (persisted was: \(persistedStep))")
     }
-    
+
+    /// Verifies that highestTileStep matches the actual tiles on the board.
+    /// This fixes corruption where high-step tiles lost their .highValue(step:) type.
+    private func verifyAndFixHighestTileStep() {
+        // Scan board for the highest tile, checking BOTH stepIndex and the tile's actual type
+        var maxStepFromBoard = 0
+        var highestValueOnBoard: Int = 0
+        var foundHighValueTile = false
+
+        for row in 0..<state.board.height {
+            for col in 0..<state.board.width {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos] {
+                    // Check if tile has explicit .highValue step (most reliable)
+                    if case .highValue(let step) = tile.type {
+                        maxStepFromBoard = max(maxStepFromBoard, step)
+                        foundHighValueTile = true
+                        print("   Found .highValue tile at \(pos) with step \(step)")
+                    } else if let step = tile.stepIndex {
+                        maxStepFromBoard = max(maxStepFromBoard, step)
+                    }
+                    highestValueOnBoard = max(highestValueOnBoard, tile.value)
+                }
+            }
+        }
+
+        let persistedStep = persistedHighestTileStep() ?? 0
+
+        print("🔍 verifyAndFixHighestTileStep:")
+        print("   Max step from board tiles: \(maxStepFromBoard)")
+        print("   Found explicit .highValue tile: \(foundHighValueTile)")
+        print("   Highest value on board: \(highestValueOnBoard)")
+        print("   Persisted highestTileStep: \(persistedStep)")
+        print("   Current state.highestTileStep: \(state.highestTileStep)")
+
+        // Use the maximum of all sources
+        let correctedStep = max(state.highestTileStep, max(maxStepFromBoard, persistedStep))
+
+        if correctedStep > state.highestTileStep {
+            print("   ⚠️ FIXING: Updating highestTileStep from \(state.highestTileStep) to \(correctedStep)")
+            state.highestTileStep = correctedStep
+            // Also update the persisted value
+            UserDefaults.standard.set(correctedStep, forKey: ScoreDefaultsKey.currentHighestStep)
+        } else {
+            print("   ✅ highestTileStep looks correct")
+        }
+    }
+
+    /// Force-update the highest tile step to a specific value.
+    /// Use this to fix corrupted achievement progress.
+    /// Step calculation: step = log2(tileValue) - 1
+    /// Examples: 36c (3.6e19) ≈ step 64, 100c (1e20) ≈ step 66
+    public func forceUpdateHighestTileStep(toStep step: Int) {
+        print("🔧 FORCE UPDATE: Setting highestTileStep to \(step)")
+        state.highestTileStep = step
+        UserDefaults.standard.set(step, forKey: ScoreDefaultsKey.currentHighestStep)
+        saveProgressImmediately(newTile: nil)
+        print("   ✅ Done. Achievement should now show: \(String(format: "%.2e", pow(2.0, Double(step + 1))))")
+    }
+
     public func save(to slotId: String, using storage: any StorageServiceProtocol, theme: String) async {
         let current = state
         let bestExisting = await storage.bestScore()
@@ -2347,6 +2669,9 @@ extension GameStore {
             print("🏆 New all-time highest tile: \(currentHighest)")
         }
         UserDefaults.standard.set(state.highestTileStep, forKey: ScoreDefaultsKey.currentHighestStep)
+        #if DEBUG
+        print("💾 Saved highestTileStep: \(state.highestTileStep)")
+        #endif
         
         // Log EVERY tile creation (not just records)
         if let tile = newTile, tile > 0 {
@@ -2746,6 +3071,7 @@ extension GameStore {
         )
         restoreScoreBoostState(from: nil)
         restorePowerDiscountState(from: nil)
+        restoreAchievementBoostState()
     }
     
     private func persistPendingGiftBoxes() {
@@ -3013,6 +3339,23 @@ extension GameStore {
     public func saveProgress() {
         saveProgressImmediately(newTile: nil)
         print("💾 Manual progress save completed")
+    }
+
+    /// Force sync gems from GameStore to Progress store
+    /// Use when gems are out of sync (e.g., Progress has stale higher value)
+    public func forceGemSync() {
+        let gameStoreGems = state.gems
+        let progressGems = progressStore.loadSync()?.gems ?? 0
+
+        print("💎 Force gem sync: GameStore=\(gameStoreGems), Progress=\(progressGems)")
+
+        // Ensure UserDefaults coins matches state.gems
+        UserDefaults.standard.set(gameStoreGems, forKey: "coins")
+
+        // Save full progress snapshot (uses state.gems)
+        saveProgressToStore()
+
+        print("💎 Gem sync complete: All stores now have \(gameStoreGems) gems")
     }
     
     /// Get current progress summary

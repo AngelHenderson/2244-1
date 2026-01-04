@@ -12,60 +12,90 @@ struct HUDTopBar: View {
     @Environment(\.gameStore) private var gameStore
     var scoreText: String? = nil  // Optional score for game context
 
+    private func playtimeText(at date: Date) -> String {
+        let savedSeconds = UserDefaults.standard.integer(forKey: "playtime.totalSeconds")
+        let sessionStart = gameStore.achievementEvaluator?.sessionStartTime ?? date
+        let currentSessionSeconds = Int(date.timeIntervalSince(sessionStart))
+        let totalSeconds = savedSeconds + currentSessionSeconds
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "⏱️ %d:%02d", minutes, seconds)
+    }
+
     var body: some View {
-        HStack(spacing: 8) {
-//            scoreBoostButtons
+        HStack(spacing: 6) {
+            Spacer()
+
+            // Compact boost status button (replaces stacked boost buttons)
+            BoostStatusButton()
+
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
-            
+
+            // Rank button
             Button(action: { actions.openLeaderboard() }) {
-                HStack(spacing: 4) {
-                    Text("Rank:")
+                HStack(spacing: 3) {
+                    Text("#")
+                        .foregroundStyle(.white.opacity(0.7))
                     Text(verbatim: String(state.rank))
+                        .foregroundStyle(.white)
                         .monospacedDigit()
                 }
-                .font(.headline)
-                .padding(.horizontal, 12)
+                .font(.subheadline.bold())
+                .lineLimit(1)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 6)
             }
             .modifier(GlassButtonCompat())
+            .fixedSize(horizontal: true, vertical: false)
             .accessibilityLabel("Rank \(String(state.rank)). Open leaderboard.")
 
             // Score display (only shown if provided)
             if let scoreText = scoreText {
-                VStack(spacing: 2) {
-                    Text("Score")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-                    Text(scoreText)
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    VStack(spacing: 1) {
+                        Text(playtimeText(at: context.date))
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.yellow.opacity(0.9))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                        Text("Score")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.75))
+                            .lineLimit(1)
+                        Text(scoreText)
+                            .font(.subheadline.bold().monospacedDigit())
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
                 }
-                .padding(.horizontal, 12).padding(.vertical, 6)
+                .padding(.horizontal, 8).padding(.vertical, 4)
                 .modifier(GlassButtonCompat())
             }
 
-            Spacer()
-
             Button(action: { actions.openShop() }) {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Image("gem")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 28, height: 28)
+                        .frame(width: 24, height: 24)
                     Text(verbatim: String(state.gems))
-                        .font(.title3.monospacedDigit())
+                        .font(.subheadline.bold().monospacedDigit())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                     Image(systemName: "plus.circle.fill")
-                        .imageScale(.medium)
+                        .imageScale(.small)
                         .foregroundStyle(.green)
                         .accessibilityHidden(true)
                 }
-                .padding(.horizontal, 12).padding(.vertical, 6)
+                .padding(.horizontal, 10).padding(.vertical, 6)
+                .fixedSize(horizontal: true, vertical: false)
             }
             .modifier(GlassButtonCompat())
             .accessibilityLabel("Gems \(String(state.gems)). Open shop.")
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
         .padding(.top, 8)
     }
 
@@ -79,85 +109,6 @@ struct HUDTopBar: View {
         #else
         EmptyView()
         #endif
-    }
-
-    private var scoreBoostButtons: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            scoreBoostButton(for: .fiveX)
-            scoreBoostButton(for: .twentyX)
-            powerDiscountButton(for: .quarterOff)
-            powerDiscountButton(for: .halfOff)
-        }
-    }
-    
-    private func scoreBoostButton(for tierID: GameStore.ScoreBoostTierID) -> some View {
-        let label = gameStore.scoreBoostLabel(for: tierID)
-        let cost = gameStore.scoreBoostCost(for: tierID)
-        let countdown = gameStore.scoreBoostCountdownText(for: tierID)
-        let isActive = gameStore.isScoreBoostActive(for: tierID)
-        let isQueued = gameStore.isScoreBoostQueued(for: tierID)
-        let statusColor: Color = {
-            if isActive { return .green }
-            if isQueued { return .yellow }
-            return .white.opacity(0.8)
-        }()
-        
-        return Button(action: { _ = gameStore.purchaseScoreBoost(tierID) }) {
-            HStack(alignment: .center, spacing: 10) {
-                Image(systemName: "bolt.fill")
-                    .font(.headline)
-                    .foregroundStyle(isActive ? .yellow : .white)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(label) • \(cost.formatted(.number.grouping(.automatic))) Gems")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.white)
-                    Text(countdown)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(statusColor)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-        }
-        .modifier(GlassButtonCompat())
-        .opacity(gameStore.canPurchaseScoreBoost(tierID) ? 1.0 : 0.7)
-        .disabled(!gameStore.canPurchaseScoreBoost(tierID))
-        .accessibilityLabel("\(label) boost. \(countdown)")
-    }
-
-    private func powerDiscountButton(for tierID: GameStore.PowerDiscountTierID) -> some View {
-        let label = gameStore.powerDiscountLabel(for: tierID)
-        let cost = gameStore.powerDiscountCost(for: tierID)
-        let countdown = gameStore.powerDiscountCountdownText(for: tierID)
-        let isActive = gameStore.isPowerDiscountActive(for: tierID)
-        let isQueued = gameStore.isPowerDiscountQueued(for: tierID)
-        let statusColor: Color = {
-            if isActive { return .green }
-            if isQueued { return .yellow }
-            return .white.opacity(0.8)
-        }()
-        
-        return Button(action: { _ = gameStore.purchasePowerDiscount(tierID) }) {
-            HStack(alignment: .center, spacing: 10) {
-                Image(systemName: "wand.and.stars")
-                    .font(.headline)
-                    .foregroundStyle(isActive ? .yellow : .white)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(label) • \(cost.formatted(.number.grouping(.automatic))) Gems")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.white)
-                    Text(countdown)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(statusColor)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-        }
-        .modifier(GlassButtonCompat())
-        .opacity(gameStore.canPurchasePowerDiscount(tierID) ? 1.0 : 0.7)
-        .disabled(!gameStore.canPurchasePowerDiscount(tierID))
-        .accessibilityLabel("\(label) discount. \(countdown)")
     }
 
 #if canImport(GameKit)

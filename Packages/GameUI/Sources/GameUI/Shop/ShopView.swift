@@ -133,19 +133,11 @@ public struct ShopView: View {
                     .foregroundStyle(.secondary)
                 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
-                    ForEach(Array(journeyStore.milestones().enumerated()), id: \.offset) { index, milestone in
+                    let window = journeyWindow()
+                    ForEach(Array(window.enumerated()), id: \.offset) { _, item in
                         JourneyTileView(
-                            milestone: milestone,
-                            isUnlocked: isJourneyTileUnlocked(index: index)
-                        )
-                    }
-                    
-                    // Add "to infinity" tiles beyond current milestones
-                    ForEach(0..<10, id: \.self) { extraIndex in
-                        let extraValue = calculateExtraMilestone(index: journeyStore.milestones().count + extraIndex)
-                        JourneyTileView(
-                            milestone: extraValue,
-                            isUnlocked: false
+                            label: JourneyTileGenerator.formatTileAtStep(item.step),
+                            isUnlocked: item.step <= item.currentStep
                         )
                     }
                 }
@@ -193,23 +185,14 @@ public struct ShopView: View {
     
     // MARK: - Helper Methods
     
-    private func getMilestone(for index: Int) -> Int? {
-        let milestones = journeyStore.milestones()
-        guard index < milestones.count else { return nil }
-        return milestones[index]
-    }
-    
-    private func isJourneyTileUnlocked(index: Int) -> Bool {
-        guard let milestone = getMilestone(for: index) else { return false }
-        return journeyStore.highestTile >= milestone
-    }
-    
-    private func calculateExtraMilestone(index: Int) -> Int {
-        // Continue doubling from the last milestone
-        let milestones = journeyStore.milestones()
-        guard let lastMilestone = milestones.last else { return 1 << (index + 10) }
-        let extraSteps = index - milestones.count + 1
-        return lastMilestone << extraSteps
+    private func journeyWindow() -> [(step: Int, currentStep: Int)] {
+        let highest = max(2, journeyStore.highestTile)
+        // Derive the step index (step 0 == 2). Fallback to log2 for safety.
+        let currentStep = Tile.makeFromValue(highest)?.stepIndex
+            ?? max(0, Int(log2(Double(highest))) - 1)
+        let start = max(0, currentStep - 20)
+        let end = currentStep + 20
+        return Array(start...end).map { (step: $0, currentStep: currentStep) }
     }
 }
 
@@ -488,12 +471,12 @@ struct JourneyProgressCard: View {
 }
 
 struct JourneyTileView: View {
-    let milestone: Int
+    let label: String
     let isUnlocked: Bool
     
     var body: some View {
         VStack(spacing: 4) {
-            Text(AlphaMag.formatTileValue(milestone))
+            Text(label)
                 .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundStyle(isUnlocked ? .primary : .tertiary)
                 .minimumScaleFactor(0.7)

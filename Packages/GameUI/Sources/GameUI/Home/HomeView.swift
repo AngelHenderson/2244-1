@@ -7,6 +7,7 @@ public struct HomeView: View {
     @Environment(HomeState.self) private var state
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
+    @Environment(\.toastManager) private var toastManager
     @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
     @State private var isShowingAchievements: Bool = false
@@ -46,15 +47,15 @@ public struct HomeView: View {
             // Background layer: Tile scroller. We pass measured header/footer insets so
             // the current tile appears visually centered upon first appear.
             TileScrollerView(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
-                .zIndex(1)
             
             // Foreground layer: Main UI
             VStack(spacing: 0) {
                 // Top HUD
                 HUDTopBar()
                     .padding(.top, 8)
-                    // Remove glass background to avoid extra container behind buttons
-                    .background(Color.clear)
+                    // Add background material to prevent scrolling content overlap visibility
+                    .background(.ultraThinMaterial)
+                    .ignoresSafeArea(edges: .top)
                     .overlay(alignment: .top) {
                         // Measure header height so scroller can center correctly
                         GeometryReader { geo in
@@ -233,18 +234,19 @@ public struct HomeView: View {
                     }
                 )
             }
+            .zIndex(1)
             .zIndex(2)
         }
-        // Leaderboard sheet
-        .sheet(isPresented: $isShowingLeaderboard) {
+        // Leaderboard (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingLeaderboard) {
             LeaderboardView()
         }
-        // Achievements sheet
-        .sheet(isPresented: $isShowingAchievements) {
+        // Achievements (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingAchievements) {
             AchievementsView()
         }
-        // Music Themes sheet
-        .sheet(isPresented: $isShowingMusic) {
+        // Music Themes (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingMusic) {
             MusicThemesView(
                 onTry: { instrument in
                     // Placeholder: ad presentation to be implemented by host later
@@ -255,18 +257,20 @@ public struct HomeView: View {
                 }
             )
         }
-        // Shop sheet
-        .sheet(isPresented: $isShowingShop) {
+        // Shop (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingShop) {
             ShopView()
         }
-        // Profile sheet
-        .sheet(isPresented: $isShowingProfile) {
+        // Profile (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingProfile) {
             PlayerProfileView()
         }
-        // Settings sheet
-        .sheet(isPresented: $isShowingSettings) {
+        // Settings (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingSettings) {
             SettingsView()
         }
+        // Floating toast notification overlay
+        .toastOverlay(manager: toastManager)
     }
 
     private func dockItem(system: String, title: String, badge: Bool = false, action: @escaping () -> Void) -> some View {
@@ -402,6 +406,7 @@ public extension View {
     let gameCenter = DefaultGameCenterService()
     let storage = UserDefaultsStorageService()
     let themeRegistry = ThemeRegistry.Default
+    let toastManager = ToastManager()
 
     // Seed some demo state for a nicer preview
     homeState.gems = 305
@@ -443,6 +448,7 @@ public extension View {
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
+        .environment(\.toastManager, toastManager)
 }
 
 #Preview("Home - Best Offer") {
@@ -455,6 +461,7 @@ public extension View {
     let gameCenter = DefaultGameCenterService()
     let storage = UserDefaultsStorageService()
     let themeRegistry = ThemeRegistry.Default
+    let toastManager = ToastManager()
 
     // Seed demo state with an active best offer
     homeState.gems = 520
@@ -495,4 +502,5 @@ public extension View {
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
+        .environment(\.toastManager, toastManager)
 }

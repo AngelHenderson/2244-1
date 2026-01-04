@@ -9,6 +9,10 @@ struct UnlockedNotificationView: View {
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
 
+    private var tileLabel: String {
+        TileLabelFormatter.format(value)
+    }
+
     private var journeyReward: (previous: String?, current: String, next: String?) {
         // Get journey tier labels for the progression
         if let tile = Tile.makeFromValue(value) {
@@ -20,14 +24,22 @@ struct UnlockedNotificationView: View {
                 return (prevTier?.label, currentTier.label, nextTier?.label)
             }
         }
-        // Default progression
-        return (nil, CompactNumberFormatter.format(value), nil)
+        // Default progression - use proper tile label format
+        return (nil, tileLabel, nil)
     }
 
-    private var coinReward: Int {
-        // Calculate base coin reward based on tile value
-        let baseReward = min(value / 100, 999)
-        return baseReward * selectedMultiplier
+    private var gemReward: Int {
+        // Get gem reward from the reward curve based on tier
+        if let tile = Tile.makeFromValue(value),
+           let tierInfo = JourneyAbbreviationTiers.tier(for: tile) {
+            // Base gems scale with tier order
+            let base = 75 + tierInfo.order * 25
+            let normalized = Double(tierInfo.order) / Double(max(1, JourneyAbbreviationTiers.tiers.count))
+            let scale = 1.0 + normalized * 2.0
+            return Int(Double(base) * scale) * selectedMultiplier
+        }
+        // Fallback for non-tier milestones
+        return 50 * selectedMultiplier
     }
 
     var body: some View {
@@ -45,7 +57,7 @@ struct UnlockedNotificationView: View {
                 }
 
                 // Current unlocked tier (highlighted)
-                JourneyTileCard(label: journeyReward.current, isPrimary: true, size: 100)
+                JourneyTileCard(label: journeyReward.current, value: value, isPrimary: true, size: 100)
                     .overlay(alignment: .top) {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(.yellow)
@@ -67,15 +79,16 @@ struct UnlockedNotificationView: View {
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 8) {
-                    Image(systemName: "bitcoinsign.circle.fill")
-                        .foregroundStyle(.green)
-                        .font(.title2)
-                    Text("+\(coinReward)")
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
+                    Text("+\(gemReward)")
                         .font(.title2.weight(.semibold))
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
-                .background(Color.green.opacity(0.15))
+                .background(Color.cyan.opacity(0.15))
                 .cornerRadius(12)
             }
 
@@ -86,7 +99,7 @@ struct UnlockedNotificationView: View {
 
                 Button(action: {
                     // Claim with multiplier (watch ad if > 1)
-                    gameStore.claimJourneyReward(coins: coinReward)
+                    gameStore.claimJourneyReward(coins: gemReward)
                     onClose()
                 }) {
                     HStack {
@@ -101,7 +114,7 @@ struct UnlockedNotificationView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(selectedMultiplier > 1 ? Color.green : Color.blue)
+                    .background(selectedMultiplier > 1 ? Color.cyan : Color.blue)
                     .cornerRadius(12)
                 }
             } else {
@@ -125,6 +138,10 @@ struct AddedNotificationView: View {
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
 
+    private var tileLabel: String {
+        TileLabelFormatter.format(value)
+    }
+
     private var journeyReward: (previous: String?, current: String, next: String?) {
         if let tile = Tile.makeFromValue(value) {
             if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
@@ -134,12 +151,19 @@ struct AddedNotificationView: View {
                 return (prevTier?.label, currentTier.label, nextTier?.label)
             }
         }
-        return (nil, CompactNumberFormatter.format(value), nil)
+        return (nil, tileLabel, nil)
     }
 
-    private var coinReward: Int {
-        let baseReward = min(value / 200, 500)
-        return baseReward * selectedMultiplier
+    private var gemReward: Int {
+        // Spawn pool updates get smaller rewards than unlocks
+        if let tile = Tile.makeFromValue(value),
+           let tierInfo = JourneyAbbreviationTiers.tier(for: tile) {
+            let base = 40 + tierInfo.order * 15
+            let normalized = Double(tierInfo.order) / Double(max(1, JourneyAbbreviationTiers.tiers.count))
+            let scale = 1.0 + normalized * 1.5
+            return Int(Double(base) * scale) * selectedMultiplier
+        }
+        return 25 * selectedMultiplier
     }
 
     var body: some View {
@@ -153,7 +177,7 @@ struct AddedNotificationView: View {
                     JourneyTileCard(label: prev, isPrimary: false, size: 80)
                 }
 
-                JourneyTileCard(label: journeyReward.current, isPrimary: true, size: 100, accentColor: .green)
+                JourneyTileCard(label: journeyReward.current, value: value, isPrimary: true, size: 100)
                     .overlay(alignment: .top) {
                         Image(systemName: "plus.circle.fill")
                             .foregroundStyle(.green)
@@ -173,15 +197,16 @@ struct AddedNotificationView: View {
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 8) {
-                    Image(systemName: "bitcoinsign.circle.fill")
-                        .foregroundStyle(.green)
-                        .font(.title2)
-                    Text("+\(coinReward)")
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
+                    Text("+\(gemReward)")
                         .font(.title2.weight(.semibold))
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
-                .background(Color.green.opacity(0.15))
+                .background(Color.cyan.opacity(0.15))
                 .cornerRadius(12)
             }
 
@@ -190,7 +215,7 @@ struct AddedNotificationView: View {
                     .padding(.vertical, 8)
 
                 Button(action: {
-                    gameStore.claimJourneyReward(coins: coinReward)
+                    gameStore.claimJourneyReward(coins: gemReward)
                     onClose()
                 }) {
                     HStack {
@@ -205,7 +230,7 @@ struct AddedNotificationView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(selectedMultiplier > 1 ? Color.green : Color.blue)
+                    .background(selectedMultiplier > 1 ? Color.cyan : Color.blue)
                     .cornerRadius(12)
                 }
             } else {
@@ -229,6 +254,10 @@ struct ExcludedNotificationView: View {
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
 
+    private var tileLabel: String {
+        TileLabelFormatter.format(value)
+    }
+
     private var journeyReward: (previous: String?, current: String, next: String?) {
         if let tile = Tile.makeFromValue(value) {
             if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
@@ -238,12 +267,19 @@ struct ExcludedNotificationView: View {
                 return (prevTier?.label, currentTier.label, nextTier?.label)
             }
         }
-        return (nil, CompactNumberFormatter.format(value), nil)
+        return (nil, tileLabel, nil)
     }
 
-    private var coinReward: Int {
-        let baseReward = min(value / 300, 300)
-        return baseReward * selectedMultiplier
+    private var gemReward: Int {
+        // Eliminations get smallest rewards
+        if let tile = Tile.makeFromValue(value),
+           let tierInfo = JourneyAbbreviationTiers.tier(for: tile) {
+            let base = 25 + tierInfo.order * 10
+            let normalized = Double(tierInfo.order) / Double(max(1, JourneyAbbreviationTiers.tiers.count))
+            let scale = 1.0 + normalized * 1.0
+            return Int(Double(base) * scale) * selectedMultiplier
+        }
+        return 15 * selectedMultiplier
     }
 
     var body: some View {
@@ -257,7 +293,7 @@ struct ExcludedNotificationView: View {
                     JourneyTileCard(label: prev, isPrimary: false, size: 80)
                 }
 
-                JourneyTileCard(label: journeyReward.current, isPrimary: true, size: 100, accentColor: .red)
+                JourneyTileCard(label: journeyReward.current, value: value, isPrimary: true, size: 100)
                     .overlay(alignment: .topTrailing) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.red)
@@ -277,15 +313,16 @@ struct ExcludedNotificationView: View {
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 8) {
-                    Image(systemName: "bitcoinsign.circle.fill")
-                        .foregroundStyle(.green)
-                        .font(.title2)
-                    Text("+\(coinReward)")
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
+                    Text("+\(gemReward)")
                         .font(.title2.weight(.semibold))
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
-                .background(Color.green.opacity(0.15))
+                .background(Color.cyan.opacity(0.15))
                 .cornerRadius(12)
             }
 
@@ -294,7 +331,7 @@ struct ExcludedNotificationView: View {
                     .padding(.vertical, 8)
 
                 Button(action: {
-                    gameStore.claimJourneyReward(coins: coinReward)
+                    gameStore.claimJourneyReward(coins: gemReward)
                     onClose()
                 }) {
                     HStack {
@@ -309,7 +346,7 @@ struct ExcludedNotificationView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(selectedMultiplier > 1 ? Color.green : Color.blue)
+                    .background(selectedMultiplier > 1 ? Color.cyan : Color.blue)
                     .cornerRadius(12)
                 }
             } else {
@@ -330,21 +367,42 @@ struct ExcludedNotificationView: View {
 
 struct JourneyTileCard: View {
     let label: String
+    var value: Int? = nil  // Optional tile value for Theme.color lookup
     var isPrimary: Bool = false
     var size: CGFloat = 100
-    var accentColor: Color = .orange
+    var accentColor: Color = .orange  // Fallback if value not provided
     var isLocked: Bool = false
+
+    private var tileColor: Color {
+        if let value = value {
+            return Theme.color(for: value)
+        }
+        return accentColor
+    }
+
+    private var textColor: Color {
+        if isLocked {
+            return .gray
+        }
+        if isPrimary {
+            if let value = value {
+                return Theme.textColor(for: value)
+            }
+            return .white
+        }
+        return .secondary
+    }
 
     var body: some View {
         Text(label)
             .font(.system(size: isPrimary ? 28 : 20, weight: isPrimary ? .bold : .semibold, design: .rounded))
-            .foregroundStyle(isLocked ? .gray : (isPrimary ? .white : .secondary))
+            .foregroundStyle(textColor)
             .frame(width: size, height: size)
             .background(
                 Group {
                     if isPrimary {
                         LinearGradient(
-                            colors: [accentColor, accentColor.opacity(0.7)],
+                            colors: [tileColor, tileColor.opacity(0.7)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -356,7 +414,7 @@ struct JourneyTileCard: View {
                 }
             )
             .clipShape(RoundedRectangle(cornerRadius: isPrimary ? 16 : 12))
-            .shadow(color: isPrimary ? accentColor.opacity(0.5) : .clear, radius: isPrimary ? 8 : 0)
+            .shadow(color: isPrimary ? tileColor.opacity(0.5) : .clear, radius: isPrimary ? 8 : 0)
             .overlay(alignment: .topTrailing) {
                 if isLocked {
                     Image(systemName: "lock.fill")

@@ -5,6 +5,7 @@ import GameServices
 @MainActor
 public struct DailyClaimsView: View {
     @Environment(DailyClaimsStore.self) private var store
+    @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
@@ -43,7 +44,10 @@ public struct DailyClaimsView: View {
                 }
             }
         }
-        .onAppear(perform: syncSelectedPage)
+        .onAppear {
+            store.updateAvailability()
+            syncSelectedPage()
+        }
         .onChange(of: store.currentClaimDay) { _, _ in
             syncSelectedPage()
         }
@@ -157,9 +161,7 @@ public struct DailyClaimsView: View {
                 Text("Weekly Rewards")
                     .font(.title2.bold())
                 Spacer()
-                Text("Week \(selectedPage + 1)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                weekNavigator
             }
             
             if chunkedClaims.isEmpty {
@@ -218,12 +220,60 @@ public struct DailyClaimsView: View {
         claimedRewards = store.combinedRewardForNextClaim() ?? rewards
         showClaimAnimation = true
         store.claimDailyReward()
-        
+        gameStore.achievementEvaluator?.onDailyClaimed()
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation {
                 showClaimAnimation = false
                 claimedRewards = nil
             }
+        }
+    }
+
+    private var weekNavigator: some View {
+        HStack(spacing: 12) {
+            Button {
+                if selectedPage > 0 {
+                    withAnimation { selectedPage -= 1 }
+                }
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.headline)
+                    .foregroundStyle(selectedPage > 0 ? .primary : .tertiary)
+            }
+            .disabled(selectedPage == 0)
+
+            Menu {
+                ForEach(0..<52, id: \.self) { week in
+                    Button("Week \(week + 1)") {
+                        store.ensureClaimsCovering(pageIndex: week)
+                        withAnimation { selectedPage = week }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Week \(selectedPage + 1)")
+                        .font(.subheadline.bold())
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption)
+                }
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.ultraThinMaterial, in: Capsule())
+            }
+
+            Button {
+                if selectedPage < 51 {
+                    store.ensureClaimsCovering(pageIndex: selectedPage + 1)
+                    withAnimation { selectedPage += 1 }
+                }
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.headline)
+                    .foregroundStyle(selectedPage < 51 ? .primary : .tertiary)
+            }
+            .disabled(selectedPage >= 51)
         }
     }
 }
@@ -261,8 +311,8 @@ private struct DailyRewardRow: View {
                             .foregroundStyle(.orange)
                         ForEach(bonusEntries, id: \.self) { entry in
                             RewardChip(entry: entry, style: .compact)
-                        }
-                    }
+            }
+        }
                 }
             }
             
@@ -343,19 +393,26 @@ private struct RewardsTiny: View {
 
 private struct TimerView: View {
     let timeRemaining: TimeInterval
-    @State private var currentTime = Date()
-    
+    @State private var deadline: Date?
+    @State private var now = Date()
+
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
+
     var body: some View {
         Text(timeString)
+            .onAppear {
+                deadline = Date().addingTimeInterval(timeRemaining)
+            }
             .onReceive(timer) { _ in
-                currentTime = Date()
+                now = Date()
             }
     }
-    
+
     private var timeString: String {
-        let remaining = max(0, timeRemaining - Date().timeIntervalSince(currentTime))
+        guard let deadline else {
+            return String(format: "%02d:%02d:%02d", 0, 0, 0)
+        }
+        let remaining = max(0, deadline.timeIntervalSince(now))
         let hours = Int(remaining) / 3600
         let minutes = (Int(remaining) % 3600) / 60
         let seconds = Int(remaining) % 60

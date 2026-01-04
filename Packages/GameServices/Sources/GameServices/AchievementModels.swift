@@ -162,7 +162,7 @@ public struct GameSnapshot: Sendable, Codable {
     public var board_monotonic_end: Bool = false
     public var made_2244_square: Bool = false
     
-    public var max_tile: Int = 0
+    public var max_tile: Double = 0
     public var win: Bool = false
     public var total_moves: Int = 0
     public var combo610Total: Int = 0
@@ -178,6 +178,14 @@ public struct GameSnapshot: Sendable, Codable {
     public var challenge_creations_total: Int = 0
     public var play_minutes_total: Int = 0
     public var infinity_creations_total: Int = 0
-    
+    public var boost2x_uses_total: Int = 0
+    public var boost3x_uses_total: Int = 0
+    public var boost4x_uses_total: Int = 0
+    public var spin_purchases_total: Int = 0
+    public var daily_claims_total: Int = 0
+    public var boost5x_uses_total: Int = 0
+    public var boost20x_uses_total: Int = 0
+    public var wheel_collects_total: Int = 0
+
     public init() {}
 }

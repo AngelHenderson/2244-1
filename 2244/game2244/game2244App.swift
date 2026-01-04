@@ -37,6 +37,7 @@ struct game2244App: App {
     @State private var shopStore: ShopStore? = nil
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
+    @State private var spinWheelState = SpinWheelState()
 
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
@@ -68,7 +69,7 @@ struct game2244App: App {
                 .environment(\.backgroundThemeRegistry, backgroundThemeRegistry)
                 .environment(\.currentBackgroundTheme, backgroundThemeRegistry.theme(for: selectedBackgroundThemeId))
                 .environment(\.tileJourney, gameStore.journey)
-                .environment(\.leaderboardClient, LeaderboardClient.gameCenter())
+                .environment(\.leaderboardClient, .noop)
                 .environment(homeState)
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
@@ -82,6 +83,7 @@ struct game2244App: App {
                 )
                 .environment(\.challengeStore, challengeStore)
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
+                .environment(\.spinWheelState, spinWheelState)
                 .task {
                     gemWallet.attach(gameStore: gameStore, homeState: homeState)
                     gemWallet.bootstrapFromLocal()
@@ -155,27 +157,29 @@ struct game2244App: App {
                         }
                         
                         // Spins & multipliers
-                        let spinState = SpinWheelState()
                         if let spins = rewards.spins, spins > 0 {
-                            spinState.addBonusSpins(spins)
+                            spinWheelState.addBonusSpins(spins)
                         }
                         if let boost2x = rewards.boost2x, boost2x > 0 {
-                            spinState.addMultiplier(.twoX, count: boost2x)
+                            spinWheelState.addMultiplier(.twoX, count: boost2x)
                         }
                         if let boost3x = rewards.boost3x, boost3x > 0 {
-                            spinState.addMultiplier(.threeX, count: boost3x)
+                            spinWheelState.addMultiplier(.threeX, count: boost3x)
                         }
                         if let boost4x = rewards.boost4x, boost4x > 0 {
-                            spinState.addMultiplier(.fourX, count: boost4x)
+                            spinWheelState.addMultiplier(.fourX, count: boost4x)
                         }
                     }
                     
                     // Setup achievement evaluator with reward handler
                     achievementStore.onReward = applyRewards
-                    
+
                     let evaluator = AchievementEvaluator(achievementStore: achievementStore)
                     gameStore.achievementEvaluator = evaluator
-                    
+
+                    // Start tracking playtime for the initial session
+                    evaluator.onGameStart(state: gameStore.state)
+
                     // Setup daily claims reward handler
                     dailyClaimsStore.onReward = applyRewards
                     

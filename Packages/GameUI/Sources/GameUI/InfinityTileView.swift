@@ -1,4 +1,5 @@
 import SwiftUI
+import GameCore
 
 /// A specialized view for rendering the infinity tile with unique visual effects
 struct InfinityTileView: View {
@@ -11,23 +12,25 @@ struct InfinityTileView: View {
     @State private var pulseScale: CGFloat = 1.0
     @State private var glowOpacity: Double = 0.3
 
-    private let gradientColors = [
-        Color(hex: "#FFD700"), // Gold
-        Color(hex: "#FFA500"), // Orange
-        Color(hex: "#FF69B4"), // Hot Pink
-        Color(hex: "#9370DB"), // Medium Purple
-        Color(hex: "#4169E1"), // Royal Blue
-        Color(hex: "#00CED1"), // Dark Turquoise
-        Color(hex: "#32CD32"), // Lime Green
-        Color(hex: "#FFD700"), // Back to Gold for smooth loop
-    ]
+    // Use the 262K palette color for infinity (request: blue 262K)
+    private let infinityBaseColor = Theme.color(for: 262_144)
+    
+    private var gradientColors: [Color] {
+        [
+            infinityBaseColor,
+            infinityBaseColor.opacity(0.85),
+            infinityBaseColor.opacity(0.7),
+            infinityBaseColor
+        ]
+    }
 
-    private let staticGradientColors = [
-        Color(hex: "#FFD700"), // Gold
-        Color(hex: "#FF69B4"), // Hot Pink
-        Color(hex: "#9370DB"), // Medium Purple
-        Color(hex: "#4169E1"), // Royal Blue
-    ]
+    private var staticGradientColors: [Color] {
+        [
+            infinityBaseColor.opacity(0.9),
+            infinityBaseColor.opacity(0.75),
+            infinityBaseColor.opacity(0.6)
+        ]
+    }
 
     var body: some View {
         ZStack {

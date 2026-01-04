@@ -20,47 +20,37 @@ public struct TierStat: Identifiable, Hashable, Sendable {
 }
 
 public extension TierStat {
-    /// Presentation glyph; use the raw key but allow special styling hints.
+    /// Presentation glyph; keep canonical casing for K/M/B, curve l, otherwise lowercase.
     var displayKey: String {
-        key
+        if key == "l" { return "ℓ" }
+        // If it's one of the uppercase standard tiers, return as is
+        if ["K", "M", "B"].contains(key) { return key }
+        // Otherwise return the key (which should be lowercase for alpha tiers)
+        return key
     }
     
     var usesCurvedLStyling: Bool {
         key == "l"
     }
     
+    @MainActor
     static func stats(from counts: [String: Int]) -> [TierStat] {
-        var orderedKeys = allTierKeys
-        // include any keys not part of canonical set (future proofing)
-        for key in counts.keys where !orderedKeys.contains(key) {
-            orderedKeys.append(key)
-        }
-        let mergedKeys = counts.keys.filter { allTierKeys.contains($0) }
-        let unmergedKeys = orderedKeys.filter { !mergedKeys.contains($0) }
-        
-        // keep any merged tiers at the top, sorted by value desc then key
-        let mergedOrdered = mergedKeys.sorted { lhs, rhs in
-            let leftValue = counts[lhs] ?? 0
-            let rightValue = counts[rhs] ?? 0
-            if leftValue == rightValue {
-                return lhs < rhs
-            }
-            return leftValue > rightValue
-        }
-        
-        // place special end-caps (bz and infinity) at the bottom; everything else before them
-        let specialEndCaps: Set<String> = ["bz", "∞", "infinity"]
-        let (endCaps, regularUnmerged) = unmergedKeys.reduce(into: ([String](), [String]())) { partial, key in
-            if specialEndCaps.contains(key.lowercased()) || key == "∞" {
-                partial.0.append(key)
+        // Use counts directly without normalizing to lowercase to preserve K/M/B vs k/m/b distinction
+        // But we still need to handle infinity normalization if needed
+        var normalizedCounts: [String: Int] = [:]
+        counts.forEach { rawKey, value in
+            if rawKey.lowercased() == "∞" || rawKey.lowercased() == "infinity" {
+                normalizedCounts["∞"] = value
             } else {
-                partial.1.append(key)
+                // Strip any digits if the key comes in as "1K" etc (though usually it's just the suffix)
+                // Assuming counts keys match the suffixes generated in allTierKeys
+                normalizedCounts[rawKey] = value
             }
         }
-        let orderedWithProgress = mergedOrdered + regularUnmerged + endCaps
-        
-        return orderedWithProgress.map { key in
-            let value = counts[key] ?? 0
+
+        // Return tiers in fixed order from allTierKeys
+        return allTierKeys.map { key in
+            let value = normalizedCounts[key] ?? 0
             return TierStat(
                 key: key,
                 value: value,
@@ -70,38 +60,54 @@ public extension TierStat {
         }
     }
     
+    @MainActor
     private static func color(for key: String) -> Color {
-        let lowered = key.lowercased()
-        if let predefined = predefinedColors[lowered] {
-            return predefined
+        // Special case for K (thousands) which isn't in JourneyAbbreviationTiers
+        // Use step 13 which corresponds to 16K (2^14 = 16384)
+        if key.uppercased() == "K" {
+            return Theme.colorForStep(13)
         }
-        let palette: [Color] = [.purple, .pink, .red, .orange, .yellow, .green, .teal, .cyan, .blue, .indigo]
-        let hash = lowered.unicodeScalars.reduce(0) { $0 + Int($1.value) }
-        return palette[abs(hash) % palette.count]
+
+        // Look up the tier for "1{key}" (e.g., "1M", "1a", "1ah")
+        let lookupLabel = "1\(key)"
+        let tier = JourneyAbbreviationTiers.tiers.first(where: { $0.label.lowercased() == lookupLabel.lowercased() })
+        if let step = tier?.step {
+            return Theme.colorForStep(step)
+        }
+
+        // Special case for infinity - use the same color as the infinity tile (262K)
+        if key == "∞" {
+            return Theme.color(for: 262_144)
+        }
+
+        // Fallback to gray for unknown tiers
+        return .gray
     }
     
-    private static let predefinedColors: [String: Color] = [
-        "k": .purple,
-        "m": .pink,
-        "b": .red
-    ]
-    
-    private static let allTierKeys: [String] = {
-        let suffixes = JourneyAbbreviationTiers.tiers.compactMap { tier -> String? in
-            let label = tier.label.trimmingCharacters(in: .whitespacesAndNewlines)
-            let suffix = label.trimmingCharacters(in: .decimalDigits)
-            return suffix.isEmpty ? nil : suffix
+    private static var allTierKeys: [String] {
+        // Generate a comprehensive hardcoded list of all possible tier keys
+        // This ensures all tiers are present regardless of JourneyAbbreviationTiers initialization timing
+        var keys: [String] = ["K", "M", "B"]
+        
+        // Add single letters a-z (26 letters)
+        for i in 0..<26 {
+            let char = String(UnicodeScalar(97 + i)!) // 'a' to 'z'
+            keys.append(char)
         }
-        // preserve order while removing duplicates
-        var seen: Set<String> = []
-        return suffixes.compactMap { suffix in
-            if seen.contains(suffix) {
-                return nil
+        
+        // Add double letters aa-az, ba-bz (52 total)
+        for prefix in ["a", "b"] {
+            for i in 0..<26 {
+                let suffix = String(UnicodeScalar(97 + i)!) // 'a' to 'z'
+                keys.append("\(prefix)\(suffix)")
             }
-            seen.insert(suffix)
-            return suffix
         }
-    }()
+        
+        // Add infinity at the end
+        keys.append("∞")
+        
+        return keys
+    }
 }
 
 public struct SeasonInfo: Equatable, Sendable {

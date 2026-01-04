@@ -6,13 +6,13 @@ import Foundation
 public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
     private static let base: UInt16 = 1_000
     private var chunks: [UInt16] // Little-endian, chunks[0] is lowest 3 digits
-    
+
     public static let zero = AlphaNumber()
-    
+
     public init() {
         self.chunks = [0]
     }
-    
+
     public init(_ value: Int) {
         self.init()
         if value <= 0 {
@@ -28,14 +28,14 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
         self.chunks = digits
         normalize()
     }
-    
+
     public init?(decimalString: String) {
         self.init()
         let trimmed = decimalString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
         let filtered = trimmed.filter { $0.isNumber }
         guard !filtered.isEmpty else { return nil }
-        
+
         var start = filtered.endIndex
         var digits: [UInt16] = []
         while start > filtered.startIndex {
@@ -48,9 +48,9 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
         self.chunks = digits
         normalize()
     }
-    
+
     // MARK: - Codable
-    
+
     public init(from decoder: Decoder) throws {
         self.init()
         let container = try decoder.singleValueContainer()
@@ -66,18 +66,18 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
             self.init()
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(chunks)
     }
-    
+
     // MARK: - Basic properties
-    
+
     public var isZero: Bool {
         chunks.count == 1 && chunks[0] == 0
     }
-    
+
     public func toInt(clamping: Bool = true) -> Int {
         var result = 0
         for index in chunks.indices.reversed() {
@@ -93,7 +93,7 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
         }
         return result
     }
-    
+
     public var decimalString: String {
         guard let highest = highestNonZeroIndex else { return "0" }
         var output = "\(chunks[highest])"
@@ -104,15 +104,15 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
         }
         return output
     }
-    
+
     // MARK: - Arithmetic
-    
+
     public mutating func add(_ other: AlphaNumber) {
         let maxCount = max(chunks.count, other.chunks.count)
         if chunks.count < maxCount {
             chunks.append(contentsOf: repeatElement(0, count: maxCount - chunks.count))
         }
-        
+
         var carry = 0
         for index in 0..<maxCount {
             let lhs = Int(chunks[safe: index] ?? 0)
@@ -121,12 +121,12 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
             chunks[index] = UInt16(sum % Int(Self.base))
             carry = sum / Int(Self.base)
         }
-        
+
         if carry > 0 {
             chunks.append(UInt16(carry))
         }
     }
-    
+
     public mutating func add(_ value: Int) {
         guard value > 0 else { return }
         var carry = value
@@ -141,19 +141,19 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
             index += 1
         }
     }
-    
+
     public mutating func addPowerStep(_ step: Int) {
         guard step >= 0 else { return }
         add(AlphaNumber.powerOfTwo(step: step))
     }
-    
+
     public mutating func multiply(by multiplier: Int) {
         guard multiplier > 0 else {
             self = .zero
             return
         }
         if multiplier == 1 { return }
-        
+
         var carry = 0
         for index in 0..<chunks.count {
             let product = Int(chunks[index]) * multiplier + carry
@@ -165,7 +165,7 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
             carry /= Int(Self.base)
         }
     }
-    
+
     public mutating func halve() {
         var remainder = 0
         for index in chunks.indices.reversed() {
@@ -175,14 +175,70 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
         }
         normalize()
     }
-    
+
     public func formattedLabel() -> String {
         let ints = chunks.map { Int($0) }
         return TileStepLabelFormatter.label(fromChunks: ints)
     }
-    
+
+    /// Returns the score formatted with commas and a tier suffix (e.g., "16,497K", "1,000M")
+    /// Shows full number up to 999,999, then abbreviates with K, M, B, a, b, c...
+    public func formattedWithCommas() -> String {
+        let chunkCount = chunks.count
+
+        // For numbers < 1,000,000 (1 or 2 chunks), show full number with commas
+        if chunkCount <= 2 {
+            return formatChunksWithCommas(chunks)
+        }
+
+        // For numbers >= 1,000,000, keep at most 2 chunks displayed (max 999,999)
+        // Drop extra chunks and use tier suffix
+        let chunksToDrop = chunkCount - 2
+        let displayChunks = Array(chunks.dropFirst(chunksToDrop))
+        let formatted = formatChunksWithCommas(displayChunks)
+        let suffix = tierSuffix(for: chunksToDrop)
+
+        return "\(formatted)\(suffix)"
+    }
+
+    private func tierSuffix(for droppedChunks: Int) -> String {
+        switch droppedChunks {
+        case 1: return "K"
+        case 2: return "M"
+        case 3: return "B"
+        default:
+            let letterIndex = droppedChunks - 3
+            return alphabeticSuffix(for: letterIndex)
+        }
+    }
+
+    private func alphabeticSuffix(for index: Int) -> String {
+        var i = index
+        var result = ""
+        while i > 0 {
+            let rem = (i - 1) % 26
+            let char = Character(UnicodeScalar(97 + rem)!)
+            result = String(char) + result
+            i = (i - 1) / 26
+        }
+        return result
+    }
+
+    private func formatChunksWithCommas(_ chunks: [UInt16]) -> String {
+        guard !chunks.isEmpty else { return "0" }
+        var result = ""
+        for (index, chunk) in chunks.reversed().enumerated() {
+            if index == 0 {
+                result = "\(chunk)"
+            } else {
+                result += ",\(String(format: "%03d", chunk))"
+            }
+        }
+        return result
+    }
+
     // MARK: - Comparable
-    
+
     public static func < (lhs: AlphaNumber, rhs: AlphaNumber) -> Bool {
         let lhsIndex = lhs.highestNonZeroIndex ?? 0
         let rhsIndex = rhs.highestNonZeroIndex ?? 0
@@ -198,9 +254,9 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
         }
         return false
     }
-    
+
     // MARK: - Helpers
-    
+
     private mutating func normalize() {
         while chunks.count > 1, chunks.last == 0 {
             chunks.removeLast()
@@ -209,14 +265,14 @@ public struct AlphaNumber: Equatable, Sendable, Codable, Comparable {
             chunks = [0]
         }
     }
-    
+
     private var highestNonZeroIndex: Int? {
         for index in chunks.indices.reversed() where chunks[index] != 0 {
             return index
         }
         return chunks.first == 0 ? nil : chunks.count - 1
     }
-    
+
     public static func powerOfTwo(step: Int) -> AlphaNumber {
         precondition(step >= 0, "step must be non-negative")
         if step == 0 {
@@ -236,6 +292,5 @@ private extension Array where Element == UInt16 {
         return self[index]
     }
 }
-
 
 

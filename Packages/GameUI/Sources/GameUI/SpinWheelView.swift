@@ -16,8 +16,7 @@ public struct SpinWheelView: View {
     @Environment(\.gameStore) private var gameStore
     @Environment(\.hapticsService) private var haptics
     @Environment(HomeState.self) private var homeState
-    
-    @State private var spinState = SpinWheelState()
+    @Environment(\.spinWheelState) private var spinState
     @State private var showReward = false
     @State private var rewardMessage = ""
     @State private var purchaseFeedback: String?
@@ -100,7 +99,7 @@ public struct SpinWheelView: View {
                     .font(.title2.weight(.bold))
                     .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
-                    .background(Color.white.opacity(0.08), in: Circle())
+                    .glassOrMaterialBackground(cornerRadius: 22)
             }
             
             Spacer()
@@ -145,8 +144,8 @@ public struct SpinWheelView: View {
                         RadialGradient(
                             colors: [Color(red: 0.13, green: 0.14, blue: 0.33), Color(red: 0.05, green: 0.06, blue: 0.14)],
                             center: .center,
-                            startRadius: 40,
-                            endRadius: 170
+                            startRadius: 50,
+                            endRadius: 200
                         )
                     )
                     .shadow(color: .black.opacity(0.6), radius: 16, x: 0, y: 12)
@@ -156,14 +155,28 @@ public struct SpinWheelView: View {
                 
                 WheelLights(count: max(engine.segments.count, 1))
                 
-                PegShape()
-                    .fill(.ultraThinMaterial)
-                    .overlay(PegShape().stroke(Color.white.opacity(0.6), lineWidth: 1.5))
-                    .frame(width: 28, height: 90)
-                    .rotationEffect(.degrees(180))
-                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .bottom)
-                    .offset(y: -170)
-                    .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 4)
+                LocationPinShape()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(red: 0.4, green: 0.85, blue: 0.4), Color(red: 0.2, green: 0.65, blue: 0.2)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .overlay(
+                        LocationPinShape()
+                            .stroke(Color.white.opacity(0.5), lineWidth: 1.5)
+                    )
+                    .overlay(
+                        Circle()
+                            .fill(Color.white.opacity(0.9))
+                            .frame(width: 12, height: 12)
+                            .offset(y: -18)
+                    )
+                    .frame(width: 32, height: 48)
+                    .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
+                    .offset(y: -229)
+                    .shadow(color: Color(red: 0.2, green: 0.5, blue: 0.2).opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()
                     .fill(.ultraThickMaterial)
@@ -178,7 +191,7 @@ public struct SpinWheelView: View {
                         .frame(width: 90, height: 90)
                 }
             }
-            .frame(width: 340, height: 340)
+            .frame(width: 400, height: 400)
         }
     }
     
@@ -250,11 +263,9 @@ public struct SpinWheelView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(homeState.gems >= cost ? Color.blue : Color.gray.opacity(0.5))
-            )
             .foregroundStyle(.white)
+            .glassOrMaterialBackground(cornerRadius: 20)
+            .opacity(homeState.gems >= cost ? 1.0 : 0.5)
         }
         .buttonStyle(.plain)
         .disabled(homeState.gems < cost)
@@ -266,20 +277,23 @@ public struct SpinWheelView: View {
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)
-                .background(
+                .foregroundStyle(.white)
+                .glassOrMaterialBackground(cornerRadius: 28)
+                .overlay(
                     RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(
+                        .stroke(
                             LinearGradient(
                                 colors: canSpin ? [Color(red: 0.29, green: 0.96, blue: 0.52), Color(red: 0.17, green: 0.76, blue: 0.99)]
                                                  : [Color.gray.opacity(0.4)],
                                 startPoint: .leading,
                                 endPoint: .trailing
-                            )
+                            ),
+                            lineWidth: 2
                         )
                 )
-                .foregroundStyle(.white)
                 .shadow(color: canSpin ? Color.black.opacity(0.4) : .clear, radius: 12, y: 8)
         }
+        .opacity(canSpin ? 1.0 : 0.6)
         .disabled(!canSpin)
     }
     
@@ -301,62 +315,122 @@ public struct SpinWheelView: View {
         spinState.addBonusSpins(count)
         haptics.success()
         purchaseFeedback = "Bought \(count) bonus spin\(count == 1 ? "" : "s")!"
+        gameStore.achievementEvaluator?.onSpinPurchased(count: count)
     }
     
     private func handleWinning(segment: WheelSegment) {
         Task { @MainActor in
-            let message = applyReward(segment.reward)
+            let (message, powerupCount) = applyReward(segment.reward)
             haptics.success()
             rewardMessage = message
             showReward = true
+            // Track powerups collected for achievement (count = number of powerups won)
+            if powerupCount > 0 {
+                gameStore.achievementEvaluator?.onWheelCollected(count: powerupCount)
+            }
         }
     }
-    
-    private func applyReward(_ reward: WheelReward, isGiftBox: Bool = false) -> String {
+
+    /// Returns (message, powerupCount) - powerupCount is the number of powerups collected (excludes gems)
+    private func applyReward(_ reward: WheelReward, isGiftBox: Bool = false) -> (String, Int) {
         let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
-        
+
         switch reward.type {
         case .gems:
             let amount = reward.amount * multiplier
             grantGems(amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) gems! 💎" : "You won \(amount) gems! 💎"
-            
+            let message = isGiftBox ? "Gift Box surprise! You won \(amount) gems! 💎" : "You won \(amount) gems! 💎"
+            return (message, 0) // Gems don't count as powerups
+
         case .hammers:
-            let amount = reward.amount * multiplier
-            gameStore.addPowerUp("hammer", count: amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
-                             : "You won \(amount) hammer\(pluralSuffix(for: amount))! 🔨"
-            
+            gameStore.addPowerUp("hammer", count: reward.amount)
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+                                    : "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+            return (message, reward.amount)
+
         case .magnets:
-            let amount = reward.amount * multiplier
-            gameStore.addPowerUp("magnet", count: amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) MegaMerge\(pluralSuffix(for: amount))! 🧲"
-                             : "You won \(amount) MegaMerge\(pluralSuffix(for: amount))! 🧲"
-            
+            gameStore.addPowerUp("magnet", count: reward.amount)
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
+                                    : "You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
+            return (message, reward.amount)
+
         case .swap:
-            let amount = reward.amount * multiplier
-            gameStore.addPowerUp("swap", count: amount)
-            return isGiftBox ? "Gift Box surprise! You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
-                             : "You won \(amount) swap\(pluralSuffix(for: amount))! 🔁"
-            
+            gameStore.addPowerUp("swap", count: reward.amount)
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+                                    : "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+            return (message, reward.amount)
+
         case .spin:
-            let amount = reward.amount * multiplier
-            spinState.addBonusSpins(amount)
-            let base = amount == 1 ? "Bonus spin added! 🎡" : "\(amount) bonus spins added! 🎡"
-            return isGiftBox ? "Gift Box surprise! \(base)" : base
-            
+            spinState.addBonusSpins(reward.amount)
+            let base = reward.amount == 1 ? "Bonus spin added! 🎡" : "\(reward.amount) bonus spins added! 🎡"
+            let message = isGiftBox ? "Gift Box surprise! \(base)" : base
+            return (message, reward.amount) // Spins count as powerups
+
         case .multiplier(let tier):
             spinState.addMultiplier(tier)
             let base = "You banked a \(tier.displayName) boost for 24 hours!"
-            return isGiftBox ? "Gift Box surprise! \(base)" : base
-            
+            let message = isGiftBox ? "Gift Box surprise! \(base)" : base
+            return (message, 1) // Multiplier counts as 1 powerup
+
         case .giftBox:
-            let surprise = randomGiftReward()
-            return applyReward(surprise, isGiftBox: true)
+            return applyGiftBoxRewards()
         }
     }
-    
-    private func randomGiftReward() -> WheelReward {
+
+    private func applyGiftBoxRewards() -> (String, Int) {
+        let isMultiReward = Bool.random()
+
+        if isMultiReward {
+            // 50%: Multiple rewards (2-3 different rewards)
+            let rewards = randomMultipleGiftRewards()
+            var messages: [String] = []
+            var totalPowerups = 0
+
+            for reward in rewards {
+                let (msg, count) = applySingleReward(reward)
+                messages.append(msg)
+                totalPowerups += count
+            }
+
+            let combined = messages.joined(separator: ", ")
+            return ("Gift Box Jackpot! 🎁 \(combined)", totalPowerups)
+        } else {
+            // 50%: Single reward
+            let reward = randomSingleGiftReward()
+            let (msg, count) = applySingleReward(reward)
+            return ("Gift Box surprise! \(msg)", count)
+        }
+    }
+
+    private func applySingleReward(_ reward: WheelReward) -> (String, Int) {
+        let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
+
+        switch reward.type {
+        case .gems:
+            let amount = reward.amount * multiplier
+            grantGems(amount)
+            return ("\(amount) Gems 💎", 0)
+        case .hammers:
+            gameStore.addPowerUp("hammer", count: reward.amount)
+            return ("\(reward.amount) Hammer\(pluralSuffix(for: reward.amount)) 🔨", reward.amount)
+        case .magnets:
+            gameStore.addPowerUp("magnet", count: reward.amount)
+            return ("\(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount)) 🧲", reward.amount)
+        case .swap:
+            gameStore.addPowerUp("swap", count: reward.amount)
+            return ("\(reward.amount) Swap\(pluralSuffix(for: reward.amount)) 🔁", reward.amount)
+        case .spin:
+            spinState.addBonusSpins(reward.amount)
+            return ("\(reward.amount) Spin\(pluralSuffix(for: reward.amount)) 🎡", reward.amount)
+        case .multiplier(let tier):
+            spinState.addMultiplier(tier)
+            return ("\(tier.displayName) Boost ⚡", 1)
+        case .giftBox:
+            return ("", 0)
+        }
+    }
+
+    private func randomSingleGiftReward() -> WheelReward {
         let options: [WheelReward] = [
             .init(type: .gems, amount: 2000),
             .init(type: .magnets, amount: 2),
@@ -367,6 +441,47 @@ public struct SpinWheelView: View {
             .init(type: .multiplier(.threeX), amount: 1)
         ]
         return options.randomElement() ?? options[0]
+    }
+
+    private func randomMultipleGiftRewards() -> [WheelReward] {
+        let allOptions: [WheelReward] = [
+            .init(type: .gems, amount: 300),
+            .init(type: .gems, amount: 500),
+            .init(type: .magnets, amount: 1),
+            .init(type: .hammers, amount: 2),
+            .init(type: .swap, amount: 1),
+            .init(type: .spin, amount: 1),
+            .init(type: .multiplier(.twoX), amount: 1),
+            .init(type: .multiplier(.threeX), amount: 1)
+        ]
+
+        var selected: [WheelReward] = []
+        var usedTypes: Set<String> = []
+        let rewardCount = Int.random(in: 2...3)
+
+        var shuffled = allOptions.shuffled()
+        while selected.count < rewardCount && !shuffled.isEmpty {
+            let reward = shuffled.removeFirst()
+            let typeKey = rewardTypeKey(reward.type)
+            if !usedTypes.contains(typeKey) {
+                usedTypes.insert(typeKey)
+                selected.append(reward)
+            }
+        }
+
+        return selected
+    }
+
+    private func rewardTypeKey(_ type: WheelReward.RewardType) -> String {
+        switch type {
+        case .gems: return "gems"
+        case .hammers: return "hammers"
+        case .magnets: return "magnets"
+        case .swap: return "swap"
+        case .spin: return "spin"
+        case .multiplier(_): return "multiplier"
+        case .giftBox: return "giftBox"
+        }
     }
     
     private func grantGems(_ amount: Int) {
@@ -447,9 +562,10 @@ private struct GemBalancePill: View {
 // MARK: - Inventory Card
 
 private struct MultiplierInventoryCard: View {
+    @Environment(\.gameStore) private var gameStore
     @Bindable var spinState: SpinWheelState
     let now: Date
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Boost Inventory")
@@ -458,9 +574,10 @@ private struct MultiplierInventoryCard: View {
             
             ForEach(SpinWheelState.MultiplierTier.allCases, id: \.self) { tier in
                 let canActivate = spinState.count(for: tier) > 0 && spinState.activeMultiplier == nil
+                let durationHours = Int(tier.duration / 3600)
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("\(tier.displayName) for 24h")
+                        Text("\(tier.displayName) for \(durationHours)h")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                             .foregroundStyle(.white)
                         Text("Stacks until you use it")
@@ -473,16 +590,23 @@ private struct MultiplierInventoryCard: View {
                         .foregroundStyle(.white)
                         .frame(width: 36, alignment: .trailing)
                     Button("Use") {
-                        _ = spinState.activateMultiplier(tier, now: now)
+                        if spinState.activateMultiplier(tier, now: now) {
+                            switch tier {
+                            case .twoX:
+                                gameStore.achievementEvaluator?.onBoost2xUsed()
+                            case .threeX:
+                                gameStore.achievementEvaluator?.onBoost3xUsed()
+                            case .fourX:
+                                gameStore.achievementEvaluator?.onBoost4xUsed()
+                            }
+                        }
                     }
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(canActivate ? Color.blue : Color.gray.opacity(0.4))
-                    )
                     .foregroundColor(.white)
+                    .glassOrMaterialBackground(cornerRadius: 12)
+                    .opacity(canActivate ? 1.0 : 0.5)
                     .disabled(!canActivate)
                 }
             }
@@ -550,26 +674,23 @@ struct WheelFace: View {
                     let y = rect.midY - r * cos(centerAngle)
                     
                     RadialLabel(angle: centerAngle - (.pi / 2)) {
-                        VStack(spacing: 4) {
+                        HStack(spacing: 6) {
                             if let assetName = segments[i].iconAssetName,
                                let bundleImage = segmentImage(named: assetName) {
                                 bundleImage
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 30, height: 30)
+                                    .frame(width: 24, height: 24)
                             } else {
                                 Text(segments[i].icon)
-                                    .font(.system(size: 20))
+                                    .font(.system(size: 18))
                             }
                             Text(segments[i].title)
                                 .font(.system(size: 11, weight: .bold, design: .rounded))
                                 .foregroundStyle(.white)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.85)
-                                .fixedSize(horizontal: false, vertical: true)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                         }
-                        .frame(width: 88)
                     }
                     .position(x: x, y: y)
                 }
@@ -656,17 +777,11 @@ struct WheelLights: View {
 private struct RadialLabel<Content: View>: View {
     let angle: CGFloat
     @ViewBuilder var content: Content
-    
+
     var body: some View {
-        let rawAngle = Angle(radians: Double(angle))
-        let counterRotation = Angle(degrees: -rawAngle.degrees)
-        
-        ZStack {
-            content
-                .rotationEffect(counterRotation)
-        }
-        .rotationEffect(rawAngle)
-        .shadow(color: .black.opacity(0.4), radius: 3)
+        content
+            .rotationEffect(.radians(Double(angle)))
+            .shadow(color: .black.opacity(0.4), radius: 3)
     }
 }
 
@@ -677,6 +792,43 @@ struct PegShape: Shape {
         p.move(to: CGPoint(x: w * 0.5, y: 0))
         p.addLine(to: CGPoint(x: 0, y: rect.height))
         p.addLine(to: CGPoint(x: w, y: rect.height))
+        p.closeSubpath()
+        return p
+    }
+}
+
+struct LocationPinShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let w = rect.width
+        let h = rect.height
+        let circleRadius = w / 2
+        let circleCenter = CGPoint(x: w / 2, y: circleRadius)
+
+        // Start at the bottom point
+        p.move(to: CGPoint(x: w / 2, y: h))
+
+        // Draw left curve up to circle
+        p.addQuadCurve(
+            to: CGPoint(x: 0, y: circleRadius),
+            control: CGPoint(x: 0, y: h * 0.5)
+        )
+
+        // Draw the circle arc (top half)
+        p.addArc(
+            center: circleCenter,
+            radius: circleRadius,
+            startAngle: .degrees(180),
+            endAngle: .degrees(0),
+            clockwise: false
+        )
+
+        // Draw right curve down to point
+        p.addQuadCurve(
+            to: CGPoint(x: w / 2, y: h),
+            control: CGPoint(x: w, y: h * 0.5)
+        )
+
         p.closeSubpath()
         return p
     }

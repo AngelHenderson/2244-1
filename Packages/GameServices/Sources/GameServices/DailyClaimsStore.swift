@@ -182,13 +182,14 @@ public final class DailyClaimsStore {
     }
     
     public func getTimeUntilNextClaim() -> TimeInterval? {
-        guard !canClaimToday, let lastClaim = lastClaimDate else { return nil }
-        
+        guard !canClaimToday else { return nil }
+
         let calendar = Calendar.current
-        guard let nextMidnight = calendar.date(byAdding: .day, value: 1, to: lastClaim) else { return nil }
-        let startOfNextDay = calendar.startOfDay(for: nextMidnight)
-        
-        return max(0, startOfNextDay.timeIntervalSinceNow)
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday) else { return nil }
+
+        return max(0, startOfTomorrow.timeIntervalSince(now))
     }
     
     public func combinedRewardForNextClaim() -> AchievementDef.Rewards? {
@@ -253,13 +254,118 @@ public final class DailyClaimsStore {
 
 private enum DailyRewardSchedule {
     private static let cycle: [AchievementDef.Rewards] = [
-        AchievementDef.Rewards(gems: 200, hammers: 1),
-        AchievementDef.Rewards(gems: 220, spins: 1, magnets: 1),
-        AchievementDef.Rewards(gems: 240, swaps: 1),
-        AchievementDef.Rewards(gems: 260, spins: 1, hammers: 1),
-        AchievementDef.Rewards(gems: 280, magnets: 1, swaps: 1),
-        AchievementDef.Rewards(gems: 320, spins: 1, boost2x: 1),
-        AchievementDef.Rewards(gems: 360, spins: 1, hammers: 1, swaps: 1)
+        // Week 1
+        AchievementDef.Rewards(gems: 15),
+        AchievementDef.Rewards(gems: 25),
+        AchievementDef.Rewards(hammers: 1),
+        AchievementDef.Rewards(gems: 40),
+        AchievementDef.Rewards(gems: 50),
+        AchievementDef.Rewards(boost2x: 1),
+        AchievementDef.Rewards(gems: 75, hammers: 1),
+        // Week 2
+        AchievementDef.Rewards(magnets: 1),
+        AchievementDef.Rewards(boost3x: 1),
+        AchievementDef.Rewards(spins: 1),
+        AchievementDef.Rewards(gems: 110),
+        AchievementDef.Rewards(gems: 125),
+        AchievementDef.Rewards(swaps: 1),
+        AchievementDef.Rewards(gems: 200),
+        // Week 3
+        AchievementDef.Rewards(gems: 100, hammers: 1, magnets: 1, boost2x: 1),
+        AchievementDef.Rewards(swaps: 2),
+        AchievementDef.Rewards(magnets: 1),
+        AchievementDef.Rewards(spins: 1, boost4x: 1),
+        AchievementDef.Rewards(hammers: 1),
+        AchievementDef.Rewards(gems: 150, magnets: 2),
+        AchievementDef.Rewards(gems: 175),
+        // Week 4
+        AchievementDef.Rewards(gems: 220, spins: 1),
+        AchievementDef.Rewards(magnets: 2, boost4x: 1),
+        AchievementDef.Rewards(boost2x: 1, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 250, magnets: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 244, boost4x: 1),
+        AchievementDef.Rewards(spins: 2),
+        AchievementDef.Rewards(spins: 2, boost2x: 1),
+        // Week 5
+        AchievementDef.Rewards(spins: 1, boost3x: 1),
+        AchievementDef.Rewards(boost4x: 1),
+        AchievementDef.Rewards(magnets: 2, boost2x: 1),
+        AchievementDef.Rewards(gems: 273, spins: 1, swaps: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 222, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 300, swaps: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 331, spins: 1, swaps: 2),
+        // Week 6
+        AchievementDef.Rewards(gems: 344, magnets: 1, boost4x: 1),
+        AchievementDef.Rewards(swaps: 3, boost3x: 1),
+        AchievementDef.Rewards(spins: 1, magnets: 1, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 373, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 400, spins: 1, swaps: 1, boost3x: 1),
+        AchievementDef.Rewards(spins: 2),
+        AchievementDef.Rewards(boost4x: 1),
+        // Week 7
+        AchievementDef.Rewards(boost4x: 1),
+        AchievementDef.Rewards(gems: 403, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 465, magnets: 1),
+        AchievementDef.Rewards(gems: 466, magnets: 1),
+        AchievementDef.Rewards(gems: 445, spins: 2, hammers: 1, magnets: 1, boost2x: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 435, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(magnets: 5),
+        // Week 8
+        AchievementDef.Rewards(magnets: 3, boost4x: 1),
+        AchievementDef.Rewards(spins: 1, boost2x: 1, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 497, magnets: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 511, magnets: 1, boost3x: 1),
+        AchievementDef.Rewards(magnets: 2, boost2x: 1),
+        AchievementDef.Rewards(gems: 524, hammers: 2, swaps: 1),
+        AchievementDef.Rewards(gems: 577),
+        // Week 9
+        AchievementDef.Rewards(magnets: 1, boost3x: 1),
+        AchievementDef.Rewards(boost4x: 1),
+        AchievementDef.Rewards(gems: 568, magnets: 2, swaps: 2),
+        AchievementDef.Rewards(gems: 587),
+        AchievementDef.Rewards(gems: 603),
+        AchievementDef.Rewards(boost4x: 1),
+        AchievementDef.Rewards(gems: 600, hammers: 1, boost2x: 1, boost3x: 1),
+        // Week 10
+        AchievementDef.Rewards(gems: 617, boost2x: 1),
+        AchievementDef.Rewards(gems: 622, boost3x: 1),
+        AchievementDef.Rewards(hammers: 1, magnets: 1, swaps: 1),
+        AchievementDef.Rewards(gems: 644, swaps: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 666, hammers: 2, boost3x: 1),
+        AchievementDef.Rewards(magnets: 1, boost2x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 681, boost3x: 1, boost4x: 1),
+        // Week 11
+        AchievementDef.Rewards(gems: 694, magnets: 2, boost3x: 1),
+        AchievementDef.Rewards(gems: 800),
+        AchievementDef.Rewards(spins: 3, boost3x: 1),
+        AchievementDef.Rewards(boost4x: 1),
+        AchievementDef.Rewards(gems: 743, boost3x: 1),
+        AchievementDef.Rewards(gems: 777, magnets: 1, boost2x: 1),
+        AchievementDef.Rewards(magnets: 2),
+        // Week 12
+        AchievementDef.Rewards(gems: 839, hammers: 1),
+        AchievementDef.Rewards(swaps: 2),
+        AchievementDef.Rewards(hammers: 2),
+        AchievementDef.Rewards(spins: 2, boost2x: 1),
+        AchievementDef.Rewards(spins: 3),
+        AchievementDef.Rewards(gems: 919),
+        AchievementDef.Rewards(gems: 882, swaps: 1, boost2x: 1),
+        // Week 13
+        AchievementDef.Rewards(gems: 900),
+        AchievementDef.Rewards(spins: 1),
+        AchievementDef.Rewards(swaps: 1),
+        AchievementDef.Rewards(hammers: 1),
+        AchievementDef.Rewards(gems: 899, swaps: 1),
+        AchievementDef.Rewards(magnets: 1, boost2x: 1),
+        AchievementDef.Rewards(boost3x: 1, boost4x: 1),
+        // Week 14
+        AchievementDef.Rewards(gems: 911, hammers: 1),
+        AchievementDef.Rewards(gems: 927, magnets: 1, boost3x: 1),
+        AchievementDef.Rewards(spins: 1, boost2x: 1),
+        AchievementDef.Rewards(spins: 2),
+        AchievementDef.Rewards(spins: 2, swaps: 1, boost3x: 1),
+        AchievementDef.Rewards(hammers: 2, boost2x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 933, swaps: 1)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {

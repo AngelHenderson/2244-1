@@ -510,15 +510,15 @@ public final class GameEngine {
     public func refillBoard() -> GameState {
         processPendingGiftRefillIfNeeded()
         if config.fillMode == .alwaysFull {
-            fillBoardToFull()
+            refillToFullWithCascade()
         } else {
             refillToFull()
         }
-        
+
         if !hasValidMoves() {
             state.isGameOver = true
         }
-        
+
         return state
     }
     
@@ -675,16 +675,60 @@ public final class GameEngine {
     @discardableResult
     public func refillColumns(_ columns: Set<Int>) -> GameState {
         guard !columns.isEmpty else { return state }
-        let fillAll = config.fillMode == .alwaysFull
-        var board = state.board
-        board.refillColumns(columns, fillAll: fillAll) { [self] in
-            generateRandomValue()
+        if config.fillMode == .alwaysFull {
+            refillColumnsWithCascade(columns)
+        } else {
+            var board = state.board
+            board.refillColumns(columns, fillAll: false) { [self] in
+                generateRandomValue()
+            }
+            state.board = board
         }
-        state.board = board
         if !hasValidMoves() {
             state.isGameOver = true
         }
         return state
+    }
+
+    private func refillColumnsWithCascade(_ columns: Set<Int>) {
+        // Spawn tiles only at the top of specified columns and apply gravity repeatedly
+        // This creates a natural cascade effect instead of tiles appearing mid-column
+        var maxIterations = config.boardHeight * columns.count // Safety limit
+
+        while maxIterations > 0 {
+            maxIterations -= 1
+
+            // Count empty cells in the specified columns
+            var emptyCount = 0
+            for col in columns {
+                for row in 0..<config.boardHeight {
+                    let pos = Position(row: row, col: col)
+                    let boardIndex = BoardIndex(pos)
+                    if state.board[boardIndex].kind != .gift && state.board[pos] == nil {
+                        emptyCount += 1
+                    }
+                }
+            }
+
+            // If columns are full, we're done
+            if emptyCount == 0 { break }
+
+            // Spawn new tiles ONLY in the TOP ROW for specified columns
+            for col in columns {
+                let pos = Position(row: 0, col: col)
+                let boardIndex = BoardIndex(pos)
+                // Skip gift cells in top row
+                if state.board[boardIndex].kind == .gift {
+                    continue
+                }
+                if state.board[pos] == nil {
+                    state.board[pos] = Tile(value: generateRandomValue())
+                }
+            }
+
+            // Apply gravity to make the newly spawned tiles fall down
+            applyGravityDown()
+        }
     }
     
     @discardableResult
@@ -924,18 +968,24 @@ public final class GameEngine {
     private func spawnNearHighest() -> Int? {
         let highest = state.highestTile
         guard highest >= 2 else { return nil }
-        
-        let maxSpawn = max(2, highest >> 1)
-        let minSpawn = max(2, highest >> 7)
-        let eliminationThreshold = max(2, getEliminationThreshold())
-        let actualMinSpawn = min(maxSpawn, max(minSpawn, eliminationThreshold))
 
-        guard actualMinSpawn <= maxSpawn else { return nil }
-        
+        // Maximum spawn is 7 steps below highest (consistent with pre-67M pattern)
+        let maxSpawn = max(2, highest >> 7)
+
+        // Minimum spawn is 6 steps below maxSpawn (so 7 candidates reach maxSpawn)
+        // This means minSpawn = highest >> 13
+        let calculatedMin = max(2, highest >> 13)
+
+        // But don't go below elimination threshold
+        let eliminationThreshold = max(2, getEliminationThreshold())
+        let minSpawn = max(calculatedMin, eliminationThreshold)
+
+        guard minSpawn <= maxSpawn else { return nil }
+
         var candidates: [Int] = []
-        var current = actualMinSpawn
+        var current = minSpawn
         var iterations = 0
-        
+
         while current <= maxSpawn && iterations < 7 {
             candidates.append(current)
             if current > (Int.max >> 1) { break }
@@ -976,13 +1026,13 @@ public final class GameEngine {
         let largeMilestones = eliminatedMilestones.filter { $0 >= 67108864 }
         if let highestLargeMilestone = largeMilestones.max() {
             // For milestones >= 67M:
-            // - Minimum spawn should be above the elimination threshold
-            // - We use 7 steps down from the milestone as the spawn base
+            // - Minimum spawn should be 13 steps below (so 7 candidates reach 7 steps below)
+            // - But never below elimination threshold (14 steps below)
             let eliminationThreshold = highestLargeMilestone >> 14  // What gets eliminated
-            let spawnBase = highestLargeMilestone >> 7  // 7 steps down from milestone
+            let calculatedMin = highestLargeMilestone >> 13  // 13 steps down
 
             // Use whichever is higher to ensure we don't spawn below elimination threshold
-            return max(eliminationThreshold, spawnBase)
+            return max(eliminationThreshold, calculatedMin)
         }
 
         // For milestones < 67M, use the old logic: min spawn is X*2 where X is eliminated value
@@ -1167,39 +1217,60 @@ public final class GameEngine {
         } else {
             refillToFull()
         }
+
+        // After refill, clean up any tiles that are below the elimination threshold
+        // This handles edge cases where low tiles might still exist
+        cleanupTilesBelowThreshold()
+    }
+
+    /// Remove any tiles that shouldn't exist based on current milestone progress
+    private func cleanupTilesBelowThreshold() {
+        let threshold = getEliminationThreshold()
+        guard threshold > 2 else { return }  // No elimination needed
+
+        var didRemove = false
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos], tile.value < threshold {
+                    state.board[pos] = nil
+                    didRemove = true
+                }
+            }
+        }
+
+        // If we removed tiles, need to apply gravity and refill again
+        // Use a simple fill to avoid infinite recursion
+        if didRemove {
+            applyGravityDown()
+            fillEmptyCellsWithValidTiles()
+        }
+    }
+
+    /// Fill empty cells with tiles that are above the elimination threshold
+    /// Uses cascade behavior to spawn from top and let gravity pull them down
+    private func fillEmptyCellsWithValidTiles() {
+        // Use cascade refill to maintain Tetris-like behavior
+        if config.fillMode == .alwaysFull {
+            refillToFullWithCascade()
+        } else {
+            refillToFull()
+        }
     }
 
     private func refillToFull() {
-        // In alwaysFull mode, fill ALL empty cells to keep board completely full
-        // In match-3 auto-cascade gameplay, this ensures continuous action
-        if config.fillMode == .alwaysFull {
-            // Fill entire board
-            for row in 0..<config.boardHeight {
-                for col in 0..<config.boardWidth {
-                    let pos = Position(row: row, col: col)
-                    let boardIndex = BoardIndex(pos)
-                    // Skip gift cells in top row
-                    if state.board[boardIndex].kind == .gift {
-                        continue
-                    }
-                    if state.board[pos] == nil {
-                        state.board[pos] = Tile(value: generateRandomValue())
-                    }
-                }
+        // ALWAYS spawn new tiles only in the TOP ROW (row 0)
+        // Tiles will fall down via gravity creating a Tetris-like effect
+        // This applies to both alwaysFull and sparse modes
+        for col in 0..<config.boardWidth {
+            let pos = Position(row: 0, col: col)
+            let boardIndex = BoardIndex(pos)
+            // Skip gift cells in top row
+            if state.board[boardIndex].kind == .gift {
+                continue
             }
-        } else {
-            // Sparse mode: only spawn new tiles in the TOP ROW (row 0)
-            // Tiles will fall down via gravity on next move
-            for col in 0..<config.boardWidth {
-                let pos = Position(row: 0, col: col)
-                let boardIndex = BoardIndex(pos)
-                // Skip gift cells in top row
-                if state.board[boardIndex].kind == .gift {
-                    continue
-                }
-                if state.board[pos] == nil {
-                    state.board[pos] = Tile(value: generateRandomValue())
-                }
+            if state.board[pos] == nil {
+                state.board[pos] = Tile(value: generateRandomValue())
             }
         }
     }
@@ -1408,7 +1479,8 @@ public final class GameEngine {
 
     private func formatLargeNumber(_ value: Int) -> String {
         if value >= 1_000_000_000_000 {
-            return "\(value / 1_000_000_000_000)T"
+            // Use alphabetic suffixes for trillions+: a, b, c, ..., z, aa, ab, ..., az, ba, ..., bz
+            return TileStepLabelFormatter.formatTileValue(value)
         } else if value >= 1_000_000_000 {
             return "\(value / 1_000_000_000)B"
         } else if value >= 1_000_000 {
@@ -1449,11 +1521,26 @@ public final class GameEngine {
         var removedCount = 0
         var removedValues = Set<Int>()
 
+        print("🔍 ELIMINATION DEBUG: Scanning board for tiles below \(threshold)")
+
+        // Log all tiles on board before elimination
+        var allTileValues: [Int] = []
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos] {
+                    allTileValues.append(tile.value)
+                }
+            }
+        }
+        print("   Current board values: \(allTileValues.sorted())")
+
         // Remove ALL tiles below the threshold
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
                 if let tile = state.board[pos], tile.value < threshold {
+                    print("   🗑️ Removing tile at [\(row),\(col)] with value \(tile.value)")
                     removedValues.insert(tile.value)
                     state.board[pos] = nil
                     didRemove = true
@@ -1468,6 +1555,8 @@ public final class GameEngine {
             // IMMEDIATELY pull down and refill so the board stays valid
             refillAfterGravity()
             print("   ✅ Board refilled with higher-value tiles only")
+        } else {
+            print("   ℹ️ No tiles found below threshold \(threshold)")
         }
     }
 
@@ -1702,20 +1791,29 @@ public final class GameEngine {
     }
     
     private func addScoreForStep(_ step: Int) {
-        state.scoreValue.addPowerStep(step)
+        var scoreToAdd = AlphaNumber.powerOfTwo(step: step)
+        if scoreMultiplier > 1 {
+            scoreToAdd.multiply(by: scoreMultiplier)
+        }
+        state.scoreValue.add(scoreToAdd)
         let mergedValue = TileStepMath.value(forStep: step)
         state.score = safeAddScore(state.score, mergedValue)
     }
     
     private func addScoreValue(_ value: Int) {
         guard value > 0 else { return }
-        state.scoreValue.add(value)
+        let multipliedValue = applyScoreMultiplier(to: value)
+        state.scoreValue.add(multipliedValue)
         state.score = safeAddScore(state.score, value)
     }
     
     private func addScoreAlpha(_ alpha: AlphaNumber) {
         guard !alpha.isZero else { return }
-        state.scoreValue.add(alpha)
+        var multipliedAlpha = alpha
+        if scoreMultiplier > 1 {
+            multipliedAlpha.multiply(by: scoreMultiplier)
+        }
+        state.scoreValue.add(multipliedAlpha)
         state.score = safeAddScore(state.score, alpha.toInt())
     }
     

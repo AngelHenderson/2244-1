@@ -103,118 +103,19 @@ public enum JourneyTileGenerator {
         return tiles
     }
 
-    /// Format a tile value for display in the journey
+    /// Format a tile value for display in the journey (full sequence, all steps)
+    /// Delegates to the GameCore formatter so every milestone uses the exact value
+    /// (e.g., 65K, 131K, 262K, 524K) instead of the rounded powers-of-two labels.
     public static func formatTileAtStep(_ step: Int) -> String {
-        let tile = Tile.make(forStep: step)
-        return formatTileValue(tile.value)
+        return GameCore.JourneyTileGenerator.formatTileAtStep(step)
     }
 
-    /// Format tile value using abbreviated notation
+    /// Format tile value using abbreviated notation (delegates to GameCore for accuracy)
     public static func formatTileValue(_ value: Int) -> String {
-        // Simple formatting for small values
-        if value < 1000 {
-            return "\(value)"
-        }
-
-        // Get the step index to determine the notation
         if let tile = Tile.makeFromValue(value), let step = tile.stepIndex {
-            return formatStepNotation(step)
+            return GameCore.JourneyTileGenerator.formatTileAtStep(step)
         }
-
-        // Fallback for edge cases
-        return formatStepNotation(Int(log2(Double(value))) - 1)
-    }
-
-    /// Format step index into alphabetical notation
-    private static func formatStepNotation(_ step: Int) -> String {
-        // Steps 0-8 are shown as actual numbers (2, 4, 8, 16, 32, 64, 128, 256, 512)
-        if step <= 8 {
-            return "\(1 << (step + 1))"
-        }
-
-        // Steps 9-11: K notation (1K, 2K, 4K)
-        if step == 9 { return "1K" }
-        if step == 10 { return "2K" }
-        if step == 11 { return "4K" }
-
-        // Steps 12-18: More K values
-        if step == 12 { return "8K" }
-        if step == 13 { return "16K" }
-        if step == 14 { return "32K" }
-        if step == 15 { return "64K" }
-        if step == 16 { return "128K" }
-        if step == 17 { return "256K" }
-        if step == 18 { return "512K" }
-
-        // Steps 19-28: M notation
-        if step == 19 { return "1M" }
-        if step == 20 { return "2M" }
-        if step == 21 { return "4M" }
-        if step == 22 { return "8M" }
-        if step == 23 { return "16M" }
-        if step == 24 { return "32M" }
-        if step == 25 { return "64M" }
-        if step == 26 { return "128M" }
-        if step == 27 { return "256M" }
-        if step == 28 { return "512M" }
-
-        // Steps 29-38: B notation
-        if step == 29 { return "1B" }
-        if step == 30 { return "2B" }
-        if step == 31 { return "4B" }
-        if step == 32 { return "8B" }
-        if step == 33 { return "16B" }
-        if step == 34 { return "32B" }
-        if step == 35 { return "64B" }
-        if step == 36 { return "128B" }
-        if step == 37 { return "256B" }
-        if step == 38 { return "512B" }
-
-        // Steps 39+: Use alphabetical notation
-        // First, determine the coefficient (1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
-        let baseStep = (step - 39) % 10  // Which coefficient
-        let letterIndex = (step - 39) / 10  // Which letter(s)
-
-        let coefficient: String = {
-            switch baseStep {
-            case 0: return "1"
-            case 1: return "2"
-            case 2: return "4"
-            case 3: return "8"
-            case 4: return "16"
-            case 5: return "32"
-            case 6: return "64"
-            case 7: return "128"
-            case 8: return "256"
-            case 9: return "512"
-            default: return "1"
-            }
-        }()
-
-        // Generate letter(s)
-        let letter: String = {
-            if letterIndex < 26 {
-                // Single letter: a-z
-                return String(Character(UnicodeScalar(97 + letterIndex)!))
-            } else if letterIndex < 52 {
-                // Double letter: aa-az
-                let secondLetter = letterIndex - 26
-                return "a" + String(Character(UnicodeScalar(97 + secondLetter)!))
-            } else if letterIndex < 78 {
-                // ba-bz
-                let secondLetter = letterIndex - 52
-                return "b" + String(Character(UnicodeScalar(97 + secondLetter)!))
-            } else {
-                // Beyond bz, just show infinity symbol
-                return "∞"
-            }
-        }()
-
-        if letter == "∞" {
-            return "∞"
-        }
-
-        return "\(coefficient)\(letter)"
+        return GameCore.AlphaMag.formatTileValue(value)
     }
 }
 

@@ -252,5 +252,133 @@
         "value": 25
       }
     ]
+  },
+  {
+    "id": "boost2x_usage_progression",
+    "gcIdentifier": "boost2x_usage_progression",
+    "title": "2× Boost Master",
+    "description": "Use 2× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost2x_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "boost3x_usage_progression",
+    "gcIdentifier": "boost3x_usage_progression",
+    "title": "3× Boost Master",
+    "description": "Use 3× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost3x_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "boost4x_usage_progression",
+    "gcIdentifier": "boost4x_usage_progression",
+    "title": "4× Boost Master",
+    "description": "Use 4× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost4x_uses_total",
+        "op": ">=",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "spin_purchases_progression",
+    "gcIdentifier": "spin_purchases_progression",
+    "title": "Spin Buyer",
+    "description": "Buy spins to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "spin_purchases_total",
+        "op": ">=",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "daily_claims_progression",
+    "gcIdentifier": "daily_claims_progression",
+    "title": "Daily Collector",
+    "description": "Claim daily rewards to unlock escalating bonuses.",
+    "category": "Daily",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "daily_claims_total",
+        "op": ">=",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "boost5x_usage_progression",
+    "gcIdentifier": "boost5x_usage_progression",
+    "title": "5× Boost Master",
+    "description": "Use 5× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost5x_uses_total",
+        "op": ">=",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "boost20x_usage_progression",
+    "gcIdentifier": "boost20x_usage_progression",
+    "title": "20× Boost Master",
+    "description": "Use 20× boosts to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "boost20x_uses_total",
+        "op": ">=",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "wheel_collects_progression",
+    "gcIdentifier": "wheel_collects_progression",
+    "title": "Wheel Collector",
+    "description": "Collect powerups from the wheel to unlock escalating rewards.",
+    "category": "PowerUps",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "wheel_collects_total",
+        "op": ">=",
+        "value": 3
+      }
+    ]
   }
 ]

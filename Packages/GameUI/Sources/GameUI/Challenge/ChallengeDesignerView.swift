@@ -52,7 +52,7 @@ public struct ChallengeDesignerView: View {
                 }
                 .buttonStyle(.plain)
                 
-                Text(store.targetValue.abbreviated)
+                Text(store.targetLabel)
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .padding(.horizontal, 8)
                     .frame(minWidth: 120)
@@ -82,7 +82,7 @@ public struct ChallengeDesignerView: View {
             
             StepperBox(
                 title: "Min Tile",
-                value: "\(1 << store.minTileLevel)",
+                value: "\(store.minTileLevel)",
                 onDecrease: { store.decMinTile() },
                 onIncrease: { store.incMinTile() }
             )

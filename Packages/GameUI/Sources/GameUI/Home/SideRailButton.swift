@@ -61,6 +61,7 @@ struct SideRailButton: View {
             Text(title)
                 .font(.caption2)
                 .fontWeight(.heavy)
+                .foregroundStyle(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
