@@ -157,14 +157,27 @@ public final class ChallengeDesignerStore: Sendable {
     }
     
     public var predictedReward: Int {
-        // Use a fixed target (1M) so milestone selection doesn't affect reward
-        DifficultyEstimator.estimateReward(
-            target: .score(1_000_000),
-            timeLimit: timeLimitSeconds,
-            minTileLevel: actualMinTilePower,
-            levels: levels,
-            assignments: tileAssignments
-        )
+        // Reward formula:
+        // +time = -gems, -time = +gems
+        // +minTile = +gems, -minTile = -gems
+        // +levels = +gems, -levels = -gems
+
+        let baseReward = 100
+
+        // Time factor: more time = less reward
+        // Range: 60-1500
+        let timeFactor = Int(Double(780 - timeLimitSeconds) / 14.4)
+
+        // Min tile factor: higher minTileLevel = more reward
+        // Range: 5-10
+        let minTileFactor = (minTileLevel - 5) * 10
+
+        // Levels factor: more levels = more reward
+        // Range: 5-10
+        let levelsFactor = (levels - 5) * 10
+
+        let total = baseReward + timeFactor + minTileFactor + levelsFactor
+        return max(10, min(500, total))
     }
 }
 
