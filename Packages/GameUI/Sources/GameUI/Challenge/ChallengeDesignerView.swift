@@ -97,20 +97,55 @@ public struct ChallengeDesignerView: View {
     }
     
     private var tilesSection: some View {
-        VStack(spacing: 12) {
-            Text("TILES")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-
-            // Display auto-generated tiles based on Min Tile and Levels
-            HStack(spacing: 8) {
-                ForEach(store.candidateTiles, id: \.self) { tile in
-                    TileChip(value: tile)
+        VStack(alignment: .leading, spacing: 16) {
+            // Column headers
+            HStack {
+                ForEach(0..<3, id: \.self) { _ in
+                    Text("Tiles")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
+
+            // Tiles distributed across 3 columns
+            HStack(alignment: .top, spacing: 12) {
+                ForEach(0..<3, id: \.self) { columnIndex in
+                    VStack(spacing: 8) {
+                        ForEach(tilesForColumn(columnIndex), id: \.self) { tile in
+                            TileChip(value: tile)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(10)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
+                }
+            }
+        }
+    }
+
+    private func tilesForColumn(_ column: Int) -> [Int] {
+        let tiles = store.candidateTiles
+        guard !tiles.isEmpty else { return [] }
+
+        // Distribution: 1-4 in column 1, 5-8 in column 2, 9-10 in column 3
+        switch column {
+        case 0:
+            // First column: tiles 1-4 (indices 0-3)
+            let end = min(4, tiles.count)
+            return Array(tiles.prefix(end))
+        case 1:
+            // Second column: tiles 5-8 (indices 4-7)
+            guard tiles.count > 4 else { return [] }
+            let start = 4
+            let end = min(8, tiles.count)
+            return Array(tiles[start..<end])
+        case 2:
+            // Third column: tiles 9-10 (indices 8-9)
+            guard tiles.count > 8 else { return [] }
+            return Array(tiles[8...])
+        default:
+            return []
         }
     }
     
