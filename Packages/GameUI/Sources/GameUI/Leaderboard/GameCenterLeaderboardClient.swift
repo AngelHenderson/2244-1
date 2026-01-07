@@ -91,9 +91,10 @@ public extension LeaderboardClient {
                     case .countryJP: return .global
                     case .countryIN: return .global
                     case .countryBR: return .global
+                    case .countryMX: return .global
                     }
                 }()
-                
+
                 let (localPlayerEntry, entries, totalPlayerCount) = try await board.loadEntries(
                     for: playerScope,
                     timeScope: timeScope,

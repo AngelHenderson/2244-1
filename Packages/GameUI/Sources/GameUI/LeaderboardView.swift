@@ -215,6 +215,8 @@ public struct LeaderboardView: View {
             return Color.orange  // India - saffron from the flag
         case .countryBR:
             return Color.green  // Brazil - green from the flag
+        case .countryMX:
+            return Color.green  // Mexico - green from the flag
         }
     }
     

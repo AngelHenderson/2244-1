@@ -663,6 +663,27 @@ private enum MockLeaderboardData {
         "PaulistaPhantom", "ItaboraiImpact", "RioBrancoRaider", "SaoVicenteVictor", "FozIguacuFighter"
     ]
 
+    static let mexicoNames = [
+        "CiudadMexicoMaster", "GuadalajaraGhost", "MonterreyMaverick", "PueblaProwler", "TijuanaTitan",
+        "LeonLegend", "JuarezJuggernaut", "ZapopanZealot", "MeridaaMaster", "SanLuisPotosiStar",
+        "AguascalientesAce", "HermosilloHero", "SaltilloSlayer", "MexicaliMage", "CuliacanCrusher",
+        "AcapulcoAvenger", "TlalnepantlaTornado", "CancunChamp", "ChihuahuaChampion", "NaucalpanNinja",
+        "QueretaroQuake", "MoreliaMaverick", "TolucaTempest", "TorreonTitan", "CuernavacaCyclone",
+        "ReynosaRaider", "TuxtlaGutierrezTornado", "DurangoDestroyer", "OaxacaOracle", "VillahermosaVictor",
+        "VeracruzViper", "CiudadLopezMateosLegend", "XalapaaXtreme", "TabascoThunder", "MazatlanMaster",
+        "ImurisiInvader", "CelayaaCyclone", "TepicTornado", "EnsenadaEagle", "ColimaCrusher",
+        "PachucaProwler", "TlaxcalaTitan", "CampecheCaptain", "ZacatecasZealot", "ChetumalChamp",
+        "LaaPazProwler", "GuaymasGladiator", "LosLocosMochisMaster", "NuevoLaredoNinja", "MatamorosMaverick",
+        "PiedrasNegrasPhantom", "MonclovaMonster", "SabinasStar", "CiudadVictoriaVictor", "TampiicoTitan",
+        "PozaRicaProwler", "CoatzacoalcosChamp", "MinatitlanMaster", "CordobaCyclone", "OrizabaOracle",
+        "IrapuatoInvader", "SalamancaSlayer", "SanJuanDelRioRaider", "TehuacanTornado", "AtlixcoAce",
+        "TulaaTitan", "PlaayaDelCarmenChamp", "CoziCozumelCrusader", "IslaaMujeresMaster", "ProgresoProwler",
+        "CampeecheCityChamp", "CiudadDelCarmenCrusher", "FronteraaFighter", "ParaisoPhantom", "MacuspanaaMaverick",
+        "ComalcalcoCyclone", "CardenasChamp", "HuimanguilloHero", "EmilianoZapataZealot", "TenosiqueeTitan",
+        "SanCristobalSlayer", "ComitanCrusader", "TapachulaTornado", "TonalaTitan", "ArriagaAce",
+        "ChiapaDeCorzoChamp", "OcosinguloOracle", "PalenqueProwler", "CatazajaCyclone", "TeapaaTitan"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -730,6 +751,8 @@ public extension LeaderboardClient {
                 entries = indiaEntries()
             case .countryBR:
                 entries = brazilEntries()
+            case .countryMX:
+                entries = mexicoEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -756,9 +779,11 @@ public extension LeaderboardClient {
                 totalPlayers = 1_488  // India player count
             case .countryBR:
                 totalPlayers = 10_000  // Brazil player count
+            case .countryMX:
+                totalPlayers = 7_229  // Mexico player count
             case .global:
-                // Global = sum of all country players (US + UK + Canada + Australia + Germany + France + Japan + India + Brazil)
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000
+                // Global = sum of all country players (US + UK + Canada + Australia + Germany + France + Japan + India + Brazil + Mexico)
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229
             }
             return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
         },
@@ -1245,6 +1270,43 @@ public extension LeaderboardClient {
         ("0", 9297)
     ]
 
+    // Mexico player milestones - exact values from positions 1-150
+    private static let mexicoPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "97bu", "1bu", "2bs", "5bn", "10bm", "615bk", "285bh", "1bf", "64bd", "235az",
+        "28ax", "3av", "6at", "12ar", "11ap", "338al", "82ak", "20aj", "587af", "2ae",
+        "4ab", "63y", "3w", "883t", "13r", "205q", "3o", "730l", "1k", "170i",
+        // Ranks 31-60
+        "664h", "5h", "162g", "2g", "39f", "1f", "38e", "1e", "75d", "4d",
+        "295c", "36c", "4c", "1c", "288b", "72b", "36b", "9b", "4b", "2b",
+        "1b", "562a", "281a", "140a", "140a", "70a", "8a", "4a", "4a", "2a",
+        // Ranks 61-90
+        "1a", "549B", "549B", "274B", "274B", "137B", "137B", "68B", "68B", "68B",
+        "34B", "34B", "34B", "17B", "17B", "8B", "8B", "8B", "4B", "2B",
+        "2B", "2B", "1B", "1B", "1B", "1B", "536M", "536M", "536M", "268M",
+        // Ranks 91-120
+        "268M", "268M", "268M", "134M", "134M", "134M", "134M", "67M", "67M", "67M",
+        "67M", "67M", "33M", "33M", "33M", "33M", "33M", "16M", "16M", "16M",
+        "16M", "16M", "16M", "16M", "8M", "8M", "8M", "8M", "8M", "8M",
+        // Ranks 121-150
+        "8M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M",
+        "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "1M",
+        "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "524K"
+    ]
+
+    // Extended Mexico milestone brackets for rank calculation (ranks 151+)
+    // Total Mexico players: 7,229
+    private static let mexicoExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // K-tier brackets
+        ("524K", 150), ("262K", 161), ("131K", 173), ("65K", 186), ("32K", 203), ("16K", 226),
+        // Raw number brackets
+        ("8192", 264), ("4096", 322), ("2048", 402), ("1024", 488), ("512", 574),
+        ("256", 688), ("128", 822), ("64", 1000), ("32", 1175), ("16", 1558),
+        ("8", 2222), ("4", 3377), ("2", 4444),
+        // Score 0 bracket (ranks 5783-7229)
+        ("0", 5783)
+    ]
+
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
     // Only returns top 150 for display, but extended data exists for rank calculations
     private static func usPlayerData(day: Int, milestones: [String]) -> [(index: Int, milestoneIdx: Int, exactMilestone: String)] {
@@ -1554,6 +1616,19 @@ public extension LeaderboardClient {
             playerData.append((i, i + 40000, baseMilestone, milestoneIdx, name, "BR", platform, avatar, "br_\(i)"))
         }
 
+        // Add Mexico players
+        for i in 0..<min(150, mexicoPlayerMilestones.count) {
+            let baseMilestone = mexicoPlayerMilestones[i]
+            let name = MockLeaderboardData.mexicoNames[i % MockLeaderboardData.mexicoNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 54) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // Mexico milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, i + 45000, baseMilestone, milestoneIdx, name, "MX", platform, avatar, "mx_\(i)"))
+        }
+
         // Sort by milestone index (highest first = best milestone)
         playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
 
@@ -1586,7 +1661,11 @@ public extension LeaderboardClient {
         let totalAustraliaPlayers = 63_213
         let totalGermanyPlayers = 76_767
         let totalFrancePlayers = 127_676
-        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers
+        let totalJapanPlayers = 894
+        let totalIndiaPlayers = 1_488
+        let totalBrazilPlayers = 10_000
+        let totalMexicoPlayers = 7_229
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers
 
         // Find user's rank based on milestone compared to sorted players
         var globalRank = totalPlayers
@@ -2396,6 +2475,94 @@ public extension LeaderboardClient {
             name: UserLeaderboardData.playerName,
             score: userScore,
             countryCode: "BR",
+            platform: .ios,
+            isMe: true,
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
+        ))
+
+        return entries
+    }
+
+    // Mexico leaderboard - shows only Mexican players with exact milestones
+    // Ranks are based on milestone - higher milestone = better rank
+    private static func mexicoEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // First, build player data with milestones
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String)] = []
+
+        for i in 0..<min(150, mexicoPlayerMilestones.count) {
+            let baseMilestone = mexicoPlayerMilestones[i]
+            let name = MockLeaderboardData.mexicoNames[i % MockLeaderboardData.mexicoNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 54) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // Mexico milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar))
+        }
+
+        // Sort by milestone index (descending - higher milestone = better rank)
+        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+
+        // Build entries with ranks based on sorted order
+        var entries: [LeaderboardEntry] = []
+        for (rank, player) in playerData.enumerated() {
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 45000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: "mx_\(player.originalIndex)",
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "MX",
+                platform: player.platform,
+                isMe: false,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // Add current user entry
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+        let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let totalMexicoPlayers = 7_229  // Mexico player count
+
+        // Find user's rank based on milestone compared to sorted players
+        var mexicoRank = totalMexicoPlayers
+
+        // Check if user would be in top 150 based on milestone
+        if let lastTop150 = playerData.last {
+            if userMilestoneIndex > lastTop150.milestoneIdx {
+                // User's milestone is better than some in top 150, find exact position
+                for (rank, player) in playerData.enumerated() {
+                    if userMilestoneIndex >= player.milestoneIdx {
+                        mexicoRank = rank + 1
+                        break
+                    }
+                }
+            } else {
+                // User is below top 150 - use bracket-based ranking
+                for bracket in mexicoExtendedRankBrackets {
+                    if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                       userMilestoneIndex >= bracketIndex {
+                        mexicoRank = bracket.startRank
+                        break
+                    }
+                }
+            }
+        }
+
+        entries.append(LeaderboardEntry(
+            id: "me",
+            rank: mexicoRank,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
+            countryCode: "MX",
             platform: .ios,
             isMe: true,
             avatarURL: UserLeaderboardData.avatarID,
