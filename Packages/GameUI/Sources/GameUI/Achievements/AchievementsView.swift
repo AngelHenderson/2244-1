@@ -352,88 +352,90 @@ private struct AchievementRow: View {
     }
     
     var body: some View {
-        HStack(spacing: 16) {
-            LockupIcon(isUnlocked: isUnlocked, isMaxed: isMaxed)
-                .frame(width: 64, height: 64)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text(categoryLabel)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                
-                Text(displayTitle)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                
-                Text(displayDescription)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                
-                if let progress = progress {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(progressLabel(for: progress))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text(progressValueText(for: progress))
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                        ProgressView(
-                            value: clampedProgressValue(progress).current,
-                            total: clampedProgressValue(progress).target
-                        )
-                        .progressViewStyle(.linear)
-                        .tint(.green)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 2)
-                }
-                
-                HStack(spacing: 8) {
-                    if isClaimed {
-                        StatusBadge(text: "Completed", color: .green)
-                    } else if !isUnlocked {
-                        StatusBadge(text: "In Progress", color: .orange)
-                    } else if isClaimable {
-                        StatusBadge(text: "Ready!", color: .green)
-                    }
+        VStack(alignment: .leading, spacing: 10) {
+            // Top row: Icon, Title/Category, Claim button
+            HStack(alignment: .top, spacing: 12) {
+                LockupIcon(isUnlocked: isUnlocked, isMaxed: isMaxed)
+                    .frame(width: 52, height: 52)
 
-                    if hasMultipleTiers {
-                        Button(action: onTapTiers) {
-                            HStack(spacing: 4) {
-                                Text("View All Tiers")
-                                    .font(.caption2.bold())
-                                Image(systemName: "chevron.right")
-                                    .font(.caption2)
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.blue.opacity(0.15), in: Capsule())
-                            .foregroundStyle(.blue)
-                        }
-                        .buttonStyle(.plain)
-                    }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(categoryLabel)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+
+                    Text(displayTitle)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(alignment: .trailing, spacing: 6) {
+                    ClaimButton(
+                        title: isClaimed ? "Done" : "Claim",
+                        enabled: isClaimable,
+                        action: onClaim
+                    )
+                    RewardSummary(rewards: rewardsForDisplay)
                 }
             }
 
-            Spacer()
+            // Description
+            Text(displayDescription)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
-            VStack(alignment: .trailing, spacing: 12) {
-                ClaimButton(
-                    title: isClaimed ? "Done" : "Claim",
-                    enabled: isClaimable,
-                    action: onClaim
-                )
+            // Progress bar (full width)
+            if let progress = progress {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(progressValueText(for: progress))
+                            .font(.caption.monospacedDigit().bold())
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    ProgressView(
+                        value: clampedProgressValue(progress).current,
+                        total: clampedProgressValue(progress).target
+                    )
+                    .progressViewStyle(.linear)
+                    .tint(.green)
+                }
+            }
 
-                RewardSummary(rewards: rewardsForDisplay)
+            // Status badges
+            HStack(spacing: 8) {
+                if isClaimed {
+                    StatusBadge(text: "Completed", color: .green)
+                } else if !isUnlocked {
+                    StatusBadge(text: "In Progress", color: .orange)
+                } else if isClaimable {
+                    StatusBadge(text: "Ready!", color: .green)
+                }
+
+                Spacer()
+
+                if hasMultipleTiers {
+                    Button(action: onTapTiers) {
+                        HStack(spacing: 4) {
+                            Text("View All Tiers")
+                                .font(.caption2.bold())
+                            Image(systemName: "chevron.right")
+                                .font(.caption2)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.blue.opacity(0.15), in: Capsule())
+                        .foregroundStyle(.blue)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
-        .padding(16)
+        .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(
