@@ -684,6 +684,26 @@ private enum MockLeaderboardData {
         "ChiapaDeCorzoChamp", "OcosinguloOracle", "PalenqueProwler", "CatazajaCyclone", "TeapaaTitan"
     ]
 
+    static let afghanistanNames = [
+        "KabulKing", "HeratHero", "MazariSharifMaster", "KandaharKnight", "JalalabadJuggernaut",
+        "KunduzKrusader", "BalkhhBrawler", "BaghlanBolt", "GhazniGladiator", "KhostKhampion",
+        "NangarharNinja", "TakharTitan", "BadakhshanBoss", "FaryabFury", "HelmandHunter",
+        "LogarLegend", "PaktiaPhantom", "SamangaanSlayer", "WardakWarrior", "ZabulZealot",
+        "BamyanBlade", "DaykundiDestroyer", "GhorGhost", "NimrozNomad", "FarahFighter",
+        "BadghisBrawler", "SariPulStar", "JowzjanJolt", "PanjshirProwler", "KapisaKing",
+        "LaghmanLion", "NuristanNinja", "KunarKrusader", "ParwanPhantom", "PaktikaProwler",
+        "UrozganUltra", "SamanganShadow", "TakharThunder", "BaghlanBoss", "KhostKiller",
+        "NangarharNova", "KandaharKrusader", "HeratHawk", "MazarMaverick", "KabulKrusader",
+        "JalalabadJinx", "KunduzKing", "BalkhBolt", "GhazniGhost", "PaktiaaProwler",
+        "LogarLightning", "WardakWolf", "ZabulZephyr", "BamyanBeast", "GhorGuardian",
+        "FarahFlash", "NimrozNightmare", "BadghisBlade", "SariPulSlayer", "JowzjanJuggernaut",
+        "PanjshirPower", "KapisaKnight", "LaghmanLegend", "NuristanNomad", "KunarKing",
+        "ParwanProwler", "PaktikaPhantom", "UrozganUltimate", "SamanganStorm", "BadakhshanBolt",
+        "FaryabFighter", "HelmandHero", "DaykundiDragon", "TakharTornado", "BaghlanBlitz",
+        "KhostKhan", "NangarharNuke", "KandaharCrusher", "HeratHammer", "MazarMaster",
+        "KabulCommander", "JalalabadJudge", "KunduzKhaleesi", "BalkhBaron", "GhazniGeneral"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -753,6 +773,8 @@ public extension LeaderboardClient {
                 entries = brazilEntries()
             case .countryMX:
                 entries = mexicoEntries()
+            case .countryAF:
+                entries = afghanistanEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -781,9 +803,11 @@ public extension LeaderboardClient {
                 totalPlayers = 10_000  // Brazil player count
             case .countryMX:
                 totalPlayers = 7_229  // Mexico player count
+            case .countryAF:
+                totalPlayers = 11_111  // Afghanistan player count
             case .global:
-                // Global = sum of all country players (US + UK + Canada + Australia + Germany + France + Japan + India + Brazil + Mexico)
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229
+                // Global = sum of all country players (US + UK + Canada + Australia + Germany + France + Japan + India + Brazil + Mexico + Afghanistan)
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111
             }
             return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
         },
@@ -1307,6 +1331,45 @@ public extension LeaderboardClient {
         ("0", 5783)
     ]
 
+    // Afghanistan player milestones - exact values from positions 1-150
+    private static let afghanistanPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "1bz", "2br", "4bl", "583bi", "1bh", "32bd", "30ba", "449ax", "53av", "1as",
+        "726ao", "42al", "9ai", "4af", "8ac", "31z", "3x", "7v", "210r", "3p",
+        "2n", "2l", "5j", "20h", "158f", "1f", "9e", "151d", "2d", "77c",
+        // Ranks 31-60
+        "2c", "72b", "4b", "281a", "35a", "8a", "8a", "4a", "1a", "549B",
+        "549B", "274B", "274B", "137B", "137B", "137B", "34B", "17B", "17B", "8B",
+        "8B", "8B", "4B", "4B", "4B", "4B", "2B", "2B", "2B", "2B",
+        // Ranks 61-90
+        "2B", "2B", "1B", "1B", "1B", "1B", "1B", "1B", "536M", "536M",
+        "536M", "536M", "536M", "536M", "536M", "268M", "268M", "268M", "268M", "268M",
+        "268M", "268M", "268M", "268M", "268M", "134M", "134M", "134M", "134M", "134M",
+        // Ranks 91-120
+        "134M", "134M", "134M", "134M", "134M", "134M", "134M", "67M", "67M", "67M",
+        "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M",
+        "67M", "33M", "33M", "33M", "33M", "33M", "33M", "33M", "33M", "33M",
+        // Ranks 121-150
+        "33M", "33M", "33M", "33M", "33M", "33M", "16M", "16M", "16M", "16M",
+        "16M", "16M", "16M", "16M", "16M", "16M", "16M", "16M", "16M", "16M",
+        "16M", "16M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M"
+    ]
+
+    // Extended Afghanistan milestone brackets for rank calculation (ranks 151+)
+    // Total Afghanistan players: 11,111
+    private static let afghanistanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // M-tier brackets
+        ("8M", 143), ("4M", 162), ("2M", 186), ("1M", 218),
+        // K-tier brackets
+        ("524K", 253), ("262K", 292), ("131K", 333), ("65K", 379), ("32K", 423), ("16K", 477),
+        // Raw number brackets
+        ("8192", 540), ("4096", 622), ("2048", 718), ("1024", 827), ("512", 944),
+        ("256", 1097), ("128", 1300), ("64", 1677), ("32", 2111), ("16", 2798),
+        ("8", 3766), ("4", 5000), ("2", 6767),
+        // Score 0 bracket (ranks 8987-11111)
+        ("0", 8987)
+    ]
+
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
     // Only returns top 150 for display, but extended data exists for rank calculations
     private static func usPlayerData(day: Int, milestones: [String]) -> [(index: Int, milestoneIdx: Int, exactMilestone: String)] {
@@ -1629,6 +1692,19 @@ public extension LeaderboardClient {
             playerData.append((i, i + 45000, baseMilestone, milestoneIdx, name, "MX", platform, avatar, "mx_\(i)"))
         }
 
+        // Add Afghanistan players
+        for i in 0..<min(150, afghanistanPlayerMilestones.count) {
+            let baseMilestone = afghanistanPlayerMilestones[i]
+            let name = MockLeaderboardData.afghanistanNames[i % MockLeaderboardData.afghanistanNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 60) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // Afghanistan milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, i + 50000, baseMilestone, milestoneIdx, name, "AF", platform, avatar, "af_\(i)"))
+        }
+
         // Sort by milestone index (highest first = best milestone)
         playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
 
@@ -1665,7 +1741,8 @@ public extension LeaderboardClient {
         let totalIndiaPlayers = 1_488
         let totalBrazilPlayers = 10_000
         let totalMexicoPlayers = 7_229
-        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers
+        let totalAfghanistanPlayers = 11_111
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers
 
         // Find user's rank based on milestone compared to sorted players
         var globalRank = totalPlayers
@@ -2563,6 +2640,94 @@ public extension LeaderboardClient {
             name: UserLeaderboardData.playerName,
             score: userScore,
             countryCode: "MX",
+            platform: .ios,
+            isMe: true,
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
+        ))
+
+        return entries
+    }
+
+    // Afghanistan leaderboard - shows only Afghan players with exact milestones
+    // Ranks are based on milestone - higher milestone = better rank
+    private static func afghanistanEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // First, build player data with milestones
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String)] = []
+
+        for i in 0..<min(150, afghanistanPlayerMilestones.count) {
+            let baseMilestone = afghanistanPlayerMilestones[i]
+            let name = MockLeaderboardData.afghanistanNames[i % MockLeaderboardData.afghanistanNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 60) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // Afghanistan milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar))
+        }
+
+        // Sort by milestone index (descending - higher milestone = better rank)
+        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+
+        // Build entries with ranks based on sorted order
+        var entries: [LeaderboardEntry] = []
+        for (rank, player) in playerData.enumerated() {
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 50000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: "af_\(player.originalIndex)",
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "AF",
+                platform: player.platform,
+                isMe: false,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // Add current user entry
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+        let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let totalAfghanistanPlayers = 11_111  // Afghanistan player count
+
+        // Find user's rank based on milestone compared to sorted players
+        var afghanistanRank = totalAfghanistanPlayers
+
+        // Check if user would be in top 150 based on milestone
+        if let lastTop150 = playerData.last {
+            if userMilestoneIndex > lastTop150.milestoneIdx {
+                // User's milestone is better than some in top 150, find exact position
+                for (rank, player) in playerData.enumerated() {
+                    if userMilestoneIndex >= player.milestoneIdx {
+                        afghanistanRank = rank + 1
+                        break
+                    }
+                }
+            } else {
+                // User is below top 150 - use bracket-based ranking
+                for bracket in afghanistanExtendedRankBrackets {
+                    if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                       userMilestoneIndex >= bracketIndex {
+                        afghanistanRank = bracket.startRank
+                        break
+                    }
+                }
+            }
+        }
+
+        entries.append(LeaderboardEntry(
+            id: "me",
+            rank: afghanistanRank,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
+            countryCode: "AF",
             platform: .ios,
             isMe: true,
             avatarURL: UserLeaderboardData.avatarID,
