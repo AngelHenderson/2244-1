@@ -275,18 +275,21 @@ public struct PlayerProfileView: View {
     }
     
     // MARK: - Helper Functions
-    
+
     private func flagEmoji(_ countryCode: String) -> String {
-        let base: UInt32 = 127397
-        var emoji = ""
-        for scalar in countryCode.uppercased().unicodeScalars {
-            if let unicodeScalar = UnicodeScalar(base + scalar.value) {
-                emoji.unicodeScalars.append(unicodeScalar)
-            }
+        let uppercased = countryCode.uppercased()
+        let regionalIndicatorBase: UInt32 = 0x1F1E6 // 🇦
+        let asciiA: UInt32 = 0x41 // A
+
+        return uppercased.unicodeScalars.compactMap { scalar in
+            guard scalar.value >= asciiA && scalar.value <= 0x5A else { return nil } // A-Z range
+            let offset = scalar.value - asciiA
+            return UnicodeScalar(regionalIndicatorBase + offset)
         }
-        return emoji
+        .map(String.init)
+        .joined()
     }
-    
+
     private func countryName(_ countryCode: String) -> String {
         let locale = Locale.current
         return locale.localizedString(forRegionCode: countryCode) ?? countryCode
@@ -408,23 +411,26 @@ private struct CountryPickerView: View {
         }
         .foregroundStyle(.primary)
     }
-    
+
     private func flagEmoji(_ countryCode: String) -> String {
-        let base: UInt32 = 127397
-        var emoji = ""
-        for scalar in countryCode.uppercased().unicodeScalars {
-            if let unicodeScalar = UnicodeScalar(base + scalar.value) {
-                emoji.unicodeScalars.append(unicodeScalar)
-            }
+        let uppercased = countryCode.uppercased()
+        let regionalIndicatorBase: UInt32 = 0x1F1E6 // 🇦
+        let asciiA: UInt32 = 0x41 // A
+
+        return uppercased.unicodeScalars.compactMap { scalar in
+            guard scalar.value >= asciiA && scalar.value <= 0x5A else { return nil } // A-Z range
+            let offset = scalar.value - asciiA
+            return UnicodeScalar(regionalIndicatorBase + offset)
         }
-        return emoji
+        .map(String.init)
+        .joined()
     }
-    
+
     private func countryName(_ countryCode: String) -> String {
         let locale = Locale.current
         return locale.localizedString(forRegionCode: countryCode) ?? countryCode
     }
-    
+
     private var allCountryCodes: [String] {
         if #available(iOS 16.0, *) {
             return Locale.Region.isoRegions.compactMap { $0.identifier }.sorted { countryName($0) < countryName($1) }
