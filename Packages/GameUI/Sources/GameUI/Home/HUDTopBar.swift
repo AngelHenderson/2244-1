@@ -24,13 +24,13 @@ struct HUDTopBar: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Spacer()
-
-            // Compact boost status button (replaces stacked boost buttons)
+            // Compact boost status button (left side)
             BoostStatusButton()
 
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
+
+            Spacer()
 
             // Rank button
             Button(action: { actions.openLeaderboard() }) {
