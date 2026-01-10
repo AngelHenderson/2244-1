@@ -347,9 +347,41 @@ private struct CountryPickerView: View {
     let selectedCountry: String?
     let onSelect: (String?) -> Void
     @Environment(\.dismiss) private var dismiss
-    
-    private let popularCountries = ["US", "GB", "CA", "AU", "DE", "FR", "JP", "IN", "BR", "MX"]
-    
+    @State private var searchText = ""
+
+    private let popularCountries = [
+        "US", "GB", "CA", "AU", "DE", "FR", "JP", "IN", "BR", "MX",
+        "CN", "KR", "IT", "ES", "NL", "SE", "CH", "NO", "DK", "FI",
+        "PL", "BE", "AT", "IE", "PT", "GR", "CZ", "RO", "HU", "NZ",
+        "SG", "MY", "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
+        "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
+    ]
+
+    private var filteredPopularCountries: [String] {
+        if searchText.isEmpty {
+            return popularCountries
+        }
+        return popularCountries.filter { countryCode in
+            let name = countryName(countryCode).lowercased()
+            let code = countryCode.lowercased()
+            let search = searchText.lowercased()
+            return name.contains(search) || code.contains(search)
+        }
+    }
+
+    private var filteredAllCountries: [String] {
+        let allExcludingPopular = allCountryCodes.filter { !popularCountries.contains($0) }
+        if searchText.isEmpty {
+            return allExcludingPopular
+        }
+        return allExcludingPopular.filter { countryCode in
+            let name = countryName(countryCode).lowercased()
+            let code = countryCode.lowercased()
+            let search = searchText.lowercased()
+            return name.contains(search) || code.contains(search)
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -372,18 +404,23 @@ private struct CountryPickerView: View {
                     .foregroundStyle(.primary)
                 }
                 
-                Section("Popular Countries") {
-                    ForEach(popularCountries, id: \.self) { countryCode in
-                        countryRow(countryCode: countryCode)
+                if !filteredPopularCountries.isEmpty {
+                    Section("Popular Countries") {
+                        ForEach(filteredPopularCountries, id: \.self) { countryCode in
+                            countryRow(countryCode: countryCode)
+                        }
                     }
                 }
-                
-                Section("All Countries") {
-                    ForEach(allCountryCodes.filter { !popularCountries.contains($0) }, id: \.self) { countryCode in
-                        countryRow(countryCode: countryCode)
+
+                if !filteredAllCountries.isEmpty {
+                    Section("All Countries") {
+                        ForEach(filteredAllCountries, id: \.self) { countryCode in
+                            countryRow(countryCode: countryCode)
+                        }
                     }
                 }
             }
+            .searchable(text: $searchText, prompt: "Search countries")
             .navigationTitle("Select Country")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
