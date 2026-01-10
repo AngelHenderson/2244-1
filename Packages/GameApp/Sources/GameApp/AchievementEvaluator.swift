@@ -495,7 +495,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost2xUsed() {
-        boost2xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost2xUsesTotal += multiplier
         defaults.set(boost2xUsesTotal, forKey: boost2xUsesKey)
         currentGameSnapshot.boost2x_uses_total = boost2xUsesTotal
 
@@ -507,7 +508,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost3xUsed() {
-        boost3xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost3xUsesTotal += multiplier
         defaults.set(boost3xUsesTotal, forKey: boost3xUsesKey)
         currentGameSnapshot.boost3x_uses_total = boost3xUsesTotal
 
@@ -519,7 +521,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost4xUsed() {
-        boost4xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost4xUsesTotal += multiplier
         defaults.set(boost4xUsesTotal, forKey: boost4xUsesKey)
         currentGameSnapshot.boost4x_uses_total = boost4xUsesTotal
 
@@ -531,7 +534,8 @@ public final class AchievementEvaluator {
     }
 
     public func onSpinPurchased(count: Int) {
-        spinPurchasesTotal += count
+        let multiplier = achievementBoostMultiplier
+        spinPurchasesTotal += count * multiplier
         defaults.set(spinPurchasesTotal, forKey: spinPurchasesKey)
         currentGameSnapshot.spin_purchases_total = spinPurchasesTotal
 
@@ -555,7 +559,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost5xUsed() {
-        boost5xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost5xUsesTotal += multiplier
         defaults.set(boost5xUsesTotal, forKey: boost5xUsesKey)
         currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
 
@@ -567,7 +572,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost20xUsed() {
-        boost20xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost20xUsesTotal += multiplier
         defaults.set(boost20xUsesTotal, forKey: boost20xUsesKey)
         currentGameSnapshot.boost20x_uses_total = boost20xUsesTotal
 
@@ -579,7 +585,8 @@ public final class AchievementEvaluator {
     }
 
     public func onWheelCollected(count: Int) {
-        wheelCollectsTotal += count
+        let multiplier = achievementBoostMultiplier
+        wheelCollectsTotal += count * multiplier
         defaults.set(wheelCollectsTotal, forKey: wheelCollectsKey)
         currentGameSnapshot.wheel_collects_total = wheelCollectsTotal
 
@@ -591,7 +598,8 @@ public final class AchievementEvaluator {
     }
 
     public func onChallengeCreationCompleted() {
-        challengeCreationTotal += 1
+        let multiplier = achievementBoostMultiplier
+        challengeCreationTotal += multiplier
         defaults.set(challengeCreationTotal, forKey: challengeCreationTotalKey)
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal
         var snapshot = currentGameSnapshot
