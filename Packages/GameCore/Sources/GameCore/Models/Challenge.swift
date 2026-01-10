@@ -15,6 +15,8 @@ public struct Challenge: Identifiable, Codable, Sendable {
     public let createdAt: Date
     public let createdBy: String?
     public let seed: UInt64?
+    public let maxSpawnTile: Int?
+    public let minSpawnTile: Int?
 
     public init(
         id: UUID = UUID(),
@@ -30,7 +32,9 @@ public struct Challenge: Identifiable, Codable, Sendable {
         reward: ChallengeReward? = nil,
         createdAt: Date = Date(),
         createdBy: String? = nil,
-        seed: UInt64? = nil
+        seed: UInt64? = nil,
+        maxSpawnTile: Int? = nil,
+        minSpawnTile: Int? = nil
     ) {
         self.id = id
         self.name = name
@@ -46,6 +50,8 @@ public struct Challenge: Identifiable, Codable, Sendable {
         self.createdAt = createdAt
         self.createdBy = createdBy
         self.seed = seed
+        self.maxSpawnTile = maxSpawnTile
+        self.minSpawnTile = minSpawnTile
     }
 }
 

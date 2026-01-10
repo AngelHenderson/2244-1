@@ -99,27 +99,42 @@ public final class ChallengeStore: Sendable {
             return Int(ceil(Double(hi) * log2Of1000 - 1))
         }
 
+        // Calculate spawn limits: max spawn is 6 steps down, min spawn is 12 steps down
+        func spawnLimits(for targetStep: Int) -> (maxSpawn: Int, minSpawn: Int) {
+            let maxSpawn = max(0, targetStep - 6)
+            let minSpawn = max(0, targetStep - 12)
+            return (maxSpawn, minSpawn)
+        }
+
         // 1. 1M milestone (hi=2)
+        let step1M = stepForTier(2)
+        let limits1M = spawnLimits(for: step1M)
         allChallenges.append(Challenge(
             id: stableUUID(for: challengeIndex),
             name: "Million Milestone",
             description: "Reach the 1M tile",
             mode: .custom,
             difficulty: .easy,
-            targetTile: stepForTier(2),
-            reward: reward(for: challengeIndex)
+            targetTile: step1M,
+            reward: reward(for: challengeIndex),
+            maxSpawnTile: limits1M.maxSpawn,
+            minSpawnTile: limits1M.minSpawn
         ))
         challengeIndex += 1
 
         // 2. 1B milestone (hi=3)
+        let step1B = stepForTier(3)
+        let limits1B = spawnLimits(for: step1B)
         allChallenges.append(Challenge(
             id: stableUUID(for: challengeIndex),
             name: "Billion Milestone",
             description: "Reach the 1B tile",
             mode: .custom,
             difficulty: .easy,
-            targetTile: stepForTier(3),
-            reward: reward(for: challengeIndex)
+            targetTile: step1B,
+            reward: reward(for: challengeIndex),
+            maxSpawnTile: limits1B.maxSpawn,
+            minSpawnTile: limits1B.minSpawn
         ))
         challengeIndex += 1
 
@@ -131,14 +146,18 @@ public final class ChallengeStore: Sendable {
         for letterIndex in 0..<26 {
             let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
             let hi = 4 + letterIndex
+            let step = stepForTier(hi)
+            let limits = spawnLimits(for: step)
             allChallenges.append(Challenge(
                 id: stableUUID(for: challengeIndex),
                 name: "Reach 1\(letter)",
                 description: "Reach the 1\(letter) tile",
                 mode: .custom,
                 difficulty: difficulty(for: challengeIndex, total: totalMilestones),
-                targetTile: stepForTier(hi),
-                reward: reward(for: challengeIndex)
+                targetTile: step,
+                reward: reward(for: challengeIndex),
+                maxSpawnTile: limits.maxSpawn,
+                minSpawnTile: limits.minSpawn
             ))
             challengeIndex += 1
         }
@@ -148,14 +167,18 @@ public final class ChallengeStore: Sendable {
         for letterIndex in 0..<26 {
             let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
             let hi = 30 + letterIndex
+            let step = stepForTier(hi)
+            let limits = spawnLimits(for: step)
             allChallenges.append(Challenge(
                 id: stableUUID(for: challengeIndex),
                 name: "Reach 1a\(letter)",
                 description: "Reach the 1a\(letter) tile",
                 mode: .custom,
                 difficulty: difficulty(for: challengeIndex, total: totalMilestones),
-                targetTile: stepForTier(hi),
-                reward: reward(for: challengeIndex)
+                targetTile: step,
+                reward: reward(for: challengeIndex),
+                maxSpawnTile: limits.maxSpawn,
+                minSpawnTile: limits.minSpawn
             ))
             challengeIndex += 1
         }
@@ -165,19 +188,23 @@ public final class ChallengeStore: Sendable {
         for letterIndex in 0..<26 {
             let letter = String(Character(UnicodeScalar(97 + letterIndex)!))  // 'a' = 97
             let hi = 56 + letterIndex
+            let step = stepForTier(hi)
+            let limits = spawnLimits(for: step)
             allChallenges.append(Challenge(
                 id: stableUUID(for: challengeIndex),
                 name: "Reach 1b\(letter)",
                 description: "Reach the 1b\(letter) tile",
                 mode: .custom,
                 difficulty: difficulty(for: challengeIndex, total: totalMilestones),
-                targetTile: stepForTier(hi),
-                reward: reward(for: challengeIndex)
+                targetTile: step,
+                reward: reward(for: challengeIndex),
+                maxSpawnTile: limits.maxSpawn,
+                minSpawnTile: limits.minSpawn
             ))
             challengeIndex += 1
         }
 
-        // 6. Infinity milestone (special case)
+        // 6. Infinity milestone (special case - use very high spawn limits)
         allChallenges.append(Challenge(
             id: stableUUID(for: challengeIndex),
             name: "Infinity",
@@ -185,7 +212,9 @@ public final class ChallengeStore: Sendable {
             mode: .custom,
             difficulty: .expert,
             targetTile: Int.max,
-            reward: ChallengeReward(coins: 10000, experience: 50000)
+            reward: ChallengeReward(coins: 10000, experience: 50000),
+            maxSpawnTile: stepForTier(81) - 6,  // Same as 1bz max spawn
+            minSpawnTile: stepForTier(81) - 12  // Same as 1bz min spawn
         ))
 
         return allChallenges

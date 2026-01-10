@@ -22,6 +22,9 @@ public final class GameStore {
     // Track if game over has been processed for this session (reset on new game)
     private var gameOverProcessed: Bool = false
 
+    // Sandboxed mode for challenges - doesn't persist progress to main game
+    public let sandboxed: Bool
+
     // Progress store for comprehensive auto-save
     private let progressStore: UserDefaultsProgressStore
     // Track if we're building a chain that may end on a gift
@@ -275,10 +278,12 @@ public final class GameStore {
     
     public var coins: Int {
         get { state.gems }
-        set { 
+        set {
             state.gems = newValue
             syncEngineGems()
-            UserDefaults.standard.set(newValue, forKey: "coins")
+            if !sandboxed {
+                UserDefaults.standard.set(newValue, forKey: "coins")
+            }
         }
     }
     
@@ -438,6 +443,7 @@ public final class GameStore {
     }
 
     private func persistScoreBoostState() {
+        guard !sandboxed else { return }
         let defaults = UserDefaults.standard
         if let tierID = activeScoreBoostTierID, let expiresAt = scoreBoostExpiresAt {
             defaults.set(tierID.rawValue, forKey: ScoreBoostDefaultsKey.activeTierID)
@@ -446,15 +452,16 @@ public final class GameStore {
             defaults.removeObject(forKey: ScoreBoostDefaultsKey.activeTierID)
             defaults.removeObject(forKey: ScoreBoostDefaultsKey.activeExpiration)
         }
-        
+
         if let queuedID = queuedScoreBoostTierID {
             defaults.set(queuedID.rawValue, forKey: ScoreBoostDefaultsKey.queuedTierID)
         } else {
             defaults.removeObject(forKey: ScoreBoostDefaultsKey.queuedTierID)
         }
     }
-    
+
     private func persistPowerDiscountState() {
+        guard !sandboxed else { return }
         let defaults = UserDefaults.standard
         if let tierID = activePowerDiscountTierID, let expiresAt = powerDiscountExpiresAt {
             defaults.set(tierID.rawValue, forKey: PowerDiscountDefaultsKey.activeTierID)
@@ -463,7 +470,7 @@ public final class GameStore {
             defaults.removeObject(forKey: PowerDiscountDefaultsKey.activeTierID)
             defaults.removeObject(forKey: PowerDiscountDefaultsKey.activeExpiration)
         }
-        
+
         if let queuedID = queuedPowerDiscountTierID {
             defaults.set(queuedID.rawValue, forKey: PowerDiscountDefaultsKey.queuedTierID)
         } else {
@@ -502,9 +509,25 @@ public final class GameStore {
     public private(set) var powerUpHistory: [PowerUpAction] = []
     public private(set) var tierMasteryCounts: [String: Int] = [:]
     
-    public init(config: GameConfig = GameConfig(), progressStore: UserDefaultsProgressStore = UserDefaultsProgressStore()) {
+    /// Creates a sandboxed GameStore for challenge mode (doesn't persist to main game)
+    public static func sandboxed(config: GameConfig = GameConfig()) -> GameStore {
+        return GameStore(config: config, sandboxed: true)
+    }
+
+    public init(config: GameConfig = GameConfig(), progressStore: UserDefaultsProgressStore = UserDefaultsProgressStore(), sandboxed: Bool = false) {
+        self.sandboxed = sandboxed
         self.progressStore = progressStore
-        
+
+        // Sandboxed mode: start fresh without loading saved progress
+        if sandboxed {
+            let newEngine = GameEngine(config: config)
+            self.engine = newEngine
+            self.state = newEngine.currentState()
+            // Don't call refreshDerivedState here - we'll do a simple setup
+            // since sandboxed mode doesn't need to track derived state
+            return
+        }
+
         // Load saved progress synchronously during initialization
         let loadedProgress = progressStore.loadSync()
         self.tierMasteryCounts = GameStore.decodeTierMasteryCounts(from: loadedProgress)
@@ -1033,10 +1056,10 @@ public final class GameStore {
     
     public func resetGame() {
         engine = GameEngine(config: GameConfig())
-        
+
         // Note: Gift row initialization is optional
         // _ = engine.initializeGiftRow()
-        
+
         state = engine.currentState()
         refreshDerivedState(highestStep: persistedHighestTileStep())
         syncEngineScoreBoost()
@@ -1056,6 +1079,31 @@ public final class GameStore {
         gameOverProcessed = false  // Reset for new game session
 
         // Notify achievement evaluator
+        achievementEvaluator?.onGameStart(state: state)
+    }
+
+    /// Reset game with a custom GameConfig (used for challenge mode)
+    public func resetGame(with config: GameConfig) {
+        engine = GameEngine(config: config)
+
+        state = engine.currentState()
+        refreshDerivedState(highestStep: persistedHighestTileStep())
+        syncEngineScoreBoost()
+        cancelRefillRevealTask()
+        cancelMergeCleanupTask()
+        pendingRefillPositions = []
+        currentPath = []
+        pathValidation = .valid
+        isInputLocked = false
+        lastAddedTileValue = nil
+        pendingDoubleBase = nil
+        brokenGlassTiles = []
+        pendingGiftBoxes = [:]
+        movesHistory = []
+        powerUpHistory = []
+        persistPendingGiftBoxes()
+        gameOverProcessed = false
+
         achievementEvaluator?.onGameStart(state: state)
     }
 
@@ -2610,21 +2658,22 @@ extension GameStore {
     
     /// Saves comprehensive progress to persistent storage
     public func saveProgressToStore() {
+        guard !sandboxed else { return }
         let progress = createProgressSnapshot()
         // Use synchronous save to ensure data is persisted immediately
         // This prevents data loss if the app is terminated shortly after a move
-            do {
+        do {
             try progressStore.saveSync(progress)
-            // We don't print the full success message here to avoid log spam, 
+            // We don't print the full success message here to avoid log spam,
             // as this is called frequently.
             // print("💾 Comprehensive progress saved")
-            
+
             // Also ensure UserDefaults is synced for gems/coins
-                UserDefaults.standard.set(progress.gems, forKey: "coins")
-            } catch {
-                print("❌ Failed to save comprehensive progress: \(error)")
-            }
+            UserDefaults.standard.set(progress.gems, forKey: "coins")
+        } catch {
+            print("❌ Failed to save comprehensive progress: \(error)")
         }
+    }
     
     public func registerSpinUse() {
         achievementEvaluator?.onPowerUpUsed(type: "spin")
@@ -3075,6 +3124,7 @@ extension GameStore {
     }
     
     private func persistPendingGiftBoxes() {
+        guard !sandboxed else { return }
         let stored = pendingGiftBoxes.map { StoredGiftBox(row: $0.key.row, col: $0.key.col, reward: $0.value) }
         let data = try? JSONEncoder().encode(stored)
         UserDefaults.standard.set(data, forKey: "pendingGiftBoxes")
