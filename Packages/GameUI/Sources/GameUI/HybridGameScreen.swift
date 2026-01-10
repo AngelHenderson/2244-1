@@ -91,7 +91,10 @@ public struct HybridGameScreen: View {
         // Break down the complex expression into smaller parts
         let baseView = mainGameView
             .safeAreaInset(edge: .top) { topHUD }
-            .safeAreaInset(edge: .trailing) { bottomDock }
+            .overlay(alignment: .trailing) {
+                bottomDock
+                    .padding(.top, 60) // Offset below HUD
+            }
             .overlay(alignment: .top) {
                 if isShowingTopMergeTile, let v = topMergeTileValue {
                     TopMergeTileView(value: v)
@@ -282,7 +285,8 @@ public struct HybridGameScreen: View {
                     Spacer(minLength: 0)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, ModernTheme.gutter)
+                .padding(.leading, ModernTheme.gutter)
+                .padding(.trailing, 70) // Make room for power-up dock
             }
         }
     }
