@@ -112,8 +112,8 @@ public struct ChallengeDesignerView: View {
             HStack(alignment: .top, spacing: 12) {
                 ForEach(0..<3, id: \.self) { columnIndex in
                     VStack(spacing: 8) {
-                        ForEach(tilesForColumn(columnIndex), id: \.self) { tile in
-                            TileChip(value: tile)
+                        ForEach(stepsForColumn(columnIndex), id: \.self) { step in
+                            TileChip(step: step)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -124,26 +124,26 @@ public struct ChallengeDesignerView: View {
         }
     }
 
-    private func tilesForColumn(_ column: Int) -> [Int] {
-        let tiles = store.candidateTiles
-        guard !tiles.isEmpty else { return [] }
+    private func stepsForColumn(_ column: Int) -> [Int] {
+        let steps = store.candidateTileSteps
+        guard !steps.isEmpty else { return [] }
 
         // Distribution: 1-4 in column 1, 5-8 in column 2, 9-10 in column 3
         switch column {
         case 0:
             // First column: tiles 1-4 (indices 0-3)
-            let end = min(4, tiles.count)
-            return Array(tiles.prefix(end))
+            let end = min(4, steps.count)
+            return Array(steps.prefix(end))
         case 1:
             // Second column: tiles 5-8 (indices 4-7)
-            guard tiles.count > 4 else { return [] }
+            guard steps.count > 4 else { return [] }
             let start = 4
-            let end = min(8, tiles.count)
-            return Array(tiles[start..<end])
+            let end = min(8, steps.count)
+            return Array(steps[start..<end])
         case 2:
             // Third column: tiles 9-10 (indices 8-9)
-            guard tiles.count > 8 else { return [] }
-            return Array(tiles[8...])
+            guard steps.count > 8 else { return [] }
+            return Array(steps[8...])
         default:
             return []
         }
@@ -226,10 +226,10 @@ private struct StepperBox: View {
 }
 
 private struct TileChip: View {
-    let value: Int
+    let step: Int
 
     var body: some View {
-        Text("\(value)")
+        Text(TileStepLabelFormatter.labelForStep(step))
             .font(.system(.callout, design: .rounded).weight(.semibold))
             .padding(.horizontal, 10)
             .padding(.vertical, 8)

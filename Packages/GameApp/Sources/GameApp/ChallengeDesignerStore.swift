@@ -71,13 +71,16 @@ public final class ChallengeDesignerStore: Sendable {
     public init() {}
 
     public var config: CustomChallengeConfig {
-        CustomChallengeConfig(
+        let steps = candidateTileSteps
+        return CustomChallengeConfig(
             target: .score(targetValue),
             timeLimitSeconds: timeLimitSeconds,
             minTileLevel: actualMinTilePower,
             levels: levels,
             tileAssignments: tileAssignments,
-            predictedRewardGems: predictedReward
+            predictedRewardGems: predictedReward,
+            minSpawnStep: steps.first,
+            maxSpawnStep: steps.last
         )
     }
 
@@ -111,10 +114,53 @@ public final class ChallengeDesignerStore: Sendable {
         minTileLevel = min(10, minTileLevel + 1)
     }
 
-    /// The max tile power (20 - minTileLevel)
-    /// Min Tile 10 → max 2^10 = 1024, Min Tile 5 → max 2^15 = 32K
+    /// Shift based on target milestone
+    /// 1M = 0, 1B = +10, 1a = +20, 1b = +30, etc.
+    /// Each tier is ~10 powers of 2 higher (since 2^10 ≈ 1000)
+    public var targetShift: Int {
+        let label = targetLabel
+        if label == "1M" { return 0 }
+        if label == "1B" { return 10 }
+        if label == "∞" { return 800 } // Very high shift for infinity
+
+        // Single letter targets (1a-1z): shift = 20 + (letterIndex * 10)
+        // 1a = trillions ≈ 2^40, 1b = quadrillions ≈ 2^50, etc.
+        if label.count == 2 && label.hasPrefix("1") {
+            if let char = label.last, char.isLowercase {
+                let index = Int(char.asciiValue! - Character("a").asciiValue!)
+                return 20 + (index * 10)
+            }
+        }
+
+        // Double letter targets (1aa-1bz): continue the pattern
+        // 1z is at shift 270, 1aa starts at 280
+        // Each first letter adds 260 (26 second letters * 10)
+        if label.count == 3 && label.hasPrefix("1") {
+            let suffix = String(label.dropFirst())
+            if let first = suffix.first, let second = suffix.last,
+               first.isLowercase, second.isLowercase {
+                let firstIndex = Int(first.asciiValue! - Character("a").asciiValue!)
+                let secondIndex = Int(second.asciiValue! - Character("a").asciiValue!)
+                // After 1z (shift 270), 1aa starts at 280
+                return 280 + (firstIndex * 260) + (secondIndex * 10)
+            }
+        }
+
+        return 0
+    }
+
+    /// The base power for 1M target (2^20 ≈ 1M)
+    private var basePower: Int { 20 }
+
+    /// The approximate power of 2 for the current target
+    public var targetPower: Int {
+        basePower + targetShift
+    }
+
+    /// The max tile power based on minTileLevel and target
+    /// minTileLevel determines how many steps below the target the max tile is
     public var maxTilePower: Int {
-        20 - minTileLevel
+        targetPower - minTileLevel
     }
 
     /// The starting tile power based on max tile and levels
@@ -149,11 +195,14 @@ public final class ChallengeDesignerStore: Sendable {
         tileAssignments[value] = bucket
     }
     
-    public var candidateTiles: [Int] {
+    /// Returns the step values (powers of 2) for candidate tiles
+    /// Step 0 = 2, Step 1 = 4, Step 2 = 8, etc.
+    public var candidateTileSteps: [Int] {
         // Number of tiles = levels, ending at maxTilePower
-        let start = actualMinTilePower
-        let end = maxTilePower
-        return (start...end).map { 1 << $0 }
+        // Convert power to step: step = power - 1 (since 2^1 = 2 is step 0)
+        let startStep = actualMinTilePower - 1
+        let endStep = maxTilePower - 1
+        return Array(startStep...endStep)
     }
     
     public var predictedReward: Int {

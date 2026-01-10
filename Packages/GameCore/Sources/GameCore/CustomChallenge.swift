@@ -2,7 +2,8 @@ import Foundation
 
 public enum ChallengeTarget: Hashable, Codable, Sendable {
     case score(Int)
-    case tile(Int)
+    case tile(Int)          // Value-based (e.g., 1048576 for 1M)
+    case tileStep(Int)      // Step-based (e.g., step 19 for 1M)
     case chain(length: Int)
 }
 
@@ -27,14 +28,20 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
     public var levels: Int
     public var tileAssignments: [Int: TileBucket]
     public var predictedRewardGems: Int
-    
+
+    // Step-based spawn limits for challenge mode
+    public var minSpawnStep: Int?
+    public var maxSpawnStep: Int?
+
     public init(
         target: ChallengeTarget,
         timeLimitSeconds: Int,
         minTileLevel: Int,
         levels: Int,
         tileAssignments: [Int: TileBucket],
-        predictedRewardGems: Int
+        predictedRewardGems: Int,
+        minSpawnStep: Int? = nil,
+        maxSpawnStep: Int? = nil
     ) {
         self.target = target
         self.timeLimitSeconds = timeLimitSeconds
@@ -42,6 +49,8 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
         self.levels = levels
         self.tileAssignments = tileAssignments
         self.predictedRewardGems = predictedRewardGems
+        self.minSpawnStep = minSpawnStep
+        self.maxSpawnStep = maxSpawnStep
     }
 }
 
@@ -62,6 +71,9 @@ public enum DifficultyEstimator {
             targetDifficulty = sqrt(max(0.25, Double(value) / baseScore))
         case .tile(let value):
             targetDifficulty = log2(Double(value)) / 10.0
+        case .tileStep(let step):
+            // For step-based targets, difficulty increases with step
+            targetDifficulty = Double(step) / 20.0
         case .chain(let length):
             targetDifficulty = Double(length) / 5.0
         }
