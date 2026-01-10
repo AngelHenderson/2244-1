@@ -70,7 +70,7 @@ public struct HybridGameScreen: View {
             .environment(tempHomeState)
             .environment(\.homeActions, makeGameActions())
 
-        let bottomDock = SimplePowerupDock(
+        let bottomDock = HorizontalPowerupDock(
             onHammer: handleHammer,
             onSwap: handleSwap,
             onMagnet: handleMagnet,
@@ -90,10 +90,11 @@ public struct HybridGameScreen: View {
 
         // Break down the complex expression into smaller parts
         let baseView = mainGameView
-            .safeAreaInset(edge: .top) { topHUD }
-            .overlay(alignment: .trailing) {
-                bottomDock
-                    .padding(.top, 60) // Offset below HUD
+            .safeAreaInset(edge: .top) {
+                VStack(spacing: 8) {
+                    topHUD
+                    bottomDock
+                }
             }
             .overlay(alignment: .top) {
                 if isShowingTopMergeTile, let v = topMergeTileValue {
@@ -252,41 +253,23 @@ public struct HybridGameScreen: View {
     @ViewBuilder
     private var mainGameView: some View {
         ZStack {
-            // Theme background using new BackgroundTheme system
-//            ThemedBackground(theme: currentBackgroundTheme)
+            // Board container with glass preview (clear background)
+            SimplifiedGlassBoardView(onTileTap: { position in
+                handleTileTap(at: position)
+            })
+            .padding(.horizontal, ModernTheme.gutter)
+            .padding(.bottom, 8)
+            .accessibilityLabel("Game board with glass preview")
 
-            GeometryReader { geo in
-
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    
-                    // Board container with glass preview (clear background)
-                    ZStack {
-                        // CRITICAL: Use SimplifiedGlassBoardView for merge logic and glass preview
-                        SimplifiedGlassBoardView(onTileTap: { position in
-                            handleTileTap(at: position)
-                        })
-                        .padding()
-                        .accessibilityLabel("Game board with glass preview")
-                        
-                        // Mode overlay indicators
-                        if isHammerMode || isSwapMode || isMagnetMode {
-                            ModeOverlay(
-                                isHammerMode: isHammerMode,
-                                isSwapMode: isSwapMode,
-                                isMagnetMode: isMagnetMode,
-                                firstSwapPosition: firstSwapPosition,
-                                onCancel: cancelAllModes
-                            )
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    Spacer(minLength: 0)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.leading, ModernTheme.gutter)
-                .padding(.trailing, 70) // Make room for power-up dock
+            // Mode overlay indicators
+            if isHammerMode || isSwapMode || isMagnetMode {
+                ModeOverlay(
+                    isHammerMode: isHammerMode,
+                    isSwapMode: isSwapMode,
+                    isMagnetMode: isMagnetMode,
+                    firstSwapPosition: firstSwapPosition,
+                    onCancel: cancelAllModes
+                )
             }
         }
     }
@@ -439,7 +422,150 @@ public struct HybridGameScreen: View {
 }
 
 
-// MARK: - Simple Power-up Dock
+// MARK: - Horizontal Power-up Dock (for iPhone)
+
+struct HorizontalPowerupDock: View {
+    @Environment(\.gameStore) private var gameStore
+    let onHammer: () -> Void
+    let onSwap: () -> Void
+    let onMagnet: () -> Void
+    let onUndo: () -> Void
+    let onHome: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Home button
+            powerupItem(
+                icon: "house.fill",
+                action: onHome
+            )
+
+            Divider()
+                .frame(height: 30)
+                .opacity(0.3)
+
+            // Hammer
+            powerupItem(
+                assetName: "hammer",
+                badge: gameStore.powerUpInventory["hammer", default: 0],
+                price: gameStore.powerUpPrice("hammer"),
+                isEnabled: gameStore.isPowerUpAvailable("hammer"),
+                action: onHammer
+            )
+
+            // Swap
+            powerupItem(
+                assetName: "restart",
+                badge: gameStore.powerUpInventory["swap", default: 0],
+                price: gameStore.powerUpPrice("swap"),
+                isEnabled: gameStore.isPowerUpAvailable("swap"),
+                action: onSwap
+            )
+
+            // Magnet
+            powerupItem(
+                assetName: "magnet",
+                badge: gameStore.powerUpInventory["magnet", default: 0],
+                price: gameStore.powerUpPrice("magnet"),
+                isEnabled: gameStore.isPowerUpAvailable("magnet"),
+                action: onMagnet
+            )
+
+            // Undo
+            powerupItem(
+                icon: "arrow.uturn.backward",
+                isEnabled: gameStore.state.undoAvailable,
+                action: onUndo
+            )
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .shadow(radius: 4)
+        )
+    }
+
+    private func powerupItem(
+        icon: String,
+        badge: Int = 0,
+        isEnabled: Bool = true,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .frame(width: 40, height: 40)
+                    .foregroundStyle(isEnabled ? .primary : .tertiary)
+
+                if badge > 0 {
+                    badgeLabel(for: badge)
+                        .offset(x: 4, y: -4)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .glassEffectCompat(cornerRadius: 10)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.6)
+    }
+
+    private func powerupItem(
+        assetName: String,
+        badge: Int = 0,
+        price: Int? = nil,
+        isEnabled: Bool = true,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            ZStack(alignment: .topTrailing) {
+                Image(assetName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 20, height: 20)
+                    .frame(width: 40, height: 40)
+                    .opacity(isEnabled ? 1.0 : 0.4)
+
+                if badge > 0 {
+                    badgeLabel(for: badge)
+                        .offset(x: 4, y: -4)
+                } else if let price = price {
+                    HStack(spacing: 1) {
+                        Image(systemName: "diamond.fill")
+                            .font(.system(size: 7))
+                        Text("\(price)")
+                            .font(.system(size: 8, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 3)
+                    .padding(.vertical, 1)
+                    .background(Color.black.opacity(0.6), in: Capsule())
+                    .offset(x: 10, y: -6)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .glassEffectCompat(cornerRadius: 10)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.6)
+    }
+
+    private func badgeLabel(for count: Int) -> some View {
+        Text("\(count)")
+            .font(.system(size: 10, weight: .bold))
+            .monospacedDigit()
+            .foregroundStyle(.white)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(Color.blue, in: Capsule())
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+    }
+}
+
+// MARK: - Simple Power-up Dock (vertical, for reference)
 
 struct SimplePowerupDock: View {
     @Environment(\.gameStore) private var gameStore
