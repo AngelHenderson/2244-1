@@ -33,6 +33,9 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
     public var minSpawnStep: Int?
     public var maxSpawnStep: Int?
 
+    // Challenge ID for milestone tracking (nil for custom/designer challenges)
+    public var challengeId: UUID?
+
     public init(
         target: ChallengeTarget,
         timeLimitSeconds: Int,
@@ -41,7 +44,8 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
         tileAssignments: [Int: TileBucket],
         predictedRewardGems: Int,
         minSpawnStep: Int? = nil,
-        maxSpawnStep: Int? = nil
+        maxSpawnStep: Int? = nil,
+        challengeId: UUID? = nil
     ) {
         self.target = target
         self.timeLimitSeconds = timeLimitSeconds
@@ -51,6 +55,7 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
         self.predictedRewardGems = predictedRewardGems
         self.minSpawnStep = minSpawnStep
         self.maxSpawnStep = maxSpawnStep
+        self.challengeId = challengeId
     }
 }
 

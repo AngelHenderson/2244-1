@@ -12,6 +12,7 @@ public struct CustomChallengeGameScreen: View {
     @State private var challengeGameStore: GameStore
     @Environment(HomeState.self) private var homeState
     @Environment(\.hapticsService) private var haptics
+    @Environment(\.challengeStore) private var challengeStore
     @State private var timeRemaining: Int
     @State private var isTimerActive = true
     @State private var showResult = false
@@ -83,6 +84,10 @@ public struct CustomChallengeGameScreen: View {
             if checkWinCondition() {
                 endChallenge(won: true)
             }
+        }
+        .onChange(of: challengeGameStore.coins) { _, newValue in
+            // Sync gem spending back to player's inventory
+            homeState.gems = newValue
         }
     }
 
@@ -395,9 +400,10 @@ public struct CustomChallengeGameScreen: View {
     private var targetLabel: String {
         switch config.target {
         case .score(let value):
-            return value == Int.max ? "∞" : formatScore(value)
+            if value == Int.max { return "∞" }
+            return formatLargeNumber(value)
         case .tile(let value):
-            return AlphaMag.formatTileValue(value)
+            return TileStepLabelFormatter.formatTileValue(value)
         case .tileStep(let step):
             // Use TileStepLabelFormatter for step-based targets
             if step == Int.max {
@@ -410,10 +416,42 @@ public struct CustomChallengeGameScreen: View {
     }
 
     private func formatScore(_ value: Int) -> String {
-        if value >= 1_000_000_000 { return "\(value / 1_000_000_000)B" }
-        if value >= 1_000_000 { return "\(value / 1_000_000)M" }
-        if value >= 1_000 { return "\(value / 1_000)K" }
-        return "\(value)"
+        return formatLargeNumber(value)
+    }
+
+    /// Format large numbers with K, M, B, a, b, c... suffixes
+    private func formatLargeNumber(_ value: Int) -> String {
+        if value < 1_000 { return "\(value)" }
+        if value < 1_000_000 { return "\(value / 1_000)K" }
+        if value < 1_000_000_000 { return "\(value / 1_000_000)M" }
+        if value < 1_000_000_000_000 { return "\(value / 1_000_000_000)B" }
+
+        // For trillions and beyond, use alphabetic suffixes
+        let trillion = 1_000_000_000_000
+        var remaining = value
+        var tier = 0
+
+        while remaining >= trillion {
+            remaining /= 1_000
+            tier += 1
+        }
+
+        // tier 1 = a (trillions), tier 2 = b (quadrillions), etc.
+        let suffix = alphabeticSuffix(for: tier)
+        return "\(remaining / 1_000_000_000)\(suffix)"
+    }
+
+    private func alphabeticSuffix(for tier: Int) -> String {
+        guard tier >= 1 else { return "" }
+        var n = tier
+        var result = ""
+        while n > 0 {
+            n -= 1
+            let char = Character(UnicodeScalar(97 + (n % 26))!) // 'a' = 97
+            result = String(char) + result
+            n /= 26
+        }
+        return result
     }
 
     private func formatTime(_ seconds: Int) -> String {
@@ -429,6 +467,10 @@ public struct CustomChallengeGameScreen: View {
             maxSpawnStep: config.maxSpawnStep
         )
         challengeGameStore.resetGame(with: gameConfig)
+
+        // Initialize gems from player's inventory AFTER reset (since reset clears state)
+        challengeGameStore.coins = homeState.gems
+
         isTimerActive = true
     }
 
@@ -454,6 +496,11 @@ public struct CustomChallengeGameScreen: View {
         if won {
             // Award gems
             homeState.addGems(config.predictedRewardGems)
+
+            // Mark challenge as completed for milestone tracking (triggers 1hr unlock delay)
+            if let challengeId = config.challengeId {
+                challengeStore.markCompleted(challengeId)
+            }
         }
 
         withAnimation {

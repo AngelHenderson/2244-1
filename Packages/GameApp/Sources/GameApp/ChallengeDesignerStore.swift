@@ -40,24 +40,12 @@ public final class ChallengeDesignerStore: Sendable {
     /// The display label for the current target
     public var targetLabel: String { targetLabels[targetIndex] }
 
-    /// The numeric value for the current target (clamped to Int.max for very large milestones)
-    public var targetValue: Int {
-        let label = targetLabels[targetIndex]
-        if label == "∞" { return Int.max }
-
-        // Parse using AlphaMag if available, otherwise use simple parsing
-        if let decimal = try? AlphaMag.parse(label) {
-            // Clamp to Int.max if the value is too large
-            if decimal > Decimal(Int.max) {
-                return Int.max
-            }
-            return NSDecimalNumber(decimal: decimal).intValue
-        }
-
-        // Fallback parsing
-        if label == "1M" { return 1_000_000 }
-        if label == "1B" { return 1_000_000_000 }
-        return Int.max
+    /// The step value for the current target (used for tile-step based win condition)
+    /// This avoids integer overflow issues with very large score values
+    public var targetStep: Int {
+        // targetPower is the power of 2 for the target
+        // step = power - 1 (since step 0 = 2^1 = 2, step 1 = 2^2 = 4, etc.)
+        return targetPower - 1
     }
     
     public var timeLimitSeconds: Int = 60
@@ -73,7 +61,7 @@ public final class ChallengeDesignerStore: Sendable {
     public var config: CustomChallengeConfig {
         let steps = candidateTileSteps
         return CustomChallengeConfig(
-            target: .score(targetValue),
+            target: .tileStep(targetStep),
             timeLimitSeconds: timeLimitSeconds,
             minTileLevel: actualMinTilePower,
             levels: levels,
