@@ -510,8 +510,13 @@ public final class GameStore {
     public private(set) var tierMasteryCounts: [String: Int] = [:]
     
     /// Creates a sandboxed GameStore for challenge mode (doesn't persist to main game)
-    public static func sandboxed(config: GameConfig = GameConfig()) -> GameStore {
-        return GameStore(config: config, sandboxed: true)
+    /// - Parameters:
+    ///   - config: Game configuration
+    ///   - initialGems: Starting gems (typically from player's main inventory)
+    public static func sandboxed(config: GameConfig = GameConfig(), initialGems: Int = 0) -> GameStore {
+        let store = GameStore(config: config, sandboxed: true)
+        store.coins = initialGems
+        return store
     }
 
     public init(config: GameConfig = GameConfig(), progressStore: UserDefaultsProgressStore = UserDefaultsProgressStore(), sandboxed: Bool = false) {
