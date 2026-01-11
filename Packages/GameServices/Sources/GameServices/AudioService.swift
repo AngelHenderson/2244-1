@@ -165,10 +165,17 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
         
         print("🔊 Playing SFX: \(name), current theme: '\(currentTheme)'")
-        
-        // Handle piano-specific sounds
-        if currentTheme == "piano" && (name == "tap" || name == "select" || name == "drag") {
-            print("🎹 Playing piano sound for: \(name)")
+
+        // Handle merge and chain sounds - play piano tap sounds for all instruments
+        if name == "merge" || name == "chain" {
+            print("🎶 Playing \(name) sound")
+            await playPianoTapSound()
+            return
+        }
+
+        // Handle tap/select/drag sounds for all instruments (not just piano)
+        if name == "tap" || name == "select" || name == "drag" {
+            print("🎹 Playing instrument sound for: \(name)")
             await playPianoTapSound()
             return
         }
