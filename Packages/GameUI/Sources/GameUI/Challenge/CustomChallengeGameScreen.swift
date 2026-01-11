@@ -1,6 +1,7 @@
 import SwiftUI
 import GameCore
 import GameApp
+import GameServices
 
 /// Dedicated screen for playing custom challenges (separate from regular gameplay)
 public struct CustomChallengeGameScreen: View {
@@ -10,10 +11,17 @@ public struct CustomChallengeGameScreen: View {
     // Challenge has its own sandboxed GameStore - doesn't persist to main game
     @State private var challengeGameStore: GameStore
     @Environment(HomeState.self) private var homeState
+    @Environment(\.hapticsService) private var haptics
     @State private var timeRemaining: Int
     @State private var isTimerActive = true
     @State private var showResult = false
     @State private var challengeWon = false
+
+    // Power-up selection modes
+    @State private var isHammerMode = false
+    @State private var isSwapMode = false
+    @State private var isMagnetMode = false
+    @State private var firstSwapPosition: Position? = nil
 
     public init(config: CustomChallengeConfig, onDismiss: @escaping () -> Void) {
         self.config = config
@@ -29,9 +37,27 @@ public struct CustomChallengeGameScreen: View {
                 // Challenge header with timer and target
                 challengeHeader
 
+                // Power-up dock
+                powerUpDock
+                    .padding(.top, 8)
+
                 // Game board - uses challenge's own GameStore
-                BoardView()
-                    .environment(\.gameStore, challengeGameStore)
+                ZStack {
+                    SimplifiedGlassBoardView(onTileTap: handleTileTap)
+                        .environment(\.gameStore, challengeGameStore)
+                        .padding(.horizontal, 8)
+
+                    // Mode overlay indicators
+                    if isHammerMode || isSwapMode || isMagnetMode {
+                        ModeOverlay(
+                            isHammerMode: isHammerMode,
+                            isSwapMode: isSwapMode,
+                            isMagnetMode: isMagnetMode,
+                            firstSwapPosition: firstSwapPosition,
+                            onCancel: cancelAllModes
+                        )
+                    }
+                }
 
                 Spacer()
             }
@@ -58,6 +84,228 @@ public struct CustomChallengeGameScreen: View {
                 endChallenge(won: true)
             }
         }
+    }
+
+    // MARK: - Power-up Dock
+
+    private var powerUpDock: some View {
+        HStack(spacing: 12) {
+            // Hammer
+            powerupItem(
+                assetName: "hammer",
+                badge: challengeGameStore.powerUpInventory["hammer", default: 0],
+                price: challengeGameStore.powerUpPrice("hammer"),
+                isEnabled: challengeGameStore.isPowerUpAvailable("hammer"),
+                action: handleHammer
+            )
+
+            // Swap
+            powerupItem(
+                assetName: "restart",
+                badge: challengeGameStore.powerUpInventory["swap", default: 0],
+                price: challengeGameStore.powerUpPrice("swap"),
+                isEnabled: challengeGameStore.isPowerUpAvailable("swap"),
+                action: handleSwap
+            )
+
+            // Magnet
+            powerupItem(
+                assetName: "magnet",
+                badge: challengeGameStore.powerUpInventory["magnet", default: 0],
+                price: challengeGameStore.powerUpPrice("magnet"),
+                isEnabled: challengeGameStore.isPowerUpAvailable("magnet"),
+                action: handleMagnet
+            )
+
+            // Undo
+            powerupItem(
+                icon: "arrow.uturn.backward",
+                isEnabled: challengeGameStore.state.undoAvailable,
+                action: handleUndo
+            )
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .shadow(radius: 4)
+        )
+    }
+
+    private func powerupItem(
+        icon: String,
+        badge: Int = 0,
+        isEnabled: Bool = true,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .frame(width: 40, height: 40)
+                    .foregroundStyle(isEnabled ? .primary : .tertiary)
+
+                if badge > 0 {
+                    Text("\(badge)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.blue, in: Capsule())
+                        .offset(x: 4, y: -4)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.6)
+    }
+
+    private func powerupItem(
+        assetName: String,
+        badge: Int = 0,
+        price: Int? = nil,
+        isEnabled: Bool = true,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            ZStack(alignment: .topTrailing) {
+                Image(assetName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 20, height: 20)
+                    .frame(width: 40, height: 40)
+                    .opacity(isEnabled ? 1.0 : 0.4)
+
+                if badge > 0 {
+                    Text("\(badge)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.blue, in: Capsule())
+                        .offset(x: 4, y: -4)
+                } else if let price = price {
+                    HStack(spacing: 1) {
+                        Image(systemName: "diamond.fill")
+                            .font(.system(size: 7))
+                        Text("\(price)")
+                            .font(.system(size: 8, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 3)
+                    .padding(.vertical, 1)
+                    .background(Color.black.opacity(0.6), in: Capsule())
+                    .offset(x: 10, y: -6)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.6)
+    }
+
+    // MARK: - Power-up Handlers
+
+    private func handleHammer() {
+        if challengeGameStore.isPowerUpAvailable("hammer") {
+            cancelAllModes()
+            isHammerMode = true
+            haptics.lightImpact()
+        } else {
+            haptics.error()
+        }
+    }
+
+    private func handleSwap() {
+        if challengeGameStore.isPowerUpAvailable("swap") {
+            cancelAllModes()
+            isSwapMode = true
+            firstSwapPosition = nil
+            haptics.lightImpact()
+        } else {
+            haptics.error()
+        }
+    }
+
+    private func handleMagnet() {
+        if challengeGameStore.isPowerUpAvailable("magnet") {
+            cancelAllModes()
+            isMagnetMode = true
+            haptics.lightImpact()
+        } else {
+            haptics.error()
+        }
+    }
+
+    private func handleUndo() {
+        if challengeGameStore.state.undoAvailable {
+            _ = challengeGameStore.useUndo()
+            haptics.lightImpact()
+        } else {
+            haptics.error()
+        }
+    }
+
+    private func handleTileTap(at position: Position) {
+        // Handle hammer mode
+        if isHammerMode {
+            if challengeGameStore.state.board[position] != nil {
+                _ = challengeGameStore.useHammer(at: position)
+                haptics.success()
+                isHammerMode = false
+            } else {
+                haptics.error()
+            }
+            return
+        }
+
+        // Handle swap mode
+        if isSwapMode {
+            if challengeGameStore.state.board[position] != nil {
+                if let first = firstSwapPosition {
+                    if first != position {
+                        _ = challengeGameStore.useSwap(first, position)
+                        haptics.success()
+                        isSwapMode = false
+                        firstSwapPosition = nil
+                    } else {
+                        firstSwapPosition = nil
+                        haptics.lightImpact()
+                    }
+                } else {
+                    firstSwapPosition = position
+                    haptics.lightImpact()
+                }
+            } else {
+                haptics.error()
+            }
+            return
+        }
+
+        // Handle magnet mode
+        if isMagnetMode {
+            if let tile = challengeGameStore.state.board[position] {
+                let success = challengeGameStore.useMagnet(value: tile.value, to: position)
+                if success {
+                    haptics.success()
+                } else {
+                    haptics.warning()
+                }
+                isMagnetMode = false
+            } else {
+                haptics.error()
+            }
+            return
+        }
+    }
+
+    private func cancelAllModes() {
+        isHammerMode = false
+        isSwapMode = false
+        isMagnetMode = false
+        firstSwapPosition = nil
     }
 
     private var challengeHeader: some View {
