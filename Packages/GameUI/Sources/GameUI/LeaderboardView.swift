@@ -223,6 +223,8 @@ public struct LeaderboardView: View {
             return Color.red  // Albania - red from the flag
         case .countryDZ:
             return Color.green  // Algeria - green from the flag
+        case .countryCN:
+            return Color.red  // China - red from the flag
         }
     }
     
