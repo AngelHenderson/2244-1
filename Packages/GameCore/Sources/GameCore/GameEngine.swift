@@ -11,7 +11,12 @@ public struct GameConfig: Sendable {
     // This is added for clarity and future extensibility; currently we always use always-full.
     public enum FillMode: Sendable { case alwaysFull, sparse }
     public let fillMode: FillMode
-    
+
+    // Challenge mode spawn limits (step-based)
+    // If set, spawns are limited to tiles between minSpawnStep and maxSpawnStep
+    public let minSpawnStep: Int?
+    public let maxSpawnStep: Int?
+
     public init(
         boardWidth: Int = 5,
         boardHeight: Int = 8,
@@ -23,7 +28,9 @@ public struct GameConfig: Sendable {
         ],
         initialTileCount: Int = 2,
         allowDiagonals: Bool = true,
-        fillMode: FillMode = .alwaysFull
+        fillMode: FillMode = .alwaysFull,
+        minSpawnStep: Int? = nil,
+        maxSpawnStep: Int? = nil
     ) {
         self.boardWidth = boardWidth
         self.boardHeight = boardHeight
@@ -32,6 +39,8 @@ public struct GameConfig: Sendable {
         self.initialTileCount = initialTileCount
         self.allowDiagonals = allowDiagonals
         self.fillMode = fillMode
+        self.minSpawnStep = minSpawnStep
+        self.maxSpawnStep = maxSpawnStep
     }
 }
 
@@ -107,11 +116,14 @@ public final class GameEngine {
     private var highestTileAchieved: Int = 0
     private var milestonesReached: Set<Int> = []
     private var lastMergeAtMs: Int? = nil
+    private var pendingGiftRefills: [(column: Int, value: Int)] = []
     private var pendingGiftRefillValue: Int? = nil
     private var scoreMultiplier: Int = 1
     
-    // Track which milestones have already triggered elimination
+    // Track which milestones have already triggered elimination (value-based for < step 62)
     private var eliminatedMilestones: Set<Int> = []
+    // Track which milestone steps have been reached (step-based for >= step 62)
+    private var eliminatedMilestoneSteps: Set<Int> = []
     
     public init(config: GameConfig = GameConfig()) {
         self.config = config
@@ -128,40 +140,44 @@ public final class GameEngine {
         let selectedSeed = config.seed ?? UInt64(Date().timeIntervalSince1970)
         self.seedUsed = selectedSeed
         self.rng = DeterministicRNG(seed: selectedSeed)
-        
-        // Calculate highest tile from board
-        var highest = 0
+
+        // Calculate highest tile VALUE and STEP from board
+        // For highValue tiles (step >= 62), tile.value is Int.max, so we must use stepIndex
+        var highestValue = 0
+        var highestStep = 0
         for row in 0..<initialBoard.height {
             for col in 0..<initialBoard.width {
                 if let tile = initialBoard[Position(row: row, col: col)] {
-                    highest = max(highest, tile.value)
+                    highestValue = max(highestValue, tile.value)
+                    if let step = tile.stepIndex, step > highestStep {
+                        highestStep = step
+                    }
                 }
             }
         }
-        
+
         self.state = GameState(
             board: initialBoard,
             score: initialScore,
             moves: initialMoves,
             isGameOver: false,
-            highestTile: highest,
+            highestTile: highestValue,
+            highestTileStep: highestStep,
             level: initialLevel,
             gems: initialGems
         )
-        self.highestTileAchieved = highest
-        
-        // Reconstruct eliminatedMilestones based on highest tile achieved
-        // Each milestone at 16K, 32K, 64K, etc. should have eliminated tiles
-        // Milestone 16K eliminates 1 (not a real tile), 32K eliminates 2, 64K eliminates 4, etc.
-        reconstructEliminatedMilestones(fromHighestTile: highest)
+        self.highestTileAchieved = highestValue
+
+        // Reconstruct eliminatedMilestones based on highest tile step achieved
+        reconstructEliminatedMilestones(fromHighestTile: highestValue, highestStep: highestStep)
         
         // Apply eliminations to remove any stale tiles that shouldn't be on the board
         applyPendingEliminationsOnRestore()
     }
     
-    /// Reconstruct the eliminatedMilestones set from the highest tile value
+    /// Reconstruct the eliminatedMilestones set from the highest tile value/step
     /// This ensures proper elimination state when restoring a saved game
-    private func reconstructEliminatedMilestones(fromHighestTile highest: Int) {
+    private func reconstructEliminatedMilestones(fromHighestTile highest: Int, highestStep: Int) {
         // List of all milestones that trigger elimination (excluding skipped ones)
         let eliminationMilestones = [
             2048, 4096, // 8192 skipped
@@ -180,8 +196,8 @@ public final class GameEngine {
             }
         }
 
-        // Handle milestones beyond 134M using the infinite repeating pattern
-        if highest >= 268435456 { // 268M and beyond
+        // Handle milestones beyond 134M but below step 62 using value-based logic
+        if highest >= 268435456 && highestStep < 62 {
             var currentMilestone = 268435456 // Start at 268M
             while currentMilestone <= highest {
                 // Calculate position relative to 67M
@@ -202,38 +218,79 @@ public final class GameEngine {
             }
         }
 
+        // For highValue tiles (step >= 62), use step-based milestones
+        if highestStep >= 62 {
+            for step in 62...highestStep {
+                // Add ALL steps to tracking (both skip and non-skip)
+                eliminatedMilestoneSteps.insert(step)
+            }
+            print("🔄 RESTORE: Reconstructed \(eliminatedMilestoneSteps.count) step-based milestones for highValue tiles (up to step \(highestStep))")
+        }
+
         if !eliminatedMilestones.isEmpty {
-            print("🔄 RESTORE: Reconstructed \(eliminatedMilestones.count) elimination milestones from highest tile \(highest)")
+            print("🔄 RESTORE: Reconstructed \(eliminatedMilestones.count) value-based elimination milestones")
         }
     }
     
     /// Apply any pending eliminations after restoring a game
     /// This removes tiles that should have been eliminated but exist in the saved board
     private func applyPendingEliminationsOnRestore() {
-        guard !eliminatedMilestones.isEmpty else { return }
-
-        // Collect all values that should be eliminated based on reached milestones
-        var valuesToEliminate: Set<Int> = []
-        for milestone in eliminatedMilestones {
-            if let eliminatedValue = milestoneExcludedValue(for: milestone) {
-                valuesToEliminate.insert(eliminatedValue)
-            }
-        }
-
-        guard !valuesToEliminate.isEmpty else { return }
-
         var didRemove = false
         var totalRemoved = 0
 
-        // Remove ALL tiles with values that should be eliminated
-        for row in 0..<config.boardHeight {
-            for col in 0..<config.boardWidth {
-                let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], valuesToEliminate.contains(tile.value) {
-                    print("🗑️ RESTORE ELIMINATION: Removing stale tile \(tile.value) at \(pos)")
-                    state.board[pos] = nil
-                    didRemove = true
-                    totalRemoved += 1
+        // STEP 1: For step-based milestones (highValue tiles), use step comparison
+        if !eliminatedMilestoneSteps.isEmpty {
+            // Find highest NON-SKIP milestone step for threshold calculation
+            var highestNonSkipStep: Int? = nil
+            for step in eliminatedMilestoneSteps.sorted().reversed() {
+                let position = step - 62
+                if position >= 0 && position % 3 != 2 {  // Not a skip
+                    highestNonSkipStep = step
+                    break
+                }
+            }
+
+            if let nonSkipStep = highestNonSkipStep {
+                let thresholdStep = nonSkipStep - 14
+                if thresholdStep >= 0 {
+                    for row in 0..<config.boardHeight {
+                        for col in 0..<config.boardWidth {
+                            let pos = Position(row: row, col: col)
+                            if let tile = state.board[pos], let step = tile.stepIndex, step < thresholdStep {
+                                let label = TileStepLabelFormatter.labelForStep(step)
+                                print("🗑️ RESTORE ELIMINATION: Removing stale tile step \(step) (\(label)) at \(pos)")
+                                state.board[pos] = nil
+                                didRemove = true
+                                totalRemoved += 1
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // STEP 2: For value-based milestones
+        if !eliminatedMilestones.isEmpty {
+            // Collect all values that should be eliminated based on reached milestones
+            var valuesToEliminate: Set<Int> = []
+            for milestone in eliminatedMilestones {
+                if let eliminatedValue = milestoneExcludedValue(for: milestone) {
+                    valuesToEliminate.insert(eliminatedValue)
+                }
+            }
+
+            if !valuesToEliminate.isEmpty {
+                // Remove ALL tiles with values that should be eliminated
+                for row in 0..<config.boardHeight {
+                    for col in 0..<config.boardWidth {
+                        let pos = Position(row: row, col: col)
+                        if let tile = state.board[pos], valuesToEliminate.contains(tile.value) {
+                            print("🗑️ RESTORE ELIMINATION: Removing stale tile \(tile.value) at \(pos)")
+                            state.board[pos] = nil
+                            didRemove = true
+                            totalRemoved += 1
+                        }
+                    }
                 }
             }
         }
@@ -351,18 +408,27 @@ public final class GameEngine {
         
         // Update highest tile and level
         if outcome.resultStep > state.highestTileStep {
+            let previousHighestStep = state.highestTileStep
             let previousHighest = state.highestTile
             state.highestTile = max(outcome.resultValue, state.highestTile)
             state.highestTileStep = outcome.resultStep
             highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(outcome.resultValue)
-        
-            // Apply eliminations for ALL milestones between previous highest and new value
-            applyAllMilestonesBetween(previousHighest, and: outcome.resultValue)
+
+            // Apply eliminations - use step-based for highValue tiles (step >= 62)
+            if outcome.resultStep >= 62 || previousHighestStep >= 62 {
+                applyAllMilestonesBetweenSteps(previousHighestStep, and: outcome.resultStep)
+            } else {
+                applyAllMilestonesBetween(previousHighest, and: outcome.resultValue)
+            }
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-        applyMilestoneEliminationIfNeeded(createdValue: outcome.resultValue)
+            if outcome.resultStep >= 62 {
+                applyMilestoneEliminationForStep(outcome.resultStep)
+            } else {
+                applyMilestoneEliminationIfNeeded(createdValue: outcome.resultValue)
+            }
         }
         
         // Award gems for long chains (10+ tiles)
@@ -371,14 +437,30 @@ public final class GameEngine {
         }
         
         // Special gift rewards
-        if outcome.giftBroken {
-            // Award bonus gems for breaking gifts
-            state.gems += 1
-            // TODO: Fire gift reward logic here (power-ups, etc.)
-        }
-        
-        // Flag pending gift refill so it can be handled during the refill phase
-        if outcome.giftBroken {
+        if outcome.giftBroken, let column = outcome.giftColumn {
+            // Award ALL rewards from the column's reward pool
+            let rewards = GiftRewardManager.allRewards(forColumn: column)
+
+            for reward in rewards {
+                // Award each reward based on type
+                switch reward.type {
+                case .gems:
+                    state.gems += reward.value
+                case .spin:
+                    // TODO: Award spins (needs to be handled by GameStore)
+                    state.gems += reward.value  // Temporary: convert to gems
+                case .scoreBoost:
+                    // TODO: Award score boost (needs to be handled by GameStore)
+                    // For multiple boosts, apply the highest one
+                    setScoreMultiplier(max(scoreMultiplier, reward.value))
+                case .powerUp:
+                    // TODO: Award power-up (needs to be handled by GameStore)
+                    // For now, award gems as placeholder
+                    state.gems += 5
+                }
+            }
+
+            // Flag pending gift refill
             pendingGiftRefillValue = generateRandomValue()
         }
 
@@ -471,18 +553,27 @@ public final class GameEngine {
         
         // Update highest tile and level
         if mergedStep > state.highestTileStep {
+            let previousHighestStep = state.highestTileStep
             let previousHighest = state.highestTile
             state.highestTile = max(mergedValue, state.highestTile)
             state.highestTileStep = mergedStep
             highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
-        
-            // Apply eliminations for ALL milestones between previous highest and new value
-            applyAllMilestonesBetween(previousHighest, and: mergedValue)
+
+            // Apply eliminations - use step-based for highValue tiles (step >= 62)
+            if mergedStep >= 62 || previousHighestStep >= 62 {
+                applyAllMilestonesBetweenSteps(previousHighestStep, and: mergedStep)
+            } else {
+                applyAllMilestonesBetween(previousHighest, and: mergedValue)
+            }
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+            if mergedStep >= 62 {
+                applyMilestoneEliminationForStep(mergedStep)
+            } else {
+                applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+            }
         }
         
         // Award points
@@ -597,14 +688,19 @@ public final class GameEngine {
     @discardableResult
     public func magnetize(value: Int, to position: Position) -> GameState {
         guard position.isValid(for: state.board) else { return state }
+
+        // Check if target position is a gift
+        let targetIndex = BoardIndex(position)
+        let isTargetGift = state.board[targetIndex].kind == .gift
+
         guard let targetTile = state.board[position],
               let targetStep = TileStepMath.step(for: targetTile) else { return state }
         guard targetTile.value == value else { return state }
-        
+
         // Save state for undo
         previousState = state
         state.undoAvailable = true
-        
+
         // Find all tiles with the target value (including the target position)
         var matchingPositions: [Position] = []
         for row in 0..<config.boardHeight {
@@ -617,44 +713,83 @@ public final class GameEngine {
                 }
             }
         }
-        
+
         // If only one tile exists with this value, nothing to merge
         guard matchingPositions.count > 1 else {
             state.undoAvailable = false
             previousState = nil
             return state
         }
-        
+
         let mergedStep = TileStepMath.mergedStep(from: Array(repeating: targetStep, count: matchingPositions.count))
         let mergedValue = TileStepMath.value(forStep: mergedStep)
         let mergedTile = Tile.make(forStep: mergedStep)
-        
+
         // STEP 1: Remove all matching tiles (including the target position)
         // This clears the board of all tiles that are being merged
         for pos in matchingPositions {
             state.board[pos] = nil
         }
-        
+
         // STEP 2: Place the merged result tile at the target position
         // This happens BEFORE gravity, so the tile will fall if needed
         state.board[position] = mergedTile
+
+        // STEP 3: Handle gift breaking if target was a gift
+        if isTargetGift {
+            let column = position.col
+
+            // Award ALL rewards from the column's reward pool
+            let rewards = GiftRewardManager.allRewards(forColumn: column)
+
+            for reward in rewards {
+                // Award each reward based on type
+                switch reward.type {
+                case .gems:
+                    state.gems += reward.value
+                case .spin:
+                    // TODO: Award spins (needs to be handled by GameStore)
+                    state.gems += reward.value  // Temporary: convert to gems
+                case .scoreBoost:
+                    // TODO: Award score boost (needs to be handled by GameStore)
+                    // For multiple boosts, apply the highest one
+                    setScoreMultiplier(max(scoreMultiplier, reward.value))
+                case .powerUp:
+                    // TODO: Award power-up (needs to be handled by GameStore)
+                    // For now, award gems as placeholder
+                    state.gems += 5
+                }
+            }
+
+            // Schedule gift refill for next refill phase
+            pendingGiftRefillValue = generateRandomValue()
+        }
         
         // Update highest tile and level if needed
         if mergedStep > state.highestTileStep {
+            let previousHighestStep = state.highestTileStep
             let previousHighest = state.highestTile
             state.highestTile = max(mergedValue, state.highestTile)
             state.highestTileStep = mergedStep
             highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
-        
-            // Apply eliminations for ALL milestones between previous highest and new value
-            applyAllMilestonesBetween(previousHighest, and: mergedValue)
+
+            // Apply eliminations - use step-based for highValue tiles (step >= 62)
+            if mergedStep >= 62 || previousHighestStep >= 62 {
+                applyAllMilestonesBetweenSteps(previousHighestStep, and: mergedStep)
+            } else {
+                applyAllMilestonesBetween(previousHighest, and: mergedValue)
+            }
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+            if mergedStep >= 62 {
+                applyMilestoneEliminationForStep(mergedStep)
+            } else {
+                applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+            }
         }
-        
+
         // Award score for the merge (use safe addition to prevent overflow)
         addScoreForStep(mergedStep)
         
@@ -722,7 +857,7 @@ public final class GameEngine {
                     continue
                 }
                 if state.board[pos] == nil {
-                    state.board[pos] = Tile(value: generateRandomValue())
+                    state.board[pos] = generateSpawnTile()
                 }
             }
 
@@ -807,17 +942,26 @@ public final class GameEngine {
         state.board[position] = Tile.make(forStep: doubledStep)
         // Update highest tile & level if needed
         if doubledStep > state.highestTileStep {
+            let previousHighestStep = state.highestTileStep
             let previousHighest = state.highestTile
             state.highestTile = max(doubled, state.highestTile)
             state.highestTileStep = doubledStep
             highestTileAchieved = state.highestTile
             updateLevel()
 
-            // Apply eliminations for ALL milestones between previous highest and new value
-            applyAllMilestonesBetween(previousHighest, and: doubled)
+            // Apply eliminations - use step-based for highValue tiles (step >= 62)
+            if doubledStep >= 62 || previousHighestStep >= 62 {
+                applyAllMilestonesBetweenSteps(previousHighestStep, and: doubledStep)
+            } else {
+                applyAllMilestonesBetween(previousHighest, and: doubled)
+            }
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-        applyMilestoneEliminationIfNeeded(createdValue: doubled)
+            if doubledStep >= 62 {
+                applyMilestoneEliminationForStep(doubledStep)
+            } else {
+                applyMilestoneEliminationIfNeeded(createdValue: doubled)
+            }
         }
         
         state.moves += 1
@@ -839,7 +983,8 @@ public final class GameEngine {
     private func spawnInitialTiles() {
         switch config.fillMode {
         case .alwaysFull:
-            fillBoardToFull()
+            // Use cascade fill for consistent Tetris-like behavior
+            refillToFullWithCascade()
         case .sparse:
             var emptyPositions: [Position] = []
             for row in 0..<config.boardHeight {
@@ -855,7 +1000,7 @@ public final class GameEngine {
             for _ in 0..<min(config.initialTileCount, emptyPositions.count) {
                 let index = Int(rng.next() % UInt64(emptyPositions.count))
                 let position = emptyPositions.remove(at: index)
-                state.board[position] = Tile(value: generateRandomValue())
+                state.board[position] = generateSpawnTile()
             }
         }
     }
@@ -876,7 +1021,7 @@ public final class GameEngine {
         // Spawn one new tile at a random empty position
         let index = Int(rng.next() % UInt64(emptyPositions.count))
         let position = emptyPositions[index]
-        state.board[position] = Tile(value: generateRandomValue())
+        state.board[position] = generateSpawnTile()
     }
     
     private func checkMilestoneRewards(_ newHighTile: Int) {
@@ -953,49 +1098,70 @@ public final class GameEngine {
         return false
     }
     
-    private func generateRandomValue() -> Int {
-        // For high milestones (>= 67M), spawn tiles close to current progress
-        if state.highestTile >= 67_108_864 {
-            let highSpawn = spawnNearHighest()
-            if let highSpawn {
-                return highSpawn
-            }
-        }
-        
-        return spawnProgressively(from: minAllowedSpawnValue())
+    /// Generates a spawn tile with proper handling for highValue tiles (step >= 62)
+    private func generateSpawnTile() -> Tile {
+        let step = generateSpawnStep()
+        return Tile.make(forStep: step)
     }
 
-    private func spawnNearHighest() -> Int? {
-        let highest = state.highestTile
-        guard highest >= 2 else { return nil }
-
-        // Maximum spawn is 7 steps below highest (consistent with pre-67M pattern)
-        let maxSpawn = max(2, highest >> 7)
-
-        // Minimum spawn is 6 steps below maxSpawn (so 7 candidates reach maxSpawn)
-        // This means minSpawn = highest >> 13
-        let calculatedMin = max(2, highest >> 13)
-
-        // But don't go below elimination threshold
-        let eliminationThreshold = max(2, getEliminationThreshold())
-        let minSpawn = max(calculatedMin, eliminationThreshold)
-
-        guard minSpawn <= maxSpawn else { return nil }
-
-        var candidates: [Int] = []
-        var current = minSpawn
-        var iterations = 0
-
-        while current <= maxSpawn && iterations < 7 {
-            candidates.append(current)
-            if current > (Int.max >> 1) { break }
-            current = current << 1
-            iterations += 1
+    /// Generates the step for the next spawned tile
+    private func generateSpawnStep() -> Int {
+        // If challenge mode spawn limits are set, use them
+        if let minStep = config.minSpawnStep, let maxStep = config.maxSpawnStep {
+            return spawnStepInRange(minStep: minStep, maxStep: maxStep)
         }
 
-        guard !candidates.isEmpty else { return nil }
+        // For highValue tiles (step >= 62) or high milestones (>= 67M), spawn tiles close to current progress
+        // Use step-based check because highValue tiles all have value = Int.max
+        let useHighSpawn = state.highestTileStep >= 62 || state.highestTileStep >= 25 // Step 25 = 67M
+        if useHighSpawn {
+            if let highSpawnStep = spawnStepNearHighest() {
+                return highSpawnStep
+            }
+        }
+
+        return spawnStepProgressively(from: minAllowedSpawnStep())
+    }
+
+    private func generateRandomValue() -> Int {
+        // Legacy function - use generateSpawnTile() for proper highValue tile support
+        let step = generateSpawnStep()
+        return TileStepMath.value(forStep: step)
+    }
+
+    private func spawnInStepRange(minStep: Int, maxStep: Int) -> Int {
+        // Generate candidates from minStep to maxStep (7 levels max, like normal spawn)
+        var candidates: [Int] = []
+        let effectiveMin = max(0, minStep)
+        let effectiveMax = max(effectiveMin, maxStep)
+
+        // Each step is a doubling: step 0 = 2, step 1 = 4, step 2 = 8, etc.
+        // value = 2^(step+1)
+        var currentStep = effectiveMin
+        while currentStep <= effectiveMax && candidates.count < 7 {
+            let value = stepToValue(currentStep)
+            candidates.append(value)
+            currentStep += 1
+        }
+
+        guard !candidates.isEmpty else {
+            // Fallback to step 0 (value 2)
+            return 2
+        }
+
         let index = Int(rng.next() % UInt64(candidates.count))
         return candidates[index]
+    }
+
+    private func stepToValue(_ step: Int) -> Int {
+        // step 0 = 2, step 1 = 4, step 2 = 8, etc.
+        // value = 2^(step+1)
+        guard step >= 0 else { return 2 }
+        guard step < 62 else {
+            // For very high steps, return Int.max to avoid overflow
+            return Int.max
+        }
+        return 1 << (step + 1)
     }
 
     private func spawnProgressively(from start: Int) -> Int {
@@ -1043,7 +1209,140 @@ public final class GameEngine {
         }
         return 2
     }
-    
+
+    // MARK: - Step-based spawn functions (for highValue tiles)
+
+    /// Returns a step in the given range
+    private func spawnStepInRange(minStep: Int, maxStep: Int) -> Int {
+        let effectiveMin = max(0, minStep)
+        let effectiveMax = max(effectiveMin, maxStep)
+
+        // Generate candidates (up to 7 steps)
+        var candidates: [Int] = []
+        var currentStep = effectiveMin
+        while currentStep <= effectiveMax && candidates.count < 7 {
+            candidates.append(currentStep)
+            currentStep += 1
+        }
+
+        guard !candidates.isEmpty else { return 0 }
+        let index = Int(rng.next() % UInt64(candidates.count))
+        return candidates[index]
+    }
+
+    /// Returns a spawn step near the highest tile step
+    private func spawnStepNearHighest() -> Int? {
+        let highestStep = state.highestTileStep
+        guard highestStep >= 0 else { return nil }
+
+        // Maximum spawn is 7 steps below highest
+        let maxSpawnStep = highestStep - 7
+
+        // Minimum spawn is 13 steps below highest (so 7 candidates reach maxSpawn)
+        let calculatedMinStep = highestStep - 13
+
+        // But don't go below elimination threshold step
+        let eliminationThresholdStep = getEliminationThresholdStep()
+        let minSpawnStep = max(calculatedMinStep, eliminationThresholdStep)
+
+        // Ensure we have at least step 0
+        let effectiveMinStep = max(0, minSpawnStep)
+        let effectiveMaxStep = max(effectiveMinStep, maxSpawnStep)
+
+        guard effectiveMinStep <= effectiveMaxStep else { return nil }
+
+        // Generate 7 candidates from minSpawnStep to maxSpawnStep
+        var candidates: [Int] = []
+        for step in effectiveMinStep...effectiveMaxStep {
+            if candidates.count >= 7 { break }
+            candidates.append(step)
+        }
+
+        guard !candidates.isEmpty else { return nil }
+        let index = Int(rng.next() % UInt64(candidates.count))
+        let chosenStep = candidates[index]
+
+        print("🎲 SPAWN STEP: Generated step \(chosenStep) (\(TileStepLabelFormatter.labelForStep(chosenStep))) from range [\(effectiveMinStep)...\(effectiveMaxStep)]")
+        return chosenStep
+    }
+
+    /// Returns a step progressively from the given start step
+    private func spawnStepProgressively(from startStep: Int) -> Int {
+        let effectiveStart = max(0, startStep)
+        var candidates: [Int] = []
+        for i in 0..<7 {
+            candidates.append(effectiveStart + i)
+        }
+        let index = Int(rng.next() % UInt64(candidates.count))
+        return candidates[index]
+    }
+
+    /// Returns the minimum allowed spawn step
+    private func minAllowedSpawnStep() -> Int {
+        // For highValue tiles (step >= 62), use step-based elimination tracking
+        if !eliminatedMilestoneSteps.isEmpty {
+            // Find highest non-skip milestone step
+            var highestNonSkipStep: Int? = nil
+            for step in eliminatedMilestoneSteps.sorted().reversed() {
+                let position = step - 62
+                if position >= 0 && position % 3 != 2 {  // Not a skip
+                    highestNonSkipStep = step
+                    break
+                }
+            }
+
+            if let milestoneStep = highestNonSkipStep {
+                // Minimum spawn is 13 steps below milestone (so 7 candidates reach 7 steps below)
+                // Elimination threshold is 14 steps below
+                let eliminationThresholdStep = milestoneStep - 14
+                let calculatedMinStep = milestoneStep - 13
+
+                // Use whichever is higher to ensure we don't spawn below elimination threshold
+                return max(0, max(eliminationThresholdStep, calculatedMinStep))
+            }
+        }
+
+        // For value-based milestones, convert to step
+        if let removed = latestEliminatedValue() {
+            // Minimum spawn step is one above the eliminated step
+            if let removedStep = TileStepLabelFormatter.stepForValue(removed, start: 2) {
+                return removedStep + 1
+            }
+        }
+
+        return 0  // Start at step 0 (value 2)
+    }
+
+    /// Returns the elimination threshold as a step
+    private func getEliminationThresholdStep() -> Int {
+        // For highValue tiles (step >= 62), use step-based elimination tracking
+        if !eliminatedMilestoneSteps.isEmpty {
+            // Find highest non-skip milestone step
+            var highestNonSkipStep: Int? = nil
+            for step in eliminatedMilestoneSteps.sorted().reversed() {
+                let position = step - 62
+                if position >= 0 && position % 3 != 2 {  // Not a skip
+                    highestNonSkipStep = step
+                    break
+                }
+            }
+
+            if let milestoneStep = highestNonSkipStep {
+                return max(0, milestoneStep - 14)  // 14 steps below milestone
+            }
+        }
+
+        // For value-based milestones
+        if let highestLargeMilestone = eliminatedMilestones.filter({ $0 >= 67_108_864 }).max() {
+            let thresholdValue = highestLargeMilestone >> 14
+            if let step = TileStepLabelFormatter.stepForValue(thresholdValue, start: 2) {
+                return step
+            }
+        }
+
+        return 0
+    }
+
     /// Returns all milestones between two values (useful for tracking what was passed)
     public func milestonesBetween(_ previousHighest: Int, and newHighest: Int) -> [Int] {
         var milestones: [Int] = []
@@ -1270,7 +1569,7 @@ public final class GameEngine {
                 continue
             }
             if state.board[pos] == nil {
-                state.board[pos] = Tile(value: generateRandomValue())
+                state.board[pos] = generateSpawnTile()
             }
         }
     }
@@ -1307,7 +1606,7 @@ public final class GameEngine {
                     continue
                 }
                 if state.board[pos] == nil {
-                    state.board[pos] = Tile(value: generateRandomValue())
+                    state.board[pos] = generateSpawnTile()
                 }
             }
             
@@ -1326,7 +1625,7 @@ public final class GameEngine {
                     continue
                 }
                 if state.board[pos] == nil {
-                    state.board[pos] = Tile(value: generateRandomValue())
+                    state.board[pos] = generateSpawnTile()
                 }
             }
         }
@@ -1348,7 +1647,7 @@ public final class GameEngine {
             let r = index / config.boardWidth
             let c = index % config.boardWidth
             let pos = Position(row: r, col: c)
-            state.board[pos] = Tile(value: generateRandomValue())
+            state.board[pos] = generateSpawnTile()
         }
     }
     
@@ -1560,6 +1859,137 @@ public final class GameEngine {
         }
     }
 
+    // MARK: - Step-Based Elimination (for highValue tiles, step >= 62)
+
+    /// Apply eliminations for all milestones between two steps (used for highValue tiles)
+    private func applyAllMilestonesBetweenSteps(_ previousStep: Int, and newStep: Int) {
+        print("🎯 Checking for step-based milestone eliminations between step \(previousStep) and step \(newStep)")
+
+        // For steps < 62, delegate to value-based logic
+        if newStep < 62 {
+            let prevValue = TileStepMath.value(forStep: previousStep)
+            let newValue = TileStepMath.value(forStep: newStep)
+            applyAllMilestonesBetween(prevValue, and: newValue)
+            return
+        }
+
+        // STEP 1: Handle any steps < 62 in the range using value-based logic
+        if previousStep < 62 {
+            let prevValue = TileStepMath.value(forStep: previousStep)
+            let maxValueBasedValue = TileStepMath.value(forStep: 61)
+            applyAllMilestonesBetween(prevValue, and: maxValueBasedValue)
+        }
+
+        // STEP 2: For steps >= 62, find the highest non-skip milestone and do ONE elimination
+        var highestNonSkipStep: Int? = nil
+
+        let startStep = max(previousStep + 1, 62)
+        guard startStep <= newStep else { return }
+
+        for step in startStep...newStep {
+            let position = step - 62
+            // Skip pattern: every 3rd position (2, 5, 8, 11...) is a skip
+            if position % 3 == 2 {
+                print("   🔄 SKIP MILESTONE: Step \(step) - no elimination")
+                eliminatedMilestoneSteps.insert(step)
+            } else {
+                print("   📍 Passed milestone: step \(step)")
+                eliminatedMilestoneSteps.insert(step)
+                highestNonSkipStep = step
+            }
+        }
+
+        // STEP 3: Do ONE elimination pass using the highest non-skip milestone
+        if let eliminationStep = highestNonSkipStep {
+            let thresholdStep = eliminationStep - 14
+            if thresholdStep >= 0 {
+                let stepLabel = TileStepLabelFormatter.labelForStep(eliminationStep)
+                let thresholdLabel = TileStepLabelFormatter.labelForStep(thresholdStep)
+                print("🗑️ SINGLE STEP ELIMINATION: Highest milestone step \(eliminationStep) (\(stepLabel))")
+                print("   Eliminating all tiles below step \(thresholdStep) (\(thresholdLabel))")
+                eliminateAllTilesBelowStep(thresholdStep)
+            }
+        }
+    }
+
+    /// Apply elimination for a specific step milestone (for highValue tiles)
+    private func applyMilestoneEliminationForStep(_ step: Int) {
+        let label = TileStepLabelFormatter.labelForStep(step)
+        print("🎯 Checking milestone elimination for step \(step) (\(label))")
+
+        // Check if this is a skip milestone (every 3rd position after step 62)
+        let position = step - 62
+        if position >= 0 && position % 3 == 2 {
+            print("   🔄 SKIP MILESTONE: Step \(step) (\(label)) - no elimination")
+            eliminatedMilestoneSteps.insert(step)
+            return
+        }
+
+        // Threshold step is 14 steps below the milestone
+        let thresholdStep = step - 14
+
+        if thresholdStep < 0 {
+            print("   ℹ️ Threshold step would be negative, skipping elimination")
+            eliminatedMilestoneSteps.insert(step)
+            return
+        }
+
+        let thresholdLabel = TileStepLabelFormatter.labelForStep(thresholdStep)
+        print("🗑️ MILESTONE ELIMINATION: Reached step \(step) (\(label))")
+        print("   Eliminating all tiles below step \(thresholdStep) (\(thresholdLabel))")
+
+        eliminateAllTilesBelowStep(thresholdStep)
+        eliminatedMilestoneSteps.insert(step)
+    }
+
+    /// Eliminate all tiles with stepIndex below the threshold step
+    private func eliminateAllTilesBelowStep(_ thresholdStep: Int) {
+        var didRemove = false
+        var removedCount = 0
+        var removedSteps = Set<Int>()
+
+        let thresholdLabel = TileStepLabelFormatter.labelForStep(thresholdStep)
+        print("🔍 STEP ELIMINATION DEBUG: Scanning board for tiles below step \(thresholdStep) (\(thresholdLabel))")
+
+        // Log all tiles on board before elimination
+        var tileInfo: [(step: Int, label: String, pos: Position)] = []
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos], let step = tile.stepIndex {
+                    let label = TileStepLabelFormatter.labelForStep(step)
+                    tileInfo.append((step, label, pos))
+                }
+            }
+        }
+        let sortedInfo = tileInfo.sorted { $0.step < $1.step }
+        print("   Current board tiles: \(sortedInfo.map { "[\($0.label) step:\($0.step)]" }.joined(separator: ", "))")
+
+        // Remove ALL tiles with step below the threshold
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let pos = Position(row: row, col: col)
+                if let tile = state.board[pos], let step = tile.stepIndex, step < thresholdStep {
+                    let label = TileStepLabelFormatter.labelForStep(step)
+                    print("   🗑️ Removing tile at [\(row),\(col)] with step \(step) (\(label))")
+                    removedSteps.insert(step)
+                    state.board[pos] = nil
+                    didRemove = true
+                    removedCount += 1
+                }
+            }
+        }
+
+        if didRemove {
+            print("   ✅ Eliminated \(removedCount) tiles below step \(thresholdStep)")
+            print("      Removed steps: \(removedSteps.sorted())")
+            refillAfterGravity()
+            print("   ✅ Board refilled with higher-value tiles only")
+        } else {
+            print("   ℹ️ No tiles found below step threshold \(thresholdStep)")
+        }
+    }
+
     // MARK: - Auto-Cascade Merge System
     
     /// Find all groups of adjacent matching tiles on the board
@@ -1670,18 +2100,27 @@ public final class GameEngine {
         
         // Update highest tile
         if mergedStep > state.highestTileStep {
+            let previousHighestStep = state.highestTileStep
             let previousHighest = state.highestTile
             state.highestTile = max(mergedValue, state.highestTile)
             state.highestTileStep = mergedStep
             highestTileAchieved = state.highestTile
             updateLevel()
             checkMilestoneRewards(mergedValue)
-        
-            // Apply eliminations for ALL milestones between previous highest and new value
-            applyAllMilestonesBetween(previousHighest, and: mergedValue)
+
+            // Apply eliminations - use step-based for highValue tiles (step >= 62)
+            if mergedStep >= 62 || previousHighestStep >= 62 {
+                applyAllMilestonesBetweenSteps(previousHighestStep, and: mergedStep)
+            } else {
+                applyAllMilestonesBetween(previousHighest, and: mergedValue)
+            }
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-        applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+            if mergedStep >= 62 {
+                applyMilestoneEliminationForStep(mergedStep)
+            } else {
+                applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+            }
         }
         
         return (mergedValue, mergedStep)
