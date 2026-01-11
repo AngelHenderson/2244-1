@@ -764,6 +764,26 @@ private enum MockLeaderboardData {
         "XiangyangXpert", "WuhuWarrior", "NanchongNinja", "JiujiangJuggernaut", "XingtaiXpert"
     ]
 
+    static let southKoreaNames = [
+        "SeoulStar", "BusanBoss", "IncheonInvader", "DaeguDestroyer", "DaejeonDragon",
+        "GwangjuGhost", "UlsanUltimate", "SuwonSlayer", "ChangwonChamp", "SeongnamStar",
+        "GoyangGladiator", "YonginYakuza", "BucheonBolt", "AnsanAce", "AnYangArcher",
+        "NamyangjuNinja", "HwaseongHero", "CheongJuChamp", "JeonjuJuggernaut", "CheonanChamp",
+        "GimhaeGhost", "PohangPro", "JejuJuggernaut", "KimcheonKnight", "GangneungGladiator",
+        "ChunCheonChamp", "YeosuYeti", "GeojGladiator", "YangSanYakuza", "AnsAce",
+        "GwangmyeongGhost", "JinJuJuggernaut", "GunpoGladiator", "UiJeongBuUltimate", "GumiGhost",
+        "WonjuWarrior", "IksanInvader", "AsanAce", "PyeongtaekPro", "GwangJuGladiator",
+        "JeCheonJuggernaut", "YangJuYakuza", "GyeongjuGhost", "GwacheonGladiator", "HanamHero",
+        "OsanOracle", "SiheungSlayer", "GunSanGladiator", "UiWangUltimate", "YangCheonYeti",
+        "TongYeongTitan", "SacheonSlayer", "GimPoGhost", "SeosanStar", "GangDongGladiator",
+        "ChungJuChamp", "NonSanNinja", "GyeryongGladiator", "DongDuCheonDragon", "SongTanStar",
+        "PaJuPro", "ICheonInvader", "GimCheonGhost", "NaJuNinja", "MokPoMaster",
+        "YeongCheonYeti", "SangJuSlayer", "AnDongAce", "MunGyeongMaster", "YeongJuYakuza",
+        "JeongEupJuggernaut", "NamWonNinja", "GimJeGhost", "BuAnBolt", "GoChangGladiator",
+        "HongSeongHero", "BoRyeongBoss", "SeoCheongStar", "TaeAnTitan", "DangJinDragon",
+        "YeSanYeti", "CheongYangChamp", "HongSanHero", "GongJuGladiator", "GyeRyongKnight"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -841,6 +861,8 @@ public extension LeaderboardClient {
                 entries = algeriaEntries()
             case .countryCN:
                 entries = chinaEntries()
+            case .countryKR:
+                entries = southKoreaEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -877,9 +899,11 @@ public extension LeaderboardClient {
                 totalPlayers = 3_333  // Algeria player count
             case .countryCN:
                 totalPlayers = 8_192  // China player count
+            case .countryKR:
+                totalPlayers = 3_123  // South Korea player count
             case .global:
                 // Global = sum of all country players
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123
             }
             return .init(entries: entries, myEntry: entries.last, nextCursor: nil, totalPlayers: totalPlayers)
         },
@@ -1519,7 +1543,7 @@ public extension LeaderboardClient {
 
     private static let chinaPlayerMilestones: [String] = [
         // Ranks 1-30
-        "99bv", "1br", "5bo", "4bl", "598bj", "8bf", "8be", "518bc", "129ba", "16az",
+        "99bv", "1br", "5bo", "4bl", "598bj", "8bf", "8be", "518bc", "129ba", "16bd",
         "943az", "235az", "14ax", "6av", "3au", "190ao", "1ao", "2al", "4ai", "9af",
         "17ac", "31z", "30x", "15x", "431s", "1s", "3q", "12o", "187m", "45l",
         // Ranks 31-60
@@ -1552,6 +1576,40 @@ public extension LeaderboardClient {
         ("8", 1666), ("4", 3111), ("2", 4666),
         // Score 0 bracket (ranks 6767-8192)
         ("0", 6767)
+    ]
+
+    private static let southKoreaPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "1bt", "1bo", "2bj", "8be", "32bd", "235az", "429av", "48ar", "2ao", "615ah",
+        "1ag", "559ad", "1ac", "63z", "3y", "3x", "1w", "452u", "55t", "26s",
+        "13r", "12q", "12p", "24o", "23n", "46m", "93l", "178k", "348j", "680i",
+        // Ranks 31-60
+        "2i", "10h", "81g", "633f", "9f", "154e", "2e", "37d", "590c", "9c",
+        "144b", "4b", "281a", "35a", "4a", "1a", "549B", "274B", "137B", "68B",
+        "68B", "34B", "17B", "8B", "4B", "4B", "2B", "2B", "1B", "536M",
+        // Ranks 61-90
+        "268M", "268M", "134M", "134M", "134M", "67M", "33M", "33M", "33M", "16M",
+        "16M", "16M", "8M", "8M", "8M", "8M", "4M", "4M", "4M", "4M",
+        "2M", "2M", "2M", "2M", "1M", "1M", "1M", "1M", "1M", "524K",
+        // Ranks 91-120
+        "524K", "524K", "524K", "524K", "524K", "262K", "262K", "262K", "262K", "262K",
+        "262K", "262K", "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K",
+        "131K", "131K", "65K", "65K", "65K", "65K", "65K", "65K", "65K", "65K",
+        // Ranks 121-150
+        "65K", "65K", "65K", "65K", "32K", "32K", "32K", "32K", "32K", "32K",
+        "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "16K",
+        "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K"
+    ]
+
+    // Extended South Korea milestone brackets for rank calculation (ranks 151+)
+    // Total South Korea players: 3,123
+    private static let southKoreaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // K-tier brackets
+        ("16K", 140), ("8192", 157), ("4096", 180), ("2048", 221), ("1024", 277),
+        ("512", 333), ("256", 400), ("128", 485), ("64", 581), ("32", 676),
+        ("16", 833), ("8", 1111), ("4", 1676), ("2", 2161),
+        // Score 0 bracket (ranks 2676-3123)
+        ("0", 2676)
     ]
 
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
@@ -1928,6 +1986,19 @@ public extension LeaderboardClient {
             playerData.append((i, i + 65000, baseMilestone, milestoneIdx, name, "CN", platform, avatar, "cn_\(i)"))
         }
 
+        // Add South Korea players
+        for i in 0..<min(150, southKoreaPlayerMilestones.count) {
+            let baseMilestone = southKoreaPlayerMilestones[i]
+            let name = MockLeaderboardData.southKoreaNames[i % MockLeaderboardData.southKoreaNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 84) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // South Korea milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, i + 70000, baseMilestone, milestoneIdx, name, "KR", platform, avatar, "kr_\(i)"))
+        }
+
         // Sort by milestone index (highest first = best milestone)
         playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
 
@@ -1968,7 +2039,8 @@ public extension LeaderboardClient {
         let totalAlbaniaPlayers = 11_222
         let totalAlgeriaPlayers = 3_333
         let totalChinaPlayers = 8_192
-        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers
+        let totalSouthKoreaPlayers = 3_123
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers
 
         // Find user's rank based on milestone compared to sorted players
         var globalRank = totalPlayers
@@ -3216,6 +3288,92 @@ public extension LeaderboardClient {
             name: UserLeaderboardData.playerName,
             score: userScore,
             countryCode: "CN",
+            platform: .ios,
+            isMe: true,
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
+        ))
+
+        return entries
+    }
+
+    private static func southKoreaEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // First, build player data with milestones
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String)] = []
+
+        for i in 0..<min(150, southKoreaPlayerMilestones.count) {
+            let baseMilestone = southKoreaPlayerMilestones[i]
+            let name = MockLeaderboardData.southKoreaNames[i % MockLeaderboardData.southKoreaNames.count]
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[(i + 84) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+
+            // South Korea milestones are already current values - don't apply progression
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar))
+        }
+
+        // Sort by milestone index (descending - higher milestone = better rank)
+        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+
+        // Build entries with ranks based on sorted order
+        var entries: [LeaderboardEntry] = []
+        for (rank, player) in playerData.enumerated() {
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 70000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: "kr_\(player.originalIndex)",
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "KR",
+                platform: player.platform,
+                isMe: false,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // Add current user entry
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+        let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let totalSouthKoreaPlayers = 3_123  // South Korea player count
+
+        // Find user's rank based on milestone compared to sorted players
+        var southKoreaRank = totalSouthKoreaPlayers
+
+        // Check if user would be in top 150 based on milestone
+        if let lastTop150 = playerData.last {
+            if userMilestoneIndex > lastTop150.milestoneIdx {
+                // User's milestone is better than some in top 150, find exact position
+                for (rank, player) in playerData.enumerated() {
+                    if userMilestoneIndex >= player.milestoneIdx {
+                        southKoreaRank = rank + 1
+                        break
+                    }
+                }
+            } else {
+                // User is below top 150 - use bracket-based ranking
+                for bracket in southKoreaExtendedRankBrackets {
+                    if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                       userMilestoneIndex >= bracketIndex {
+                        southKoreaRank = bracket.startRank
+                        break
+                    }
+                }
+            }
+        }
+
+        entries.append(LeaderboardEntry(
+            id: "me",
+            rank: southKoreaRank,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
+            countryCode: "KR",
             platform: .ios,
             isMe: true,
             avatarURL: UserLeaderboardData.avatarID,
