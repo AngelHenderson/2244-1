@@ -136,13 +136,25 @@ public struct LiveProfileClient: ProfileClient, Sendable {
     }
 
     private func formatScoreString(_ decimalString: String) -> String {
-        // The decimalString is stored as a plain number string (e.g., "13000000")
-        // Parse as Int first, then format with abbreviations
-        if let intValue = Int(decimalString) {
+        // Clean the string first - remove any whitespace or non-numeric characters
+        let cleaned = decimalString.trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: CharacterSet.decimalDigits.inverted)
+            .joined()
+
+        guard !cleaned.isEmpty else { return "0" }
+
+        // Parse as AlphaNumber to handle very large values
+        if let alpha = AlphaNumber(decimalString: cleaned) {
+            return alpha.formattedWithCommas()
+        }
+
+        // Fallback: if we can parse as Int, use that
+        if let intValue = Int(cleaned) {
             return formatScore(intValue)
         }
-        // For very large numbers beyond Int range, return as-is
-        return decimalString
+
+        // Last resort: return the cleaned string
+        return cleaned
     }
 
     private func formatTileValue(_ value: Int) -> String {
