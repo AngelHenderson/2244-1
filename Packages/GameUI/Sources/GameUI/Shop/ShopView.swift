@@ -318,12 +318,17 @@ struct BundleCard: View {
 struct GemBundleRow: View {
     let gem: GemBundle
     @Environment(\.shopStore) private var shopStore
-    
+
     var body: some View {
         Button {
             Task { await shopStore.purchase(gem.id) }
         } label: {
-            HStack {
+            HStack(spacing: 12) {
+                gemIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 36, height: 36)
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(gem.gems.formatted()) Gems")
                         .font(.headline)
@@ -344,6 +349,21 @@ struct GemBundleRow: View {
         .buttonStyle(.plain)
         .disabled(shopStore.isPurchasing)
         .accessibilityLabel("\(gem.gems) gems for \(shopStore.formatPrice(gem.price))")
+    }
+
+    private var gemIcon: Image {
+        #if canImport(UIKit)
+        if let path = Bundle.module.path(forResource: "GemBagIcon", ofType: "png"),
+           let uiImage = UIImage(contentsOfFile: path) {
+            return Image(uiImage: uiImage)
+        }
+        #elseif canImport(AppKit)
+        if let path = Bundle.module.path(forResource: "GemBagIcon", ofType: "png"),
+           let nsImage = NSImage(contentsOfFile: path) {
+            return Image(nsImage: nsImage)
+        }
+        #endif
+        return Image(systemName: "diamond.fill")
     }
 }
 
