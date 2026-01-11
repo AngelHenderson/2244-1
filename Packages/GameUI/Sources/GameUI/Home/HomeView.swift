@@ -72,12 +72,20 @@ public struct HomeView: View {
                         VStack(spacing: 20) {
                             SideRailButton(
                                 systemImage: nil,
+                                customImage: "dailypic",
+                                title: "DAILY",
+                                badge: state.hasDailyBadge,
+                                action: { actions.openDaily() }
+                            )
+
+                            SideRailButton(
+                                systemImage: nil,
                                 customImage: "spinthewheel",
                                 title: "FREE SPIN",
                                 badge: state.hasFreeSpinBadge,
                                 action: { actions.openFreeSpin() }
                             )
-                            
+
                             SideRailButton(
                                 systemImage: nil,
                                 customImage: "mysterybox",
@@ -85,29 +93,20 @@ public struct HomeView: View {
                                 badge: state.hasShopBadge,
                                 action: { isShowingShop = true }
                             )
-                            
+
                             SideRailButton(
                                 systemImage: nil,
                                 customImage: "soundeffect",
                                 title: "MUSIC",
                                 action: { isShowingMusic = true }
                             )
-                            
+
                             SideRailButton(
                                 systemImage: nil,
                                 customImage: "salesoffer",
                                 title: "SALE OFFER",
                                 badge: true,
                                 action: { actions.openSaleOffer() }
-                            )
-                            
-                            // Daily below Sale Offer
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "dailypic",
-                                title: "DAILY",
-                                badge: state.hasDailyBadge,
-                                action: { actions.openDaily() }
                             )
                             
                             Spacer(minLength: 0)
