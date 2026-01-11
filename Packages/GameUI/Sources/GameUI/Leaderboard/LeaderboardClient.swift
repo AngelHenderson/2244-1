@@ -228,7 +228,112 @@ private enum MockLeaderboardData {
         "TrustTitan", "LoyalLegend", "HonorHero", "GloryGamer", "FameFlame",
         "ReputationRuler", "PrestigePro", "StatusStar", "RankRoyal", "TierTitan",
         "LevelLord", "GradientGuru", "ScaleSeeker", "MeasureMaster", "MetricMight",
-        "UnitUltimate", "ValueVictor", "WorthWinner", "PricePlayer", "CostChamp"
+        "UnitUltimate", "ValueVictor", "WorthWinner", "PricePlayer", "CostChamp",
+        // Ranks 151-180
+        "AceOfSpades01", "CardShark99", "DeckMaster", "JokerWild", "RoyalFlush",
+        "FullHouse00", "StraightEdge", "FlushKing", "PairPerfect", "HighRoller",
+        "JackpotJoe", "LuckyLuke", "FortuneHunter", "ChanceTaker", "OddsBeater",
+        "BetBuster", "WagerWinner", "StakesKing", "PotMaster", "ChipChamp",
+        "BluffBoss", "TellTracker", "ReadRuler", "FoldFighter", "RaiseMaster",
+        "CallKing", "CheckChamp", "AllInAce", "BigBlind99", "SmallStacks",
+        // Ranks 181-210
+        "NightOwl01", "DawnPatrol", "DuskRider", "TwilightTitan", "MidnightMage",
+        "SunriseSeeker", "SunsetStar", "MoonWalker99", "StarGazer", "SkyWatcher",
+        "CloudSurfer", "RainMaker", "SnowStorm", "HailHero", "FrostFighter",
+        "BlizzardBoss", "IceKing00", "ColdChamp", "FreezeFrame", "ChillMaster",
+        "HeatWave01", "FireStarter", "BurnBoss", "FlameKing", "EmberElite",
+        "AshMaster", "SmokeScreen", "SparkPlug", "IgniteIcon", "InfernoImp",
+        // Ranks 211-240
+        "OceanMaster01", "SeaSerpent", "WaveRider99", "TideTracker", "CurrentKing",
+        "DeepDiver", "SurfStar", "BeachBoss", "CoastCruiser", "ShoreShark",
+        "RiverRunner", "StreamStar", "CreekCruiser", "PondPro", "LakeLord",
+        "WaterfallWin", "RapidsRuler", "DeltaDuke", "EstuaryElite", "BayBoss",
+        "HarborHero", "PortPro", "DockDynamo", "MarinaMaster", "AnchorAce",
+        "SailStar", "BoatBoss", "ShipShape", "CaptainCool", "AdmiralAce",
+        // Ranks 241-270
+        "JungleMaster01", "ForestFury", "WoodlandWin", "GroveGuard", "TreeTop99",
+        "CanopyKing", "LeafLord", "BranchBoss", "RootRuler", "BarkBaron",
+        "VineMaster", "FernFighter", "MossMage", "ShrubStar", "BushBoss",
+        "GrassMaster", "MeadowMight", "FieldFury", "PasturePro", "PrairiePrime",
+        "SavannaStar", "PlainsPro", "SteppeStar", "TundraTitan", "ArcticAce",
+        "PolarPro", "GlacierGod", "IcecapIcon", "PermafrostPro", "FrozenFury",
+        // Ranks 271-300
+        "DesertDuke01", "SandStorm99", "DuneDynamo", "OasisOracle", "MirageMaster",
+        "CamelKing", "ScorpionStar", "ViperVictor", "LizardLord", "CactusCool",
+        "MesaMaster", "CanyonKing", "CliffChamp", "RockRuler", "BoulderBoss",
+        "PebblePro", "StoneStar", "GravelGuru", "SlateStar", "MarbleMaster",
+        "GranitePro", "QuartzQueen", "CrystalKing", "GemGuru", "DiamondDuke",
+        "RubyRuler", "EmeraldElite", "SapphireStar", "TopazTitan", "OpalOracle",
+        // Ranks 301-330
+        "CaveMaster01", "CavernKing", "GrottoGuru", "TunnelTitan", "MineMaster99",
+        "ShaftStar", "VeinVictor", "OreMaster", "CoalKing", "IronIcon",
+        "CopperChamp", "BronzeBoss", "SilverStar", "GoldGuru", "PlatinumPro",
+        "TitaniumTitan", "SteelStar", "AlloyStar", "MetalMaster", "ForgeFury",
+        "AnvilAce", "HammerHero", "SmithStar", "BladeBoss", "SwordStar",
+        "AxeAce", "SpearStar", "ShieldStar", "ArmorAce", "HelmHero",
+        // Ranks 331-360
+        "WizardKing01", "MageMonarch", "SorcererStar", "WarlockWin", "WitchWonder99",
+        "SpellStar", "RuneRuler", "GlyphGuru", "SigilStar", "CharmChamp",
+        "HexHero", "CurseCaster", "BlessingBoss", "AuraAce", "ManaMaster",
+        "MysticMight", "ArcaneAce", "OccultOracle", "EsotericElite", "EnigmaEra",
+        "PuzzlePro", "RiddleRuler", "MysteryMaster", "SecretStar", "HiddenHero",
+        "VeiledVictor", "MaskedMaster", "CloakedChamp", "ShadowedStar", "DarkDynamo",
+        // Ranks 361-390
+        "LightLord01", "BrightBoss99", "RadiantRuler", "GlowGuru", "ShineShark",
+        "BeamBoss", "RayRuler", "FlashFury", "SparkStar", "GleamGuru",
+        "ShimmerStar", "TwinkleTitan", "GlitterGod", "DazzleDuke", "BlazeBoss",
+        "LuminousLord", "BrilliantBoss", "VividVictor", "VibrantViper", "IntensityIcon",
+        "PowerPulse", "EnergyEmperor", "ForcePhenom", "StrengthStar", "MightMonarch",
+        "MuscleMaster", "PowerPeak", "StrengthSurge", "ForceFusion", "EnergyEagle",
+        // Ranks 391-420
+        "SpeedStar01", "FastFury99", "QuickQueen", "RapidRuler", "SwiftStar",
+        "FleetFoot", "DashDynamo", "SprintStar", "RacerRoyal", "RunnerRuler",
+        "JoggerJoe", "MarathonMaster", "SpurterStar", "BoltBoss", "ZoomZephyr",
+        "VelocityVictor", "MomentumMaster", "AccelAce", "TurboTitan", "NitroNinja",
+        "RocketRuler", "JetJockey", "PropelPro", "ThrustTitan", "BoostBoss",
+        "SurgeStar", "LeapLord", "BoundBoss", "JumpJet", "VaultVictor",
+        // Ranks 421-450
+        "ClimbKing01", "SummitStar99", "PeakPro", "MountainMaster", "HillHero",
+        "RidgeRuler", "CrestChamp", "SlopeStar", "TrailTitan", "PathPro",
+        "RouteMaster", "JourneyJoe", "TrekTitan", "HikeMaster", "WalkWonder",
+        "StrollStar", "WanderWin", "RoamRuler", "DriftDuke", "FloatFury",
+        "GlideMaster", "SoarStar", "FlyFury", "WingWonder", "FeatherFury",
+        "BirdBoss", "EagleEye", "HawkHero", "FalconFury", "OwlOracle",
+        // Ranks 451-480
+        "WolfWarrior01", "FoxFury99", "BearBoss", "TigerTitan", "LionLord",
+        "PantherPro", "JaguarJet", "CheetahChamp", "LeopardLord", "CougarCool",
+        "LynxLord", "BobcatBoss", "WildcatWin", "CatKing", "KittenKing",
+        "PuppyPro", "DogDynamo", "HoundHero", "TerrierTitan", "BullBoss",
+        "PitPro", "MastiffMaster", "ShepherdStar", "RetrieveRuler", "LabLord",
+        "PoodlePro", "SpanielStar", "SetterStar", "PointerPro", "BeagleBoss",
+        // Ranks 481-510
+        "HorseMaster01", "PonyPro99", "StallionStar", "MareMaster", "ColtChamp",
+        "FoalFury", "MustangMight", "BroncoStar", "RacehorsePro", "ThoroughbredTitan",
+        "ZebraBoss", "DonkeyDuke", "MuleMaster", "CamelCool", "LlamaLord",
+        "AlpacaAce", "GoatGuru", "SheepStar", "RamRuler", "LambLord",
+        "CowChamp", "BullBaron", "OxOracle", "BisonBoss", "BuffaloBolt",
+        "ElkElite", "MooseMaster", "DeerDuke", "AntelopeAce", "GazellePro",
+        // Ranks 511-540
+        "ElephantElite01", "RhinoRuler99", "HippoHero", "GiraffePro", "ZebraStar",
+        "LionKing", "TigerStar", "CheetahKing", "GorillaPro", "ChimpChamp",
+        "OrangutanOracle", "BaboonBoss", "MonkeyMaster", "LemurLord", "TarsierTitan",
+        "AyeAyeAce", "SlothStar", "ArmadilloAce", "AnteaterAce", "AardvarkAce",
+        "PlatypusPro", "EchidnaElite", "KoalaCool", "WombatWin", "KangarooKing",
+        "WallabyWin", "TasmanianTitan", "DingoStar", "KiwiKing", "EmuElite",
+        // Ranks 541-570
+        "OstrichOracle01", "FlamingoFury99", "PelicanPro", "StorkStar", "HeronHero",
+        "CraneCool", "EgretElite", "IbisIcon", "SpoonbillStar", "ToucanTitan",
+        "ParrotPro", "MacawMaster", "CockatooChamp", "LovebirdLord", "BudgieBoss",
+        "FinchFury", "CanaryChamp", "SparrowStar", "RobinRuler", "CardinalChamp",
+        "BluejayBoss", "CrowChamp", "RavenRuler", "MagpieMaster", "JayStar",
+        "WoodpeckerWin", "NuthatchNinja", "ChickadeeCool", "TitTitan", "WrenWonder",
+        // Ranks 571-600
+        "HummingHero01", "SwiftStar99", "SwallowStar", "MartinMaster", "NightjarNinja",
+        "OwlOracle2", "HawkHero2", "EagleStar", "FalconPro", "KestrelKing",
+        "OspreyOracle", "VultureVictor", "CondorChamp", "BuzzardBoss", "KiteStar",
+        "HarrierHero", "GoshawkGuru", "AccipiterAce", "MerlinMaster", "PeregrinePro",
+        "SakerStar", "LannerLord", "GyrfalconGod", "PrairieHero", "ApplomadoAce",
+        "CaracaraCool", "SecretaryBird", "SeriemaStar", "KakapoKing", "TakaheHero"
     ]
 
     // Convert milestone string to a score value
@@ -519,11 +624,72 @@ private enum MockLeaderboardData {
 
     static let indiaHallOfFameInfinityCounts: [Int] = [
         // Ranks 1-15 (India Hall of Fame)
-        677, 676, 670, 633, 566, 414, 411, 212, 211, 88, 39, 48, 44, 44, 34,
+        6776, 6767, 6702, 6333, 5666, 4141, 4114, 2121, 2112, 888, 399, 48, 44, 44, 34,
         // Ranks 16-30
         25, 17, 13, 11, 10, 9, 9, 6, 5, 5, 5, 4, 4, 3, 3,
         // Ranks 31-37
         3, 3, 2, 2, 1, 1, 1
+    ]
+
+    static let brazilHallOfFameInfinityCounts: [Int] = [
+        // Ranks 1-15 (Brazil Hall of Fame)
+        1111, 943, 587, 384, 321, 267, 232, 222, 222, 221, 167, 143, 121, 119, 99,
+        // Ranks 16-30
+        86, 69, 56, 25, 24, 23, 21, 17, 14, 12, 11, 11, 9, 8, 8,
+        // Ranks 31-44
+        7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1
+    ]
+
+    static let mexicoHallOfFameInfinityCounts: [Int] = [
+        // Ranks 1-15 (Mexico Hall of Fame)
+        11111, 8755, 5912, 4413, 4410, 3544, 1185, 966, 784, 711, 635, 559, 318, 98, 77,
+        // Ranks 16-30
+        69, 67, 66, 34, 17, 8, 7, 6, 5, 5, 4, 3, 3, 2, 2,
+        // Ranks 31-35
+        2, 1, 1, 1, 1
+    ]
+
+    static let afghanistanHallOfFameInfinityCounts: [Int] = [
+        // Ranks 1-15 (Afghanistan Hall of Fame)
+        1933, 689, 663, 639, 348, 311, 220, 129, 97, 69, 44, 23, 19, 14, 10,
+        // Ranks 16-22
+        7, 5, 4, 4, 3, 1, 1
+    ]
+
+    static let albaniaHallOfFameInfinityCounts: [Int] = [
+        // Ranks 1-15 (Albania Hall of Fame)
+        870, 492, 484, 239, 114, 110, 53, 24, 19, 16, 14, 12, 11, 11, 10,
+        // Ranks 16-26
+        9, 9, 7, 5, 3, 3, 2, 2, 1, 1, 1
+    ]
+
+    static let algeriaHallOfFameInfinityCounts: [Int] = [
+        // Ranks 1-15 (Algeria Hall of Fame)
+        322, 299, 221, 211, 156, 122, 89, 77, 65, 39, 33, 28, 24, 21, 19,
+        // Ranks 16-28
+        18, 16, 13, 9, 4, 3, 3, 2, 2, 1, 1, 1, 1
+    ]
+
+    static let chinaHallOfFameInfinityCounts: [Int] = [
+        // Ranks 1-15 (China Hall of Fame)
+        988, 676, 543, 277, 222, 167, 112, 98, 78, 66, 54, 43, 32, 25, 18,
+        // Ranks 16-30
+        17, 15, 14, 13, 13, 12, 12, 12, 11, 11, 9, 8, 8, 6, 6,
+        // Ranks 31-45
+        5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2,
+        // Ranks 46-52
+        2, 1, 1, 1, 1, 1, 1
+    ]
+
+    static let southKoreaHallOfFameInfinityCounts: [Int] = [
+        // Ranks 1-15 (South Korea Hall of Fame)
+        28822, 22222, 18766, 11149, 3995, 2996, 2055, 1288, 866, 386, 344, 221, 116, 108, 100,
+        // Ranks 16-30
+        95, 29, 28, 28, 27, 22, 21, 21, 20, 20, 19, 19, 19, 18, 18,
+        // Ranks 31-45
+        18, 18, 17, 12, 12, 11, 8, 8, 6, 6, 4, 3, 3, 2, 2,
+        // Ranks 46-51
+        2, 1, 1, 1, 1, 1
     ]
 
     static let usNames = [
@@ -1018,58 +1184,116 @@ public extension LeaderboardClient {
         (false, 72), (true, 73), (false, 73), (true, 74), (false, 74)
     ]
 
-    // Hall of Fame - players who reached ∞, names from US/Global leaderboards
-    // Ranks are based on milestone (infinity count) - higher infinity = better rank
+    // Hall of Fame - players who reached ∞ from ALL countries
+    // Ranks are based on infinity count - higher infinity = better rank
     private static func hallOfFameEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
 
-        // First, build player data with progressed infinity counts
-        var playerData: [(originalIndex: Int, progressedCount: Int, name: String, country: String, platform: Platform, avatar: String)] = []
+        // Combine all country Hall of Fame data
+        var playerData: [(id: String, baseCount: Int, country: String, nameIndex: Int)] = []
+        var globalIndex = 0
 
-        for (index, baseCount) in MockLeaderboardData.hallOfFameInfinityCounts.enumerated() {
-            let source = hallOfFamePlayerSources[index]
-            let name: String
-            let country: String
-
-            if let sourceIndex = source.sourceIndex {
-                if source.isUS {
-                    name = MockLeaderboardData.usNames[sourceIndex % MockLeaderboardData.usNames.count]
-                    country = "US"
-                } else {
-                    name = MockLeaderboardData.globalNames[sourceIndex % MockLeaderboardData.globalNames.count]
-                    country = MockLeaderboardData.countries[sourceIndex % MockLeaderboardData.countries.count]
-                }
-            } else {
-                name = MockLeaderboardData.hallOfFameNames[index % MockLeaderboardData.hallOfFameNames.count]
-                country = ["US", "JP", "KR", "DE", "GB", "FR", "CA", "AU", "BR", "IN"][index % 10]
-            }
-
-            // Apply daily infinity progression (0.25-1.5 infinities per day)
-            let progressedCount = MockLeaderboardData.infinityCountWithProgression(baseCount: baseCount, playerIndex: index, day: day)
-
-            let platform: Platform = index % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[index % MockLeaderboardData.avatarIDs.count]
-
-            playerData.append((index, progressedCount, name, country, platform, avatar))
+        // Add US players
+        for (i, count) in MockLeaderboardData.hallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_us_\(i)", count, "US", globalIndex))
+            globalIndex += 1
+        }
+        // Add UK players
+        for (i, count) in MockLeaderboardData.ukHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_uk_\(i)", count, "GB", globalIndex))
+            globalIndex += 1
+        }
+        // Add Canada players
+        for (i, count) in MockLeaderboardData.canadaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_ca_\(i)", count, "CA", globalIndex))
+            globalIndex += 1
+        }
+        // Add Australia players
+        for (i, count) in MockLeaderboardData.australiaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_au_\(i)", count, "AU", globalIndex))
+            globalIndex += 1
+        }
+        // Add Germany players
+        for (i, count) in MockLeaderboardData.germanyHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_de_\(i)", count, "DE", globalIndex))
+            globalIndex += 1
+        }
+        // Add France players
+        for (i, count) in MockLeaderboardData.franceHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_fr_\(i)", count, "FR", globalIndex))
+            globalIndex += 1
+        }
+        // Add Japan players
+        for (i, count) in MockLeaderboardData.japanHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_jp_\(i)", count, "JP", globalIndex))
+            globalIndex += 1
+        }
+        // Add India players
+        for (i, count) in MockLeaderboardData.indiaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_in_\(i)", count, "IN", globalIndex))
+            globalIndex += 1
+        }
+        // Add Brazil players
+        for (i, count) in MockLeaderboardData.brazilHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_br_\(i)", count, "BR", globalIndex))
+            globalIndex += 1
+        }
+        // Add Mexico players
+        for (i, count) in MockLeaderboardData.mexicoHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_mx_\(i)", count, "MX", globalIndex))
+            globalIndex += 1
+        }
+        // Add Afghanistan players
+        for (i, count) in MockLeaderboardData.afghanistanHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_af_\(i)", count, "AF", globalIndex))
+            globalIndex += 1
+        }
+        // Add Albania players
+        for (i, count) in MockLeaderboardData.albaniaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_al_\(i)", count, "AL", globalIndex))
+            globalIndex += 1
+        }
+        // Add Algeria players
+        for (i, count) in MockLeaderboardData.algeriaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_dz_\(i)", count, "DZ", globalIndex))
+            globalIndex += 1
+        }
+        // Add China players
+        for (i, count) in MockLeaderboardData.chinaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_cn_\(i)", count, "CN", globalIndex))
+            globalIndex += 1
+        }
+        // Add South Korea players
+        for (i, count) in MockLeaderboardData.southKoreaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_kr_\(i)", count, "KR", globalIndex))
+            globalIndex += 1
         }
 
-        // Sort by progressed infinity count (highest first)
-        playerData.sort { $0.progressedCount > $1.progressedCount }
+        // Sort by base count (highest first)
+        playerData.sort { $0.baseCount > $1.baseCount }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
         for (rank, player) in playerData.enumerated() {
-            let score = MockLeaderboardData.scoreForMilestone("\(player.progressedCount)∞")
+            // Apply daily infinity progression
+            let progressedCount = MockLeaderboardData.infinityCountWithProgression(baseCount: player.baseCount, playerIndex: player.nameIndex, day: day)
+
+            // Use unique name from hallOfFameNames based on rank position
+            let name = MockLeaderboardData.hallOfFameNames[rank % MockLeaderboardData.hallOfFameNames.count]
+
+            let platform: Platform = rank % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarIDs[rank % MockLeaderboardData.avatarIDs.count]
+            let score = MockLeaderboardData.scoreForMilestone("\(progressedCount)∞")
 
             entries.append(LeaderboardEntry(
-                id: "hof_\(player.originalIndex)",
+                id: player.id,
                 rank: rank + 1,
-                name: player.name,
+                name: name,
                 score: score,
                 countryCode: player.country,
-                platform: player.platform,
-                avatarURL: player.avatar,
-                highestTile: "\(player.progressedCount)∞"
+                platform: platform,
+                avatarURL: avatar,
+                highestTile: "\(progressedCount)∞"
             ))
         }
 
