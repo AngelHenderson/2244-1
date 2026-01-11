@@ -12,9 +12,19 @@ public struct AchievementsView: View {
 
     public init() {}
     
-    /// Sorted achievements: highest level first, then by progress bar (highest first), then by claimable status
+    /// Sorted achievements: claimable first, then by level (highest first), then by progress bar (highest first)
     private var sortedAchievements: [AchievementDef] {
         achievements.catalog.sorted { a, b in
+            let stateA = achievements.unlocks[a.id]
+            let stateB = achievements.unlocks[b.id]
+            let claimableA = stateA?.isClaimable == true
+            let claimableB = stateB?.isClaimable == true
+
+            // Claimable achievements go to the top
+            if claimableA != claimableB {
+                return claimableA
+            }
+
             let levelA = achievementLevel(for: a.id)
             let levelB = achievementLevel(for: b.id)
 
@@ -30,9 +40,7 @@ public struct AchievementsView: View {
                 return progressA > progressB
             }
 
-            // If same level and progress, sort by claimable status
-            let stateA = achievements.unlocks[a.id]
-            let stateB = achievements.unlocks[b.id]
+            // If same level and progress, sort by category/name
             let priorityA = sortPriority(for: a.id, state: stateA)
             let priorityB = sortPriority(for: b.id, state: stateB)
 

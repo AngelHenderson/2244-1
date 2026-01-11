@@ -731,6 +731,7 @@ public final class AchievementStore {
     ]
 
     private static let challengeCreationTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "Create & complete 5", rewards: .init(gems: 55)),
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
         .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
         .init(milestone: 35, categoryLabel: "Create & complete 35", rewards: .init(gems: 300, hammers: 1)),
