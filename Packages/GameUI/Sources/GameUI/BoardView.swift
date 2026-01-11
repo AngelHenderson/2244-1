@@ -258,7 +258,7 @@ public struct BoardView: View {
                         gameStore.extendPath(to: position)
                         if gameStore.pathValidation.isValid {
                             haptics.lightImpact()
-                            Task { await audioService.playSfx(name: "drag") }
+                            Task { await audioService.playSfx(name: "chain") }
                         } else {
                             haptics.warning()
                         }
@@ -272,6 +272,7 @@ public struct BoardView: View {
                 if gameStore.pathValidation.isValid && gameStore.currentPath.count >= 2 {
                     gameStore.commitPath()
                     haptics.success()
+                    Task { await audioService.playSfx(name: "merge") }
                 } else {
                     gameStore.cancelPath()
                     if gameStore.currentPath.count >= 2 {
