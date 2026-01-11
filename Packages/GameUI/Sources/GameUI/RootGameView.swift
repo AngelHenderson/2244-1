@@ -65,6 +65,7 @@ public struct RootGameView: View {
                     }
                 )
                 .environment(homeState)
+                .environment(\.challengeStore, challengeStore)
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             } else if isPlaying {
                 HybridGameScreen(isPlayingDismiss: {
@@ -118,7 +119,8 @@ public struct RootGameView: View {
                                 tileAssignments: [:],
                                 predictedRewardGems: challenge.reward.coins,
                                 minSpawnStep: challenge.minSpawnTile,
-                                maxSpawnStep: challenge.maxSpawnTile
+                                maxSpawnStep: challenge.maxSpawnTile,
+                                challengeId: challenge.id
                             )
                             showChallenge = false
                             customChallengeConfig = config

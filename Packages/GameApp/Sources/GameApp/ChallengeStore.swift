@@ -6,8 +6,12 @@ import GameCore
 public final class ChallengeStore: Sendable {
     public var challenges: [Challenge] = []
     public var completedIds: Set<UUID> = []
+    public var completionTimestamps: [UUID: Date] = [:]  // Tracks when each challenge was completed
     private var challengeOrder: [UUID] = []
-    
+
+    /// Time delay before next challenge unlocks (1 hour)
+    public static let unlockDelaySeconds: TimeInterval = 3600  // 1 hour
+
     public init() {
         loadChallenges()
     }
@@ -23,24 +27,64 @@ public final class ChallengeStore: Sendable {
 
         // Check if all previous challenges are completed
         let previousChallenges = challengeOrder.prefix(index)
-        if previousChallenges.allSatisfy({ completedIds.contains($0) }) {
+        guard previousChallenges.allSatisfy({ completedIds.contains($0) }) else {
+            return .locked
+        }
+
+        // First challenge is always active if not completed
+        if index == 0 {
             return .active
         }
 
-        return .locked
+        // Get the previous challenge's completion timestamp
+        let previousChallengeId = challengeOrder[index - 1]
+        guard let previousCompletionTime = completionTimestamps[previousChallengeId] else {
+            // Previous challenge completed but no timestamp (legacy data), allow active
+            return .active
+        }
+
+        // Check if 1 hour has passed since previous completion
+        let unlockDate = previousCompletionTime.addingTimeInterval(Self.unlockDelaySeconds)
+        if Date() >= unlockDate {
+            return .active
+        }
+
+        return .pendingUnlock(unlockDate: unlockDate)
     }
     
     public var activeChallenge: Challenge? {
         for id in challengeOrder {
             if !completedIds.contains(id) {
-                return challenges.first { $0.id == id }
+                if let challenge = challenges.first(where: { $0.id == id }) {
+                    let challengeStatus = status(for: challenge)
+                    if challengeStatus == .active {
+                        return challenge
+                    }
+                }
+                return nil
             }
         }
         return nil
     }
-    
+
+    /// Returns the next challenge that is pending unlock, if any
+    public var pendingUnlockChallenge: (challenge: Challenge, unlockDate: Date)? {
+        for id in challengeOrder {
+            if !completedIds.contains(id) {
+                if let challenge = challenges.first(where: { $0.id == id }) {
+                    if case .pendingUnlock(let unlockDate) = status(for: challenge) {
+                        return (challenge, unlockDate)
+                    }
+                }
+                return nil
+            }
+        }
+        return nil
+    }
+
     public func markCompleted(_ id: UUID) {
         completedIds.insert(id)
+        completionTimestamps[id] = Date()
         saveProgress()
     }
 
@@ -225,11 +269,22 @@ public final class ChallengeStore: Sendable {
            let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
             completedIds = ids
         }
+
+        // Load completion timestamps
+        if let data = UserDefaults.standard.data(forKey: "challengeCompletionTimestamps"),
+           let timestamps = try? JSONDecoder().decode([UUID: Date].self, from: data) {
+            completionTimestamps = timestamps
+        }
     }
-    
+
     private func saveProgress() {
         if let data = try? JSONEncoder().encode(completedIds) {
             UserDefaults.standard.set(data, forKey: "challengeCompletedIds")
+        }
+
+        // Save completion timestamps
+        if let data = try? JSONEncoder().encode(completionTimestamps) {
+            UserDefaults.standard.set(data, forKey: "challengeCompletionTimestamps")
         }
     }
 }

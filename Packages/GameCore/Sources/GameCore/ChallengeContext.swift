@@ -2,6 +2,7 @@ import Foundation
 
 public enum ChallengeStatus: Equatable, Sendable {
     case locked
+    case pendingUnlock(unlockDate: Date)  // Unlocks after 1 hour from previous completion
     case active
     case completed
 }
