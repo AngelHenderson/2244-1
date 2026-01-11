@@ -28,6 +28,7 @@ public struct HybridGameScreen: View {
     @Environment(\.gameCenter) private var gameCenter
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
@@ -70,7 +71,15 @@ public struct HybridGameScreen: View {
             .environment(tempHomeState)
             .environment(\.homeActions, makeGameActions())
 
-        let bottomDock = HorizontalPowerupDock(
+        let horizontalDock = HorizontalPowerupDock(
+            onHammer: handleHammer,
+            onSwap: handleSwap,
+            onMagnet: handleMagnet,
+            onUndo: handleUndo,
+            onHome: { isPlayingDismiss?() }
+        )
+
+        let verticalDock = SimplePowerupDock(
             onHammer: handleHammer,
             onSwap: handleSwap,
             onMagnet: handleMagnet,
@@ -89,18 +98,39 @@ public struct HybridGameScreen: View {
         )
 
         // Break down the complex expression into smaller parts
+        // iPhone (compact): horizontal dock below HUD
+        // iPad (regular): vertical dock on trailing edge
+        let isCompact = horizontalSizeClass == .compact
+
         let baseView = mainGameView
             .safeAreaInset(edge: .top) {
-                VStack(spacing: 8) {
-                    topHUD
-                    bottomDock
+                Group {
+                    if isCompact {
+                        VStack(spacing: 8) {
+                            topHUD
+                            horizontalDock
+                        }
+                    } else {
+                        topHUD
+                    }
+                }
+            }
+            .overlay(alignment: .trailing) {
+                Group {
+                    if !isCompact {
+                        verticalDock
+                            .padding(.top, 80)
+                    }
                 }
             }
             .overlay(alignment: .top) {
-                if isShowingTopMergeTile, let v = topMergeTileValue {
-                    TopMergeTileView(value: v)
+                Group {
+                    if isShowingTopMergeTile, let v = topMergeTileValue {
+                        TopMergeTileView(value: v)
+                    }
                 }
             }
+            .padding(.trailing, isCompact ? 0 : 70) // Make room for vertical dock on iPad
         
         let pauseSheet = baseView
             .adaptiveSheet(isPresented: $isShowingPause) {
