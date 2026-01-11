@@ -381,6 +381,10 @@ public struct BoardView: View {
             return
         }
         magnetAnimations = contributors.map { MagnetAnimationModel(value: event.value, start: $0, target: event.target, progress: 0) }
+
+        // Play electric sound when magnet starts sucking
+        Task { await audioService.playSfx(name: "electric") }
+
         DispatchQueue.main.async {
             withAnimation(.easeInOut(duration: 0.35)) {
                 for index in magnetAnimations.indices {
@@ -390,6 +394,8 @@ public struct BoardView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 magnetAnimations.removeAll()
                 gameStore.clearLastMagnetEvent()
+                // Play merge sound when magnet completes
+                Task { await audioService.playSfx(name: "merge") }
             }
         }
     }

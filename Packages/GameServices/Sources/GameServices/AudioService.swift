@@ -173,6 +173,13 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
+        // Handle magnet electric sound
+        if name == "electric" || name == "magnet" {
+            print("⚡ Playing electric/magnet sound")
+            await playElectricSound()
+            return
+        }
+
         // Handle tap/select/drag sounds for all instruments (not just piano)
         if name == "tap" || name == "select" || name == "drag" {
             print("🎹 Playing instrument sound for: \(name)")
@@ -226,6 +233,42 @@ public actor LiveAudioService: AudioServiceProtocol {
         print("🎵 Music theme set successfully: '\(newTheme)'")
     }
     
+    private func playElectricSound() async {
+        // Play rapid succession of notes to simulate electric/buzzing effect
+        let sounds = ["piano_tap_1", "piano_tap_2", "piano_tap_3"]
+
+        for (index, soundName) in sounds.enumerated() {
+            var url: URL?
+            url = Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: "Audio/Pianos")
+
+            if url == nil {
+                url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ??
+                      Bundle.main.url(forResource: soundName, withExtension: "wav")
+            }
+
+            guard let audioUrl = url else { continue }
+
+            do {
+                let player = try AVAudioPlayer(contentsOf: audioUrl)
+                player.volume = 0.5  // Slightly quieter for layered effect
+                player.play()
+                sfxPlayers.append(player)
+
+                Task {
+                    try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                    await removeSfxPlayer(player)
+                }
+            } catch {
+                print("❌ Failed to play electric sound: \(error)")
+            }
+
+            // Small delay between notes for electric effect
+            if index < sounds.count - 1 {
+                try? await Task.sleep(for: .milliseconds(80))
+            }
+        }
+    }
+
     private func playPianoTapSound() async {
         let pianoSounds = ["piano_tap_1", "piano_tap_2", "piano_tap_3"]
         let soundName = pianoSounds[pianoTapIndex]
