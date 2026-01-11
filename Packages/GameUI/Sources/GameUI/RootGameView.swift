@@ -56,6 +56,8 @@ public struct RootGameView: View {
                 CustomChallengeGameScreen(
                     config: config,
                     onDismiss: {
+                        // Track challenge creation completion for achievement
+                        gameStore.registerChallengeCreationCompleted()
                         withAnimation(.easeInOut(duration: 0.3)) {
                             isPlayingCustomChallenge = false
                             customChallengeConfig = nil
