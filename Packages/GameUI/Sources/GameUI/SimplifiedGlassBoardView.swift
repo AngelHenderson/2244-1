@@ -49,15 +49,16 @@ public struct SimplifiedGlassBoardView: View {
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
         VStack(spacing: spacing) {
-            // Find the single position with the highest tile value (only one crown)
+            // Find the single position with the highest tile step (only one crown)
+            // Use stepIndex instead of value because highValue tiles all have value = Int.max
             let crownPosition: Position? = {
-                var maxVal = 0
+                var maxStep = -1
                 var maxPos: Position? = nil
                 for r in 0..<gameStore.state.board.height {
                     for c in 0..<gameStore.state.board.width {
                         let p = Position(row: r, col: c)
-                        if let t = gameStore.state.board[p], t.value > maxVal {
-                            maxVal = t.value
+                        if let t = gameStore.state.board[p], let step = t.stepIndex, step > maxStep {
+                            maxStep = step
                             maxPos = p
                         }
                     }
