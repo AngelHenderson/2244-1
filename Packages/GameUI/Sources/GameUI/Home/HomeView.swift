@@ -15,6 +15,7 @@ public struct HomeView: View {
     @State private var isShowingShop: Bool = false
     @State private var isShowingProfile: Bool = false
     @State private var isShowingSettings: Bool = false
+    @State private var isShowingThemePicker: Bool = false
     @State private var centeredMilestone: Int? = nil
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
@@ -174,7 +175,7 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "themedefault",
                                 title: "THEME",
-                                action: { actions.openShop() }
+                                action: { isShowingThemePicker = true }
                             )
 
                             Spacer(minLength: 0)
@@ -267,6 +268,10 @@ public struct HomeView: View {
         // Settings (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingSettings) {
             SettingsView()
+        }
+        // Theme Picker (full screen on iPad)
+        .adaptiveSheet(isPresented: $isShowingThemePicker) {
+            ThemePickerView()
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)

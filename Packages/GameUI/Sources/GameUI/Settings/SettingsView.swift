@@ -9,8 +9,6 @@ public struct SettingsView: View {
     @Environment(\.hapticsService) private var hapticsService
     @Environment(\.purchaseService) private var purchaseService
     
-    @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
-
     @State private var sfxVolume: Double = 1.0
     @State private var musicVolume: Double = 1.0
     @State private var sfxMuted: Bool = false
@@ -94,15 +92,6 @@ public struct SettingsView: View {
                         }
                         if hapticsEnabled {
                             hapticsService.mediumImpact()
-                        }
-                    }
-                }
-                
-                // MARK: Appearance
-                Section("Appearance") {
-                    Picker("Tile Theme", selection: $selectedThemeId) {
-                        ForEach(ThemeRegistry.Default.allDescriptors(), id: \.id) { descriptor in
-                            Text(descriptor.name).tag(descriptor.id)
                         }
                     }
                 }
