@@ -65,19 +65,22 @@ public struct MergeOutcome: Sendable, Codable {
     public let resultValue: Int
     public let resultStep: Int
     public let giftBroken: Bool
-    
+    public let giftColumn: Int?
+
     public init(
         consumed: [BoardIndex],
         resultAt: BoardIndex,
         resultValue: Int,
         resultStep: Int,
-        giftBroken: Bool = false
+        giftBroken: Bool = false,
+        giftColumn: Int? = nil
     ) {
         self.consumed = consumed
         self.resultAt = resultAt
         self.resultValue = resultValue
         self.resultStep = resultStep
         self.giftBroken = giftBroken
+        self.giftColumn = giftColumn
     }
 }
 
@@ -221,23 +224,25 @@ public struct Board: Equatable, Sendable, Codable {
         // Check if ending on gift
         let finalIndex = chain.last!
         let giftBroken = endingOnGift && self[finalIndex].kind == .gift
-        
+        let giftColumn = giftBroken ? finalIndex.col : nil
+
         // Clear consumed cells (all except the final position)
         let consumed = Array(chain.dropLast())
         for index in consumed {
             self[index] = Cell.empty
         }
-        
+
         // If ending on gift, consume the gift and place result
         let resultTile = Tile.make(forStep: resultStep)
         self[finalIndex] = Cell.withTile(resultTile)
-        
+
         return MergeOutcome(
             consumed: consumed,
             resultAt: finalIndex,
             resultValue: resultVal,
             resultStep: resultStep,
-            giftBroken: giftBroken
+            giftBroken: giftBroken,
+            giftColumn: giftColumn
         )
     }
     
@@ -343,7 +348,17 @@ public struct Board: Equatable, Sendable, Codable {
         }
     }
     
-    // Refill only the top row with new gift cells
+    // Refill a specific column in the top row with a new gift cell
+    public mutating func refillGiftAtColumn(_ col: Int, generator: () -> Int) {
+        guard col >= 0 && col < width else { return }
+        let index = BoardIndex(row: 0, col: col)
+        // Always replace with a gift, even if the cell currently has a tile
+        let value = generator()
+        let gift = Gift(targetValue: value)
+        self[index] = Cell.withGift(gift)
+    }
+
+    // Refill only the top row with new gift cells (fills empty cells only)
     public mutating func refillTopRowWithGifts(generator: () -> Int) {
         for col in 0..<width {
             let index = BoardIndex(row: 0, col: col)
