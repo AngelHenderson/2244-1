@@ -202,41 +202,62 @@ public final class WheelEngine {
     private func applyPegImpulseIfCrossed(from old: CGFloat, to new: CGFloat) {
         let n = max(segments.count, 1)
         let span = 2 * .pi / CGFloat(n)
-        
+
         // Determine if we've crossed at least one boundary (fast frames only cross 1)
         let oldIdx = Int(floor(Self.wrap(old, modulus: 2 * .pi) / span))
         let newIdx = Int(floor(Self.wrap(new, modulus: 2 * .pi) / span))
-        guard oldIdx != newIdx else { return }
-        
-        // Haptic + deflection
+        guard oldIdx != newIdx else {
+            // Update sticky peg deflection even if we haven't crossed
+            updateStickyPegDeflection()
+            return
+        }
+
+        // Haptic on boundary cross
         let v = abs(angularVelocity)
 #if canImport(UIKit)
         let intensity = CGFloat(min(max(v / (8 * .pi), 0.15), 1.0))
         haptic.impactOccurred(intensity: intensity)
 #endif
-        pegDeflect(forVelocity: v)
-        
+
         // Damping depends on speed
         if v > 1.5 {               // still moving fast
             angularVelocity *= tickDampingFast
         } else {                   // near end
             angularVelocity *= tickDampingSlow
         }
+
+        // Update sticky peg after crossing
+        updateStickyPegDeflection()
     }
-    
-    private func pegDeflect(forVelocity v: CGFloat) {
-        // Bend peg proportionally, spring back
-        let maxDeflect: CGFloat = 16 * .pi / 180 // 16°
-        let minDeflect: CGFloat = 7  * .pi / 180 // 7°
-        let target = min(max(minDeflect + (v * 0.025), minDeflect), maxDeflect)
-        withAnimation(.spring(response: 0.15, dampingFraction: 0.6)) {
-            tickerDeflection = target
-        }
-        Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 120_000_000)
-            await MainActor.run {
-                withAnimation(.spring(response: 0.25, dampingFraction: 0.68)) {
-                    self?.tickerDeflection = 0
+
+    private func updateStickyPegDeflection() {
+        let n = max(segments.count, 1)
+        let span = 2 * .pi / CGFloat(n)
+
+        // Find distance to nearest slice edge
+        let normalizedAngle = Self.wrap(-angle, modulus: 2 * .pi)
+        let positionInSlice = normalizedAngle.truncatingRemainder(dividingBy: span)
+
+        // Distance from nearest edge (0 at edge, span/2 at center)
+        let distanceFromEdge = min(positionInSlice, span - positionInSlice)
+
+        // Sticky zone: peg catches on edge when within this range
+        let stickyZone: CGFloat = span * 0.35 // 35% of slice width
+        let maxDeflect: CGFloat = 20 * .pi / 180 // 20° max deflection
+
+        if distanceFromEdge < stickyZone {
+            // Peg is catching on the edge - deflect proportionally
+            let catchRatio = 1.0 - (distanceFromEdge / stickyZone)
+            let deflectAmount = catchRatio * maxDeflect
+
+            // Direction based on which side of center we're on
+            let direction: CGFloat = positionInSlice < span / 2 ? 1.0 : -1.0
+            tickerDeflection = deflectAmount * direction * (angularVelocity >= 0 ? 1 : -1)
+        } else {
+            // Outside sticky zone - spring back to center
+            if abs(tickerDeflection) > 0.001 {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    tickerDeflection = 0
                 }
             }
         }
@@ -259,6 +280,7 @@ public final class WheelEngine {
         let target = -k * span
         withAnimation(.spring(response: snapSpring.response, dampingFraction: snapSpring.damping)) {
             angle = target
+            tickerDeflection = 0
         }
     }
     
