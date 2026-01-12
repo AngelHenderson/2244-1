@@ -7,6 +7,7 @@ public struct ChallengeModeView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var scrollViewProxy: ScrollViewProxy? = nil
     @State private var currentTime = Date()  // For countdown timer updates
+    @State private var selectedChallenge: Challenge? = nil
 
     public var onPlay: ((Challenge) -> Void)?
 
@@ -24,13 +25,7 @@ public struct ChallengeModeView: View {
 
                             VStack(spacing: 24) {
                                 ForEach(Array(store.challenges.enumerated().reversed()), id: \.element.id) { index, challenge in
-                                    ChallengeCard(
-                                        challenge: challenge,
-                                        challengeNumber: index + 1,
-                                        status: store.status(for: challenge),
-                                        currentTime: currentTime
-                                    )
-                                    .id(challenge.id)
+                                    challengeCardView(for: challenge, index: index)
                                 }
                             }
                             .padding(.horizontal, 48)
@@ -40,6 +35,10 @@ public struct ChallengeModeView: View {
                     }
                     .onAppear {
                         scrollViewProxy = proxy
+                        // Default to active challenge if none selected
+                        if selectedChallenge == nil {
+                            selectedChallenge = store.activeChallenge
+                        }
                         if let active = store.activeChallenge {
                             proxy.scrollTo(active.id, anchor: .center)
                         } else if let pending = store.pendingUnlockChallenge {
@@ -63,6 +62,21 @@ public struct ChallengeModeView: View {
         }
     }
 
+    @ViewBuilder
+    private func challengeCardView(for challenge: Challenge, index: Int) -> some View {
+        let status = store.status(for: challenge)
+        let isSelected = selectedChallenge?.id == challenge.id
+        ChallengeCard(
+            challenge: challenge,
+            challengeNumber: index + 1,
+            status: status,
+            currentTime: currentTime,
+            isSelected: isSelected,
+            onTap: status.isPlayable ? { selectedChallenge = challenge } : nil
+        )
+        .id(challenge.id)
+    }
+
     private var timelineSpine: some View {
         GeometryReader { geo in
             Rectangle()
@@ -75,15 +89,17 @@ public struct ChallengeModeView: View {
 
     private var playButton: some View {
         Group {
-            if let active = store.activeChallenge {
-                // Active challenge - can play now
+            if let selected = selectedChallenge {
+                // A playable challenge is selected
+                let challengeNumber = (store.challenges.firstIndex(where: { $0.id == selected.id }) ?? 0) + 1
+                let isReplay = store.completedIds.contains(selected.id)
                 Button {
-                    onPlay?(active)
+                    onPlay?(selected)
                     dismiss()
                 } label: {
                     HStack {
-                        Image(systemName: "play.fill")
-                        Text("Play Challenge \(store.currentChallengeNumber)")
+                        Image(systemName: isReplay ? "arrow.clockwise" : "play.fill")
+                        Text(isReplay ? "Replay Challenge \(challengeNumber)" : "Play Challenge \(challengeNumber)")
                     }
                     .font(.title3.weight(.semibold))
                     .frame(maxWidth: .infinity)
@@ -134,6 +150,8 @@ private struct ChallengeCard: View {
     let challengeNumber: Int
     let status: ChallengeStatus
     let currentTime: Date
+    var isSelected: Bool = false
+    var onTap: (() -> Void)? = nil
 
     // Format tile target for display using TileStepLabelFormatter
     private var targetTileLabel: String {
@@ -202,6 +220,11 @@ private struct ChallengeCard: View {
                 .frame(width: 12, height: 12)
                 .offset(x: -44)
         }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap?()
+        }
+        .opacity(onTap != nil ? 1.0 : (isLocked ? 0.7 : 1.0))
     }
 
     @ViewBuilder
@@ -262,6 +285,9 @@ private struct ChallengeCard: View {
     }
 
     private var borderColor: Color {
+        if isSelected {
+            return .blue
+        }
         switch status {
         case .active:
             return .green

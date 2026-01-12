@@ -5,6 +5,16 @@ public enum ChallengeStatus: Equatable, Sendable {
     case pendingUnlock(unlockDate: Date)  // Unlocks after 1 hour from previous completion
     case active
     case completed
+
+    /// Whether this challenge can be played (active or completed for replay)
+    public var isPlayable: Bool {
+        switch self {
+        case .active, .completed:
+            return true
+        case .locked, .pendingUnlock:
+            return false
+        }
+    }
 }
 
 public struct ChallengeRule: Sendable, Equatable {
