@@ -60,6 +60,18 @@ public struct PlayerProfileView: View {
                     }
                 )
             }
+            #if os(iOS)
+            .fullScreenCover(isPresented: $model.showCountryPicker) {
+                CountryPickerView(
+                    selectedCountry: model.countryCode,
+                    onSelect: { countryCode in
+                        Task {
+                            await model.updateCountry(to: countryCode, using: client)
+                        }
+                    }
+                )
+            }
+            #else
             .sheet(isPresented: $model.showCountryPicker) {
                 CountryPickerView(
                     selectedCountry: model.countryCode,
@@ -70,6 +82,7 @@ public struct PlayerProfileView: View {
                     }
                 )
             }
+            #endif
             .onChange(of: gameStore.tierMasteryCounts) { _, _ in
                 updateTierStatsFromStore()
             }
