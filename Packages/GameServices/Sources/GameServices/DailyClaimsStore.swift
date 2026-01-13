@@ -106,11 +106,15 @@ public final class DailyClaimsStore {
     public func updateAvailability() {
         let calendar = Calendar.current
         let now = Date()
-        
+
         // Check if we can claim today
         if let lastClaim = lastClaimDate {
-            let daysSinceLastClaim = calendar.dateComponents([.day], from: lastClaim, to: now).day ?? 0
-            
+            // IMPORTANT: Compare calendar days using startOfDay, not raw timestamps
+            // This ensures claiming at 11pm and checking at 10am next day works correctly
+            let lastClaimDay = calendar.startOfDay(for: lastClaim)
+            let today = calendar.startOfDay(for: now)
+            let daysSinceLastClaim = calendar.dateComponents([.day], from: lastClaimDay, to: today).day ?? 0
+
             if daysSinceLastClaim == 0 {
                 // Already claimed today
                 canClaimToday = false
@@ -126,40 +130,54 @@ public final class DailyClaimsStore {
             // First time claiming
             canClaimToday = true
         }
-        
+
         // Ensure catalog has enough entries for the next visible window
         ensureClaims(upTo: visibleUpperBound())
-        
-        // Update claim availability
-        let nextClaimDay = currentClaimDay + 1
-        for i in 0..<dailyClaims.count {
-            dailyClaims[i].isAvailable = canClaimToday && dailyClaims[i].day == nextClaimDay
+
+        // Rebuild array with updated states to ensure @Observable properly notifies SwiftUI
+        let nextDay = currentClaimDay + 1
+        dailyClaims = dailyClaims.map { claim in
+            var updated = claim
+            updated.isClaimed = claimedDays.contains(claim.day)
+            updated.isAvailable = canClaimToday && claim.day == nextDay
+            return updated
         }
     }
     
     @MainActor
     public func claimDailyReward() {
         guard canClaimToday else { return }
-        
+
         let nextClaimDay = currentClaimDay + 1
         guard let claimIndex = dailyClaims.firstIndex(where: { $0.day == nextClaimDay }) else { return }
-        
-        // Mark as claimed
-        dailyClaims[claimIndex].isClaimed = true
-        dailyClaims[claimIndex].isAvailable = false
-        
-        // Update progress
+
+        // Get rewards before updating state
+        let rewards = dailyClaims[claimIndex].rewards
+
+        // Update progress state FIRST
         currentClaimDay = nextClaimDay
         currentStreak += 1
         lastClaimDate = Date()
         canClaimToday = false
-        
+
+        // Add to claimed days set
         claimedDays.insert(nextClaimDay)
-        
+
+        // Save progress IMMEDIATELY to ensure persistence
+        saveProgress()
+
+        // Rebuild the dailyClaims array to ensure @Observable triggers SwiftUI updates
+        // This is more reliable than modifying individual struct elements
+        dailyClaims = dailyClaims.map { claim in
+            var updated = claim
+            updated.isClaimed = claimedDays.contains(claim.day)
+            updated.isAvailable = false  // Nothing available after claiming today
+            return updated
+        }
+
         // Distribute rewards
-        let rewards = dailyClaims[claimIndex].rewards
         onReward?(rewards)
-        
+
         // Check for newly unlocked streaks
         for i in 0..<dailyStreaks.count {
             if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentStreak {
@@ -168,13 +186,9 @@ public final class DailyClaimsStore {
                 onReward?(dailyStreaks[i].rewards)
             }
         }
-        
-        // Save progress
+
+        // Save again to persist streak unlocks
         saveProgress()
-        
-        // Update availability for next claim
-        ensureClaims(upTo: visibleUpperBound())
-        updateAvailability()
     }
     
     public func getNextClaimableDay() -> Int? {
