@@ -1199,8 +1199,6 @@ public extension LeaderboardClient {
     // Hall of Fame - players who reached ∞ from ALL countries
     // Ranks are based on infinity count - higher infinity = better rank
     private static func hallOfFameEntries() -> [LeaderboardEntry] {
-        let day = MockLeaderboardData.daysSinceReference
-
         // Combine all country Hall of Fame data
         var playerData: [(id: String, baseCount: Int, country: String, nameIndex: Int)] = []
         var globalIndex = 0
