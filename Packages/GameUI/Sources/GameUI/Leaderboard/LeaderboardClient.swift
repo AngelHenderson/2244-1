@@ -1067,7 +1067,9 @@ public extension LeaderboardClient {
             let entries: [LeaderboardEntry]
             switch filter {
             case .hallOfFame:
-                entries = hallOfFameEntries()
+                // Show only top 150 Hall of Fame entries
+                let allHofEntries = hallOfFameEntries()
+                entries = Array(allHofEntries.prefix(150))
             case .country:
                 entries = countryEntries()
             case .countryUK:
@@ -1107,7 +1109,7 @@ public extension LeaderboardClient {
             let totalPlayers: Int
             switch filter {
             case .hallOfFame:
-                totalPlayers = hallOfFameEntries().count
+                totalPlayers = 571  // Total Hall of Fame players across all countries
             case .country:
                 totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
             case .countryUK:
@@ -1285,15 +1287,15 @@ public extension LeaderboardClient {
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
         for (rank, player) in playerData.enumerated() {
-            // Apply daily infinity progression
-            let progressedCount = MockLeaderboardData.infinityCountWithProgression(baseCount: player.baseCount, playerIndex: player.nameIndex, day: day)
+            // Use the actual infinity count (no progression - these are fixed achievements)
+            let infinityCount = player.baseCount
 
             // Use unique name from hallOfFameNames based on rank position
             let name = MockLeaderboardData.hallOfFameNames[rank % MockLeaderboardData.hallOfFameNames.count]
 
             let platform: Platform = rank % 2 == 0 ? .ios : .android
             let avatar = MockLeaderboardData.avatarIDs[rank % MockLeaderboardData.avatarIDs.count]
-            let score = MockLeaderboardData.scoreForMilestone("\(progressedCount)∞")
+            let score = MockLeaderboardData.scoreForMilestone("\(infinityCount)∞")
 
             entries.append(LeaderboardEntry(
                 id: player.id,
@@ -1303,7 +1305,7 @@ public extension LeaderboardClient {
                 countryCode: player.country,
                 platform: platform,
                 avatarURL: avatar,
-                highestTile: "\(progressedCount)∞"
+                highestTile: "\(infinityCount)∞"
             ))
         }
 
