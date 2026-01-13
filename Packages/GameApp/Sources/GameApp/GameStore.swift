@@ -269,6 +269,14 @@ public final class GameStore {
     
     public func addPowerUp(_ type: String, count: Int) {
         powerUpInventory[type, default: 0] += count
+        persistPowerUpInventory()
+    }
+
+    private func persistPowerUpInventory() {
+        guard !sandboxed else { return }
+        if let data = try? JSONEncoder().encode(powerUpInventory) {
+            UserDefaults.standard.set(data, forKey: "powerUpInventory")
+        }
     }
     
     // JourneyKit integration
