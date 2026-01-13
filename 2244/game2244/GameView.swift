@@ -16,7 +16,7 @@ struct GameView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("colorBlindMode") private var colorBlindMode = false
     @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
-    @AppStorage("selectedBackgroundId") private var selectedBackgroundId: String = "city_1"
+    @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundId: String = "city_1"
     @State private var hasSubmittedForCurrentGame = false
     @State private var showGameOverAlert = false
     

@@ -23,7 +23,7 @@ public struct HomeView: View {
     @State private var bottomDockHeight: CGFloat = 0
     
     // Background theme selection stored in AppStorage  
-    @AppStorage("selectedBackgroundId") private var selectedBackgroundId: String = "city_1"
+    @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundId: String = "city_1"
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
     
     private var currentBackgroundTheme: BackgroundTheme {

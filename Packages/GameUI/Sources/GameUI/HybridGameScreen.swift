@@ -26,10 +26,9 @@ public struct HybridGameScreen: View {
     @Environment(\.adService) private var adService
     @Environment(\.hapticsService) private var haptics
     @Environment(\.gameCenter) private var gameCenter
-    @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    
+
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
     @State private var isShowingDoublePrompt: Bool = false
@@ -37,26 +36,26 @@ public struct HybridGameScreen: View {
     @State private var isShowingShop = false
     @State private var isShowingLeaderboard = false
     @State private var isShowingUnlockReward = false
-    
+
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState: HomeState = {
         let state = HomeState()
         state.rank = 1  // Default rank until properly loaded
         return state
     }()
-    
+
     // Power-up selection modes
     @State private var isHammerMode = false
     @State private var isSwapMode = false
     @State private var isMagnetMode = false
     @State private var firstSwapPosition: Position? = nil
     @State private var magnetTargetValue: Int? = nil
-    
-    // Background theme selection stored in AppStorage  
-    @AppStorage("selectedBackgroundId") private var selectedBackgroundId: String = "city_1"
-    
-    private var currentBackgroundTheme: BackgroundTheme {
-        backgroundThemeRegistry.theme(for: selectedBackgroundId)
+
+    // Wallpaper selection stored in AppStorage (for gameplay background)
+    @AppStorage("selectedWallpaperId") private var selectedWallpaperId: String = "wallpaper_default"
+
+    private var currentWallpaper: WallpaperTheme {
+        WallpaperThemeRegistry.Default.wallpaper(for: selectedWallpaperId)
     }
     
     // Closure injected by parent to dismiss gameplay (return to Home)
@@ -283,6 +282,10 @@ public struct HybridGameScreen: View {
     @ViewBuilder
     private var mainGameView: some View {
         ZStack {
+            // Wallpaper background for gameplay
+            wallpaperBackground
+                .ignoresSafeArea()
+
             // Board container with glass preview (clear background)
             SimplifiedGlassBoardView(onTileTap: { position in
                 handleTileTap(at: position)
@@ -300,6 +303,36 @@ public struct HybridGameScreen: View {
                     firstSwapPosition: firstSwapPosition,
                     onCancel: cancelAllModes
                 )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var wallpaperBackground: some View {
+        GeometryReader { geo in
+            ZStack {
+                if currentWallpaper.imageName.isEmpty {
+                    // Default gradient background
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "1a1a2e"),
+                            Color(hex: "16213e")
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                } else {
+                    // Image wallpaper
+                    Image(currentWallpaper.imageName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+
+                    if currentWallpaper.overlayOpacity > 0 {
+                        Color.black.opacity(currentWallpaper.overlayOpacity)
+                    }
+                }
             }
         }
     }

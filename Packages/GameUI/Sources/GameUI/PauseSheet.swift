@@ -6,7 +6,7 @@ struct PauseSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorBlindMode) private var colorBlind
     @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
-    @AppStorage("selectedBackgroundId") private var selectedBackgroundId: String = "city_1"
+    @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundId: String = "city_1"
     let onResume: () -> Void
     let onRestart: () -> Void
     
