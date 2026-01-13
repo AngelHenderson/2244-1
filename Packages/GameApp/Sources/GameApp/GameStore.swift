@@ -591,7 +591,10 @@ public final class GameStore {
             syncEngineGems()
             syncEngineScoreBoost()
             self.state.highestTile = max(self.state.highestTile, sessionState.highestTile)
-            
+            // Ensure leaderboard milestone is set for restored highest tile
+            let formattedMilestone = TileStepLabelFormatter.formatTileValue(self.state.highestTile)
+            UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
+
             // Restore power-up inventory
             self.powerUpInventory = progress.powerUpInventory
             
@@ -2301,6 +2304,7 @@ extension GameStore {
         static let currentScoreAlpha = "currentScoreAlpha"
         static let savedBestScoreAlpha = "savedBestScoreAlpha"
         static let currentHighestStep = "currentHighestTileStep"
+        static let savedHighestTileStep = "savedHighestTileStep"
     }
     
     private enum TierDefaultsKey {
@@ -2722,15 +2726,30 @@ extension GameStore {
         
         // ALWAYS save current session highest (regardless of all-time record)
         let currentHighest = state.highestTile
+        let currentHighestStep = state.highestTileStep
         UserDefaults.standard.set(currentHighest, forKey: "currentHighestTile")
-        
+        UserDefaults.standard.set(currentHighestStep, forKey: ScoreDefaultsKey.currentHighestStep)
+
         // ALWAYS update all-time highest if current session beats it
+        // For high tiles (step >= 62), use step-based comparison to avoid Int.max overflow issues
         let allTimeHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
-        if currentHighest > allTimeHighest {
-            UserDefaults.standard.set(currentHighest, forKey: "savedHighestTile")
-            print("🏆 New all-time highest tile: \(currentHighest)")
+        let allTimeHighestStep = UserDefaults.standard.integer(forKey: ScoreDefaultsKey.savedHighestTileStep)
+
+        var shouldUpdateAllTime = false
+        if currentHighestStep >= 62 || allTimeHighestStep >= 62 {
+            // Use step-based comparison for very high tiles
+            shouldUpdateAllTime = currentHighestStep > allTimeHighestStep
+        } else {
+            // Use value-based comparison for normal tiles
+            shouldUpdateAllTime = currentHighest > allTimeHighest
         }
-        UserDefaults.standard.set(state.highestTileStep, forKey: ScoreDefaultsKey.currentHighestStep)
+
+        if shouldUpdateAllTime {
+            UserDefaults.standard.set(currentHighest, forKey: "savedHighestTile")
+            UserDefaults.standard.set(currentHighestStep, forKey: ScoreDefaultsKey.savedHighestTileStep)
+            print("🏆 New all-time highest tile: \(currentHighest) (step \(currentHighestStep))")
+        }
+
         #if DEBUG
         print("💾 Saved highestTileStep: \(state.highestTileStep)")
         #endif
@@ -2986,6 +3005,9 @@ extension GameStore {
         if savedHighest > state.highestTile {
             state.highestTile = savedHighest
             journey.didReach(tile: savedHighest)
+            // Ensure leaderboard milestone is set for restored highest tile
+            let restoredMilestone = TileStepLabelFormatter.formatTileValue(savedHighest)
+            UserDefaults.standard.set(restoredMilestone, forKey: "leaderboard.milestone")
             if savedHighest >= 2_147_483_648 {
                 print("🔄 Restored 2B+ achievement: \(savedHighest)")
             } else {
