@@ -576,7 +576,25 @@ public final class AchievementStore {
         .init(milestone: 7500, categoryLabel: "7500 Moves", rewards: .init(gems: 850, spins: 1, hammers: 1, magnets: nil, swaps: nil, boost2x: nil, boost3x: nil, boost4x: 1)),
         .init(milestone: 10000, categoryLabel: "10000 Moves", rewards: .init(gems: 885, spins: 2, swaps: 1)),
         .init(milestone: 20000, categoryLabel: "20000 Moves", rewards: .init(gems: 955, spins: 1, magnets: 2)),
-        .init(milestone: 50000, categoryLabel: "50000 Moves", rewards: .init(gems: 1100, spins: 1, swaps: 2))
+        // Tiers 13-30 (extended)
+        .init(milestone: 30000, categoryLabel: "30K Moves", rewards: .init(gems: 1000)),
+        .init(milestone: 50000, categoryLabel: "50000 Moves", rewards: .init(gems: 1100, spins: 1, swaps: 2)),
+        .init(milestone: 75000, categoryLabel: "75K Moves", rewards: .init(magnets: 1, boost3x: 1)),
+        .init(milestone: 100000, categoryLabel: "100K Moves", rewards: .init(gems: 1300)),
+        .init(milestone: 125000, categoryLabel: "125K Moves", rewards: .init(gems: 1400, boost2x: 1)),
+        .init(milestone: 150000, categoryLabel: "150K Moves", rewards: .init(boost2x: 1)),
+        .init(milestone: 200000, categoryLabel: "200K Moves", rewards: .init(magnets: 1, swaps: 1)),
+        .init(milestone: 250000, categoryLabel: "250K Moves", rewards: .init(gems: 1450, spins: 1)),
+        .init(milestone: 300000, categoryLabel: "300K Moves", rewards: .init(gems: 1500, hammers: 1)),
+        .init(milestone: 400000, categoryLabel: "400K Moves", rewards: .init(spins: 1, boost4x: 1)),
+        .init(milestone: 500000, categoryLabel: "500K Moves", rewards: .init(gems: 1450, swaps: 1, boost2x: 1)),
+        .init(milestone: 625000, categoryLabel: "625K Moves", rewards: .init(gems: 1550, hammers: 1)),
+        .init(milestone: 750000, categoryLabel: "750K Moves", rewards: .init(gems: 1300, hammers: 1, magnets: 1, boost3x: 1)),
+        .init(milestone: 875000, categoryLabel: "875K Moves", rewards: .init(gems: 1800)),
+        .init(milestone: 1000000, categoryLabel: "1M Moves", rewards: .init(magnets: 1)),
+        .init(milestone: 1250000, categoryLabel: "1.25M Moves", rewards: .init(spins: 1, magnets: 2)),
+        .init(milestone: 1500000, categoryLabel: "1.5M Moves", rewards: .init(spins: 2)),
+        .init(milestone: 2000000, categoryLabel: "2M Moves", rewards: .init(gems: 2000, swaps: 1, boost2x: 1))
     ]
 
     private static let playtimeTiers: [ComboTierDefinition] = [
