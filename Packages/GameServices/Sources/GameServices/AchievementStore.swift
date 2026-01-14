@@ -232,15 +232,27 @@ public final class AchievementStore {
         ("2K", 2000),
         ("3K", 3000),
         ("5K", 5000),
+        ("7.5K", 7500),
         ("10K", 10000),
+        ("20K", 20000),
         ("30K", 30000),
         ("50K", 50000),
+        ("75K", 75000),
         ("100K", 100000),
+        ("150K", 150000),
         ("200K", 200000),
+        ("250K", 250000),
         ("300K", 300000),
+        ("400K", 400000),
         ("500K", 500000),
+        ("625K", 625000),
         ("750K", 750000),
-        ("1M", 1000000)
+        ("875K", 875000),
+        ("1M", 1000000),
+        ("1.125M", 1125000),
+        ("1.25M", 1250000),
+        ("1.5M", 1500000),
+        ("2M", 2000000)
     ]
 
     // Tier-specific rewards for moves progression (indexed to movesTiers)
@@ -254,15 +266,27 @@ public final class AchievementStore {
         .init(gems: 250, boost2x: 1),                     // 2K moves
         .init(gems: 300, boost3x: 1),                     // 3K moves
         .init(gems: 400, hammers: 1, magnets: 1),         // 5K moves
+        .init(gems: 450),                                 // 7.5K moves
         .init(gems: 500, spins: 1, boost4x: 1),           // 10K moves
+        .init(magnets: 1),                                // 20K moves
         .init(gems: 600, hammers: 2),                     // 30K moves
         .init(gems: 750, magnets: 2),                     // 50K moves
+        .init(swaps: 1, boost3x: 1),                      // 75K moves
         .init(gems: 1000, spins: 2),                      // 100K moves
+        .init(spins: 3),                                  // 150K moves
         .init(gems: 1250, swaps: 2, boost3x: 1),          // 200K moves
+        .init(gems: 1350),                                // 250K moves
         .init(gems: 1500, hammers: 1, magnets: 1, swaps: 1), // 300K moves
+        .init(gems: 1800, spins: 1),                      // 400K moves
         .init(gems: 2000, spins: 2, boost4x: 1),          // 500K moves
+        .init(boost4x: 1),                                // 625K moves
         .init(gems: 2500, hammers: 2, magnets: 2),        // 750K moves
-        .init(gems: 3000, spins: 3, boost2x: 1, boost3x: 1, boost4x: 1) // 1M moves
+        .init(spins: 4),                                  // 875K moves
+        .init(gems: 3000, spins: 3, boost2x: 1, boost3x: 1, boost4x: 1), // 1M moves
+        .init(spins: 1, magnets: 2, boost2x: 1),          // 1.125M moves
+        .init(magnets: 3, boost3x: 1),                    // 1.25M moves
+        .init(gems: 3500, boost4x: 1),                    // 1.5M moves
+        .init(gems: 4000, hammers: 1, swaps: 1)           // 2M moves
     ]
 
     private struct ComboTierDefinition {
