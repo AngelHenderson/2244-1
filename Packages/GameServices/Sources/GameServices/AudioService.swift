@@ -74,8 +74,26 @@ final class AudioSettingsStorage: ObservableObject {
 public actor LiveAudioService: AudioServiceProtocol {
     private var musicPlayer: AVAudioPlayer?
     private var sfxPlayers: [AVAudioPlayer] = []
-    private var pianoTapIndex: Int = 0
+    private var instrumentTapIndex: Int = 0
     private let storage = AudioSettingsStorage()
+
+    /// Maps theme IDs to their audio configuration
+    private struct InstrumentConfig {
+        let subdirectory: String
+        let filePrefix: String
+        let tapSoundCount: Int
+
+        static let configs: [String: InstrumentConfig] = [
+            "piano": InstrumentConfig(subdirectory: "Audio/Pianos", filePrefix: "piano_tap_", tapSoundCount: 3),
+            "xylophone": InstrumentConfig(subdirectory: "Audio/Xylophone", filePrefix: "xylophone_tap_", tapSoundCount: 3),
+            "guitar": InstrumentConfig(subdirectory: "Audio/Guitar", filePrefix: "guitar_tap_", tapSoundCount: 3),
+            "kalimba": InstrumentConfig(subdirectory: "Audio/Kalimba", filePrefix: "kalimba_tap_", tapSoundCount: 3),
+            "muted-nylon": InstrumentConfig(subdirectory: "Audio/Muted Nylon", filePrefix: "muted_nylon_tap_", tapSoundCount: 3),
+            "drum": InstrumentConfig(subdirectory: "Audio/Drum", filePrefix: "drum_tap_", tapSoundCount: 3)
+        ]
+
+        static let defaultConfig = InstrumentConfig(subdirectory: "Audio/Pianos", filePrefix: "piano_tap_", tapSoundCount: 3)
+    }
     
     public init() {
         Task { @MainActor in
@@ -166,24 +184,24 @@ public actor LiveAudioService: AudioServiceProtocol {
         
         print("🔊 Playing SFX: \(name), current theme: '\(currentTheme)'")
 
-        // Handle merge and chain sounds - play piano tap sounds for all instruments
+        // Handle merge and chain sounds - play instrument-specific tap sounds
         if name == "merge" || name == "chain" {
-            print("🎶 Playing \(name) sound")
-            await playPianoTapSound()
+            print("🎶 Playing \(name) sound for instrument: \(currentTheme)")
+            await playInstrumentTapSound(theme: currentTheme)
             return
         }
 
         // Handle magnet electric sound
         if name == "electric" || name == "magnet" {
-            print("⚡ Playing electric/magnet sound")
-            await playElectricSound()
+            print("⚡ Playing electric/magnet sound for instrument: \(currentTheme)")
+            await playElectricSound(theme: currentTheme)
             return
         }
 
-        // Handle tap/select/drag sounds for all instruments (not just piano)
+        // Handle tap/select/drag sounds - play instrument-specific sounds
         if name == "tap" || name == "select" || name == "drag" {
-            print("🎹 Playing instrument sound for: \(name)")
-            await playPianoTapSound()
+            print("🎹 Playing instrument sound for: \(name), theme: \(currentTheme)")
+            await playInstrumentTapSound(theme: currentTheme)
             return
         }
         
@@ -233,17 +251,36 @@ public actor LiveAudioService: AudioServiceProtocol {
         print("🎵 Music theme set successfully: '\(newTheme)'")
     }
     
-    private func playElectricSound() async {
+    private func playElectricSound(theme: String) async {
+        // Normalize empty theme to piano
+        let effectiveTheme = theme.isEmpty ? "piano" : theme
+
+        // Get config for current theme, fall back to piano
+        let config = InstrumentConfig.configs[effectiveTheme] ?? InstrumentConfig.defaultConfig
+
         // Play rapid succession of notes to simulate electric/buzzing effect
-        let sounds = ["piano_tap_1", "piano_tap_2", "piano_tap_3"]
+        let soundCount = config.tapSoundCount
 
-        for (index, soundName) in sounds.enumerated() {
+        for index in 1...soundCount {
+            let soundName = "\(config.filePrefix)\(index)"
             var url: URL?
-            url = Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: "Audio/Pianos")
 
+            // Try instrument-specific subdirectory first (only if not piano)
+            if effectiveTheme != "piano" {
+                url = Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: config.subdirectory)
+            }
+
+            // Always fall back to piano sounds if not found
             if url == nil {
-                url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ??
-                      Bundle.main.url(forResource: soundName, withExtension: "wav")
+                let pianoSoundName = "piano_tap_\(index)"
+                url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3", subdirectory: "Audio/Pianos")
+            }
+
+            // Final fallback to root bundle (piano files without subdirectory)
+            if url == nil {
+                let pianoSoundName = "piano_tap_\(index)"
+                url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3") ??
+                      Bundle.main.url(forResource: pianoSoundName, withExtension: "wav")
             }
 
             guard let audioUrl = url else { continue }
@@ -263,53 +300,74 @@ public actor LiveAudioService: AudioServiceProtocol {
             }
 
             // Small delay between notes for electric effect
-            if index < sounds.count - 1 {
+            if index < soundCount {
                 try? await Task.sleep(for: .milliseconds(80))
             }
         }
     }
 
-    private func playPianoTapSound() async {
-        let pianoSounds = ["piano_tap_1", "piano_tap_2", "piano_tap_3"]
-        let soundName = pianoSounds[pianoTapIndex]
-        pianoTapIndex = (pianoTapIndex + 1) % pianoSounds.count
-        
-        print("🎹 Attempting to play piano sound: \(soundName) (index: \(pianoTapIndex - 1))")
-        
-        // Try different path combinations for piano tap sounds
+    private func playInstrumentTapSound(theme: String) async {
+        // Normalize empty theme to piano
+        let effectiveTheme = theme.isEmpty ? "piano" : theme
+
+        // Get config for current theme, fall back to piano
+        let config = InstrumentConfig.configs[effectiveTheme] ?? InstrumentConfig.defaultConfig
+
+        // Cycle through available tap sounds
+        let soundIndex = (instrumentTapIndex % config.tapSoundCount) + 1
+        instrumentTapIndex = (instrumentTapIndex + 1) % config.tapSoundCount
+
+        let soundName = "\(config.filePrefix)\(soundIndex)"
+        print("🎹 Attempting to play \(effectiveTheme) sound: \(soundName) (index: \(soundIndex))")
+
+        // Try different path combinations for tap sounds
         var url: URL?
-        
-        // Look in Audio/Pianos subdirectory first
-        url = Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: "Audio/Pianos")
-        print("🎹 Looking in Audio/Pianos: \(url != nil ? "found" : "not found")")
-        
-        // Fallback to root bundle
-        if url == nil {
-            url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ?? 
-                  Bundle.main.url(forResource: soundName, withExtension: "wav")
-            print("🎹 Fallback search: \(url != nil ? "found" : "not found")")
+
+        // Look in instrument-specific subdirectory first (only if not piano, to avoid double lookup)
+        if effectiveTheme != "piano" {
+            url = Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: config.subdirectory)
+            print("🎹 Looking in \(config.subdirectory): \(url != nil ? "found" : "not found")")
         }
-        
+
+        // Always fall back to piano sounds if not found or if theme is piano
+        if url == nil {
+            let pianoSoundName = "piano_tap_\(soundIndex)"
+            url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3", subdirectory: "Audio/Pianos")
+            if effectiveTheme != "piano" {
+                print("🎹 Falling back to piano sound: \(url != nil ? "found" : "not found")")
+            } else {
+                print("🎹 Looking for piano sound: \(url != nil ? "found" : "not found")")
+            }
+        }
+
+        // Final fallback to root bundle (try piano files without subdirectory)
+        if url == nil {
+            let pianoSoundName = "piano_tap_\(soundIndex)"
+            url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3") ??
+                  Bundle.main.url(forResource: pianoSoundName, withExtension: "wav")
+            print("🎹 Root bundle piano search: \(url != nil ? "found" : "not found")")
+        }
+
         guard let audioUrl = url else {
-            print("❌ Piano tap sound not found: \(soundName)")
+            print("❌ Tap sound not found for \(effectiveTheme): \(soundName)")
             return
         }
-        
+
         do {
-            print("🎹 Playing piano sound: \(soundName) from \(audioUrl)")
+            print("🎹 Playing \(theme) sound: \(soundName) from \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.7
             player.play()
-            print("✅ Piano sound started playing: \(soundName)")
-            
+            print("✅ \(theme.capitalized) sound started playing: \(soundName)")
+
             sfxPlayers.append(player)
-            
+
             Task {
                 try? await Task.sleep(for: .seconds(player.duration + 0.1))
                 await removeSfxPlayer(player)
             }
         } catch {
-            print("❌ Failed to play piano tap sound: \(error)")
+            print("❌ Failed to play \(theme) tap sound: \(error)")
         }
     }
     
