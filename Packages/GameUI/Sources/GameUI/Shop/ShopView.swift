@@ -154,17 +154,13 @@ public struct ShopView: View {
             VStack(spacing: 20) {
                 ForEach(Dictionary(grouping: perks, by: { $0.item }).sorted(by: { $0.key < $1.key }), id: \.key) { item, bundles in
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(item.lowercased() == "magnet" ? "MegaMerges" : item.capitalized)
+                        Text(item.lowercased() == "magnet" ? "MegaMerges" : "\(item.capitalized)s")
                             .font(.headline)
-                            .padding(.horizontal)
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(bundles.sorted(by: { $0.quantity < $1.quantity })) { perk in
-                                    PerkCard(perk: perk)
-                                }
+
+                        VStack(spacing: 10) {
+                            ForEach(bundles.sorted(by: { $0.quantity < $1.quantity })) { perk in
+                                PerkBundleRow(perk: perk)
                             }
-                            .padding(.horizontal)
                         }
                     }
                 }
@@ -367,43 +363,67 @@ struct GemBundleRow: View {
     }
 }
 
-struct PerkCard: View {
+struct PerkBundleRow: View {
     let perk: PerkBundle
     @Environment(\.shopStore) private var shopStore
-    
+
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: iconForPerk(perk.item))
-                .font(.title)
-            
-            Text(verbatim: "x\(perk.quantity)")
-                .font(.headline)
-            
-            Button {
-                Task { await shopStore.purchase(perk.id) }
-            } label: {
+        Button {
+            Task { await shopStore.purchase(perk.id) }
+        } label: {
+            HStack(spacing: 12) {
+                perkIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 36, height: 36)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(perk.quantity) \(perkDisplayName):")
+                        .font(.headline)
+                }
+                Spacer()
                 Text(shopStore.formatPrice(perk.price))
-                    .font(.caption.bold())
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(Capsule())
+                    .font(.headline)
             }
+            .padding()
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
         }
-        .padding()
-        .frame(width: 100, height: 120)
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .buttonStyle(.plain)
+        .disabled(shopStore.isPurchasing)
+        .accessibilityLabel("\(perk.quantity) \(perkDisplayName) for \(shopStore.formatPrice(perk.price))")
     }
-    
-    private func iconForPerk(_ item: String) -> String {
-        switch item.lowercased() {
-        case "hammer": return "hammer.fill"
-        case "swap": return "arrow.2.squarepath"
-        case "magnet": return "magnet"
-        default: return "star.fill"
+
+    private var perkDisplayName: String {
+        switch perk.item.lowercased() {
+        case "hammer": return perk.quantity == 1 ? "Hammer" : "Hammers"
+        case "swap": return perk.quantity == 1 ? "Swap" : "Swaps"
+        case "magnet": return perk.quantity == 1 ? "MegaMerge" : "MegaMerges"
+        default: return perk.item.capitalized
         }
+    }
+
+    private var perkIcon: Image {
+        let iconName: String
+        switch perk.item.lowercased() {
+        case "hammer": iconName = "HammerIcon"
+        case "swap": iconName = "SwapIcon"
+        case "magnet": iconName = "MegaMergeIcon"
+        default: iconName = "HammerIcon"
+        }
+
+        #if canImport(UIKit)
+        if let path = Bundle.module.path(forResource: iconName, ofType: "png"),
+           let uiImage = UIImage(contentsOfFile: path) {
+            return Image(uiImage: uiImage)
+        }
+        #elseif canImport(AppKit)
+        if let path = Bundle.module.path(forResource: iconName, ofType: "png"),
+           let nsImage = NSImage(contentsOfFile: path) {
+            return Image(nsImage: nsImage)
+        }
+        #endif
+        return Image(systemName: "star.fill")
     }
 }
 
