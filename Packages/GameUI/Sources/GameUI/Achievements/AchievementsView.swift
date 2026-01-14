@@ -511,13 +511,13 @@ private struct AchievementRow: View {
             return value.formatted(.number.precision(.fractionLength(0)))
         } else if value < 1_000_000 {
             let k = value / 1_000
-            return k.formatted(.number.precision(.fractionLength(0...1))) + "K"
+            return k.formatted(.number.precision(.fractionLength(0...2))) + "K"
         } else if value < 1_000_000_000 {
             let m = value / 1_000_000
-            return m.formatted(.number.precision(.fractionLength(0...1))) + "M"
+            return m.formatted(.number.precision(.fractionLength(0...2))) + "M"
         } else if value < 1_000_000_000_000 {
             let b = value / 1_000_000_000
-            return b.formatted(.number.precision(.fractionLength(0...1))) + "B"
+            return b.formatted(.number.precision(.fractionLength(0...2))) + "B"
         } else {
             // Use alphabetic suffixes for trillions+: a, b, c, ..., z, aa, ab, ..., az, ba, ..., bz
             var remaining = value
@@ -529,7 +529,7 @@ private struct AchievementRow: View {
             // tierIndex 4 = trillions = 'a', 5 = quadrillions = 'b', etc.
             let letterIndex = tierIndex - 3 // 4->1 (a), 5->2 (b), etc.
             let suffix = excelStyleLetters(for: letterIndex)
-            return remaining.formatted(.number.precision(.fractionLength(0...1))) + suffix
+            return remaining.formatted(.number.precision(.fractionLength(0...2))) + suffix
         }
     }
 
