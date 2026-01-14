@@ -592,7 +592,13 @@ public final class GameStore {
             syncEngineScoreBoost()
             self.state.highestTile = max(self.state.highestTile, sessionState.highestTile)
             // Ensure leaderboard milestone is set for restored highest tile
-            let formattedMilestone = TileStepLabelFormatter.formatTileValue(self.state.highestTile)
+            // Use step-based formatting for high values to avoid overflow
+            let formattedMilestone: String
+            if let step = restoredStep, step >= 62 {
+                formattedMilestone = TileStepLabelFormatter.labelForStep(step, start: 2)
+            } else {
+                formattedMilestone = TileStepLabelFormatter.formatTileValue(self.state.highestTile)
+            }
             UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
 
             // Restore power-up inventory
@@ -1686,10 +1692,24 @@ public final class GameStore {
         setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: doubledValue)
         
         // Persist if this is a new highest tile
-        if doubledValue > state.highestTile {
+        // Calculate step for the doubled value (base step + 1)
+        let doubledStep = (TileStepLabelFormatter.stepForValue(base, start: 2) ?? 0) + 1
+        let isHighStep = doubledStep >= 62
+
+        // Use step-based comparison for very high tiles to avoid overflow issues
+        let shouldPersist = isHighStep ? (doubledStep > state.highestTileStep) : (doubledValue > state.highestTile)
+
+        if shouldPersist {
             UserDefaults.standard.set(doubledValue, forKey: "highestTile")
+            state.highestTileStep = doubledStep
             // Save formatted milestone for leaderboard display
-            let formattedMilestone = TileStepLabelFormatter.formatTileValue(doubledValue)
+            // Use step-based formatting for high values to avoid overflow
+            let formattedMilestone: String
+            if isHighStep {
+                formattedMilestone = TileStepLabelFormatter.labelForStep(doubledStep, start: 2)
+            } else {
+                formattedMilestone = TileStepLabelFormatter.formatTileValue(doubledValue)
+            }
             UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
         }
 
@@ -2458,6 +2478,21 @@ extension GameStore {
         } else {
             print("   ✅ highestTileStep looks correct")
         }
+
+        // MIGRATION: Initialize savedHighestTileStep if not set
+        // This ensures the profile displays the correct all-time best milestone
+        let savedHighestStep = UserDefaults.standard.integer(forKey: ScoreDefaultsKey.savedHighestTileStep)
+        if savedHighestStep == 0 && state.highestTileStep > 0 {
+            print("   🔄 MIGRATION: Initializing savedHighestTileStep to \(state.highestTileStep)")
+            UserDefaults.standard.set(state.highestTileStep, forKey: ScoreDefaultsKey.savedHighestTileStep)
+
+            // Also update savedHighestTile for consistency
+            let savedHighestTile = UserDefaults.standard.integer(forKey: "savedHighestTile")
+            if savedHighestTile < state.highestTile {
+                UserDefaults.standard.set(state.highestTile, forKey: "savedHighestTile")
+                print("   🔄 MIGRATION: Updated savedHighestTile to \(state.highestTile)")
+            }
+        }
     }
 
     /// Force-update the highest tile step to a specific value.
@@ -2747,7 +2782,15 @@ extension GameStore {
         if shouldUpdateAllTime {
             UserDefaults.standard.set(currentHighest, forKey: "savedHighestTile")
             UserDefaults.standard.set(currentHighestStep, forKey: ScoreDefaultsKey.savedHighestTileStep)
-            print("🏆 New all-time highest tile: \(currentHighest) (step \(currentHighestStep))")
+            // Update leaderboard milestone - use step-based formatting for high values
+            let formattedMilestone: String
+            if currentHighestStep >= 62 {
+                formattedMilestone = TileStepLabelFormatter.labelForStep(currentHighestStep, start: 2)
+            } else {
+                formattedMilestone = TileStepLabelFormatter.formatTileValue(currentHighest)
+            }
+            UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
+            print("🏆 New all-time highest tile: \(currentHighest) (step \(currentHighestStep)) - milestone: \(formattedMilestone)")
         }
 
         #if DEBUG
@@ -2987,6 +3030,7 @@ extension GameStore {
     /// Restore progress from saved data (called on app launch)
     public func restoreProgress() {
         let savedHighest = UserDefaults.standard.integer(forKey: "savedHighestTile")
+        let savedHighestStep = UserDefaults.standard.integer(forKey: ScoreDefaultsKey.savedHighestTileStep)
         let savedBestScoreAlpha = persistedBestScoreAlpha()
         let savedGems = UserDefaults.standard.integer(forKey: "coins")
         let hasInfinityAchievement = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
@@ -2996,19 +3040,37 @@ extension GameStore {
         } else {
             state.scoreValue = AlphaNumber(state.score)
         }
-        
+
         // Restore infinity achievement
         if hasInfinityAchievement {
             print("♾️  INFINITY ACHIEVEMENT RESTORED!")
         }
-        
-        if savedHighest > state.highestTile {
+
+        // For very high tiles (step >= 62), the raw value overflows Int64
+        // Use step-based comparison and milestone calculation
+        var shouldRestore = false
+        if savedHighestStep >= 62 || state.highestTileStep >= 62 {
+            shouldRestore = savedHighestStep > state.highestTileStep
+        } else {
+            shouldRestore = savedHighest > state.highestTile
+        }
+
+        if shouldRestore {
             state.highestTile = savedHighest
+            state.highestTileStep = savedHighestStep
             journey.didReach(tile: savedHighest)
             // Ensure leaderboard milestone is set for restored highest tile
-            let restoredMilestone = TileStepLabelFormatter.formatTileValue(savedHighest)
+            // Use step-based formatting for high values to avoid overflow
+            let restoredMilestone: String
+            if savedHighestStep >= 62 {
+                restoredMilestone = TileStepLabelFormatter.labelForStep(savedHighestStep, start: 2)
+            } else {
+                restoredMilestone = TileStepLabelFormatter.formatTileValue(savedHighest)
+            }
             UserDefaults.standard.set(restoredMilestone, forKey: "leaderboard.milestone")
-            if savedHighest >= 2_147_483_648 {
+            if savedHighestStep >= 62 {
+                print("🔄 Restored high step achievement: step \(savedHighestStep) (\(restoredMilestone))")
+            } else if savedHighest >= 2_147_483_648 {
                 print("🔄 Restored 2B+ achievement: \(savedHighest)")
             } else {
                 print("🔄 Restored highest tile: \(savedHighest)")
