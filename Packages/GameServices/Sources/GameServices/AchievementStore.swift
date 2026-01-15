@@ -721,17 +721,38 @@ public final class AchievementStore {
     ]
 
     private static let dailyClaimsTiers: [ComboTierDefinition] = [
+        // Original tiers
         .init(milestone: 1, categoryLabel: "1 day", rewards: .init(gems: 5)),
         .init(milestone: 2, categoryLabel: "2 days", rewards: .init(gems: 10)),
         .init(milestone: 3, categoryLabel: "3 days", rewards: .init(hammers: 1)),
+        .init(milestone: 4, categoryLabel: "4 days", rewards: .init(gems: 15, swaps: 1)),
         .init(milestone: 5, categoryLabel: "5 days", rewards: .init(gems: 25)),
+        .init(milestone: 6, categoryLabel: "6 days", rewards: .init(gems: 30)),
         .init(milestone: 7, categoryLabel: "7 days", rewards: .init(gems: 35, swaps: 1)),
+        .init(milestone: 8, categoryLabel: "8 days", rewards: .init(gems: 21, hammers: 1)),
         .init(milestone: 10, categoryLabel: "10 days", rewards: .init(gems: 23, spins: 1, boost3x: 1)),
+        .init(milestone: 12, categoryLabel: "12 days", rewards: .init(gems: 22, magnets: 3)),
         .init(milestone: 14, categoryLabel: "14 days", rewards: .init(gems: 35, magnets: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 16, categoryLabel: "16 days", rewards: .init(gems: 33, swaps: 2)),
+        .init(milestone: 18, categoryLabel: "18 days", rewards: .init(hammers: 1)),
         .init(milestone: 21, categoryLabel: "21 days", rewards: .init(gems: 50)),
+        .init(milestone: 24, categoryLabel: "24 days", rewards: .init(boost2x: 1)),
+        .init(milestone: 27, categoryLabel: "27 days", rewards: .init(boost3x: 1)),
         .init(milestone: 30, categoryLabel: "30 days", rewards: .init(magnets: 1)),
+        // Extended tiers
+        .init(milestone: 60, categoryLabel: "60 days", rewards: .init(hammers: 1, boost3x: 1)),
+        .init(milestone: 90, categoryLabel: "90 days", rewards: .init(magnets: 1, boost2x: 1)),
         .init(milestone: 98, categoryLabel: "98 days", rewards: .init(boost2x: 1)),
-        .init(milestone: 365, categoryLabel: "365 days", rewards: .init(gems: 1000))
+        .init(milestone: 120, categoryLabel: "120 days", rewards: .init(boost4x: 1)),
+        .init(milestone: 180, categoryLabel: "180 days", rewards: .init(spins: 1, magnets: 4, boost2x: 1)),
+        .init(milestone: 240, categoryLabel: "240 days", rewards: .init(gems: 600, magnets: 1, boost3x: 1)),
+        .init(milestone: 300, categoryLabel: "300 days", rewards: .init(gems: 700, hammers: 1)),
+        .init(milestone: 330, categoryLabel: "330 days", rewards: .init(gems: 850, spins: 3)),
+        .init(milestone: 365, categoryLabel: "365 days", rewards: .init(gems: 1000)),
+        .init(milestone: 730, categoryLabel: "730 days", rewards: .init(gems: 1100)),
+        .init(milestone: 1095, categoryLabel: "1095 days", rewards: .init(gems: 1200)),
+        .init(milestone: 1460, categoryLabel: "1460 days", rewards: .init(gems: 900, boost4x: 1)),
+        .init(milestone: 1825, categoryLabel: "1825 days", rewards: .init(gems: 1000, boost3x: 1))
     ]
 
     private static let boost5xUseTiers: [ComboTierDefinition] = [
