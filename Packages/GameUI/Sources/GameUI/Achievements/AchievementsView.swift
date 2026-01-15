@@ -19,10 +19,17 @@ public struct AchievementsView: View {
             let stateB = achievements.unlocks[b.id]
             let claimableA = stateA?.isClaimable == true
             let claimableB = stateB?.isClaimable == true
+            let maxedA = isMaxed(for: a.id)
+            let maxedB = isMaxed(for: b.id)
 
             // Claimable achievements go to the top
             if claimableA != claimableB {
                 return claimableA
+            }
+
+            // Maxed out achievements go to the bottom
+            if maxedA != maxedB {
+                return maxedB // B is maxed, so A comes first
             }
 
             let levelA = achievementLevel(for: a.id)
