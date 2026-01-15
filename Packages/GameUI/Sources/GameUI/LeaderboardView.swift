@@ -100,7 +100,22 @@ public struct LeaderboardView: View {
             } else if m.hasData {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(Array(m.entries.enumerated()), id: \.element.id) { index, entry in
+                        // Build display entries: merge myEntry into correct position if within range
+                        let displayEntries: [LeaderboardEntry] = {
+                            var result = m.entries.filter { !$0.isMe }  // Remove any existing user entry
+                            if let myEntry = m.myEntry {
+                                // Find the correct position based on rank
+                                if let insertIndex = result.firstIndex(where: { $0.rank > myEntry.rank }) {
+                                    result.insert(myEntry, at: insertIndex)
+                                } else if let lastEntry = result.last, myEntry.rank <= lastEntry.rank + 1 {
+                                    // User belongs right after the last entry
+                                    result.append(myEntry)
+                                }
+                            }
+                            return result
+                        }()
+
+                        ForEach(Array(displayEntries.enumerated()), id: \.element.id) { index, entry in
                             leaderboardRow(entry, index: index)
                                 .task {
                                     // Load more when reaching the end
@@ -117,9 +132,9 @@ public struct LeaderboardView: View {
                                 .padding()
                         }
 
-                        // Show "My Entry" if not in the visible list
+                        // Show "My Entry" only if not in the display range
                         if let myEntry = m.myEntry,
-                           !m.entries.contains(where: { $0.id == myEntry.id }) {
+                           !displayEntries.contains(where: { $0.id == myEntry.id }) {
                             VStack(spacing: 0) {
                                 Rectangle()
                                     .fill(Color.white.opacity(0.1))
