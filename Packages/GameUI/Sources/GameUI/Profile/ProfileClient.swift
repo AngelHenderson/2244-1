@@ -84,9 +84,21 @@ public struct LiveProfileClient: ProfileClient, Sendable {
         // Read country code
         let countryCode = defaults.string(forKey: "profileCountryCode")
 
-        // Read highest tile and format it
+        // Read highest tile and format it using the saved step for accuracy
+        // For high tiles (step >= 62), we must use step-based formatting to avoid Int.max issues
+        let savedHighestTileStep = defaults.integer(forKey: "savedHighestTileStep")
         let savedHighestTile = defaults.integer(forKey: "savedHighestTile")
-        let highestTile: String? = savedHighestTile > 0 ? formatTileValue(savedHighestTile) : nil
+
+        let highestTile: String? = {
+            if savedHighestTileStep > 0 {
+                // Use step-based formatting (accurate for all tile values)
+                return TileStepLabelFormatter.labelForStep(savedHighestTileStep)
+            } else if savedHighestTile > 0 {
+                // Fallback to value-based formatting for legacy saves
+                return TileStepLabelFormatter.formatTileValue(savedHighestTile)
+            }
+            return nil
+        }()
 
         // Read avatar
         let avatarId = defaults.string(forKey: "profileAvatarId") ?? AvatarCatalog.default.id
