@@ -100,22 +100,7 @@ public struct LeaderboardView: View {
             } else if m.hasData {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        // Build display entries: merge myEntry into correct position if within range
-                        let displayEntries: [LeaderboardEntry] = {
-                            var result = m.entries.filter { !$0.isMe }  // Remove any existing user entry
-                            if let myEntry = m.myEntry {
-                                // Find the correct position based on rank
-                                if let insertIndex = result.firstIndex(where: { $0.rank > myEntry.rank }) {
-                                    result.insert(myEntry, at: insertIndex)
-                                } else if let lastEntry = result.last, myEntry.rank <= lastEntry.rank + 1 {
-                                    // User belongs right after the last entry
-                                    result.append(myEntry)
-                                }
-                            }
-                            return result
-                        }()
-
-                        ForEach(Array(displayEntries.enumerated()), id: \.element.id) { index, entry in
+                        ForEach(Array(buildDisplayEntries(m).enumerated()), id: \.element.id) { index, entry in
                             leaderboardRow(entry, index: index)
                                 .task {
                                     // Load more when reaching the end
@@ -133,8 +118,7 @@ public struct LeaderboardView: View {
                         }
 
                         // Show "My Entry" only if not in the display range
-                        if let myEntry = m.myEntry,
-                           !displayEntries.contains(where: { $0.id == myEntry.id }) {
+                        if let myEntry = m.myEntry, !isUserInDisplayRange(m) {
                             VStack(spacing: 0) {
                                 Rectangle()
                                     .fill(Color.white.opacity(0.1))
@@ -248,7 +232,42 @@ public struct LeaderboardView: View {
             return Color.red  // Spain - red from the flag
         }
     }
-    
+
+    // Build display entries with user merged at correct position
+    private func buildDisplayEntries(_ m: LeaderboardModel) -> [LeaderboardEntry] {
+        guard let myEntry = m.myEntry else {
+            return m.entries
+        }
+
+        // Filter out any existing user entry to avoid duplicates
+        var result = m.entries.filter { !$0.isMe }
+
+        // Check if user should be in the displayed range
+        guard let lastEntry = result.last else {
+            return [myEntry]
+        }
+
+        // If user's rank is within or just after the displayed range, insert them
+        if myEntry.rank <= lastEntry.rank {
+            // Find the correct position based on rank
+            if let insertIndex = result.firstIndex(where: { $0.rank > myEntry.rank }) {
+                result.insert(myEntry, at: insertIndex)
+            } else {
+                result.append(myEntry)
+            }
+        }
+
+        return result
+    }
+
+    // Check if user is in the display range
+    private func isUserInDisplayRange(_ m: LeaderboardModel) -> Bool {
+        guard let myEntry = m.myEntry else { return false }
+        let entries = m.entries.filter { !$0.isMe }
+        guard let lastEntry = entries.last else { return true }
+        return myEntry.rank <= lastEntry.rank
+    }
+
     private func leaderboardRow(_ entry: LeaderboardEntry, index: Int?) -> some View {
         HStack(spacing: 12) {
             // Rank Number

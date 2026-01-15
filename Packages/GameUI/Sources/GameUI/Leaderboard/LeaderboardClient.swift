@@ -541,7 +541,79 @@ private enum MockLeaderboardData {
 
     // Get milestone index for sorting (higher index = better milestone)
     static func milestoneIndex(for milestone: String) -> Int {
-        return allMilestones.firstIndex(of: milestone) ?? 0
+        // Try exact match first
+        if let index = allMilestones.firstIndex(of: milestone) {
+            return index
+        }
+        // Try case-insensitive match
+        let lowercased = milestone.lowercased()
+        if let index = allMilestones.firstIndex(where: { $0.lowercased() == lowercased }) {
+            return index
+        }
+        // Try matching just the numeric prefix and suffix
+        // e.g., "1e" might be stored as "1E" or with different formatting
+        return 0
+    }
+
+    // Compare two milestone strings: returns >0 if m1 > m2, <0 if m1 < m2, 0 if equal
+    static func compareMilestones(_ m1: String, _ m2: String) -> Int {
+        let idx1 = milestoneIndex(for: m1)
+        let idx2 = milestoneIndex(for: m2)
+
+        // If both found, compare indices
+        if idx1 > 0 || idx2 > 0 {
+            return idx1 - idx2
+        }
+
+        // Parse milestones manually for comparison
+        // Format: <number><suffix> where suffix is K, M, B, or lowercase letters (a-z, aa-zz, etc.)
+        func parseMilestone(_ m: String) -> (mantissa: Int, tier: Int)? {
+            let lowered = m.lowercased()
+            var numStr = ""
+            var suffix = ""
+            for char in lowered {
+                if char.isNumber {
+                    numStr.append(char)
+                } else {
+                    suffix.append(char)
+                }
+            }
+            guard let mantissa = Int(numStr) else { return nil }
+
+            // Determine tier from suffix
+            let tier: Int
+            switch suffix {
+            case "k": tier = 1
+            case "m": tier = 2
+            case "b": tier = 3
+            default:
+                // Letter suffixes: a=4, b=5, ..., z=29, aa=30, ab=31, ...
+                if suffix.isEmpty {
+                    tier = 0
+                } else if suffix.count == 1, let c = suffix.first, c >= "a" && c <= "z" {
+                    tier = 4 + Int(c.asciiValue! - Character("a").asciiValue!)
+                } else if suffix.count == 2 {
+                    let chars = Array(suffix)
+                    let first = Int(chars[0].asciiValue! - Character("a").asciiValue!)
+                    let second = Int(chars[1].asciiValue! - Character("a").asciiValue!)
+                    tier = 30 + first * 26 + second
+                } else {
+                    tier = 100 // Unknown suffix, assume high
+                }
+            }
+            return (mantissa, tier)
+        }
+
+        guard let p1 = parseMilestone(m1), let p2 = parseMilestone(m2) else {
+            return 0
+        }
+
+        // Higher tier = better
+        if p1.tier != p2.tier {
+            return p1.tier - p2.tier
+        }
+        // Same tier, higher mantissa = better
+        return p1.mantissa - p2.mantissa
     }
 
     // Exact Hall of Fame infinity counts from screenshots (ranks 1-150)
@@ -2414,11 +2486,26 @@ public extension LeaderboardClient {
             playerData.append((i, i + 80000, baseMilestone, milestoneIdx, name, "ES", platform, avatar, "es_\(i)"))
         }
 
-        // Add current user to playerData so they can be sorted with everyone else
+        // Add the user to playerData so they get sorted with everyone else
         let userMilestone = UserLeaderboardData.currentMilestone
-        let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
         let userCountry = UserLeaderboardData.currentCountry
-        playerData.append((0, 999999, userMilestone, userMilestoneIndex, UserLeaderboardData.playerName, userCountry, .ios, UserLeaderboardData.avatarID, "me"))
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        // Use compareMilestones for better index if standard index returns 0
+        let effectiveUserIdx: Int
+        if userMilestoneIdx == 0 {
+            // Calculate effective index based on milestone parsing
+            // Find the first milestone in allMilestones that user beats
+            var foundIdx = 0
+            for (idx, m) in MockLeaderboardData.allMilestones.enumerated() {
+                if MockLeaderboardData.compareMilestones(userMilestone, m) >= 0 {
+                    foundIdx = idx
+                }
+            }
+            effectiveUserIdx = foundIdx
+        } else {
+            effectiveUserIdx = userMilestoneIdx
+        }
+        playerData.append((-1, 999999, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, userCountry, .ios, UserLeaderboardData.avatarID, "me"))
 
         // Sort by milestone index (highest first = best milestone)
         playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
@@ -2444,15 +2531,18 @@ public extension LeaderboardClient {
         let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers
 
         // Build entries with ranks based on sorted order (top 150 only)
+        // User is already in playerData and sorted, so they'll appear at correct position
         var entries: [LeaderboardEntry] = []
-        var userIncludedInTop150 = false
+        var userInTop150 = false
 
         for (rank, player) in playerData.prefix(150).enumerated() {
-            let isMe = player.id == "me"
-            if isMe { userIncludedInTop150 = true }
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
 
             let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
-            let score = isMe ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.playerIndex, day: day)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.playerIndex, day: day)
 
             entries.append(LeaderboardEntry(
                 id: player.id,
@@ -2461,27 +2551,30 @@ public extension LeaderboardClient {
                 score: score,
                 countryCode: player.country,
                 platform: player.platform,
-                isMe: isMe,
+                isMe: isUserEntry,
                 avatarURL: player.avatar,
                 highestTile: player.progressedMilestone
             ))
         }
 
-        // If user wasn't in top 150, add them with bracket-based rank
-        if !userIncludedInTop150 {
-            var globalRank = totalPlayers
+        // If user is not in top 150, add them separately with bracket-based ranking
+        if !userInTop150 {
+            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+
+            // Find user's rank from extended brackets
+            var userRank = totalPlayers  // Default to last place
+
             for bracket in globalExtendedRankBrackets {
                 if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIndex >= bracketIndex {
-                    globalRank = bracket.startRank
+                   effectiveUserIdx >= bracketIndex {
+                    userRank = bracket.startRank
                     break
                 }
             }
 
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             entries.append(LeaderboardEntry(
                 id: "me",
-                rank: globalRank,
+                rank: userRank,
                 name: UserLeaderboardData.playerName,
                 score: userScore,
                 countryCode: userCountry,
@@ -2500,8 +2593,8 @@ public extension LeaderboardClient {
     private static func countryEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
 
-        // First, build player data with milestones
-        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String)] = []
+        // First, build player data with milestones (including user)
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
 
         for i in 0..<150 {  // Only show top 150 in leaderboard
             let baseMilestone = usPlayerMilestones[i]
@@ -2512,73 +2605,81 @@ public extension LeaderboardClient {
             // US milestones are already current values - don't apply progression
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
 
-            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar))
+            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "us_\(i)"))
         }
+
+        // Add user to playerData so they get sorted with everyone else
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let effectiveUserIdx: Int
+        if userMilestoneIdx == 0 {
+            var foundIdx = 0
+            for (idx, m) in MockLeaderboardData.allMilestones.enumerated() {
+                if MockLeaderboardData.compareMilestones(userMilestone, m) >= 0 {
+                    foundIdx = idx
+                }
+            }
+            effectiveUserIdx = foundIdx
+        } else {
+            effectiveUserIdx = userMilestoneIdx
+        }
+        playerData.append((-1, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
         // Sort by milestone index (highest first = best milestone)
         playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
-        for (rank, player) in playerData.enumerated() {
+        var userInTop150 = false
+        let totalUSPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
             let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
-            let score = MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex, day: day)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex, day: day)
 
             entries.append(LeaderboardEntry(
-                id: "us_\(player.originalIndex)",
+                id: player.id,
                 rank: rank + 1,
                 name: player.name,
                 score: score,
                 countryCode: "US",
                 platform: player.platform,
+                isMe: isUserEntry,
                 avatarURL: player.avatar,
                 highestTile: player.progressedMilestone
             ))
         }
 
-        // Add current user entry (ranked among 100k+ US players)
-        let userMilestone = UserLeaderboardData.currentMilestone
-        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-        let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
-        let totalUSPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
+        // If user is not in top 150, add them separately with bracket-based ranking
+        if !userInTop150 {
+            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+            var usRank = totalUSPlayers
 
-        // Find user's rank based on milestone compared to sorted players
-        var usRank = totalUSPlayers
-
-        // Check if user would be in top 150 based on milestone
-        if let lastTop150 = playerData.last {
-            if userMilestoneIndex > lastTop150.milestoneIdx {
-                // User's milestone is better than some in top 150, find exact position
-                for (rank, player) in playerData.enumerated() {
-                    if userMilestoneIndex >= player.milestoneIdx {
-                        usRank = rank + 1
-                        break
-                    }
-                }
-            } else {
-                // User is below top 150 - use bracket-based ranking
-                // Iterate forward (high tier to low tier) to find best matching bracket
-                for bracket in usExtendedRankBrackets {
-                    if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                       userMilestoneIndex >= bracketIndex {
-                        usRank = bracket.startRank
-                        break
-                    }
+            for bracket in usExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   effectiveUserIdx >= bracketIndex {
+                    usRank = bracket.startRank
+                    break
                 }
             }
-        }
 
-        entries.append(LeaderboardEntry(
-            id: "me",
-            rank: usRank,
-            name: UserLeaderboardData.playerName,
-            score: userScore,
-            countryCode: "US",
-            platform: .ios,
-            isMe: true,
-            avatarURL: UserLeaderboardData.avatarID,
-            highestTile: userMilestone
-        ))
+            entries.append(LeaderboardEntry(
+                id: "me",
+                rank: usRank,
+                name: UserLeaderboardData.playerName,
+                score: userScore,
+                countryCode: "US",
+                platform: .ios,
+                isMe: true,
+                avatarURL: UserLeaderboardData.avatarID,
+                highestTile: userMilestone
+            ))
+        }
 
         return entries
     }
