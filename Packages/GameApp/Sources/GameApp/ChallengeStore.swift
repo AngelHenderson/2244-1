@@ -122,11 +122,35 @@ public final class ChallengeStore: Sendable {
             return .expert
         }
 
-        // Helper to calculate reward based on milestone index
+        // Specific rewards for first 16 challenges (1M, 1B, 1a-1n)
+        // MegaMerge = .magnet power-up
+        let specificRewards: [Int: ChallengeReward] = [
+            0: ChallengeReward(coins: 50),                                              // 1M: 50 Gems
+            1: ChallengeReward(coins: 70),                                              // 1B: 70 Gems
+            2: ChallengeReward(powerUps: [.magnet: 1]),                                 // 1a: 1 MegaMerge
+            3: ChallengeReward(coins: 60, scoreBoosts: [3: 1]),                         // 1b: 60 Gems, 3X Boost
+            4: ChallengeReward(coins: 75, scoreBoosts: [2: 1]),                         // 1c: 75 Gems, 2X Boost
+            5: ChallengeReward(coins: 100),                                             // 1d: 100 Gems
+            6: ChallengeReward(powerUps: [.hammer: 1]),                                 // 1e: 1 Hammer
+            7: ChallengeReward(powerUps: [.swap: 1]),                                   // 1f: 1 Swap
+            8: ChallengeReward(scoreBoosts: [2: 1]),                                    // 1g: 2X Boost
+            9: ChallengeReward(coins: 90, powerUps: [.swap: 1], scoreBoosts: [2: 1]),   // 1h: 90 Gems, 1 Swap, 2X Boost
+            10: ChallengeReward(coins: 95, powerUps: [.magnet: 1], scoreBoosts: [3: 1]),// 1i: 95 Gems, 1 MegaMerge, 3X Boost
+            11: ChallengeReward(coins: 105, powerUps: [.hammer: 1], scoreBoosts: [4: 1]),// 1j: 105 Gems, 1 Hammer, 4X Boost
+            12: ChallengeReward(spins: 1),                                              // 1k: 1 Spin
+            13: ChallengeReward(powerUps: [.magnet: 1]),                                // 1l: 1 MegaMerge
+            14: ChallengeReward(powerUps: [.swap: 1]),                                  // 1m: 1 Swap
+            15: ChallengeReward(coins: 125, spins: 1)                                   // 1n: 125 Gems, 1 Spin
+        ]
+
+        // Helper to get reward - uses specific reward if defined, otherwise falls back to formula
         func reward(for index: Int) -> ChallengeReward {
+            if let specific = specificRewards[index] {
+                return specific
+            }
+            // Fallback formula for challenges beyond 1n
             let baseCoins = 50 + (index * 25)
-            let baseXP = 100 + (index * 50)
-            return ChallengeReward(coins: baseCoins, experience: baseXP)
+            return ChallengeReward(coins: baseCoins)
         }
 
         // Calculate the exact step for a "1X" milestone at a given base-1000 tier (hi).

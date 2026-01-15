@@ -75,12 +75,23 @@ public struct ChallengeReward: Codable, Sendable {
     public let experience: Int
     public let powerUps: [PowerUpType: Int]
     public let trophyType: TrophyType?
+    public let spins: Int
+    public let scoreBoosts: [Int: Int]  // multiplier -> count (e.g., [2: 1, 3: 1] = one 2X and one 3X boost)
 
-    public init(coins: Int, experience: Int, powerUps: [PowerUpType: Int] = [:], trophyType: TrophyType? = nil) {
+    public init(
+        coins: Int = 0,
+        experience: Int = 0,
+        powerUps: [PowerUpType: Int] = [:],
+        trophyType: TrophyType? = nil,
+        spins: Int = 0,
+        scoreBoosts: [Int: Int] = [:]
+    ) {
         self.coins = coins
         self.experience = experience
         self.powerUps = powerUps
         self.trophyType = trophyType
+        self.spins = spins
+        self.scoreBoosts = scoreBoosts
     }
 
     public static func `default`(for difficulty: ChallengeDifficulty) -> ChallengeReward {
