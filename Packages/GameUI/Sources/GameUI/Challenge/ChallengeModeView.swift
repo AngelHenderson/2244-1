@@ -176,6 +176,72 @@ private struct ChallengeCard: View {
         return nil
     }
 
+    /// Formats the reward for display, showing gems, power-ups, boosts, or spins
+    @ViewBuilder
+    private var rewardLabel: some View {
+        let reward = challenge.reward
+        let parts = buildRewardParts(reward)
+
+        HStack(spacing: 8) {
+            ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
+                HStack(spacing: 4) {
+                    Image(systemName: part.icon)
+                        .font(.caption)
+                    Text(part.text)
+                        .font(.caption.weight(.semibold))
+                }
+            }
+        }
+    }
+
+    private func buildRewardParts(_ reward: ChallengeReward) -> [(icon: String, text: String)] {
+        var parts: [(icon: String, text: String)] = []
+
+        // Gems
+        if reward.coins > 0 {
+            parts.append((icon: "diamond.fill", text: "\(reward.coins)"))
+        }
+
+        // Power-ups
+        for (powerUp, count) in reward.powerUps.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            let name: String
+            let icon: String
+            switch powerUp {
+            case .hammer:
+                name = "Hammer"
+                icon = "hammer.fill"
+            case .swap:
+                name = "Swap"
+                icon = "arrow.left.arrow.right"
+            case .magnet:
+                name = "MegaMerge"
+                icon = "arrow.triangle.merge"
+            case .shuffle:
+                name = "Shuffle"
+                icon = "shuffle"
+            case .undo:
+                name = "Undo"
+                icon = "arrow.uturn.backward"
+            case .double:
+                name = "Double"
+                icon = "plus.forwardslash.minus"
+            }
+            parts.append((icon: icon, text: "\(count) \(name)"))
+        }
+
+        // Score boosts
+        for (multiplier, count) in reward.scoreBoosts.sorted(by: { $0.key < $1.key }) {
+            parts.append((icon: "bolt.fill", text: "\(count)x \(multiplier)X"))
+        }
+
+        // Spins
+        if reward.spins > 0 {
+            parts.append((icon: "arrow.trianglehead.2.clockwise.rotate.90", text: "\(reward.spins) Spin"))
+        }
+
+        return parts
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             HStack {
@@ -196,13 +262,8 @@ private struct ChallengeCard: View {
                 statusText
 
                 if !isCompleted {
-                    HStack(spacing: 4) {
-                        Image(systemName: "diamond.fill")
-                            .font(.caption)
-                        Text("\(challenge.reward.coins)")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .foregroundStyle(status == .active ? .orange : .secondary)
+                    rewardLabel
+                        .foregroundStyle(status == .active ? .orange : .secondary)
                 }
             }
         }
