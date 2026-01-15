@@ -261,88 +261,142 @@
       "price": 0.99
     },
     {
-      "id": "hammers_15",
+      "id": "hammers_10",
       "item": "hammer",
-      "quantity": 15,
-      "price": 1.99
+      "quantity": 10,
+      "price": 2.99
     },
     {
-      "id": "hammers_30",
+      "id": "hammers_25",
       "item": "hammer",
-      "quantity": 30,
-      "price": 2.99
+      "quantity": 25,
+      "price": 4.99
     },
     {
       "id": "hammers_50",
       "item": "hammer",
       "quantity": 50,
-      "price": 4.99
+      "price": 9.99
     },
     {
       "id": "hammers_100",
       "item": "hammer",
       "quantity": 100,
-      "price": 8.99
+      "price": 14.99
     },
     {
-      "id": "swaps_5",
-      "item": "swap",
-      "quantity": 5,
-      "price": 1.29
+      "id": "hammers_250",
+      "item": "hammer",
+      "quantity": 250,
+      "price": 29.99
     },
     {
-      "id": "swaps_15",
-      "item": "swap",
-      "quantity": 15,
-      "price": 2.49
+      "id": "hammers_500",
+      "item": "hammer",
+      "quantity": 500,
+      "price": 49.99
     },
     {
-      "id": "swaps_30",
+      "id": "hammers_750",
+      "item": "hammer",
+      "quantity": 750,
+      "price": 74.99
+    },
+    {
+      "id": "hammers_1000",
+      "item": "hammer",
+      "quantity": 1000,
+      "price": 99.99
+    },
+    {
+      "id": "swaps_10",
       "item": "swap",
-      "quantity": 30,
-      "price": 4.49
+      "quantity": 10,
+      "price": 0.99
+    },
+    {
+      "id": "swaps_25",
+      "item": "swap",
+      "quantity": 25,
+      "price": 2.99
     },
     {
       "id": "swaps_50",
       "item": "swap",
       "quantity": 50,
-      "price": 6.99
+      "price": 4.99
     },
     {
-      "id": "swaps_100",
+      "id": "swaps_150",
       "item": "swap",
-      "quantity": 100,
-      "price": 12.99
+      "quantity": 150,
+      "price": 9.99
     },
     {
-      "id": "magnets_5",
-      "item": "magnet",
-      "quantity": 5,
-      "price": 1.49
+      "id": "swaps_250",
+      "item": "swap",
+      "quantity": 250,
+      "price": 19.99
     },
     {
-      "id": "magnets_15",
-      "item": "magnet",
-      "quantity": 15,
-      "price": 3.49
+      "id": "swaps_500",
+      "item": "swap",
+      "quantity": 500,
+      "price": 49.99
     },
     {
-      "id": "magnets_30",
+      "id": "swaps_1000",
+      "item": "swap",
+      "quantity": 1000,
+      "price": 99.99
+    },
+    {
+      "id": "magnets_25",
       "item": "magnet",
-      "quantity": 30,
-      "price": 5.99
+      "quantity": 25,
+      "price": 2.49
     },
     {
       "id": "magnets_50",
       "item": "magnet",
       "quantity": 50,
-      "price": 8.99
+      "price": 4.99
     },
     {
       "id": "magnets_100",
       "item": "magnet",
       "quantity": 100,
-      "price": 16.99
+      "price": 9.99
+    },
+    {
+      "id": "magnets_250",
+      "item": "magnet",
+      "quantity": 250,
+      "price": 19.99
+    },
+    {
+      "id": "magnets_500",
+      "item": "magnet",
+      "quantity": 500,
+      "price": 29.99
+    },
+    {
+      "id": "magnets_1000",
+      "item": "magnet",
+      "quantity": 1000,
+      "price": 49.99
+    },
+    {
+      "id": "magnets_1500",
+      "item": "magnet",
+      "quantity": 1500,
+      "price": 74.99
+    },
+    {
+      "id": "magnets_2000",
+      "item": "magnet",
+      "quantity": 2000,
+      "price": 99.99
     }
   ],
   "freePerks": [
