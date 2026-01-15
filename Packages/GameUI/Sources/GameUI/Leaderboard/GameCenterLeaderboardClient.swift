@@ -98,6 +98,7 @@ public extension LeaderboardClient {
                     case .countryCN: return .global
                     case .countryKR: return .global
                     case .countryIT: return .global
+                    case .countryES: return .global
                     }
                 }()
 
