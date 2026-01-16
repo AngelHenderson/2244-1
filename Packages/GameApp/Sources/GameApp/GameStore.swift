@@ -83,6 +83,8 @@ public final class GameStore {
     public private(set) var lastAddedTileValue: Int? = nil
     // Pending double offer value to apply (base value for doubling)
     public private(set) var pendingDoubleBase: Int? = nil
+    // Step index for pending double (needed for tiles beyond Int.max)
+    public private(set) var pendingDoubleBaseStep: Int? = nil
     // Track which glass tiles have been broken (positions in row 0)
     public private(set) var brokenGlassTiles: Set<Position> = []
     // Pending gift boxes (glass shattered but reward not claimed)
@@ -958,9 +960,21 @@ public final class GameStore {
             }
             let offerIfOneBelow = (previousHighest >= 4) && (addedValue == previousHighest / 2)
             let offerIfAnotherHighest = (addedValue == previousHighest)
-            pendingDoubleBase = (offerIfOneBelow || offerIfAnotherHighest) ? addedValue : nil
+            if offerIfOneBelow || offerIfAnotherHighest {
+                pendingDoubleBase = addedValue
+                // Get step from the tile for proper formatting of high-value tiles
+                if let lp = lastPos, let tile = state.board[lp] {
+                    pendingDoubleBaseStep = tile.stepIndex
+                } else {
+                    pendingDoubleBaseStep = TileStepLabelFormatter.stepForValue(addedValue)
+                }
+            } else {
+                pendingDoubleBase = nil
+                pendingDoubleBaseStep = nil
+            }
         } else {
             pendingDoubleBase = nil
+            pendingDoubleBaseStep = nil
         }
         let unlockedValue: Int? = state.highestTile > previousHighest ? state.highestTile : nil
         if let unlockedValue {
@@ -1093,6 +1107,7 @@ public final class GameStore {
         isInputLocked = false
         lastAddedTileValue = nil
         pendingDoubleBase = nil
+        pendingDoubleBaseStep = nil
         brokenGlassTiles = []
         pendingGiftBoxes = [:]
         movesHistory = []
@@ -1119,6 +1134,7 @@ public final class GameStore {
         isInputLocked = false
         lastAddedTileValue = nil
         pendingDoubleBase = nil
+        pendingDoubleBaseStep = nil
         brokenGlassTiles = []
         pendingGiftBoxes = [:]
         movesHistory = []
@@ -1147,6 +1163,7 @@ public final class GameStore {
         isInputLocked = false
         lastAddedTileValue = nil
         pendingDoubleBase = nil
+        pendingDoubleBaseStep = nil
         brokenGlassTiles = []
         pendingGiftBoxes = [:]
         movesHistory = []
@@ -1669,6 +1686,7 @@ public final class GameStore {
     // MARK: - Double Offer
     public func clearPendingDoubleOffer() {
         pendingDoubleBase = nil
+        pendingDoubleBaseStep = nil
     }
     
     @discardableResult
@@ -1682,7 +1700,8 @@ public final class GameStore {
         let newState = engine.applyDouble(to: position, from: base)
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         pendingDoubleBase = nil
-        
+        pendingDoubleBaseStep = nil
+
         // Notify JourneyKit if we created a new highest tile
         // Use safe multiplication to prevent overflow
         let doubledValue = base <= (Int.max >> 1) ? base * 2 : Int.max
@@ -2479,12 +2498,18 @@ extension GameStore {
             print("   ✅ highestTileStep looks correct")
         }
 
-        // MIGRATION: Initialize savedHighestTileStep if not set
+        // MIGRATION: Initialize or fix savedHighestTileStep
         // This ensures the profile displays the correct all-time best milestone
         let savedHighestStep = UserDefaults.standard.integer(forKey: ScoreDefaultsKey.savedHighestTileStep)
-        if savedHighestStep == 0 && state.highestTileStep > 0 {
-            print("   🔄 MIGRATION: Initializing savedHighestTileStep to \(state.highestTileStep)")
-            UserDefaults.standard.set(state.highestTileStep, forKey: ScoreDefaultsKey.savedHighestTileStep)
+        let currentSessionStep = persistedHighestTileStep() ?? 0
+
+        // Use the maximum of all known step sources
+        let bestKnownStep = max(correctedStep, max(savedHighestStep, currentSessionStep))
+
+        if bestKnownStep > savedHighestStep {
+            print("   🔄 MIGRATION: Updating savedHighestTileStep from \(savedHighestStep) to \(bestKnownStep)")
+            print("      (correctedStep=\(correctedStep), currentSessionStep=\(currentSessionStep), state=\(state.highestTileStep))")
+            UserDefaults.standard.set(bestKnownStep, forKey: ScoreDefaultsKey.savedHighestTileStep)
 
             // Also update savedHighestTile for consistency
             let savedHighestTile = UserDefaults.standard.integer(forKey: "savedHighestTile")
@@ -2898,6 +2923,9 @@ extension GameStore {
         if let doubleBase = pendingDoubleBase {
             UserDefaults.standard.set(doubleBase, forKey: "pendingDoubleBase")
         }
+        if let doubleStep = pendingDoubleBaseStep {
+            UserDefaults.standard.set(doubleStep, forKey: "pendingDoubleBaseStep")
+        }
         
         // Save broken glass tiles
         let brokenGlassData = try? JSONEncoder().encode(Array(brokenGlassTiles).map { ["row": $0.row, "col": $0.col] })
@@ -3134,7 +3162,8 @@ extension GameStore {
         pendingUnlockTile = UserDefaults.standard.object(forKey: "pendingUnlockTile") as? Int
         lastAddedTileValue = UserDefaults.standard.object(forKey: "lastAddedTileValue") as? Int
         pendingDoubleBase = UserDefaults.standard.object(forKey: "pendingDoubleBase") as? Int
-        
+        pendingDoubleBaseStep = UserDefaults.standard.object(forKey: "pendingDoubleBaseStep") as? Int
+
         // Restore broken glass tiles
         if let brokenGlassData = UserDefaults.standard.data(forKey: "brokenGlassTiles"),
            let glassArray = try? JSONDecoder().decode([[String: Int]].self, from: brokenGlassData) {

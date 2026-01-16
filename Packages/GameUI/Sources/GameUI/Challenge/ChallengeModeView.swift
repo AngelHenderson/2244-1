@@ -177,19 +177,27 @@ private struct ChallengeCard: View {
     }
 
     /// Formats the reward for display, showing gems, power-ups, boosts, or spins
+    /// Shows a treasure box for multiple rewards
     @ViewBuilder
     private var rewardLabel: some View {
         let reward = challenge.reward
         let parts = buildRewardParts(reward)
 
-        HStack(spacing: 8) {
-            ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
-                HStack(spacing: 4) {
-                    Image(systemName: part.icon)
-                        .font(.caption)
-                    Text(part.text)
-                        .font(.caption.weight(.semibold))
-                }
+        if parts.count > 1 {
+            // Multiple rewards - show treasure box
+            HStack(spacing: 4) {
+                Image(systemName: "shippingbox.fill")
+                    .font(.caption)
+                Text("Rewards")
+                    .font(.caption.weight(.semibold))
+            }
+        } else if let part = parts.first {
+            // Single reward - show specific icon
+            HStack(spacing: 4) {
+                Image(systemName: part.icon)
+                    .font(.caption)
+                Text(part.text)
+                    .font(.caption.weight(.semibold))
             }
         }
     }
@@ -215,7 +223,7 @@ private struct ChallengeCard: View {
                 icon = "arrow.left.arrow.right"
             case .magnet:
                 name = "MegaMerge"
-                icon = "arrow.triangle.merge"
+                icon = "magnet"
             case .shuffle:
                 name = "Shuffle"
                 icon = "shuffle"

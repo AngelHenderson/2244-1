@@ -196,10 +196,16 @@ public struct HybridGameScreen: View {
                 Button("No", role: .cancel) { gameStore.clearPendingDoubleOffer() }
                 Button("Yes") { /* Dismiss and wait for user to tap a tile */ }
             } message: {
-                if let base = gameStore.pendingDoubleBase {
-                    // Safe multiplication to prevent overflow
+                if let baseStep = gameStore.pendingDoubleBaseStep {
+                    // Use step-based formatting for accurate display of high-value tiles
+                    let doubledStep = baseStep + 1
+                    let formattedValue = TileStepLabelFormatter.labelForStep(doubledStep)
+                    Text("Tap a target tile to set it to \(formattedValue).")
+                } else if let base = gameStore.pendingDoubleBase {
+                    // Fallback to value-based formatting
                     let safeDoubled = base <= (Int.max >> 1) ? base * 2 : Int.max
-                    Text("Tap a target tile to set it to \(safeDoubled).")
+                    let formattedValue = TileStepLabelFormatter.formatTileValue(safeDoubled)
+                    Text("Tap a target tile to set it to \(formattedValue).")
                 } else {
                     Text("Tap a target tile.")
                 }
