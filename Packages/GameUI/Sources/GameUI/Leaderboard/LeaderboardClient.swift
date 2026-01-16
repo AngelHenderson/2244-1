@@ -2557,19 +2557,14 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, add them separately with actual rank from sorted position
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
 
-            // Find user's rank from extended brackets
+            // Find user's actual rank from their position in the sorted playerData
             var userRank = totalPlayers  // Default to last place
-
-            for bracket in globalExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   effectiveUserIdx >= bracketIndex {
-                    userRank = bracket.startRank
-                    break
-                }
+            if let userPosition = playerData.firstIndex(where: { $0.id == "me" }) {
+                userRank = userPosition + 1  // Convert 0-indexed position to 1-indexed rank
             }
 
             entries.append(LeaderboardEntry(
