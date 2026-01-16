@@ -403,6 +403,14 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(swaps: 1),
         AchievementDef.Rewards(boost3x: 1),
         AchievementDef.Rewards(hammers: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 1000),
+        // Week 18
+        AchievementDef.Rewards(gems: 1003),
+        AchievementDef.Rewards(swaps: 1),
+        AchievementDef.Rewards(spins: 1),
+        AchievementDef.Rewards(gems: 933, spins: 3, boost2x: 1),
+        AchievementDef.Rewards(boost3x: 1),
+        AchievementDef.Rewards(boost2x: 1),
         AchievementDef.Rewards(gems: 1000)
     ]
     
