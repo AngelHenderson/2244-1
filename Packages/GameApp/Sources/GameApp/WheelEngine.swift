@@ -97,8 +97,9 @@ public final class WheelEngine {
 #endif
         
         // 5.5–8.5 rotations/sec initial => lively, but not crazy
+        // Always spin clockwise (positive direction)
         let rps = Double.random(in: 5.5...8.5)
-        angularVelocity = CGFloat(rps * 2.0 * .pi) * (Bool.random() ? 1 : -1)
+        angularVelocity = CGFloat(rps * 2.0 * .pi)
         isSpinning = true
         startAnimation()
     }
