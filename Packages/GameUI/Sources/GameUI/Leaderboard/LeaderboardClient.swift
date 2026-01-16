@@ -78,6 +78,9 @@ private enum MockLeaderboardData {
 
     // All milestone tiers in order (lowest to highest) - generated from doubling sequence
     static let allMilestones: [String] = [
+        // Raw numbers and K-tier (thousands) - lowest tier
+        "1024", "2048", "4096", "8192", "16K", "32K", "65K", "131K", "262K", "524K",
+        // M-tier (millions)
         "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "536M",
         "1B", "2B", "4B", "8B", "17B", "34B", "68B", "137B", "274B", "549B",
         "1a", "2a", "4a", "8a", "17a", "35a", "70a", "140a", "281a", "562a",
@@ -2491,7 +2494,7 @@ public extension LeaderboardClient {
         let userCountry = UserLeaderboardData.currentCountry
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         // Use compareMilestones for better index if standard index returns 0
-        let effectiveUserIdx: Int
+        var effectiveUserIdx = userMilestoneIdx
         if userMilestoneIdx == 0 {
             // Calculate effective index based on milestone parsing
             // Find the first milestone in allMilestones that user beats
@@ -2502,8 +2505,6 @@ public extension LeaderboardClient {
                 }
             }
             effectiveUserIdx = foundIdx
-        } else {
-            effectiveUserIdx = userMilestoneIdx
         }
         playerData.append((-1, 999999, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, userCountry, .ios, UserLeaderboardData.avatarID, "me"))
 
@@ -2612,7 +2613,7 @@ public extension LeaderboardClient {
         // Add user to playerData so they get sorted with everyone else
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
-        let effectiveUserIdx: Int
+        var effectiveUserIdx = userMilestoneIdx
         if userMilestoneIdx == 0 {
             var foundIdx = 0
             for (idx, m) in MockLeaderboardData.allMilestones.enumerated() {
@@ -2621,8 +2622,6 @@ public extension LeaderboardClient {
                 }
             }
             effectiveUserIdx = foundIdx
-        } else {
-            effectiveUserIdx = userMilestoneIdx
         }
         playerData.append((-1, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
