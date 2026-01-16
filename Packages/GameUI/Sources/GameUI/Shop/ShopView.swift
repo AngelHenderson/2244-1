@@ -271,6 +271,38 @@ struct BundleCard: View {
                         }
                         .font(.caption)
                     }
+                    if let spins = items.spins {
+                        Label {
+                            Text(verbatim: "\(spins) Spins")
+                        } icon: {
+                            Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                        }
+                        .font(.caption)
+                    }
+                    if let boost2x = items.boost2x {
+                        Label {
+                            Text(verbatim: "\(boost2x) 2X Boost")
+                        } icon: {
+                            Image(systemName: "2.circle.fill")
+                        }
+                        .font(.caption)
+                    }
+                    if let boost3x = items.boost3x {
+                        Label {
+                            Text(verbatim: "\(boost3x) 3X Boost")
+                        } icon: {
+                            Image(systemName: "3.circle.fill")
+                        }
+                        .font(.caption)
+                    }
+                    if let boost4x = items.boost4x {
+                        Label {
+                            Text(verbatim: "\(boost4x) 4X Boost")
+                        } icon: {
+                            Image(systemName: "4.circle.fill")
+                        }
+                        .font(.caption)
+                    }
                 }
                 if bundle.perks?.noAds == true {
                     Label("No Ads", systemImage: "xmark.circle.fill")
@@ -295,11 +327,11 @@ struct BundleCard: View {
             .disabled(shopStore.isPurchased(bundle.id) || shopStore.isPurchasing)
         }
         .padding()
-        .frame(height: 200)
+        .frame(minHeight: 200)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-    
+
     private func tagStyle(for tag: String) -> TagView.TagStyle {
         switch tag.lowercased() {
         case "best value": return .success

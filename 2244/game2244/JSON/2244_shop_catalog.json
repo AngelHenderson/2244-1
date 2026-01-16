@@ -5,148 +5,91 @@
   "pricingModel": "one_time",
   "bundles": [
     {
-      "id": "premium_offer",
-      "title": "Premium Offer",
-      "price": 25.99,
-      "tags": [
-        "Valuable"
-      ],
-      "items": {
-        "gems": 2500,
-        "hammers": 50,
-        "swaps": 50,
-        "magnets": 50
-      }
-    },
-    {
-      "id": "mega_offer",
-      "title": "Mega Offer",
+      "id": "starter_bundle",
+      "title": "Starter Bundle",
       "price": 9.99,
-      "tags": [
-        "50% Off"
-      ],
-      "perks": {
-        "noAds": true
-      },
       "items": {
-        "gems": 5000,
-        "hammers": 30,
-        "swaps": 15,
-        "magnets": 10,
-        "galaxyThemes": 4,
-        "colorWheelThemes": 5,
-        "gridThemes": 4
-      }
-    },
-    {
-      "id": "ultra_offer",
-      "title": "Ultra Offer",
-      "price": 55.9,
-      "tags": [
-        "50% Off"
-      ],
-      "perks": {
-        "noAds": true,
-        "allBeats": true,
-        "allLiveThemes": true
-      },
-      "items": {
-        "gems": 50000,
-        "hammers": 75,
-        "swaps": 75,
-        "magnets": 75
-      }
-    },
-    {
-      "id": "starter_pack",
-      "title": "Starter Pack",
-      "price": 2.99,
-      "tags": [
-        "Starter"
-      ],
-      "items": {
-        "gems": 1500,
+        "gems": 1000,
         "hammers": 5,
-        "swaps": 3,
-        "magnets": 2
-      }
-    },
-    {
-      "id": "value_crate",
-      "title": "Value Crate",
-      "price": 4.99,
-      "tags": [
-        "Best Value"
-      ],
-      "items": {
-        "gems": 4000,
-        "hammers": 10,
         "swaps": 5,
-        "magnets": 5
+        "magnets": 5,
+        "spins": 5
       }
     },
     {
-      "id": "pro_pack",
-      "title": "Pro Pack",
+      "id": "value_bundle",
+      "title": "Value Bundle",
       "price": 14.99,
       "items": {
-        "gems": 15000,
-        "hammers": 40,
-        "swaps": 20,
-        "magnets": 15
+        "gems": 5000,
+        "hammers": 15,
+        "swaps": 15,
+        "magnets": 15,
+        "spins": 50
       }
     },
     {
-      "id": "festival_bundle",
-      "title": "Festival Bundle",
-      "price": 29.99,
-      "tags": [
-        "Seasonal"
-      ],
-      "perks": {
-        "noAds": true
-      },
+      "id": "boost_bundle",
+      "title": "Boost Bundle",
+      "price": 24.99,
       "items": {
-        "gems": 30000,
-        "liveThemes": 4,
-        "tileBeats": 3,
-        "hammers": 20,
-        "swaps": 20,
-        "magnets": 20
+        "gems": 25000,
+        "boost2x": 80,
+        "boost3x": 70,
+        "boost4x": 60
       }
     },
     {
-      "id": "legendary_vault",
-      "title": "Legendary Vault",
+      "id": "tools_bundle",
+      "title": "Tools Bundle",
+      "price": 29.99,
+      "items": {
+        "hammers": 50,
+        "swaps": 35,
+        "magnets": 25
+      }
+    },
+    {
+      "id": "mega_bundle",
+      "title": "Mega Bundle",
+      "price": 34.99,
+      "items": {
+        "gems": 50000,
+        "hammers": 25,
+        "swaps": 25,
+        "magnets": 25,
+        "spins": 25,
+        "boost2x": 25,
+        "boost3x": 25,
+        "boost4x": 25
+      }
+    },
+    {
+      "id": "power_boost_bundle",
+      "title": "Power Boost Bundle",
+      "price": 49.99,
+      "items": {
+        "boost2x": 100,
+        "boost3x": 100,
+        "boost4x": 100
+      }
+    },
+    {
+      "id": "ultimate_bundle",
+      "title": "Ultimate Bundle",
       "price": 99.99,
       "tags": [
-        "Whale",
         "Best Value"
       ],
-      "perks": {
-        "noAds": true,
-        "allBeats": true,
-        "allLiveThemes": true
-      },
       "items": {
-        "gems": 200000,
-        "hammers": 200,
+        "gems": 100000,
+        "hammers": 250,
         "swaps": 200,
-        "magnets": 200
-      }
-    },
-    {
-      "id": "daily_booster",
-      "title": "Daily Booster",
-      "price": 0.99,
-      "tags": [
-        "Daily Limit"
-      ],
-      "items": {
-        "gems": 300,
-        "hammers": 2,
-        "swaps": 1,
-        "magnets": 1
+        "magnets": 150,
+        "spins": 250,
+        "boost2x": 150,
+        "boost3x": 125,
+        "boost4x": 100
       }
     }
   ],
