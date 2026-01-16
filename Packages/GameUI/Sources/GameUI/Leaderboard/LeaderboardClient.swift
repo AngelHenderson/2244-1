@@ -2508,7 +2508,13 @@ public extension LeaderboardClient {
         playerData.append((-1, 999999, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, userCountry, .ios, UserLeaderboardData.avatarID, "me"))
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: user comes first when milestones are equal
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.id == "me"
+        }
 
         // Calculate total players for rank calculation
         let totalUSPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -2621,7 +2627,13 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: user comes first when milestones are equal
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.id == "me"
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []

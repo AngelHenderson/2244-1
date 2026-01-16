@@ -271,7 +271,7 @@ public struct LeaderboardView: View {
     private func leaderboardRow(_ entry: LeaderboardEntry, index: Int?) -> some View {
         HStack(spacing: 12) {
             // Rank Number
-            Text(verbatim: entry.isMe && entry.rank > 9 ? "▶\(entry.rank)" : "\(entry.rank)")
+            Text(verbatim: "\(entry.rank)")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .frame(width: 44)
