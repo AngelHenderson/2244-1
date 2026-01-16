@@ -166,6 +166,8 @@ public struct AchievementsView: View {
             return achievements.isBoost20xUsesProgressionMaxed
         case "wheel_collects_progression":
             return achievements.isWheelCollectsProgressionMaxed
+        case "leaderboard_rank_progression":
+            return achievements.isLeaderboardRankMaxed
         default:
             // For non-progressive achievements, check if claimed
             return achievements.unlocks[id]?.claimed == true
@@ -286,6 +288,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.boost20xUsesDisplay
         case "wheel_collects_progression":
             return achievements.wheelCollectsDisplay
+        case "leaderboard_rank_progression":
+            return achievements.leaderboardRankDisplay
         default:
             return nil
         }

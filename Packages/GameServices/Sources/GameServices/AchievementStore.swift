@@ -804,7 +804,41 @@ public final class AchievementStore {
         .init(milestone: 150, categoryLabel: "Create & complete 150", rewards: .init(gems: 500, magnets: 1, boost2x: 1)),
         .init(milestone: 200, categoryLabel: "Create & complete 200", rewards: .init(gems: 700, spins: 1, magnets: 1, boost3x: 1))
     ]
-    
+
+    // Leaderboard rank tiers (lower rank is better, so milestones descend)
+    private static let leaderboardRankTiers: [ComboTierDefinition] = [
+        .init(milestone: 100000, categoryLabel: "Top 100K", rewards: .init(hammers: 1, magnets: 1)),
+        .init(milestone: 75000, categoryLabel: "Top 75K", rewards: .init(spins: 1)),
+        .init(milestone: 50000, categoryLabel: "Top 50K", rewards: .init(swaps: 1)),
+        .init(milestone: 40000, categoryLabel: "Top 40K", rewards: .init(hammers: 1)),
+        .init(milestone: 30000, categoryLabel: "Top 30K", rewards: .init(gems: 75)),
+        .init(milestone: 25000, categoryLabel: "Top 25K", rewards: .init(gems: 80)),
+        .init(milestone: 20000, categoryLabel: "Top 20K", rewards: .init(spins: 1)),
+        .init(milestone: 15000, categoryLabel: "Top 15K", rewards: .init(boost2x: 1)),
+        .init(milestone: 10000, categoryLabel: "Top 10K", rewards: .init(boost4x: 1)),
+        .init(milestone: 7500, categoryLabel: "Top 7.5K", rewards: .init(gems: 150)),
+        .init(milestone: 5000, categoryLabel: "Top 5K", rewards: .init(magnets: 1)),
+        .init(milestone: 3750, categoryLabel: "Top 3.75K", rewards: .init(spins: 1)),
+        .init(milestone: 2500, categoryLabel: "Top 2.5K", rewards: .init(gems: 200, magnets: 1)),
+        .init(milestone: 2000, categoryLabel: "Top 2K", rewards: .init(gems: 300)),
+        .init(milestone: 1500, categoryLabel: "Top 1.5K", rewards: .init(gems: 400)),
+        .init(milestone: 1000, categoryLabel: "Top 1K", rewards: .init(gems: 500, swaps: 1, boost2x: 1)),
+        .init(milestone: 750, categoryLabel: "Top 750", rewards: .init(gems: 500, magnets: 3)),
+        .init(milestone: 500, categoryLabel: "Top 500", rewards: .init(magnets: 2, boost4x: 1)),
+        .init(milestone: 375, categoryLabel: "Top 375", rewards: .init(gems: 750, magnets: 1)),
+        .init(milestone: 250, categoryLabel: "Top 250", rewards: .init(gems: 2000, boost4x: 1)),
+        .init(milestone: 150, categoryLabel: "Top 150", rewards: .init(gems: 2000, spins: 1, magnets: 1, swaps: 1, boost4x: 1)),
+        .init(milestone: 100, categoryLabel: "Top 100", rewards: .init(gems: 2500, spins: 2, magnets: 2, swaps: 1, boost2x: 1, boost4x: 1)),
+        .init(milestone: 50, categoryLabel: "Top 50", rewards: .init(gems: 5000, boost3x: 1)),
+        .init(milestone: 25, categoryLabel: "Top 25", rewards: .init(gems: 5250, spins: 3)),
+        .init(milestone: 15, categoryLabel: "Top 15", rewards: .init(hammers: 4)),
+        .init(milestone: 10, categoryLabel: "Top 10", rewards: .init(gems: 6000, boost4x: 1)),
+        .init(milestone: 5, categoryLabel: "Top 5", rewards: .init(magnets: 5)),
+        .init(milestone: 3, categoryLabel: "Top 3", rewards: .init(gems: 7000, spins: 1)),
+        .init(milestone: 2, categoryLabel: "Top 2", rewards: .init(gems: 8500)),
+        .init(milestone: 1, categoryLabel: "Top 1", rewards: .init(gems: 10000))
+    ]
+
     /// Current tier index for the moves progression achievement (persisted)
     public var movesProgressionTier: Int {
         didSet {
@@ -1520,7 +1554,44 @@ public final class AchievementStore {
     public var isChallengeCreationMaxed: Bool {
         challengeCreationTier >= Self.challengeCreationTiers.count - 1
     }
-    
+
+    /// Leaderboard rank progression tier index (persisted)
+    public var leaderboardRankTier: Int {
+        didSet {
+            defaults.set(leaderboardRankTier, forKey: "leaderboardRankTier")
+            unlocks["leaderboard_rank_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+        }
+    }
+
+    private var currentLeaderboardRankTier: ComboTierDefinition {
+        let index = min(leaderboardRankTier, Self.leaderboardRankTiers.count - 1)
+        return Self.leaderboardRankTiers[index]
+    }
+
+    public var leaderboardRankDisplay: ProgressTierDisplay {
+        let tier = currentLeaderboardRankTier
+        let clampedIndex = min(leaderboardRankTier, Self.leaderboardRankTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = leaderboardRankTier >= Self.leaderboardRankTiers.count - 1
+        let description = isMaxed
+            ? "You've reached #1 on the Global Leaderboard. Claim your ultimate reward!"
+            : "Reach Top \(tier.milestone) on the Global Leaderboard to unlock the next tier."
+        let title = "Level \(level): Top \(tier.milestone)"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "Leaderboard Rank",
+            rewards: tier.rewards
+        )
+    }
+
+    public var isLeaderboardRankMaxed: Bool {
+        leaderboardRankTier >= Self.leaderboardRankTiers.count - 1
+    }
+
     private func makeComboDisplay(
         rangeLabel: String,
         tier: ComboTierDefinition,
@@ -1685,6 +1756,7 @@ public final class AchievementStore {
         self.boost20xUsesProgressionTier = defaults.integer(forKey: "boost20xUsesProgressionTier")
         self.wheelCollectsProgressionTier = defaults.integer(forKey: "wheelCollectsProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
+        self.leaderboardRankTier = defaults.integer(forKey: "leaderboardRankTier")
         loadUnlocks()
         loadPersistedSnapshot()
     }
@@ -1945,7 +2017,17 @@ public final class AchievementStore {
                 }
                 continue
             }
-            
+
+            if def.id == "leaderboard_rank_progression" {
+                let targetRank = currentLeaderboardRankTier.milestone
+                // Lower rank is better; rank must be > 0 and <= target to unlock
+                if snapshot.best_leaderboard_rank > 0 && snapshot.best_leaderboard_rank <= targetRank {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                }
+                continue
+            }
+
             if matches(def: def, snapshot: snapshot) {
                 unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                 didUnlock = true
@@ -2369,7 +2451,24 @@ public final class AchievementStore {
             }
             return
         }
-        
+
+        if definition.id == "leaderboard_rank_progression" {
+            let rewards = leaderboardRankDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+
+            if !isLeaderboardRankMaxed {
+                leaderboardRankTier += 1
+            } else {
+                state.claimed = true
+                unlocks[definition.id] = state
+                saveUnlocks()
+            }
+            return
+        }
+
         // Standard achievement claim
         state.claimed = true
         unlocks[definition.id] = state
@@ -2448,10 +2547,25 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":
             return makeProgress(current: Double(snapshot.magnet_uses_total), target: Double(currentMagnetUsesTier.milestone))
+        case "leaderboard_rank_progression":
+            // For leaderboard, lower rank is better. Show progress as inverse.
+            let bestRank = snapshot.best_leaderboard_rank
+            let targetRank = currentLeaderboardRankTier.milestone
+            if bestRank == 0 {
+                // Not on leaderboard yet - no progress
+                return AchievementProgress(current: 0, target: Double(targetRank))
+            }
+            if bestRank <= targetRank {
+                // Already achieved this rank or better
+                return AchievementProgress(current: Double(targetRank), target: Double(targetRank))
+            }
+            // Calculate progress: how close we are to target (lower is better)
+            let progress = Double(targetRank) / Double(bestRank) * Double(targetRank)
+            return AchievementProgress(current: progress, target: Double(targetRank))
         default:
             break
         }
-        
+
         guard let condition = definition.conditions.first,
               let target = condition.value else {
             return nil
@@ -2551,6 +2665,8 @@ public final class AchievementStore {
             return challengeCreationDisplay.rewards
         case "magnet_usage_progression":
             return magnetUsesDisplay.rewards
+        case "leaderboard_rank_progression":
+            return leaderboardRankDisplay.rewards
         default:
             return definition.rewards
         }
@@ -2641,6 +2757,7 @@ public final class AchievementStore {
         case "made_2244_square": return b(s.made_2244_square)
         case "max_tile": return .init(s.max_tile)
         case "win": return b(s.win)
+        case "best_leaderboard_rank": return .init(s.best_leaderboard_rank)
         default:
             #if DEBUG
             print("⚠️ Unknown telemetry field: \(field) -> treating as 0")
@@ -2790,6 +2907,8 @@ public final class AchievementStore {
             return allComboTiers(tiers: Self.boost20xUseTiers, currentTierIndex: boost20xUsesProgressionTier)
         case "wheel_collects_progression":
             return allComboTiers(tiers: Self.wheelCollectsTiers, currentTierIndex: wheelCollectsProgressionTier)
+        case "leaderboard_rank_progression":
+            return allComboTiers(tiers: Self.leaderboardRankTiers, currentTierIndex: leaderboardRankTier)
         default:
             return []
         }
