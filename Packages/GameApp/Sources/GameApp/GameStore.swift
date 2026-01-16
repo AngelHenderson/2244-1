@@ -954,20 +954,38 @@ public final class GameStore {
         }
         // Offer to double only if we created a tile that is one below the previous highest
         // or another instance of the previous highest.
+        // For high tiles (step >= 62), use step-based comparison since values overflow to Int.max
         if addedValue > 0 {
             if let resultPosition = lastPos {
                 incrementTierMasteryCount(for: state.board[resultPosition], value: addedValue, chainLength: positions.count)
             }
-            let offerIfOneBelow = (previousHighest >= 4) && (addedValue == previousHighest / 2)
-            let offerIfAnotherHighest = (addedValue == previousHighest)
-            if offerIfOneBelow || offerIfAnotherHighest {
-                pendingDoubleBase = addedValue
-                // Get step from the tile for proper formatting of high-value tiles
+
+            // Get the step of the added tile
+            let addedStep: Int? = {
                 if let lp = lastPos, let tile = state.board[lp] {
-                    pendingDoubleBaseStep = tile.stepIndex
-                } else {
-                    pendingDoubleBaseStep = TileStepLabelFormatter.stepForValue(addedValue)
+                    return tile.stepIndex
                 }
+                return TileStepLabelFormatter.stepForValue(addedValue)
+            }()
+
+            let previousHighestStep = state.highestTileStep
+            var shouldOfferDouble = false
+
+            if let step = addedStep {
+                // Use step-based comparison (works for all tile values including high tiles)
+                let isOneBelow = (previousHighestStep >= 1) && (step == previousHighestStep - 1)
+                let isSameAsHighest = (step == previousHighestStep)
+                shouldOfferDouble = isOneBelow || isSameAsHighest
+            } else {
+                // Fallback to value-based comparison for legacy cases
+                let offerIfOneBelow = (previousHighest >= 4) && (addedValue == previousHighest / 2)
+                let offerIfAnotherHighest = (addedValue == previousHighest)
+                shouldOfferDouble = offerIfOneBelow || offerIfAnotherHighest
+            }
+
+            if shouldOfferDouble {
+                pendingDoubleBase = addedValue
+                pendingDoubleBaseStep = addedStep
             } else {
                 pendingDoubleBase = nil
                 pendingDoubleBaseStep = nil
