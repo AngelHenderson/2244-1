@@ -104,6 +104,8 @@ public struct AchievementsView: View {
             return achievements.boost20xUsesDisplay.level
         case "wheel_collects_progression":
             return achievements.wheelCollectsDisplay.level
+        case "leaderboard_rank_progression":
+            return achievements.leaderboardRankDisplay.level
         default:
             return 1
         }

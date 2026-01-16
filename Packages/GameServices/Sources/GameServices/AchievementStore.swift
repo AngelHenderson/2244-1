@@ -2548,20 +2548,8 @@ public final class AchievementStore {
         case "magnet_usage_progression":
             return makeProgress(current: Double(snapshot.magnet_uses_total), target: Double(currentMagnetUsesTier.milestone))
         case "leaderboard_rank_progression":
-            // For leaderboard, lower rank is better. Show progress as inverse.
-            let bestRank = snapshot.best_leaderboard_rank
-            let targetRank = currentLeaderboardRankTier.milestone
-            if bestRank == 0 {
-                // Not on leaderboard yet - no progress
-                return AchievementProgress(current: 0, target: Double(targetRank))
-            }
-            if bestRank <= targetRank {
-                // Already achieved this rank or better
-                return AchievementProgress(current: Double(targetRank), target: Double(targetRank))
-            }
-            // Calculate progress: how close we are to target (lower is better)
-            let progress = Double(targetRank) / Double(bestRank) * Double(targetRank)
-            return AchievementProgress(current: progress, target: Double(targetRank))
+            // No progress bar for leaderboard rank
+            return nil
         default:
             break
         }
