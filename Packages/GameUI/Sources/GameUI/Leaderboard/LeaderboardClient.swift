@@ -163,6 +163,83 @@ private enum MockLeaderboardData {
         "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "872bz", "873bz"
     ]
 
+    // Normalize invalid milestone entries to valid ones
+    static func normalizeMilestone(_ milestone: String) -> String {
+        let invalidToValid: [String: String] = [
+            // Raw numbers (thousands tier)
+            "4k": "4096",
+            "8k": "8192",
+            // Uppercase K (thousands tier)
+            "6k": "16K",
+            "16k": "16K",
+            "32k": "32K",
+            "64k": "65K",
+            "65k": "65K",
+            "128k": "131K",
+            "131k": "131K",
+            "256k": "262K",
+            "262k": "262K",
+            "512k": "524K",
+            "524k": "524K",
+            // Letter tier k corrections
+            "3k": "356k",
+            "368k": "356k",
+            "12k": "22k",
+            "184k": "178k",
+            "380k": "713k",
+            // Other letter tier mappings
+            "10k": "10ak",
+            "13k": "13t",
+            "21k": "21al",
+            "23k": "23m",
+            "24k": "24o",
+            "25k": "25p",
+            "26k": "26s",
+            "43k": "43j",
+            "46k": "46m",
+            "47k": "47n",
+            "49k": "49o",
+            "52k": "52r",
+            "86k": "86am",
+            "92k": "92bs",
+            "95k": "95n",
+            "98k": "98o",
+            "101k": "101bw",
+            "104k": "104au",
+            "172k": "172bp",
+            "190k": "190aq",
+            "196k": "196o",
+            "202k": "200p",
+            "208k": "208bx",
+            "332k": "332h",
+            "344k": "345bp",
+            "392k": "392o",
+            "404k": "407bw",
+            "416k": "416bx",
+            "440k": "441t",
+            // M-tier (millions) corrections
+            "3M": "3o",
+            "5M": "5g",
+            "6M": "67M",
+            "7M": "7x",
+            "9M": "9c",
+            "10M": "10g",
+            "12M": "12o",
+            "15M": "15x",
+            "17M": "16M",
+            "32M": "33M",
+            "64M": "67M",
+            "65M": "67M",
+            "128M": "134M",
+            "131M": "134M",
+            "256M": "268M",
+            "262M": "268M",
+            "512M": "536M",
+            "524M": "536M"
+        ]
+        return invalidToValid[milestone] ?? milestone
+    }
+
     static let globalNames = [
         "DefenselessMetal49", "LopingLemming57", "DensePage91", "BrittleBelly111", "PerfectPirate2198",
         "CaramelStamp47", "Player6362", "CulturalDerision48", "KnownOwner26", "SwiftCoder99",
@@ -356,8 +433,11 @@ private enum MockLeaderboardData {
             }
         }
 
+        // Normalize the milestone first
+        let normalized = normalizeMilestone(milestone)
+
         // Find milestone index in allMilestones array
-        if let index = allMilestones.firstIndex(of: milestone) {
+        if let index = allMilestones.firstIndex(of: normalized) {
             // Score grows with milestone tier
             // Use a logarithmic scale to prevent overflow
             let baseScore = 1_000_000  // 1 million base
@@ -369,13 +449,13 @@ private enum MockLeaderboardData {
         let suffixes = ["M", "B", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
         let doubleSuffixes = ["aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak", "al", "am", "an", "ao", "ap", "aq", "ar", "as", "at", "au", "av", "aw", "ax", "ay", "az", "ba", "bb", "bc", "bd", "be", "bf", "bg", "bh", "bi", "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu", "bv", "bw", "bx", "by", "bz"]
 
-        // Extract mantissa and suffix
+        // Extract mantissa and suffix from normalized milestone
         var mantissa = 1
         var suffix = ""
-        for (i, char) in milestone.enumerated() {
+        for (i, char) in normalized.enumerated() {
             if char.isLetter {
-                suffix = String(milestone.dropFirst(i))
-                mantissa = Int(milestone.prefix(i)) ?? 1
+                suffix = String(normalized.dropFirst(i))
+                mantissa = Int(normalized.prefix(i)) ?? 1
                 break
             }
         }
@@ -544,12 +624,15 @@ private enum MockLeaderboardData {
 
     // Get milestone index for sorting (higher index = better milestone)
     static func milestoneIndex(for milestone: String) -> Int {
+        // Normalize the milestone first
+        let normalized = normalizeMilestone(milestone)
+
         // Try exact match first
-        if let index = allMilestones.firstIndex(of: milestone) {
+        if let index = allMilestones.firstIndex(of: normalized) {
             return index
         }
         // Try case-insensitive match
-        let lowercased = milestone.lowercased()
+        let lowercased = normalized.lowercased()
         if let index = allMilestones.firstIndex(where: { $0.lowercased() == lowercased }) {
             return index
         }
@@ -1493,7 +1576,7 @@ public extension LeaderboardClient {
         "1e", "604d", "604d", "302d", "151d", "75d", "37d", "18d", "18d", "2d",
         // Ranks 121-150
         "562a", "140a", "35a", "8a", "2a", "549B", "137B", "34B", "8B", "2B",
-        "536M", "134M", "33M", "8M", "2M", "524K", "131K", "32K", "8K", "2K",
+        "536M", "134M", "33M", "8M", "2M", "524K", "131K", "32K", "8192", "4096",
         "8192", "2048", "512", "128", "32", "16", "8", "4", "2", "2"
     ]
 
@@ -1521,7 +1604,7 @@ public extension LeaderboardClient {
     private static let australiaPlayerMilestones: [String] = [
         // Ranks 1-30 (from screenshot)
         "13bz", "794bv", "2br", "657bn", "1bm", "9bk", "556bg", "278bg", "69bg", "989bb",
-        "463ay", "3a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
+        "463ay", "4a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
         "2af", "69ad", "4ac", "1ab", "127z", "1z", "971x", "30x", "1x", "452u",
         // Ranks 31-60 (from screenshot)
         "113u", "14u", "883t", "27t", "431s", "3s", "210r", "52r", "3r", "411q",
@@ -1675,33 +1758,33 @@ public extension LeaderboardClient {
     // Japan player milestones (ranks 1-150)
     private static let japanPlayerMilestones: [String] = [
         // Ranks 1-30
-        "436bz", "134by", "667bx", "333bw", "166bv", "83bu", "41bt", "20bs", "10br", "5bq",
-        "2bp", "1bo", "512bn", "256bm", "128bl", "64bk", "32bj", "16bi", "8bh", "4bg",
-        "2bf", "1be", "500bd", "250bc", "125bb", "62ba", "31az", "15ay", "7ax", "3aw",
+        "436bz", "134M", "67M", "33M", "16M", "8M", "4M", "2M", "1M", "524K",
+        "262K", "131K", "65K", "32K", "16K", "65K", "32K", "16K", "8192", "4096",
+        "2048", "1024", "524K", "262K", "131K", "65K", "32K", "16K", "8192", "4096",
         // Ranks 31-60
-        "1av", "488au", "244at", "122as", "61ar", "30aq", "15ap", "7ao", "3an", "1am",
-        "476al", "238ak", "119aj", "59ai", "29ah", "14ag", "7af", "3ae", "1ad", "464ac",
-        "232ab", "116aa", "58z", "29y", "14x", "7w", "3v", "1u", "452t", "226s",
+        "2048", "524K", "262K", "131K", "65K", "32K", "16K", "8192", "4096", "2048",
+        "524K", "262K", "131K", "65K", "32K", "16K", "8192", "4096", "2048", "524K",
+        "262K", "131K", "65K", "32K", "16K", "8192", "4096", "2048", "524K", "262K",
         // Ranks 61-90
-        "113r", "56q", "28p", "14o", "7n", "3m", "1l", "440k", "220j", "110i",
-        "55h", "27g", "13f", "6e", "3d", "1c", "428b", "214a", "107B", "53M",
-        "26K", "13K", "6K", "3K", "1K", "416K", "208K", "104K", "52K", "26K",
+        "131K", "65K", "32K", "16K", "8192", "4096", "2048", "441t", "696j", "680i",
+        "664h", "649g", "633f", "618e", "604d", "590c", "576b", "562a", "549B", "67M",
+        "32K", "16K", "16K", "4096", "2048", "524K", "262K", "131K", "65K", "32K",
         // Ranks 91-120
-        "13K", "6K", "3K", "1K", "404K", "202K", "101K", "50K", "25K", "12K",
-        "6K", "3K", "1K", "392K", "196K", "98K", "49K", "24K", "12K", "6K",
-        "3K", "1K", "380K", "190K", "95K", "47K", "23K", "11K", "5K", "2K",
+        "16K", "16K", "4096", "2048", "524K", "262K", "131K", "65K", "32K", "16K",
+        "16K", "4096", "2048", "524K", "262K", "131K", "65K", "32K", "16K", "16K",
+        "4096", "2048", "524K", "262K", "131K", "65K", "32K", "16K", "8192", "4096",
         // Ranks 121-150
-        "1K", "368K", "184K", "92K", "46K", "23K", "11K", "5K", "2K", "1K",
-        "356K", "178K", "89K", "44K", "22K", "11K", "5K", "2K", "1K", "344K",
-        "172K", "86K", "43K", "21K", "10K", "5K", "2K", "1K", "332K", "32K"
+        "2048", "524K", "262K", "131K", "65K", "32K", "16K", "8192", "4096", "2048",
+        "524K", "262K", "131K", "65K", "32K", "16K", "8192", "4096", "2048", "524K",
+        "262K", "131K", "65K", "32K", "16K", "8192", "4096", "2048", "524K", "32K"
     ]
 
     // Extended Japan milestone brackets for rank calculation (ranks 151+)
     // Total Japan players: ~894
     private static let japanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // K-tier brackets (ranks 151-311)
-        ("32K", 150), ("16K", 161), ("8K", 175), ("4K", 187), ("2K", 205),
-        ("1K", 223), ("512K", 241), ("256K", 260), ("128K", 278), ("64K", 295),
+        ("32K", 150), ("16K", 161), ("8192", 175), ("4096", 187), ("2048", 205),
+        ("1024", 223), ("524K", 241), ("262K", 260), ("131K", 278), ("65K", 295),
         ("32K", 311),
         // Lower K-tier and raw number brackets (ranks 312-787)
         ("16K", 333), ("8192", 361), ("4096", 392), ("2048", 434), ("1024", 476),
@@ -1828,7 +1911,7 @@ public extension LeaderboardClient {
         // Ranks 1-30
         "1bz", "2br", "4bl", "583bi", "1bh", "32bd", "30ba", "449ax", "53av", "1as",
         "726ao", "42al", "9ai", "4af", "8ac", "31z", "3x", "7v", "210r", "3p",
-        "2n", "2l", "5j", "20h", "158f", "1f", "9e", "151d", "2d", "77c",
+        "2n", "2l", "5j", "20h", "158f", "1f", "9e", "151d", "2d", "73c",
         // Ranks 31-60
         "2c", "72b", "4b", "281a", "35a", "8a", "8a", "4a", "1a", "549B",
         "549B", "274B", "274B", "137B", "137B", "137B", "34B", "17B", "17B", "8B",
