@@ -488,6 +488,54 @@ private enum MockLeaderboardData {
         return 10 + Int(random * 990)  // 10 to 1000 new players per day
     }
 
+    // Calculate players leaving per day (0.1-0.5 per day)
+    // Reasons: banned, ran out of moves, deleted game, chose to restart
+    // 95% of leaving players are from ranks 151+, only 5% from top 150
+    static func playersLeaving(on day: Int, isUS: Bool) -> Double {
+        let seed = isUS ? 11111 : 22222
+        let random = seededRandom(seed: seed, index: day)
+        return 0.1 + random * 0.4  // 0.1 to 0.5 players per day
+    }
+
+    // Calculate players leaving from outside top 150 (95% of total leaving)
+    static func playersLeavingOutsideTop150(on day: Int, isUS: Bool) -> Double {
+        return playersLeaving(on: day, isUS: isUS) * 0.95
+    }
+
+    // Calculate players leaving from top 150 (5% of total leaving)
+    static func playersLeavingFromTop150(on day: Int, isUS: Bool) -> Double {
+        return playersLeaving(on: day, isUS: isUS) * 0.05
+    }
+
+    // Calculate country-specific players leaving per day (0.1-0.5 per day)
+    // Each country has a unique seed for varied attrition patterns
+    // 95% are from outside top 150, only 5% from top 150
+    static func countryPlayersLeaving(on day: Int, countrySeed: Int) -> Double {
+        let random = seededRandom(seed: countrySeed, index: day)
+        return 0.1 + random * 0.4  // 0.1 to 0.5 players per day
+    }
+
+    // Country-specific players leaving from outside top 150 (95%)
+    static func countryPlayersLeavingOutsideTop150(on day: Int, countrySeed: Int) -> Double {
+        return countryPlayersLeaving(on: day, countrySeed: countrySeed) * 0.95
+    }
+
+    // Country-specific players leaving from top 150 (5%)
+    static func countryPlayersLeavingFromTop150(on day: Int, countrySeed: Int) -> Double {
+        return countryPlayersLeaving(on: day, countrySeed: countrySeed) * 0.05
+    }
+
+    // Calculate total players for a specific country with attrition
+    // Attrition primarily affects players outside top 150 (95%)
+    static func totalCountryPlayers(basePlayers: Int, on day: Int, countrySeed: Int) -> Int {
+        var totalLeft: Double = 0
+        for d in 0...day {
+            totalLeft += countryPlayersLeaving(on: d, countrySeed: countrySeed)
+        }
+        // Ensure at least 151 players remain (to maintain top 150 leaderboard)
+        return max(151, basePlayers - Int(totalLeft))
+    }
+
     // Starting milestones for active new players (players who start making progress immediately)
     // These are lower-tier milestones that new players might achieve on day 1
     static let newPlayerStartingMilestones = [
@@ -509,14 +557,18 @@ private enum MockLeaderboardData {
         return newPlayerStartingMilestones[min(index, newPlayerStartingMilestones.count - 1)]
     }
 
-    // Calculate total players including all who joined up to this day
+    // Calculate total players including all who joined up to this day, minus those who left
+    // Players leave due to: bans, running out of moves, deleting game, or choosing to restart
     static func totalPlayers(on day: Int, isUS: Bool) -> Int {
         let basePlayers = isUS ? baseUSPlayers : baseGlobalPlayers
         var totalNew = 0
+        var totalLeft: Double = 0
         for d in 0...day {
             totalNew += newPlayersJoining(on: d, isUS: isUS)
+            totalLeft += playersLeaving(on: d, isUS: isUS)
         }
-        return basePlayers + totalNew
+        // Net players = base + new - left (ensure non-negative)
+        return max(0, basePlayers + totalNew - Int(totalLeft))
     }
 
     // Calculate score with daily progression for a player
@@ -636,9 +688,73 @@ private enum MockLeaderboardData {
         if let index = allMilestones.firstIndex(where: { $0.lowercased() == lowercased }) {
             return index
         }
-        // Try matching just the numeric prefix and suffix
-        // e.g., "1e" might be stored as "1E" or with different formatting
-        return 0
+
+        // For unfound milestones, estimate index based on tier and mantissa
+        // This ensures invalid milestones still sort correctly relative to valid ones
+        return estimateMilestoneIndex(normalized)
+    }
+
+    // Estimate milestone index for milestones not in allMilestones array
+    // Uses tier hierarchy and mantissa to calculate approximate position
+    private static func estimateMilestoneIndex(_ milestone: String) -> Int {
+        let lowered = milestone.lowercased()
+        var numStr = ""
+        var suffix = ""
+
+        for char in lowered {
+            if char.isNumber {
+                numStr.append(char)
+            } else {
+                suffix.append(char)
+            }
+        }
+
+        let mantissa = Int(numStr) ?? 1
+
+        // Calculate tier based on suffix
+        // Raw numbers: tier 0, K: tier 1, M: tier 2, B: tier 3
+        // Single letters a-z: tiers 4-29
+        // Double letters aa-bz: tiers 30-81
+        let tier: Int
+        switch suffix.uppercased() {
+        case "K": tier = 1
+        case "M": tier = 2
+        case "B": tier = 3
+        default:
+            if suffix.isEmpty {
+                tier = 0  // Raw number
+            } else if suffix.count == 1, let c = suffix.first, c >= "a" && c <= "z" {
+                // Single letter tier: a=4, b=5, ..., z=29
+                tier = 4 + Int(c.asciiValue! - Character("a").asciiValue!)
+            } else if suffix.count == 2 {
+                // Double letter tier: aa=30, ab=31, ..., az=55, ba=56, ..., bz=81
+                let chars = Array(suffix)
+                let first = Int(chars[0].asciiValue! - Character("a").asciiValue!)
+                let second = Int(chars[1].asciiValue! - Character("a").asciiValue!)
+                tier = 30 + first * 26 + second
+            } else {
+                tier = 0  // Unknown, treat as raw number
+            }
+        }
+
+        // Each tier spans ~10 entries in allMilestones
+        // Base index is tier * 10, plus mantissa contribution (scaled logarithmically)
+        let tierBase = tier * 10
+
+        // Mantissa within tier: higher mantissa = higher index within tier
+        // Most tiers go from 1 to ~900, so use log scale
+        let mantissaContribution: Int
+        if mantissa <= 1 {
+            mantissaContribution = 0
+        } else if mantissa <= 10 {
+            mantissaContribution = 1 + (mantissa - 1) / 2  // 1-4
+        } else if mantissa <= 100 {
+            mantissaContribution = 5 + (mantissa - 10) / 20  // 5-9
+        } else {
+            mantissaContribution = min(9, 9 + (mantissa - 100) / 200)  // 9+
+        }
+
+        return tierBase + mantissaContribution
     }
 
     // Compare two milestone strings: returns >0 if m1 > m2, <0 if m1 < m2, 0 if equal
