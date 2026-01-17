@@ -645,17 +645,40 @@ private enum MockLeaderboardData {
     ]
 
     // Calculate infinity count with daily progression for Hall of Fame players
-    // Players gain 0.25-1.5 infinities per day
+    // Progression rate is tiered based on current infinity count:
+    // 1-99: 0.2-0.55/day, 100-999: 1-4/day, 1000-9999: 3-7/day, 10000-99999: 6-15/day, 100000+: 10-30/day
     static func infinityCountWithProgression(baseCount: Int, playerIndex: Int, day: Int) -> Int {
-        // Each player gets a consistent daily infinity gain rate between 0.25 and 1.5
-        let dailyRate = 0.25 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 1.25  // 0.25 to 1.5
-        // Accumulate infinities over days
-        let totalGained = dailyRate * Double(day)
-        return baseCount + Int(totalGained)
+        // Each player has a consistent "skill factor" between 0 and 1 that determines
+        // where they fall within each tier's rate range
+        let skillFactor = seededRandom(seed: playerIndex * 888, index: playerIndex)
+
+        // Simulate day-by-day progression with tiered rates
+        var currentCount = Double(baseCount)
+        for _ in 0..<day {
+            let dailyRate: Double
+            if currentCount < 100 {
+                // 1-99: 0.2-0.55 infinities/day
+                dailyRate = 0.2 + skillFactor * 0.35
+            } else if currentCount < 1000 {
+                // 100-999: 1-4 infinities/day
+                dailyRate = 1.0 + skillFactor * 3.0
+            } else if currentCount < 10000 {
+                // 1000-9999: 3-7 infinities/day
+                dailyRate = 3.0 + skillFactor * 4.0
+            } else if currentCount < 100000 {
+                // 10000-99999: 6-15 infinities/day
+                dailyRate = 6.0 + skillFactor * 9.0
+            } else {
+                // 100000+: 10-30 infinities/day
+                dailyRate = 10.0 + skillFactor * 20.0
+            }
+            currentCount += dailyRate
+        }
+        return Int(currentCount)
     }
 
     // Calculate milestone progression for regular leaderboard players
-    // Players progress through milestone tiers at different rates (0.25-1.5 milestones per day)
+    // Players progress through milestone tiers at different rates (0.1-0.25 milestones per day)
     // But cap total progression to prevent everyone reaching max milestone
     static func milestoneWithProgression(baseMilestone: String, playerIndex: Int, day: Int) -> String {
         guard let baseIndex = allMilestones.firstIndex(of: baseMilestone) else {
@@ -663,7 +686,7 @@ private enum MockLeaderboardData {
         }
 
         // Each player gets a consistent daily milestone progression rate
-        let dailyRate = 0.25 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 1.25  // 0.25 to 1.5 milestones per day
+        let dailyRate = 0.1 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 0.15  // 0.1 to 0.25 milestones per day
 
         // Cap the effective days to prevent over-progression (max ~30 days worth of progression)
         let effectiveDays = min(day, 30)
