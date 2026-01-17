@@ -140,15 +140,7 @@ public struct SpinWheelView: View {
             
             ZStack {
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color(red: 0.13, green: 0.14, blue: 0.33), Color(red: 0.05, green: 0.06, blue: 0.14)],
-                            center: .center,
-                            startRadius: 50,
-                            endRadius: 200
-                        )
-                    )
-                    .shadow(color: .black.opacity(0.6), radius: 16, x: 0, y: 12)
+                    .fill(Color(red: 0.10, green: 0.10, blue: 0.24))
                 
                 WheelFace(segments: engine.segments)
                     .rotationEffect(.radians(Double(engine.angle)))
@@ -651,18 +643,11 @@ struct WheelFace: View {
                     let start = CGFloat(i) * span - span / 2
                     let end = start + span
                     WheelSectorShape(start: start, end: end)
-                        .fill(
-                            LinearGradient(
-                                colors: [segments[i].color.opacity(0.9), segments[i].color.opacity(0.6)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
+                        .fill(segments[i].color)
                         .overlay(
                             WheelSectorShape(start: start, end: end)
                                 .stroke(Color.white.opacity(0.15), lineWidth: 1)
                         )
-                        .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
                 }
                 
                 ForEach(segments.indices, id: \.self) { i in
@@ -696,14 +681,7 @@ struct WheelFace: View {
                 }
                 
                 Circle()
-                    .stroke(
-                        LinearGradient(
-                            colors: [.white.opacity(0.4), .white.opacity(0.05)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ),
-                        lineWidth: 6
-                    )
+                    .stroke(Color.white.opacity(0.25), lineWidth: 6)
                 
                 Ticks(count: segments.count)
                     .stroke(Color.white.opacity(0.18), style: .init(lineWidth: 2, lineCap: .round))
@@ -767,7 +745,6 @@ struct WheelLights: View {
                 Circle()
                     .fill(Color.white.opacity(0.9))
                     .frame(width: 12, height: 12)
-                    .shadow(color: .white.opacity(0.5), radius: 4, x: 0, y: 0)
                     .position(x: x, y: y)
             }
         }
@@ -781,7 +758,6 @@ private struct RadialLabel<Content: View>: View {
     var body: some View {
         content
             .rotationEffect(.radians(Double(angle)))
-            .shadow(color: .black.opacity(0.4), radius: 3)
     }
 }
 
