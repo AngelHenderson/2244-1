@@ -3,13 +3,45 @@ import Foundation
 @preconcurrency import GameKit
 #endif
 
+// MARK: - Game Center Leaderboard Client
+// Provides real-world player leaderboards via Apple Game Center.
+//
+// Supports:
+// - Global leaderboard (all players worldwide)
+// - Hall of Fame leaderboard (infinity count rankings)
+// - Country leaderboard (uses device locale for filtering)
+//
+// Note: Game Center doesn't natively expose player country codes.
+// Country filtering uses the local player's device region to determine
+// which country leaderboard they belong to. Players see global rankings
+// but can filter to see their regional standing.
+
 public struct GameCenterLeaderboardConfig: Sendable {
-    public let leaderboardID: String
+    /// Leaderboard ID for global high score leaderboard
+    public let globalLeaderboardID: String
+    /// Leaderboard ID for Hall of Fame (infinity count) leaderboard
+    public let hallOfFameLeaderboardID: String
+    /// Whether to submit scores automatically
     public let submitAutomatically: Bool
-    
-    public init(leaderboardID: String = "com.game2244.highscore", submitAutomatically: Bool = true) {
-        self.leaderboardID = leaderboardID
+
+    public init(
+        globalLeaderboardID: String = "com.game2244.global",
+        hallOfFameLeaderboardID: String = "com.game2244.halloffame",
+        submitAutomatically: Bool = true
+    ) {
+        self.globalLeaderboardID = globalLeaderboardID
+        self.hallOfFameLeaderboardID = hallOfFameLeaderboardID
         self.submitAutomatically = submitAutomatically
+    }
+
+    /// Get the appropriate leaderboard ID for a filter type
+    public func leaderboardID(for filter: LeaderboardFilter) -> String {
+        switch filter {
+        case .hallOfFame:
+            return hallOfFameLeaderboardID
+        default:
+            return globalLeaderboardID
+        }
     }
 }
 
@@ -42,15 +74,30 @@ public extension LeaderboardClient {
             },
             
             submitScore: { score in
-                guard GKLocalPlayer.local.isAuthenticated else { 
+                guard GKLocalPlayer.local.isAuthenticated else {
                     throw NSError(domain: "GameCenter", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
                 }
-                
+
+                // Submit to global leaderboard (high score)
                 try await GKLeaderboard.submitScore(
                     score,
                     context: 0,
                     player: GKLocalPlayer.local,
-                    leaderboardIDs: [config.leaderboardID]
+                    leaderboardIDs: [config.globalLeaderboardID]
+                )
+            },
+
+            submitInfinityCount: { infinityCount in
+                guard GKLocalPlayer.local.isAuthenticated else {
+                    throw NSError(domain: "GameCenter", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
+                }
+
+                // Submit to Hall of Fame leaderboard (infinity count)
+                try await GKLeaderboard.submitScore(
+                    infinityCount,
+                    context: 0,
+                    player: GKLocalPlayer.local,
+                    leaderboardIDs: [config.hallOfFameLeaderboardID]
                 )
             },
             
@@ -58,12 +105,14 @@ public extension LeaderboardClient {
                 guard GKLocalPlayer.local.isAuthenticated else {
                     return LeaderboardPage(entries: [], myEntry: nil, nextCursor: nil)
                 }
-                
+
                 // Parse cursor as starting rank (1-based)
                 let startRank: Int = (cursor.flatMap { Int($0) }) ?? 1
                 let range = NSRange(location: startRank, length: max(1, pageSize))
-                
-                let boards = try await GKLeaderboard.loadLeaderboards(IDs: [config.leaderboardID])
+
+                // Get the appropriate leaderboard ID for this filter
+                let leaderboardID = config.leaderboardID(for: filter)
+                let boards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboardID])
                 guard let board = boards.first else {
                     return LeaderboardPage(entries: [], myEntry: nil, nextCursor: nil)
                 }
@@ -144,8 +193,10 @@ public extension LeaderboardClient {
             
             fetchMyRank: { period, filter in
                 guard GKLocalPlayer.local.isAuthenticated else { return nil }
-                
-                let boards = try await GKLeaderboard.loadLeaderboards(IDs: [config.leaderboardID])
+
+                // Get the appropriate leaderboard ID for this filter
+                let leaderboardID = config.leaderboardID(for: filter)
+                let boards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboardID])
                 guard let board = boards.first else { return nil }
                 
                 let timeScope: GKLeaderboard.TimeScope = {
