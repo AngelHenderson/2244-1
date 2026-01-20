@@ -36,7 +36,7 @@ public struct DailyClaimsView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Daily Claims")
+            .navigationTitle("Daily Rewards")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -174,27 +174,37 @@ public struct DailyClaimsView: View {
                 TabView(selection: $selectedPage) {
                     let highlightDay = store.getNextClaimableDay() ?? (store.currentClaimDay + 1)
                     ForEach(Array(chunkedClaims.enumerated()), id: \.offset) { index, claims in
-                        VStack(spacing: 12) {
-                            let nextDay = store.getNextClaimableDay()
-                            ForEach(claims) { claim in
-                                let isNext = (claim.day == nextDay)
-                                let combined = isNext ? (store.combinedRewardForNextClaim() ?? claim.rewards) : claim.rewards
-                                let bonus = isNext ? bonusEntries(base: claim.rewards, combined: combined) : []
-                                DailyRewardRow(
-                                    claim: claim,
-                                    currentClaimDay: store.currentClaimDay,
-                                    highlightDay: highlightDay,
-                                    combinedReward: combined,
-                                    bonusEntries: bonus,
-                                    onClaim: claim.isAvailable ? { claimReward(claim.rewards) } : nil
-                                )
+                        // Special full-page layout for Day 365
+                        if index == 52, let day365 = claims.first, day365.day == 365 {
+                            Day365PageView(
+                                claim: day365,
+                                currentClaimDay: store.currentClaimDay,
+                                onClaim: day365.isAvailable ? { claimReward(day365.rewards) } : nil
+                            )
+                            .tag(index)
+                        } else {
+                            VStack(spacing: 12) {
+                                let nextDay = store.getNextClaimableDay()
+                                ForEach(claims) { claim in
+                                    let isNext = (claim.day == nextDay)
+                                    let combined = isNext ? (store.combinedRewardForNextClaim() ?? claim.rewards) : claim.rewards
+                                    let bonus = isNext ? bonusEntries(base: claim.rewards, combined: combined) : []
+                                    DailyRewardRow(
+                                        claim: claim,
+                                        currentClaimDay: store.currentClaimDay,
+                                        highlightDay: highlightDay,
+                                        combinedReward: combined,
+                                        bonusEntries: bonus,
+                                        onClaim: claim.isAvailable ? { claimReward(claim.rewards) } : nil
+                                    )
+                                }
+                                if claims.count < 7 {
+                                    Spacer(minLength: CGFloat(7 - claims.count) * 72)
+                                }
                             }
-                            if claims.count < 7 {
-                                Spacer(minLength: CGFloat(7 - claims.count) * 72)
-                            }
+                            .padding(.vertical, 4)
+                            .tag(index)
                         }
-                        .padding(.vertical, 4)
-                        .tag(index)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .automatic))
@@ -204,12 +214,45 @@ public struct DailyClaimsView: View {
     }
     
     private var chunkedClaims: [[DailyClaimsStore.DailyClaim]] {
-        store.dailyClaims.chunked(into: 7)
+        // Special handling for Day 365:
+        // - Pages 0-51: Weeks 1-52 (days 1-364)
+        // - Page 52: Day 365 only
+        // - Page 53+: Week 53+ (days 366+)
+        var chunks: [[DailyClaimsStore.DailyClaim]] = []
+        let claims = store.dailyClaims
+
+        // First 364 days in normal 7-day chunks (weeks 1-52)
+        let regularDays = claims.filter { $0.day <= 364 }
+        chunks.append(contentsOf: regularDays.chunked(into: 7))
+
+        // Day 365 as its own page
+        if let day365 = claims.first(where: { $0.day == 365 }) {
+            chunks.append([day365])
+        }
+
+        // Days 366+ in 7-day chunks (week 53+)
+        let extraDays = claims.filter { $0.day >= 366 }
+        if !extraDays.isEmpty {
+            chunks.append(contentsOf: extraDays.chunked(into: 7))
+        }
+
+        return chunks
     }
-    
+
+    private func pageIndex(for day: Int) -> Int {
+        if day <= 364 {
+            return (day - 1) / 7
+        } else if day == 365 {
+            return 52  // Day 365 page
+        } else {
+            // Days 366+: page 53 + offset
+            return 53 + (day - 366) / 7
+        }
+    }
+
     private func syncSelectedPage() {
         let focusDay = store.getNextClaimableDay() ?? max(store.currentClaimDay, 1)
-        let targetPage = max((focusDay - 1) / 7, 0)
+        let targetPage = pageIndex(for: focusDay)
         if selectedPage != targetPage {
             selectedPage = targetPage
         }
@@ -231,7 +274,9 @@ public struct DailyClaimsView: View {
     }
 
     private var weekNavigator: some View {
-        HStack(spacing: 12) {
+        let maxPage = 58  // Up to week 58 (covers full year + extra weeks)
+
+        return HStack(spacing: 12) {
             Button {
                 if selectedPage > 0 {
                     withAnimation { selectedPage -= 1 }
@@ -244,15 +289,29 @@ public struct DailyClaimsView: View {
             .disabled(selectedPage == 0)
 
             Menu {
-                ForEach(0..<52, id: \.self) { week in
-                    Button("Week \(week + 1)") {
-                        store.ensureClaimsCovering(pageIndex: week)
-                        withAnimation { selectedPage = week }
+                // Weeks 1-52
+                ForEach(0..<52, id: \.self) { page in
+                    Button("Week \(page + 1)") {
+                        store.ensureClaimsCovering(pageIndex: page)
+                        withAnimation { selectedPage = page }
+                    }
+                }
+                // Day 365
+                Button("Day 365") {
+                    store.ensureClaimsCovering(pageIndex: 52)
+                    withAnimation { selectedPage = 52 }
+                }
+                // Weeks 53+
+                ForEach(53...maxPage, id: \.self) { page in
+                    let weekNum = page  // Page 53 = Week 53, etc.
+                    Button("Week \(weekNum)") {
+                        store.ensureClaimsCovering(pageIndex: page)
+                        withAnimation { selectedPage = page }
                     }
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text("Week \(selectedPage + 1)")
+                    Text(pageLabel(for: selectedPage))
                         .font(.subheadline.bold())
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption)
@@ -264,17 +323,129 @@ public struct DailyClaimsView: View {
             }
 
             Button {
-                if selectedPage < 51 {
+                if selectedPage < maxPage {
                     store.ensureClaimsCovering(pageIndex: selectedPage + 1)
                     withAnimation { selectedPage += 1 }
                 }
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.headline)
-                    .foregroundStyle(selectedPage < 51 ? .primary : .tertiary)
+                    .foregroundStyle(selectedPage < maxPage ? .primary : .tertiary)
             }
-            .disabled(selectedPage >= 51)
+            .disabled(selectedPage >= maxPage)
         }
+    }
+
+    private func pageLabel(for page: Int) -> String {
+        if page < 52 {
+            return "Week \(page + 1)"
+        } else if page == 52 {
+            return "Day 365"
+        } else {
+            return "Week \(page)"  // Page 53 = Week 53, etc.
+        }
+    }
+}
+
+private struct Day365PageView: View {
+    let claim: DailyClaimsStore.DailyClaim
+    let currentClaimDay: Int
+    let onClaim: (() -> Void)?
+
+    private var hasReachedDay365: Bool {
+        currentClaimDay >= 364 || claim.isClaimed
+    }
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Text("Day 365")
+                .font(.system(size: 56, weight: .bold, design: .rounded))
+
+            if hasReachedDay365 {
+                // Rewards with icons
+                HStack(spacing: 12) {
+                    ForEach(claim.rewards.entries, id: \.self) { entry in
+                        HStack(spacing: 6) {
+                            Image(systemName: entry.kind.iconName)
+                                .foregroundStyle(entry.kind.iconColor)
+                            Text("\(entry.amount) \(entry.kind.displayName)")
+                        }
+                        .font(.title2)
+                    }
+                }
+
+                Text("YEARLY REWARD!\nWOOHOO!")
+                    .font(.title.bold())
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.purple)
+
+                // Claim button or status - directly under celebration text
+                if claim.isClaimed {
+                    Label("Claimed", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.title2.bold())
+                } else if let onClaim {
+                    Button(action: onClaim) {
+                        Text("Claim Yearly Reward")
+                            .font(.title3.bold())
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 14)
+                            .background(Color.purple.gradient, in: Capsule())
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                    .shadow(color: .purple.opacity(0.3), radius: 10, y: 5)
+                } else {
+                    VStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.title2)
+                        Text("Come back tomorrow!")
+                            .font(.subheadline)
+                    }
+                    .foregroundStyle(.secondary)
+                }
+            } else {
+                // Locked state - hasn't reached day 365 yet
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.secondary)
+
+                Text("Complete 364 days\nto unlock this reward!")
+                    .font(.title3)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+
+                Text("Day \(currentClaimDay) / 364")
+                    .font(.headline)
+                    .foregroundStyle(.purple)
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.yellow.opacity(0.15), Color.purple.opacity(0.15)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.yellow, .purple],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2
+                )
+        )
     }
 }
 
@@ -285,7 +456,7 @@ private struct DailyRewardRow: View {
     let combinedReward: AchievementDef.Rewards
     let bonusEntries: [AchievementDef.Rewards.Entry]
     let onClaim: (() -> Void)?
-    
+
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {

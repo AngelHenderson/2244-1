@@ -216,7 +216,19 @@ public final class DailyClaimsStore {
     }
     
     public func ensureClaimsCovering(pageIndex: Int) {
-        let upperBound = min(max(pageIndex, 0), Int.max / 7) * 7 + 7
+        // Handle special page structure:
+        // Pages 0-51: Weeks 1-52 (days 1-364)
+        // Page 52: Day 365
+        // Pages 53+: Week 53+ (days 366+)
+        let upperBound: Int
+        if pageIndex < 52 {
+            upperBound = (pageIndex + 1) * 7  // Normal week pages
+        } else if pageIndex == 52 {
+            upperBound = 365  // Day 365 page
+        } else {
+            // Pages 53+: days 366 + (page - 53) * 7 + 7
+            upperBound = 365 + (pageIndex - 52) * 7
+        }
         ensureClaims(upTo: max(upperBound, visibleUpperBound()))
     }
     
