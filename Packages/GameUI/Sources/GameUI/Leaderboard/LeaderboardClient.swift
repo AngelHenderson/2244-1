@@ -83,7 +83,9 @@ private enum MockLeaderboardData {
 
     // All milestone tiers in order (lowest to highest) - generated from doubling sequence
     static let allMilestones: [String] = [
-        // Raw numbers and K-tier (thousands) - lowest tier
+        // Score 0 and lowest milestones (2-512)
+        "0", "2", "4", "8", "16", "32", "64", "128", "256", "512",
+        // Raw numbers and K-tier (thousands)
         "1024", "2048", "4096", "8192", "16K", "32K", "65K", "131K", "262K", "524K",
         // M-tier (millions)
         "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "536M",
@@ -1554,95 +1556,113 @@ public extension LeaderboardClient {
 
     // Hall of Fame - players who reached ∞ from ALL countries
     // Ranks are based on infinity count - higher infinity = better rank
+    // Includes daily progression and player churn
     private static func hallOfFameEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
         // Combine all country Hall of Fame data
-        var playerData: [(id: String, baseCount: Int, country: String, nameIndex: Int)] = []
+        var playerData: [(id: String, baseCount: Int, country: String, nameIndex: Int, playerIndex: Int)] = []
         var globalIndex = 0
 
-        // Add US players
+        // Calculate how many players have left Hall of Fame (churn)
+        // Use a Hall of Fame specific seed
+        var totalLeftHoF: Double = 0
+        for d in 0...day {
+            totalLeftHoF += MockLeaderboardData.countryPlayersLeaving(on: d, countrySeed: 88888)
+        }
+        let playersToSkip = Int(totalLeftHoF)
+
+        // Add US players (skip some due to churn)
         for (i, count) in MockLeaderboardData.hallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_us_\(i)", count, "US", globalIndex))
+            if globalIndex >= playersToSkip {
+                playerData.append(("hof_us_\(i)", count, "US", globalIndex, i))
+            }
             globalIndex += 1
         }
         // Add UK players
         for (i, count) in MockLeaderboardData.ukHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_uk_\(i)", count, "GB", globalIndex))
+            playerData.append(("hof_uk_\(i)", count, "GB", globalIndex, i + 1000))
             globalIndex += 1
         }
         // Add Canada players
         for (i, count) in MockLeaderboardData.canadaHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_ca_\(i)", count, "CA", globalIndex))
+            playerData.append(("hof_ca_\(i)", count, "CA", globalIndex, i + 2000))
             globalIndex += 1
         }
         // Add Australia players
         for (i, count) in MockLeaderboardData.australiaHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_au_\(i)", count, "AU", globalIndex))
+            playerData.append(("hof_au_\(i)", count, "AU", globalIndex, i + 3000))
             globalIndex += 1
         }
         // Add Germany players
         for (i, count) in MockLeaderboardData.germanyHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_de_\(i)", count, "DE", globalIndex))
+            playerData.append(("hof_de_\(i)", count, "DE", globalIndex, i + 4000))
             globalIndex += 1
         }
         // Add France players
         for (i, count) in MockLeaderboardData.franceHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_fr_\(i)", count, "FR", globalIndex))
+            playerData.append(("hof_fr_\(i)", count, "FR", globalIndex, i + 5000))
             globalIndex += 1
         }
         // Add Japan players
         for (i, count) in MockLeaderboardData.japanHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_jp_\(i)", count, "JP", globalIndex))
+            playerData.append(("hof_jp_\(i)", count, "JP", globalIndex, i + 6000))
             globalIndex += 1
         }
         // Add India players
         for (i, count) in MockLeaderboardData.indiaHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_in_\(i)", count, "IN", globalIndex))
+            playerData.append(("hof_in_\(i)", count, "IN", globalIndex, i + 7000))
             globalIndex += 1
         }
         // Add Brazil players
         for (i, count) in MockLeaderboardData.brazilHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_br_\(i)", count, "BR", globalIndex))
+            playerData.append(("hof_br_\(i)", count, "BR", globalIndex, i + 8000))
             globalIndex += 1
         }
         // Add Mexico players
         for (i, count) in MockLeaderboardData.mexicoHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_mx_\(i)", count, "MX", globalIndex))
+            playerData.append(("hof_mx_\(i)", count, "MX", globalIndex, i + 9000))
             globalIndex += 1
         }
         // Add Afghanistan players
         for (i, count) in MockLeaderboardData.afghanistanHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_af_\(i)", count, "AF", globalIndex))
+            playerData.append(("hof_af_\(i)", count, "AF", globalIndex, i + 10000))
             globalIndex += 1
         }
         // Add Albania players
         for (i, count) in MockLeaderboardData.albaniaHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_al_\(i)", count, "AL", globalIndex))
+            playerData.append(("hof_al_\(i)", count, "AL", globalIndex, i + 11000))
             globalIndex += 1
         }
         // Add Algeria players
         for (i, count) in MockLeaderboardData.algeriaHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_dz_\(i)", count, "DZ", globalIndex))
+            playerData.append(("hof_dz_\(i)", count, "DZ", globalIndex, i + 12000))
             globalIndex += 1
         }
         // Add China players
         for (i, count) in MockLeaderboardData.chinaHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_cn_\(i)", count, "CN", globalIndex))
+            playerData.append(("hof_cn_\(i)", count, "CN", globalIndex, i + 13000))
             globalIndex += 1
         }
         // Add South Korea players
         for (i, count) in MockLeaderboardData.southKoreaHallOfFameInfinityCounts.enumerated() {
-            playerData.append(("hof_kr_\(i)", count, "KR", globalIndex))
+            playerData.append(("hof_kr_\(i)", count, "KR", globalIndex, i + 14000))
             globalIndex += 1
         }
 
-        // Sort by base count (highest first)
+        // Sort by base count (highest first), then apply progression
         playerData.sort { $0.baseCount > $1.baseCount }
 
         // Build entries with ranks based on sorted order
+        // Apply infinity progression based on player's tier (tiered rates)
         var entries: [LeaderboardEntry] = []
         for (rank, player) in playerData.enumerated() {
-            // Use the actual infinity count (no progression - these are fixed achievements)
-            let infinityCount = player.baseCount
+            // Apply daily infinity progression based on tiered rates
+            let infinityCount = MockLeaderboardData.infinityCountWithProgression(
+                baseCount: player.baseCount,
+                playerIndex: player.playerIndex,
+                day: day
+            )
 
             // Use unique name from hallOfFameNames based on rank position
             let name = MockLeaderboardData.hallOfFameNames[rank % MockLeaderboardData.hallOfFameNames.count]
