@@ -219,6 +219,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
         currentGameSnapshot.boost20x_uses_total = boost20xUsesTotal
         currentGameSnapshot.wheel_collects_total = wheelCollectsTotal
+        currentGameSnapshot.best_leaderboard_rank = bestLeaderboardRank
     }
 
     /// Saves accumulated playtime without ending the game session.

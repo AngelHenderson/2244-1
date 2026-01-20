@@ -883,6 +883,7 @@ public final class GameStore {
     @discardableResult
     private func performCommit(positions: [Position]) -> (Bool, Set<Int>) {
         let previousHighest = state.highestTile
+        let previousHighestStep = state.highestTileStep
         let lastPos = positions.last
         var affectedColumns = columnsWithEmpties(in: state.board)
 
@@ -968,11 +969,12 @@ public final class GameStore {
                 return TileStepLabelFormatter.stepForValue(addedValue)
             }()
 
-            let previousHighestStep = state.highestTileStep
+            // previousHighestStep was captured at start of function, before state update
             var shouldOfferDouble = false
 
             if let step = addedStep {
                 // Use step-based comparison (works for all tile values including high tiles)
+                // Only offer double if tile is one below OR same as previous highest (not a new record)
                 let isOneBelow = (previousHighestStep >= 1) && (step == previousHighestStep - 1)
                 let isSameAsHighest = (step == previousHighestStep)
                 shouldOfferDouble = isOneBelow || isSameAsHighest
@@ -2777,8 +2779,12 @@ extension GameStore {
     public func registerChallengeCreationCompleted() {
         achievementEvaluator?.onChallengeCreationCompleted()
     }
-    
-    
+
+    public func registerLeaderboardRank(_ rank: Int) {
+        achievementEvaluator?.onLeaderboardRankUpdated(rank)
+    }
+
+
     // MARK: - Legacy Progress Auto-Save System (for backward compatibility)
     
     public func saveProgressImmediately(newTile: Int?) {
