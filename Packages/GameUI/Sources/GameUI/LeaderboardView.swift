@@ -69,10 +69,15 @@ public struct LeaderboardView: View {
         self.model = m
         await m.authenticate()
         await m.refresh()
-        
+
         // Auto-submit current score if it's better than what's on the leaderboard
         if let myEntry = m.myEntry, gameStore.state.score > myEntry.score {
             await m.submitScore(gameStore.state.score)
+        }
+
+        // Track global leaderboard rank for achievements
+        if m.selectedFilter == .global, let myEntry = m.myEntry {
+            gameStore.registerLeaderboardRank(myEntry.rank)
         }
     }
     
@@ -84,6 +89,10 @@ public struct LeaderboardView: View {
                 ForEach(LeaderboardFilter.availableFilters(for: UserLeaderboardData.currentCountry)) { filter in
                     filterTab(filter, isSelected: m.selectedFilter == filter) {
                         m.selectedFilter = filter
+                        // Track global rank for achievements when switching to global filter
+                        if filter == .global, let myEntry = m.myEntry {
+                            gameStore.registerLeaderboardRank(myEntry.rank)
+                        }
                     }
                 }
             }
@@ -158,8 +167,22 @@ public struct LeaderboardView: View {
                 showError = true
             }
         }
+        .onChange(of: m.myEntry?.rank) { _, newRank in
+            // Track global leaderboard rank for achievements whenever it updates
+            if m.selectedFilter == .global, let rank = newRank, rank > 0 {
+                print("🏆 Tracking leaderboard rank: \(rank)")
+                gameStore.registerLeaderboardRank(rank)
+            }
+        }
+        .onAppear {
+            // Track initial rank when content appears
+            if m.selectedFilter == .global, let myEntry = m.myEntry, myEntry.rank > 0 {
+                print("🏆 Initial leaderboard rank: \(myEntry.rank)")
+                gameStore.registerLeaderboardRank(myEntry.rank)
+            }
+        }
     }
-    
+
     private func filterTab(_ filter: LeaderboardFilter, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
@@ -230,6 +253,8 @@ public struct LeaderboardView: View {
             return Color.green  // Italy - green from the flag
         case .countryES:
             return Color.red  // Spain - red from the flag
+        case .countryNL:
+            return Color.orange  // Netherlands - orange (national color)
         }
     }
 
