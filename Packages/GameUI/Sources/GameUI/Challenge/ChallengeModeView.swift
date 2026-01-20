@@ -184,12 +184,18 @@ private struct ChallengeCard: View {
         let parts = buildRewardParts(reward)
 
         if parts.count > 1 {
-            // Multiple rewards - show treasure box
-            HStack(spacing: 4) {
+            // Multiple rewards - show treasure box followed by reward list
+            HStack(spacing: 6) {
                 Image(systemName: "shippingbox.fill")
                     .font(.caption)
-                Text("Rewards")
-                    .font(.caption.weight(.semibold))
+                ForEach(Array(parts.enumerated()), id: \.offset) { index, part in
+                    HStack(spacing: 3) {
+                        Image(systemName: part.icon)
+                            .font(.system(size: 9))
+                        Text(part.text)
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                }
             }
         } else if let part = parts.first {
             // Single reward - show specific icon
