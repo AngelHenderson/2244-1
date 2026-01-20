@@ -663,12 +663,21 @@ private enum MockLeaderboardData {
         }
     }
 
-    // Avatar IDs from AvatarCatalog (12 options, cycled for all players)
+    // Avatar IDs from AvatarCatalog (12 options)
     static let avatarIDs = [
         "avatar-shiba-dog", "avatar-astronaut-cat", "avatar-robot-green", "avatar-phoenix-fire",
         "avatar-shark-teeth", "avatar-paper-plane", "avatar-baseball-cap", "avatar-warrior-samurai",
         "avatar-burger-food", "avatar-chicken-bird", "avatar-anchor-nautical", "avatar-bear-grizzly"
     ]
+
+    // Get a varied avatar for a player using seeded randomness
+    // This ensures each player has a consistent but varied avatar
+    static func avatarForPlayer(index: Int, countrySeed: Int = 0) -> String {
+        let seed = index * 131 + countrySeed * 17
+        let random = seededRandom(seed: seed, index: index)
+        let avatarIndex = Int(random * Double(avatarIDs.count))
+        return avatarIDs[avatarIndex % avatarIDs.count]
+    }
 
     // Calculate infinity count with daily progression for Hall of Fame players
     // Progression rate is tiered based on current infinity count:
@@ -1639,7 +1648,8 @@ public extension LeaderboardClient {
             let name = MockLeaderboardData.hallOfFameNames[rank % MockLeaderboardData.hallOfFameNames.count]
 
             let platform: Platform = rank % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[rank % MockLeaderboardData.avatarIDs.count]
+            // Use seeded avatar selection for variety (different from names)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: rank, countrySeed: 999)
             let score = MockLeaderboardData.scoreForMilestone("\(infinityCount)∞")
 
             entries.append(LeaderboardEntry(
@@ -2850,7 +2860,8 @@ public extension LeaderboardClient {
             let baseMilestone = usPlayerMilestones[i]
             let name = MockLeaderboardData.usNames[i % MockLeaderboardData.usNames.count]
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            // Use seeded avatar selection for variety (different from names)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 1)
 
             // US milestones are already current values - don't apply progression
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
