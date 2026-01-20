@@ -2441,7 +2441,13 @@ extension GameStore {
     
     private func refreshDerivedState(scoreAlpha: AlphaNumber? = nil, highestStep: Int? = nil) {
         if let scoreAlpha {
-            state.scoreValue = scoreAlpha
+            // SAFEGUARD: Only update score if the new value is >= current value
+            // This prevents accidental score deductions from stale persisted data
+            if scoreAlpha >= state.scoreValue {
+                state.scoreValue = scoreAlpha
+            } else {
+                print("⚠️ SCORE SAFEGUARD: Blocked attempt to decrease score from \(state.scoreValue.formattedLabel()) to \(scoreAlpha.formattedLabel())")
+            }
         } else if state.scoreValue.isZero && state.score > 0 {
             state.scoreValue = AlphaNumber(state.score)
         }
@@ -3088,8 +3094,13 @@ extension GameStore {
         let hasInfinityAchievement = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
         if let currentScoreString = UserDefaults.standard.string(forKey: ScoreDefaultsKey.currentScoreAlpha),
            let alpha = AlphaNumber(decimalString: currentScoreString) {
-            state.scoreValue = alpha
-        } else {
+            // SAFEGUARD: Only update if persisted value is >= current (prevents score decrease)
+            if alpha >= state.scoreValue {
+                state.scoreValue = alpha
+            } else {
+                print("⚠️ RESTORE SAFEGUARD: Blocked score decrease from \(state.scoreValue.formattedLabel()) to \(alpha.formattedLabel())")
+            }
+        } else if state.scoreValue.isZero && state.score > 0 {
             state.scoreValue = AlphaNumber(state.score)
         }
 
