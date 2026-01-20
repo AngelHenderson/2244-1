@@ -30,7 +30,10 @@ public enum UserLeaderboardData {
 
 public struct LeaderboardClient: Sendable {
     public var authenticate: @Sendable () async throws -> Bool
+    /// Submit high score to global leaderboard
     public var submitScore: @Sendable (_ score: Int) async throws -> Void
+    /// Submit infinity count to Hall of Fame leaderboard
+    public var submitInfinityCount: @Sendable (_ infinityCount: Int) async throws -> Void
     public var fetchPage: @Sendable (
         _ period: LeaderboardPeriod,
         _ filter: LeaderboardFilter,
@@ -45,11 +48,13 @@ public struct LeaderboardClient: Sendable {
     public init(
         authenticate: @escaping @Sendable () async throws -> Bool,
         submitScore: @escaping @Sendable (Int) async throws -> Void,
+        submitInfinityCount: @escaping @Sendable (Int) async throws -> Void = { _ in },
         fetchPage: @escaping @Sendable (LeaderboardPeriod, LeaderboardFilter, String?, Int) async throws -> LeaderboardPage,
         fetchMyRank: @escaping @Sendable (LeaderboardPeriod, LeaderboardFilter) async throws -> LeaderboardEntry?
     ) {
         self.authenticate = authenticate
         self.submitScore = submitScore
+        self.submitInfinityCount = submitInfinityCount
         self.fetchPage = fetchPage
         self.fetchMyRank = fetchMyRank
     }
@@ -481,11 +486,17 @@ private enum MockLeaderboardData {
     static let baseUSPlayers = 84_721
     static let baseGlobalPlayers = 885_676
 
-    // Calculate new players joining on a given day (10-1000 per day)
-    static func newPlayersJoining(on day: Int, isUS: Bool) -> Int {
+    // Calculate new players joining on a given day (0.5-4 per day per country)
+    static func newPlayersJoining(on day: Int, isUS: Bool) -> Double {
         let seed = isUS ? 12345 : 67890
         let random = seededRandom(seed: seed, index: day)
-        return 10 + Int(random * 990)  // 10 to 1000 new players per day
+        return 0.5 + random * 3.5  // 0.5 to 4 new players per day
+    }
+
+    // Calculate country-specific new players joining per day (0.5-4 per day)
+    static func countryNewPlayersJoining(on day: Int, countrySeed: Int) -> Double {
+        let random = seededRandom(seed: countrySeed, index: day)
+        return 0.5 + random * 3.5  // 0.5 to 4 new players per day
     }
 
     // Calculate players leaving per day (0.1-0.5 per day)
@@ -525,15 +536,30 @@ private enum MockLeaderboardData {
         return countryPlayersLeaving(on: day, countrySeed: countrySeed) * 0.05
     }
 
-    // Calculate total players for a specific country with attrition
-    // Attrition primarily affects players outside top 150 (95%)
+    // Calculate players changing name or avatar per day (0.05-0.4 per country)
+    static func playersChangingNameOrAvatar(on day: Int, isUS: Bool) -> Double {
+        let seed = isUS ? 33333 : 44444
+        let random = seededRandom(seed: seed, index: day)
+        return 0.05 + random * 0.35  // 0.05 to 0.4 players per day
+    }
+
+    // Country-specific players changing name or avatar per day (0.05-0.4 per country)
+    static func countryPlayersChangingNameOrAvatar(on day: Int, countrySeed: Int) -> Double {
+        let random = seededRandom(seed: countrySeed + 5000, index: day)
+        return 0.05 + random * 0.35  // 0.05 to 0.4 players per day
+    }
+
+    // Calculate total players for a specific country with new joins and attrition
+    // New players: 0.5-4 per day, Attrition: 0.1-0.5 per day (95% outside top 150)
     static func totalCountryPlayers(basePlayers: Int, on day: Int, countrySeed: Int) -> Int {
+        var totalNew: Double = 0
         var totalLeft: Double = 0
         for d in 0...day {
+            totalNew += countryNewPlayersJoining(on: d, countrySeed: countrySeed)
             totalLeft += countryPlayersLeaving(on: d, countrySeed: countrySeed)
         }
-        // Ensure at least 151 players remain (to maintain top 150 leaderboard)
-        return max(151, basePlayers - Int(totalLeft))
+        // Net players = base + new - left (ensure at least 151 to maintain top 150 leaderboard)
+        return max(151, basePlayers + Int(totalNew) - Int(totalLeft))
     }
 
     // Starting milestones for active new players (players who start making progress immediately)
@@ -561,14 +587,14 @@ private enum MockLeaderboardData {
     // Players leave due to: bans, running out of moves, deleting game, or choosing to restart
     static func totalPlayers(on day: Int, isUS: Bool) -> Int {
         let basePlayers = isUS ? baseUSPlayers : baseGlobalPlayers
-        var totalNew = 0
+        var totalNew: Double = 0
         var totalLeft: Double = 0
         for d in 0...day {
             totalNew += newPlayersJoining(on: d, isUS: isUS)
             totalLeft += playersLeaving(on: d, isUS: isUS)
         }
         // Net players = base + new - left (ensure non-negative)
-        return max(0, basePlayers + totalNew - Int(totalLeft))
+        return max(0, basePlayers + Int(totalNew) - Int(totalLeft))
     }
 
     // Calculate score with daily progression for a player
