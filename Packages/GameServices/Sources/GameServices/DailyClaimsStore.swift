@@ -219,15 +219,18 @@ public final class DailyClaimsStore {
         // Handle special page structure:
         // Pages 0-51: Weeks 1-52 (days 1-364)
         // Page 52: Day 365
-        // Pages 53+: Week 53+ (days 366+)
+        // Page 53: Week 53 (days 366-371, only 6 days)
+        // Pages 54+: Week 54+ (days 372+)
         let upperBound: Int
         if pageIndex < 52 {
             upperBound = (pageIndex + 1) * 7  // Normal week pages
         } else if pageIndex == 52 {
             upperBound = 365  // Day 365 page
+        } else if pageIndex == 53 {
+            upperBound = 371  // Week 53 (days 366-371)
         } else {
-            // Pages 53+: days 366 + (page - 53) * 7 + 7
-            upperBound = 365 + (pageIndex - 52) * 7
+            // Pages 54+: days 372 + (page - 54) * 7 + 7
+            upperBound = 371 + (pageIndex - 53) * 7
         }
         ensureClaims(upTo: max(upperBound, visibleUpperBound()))
     }

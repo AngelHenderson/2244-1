@@ -217,7 +217,8 @@ public struct DailyClaimsView: View {
         // Special handling for Day 365:
         // - Pages 0-51: Weeks 1-52 (days 1-364)
         // - Page 52: Day 365 only
-        // - Page 53+: Week 53+ (days 366+)
+        // - Page 53: Week 53 (days 366-371, only 6 days)
+        // - Page 54+: Week 54+ (days 372+)
         var chunks: [[DailyClaimsStore.DailyClaim]] = []
         let claims = store.dailyClaims
 
@@ -230,8 +231,14 @@ public struct DailyClaimsView: View {
             chunks.append([day365])
         }
 
-        // Days 366+ in 7-day chunks (week 53+)
-        let extraDays = claims.filter { $0.day >= 366 }
+        // Week 53: Days 366-371 (6 days only)
+        let week53Days = claims.filter { $0.day >= 366 && $0.day <= 371 }
+        if !week53Days.isEmpty {
+            chunks.append(week53Days)
+        }
+
+        // Days 372+ in 7-day chunks (week 54+)
+        let extraDays = claims.filter { $0.day >= 372 }
         if !extraDays.isEmpty {
             chunks.append(contentsOf: extraDays.chunked(into: 7))
         }
@@ -244,9 +251,11 @@ public struct DailyClaimsView: View {
             return (day - 1) / 7
         } else if day == 365 {
             return 52  // Day 365 page
+        } else if day <= 371 {
+            return 53  // Week 53 (days 366-371)
         } else {
-            // Days 366+: page 53 + offset
-            return 53 + (day - 366) / 7
+            // Days 372+: page 54 + offset
+            return 54 + (day - 372) / 7
         }
     }
 
