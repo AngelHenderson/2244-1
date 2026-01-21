@@ -174,12 +174,22 @@ public struct DailyClaimsView: View {
                 TabView(selection: $selectedPage) {
                     let highlightDay = store.getNextClaimableDay() ?? (store.currentClaimDay + 1)
                     ForEach(Array(chunkedClaims.enumerated()), id: \.offset) { index, claims in
-                        // Special full-page layout for Day 365
+                        // Special full-page layout for Day 365 (Year 1)
                         if index == 52, let day365 = claims.first, day365.day == 365 {
-                            Day365PageView(
+                            YearlyRewardPageView(
                                 claim: day365,
                                 currentClaimDay: store.currentClaimDay,
+                                yearNumber: 1,
                                 onClaim: day365.isAvailable ? { claimReward(day365.rewards) } : nil
+                            )
+                            .tag(index)
+                        // Special full-page layout for Day 730 (Year 2)
+                        } else if index == 106, let day730 = claims.first, day730.day == 730 {
+                            YearlyRewardPageView(
+                                claim: day730,
+                                currentClaimDay: store.currentClaimDay,
+                                yearNumber: 2,
+                                onClaim: day730.isAvailable ? { claimReward(day730.rewards) } : nil
                             )
                             .tag(index)
                         } else {
@@ -214,11 +224,15 @@ public struct DailyClaimsView: View {
     }
     
     private var chunkedClaims: [[DailyClaimsStore.DailyClaim]] {
-        // Special handling for Day 365:
+        // Special handling for yearly rewards:
         // - Pages 0-51: Weeks 1-52 (days 1-364)
-        // - Page 52: Day 365 only
-        // - Page 53: Week 53 (days 366-371, only 6 days)
-        // - Page 54+: Week 54+ (days 372+)
+        // - Page 52: Day 365 (Year 1)
+        // - Page 53: Week 53 (days 366-371, 6 days)
+        // - Pages 54-104: Weeks 54-104 (days 372-728)
+        // - Page 105: Week 105 first part (day 729 only)
+        // - Page 106: Day 730 (Year 2)
+        // - Page 107: Rest of Week 105 (days 731-735, 5 days)
+        // - Pages 108+: Week 106+ (days 736+)
         var chunks: [[DailyClaimsStore.DailyClaim]] = []
         let claims = store.dailyClaims
 
@@ -226,7 +240,7 @@ public struct DailyClaimsView: View {
         let regularDays = claims.filter { $0.day <= 364 }
         chunks.append(contentsOf: regularDays.chunked(into: 7))
 
-        // Day 365 as its own page
+        // Day 365 as its own page (Year 1)
         if let day365 = claims.first(where: { $0.day == 365 }) {
             chunks.append([day365])
         }
@@ -237,10 +251,32 @@ public struct DailyClaimsView: View {
             chunks.append(week53Days)
         }
 
-        // Days 372+ in 7-day chunks (week 54+)
-        let extraDays = claims.filter { $0.day >= 372 }
-        if !extraDays.isEmpty {
-            chunks.append(contentsOf: extraDays.chunked(into: 7))
+        // Days 372-728 in 7-day chunks (weeks 54-104)
+        let year2RegularDays = claims.filter { $0.day >= 372 && $0.day <= 728 }
+        if !year2RegularDays.isEmpty {
+            chunks.append(contentsOf: year2RegularDays.chunked(into: 7))
+        }
+
+        // Week 105 first part: Day 729 only
+        if let day729 = claims.first(where: { $0.day == 729 }) {
+            chunks.append([day729])
+        }
+
+        // Day 730 as its own page (Year 2)
+        if let day730 = claims.first(where: { $0.day == 730 }) {
+            chunks.append([day730])
+        }
+
+        // Rest of Week 105: Days 731-735 (5 days)
+        let week105Rest = claims.filter { $0.day >= 731 && $0.day <= 735 }
+        if !week105Rest.isEmpty {
+            chunks.append(week105Rest)
+        }
+
+        // Days 736+ in 7-day chunks (week 106+)
+        let year3Days = claims.filter { $0.day >= 736 }
+        if !year3Days.isEmpty {
+            chunks.append(contentsOf: year3Days.chunked(into: 7))
         }
 
         return chunks
@@ -253,9 +289,18 @@ public struct DailyClaimsView: View {
             return 52  // Day 365 page
         } else if day <= 371 {
             return 53  // Week 53 (days 366-371)
-        } else {
-            // Days 372+: page 54 + offset
+        } else if day <= 728 {
+            // Days 372-728: pages 54-104
             return 54 + (day - 372) / 7
+        } else if day == 729 {
+            return 105  // Week 105 first part
+        } else if day == 730 {
+            return 106  // Day 730 page
+        } else if day <= 735 {
+            return 107  // Rest of Week 105
+        } else {
+            // Days 736+: page 108 + offset
+            return 108 + (day - 736) / 7
         }
     }
 
@@ -283,7 +328,7 @@ public struct DailyClaimsView: View {
     }
 
     private var weekNavigator: some View {
-        let maxPage = 58  // Up to week 58 (covers full year + extra weeks)
+        let maxPage = 115  // Covers 2+ years
 
         return HStack(spacing: 12) {
             Button {
@@ -305,14 +350,31 @@ public struct DailyClaimsView: View {
                         withAnimation { selectedPage = page }
                     }
                 }
-                // Day 365
+                // Day 365 (Year 1)
                 Button("Day 365") {
                     store.ensureClaimsCovering(pageIndex: 52)
                     withAnimation { selectedPage = 52 }
                 }
-                // Weeks 53+
-                ForEach(53...maxPage, id: \.self) { page in
-                    let weekNum = page  // Page 53 = Week 53, etc.
+                // Weeks 53-104
+                ForEach(53...104, id: \.self) { page in
+                    Button("Week \(page)") {
+                        store.ensureClaimsCovering(pageIndex: page)
+                        withAnimation { selectedPage = page }
+                    }
+                }
+                // Week 105 (Day 729)
+                Button("Week 105") {
+                    store.ensureClaimsCovering(pageIndex: 105)
+                    withAnimation { selectedPage = 105 }
+                }
+                // Day 730 (Year 2)
+                Button("Day 730") {
+                    store.ensureClaimsCovering(pageIndex: 106)
+                    withAnimation { selectedPage = 106 }
+                }
+                // Weeks 106+ (pages 108+)
+                ForEach(108...maxPage, id: \.self) { page in
+                    let weekNum = page - 2  // Offset by 2 for the extra pages
                     Button("Week \(weekNum)") {
                         store.ensureClaimsCovering(pageIndex: page)
                         withAnimation { selectedPage = page }
@@ -350,29 +412,54 @@ public struct DailyClaimsView: View {
             return "Week \(page + 1)"
         } else if page == 52 {
             return "Day 365"
+        } else if page <= 104 {
+            return "Week \(page)"  // Pages 53-104 = Weeks 53-104
+        } else if page == 105 {
+            return "Week 105"  // Day 729
+        } else if page == 106 {
+            return "Day 730"
+        } else if page == 107 {
+            return "Week 105"  // Days 731-735 (rest of week 105)
         } else {
-            return "Week \(page)"  // Page 53 = Week 53, etc.
+            return "Week \(page - 2)"  // Pages 108+ = Weeks 106+ (offset by 2)
         }
     }
 }
 
-private struct Day365PageView: View {
+private struct YearlyRewardPageView: View {
     let claim: DailyClaimsStore.DailyClaim
     let currentClaimDay: Int
+    let yearNumber: Int
     let onClaim: (() -> Void)?
 
-    private var hasReachedDay365: Bool {
-        currentClaimDay >= 364 || claim.isClaimed
+    private var targetDay: Int {
+        yearNumber == 1 ? 365 : 730
+    }
+
+    private var requiredDay: Int {
+        yearNumber == 1 ? 364 : 729
+    }
+
+    private var hasReachedTarget: Bool {
+        currentClaimDay >= requiredDay || claim.isClaimed
+    }
+
+    private var yearlyRewardText: String {
+        if yearNumber == 1 {
+            return "YEARLY REWARD!\nWOOHOO!"
+        } else {
+            return "YEARLY REWARD \(yearNumber)!\nWOOHOO!"
+        }
     }
 
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
 
-            Text("Day 365")
+            Text("Day \(targetDay)")
                 .font(.system(size: 56, weight: .bold, design: .rounded))
 
-            if hasReachedDay365 {
+            if hasReachedTarget {
                 // Rewards with icons
                 HStack(spacing: 12) {
                     ForEach(claim.rewards.entries, id: \.self) { entry in
@@ -385,7 +472,7 @@ private struct Day365PageView: View {
                     }
                 }
 
-                Text("YEARLY REWARD!\nWOOHOO!")
+                Text(yearlyRewardText)
                     .font(.title.bold())
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.purple)
@@ -416,17 +503,17 @@ private struct Day365PageView: View {
                     .foregroundStyle(.secondary)
                 }
             } else {
-                // Locked state - hasn't reached day 365 yet
+                // Locked state - hasn't reached target yet
                 Image(systemName: "lock.fill")
                     .font(.system(size: 48))
                     .foregroundStyle(.secondary)
 
-                Text("Complete 364 days\nto unlock this reward!")
+                Text("Complete \(requiredDay) days\nto unlock this reward!")
                     .font(.title3)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
 
-                Text("Day \(currentClaimDay) / 364")
+                Text("Day \(currentClaimDay) / \(requiredDay)")
                     .font(.headline)
                     .foregroundStyle(.purple)
             }
