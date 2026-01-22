@@ -714,6 +714,152 @@ private enum MockLeaderboardData {
         return Int(currentCount)
     }
 
+    // Calculate global rank using bracket system (same as profile)
+    static func calculateGlobalRank(milestone: String, totalPlayers: Int) -> Int {
+        let userMilestoneIndex = milestoneIndex(for: milestone)
+
+        // Global top 150 cutoff is around "2aq" milestone
+        let globalCutoffIndex = milestoneIndex(for: "2aq")
+
+        if userMilestoneIndex >= globalCutoffIndex {
+            // User is in top 150 - rank based on position above cutoff
+            let aboveCutoff = userMilestoneIndex - globalCutoffIndex
+            return max(1, 150 - aboveCutoff)
+        }
+
+        // Extended bracket system for ranks below 150
+        let globalExtendedBrackets: [(milestone: String, startRank: Int)] = [
+            // ap-tier brackets (ranks 151-154)
+            ("372ap", 151), ("46ap", 152), ("11ap", 153), ("2ap", 154),
+            // ao-tier brackets (ranks 155-157)
+            ("726ao", 155), ("22ao", 156), ("5ao", 157),
+            // an-tier brackets (ranks 158-163)
+            ("709an", 158), ("354an", 159), ("177an", 160), ("44an", 161), ("2an", 162), ("1an", 163),
+            // am-tier brackets (ranks 164-168)
+            ("693am", 164), ("173am", 165), ("86am", 166), ("1am", 168),
+            // al-tier brackets (ranks 169-173)
+            ("676al", 169), ("338al", 171), ("169al", 172), ("42al", 173),
+            // ak-tier brackets (ranks 174-177)
+            ("661ak", 174), ("165ak", 175), ("41ak", 176), ("2ak", 177),
+            // aj-tier brackets (ranks 178-185)
+            ("645aj", 178), ("322aj", 179), ("161aj", 181), ("80aj", 182), ("40aj", 183), ("20aj", 184), ("10aj", 185),
+            // ai-tier brackets (ranks 186-194)
+            ("630ai", 186), ("315ai", 187), ("157ai", 188), ("78ai", 189), ("39ai", 190), ("19ai", 192), ("9ai", 193), ("2ai", 194),
+            // ah-tier brackets (ranks 195-198)
+            ("615ah", 195), ("38ah", 196), ("4ah", 197), ("1ah", 198),
+            // ag-tier brackets (ranks 199-207)
+            ("601ag", 199), ("300ag", 201), ("150ag", 203), ("75ag", 204), ("37ag", 205), ("9ag", 206), ("2ag", 207),
+            // af-tier brackets (ranks 208-217)
+            ("587af", 208), ("293af", 209), ("146af", 210), ("36af", 211), ("4af", 212), ("2af", 214), ("1af", 216),
+            // ae-tier brackets (ranks 218-221)
+            ("573ae", 218), ("143ae", 219), ("71ae", 220), ("8ae", 221),
+            // ad-tier brackets (ranks 222-225)
+            ("559ad", 222), ("69ad", 223), ("17ad", 224), ("2ad", 225),
+            // ac-tier brackets (ranks 226-229)
+            ("546ac", 226), ("136ac", 227), ("68ac", 228), ("17ac", 229),
+            // ab-tier brackets (ranks 230-236)
+            ("533ab", 230), ("266ab", 231), ("133ab", 233), ("66ab", 234), ("33ab", 235), ("2ab", 236),
+            // aa-tier brackets (ranks 237-244)
+            ("521aa", 237), ("260aa", 238), ("130aa", 239), ("65aa", 240), ("32aa", 241), ("16aa", 242), ("8aa", 243), ("2aa", 244),
+            // z-tier brackets (ranks 245-251)
+            ("509z", 245), ("254z", 247), ("127z", 248), ("63z", 249), ("15z", 250), ("3z", 251),
+            // y-tier brackets (ranks 252-256)
+            ("994y", 252), ("497y", 253), ("248y", 254), ("31y", 255), ("3y", 256),
+            // x-tier brackets (ranks 257-263)
+            ("971x", 257), ("485x", 258), ("242x", 259), ("60x", 260), ("30x", 261), ("15x", 262), ("7x", 263),
+            // w-tier brackets (ranks 264-269)
+            ("948w", 264), ("474w", 265), ("237w", 266), ("59w", 267), ("14w", 268), ("7w", 269),
+            // v-tier brackets (ranks 270-274)
+            ("926v", 270), ("463v", 271), ("115v", 272), ("28v", 273), ("3v", 274),
+            // u-tier brackets (ranks 275-281)
+            ("904u", 275), ("452u", 276), ("226u", 277), ("113u", 278), ("28u", 279), ("7u", 280), ("1u", 281),
+            // t-tier brackets (ranks 282-287)
+            ("883t", 282), ("220t", 283), ("110t", 284), ("27t", 285), ("6t", 286), ("3t", 287),
+            // s-tier brackets (ranks 288-295)
+            ("862s", 288), ("431s", 289), ("215s", 290), ("107s", 291), ("53s", 292), ("26s", 293), ("13s", 294), ("3s", 295),
+            // r-tier brackets (ranks 296-301)
+            ("842r", 296), ("421r", 297), ("52r", 298), ("13r", 299), ("6r", 300), ("3r", 301),
+            // q-tier brackets (ranks 302-309)
+            ("822q", 302), ("411q", 303), ("205q", 304), ("102q", 305), ("51q", 306), ("12q", 307), ("6q", 308), ("3q", 309),
+            // p-tier brackets (ranks 310-317)
+            ("803p", 310), ("401p", 311), ("200p", 313), ("100p", 314), ("25p", 315), ("12p", 316), ("6p", 317),
+            // o-tier brackets (ranks 318-323)
+            ("784o", 318), ("392o", 319), ("98o", 320), ("49o", 321), ("12o", 322), ("3o", 323),
+            // n-tier brackets (ranks 324-327)
+            ("766n", 324), ("383n", 325), ("95n", 326), ("23n", 327),
+            // m-tier brackets (ranks 328-334)
+            ("748m", 328), ("374m", 329), ("93m", 330), ("23m", 331), ("11m", 332), ("2m", 333), ("1m", 334),
+            // l-tier brackets (ranks 335-342)
+            ("730l", 335), ("365l", 336), ("182l", 337), ("45l", 338), ("11l", 339), ("5l", 340), ("2l", 342),
+            // k-tier brackets (ranks 343-348)
+            ("713k", 343), ("356k", 344), ("178k", 345), ("44k", 346), ("11k", 347), ("5k", 348),
+            // j-tier brackets (ranks 349-352)
+            ("696j", 349), ("348j", 350), ("87j", 351), ("10j", 352),
+            // i-tier brackets (ranks 353-358)
+            ("680i", 353), ("340i", 354), ("170i", 355), ("85i", 356), ("42i", 357), ("10i", 358),
+            // h-tier brackets (ranks 359-367)
+            ("664h", 359), ("332h", 360), ("83h", 361), ("41h", 362), ("20h", 365), ("10h", 366), ("5h", 367),
+            // g-tier brackets (ranks 368-376)
+            ("649g", 368), ("324g", 369), ("81g", 371), ("40g", 372), ("20g", 373), ("10g", 374), ("5g", 375), ("1g", 376),
+            // f-tier brackets (ranks 377-390)
+            ("633f", 377), ("316f", 379), ("158f", 380), ("79f", 381), ("39f", 383), ("19f", 384), ("9f", 385), ("4f", 387), ("2f", 389), ("1f", 390),
+            // e-tier brackets (ranks 391-399)
+            ("309e", 391), ("154e", 392), ("77e", 393), ("38e", 394), ("19e", 395), ("9e", 396), ("4e", 398), ("1e", 399),
+            // d-tier brackets (ranks 400-415)
+            ("604d", 400), ("302d", 401), ("151d", 403), ("75d", 404), ("37d", 406), ("18d", 409), ("9d", 410), ("4d", 411), ("2d", 412), ("1d", 413),
+            // c-tier brackets (ranks 416-430)
+            ("590c", 416), ("295c", 417), ("147c", 418), ("73c", 419), ("36c", 420), ("18c", 421), ("9c", 423), ("4c", 425), ("2c", 427), ("1c", 429),
+            // b-tier brackets (ranks 431-450)
+            ("576b", 431), ("288b", 433), ("144b", 434), ("72b", 436), ("36b", 437), ("18b", 438), ("9b", 440), ("4b", 444), ("2b", 447), ("1b", 450),
+            // a-tier brackets (ranks 456-687)
+            ("562a", 456), ("281a", 463), ("140a", 472), ("70a", 479), ("35a", 484),
+            ("17a", 497), ("8a", 512), ("4a", 529), ("2a", 554), ("1a", 687),
+            // B-tier brackets (ranks 734-1633)
+            ("549B", 734), ("274B", 774), ("137B", 810), ("68B", 945), ("34B", 1002),
+            ("17B", 1134), ("8B", 1248), ("4B", 1404), ("2B", 1467), ("1B", 1633),
+            // M-tier brackets (ranks 1743-11248)
+            ("536M", 1743), ("268M", 1902), ("134M", 2123), ("67M", 2975), ("33M", 3784),
+            ("16M", 4564), ("8M", 5223), ("4M", 6530), ("2M", 7399), ("1M", 11248),
+            // K-tier brackets (ranks 17132-67412)
+            ("524K", 17132), ("262K", 23582), ("131K", 32486), ("65K", 42421), ("32K", 54867), ("16K", 67412),
+            // Raw number brackets (ranks 76767-877890+)
+            ("8192", 76767), ("4096", 112486), ("2048", 157780), ("1024", 248624),
+            ("512", 402486), ("256", 577398), ("128", 676767), ("64", 733337),
+            ("32", 789012), ("16", 822228), ("8", 847790), ("4", 863074), ("2", 877890),
+            ("0", 882349)
+        ]
+
+        // Find the bracket for the user's milestone
+        var bracketStart = totalPlayers
+        var bracketEnd = totalPlayers
+        var foundBracketIndex = -1
+
+        for (i, bracket) in globalExtendedBrackets.enumerated() {
+            let bracketIndex = milestoneIndex(for: bracket.milestone)
+            if userMilestoneIndex >= bracketIndex {
+                foundBracketIndex = i
+                break
+            }
+        }
+
+        if foundBracketIndex >= 0 {
+            bracketStart = globalExtendedBrackets[foundBracketIndex].startRank
+            if foundBracketIndex + 1 < globalExtendedBrackets.count {
+                bracketEnd = globalExtendedBrackets[foundBracketIndex + 1].startRank - 1
+            } else {
+                bracketEnd = totalPlayers
+            }
+        }
+
+        // Distribute user within the bracket range
+        let range = bracketEnd - bracketStart
+        if range > 0 && foundBracketIndex >= 0 {
+            let milestoneHash = abs(milestone.hashValue) % (range + 1)
+            return bracketStart + milestoneHash
+        }
+        return bracketStart
+    }
+
     // Calculate milestone progression for regular leaderboard players
     // Players progress through milestone tiers at different rates (0.1-0.25 milestones per day)
     // But cap total progression to prevent everyone reaching max milestone
@@ -2891,15 +3037,12 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with actual rank from sorted position
+        // If user is not in top 150, add them separately with rank calculated using bracket system
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
 
-            // Find user's actual rank from their position in the sorted playerData
-            var userRank = totalPlayers  // Default to last place
-            if let userPosition = playerData.firstIndex(where: { $0.id == "me" }) {
-                userRank = userPosition + 1  // Convert 0-indexed position to 1-indexed rank
-            }
+            // Calculate user rank using same bracket system as profile
+            let userRank = MockLeaderboardData.calculateGlobalRank(milestone: userMilestone, totalPlayers: totalPlayers)
 
             entries.append(LeaderboardEntry(
                 id: "me",
