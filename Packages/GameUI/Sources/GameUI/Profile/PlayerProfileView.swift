@@ -395,51 +395,82 @@ private struct CountryPickerView: View {
         }
     }
 
+    @FocusState private var isSearchFocused: Bool
+
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Button {
-                        onSelect(nil)
-                        dismiss()
-                    } label: {
-                        HStack {
-                            Image(systemName: "globe")
+            VStack(spacing: 0) {
+                // Search bar with keyboard support
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    TextField("Search countries", text: $searchText)
+                        .textFieldStyle(.plain)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .focused($isSearchFocused)
+                    if !searchText.isEmpty {
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
                                 .foregroundStyle(.secondary)
-                            Text("No Country")
-                            Spacer()
-                            if selectedCountry == nil {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.tint)
+                        }
+                    }
+                }
+                .padding(12)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+
+                List {
+                    Section {
+                        Button {
+                            onSelect(nil)
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Image(systemName: "globe")
+                                    .foregroundStyle(.secondary)
+                                Text("No Country")
+                                Spacer()
+                                if selectedCountry == nil {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.tint)
+                                }
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                    }
+
+                    if !filteredPopularCountries.isEmpty {
+                        Section("Popular Countries") {
+                            ForEach(filteredPopularCountries, id: \.self) { countryCode in
+                                countryRow(countryCode: countryCode)
                             }
                         }
                     }
-                    .foregroundStyle(.primary)
-                }
-                
-                if !filteredPopularCountries.isEmpty {
-                    Section("Popular Countries") {
-                        ForEach(filteredPopularCountries, id: \.self) { countryCode in
-                            countryRow(countryCode: countryCode)
-                        }
-                    }
-                }
 
-                if !filteredAllCountries.isEmpty {
-                    Section("All Countries") {
-                        ForEach(filteredAllCountries, id: \.self) { countryCode in
-                            countryRow(countryCode: countryCode)
+                    if !filteredAllCountries.isEmpty {
+                        Section("All Countries") {
+                            ForEach(filteredAllCountries, id: \.self) { countryCode in
+                                countryRow(countryCode: countryCode)
+                            }
                         }
                     }
                 }
+                .listStyle(.insetGrouped)
             }
-            .searchable(text: $searchText, prompt: "Search countries")
             .navigationTitle("Select Country")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
+            }
+            .onAppear {
+                isSearchFocused = true
             }
         }
     }
