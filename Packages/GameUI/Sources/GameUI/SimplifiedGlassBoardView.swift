@@ -49,21 +49,20 @@ public struct SimplifiedGlassBoardView: View {
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
         VStack(spacing: spacing) {
-            // Find the single position with the highest tile step (only one crown)
-            // Use stepIndex instead of value because highValue tiles all have value = Int.max
+            // Crown appears on the tile matching the highest milestone (record) achieved
+            // Only show crown on ONE tile that matches the highestTileStep
+            let highestStep = gameStore.state.highestTileStep
             let crownPosition: Position? = {
-                var maxStep = -1
-                var maxPos: Position? = nil
+                guard highestStep > 0 else { return nil }
                 for r in 0..<gameStore.state.board.height {
                     for c in 0..<gameStore.state.board.width {
                         let p = Position(row: r, col: c)
-                        if let t = gameStore.state.board[p], let step = t.stepIndex, step > maxStep {
-                            maxStep = step
-                            maxPos = p
+                        if let t = gameStore.state.board[p], let step = t.stepIndex, step == highestStep {
+                            return p // Return first tile matching the highest milestone
                         }
                     }
                 }
-                return maxPos
+                return nil
             }()
             
             // All board rows including glass preview row as first row

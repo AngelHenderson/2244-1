@@ -280,7 +280,35 @@ public final class GameStore {
             UserDefaults.standard.set(data, forKey: "powerUpInventory")
         }
     }
-    
+
+    /// Process pending rewards from GameState (power-ups, spins from gift boxes)
+    private func processPendingRewards() {
+        guard !state.pendingRewards.isEmpty else { return }
+
+        for reward in state.pendingRewards {
+            switch reward.type {
+            case .powerUp:
+                if let powerUpType = reward.powerUpType {
+                    addPowerUp(powerUpType.rawValue, count: reward.value)
+                    print("🎁 Awarded \(reward.value) \(powerUpType.rawValue)(s) from gift box")
+                }
+            case .spin:
+                // Add spins to inventory (treat as a special power-up type)
+                addPowerUp("spin", count: reward.value)
+                print("🎁 Awarded \(reward.value) spin(s) from gift box")
+            case .gems:
+                // Gems are already handled in GameEngine, but process here for completeness
+                break
+            case .scoreBoost:
+                // Score boosts are already handled in GameEngine
+                break
+            }
+        }
+
+        // Clear pending rewards from state
+        state.pendingRewards.removeAll()
+    }
+
     // JourneyKit integration
     public let journey = JourneyKit.Store(
         config: .init(minPower: 8, maxPower: 22) // 256 to 4_194_304
@@ -904,11 +932,16 @@ public final class GameStore {
         affectedColumns = columnsWithEmpties(in: newState.board)
 
         // Update state but DO NOT schedule refill reveal yet, as refill hasn't happened
-        // IMPORTANT: Preserve gems from UserDefaults - the engine doesn't track spending correctly
+        // Track gems earned from this action (gifts, etc.)
+        let previousGems = state.gems
         let savedGems = UserDefaults.standard.integer(forKey: "coins")
-        let gemsToPreserve = savedGems > 0 ? savedGems : state.gems
+        let baseGems = savedGems > 0 ? savedGems : previousGems
+        let gemsEarned = newState.gems - state.gems  // Gems awarded by engine
         state = newState
-        state.gems = gemsToPreserve  // Restore gems after state update
+        state.gems = baseGems + max(0, gemsEarned)  // Add any earned gems to saved total
+
+        // Process pending rewards (power-ups, spins from gift boxes)
+        processPendingRewards()
         // We manually handle refill reveal later in performRefill
         
         // Break glass tiles for any positions in row 0 that were part of this connection
@@ -922,7 +955,8 @@ public final class GameStore {
         
         if !newlyBrokenGlass.isEmpty {
             for position in newlyBrokenGlass {
-                pendingGiftBoxes[position] = GiftReward.randomReward(isFromGlassShatter: true)
+                // Use column-based rewards instead of random
+                pendingGiftBoxes[position] = GiftReward.rewardForColumn(position.col, isFromGlassShatter: true)
             }
             persistPendingGiftBoxes()
         }
@@ -1971,7 +2005,8 @@ public final class GameStore {
             
             let magnetResult = self.engine.magnetize(value: value, to: position)
             self.state = magnetResult
-            
+            self.processPendingRewards()
+
             let mergedValue = magnetResult.board[position]?.value ?? {
                 return value <= (Int.max >> 1) ? value * 2 : Int.max
             }()
