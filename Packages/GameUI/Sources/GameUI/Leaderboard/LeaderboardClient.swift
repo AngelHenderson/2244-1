@@ -878,138 +878,117 @@ private enum MockLeaderboardData {
         return p1.mantissa - p2.mantissa
     }
 
-    // Exact Hall of Fame infinity counts from screenshots (ranks 1-150)
+    // Hall of Fame infinity counts - original values
     static let hallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (US Hall of Fame)
+        // US Hall of Fame (43 players)
         12222, 7644, 2888, 2233, 1898, 1895, 1288, 977, 775, 676, 674, 674, 588, 411, 299,
-        // Ranks 16-30
         214, 159, 100, 77, 44, 43, 41, 38, 34, 31, 28, 25, 22, 19, 17,
-        // Ranks 31-43
         13, 11, 9, 8, 6, 4, 3, 3, 2, 2, 1, 1, 1
     ]
 
     static let ukHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (UK Hall of Fame)
+        // UK Hall of Fame (43 players)
         10578, 3336, 876, 299, 233, 167, 162, 122, 89, 78, 67, 56, 45, 43, 36,
-        // Ranks 16-30
         36, 34, 34, 34, 32, 21, 16, 12, 10, 10, 8, 7, 6, 5, 5,
-        // Ranks 31-43
         4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 1, 1, 1
     ]
 
     static let canadaHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Canada Hall of Fame)
+        // Canada Hall of Fame (38 players)
         544, 449, 388, 333, 299, 208, 207, 206, 188, 149, 133, 119, 107, 97, 89,
-        // Ranks 16-30
         83, 79, 77, 76, 67, 53, 39, 22, 21, 20, 19, 19, 13, 11, 10,
-        // Ranks 31-38
         8, 4, 3, 2, 2, 1, 1, 1
     ]
 
     static let australiaHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Australia Hall of Fame)
+        // Australia Hall of Fame (38 players)
         998, 555, 333, 331, 239, 207, 157, 119, 83, 44, 44, 43, 42, 22, 21,
-        // Ranks 16-30
         18, 16, 14, 12, 11, 11, 10, 8, 7, 7, 6, 6, 6, 4, 3,
-        // Ranks 31-38
         3, 3, 2, 2, 2, 1, 1, 1
     ]
 
     static let germanyHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Germany Hall of Fame)
+        // Germany Hall of Fame (41 players)
         2111, 1666, 1222, 1000, 888, 788, 774, 674, 534, 199, 185, 125, 85, 32, 30,
-        // Ranks 16-30
         28, 26, 24, 22, 22, 22, 21, 19, 13, 12, 12, 10, 7, 6, 5,
-        // Ranks 31-41
         5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1
     ]
 
     static let franceHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (France Hall of Fame)
+        // France Hall of Fame (36 players)
         444, 211, 209, 208, 111, 97, 95, 33, 32, 22, 21, 21, 20, 15, 13,
-        // Ranks 16-30
         11, 10, 10, 9, 9, 9, 9, 8, 8, 8, 8, 7, 7, 7, 7,
-        // Ranks 31-36
         4, 3, 3, 2, 1, 1
     ]
 
     static let japanHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Japan Hall of Fame)
+        // Japan Hall of Fame (37 players)
         677, 676, 670, 633, 560, 414, 411, 212, 211, 88, 39, 48, 44, 44, 34,
-        // Ranks 16-30
         25, 17, 13, 11, 10, 9, 9, 6, 5, 5, 5, 4, 4, 3, 3,
-        // Ranks 31-37
         3, 3, 2, 2, 1, 1, 1
     ]
 
     static let indiaHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (India Hall of Fame)
+        // India Hall of Fame (37 players)
         6776, 6767, 6702, 6333, 5666, 4141, 4114, 2121, 2112, 888, 399, 48, 44, 44, 34,
-        // Ranks 16-30
         25, 17, 13, 11, 10, 9, 9, 6, 5, 5, 5, 4, 4, 3, 3,
-        // Ranks 31-37
         3, 3, 2, 2, 1, 1, 1
     ]
 
     static let brazilHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Brazil Hall of Fame)
+        // Brazil Hall of Fame (44 players)
         1111, 943, 587, 384, 321, 267, 232, 222, 222, 221, 167, 143, 121, 119, 99,
-        // Ranks 16-30
         86, 69, 56, 25, 24, 23, 21, 17, 14, 12, 11, 11, 9, 8, 8,
-        // Ranks 31-44
         7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1
     ]
 
     static let mexicoHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Mexico Hall of Fame)
+        // Mexico Hall of Fame (35 players)
         11111, 8755, 5912, 4413, 4410, 3544, 1185, 966, 784, 711, 635, 559, 318, 98, 77,
-        // Ranks 16-30
         69, 67, 66, 34, 17, 8, 7, 6, 5, 5, 4, 3, 3, 2, 2,
-        // Ranks 31-35
         2, 1, 1, 1, 1
     ]
 
     static let afghanistanHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Afghanistan Hall of Fame)
+        // Afghanistan Hall of Fame (22 players)
         1933, 689, 663, 639, 348, 311, 220, 129, 97, 69, 44, 23, 19, 14, 10,
-        // Ranks 16-22
         7, 5, 4, 4, 3, 1, 1
     ]
 
     static let albaniaHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Albania Hall of Fame)
+        // Albania Hall of Fame (26 players)
         870, 492, 484, 239, 114, 110, 53, 24, 19, 16, 14, 12, 11, 11, 10,
-        // Ranks 16-26
         9, 9, 7, 5, 3, 3, 2, 2, 1, 1, 1
     ]
 
     static let algeriaHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (Algeria Hall of Fame)
+        // Algeria Hall of Fame (28 players)
         322, 299, 221, 211, 156, 122, 89, 77, 65, 39, 33, 28, 24, 21, 19,
-        // Ranks 16-28
         18, 16, 13, 9, 4, 3, 3, 2, 2, 1, 1, 1, 1
     ]
 
     static let chinaHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (China Hall of Fame)
+        // China Hall of Fame (52 players)
         988, 676, 543, 277, 222, 167, 112, 98, 78, 66, 54, 43, 32, 25, 18,
-        // Ranks 16-30
         17, 15, 14, 13, 13, 12, 12, 12, 11, 11, 9, 8, 8, 6, 6,
-        // Ranks 31-45
         5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2,
-        // Ranks 46-52
         2, 1, 1, 1, 1, 1, 1
     ]
 
     static let southKoreaHallOfFameInfinityCounts: [Int] = [
-        // Ranks 1-15 (South Korea Hall of Fame)
+        // South Korea Hall of Fame (51 players)
         28822, 22222, 18766, 11149, 3995, 2996, 2055, 1288, 866, 386, 344, 221, 116, 108, 100,
-        // Ranks 16-30
         95, 29, 28, 28, 27, 22, 21, 21, 20, 20, 19, 19, 19, 18, 18,
-        // Ranks 31-45
         18, 18, 17, 12, 12, 11, 8, 8, 6, 6, 4, 3, 3, 2, 2,
-        // Ranks 46-51
         2, 1, 1, 1, 1, 1
+    ]
+
+    static let italyHallOfFameInfinityCounts: [Int] = [
+        // Italy Hall of Fame (54 players)
+        4552, 3888, 3222, 2555, 2193, 1183, 877, 398, 303, 233, 188, 165, 154, 153, 151,
+        111, 96, 84, 75, 67, 58, 52, 47, 43, 33, 32, 31, 30, 28, 26,
+        25, 22, 18, 13, 12, 10, 10, 7, 5, 5, 4, 4, 3, 3, 3,
+        2, 2, 2, 2, 1, 1, 1, 1, 1
     ]
 
     static let usNames = [
@@ -1524,7 +1503,7 @@ public extension LeaderboardClient {
                 totalPlayers = 46_767  // Netherlands player count
             case .global:
                 // Global = sum of all country players
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399 + 46_767
             }
             let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
             return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
@@ -1672,28 +1651,25 @@ public extension LeaderboardClient {
             playerData.append(("hof_kr_\(i)", count, "KR", globalIndex, i + 14000))
             globalIndex += 1
         }
+        // Add Italy players
+        for (i, count) in MockLeaderboardData.italyHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_it_\(i)", count, "IT", globalIndex, i + 15000))
+            globalIndex += 1
+        }
 
-        // Sort by base count (highest first), then apply progression
+        // Sort by base count (highest first) - Hall of Fame data is already current, no progression needed
         playerData.sort { $0.baseCount > $1.baseCount }
 
         // Build entries with ranks based on sorted order
-        // Apply infinity progression based on player's tier (tiered rates)
         var entries: [LeaderboardEntry] = []
         for (rank, player) in playerData.enumerated() {
-            // Apply daily infinity progression based on tiered rates
-            let infinityCount = MockLeaderboardData.infinityCountWithProgression(
-                baseCount: player.baseCount,
-                playerIndex: player.playerIndex,
-                day: day
-            )
-
             // Use unique name from hallOfFameNames based on rank position
             let name = MockLeaderboardData.hallOfFameNames[rank % MockLeaderboardData.hallOfFameNames.count]
 
             let platform: Platform = rank % 2 == 0 ? .ios : .android
             // Use seeded avatar selection for variety (different from names)
             let avatar = MockLeaderboardData.avatarForPlayer(index: rank, countrySeed: 999)
-            let score = MockLeaderboardData.scoreForMilestone("\(infinityCount)∞")
+            let score = MockLeaderboardData.scoreForMilestone("\(player.baseCount)∞")
 
             entries.append(LeaderboardEntry(
                 id: player.id,
@@ -1703,7 +1679,7 @@ public extension LeaderboardClient {
                 countryCode: player.country,
                 platform: platform,
                 avatarURL: avatar,
-                highestTile: "\(infinityCount)∞"
+                highestTile: "\(player.baseCount)∞"
             ))
         }
 
