@@ -44,6 +44,19 @@ public struct GameConfig: Sendable {
     }
 }
 
+/// Represents a pending reward from breaking a gift
+public struct PendingReward: Equatable, Sendable {
+    public let type: GiftRewardType
+    public let value: Int
+    public let powerUpType: PowerUpType?
+
+    public init(type: GiftRewardType, value: Int, powerUpType: PowerUpType? = nil) {
+        self.type = type
+        self.value = value
+        self.powerUpType = powerUpType
+    }
+}
+
 public struct GameState: Equatable, Sendable {
     public var board: Board
     public var score: Int
@@ -55,7 +68,8 @@ public struct GameState: Equatable, Sendable {
     public var level: Int
     public var gems: Int
     public var undoAvailable: Bool
-    
+    public var pendingRewards: [PendingReward]
+
     public init(
         board: Board,
         score: Int = 0,
@@ -66,7 +80,8 @@ public struct GameState: Equatable, Sendable {
         highestTileStep: Int? = nil,
         level: Int = 1,
         gems: Int = 0,
-        undoAvailable: Bool = false
+        undoAvailable: Bool = false,
+        pendingRewards: [PendingReward] = []
     ) {
         self.board = board
         self.score = score
@@ -79,6 +94,7 @@ public struct GameState: Equatable, Sendable {
         self.level = level
         self.gems = gems
         self.undoAvailable = undoAvailable
+        self.pendingRewards = pendingRewards
     }
 }
 
@@ -447,26 +463,24 @@ public final class GameEngine {
                 case .gems:
                     state.gems += reward.value
                 case .spin:
-                    // TODO: Award spins (needs to be handled by GameStore)
-                    state.gems += reward.value  // Temporary: convert to gems
+                    // Track spin reward for GameStore to apply
+                    state.pendingRewards.append(PendingReward(type: .spin, value: reward.value))
                 case .scoreBoost:
-                    // TODO: Award score boost (needs to be handled by GameStore)
                     // For multiple boosts, apply the highest one
                     setScoreMultiplier(max(scoreMultiplier, reward.value))
                 case .powerUp:
-                    // TODO: Award power-up (needs to be handled by GameStore)
-                    // For now, award gems as placeholder
-                    state.gems += 5
+                    // Track power-up reward for GameStore to apply to Profile
+                    state.pendingRewards.append(PendingReward(type: .powerUp, value: reward.value, powerUpType: reward.powerUpType))
                 }
             }
 
-            // Flag pending gift refill
-            pendingGiftRefillValue = generateRandomValue()
+            // Flag pending gift refill for this specific column
+            pendingGiftRefills.append((column: column, value: generateRandomValue()))
         }
 
         return state
     }
-    
+
     // MARK: - Gift Management
     
     @discardableResult
@@ -614,9 +628,17 @@ public final class GameEngine {
     }
     
     private func processPendingGiftRefillIfNeeded() {
-        guard let giftValue = pendingGiftRefillValue else { return }
-        state.board.refillTopRowWithGifts { giftValue }
-        pendingGiftRefillValue = nil
+        // Process column-specific gift refills
+        for refill in pendingGiftRefills {
+            state.board.refillGiftAtColumn(refill.column) { refill.value }
+        }
+        pendingGiftRefills.removeAll()
+
+        // Legacy: process single value refill (fills all empty gift cells)
+        if let giftValue = pendingGiftRefillValue {
+            state.board.refillTopRowWithGifts { giftValue }
+            pendingGiftRefillValue = nil
+        }
     }
 
     /// Applies gravity and game-over evaluation after a chain has been committed
@@ -748,21 +770,19 @@ public final class GameEngine {
                 case .gems:
                     state.gems += reward.value
                 case .spin:
-                    // TODO: Award spins (needs to be handled by GameStore)
-                    state.gems += reward.value  // Temporary: convert to gems
+                    // Track spin reward for GameStore to apply
+                    state.pendingRewards.append(PendingReward(type: .spin, value: reward.value))
                 case .scoreBoost:
-                    // TODO: Award score boost (needs to be handled by GameStore)
                     // For multiple boosts, apply the highest one
                     setScoreMultiplier(max(scoreMultiplier, reward.value))
                 case .powerUp:
-                    // TODO: Award power-up (needs to be handled by GameStore)
-                    // For now, award gems as placeholder
-                    state.gems += 5
+                    // Track power-up reward for GameStore to apply to Profile
+                    state.pendingRewards.append(PendingReward(type: .powerUp, value: reward.value, powerUpType: reward.powerUpType))
                 }
             }
 
-            // Schedule gift refill for next refill phase
-            pendingGiftRefillValue = generateRandomValue()
+            // Schedule gift refill for this specific column
+            pendingGiftRefills.append((column: column, value: generateRandomValue()))
         }
         
         // Update highest tile and level if needed
