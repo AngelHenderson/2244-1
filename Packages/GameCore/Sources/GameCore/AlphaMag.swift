@@ -273,7 +273,7 @@ public extension AlphaMag {
     /// - 394,567,000,000,000 -> "394,567a" (394,567 trillion)
     /// - 2,040,584,000,000 -> "2,041a" (2,041 trillion)
     /// - 5,500,000,000,000,000 -> "5,500b" (5,500 quadrillion)
-    public static func formatScoreDisplay(_ value: Int) -> String {
+    static func formatScoreDisplay(_ value: Int) -> String {
         guard value != 0 else { return "0" }
         let isNegative = value < 0
         let magnitude = abs(value)
@@ -358,14 +358,14 @@ public extension AlphaMag {
 public extension AlphaMag {
     /// Check if a tile value should use AlphaMag formatting
     /// We start using suffixes at 16384 (16K) to keep the doubling sequence clean
-    public static func shouldUseAlphaMagFormatting(for value: Int) -> Bool {
+    static func shouldUseAlphaMagFormatting(for value: Int) -> Bool {
         return value >= 16384
     }
 
     /// Format a tile value appropriately
     /// < 16384: plain numbers without grouping (2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192)
     /// >= 16384: AlphaMag format (16K, 32K, 64K, 128K, 256K, 512K, 1M, 2M, 4M, 8M, 16M, 32M, 64M, 128M, 256M, 512M, 1B, 2B, 4B, 8B, etc.)
-    public static func formatTileValue(_ value: Int) -> String {
+    static func formatTileValue(_ value: Int) -> String {
         if shouldUseAlphaMagFormatting(for: value) {
             return format(value)
         } else {
