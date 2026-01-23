@@ -144,8 +144,9 @@ public struct SpinWheelView: View {
                 
                 WheelFace(segments: engine.segments)
                     .rotationEffect(.radians(Double(engine.angle)))
-                
+
                 WheelLights(count: max(engine.segments.count, 1))
+                    .rotationEffect(.radians(Double(engine.angle)))
                 
                 LocationPinShape()
                     .fill(
