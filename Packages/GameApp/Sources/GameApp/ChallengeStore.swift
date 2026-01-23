@@ -122,7 +122,7 @@ public final class ChallengeStore: Sendable {
             return .expert
         }
 
-        // Specific rewards for challenges (1M, 1B, 1a-1v)
+        // Specific rewards for challenges (1M, 1B, 1a-1z, 1aa-1ac)
         // MegaMerge = .magnet power-up
         let specificRewards: [Int: ChallengeReward] = [
             0: ChallengeReward(coins: 50),                                              // 1M: 50 Gems
@@ -148,7 +148,14 @@ public final class ChallengeStore: Sendable {
             20: ChallengeReward(powerUps: [.hammer: 1]),                                // 1s: 1 Hammer
             21: ChallengeReward(spins: 1),                                              // 1t: 1 Spin
             22: ChallengeReward(coins: 200),                                            // 1u: 200 Gems
-            23: ChallengeReward(spins: 1, scoreBoosts: [4: 1])                          // 1v: 1 Spin, 4X Boost
+            23: ChallengeReward(spins: 1, scoreBoosts: [4: 1]),                         // 1v: 1 Spin, 4X Boost
+            24: ChallengeReward(coins: 250),                                            // 1w: 250 Gems
+            25: ChallengeReward(spins: 1, scoreBoosts: [3: 1]),                         // 1x: 1 Spin, 3X Boost
+            26: ChallengeReward(powerUps: [.magnet: 1], scoreBoosts: [2: 1, 3: 1]),     // 1y: 1 MegaMerge, 2X Boost, 3X Boost
+            27: ChallengeReward(powerUps: [.hammer: 1, .swap: 1, .magnet: 1], spins: 1),// 1z: 1 Hammer, 1 Swap, 1 MegaMerge, 1 Spin
+            28: ChallengeReward(coins: 225, powerUps: [.swap: 1], spins: 1, scoreBoosts: [2: 1, 3: 1]), // 1aa: 225 Gems, 1 Swap, 1 Spin, 2X Boost, 3X Boost
+            29: ChallengeReward(coins: 220, spins: 2),                                  // 1ab: 220 Gems, 2 Spins
+            30: ChallengeReward(coins: 150, spins: 3)                                   // 1ac: 150 Gems, 3 Spins
         ]
 
         // Helper to get reward - uses specific reward if defined, otherwise falls back to formula
@@ -156,7 +163,7 @@ public final class ChallengeStore: Sendable {
             if let specific = specificRewards[index] {
                 return specific
             }
-            // Fallback formula for challenges beyond 1v
+            // Fallback formula for challenges beyond 1ac
             let baseCoins = 50 + (index * 25)
             return ChallengeReward(coins: baseCoins)
         }
