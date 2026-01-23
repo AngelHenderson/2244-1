@@ -28,8 +28,21 @@ public struct CustomChallengeGameScreen: View {
         self.config = config
         self.onDismiss = onDismiss
         self._timeRemaining = State(initialValue: config.timeLimitSeconds)
-        // Use sandboxed GameStore to prevent challenge progress from affecting main game
-        self._challengeGameStore = State(initialValue: GameStore.sandboxed())
+
+        // Extract target step for power-up cost scaling
+        let targetStep: Int?
+        switch config.target {
+        case .tileStep(let step):
+            targetStep = step
+        case .tile(let value):
+            // Convert tile value to step (step = log2(value) - 1)
+            targetStep = value > 0 ? Int(log2(Double(value))) - 1 : nil
+        default:
+            targetStep = nil
+        }
+
+        // Use sandboxed GameStore with challenge target for power-up cost scaling
+        self._challengeGameStore = State(initialValue: GameStore.sandboxed(challengeTargetStep: targetStep))
     }
 
     public var body: some View {

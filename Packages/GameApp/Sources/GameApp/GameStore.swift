@@ -25,6 +25,9 @@ public final class GameStore {
     // Sandboxed mode for challenges - doesn't persist progress to main game
     public let sandboxed: Bool
 
+    // Challenge target step for power-up cost scaling (only used in sandboxed/challenge mode)
+    public var challengeTargetStep: Int?
+
     // Progress store for comprehensive auto-save
     private let progressStore: UserDefaultsProgressStore
     // Track if we're building a chain that may end on a gift
@@ -551,9 +554,11 @@ public final class GameStore {
     /// - Parameters:
     ///   - config: Game configuration
     ///   - initialGems: Starting gems (typically from player's main inventory)
-    public static func sandboxed(config: GameConfig = GameConfig(), initialGems: Int = 0) -> GameStore {
+    ///   - challengeTargetStep: Target step for power-up cost scaling (e.g., step 19 for 1M milestone)
+    public static func sandboxed(config: GameConfig = GameConfig(), initialGems: Int = 0, challengeTargetStep: Int? = nil) -> GameStore {
         let store = GameStore(config: config, sandboxed: true)
         store.coins = initialGems
+        store.challengeTargetStep = challengeTargetStep
         return store
     }
 
@@ -2052,6 +2057,16 @@ public final class GameStore {
     }
     
     private func milestonePriceDelta() -> Int {
+        // In challenge mode, use the challenge's target step for cost scaling
+        if let targetStep = challengeTargetStep {
+            // targetStep is the power minus 1 (step 0 = 2, step 9 = 1024, step 19 = 1M)
+            // Apply same scaling: milestones start at step 9 (512)
+            guard targetStep >= 9 else { return 0 }
+            let milestonesUnlocked = max(0, targetStep - 9)
+            return milestonesUnlocked * 10
+        }
+
+        // Normal mode: use player's highest tile
         let highest = state.highestTile
         guard highest >= 512 else { return 0 }
         let exponent = Int.bitWidth - highest.leadingZeroBitCount - 1
