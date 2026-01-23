@@ -2113,10 +2113,10 @@ public extension LeaderboardClient {
         "437av", "109av", "27av", "427au", "106au", "26au", "418at", "104at", "26at", "409as",
         "102as", "25as", "400ar", "100ar", "25ar", "391aq", "97aq", "24aq", "383ap", "95ap",
         "23ap", "375ao", "93ao", "23ao", "367an", "91an", "22an", "359am", "89am", "22am",
-        // Ranks 121-150
-        "352al", "88al", "22al", "345ak", "86ak", "21ak", "338aj", "84aj", "21aj", "331ai",
-        "82ai", "20ai", "324ah", "81ah", "20ah", "318ag", "79ag", "19ag", "311af", "77af",
-        "19af", "305ae", "76ae", "19ae", "299ad", "74ad", "18ad", "293ac", "73ac", "18ac"
+        // Ranks 121-150 (continuing down through lower tiers to B-tier)
+        "352al", "345ak", "338aj", "331ai", "324ah", "318ag", "311af", "305ae", "299ad", "293ac",
+        "287ab", "281aa", "137a", "68a", "34a", "17a", "8a", "4a", "2a", "1a",
+        "549B", "274B", "137B", "68B", "34B", "17B", "8B", "4B", "2B", "1B"
     ]
 
     // Extended Japan milestone brackets for rank calculation (ranks 151+)
