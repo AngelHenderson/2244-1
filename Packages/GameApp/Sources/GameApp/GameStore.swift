@@ -2844,8 +2844,11 @@ extension GameStore {
     // MARK: - Legacy Progress Auto-Save System (for backward compatibility)
     
     public func saveProgressImmediately(newTile: Int?) {
+        // Don't save progress from sandboxed challenge stores
+        guard !sandboxed else { return }
+
         // SAVE EVERYTHING ON EVERY ACTION - not just new records
-        
+
         // Check for infinity tiles on board
         var hasInfinityTile = false
         for row in 0..<state.board.height {
