@@ -423,14 +423,14 @@ private struct WeekGridView: View {
     let onClaim: (DailyClaimsStore.DailyClaim) -> Void
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             // Grid of days in 2 columns
             let pairCount = claims.count / 2
             let hasOddDay = claims.count % 2 == 1
 
             // First 6 days (or pairs) in 2-column grid
             ForEach(0..<pairCount, id: \.self) { rowIndex in
-                HStack(spacing: 16) {
+                HStack(spacing: 12) {
                     let leftIndex = rowIndex * 2
                     let rightIndex = rowIndex * 2 + 1
 
@@ -442,6 +442,7 @@ private struct WeekGridView: View {
                         combinedReward: claims[leftIndex].day == nextDay ? combinedRewardForNext : nil,
                         onClaim: claims[leftIndex].isAvailable ? { onClaim(claims[leftIndex]) } : nil
                     )
+                    .frame(maxHeight: .infinity)
 
                     DayGridCell(
                         claim: claims[rightIndex],
@@ -451,7 +452,9 @@ private struct WeekGridView: View {
                         combinedReward: claims[rightIndex].day == nextDay ? combinedRewardForNext : nil,
                         onClaim: claims[rightIndex].isAvailable ? { onClaim(claims[rightIndex]) } : nil
                     )
+                    .frame(maxHeight: .infinity)
                 }
+                .frame(maxHeight: .infinity)
             }
 
             // Last day centered (Day 7 or odd remaining day)
@@ -464,12 +467,10 @@ private struct WeekGridView: View {
                     combinedReward: lastClaim.day == nextDay ? combinedRewardForNext : nil,
                     onClaim: lastClaim.isAvailable ? { onClaim(lastClaim) } : nil
                 )
-            }
-
-            if claims.count < 7 {
-                Spacer()
+                .frame(maxHeight: .infinity)
             }
         }
+        .frame(maxHeight: .infinity)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
     }
@@ -488,7 +489,7 @@ private struct DayGridCell: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
             // Day title
             HStack {
                 Text("Day \(claim.day)")
@@ -512,15 +513,16 @@ private struct DayGridCell: View {
                             .foregroundStyle(entry.kind.iconColor)
                         Text("\(entry.amount)")
                     }
-                    .font(.caption)
+                    .font(.subheadline)
                 }
                 if displayRewards.entries.count > 3 {
                     Text("+\(displayRewards.entries.count - 3)")
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Spacer()
             }
+
+            Spacer()
 
             // Claim button if available
             if let onClaim, claim.isAvailable {
@@ -528,7 +530,7 @@ private struct DayGridCell: View {
                     Text("Claim")
                         .font(.subheadline.bold())
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 10)
                         .background(Color.purple.gradient, in: RoundedRectangle(cornerRadius: 10))
                         .foregroundStyle(.white)
                 }
@@ -536,7 +538,7 @@ private struct DayGridCell: View {
             }
         }
         .padding(12)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(backgroundColor, in: RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
