@@ -193,26 +193,14 @@ public struct DailyClaimsView: View {
                             )
                             .tag(index)
                         } else {
-                            VStack(spacing: 12) {
-                                let nextDay = store.getNextClaimableDay()
-                                ForEach(claims) { claim in
-                                    let isNext = (claim.day == nextDay)
-                                    let combined = isNext ? (store.combinedRewardForNextClaim() ?? claim.rewards) : claim.rewards
-                                    let bonus = isNext ? bonusEntries(base: claim.rewards, combined: combined) : []
-                                    DailyRewardRow(
-                                        claim: claim,
-                                        currentClaimDay: store.currentClaimDay,
-                                        highlightDay: highlightDay,
-                                        combinedReward: combined,
-                                        bonusEntries: bonus,
-                                        onClaim: claim.isAvailable ? { claimReward(claim.rewards) } : nil
-                                    )
-                                }
-                                if claims.count < 7 {
-                                    Spacer(minLength: CGFloat(7 - claims.count) * 72)
-                                }
-                            }
-                            .padding(.vertical, 4)
+                            WeekGridView(
+                                claims: claims,
+                                currentClaimDay: store.currentClaimDay,
+                                highlightDay: highlightDay,
+                                nextDay: store.getNextClaimableDay(),
+                                combinedRewardForNext: store.combinedRewardForNextClaim(),
+                                onClaim: { claim in claimReward(claim.rewards) }
+                            )
                             .tag(index)
                         }
                     }
@@ -422,6 +410,168 @@ public struct DailyClaimsView: View {
             return "Week 105"  // Days 731-735 (rest of week 105)
         } else {
             return "Week \(page - 2)"  // Pages 108+ = Weeks 106+ (offset by 2)
+        }
+    }
+}
+
+private struct WeekGridView: View {
+    let claims: [DailyClaimsStore.DailyClaim]
+    let currentClaimDay: Int
+    let highlightDay: Int
+    let nextDay: Int?
+    let combinedRewardForNext: AchievementDef.Rewards?
+    let onClaim: (DailyClaimsStore.DailyClaim) -> Void
+
+    var body: some View {
+        VStack(spacing: 16) {
+            // Grid of days in 2 columns
+            let pairCount = claims.count / 2
+            let hasOddDay = claims.count % 2 == 1
+
+            // First 6 days (or pairs) in 2-column grid
+            ForEach(0..<pairCount, id: \.self) { rowIndex in
+                HStack(spacing: 16) {
+                    let leftIndex = rowIndex * 2
+                    let rightIndex = rowIndex * 2 + 1
+
+                    DayGridCell(
+                        claim: claims[leftIndex],
+                        currentClaimDay: currentClaimDay,
+                        highlightDay: highlightDay,
+                        isNext: claims[leftIndex].day == nextDay,
+                        combinedReward: claims[leftIndex].day == nextDay ? combinedRewardForNext : nil,
+                        onClaim: claims[leftIndex].isAvailable ? { onClaim(claims[leftIndex]) } : nil
+                    )
+
+                    DayGridCell(
+                        claim: claims[rightIndex],
+                        currentClaimDay: currentClaimDay,
+                        highlightDay: highlightDay,
+                        isNext: claims[rightIndex].day == nextDay,
+                        combinedReward: claims[rightIndex].day == nextDay ? combinedRewardForNext : nil,
+                        onClaim: claims[rightIndex].isAvailable ? { onClaim(claims[rightIndex]) } : nil
+                    )
+                }
+            }
+
+            // Last day centered (Day 7 or odd remaining day)
+            if hasOddDay, let lastClaim = claims.last {
+                DayGridCell(
+                    claim: lastClaim,
+                    currentClaimDay: currentClaimDay,
+                    highlightDay: highlightDay,
+                    isNext: lastClaim.day == nextDay,
+                    combinedReward: lastClaim.day == nextDay ? combinedRewardForNext : nil,
+                    onClaim: lastClaim.isAvailable ? { onClaim(lastClaim) } : nil
+                )
+            }
+
+            if claims.count < 7 {
+                Spacer()
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+    }
+}
+
+private struct DayGridCell: View {
+    let claim: DailyClaimsStore.DailyClaim
+    let currentClaimDay: Int
+    let highlightDay: Int
+    let isNext: Bool
+    let combinedReward: AchievementDef.Rewards?
+    let onClaim: (() -> Void)?
+
+    private var displayRewards: AchievementDef.Rewards {
+        combinedReward ?? claim.rewards
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            // Day title
+            HStack {
+                Text("Day \(claim.day)")
+                    .font(.title2.bold())
+                if claim.day == highlightDay {
+                    Text("Today")
+                        .font(.caption2)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.blue.opacity(0.15), in: Capsule())
+                }
+                Spacer()
+                statusIndicator
+            }
+
+            // Rewards
+            HStack(spacing: 6) {
+                ForEach(displayRewards.entries.prefix(3), id: \.self) { entry in
+                    HStack(spacing: 3) {
+                        Image(systemName: entry.kind.iconName)
+                            .foregroundStyle(entry.kind.iconColor)
+                        Text("\(entry.amount)")
+                    }
+                    .font(.caption)
+                }
+                if displayRewards.entries.count > 3 {
+                    Text("+\(displayRewards.entries.count - 3)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+
+            // Claim button if available
+            if let onClaim, claim.isAvailable {
+                Button(action: onClaim) {
+                    Text("Claim")
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(Color.purple.gradient, in: RoundedRectangle(cornerRadius: 10))
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity)
+        .background(backgroundColor, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(borderColor, lineWidth: 1)
+        )
+    }
+
+    @ViewBuilder
+    private var statusIndicator: some View {
+        if claim.isClaimed {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+        } else if !claim.isAvailable {
+            Image(systemName: "clock")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var backgroundColor: Color {
+        if claim.isClaimed {
+            return Color.green.opacity(0.12)
+        } else if claim.isAvailable {
+            return Color.yellow.opacity(0.15)
+        } else {
+            return Color(.secondarySystemBackground)
+        }
+    }
+
+    private var borderColor: Color {
+        if claim.isAvailable {
+            return .yellow
+        } else if claim.isClaimed {
+            return .green.opacity(0.6)
+        } else {
+            return .gray.opacity(0.2)
         }
     }
 }
