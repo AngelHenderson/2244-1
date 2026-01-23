@@ -360,6 +360,11 @@ public struct DailyClaimsView: View {
                     store.ensureClaimsCovering(pageIndex: 106)
                     withAnimation { selectedPage = 106 }
                 }
+                // Rest of Week 105 (Days 731-735)
+                Button("Week 105 (cont.)") {
+                    store.ensureClaimsCovering(pageIndex: 107)
+                    withAnimation { selectedPage = 107 }
+                }
                 // Weeks 106+ (pages 108+)
                 ForEach(108...maxPage, id: \.self) { page in
                     let weekNum = page - 2  // Offset by 2 for the extra pages
@@ -407,7 +412,7 @@ public struct DailyClaimsView: View {
         } else if page == 106 {
             return "Day 730"
         } else if page == 107 {
-            return "Week 105"  // Days 731-735 (rest of week 105)
+            return "Week 105 (cont.)"  // Days 731-735
         } else {
             return "Week \(page - 2)"  // Pages 108+ = Weeks 106+ (offset by 2)
         }
@@ -950,7 +955,7 @@ private extension AchievementDef.Rewards.Entry.Kind {
         case .gems: return "diamond.fill"
         case .spins: return "arrow.triangle.2.circlepath"
         case .hammers: return "hammer.fill"
-        case .magnets: return "magnet.fill"
+        case .magnets: return "dot.radiowaves.left.and.right"
         case .swaps: return "arrow.2.squarepath"
         case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
         }
