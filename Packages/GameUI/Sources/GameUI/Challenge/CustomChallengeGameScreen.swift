@@ -24,25 +24,13 @@ public struct CustomChallengeGameScreen: View {
     @State private var isMagnetMode = false
     @State private var firstSwapPosition: Position? = nil
 
-    public init(config: CustomChallengeConfig, onDismiss: @escaping () -> Void) {
+    public init(config: CustomChallengeConfig, playerHighestTile: Int = 0, onDismiss: @escaping () -> Void) {
         self.config = config
         self.onDismiss = onDismiss
         self._timeRemaining = State(initialValue: config.timeLimitSeconds)
 
-        // Extract target step for power-up cost scaling
-        let targetStep: Int?
-        switch config.target {
-        case .tileStep(let step):
-            targetStep = step
-        case .tile(let value):
-            // Convert tile value to step (step = log2(value) - 1)
-            targetStep = value > 0 ? Int(log2(Double(value))) - 1 : nil
-        default:
-            targetStep = nil
-        }
-
-        // Use sandboxed GameStore with challenge target for power-up cost scaling
-        self._challengeGameStore = State(initialValue: GameStore.sandboxed(challengeTargetStep: targetStep))
+        // Use sandboxed GameStore with player's actual highest tile for consistent power-up pricing
+        self._challengeGameStore = State(initialValue: GameStore.sandboxed(playerHighestTile: playerHighestTile))
     }
 
     public var body: some View {

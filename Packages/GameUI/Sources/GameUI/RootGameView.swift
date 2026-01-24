@@ -55,6 +55,7 @@ public struct RootGameView: View {
                 // Challenge uses its own GameStore internally - doesn't affect regular gameplay
                 CustomChallengeGameScreen(
                     config: config,
+                    playerHighestTile: gameStore.state.highestTile,
                     onDismiss: {
                         // Track challenge creation completion for achievement
                         gameStore.registerChallengeCreationCompleted()
