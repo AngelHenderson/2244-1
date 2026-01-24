@@ -19,6 +19,7 @@ public struct SettingsView: View {
     @State private var analyticsEnabled: Bool = true
     @State private var removeAdsPrice: String = "..."
     @State private var adsRemoved: Bool = false
+    @State private var isShowingHowToPlay: Bool = false
     
     public init() {}
     
@@ -162,7 +163,7 @@ public struct SettingsView: View {
                 // MARK: Support
                 Section("Support") {
                     Button("How to Play") {
-                        // Open tutorial or help
+                        isShowingHowToPlay = true
                     }
                     
                     Button("Contact Support") {
@@ -207,6 +208,9 @@ public struct SettingsView: View {
             .task {
                 loadSettings()
                 await loadPurchaseInfo()
+            }
+            .sheet(isPresented: $isShowingHowToPlay) {
+                HowToPlayView()
             }
         }
     }
