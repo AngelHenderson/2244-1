@@ -221,12 +221,11 @@ public struct HybridGameScreen: View {
             .onChange(of: gameStore.coins) { _, newValue in
                 tempHomeState.gems = newValue
             }
-            .onChange(of: gameStore.state.highestTileStep) { _, _ in
-                // Update rank when milestone changes (new highest tile achieved)
-                // Small delay to ensure UserDefaults is updated first
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    tempHomeState.rank = UserLeaderboardData.globalRank
-                }
+            .onChange(of: gameStore.state.highestTileStep) { _, newStep in
+                // Update rank immediately when milestone changes
+                // Compute milestone directly from step to avoid UserDefaults delay
+                let milestone = TileStepLabelFormatter.labelForStep(newStep, start: 2)
+                tempHomeState.rank = UserLeaderboardData.globalRank(for: milestone)
             }
         
         let sessionTracking = changeHandlers
@@ -265,9 +264,14 @@ public struct HybridGameScreen: View {
                 }
             }
         
-        return sessionTracking
+        // Wrap everything with full-screen wallpaper background
+        return ZStack {
+            wallpaperBackground
+                .ignoresSafeArea()
+            sessionTracking
+        }
     }
-    
+
     private func makeGameActions() -> HomeActions {
         HomeActions(
             play: { },
