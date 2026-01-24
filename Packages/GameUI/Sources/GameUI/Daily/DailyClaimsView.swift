@@ -12,6 +12,7 @@ public struct DailyClaimsView: View {
     @State private var claimedBaseRewards: AchievementDef.Rewards?
     @State private var claimedBonusCount: Int = 0
     @State private var selectedPage = 0
+    @State private var showIconLegend = false
     
     public init() {}
     
@@ -41,8 +42,19 @@ public struct DailyClaimsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                    HStack(spacing: 16) {
+                        Button {
+                            showIconLegend = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                        }
+                        Button("Done") { dismiss() }
+                    }
                 }
+            }
+            .sheet(isPresented: $showIconLegend) {
+                IconLegendView()
+                    .presentationDetents([.medium, .large])
             }
         }
         .onAppear {
@@ -1055,3 +1067,54 @@ private func bonusEntries(base: AchievementDef.Rewards, combined: AchievementDef
         .sorted { $0.kind.displayName < $1.kind.displayName }
 }
 
+private struct IconLegendView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let legendItems: [(icon: String, color: Color, name: String)] = [
+        ("diamond.fill", .cyan, "Gems"),
+        ("arrow.triangle.2.circlepath", .purple, "Spins"),
+        ("hammer.fill", .orange, "Hammers"),
+        ("dot.radiowaves.left.and.right", .blue, "MegaMerges"),
+        ("arrow.2.squarepath", .green, "Swaps"),
+        ("bolt.circle.fill", .yellow, "2× Boost"),
+        ("bolt.circle.fill", .pink, "3× Boost"),
+        ("bolt.circle.fill", .red, "4× Boost")
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(legendItems, id: \.name) { item in
+                        HStack(spacing: 16) {
+                            Image(systemName: item.icon)
+                                .font(.title2)
+                                .foregroundStyle(item.color)
+                                .frame(width: 32)
+
+                            Text(item.name)
+                                .font(.body)
+
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
+
+                        if item.name != legendItems.last?.name {
+                            Divider()
+                                .padding(.leading, 64)
+                        }
+                    }
+                }
+                .padding(.vertical)
+            }
+            .navigationTitle("Reward Icons")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+}
