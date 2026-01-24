@@ -25,7 +25,10 @@ public final class GameStore {
     // Sandboxed mode for challenges - doesn't persist progress to main game
     public let sandboxed: Bool
 
-    // Challenge target step for power-up cost scaling (only used in sandboxed/challenge mode)
+    // Player's highest tile for power-up cost scaling (used in sandboxed/challenge mode to match main game pricing)
+    public var playerHighestTile: Int?
+
+    // Challenge target step for power-up cost scaling in challenge mode
     public var challengeTargetStep: Int?
 
     // Progress store for comprehensive auto-save
@@ -978,8 +981,8 @@ public final class GameStore {
         // Notify JourneyKit of the new tile value
         if addedValue > 0 {
             journey.didReach(tile: addedValue)
-            // Also persist the highest tile to UserDefaults
-            if addedValue > previousHighest {
+            // Also persist the highest tile to UserDefaults (not for sandboxed challenges)
+            if !sandboxed && addedValue > previousHighest {
                 UserDefaults.standard.set(addedValue, forKey: "highestTile")
             }
             
@@ -1236,7 +1239,9 @@ public final class GameStore {
     public func addCoins(_ amount: Int) {
         state.gems = max(0, state.gems + amount)
         syncEngineGems()
-        UserDefaults.standard.set(state.gems, forKey: "coins")
+        if !sandboxed {
+            UserDefaults.standard.set(state.gems, forKey: "coins")
+        }
     }
 
     public func claimJourneyReward(coins: Int) {
@@ -1249,11 +1254,13 @@ public final class GameStore {
         guard state.gems >= amount else { return false }
         state.gems -= amount
         syncEngineGems()
-        UserDefaults.standard.set(state.gems, forKey: "coins")
-        // Force immediate synchronization to prevent race conditions
-        UserDefaults.standard.synchronize()
-        // Also save to progress store immediately
-        saveProgressToStore()
+        if !sandboxed {
+            UserDefaults.standard.set(state.gems, forKey: "coins")
+            // Force immediate synchronization to prevent race conditions
+            UserDefaults.standard.synchronize()
+            // Also save to progress store immediately
+            saveProgressToStore()
+        }
         print("💰 Spent \(amount) gems. New balance: \(state.gems)")
         return true
     }
@@ -1778,17 +1785,20 @@ public final class GameStore {
         let shouldPersist = isHighStep ? (doubledStep > state.highestTileStep) : (doubledValue > state.highestTile)
 
         if shouldPersist {
-            UserDefaults.standard.set(doubledValue, forKey: "highestTile")
             state.highestTileStep = doubledStep
-            // Save formatted milestone for leaderboard display
-            // Use step-based formatting for high values to avoid overflow
-            let formattedMilestone: String
-            if isHighStep {
-                formattedMilestone = TileStepLabelFormatter.labelForStep(doubledStep, start: 2)
-            } else {
-                formattedMilestone = TileStepLabelFormatter.formatTileValue(doubledValue)
+            // Persist to UserDefaults (not for sandboxed challenges)
+            if !sandboxed {
+                UserDefaults.standard.set(doubledValue, forKey: "highestTile")
+                // Save formatted milestone for leaderboard display
+                // Use step-based formatting for high values to avoid overflow
+                let formattedMilestone: String
+                if isHighStep {
+                    formattedMilestone = TileStepLabelFormatter.labelForStep(doubledStep, start: 2)
+                } else {
+                    formattedMilestone = TileStepLabelFormatter.formatTileValue(doubledValue)
+                }
+                UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
             }
-            UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
         }
 
         // Save progress for doubled tile (could be massive achievement)
@@ -3628,13 +3638,36 @@ extension GameStore {
         let savedBestAlpha = persistedBestScoreAlpha()
         let bestAlpha = state.scoreValue > savedBestAlpha ? state.scoreValue : savedBestAlpha
         let hasInfinity = UserDefaults.standard.bool(forKey: "hasInfinityAchievement")
-        
+
         return (
             highestTile: max(savedHighest, state.highestTile),
             bestScore: bestAlpha.toInt(),
             gems: state.gems,
             hasInfinity: hasInfinity
         )
+    }
+
+    /// Reset corrupted score data and save current actual score
+    /// Call this to fix score corruption from challenge mode bugs
+    public func resetCorruptedScoreData() {
+        guard !sandboxed else { return }
+
+        // Clear all score-related UserDefaults
+        UserDefaults.standard.removeObject(forKey: "savedBestScore")
+        UserDefaults.standard.removeObject(forKey: ScoreDefaultsKey.savedBestScoreAlpha)
+        UserDefaults.standard.removeObject(forKey: "currentScore")
+        UserDefaults.standard.removeObject(forKey: ScoreDefaultsKey.currentScoreAlpha)
+        UserDefaults.standard.removeObject(forKey: "currentSessionScore")
+
+        // Now save the current actual score from this game session
+        UserDefaults.standard.set(state.score, forKey: "savedBestScore")
+        UserDefaults.standard.set(state.scoreValue.decimalString, forKey: ScoreDefaultsKey.savedBestScoreAlpha)
+        UserDefaults.standard.set(state.score, forKey: "currentScore")
+        UserDefaults.standard.set(state.scoreValue.decimalString, forKey: ScoreDefaultsKey.currentScoreAlpha)
+
+        UserDefaults.standard.synchronize()
+
+        print("🔧 Reset corrupted score data. New best score: \(state.scoreValue.formattedLabel())")
     }
 }
 

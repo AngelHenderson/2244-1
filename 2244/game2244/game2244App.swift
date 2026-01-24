@@ -185,7 +185,13 @@ struct game2244App: App {
                     
                     // Load daily claims catalogs
                     await dailyClaimsStore.loadCatalogs()
-                    
+
+                    // One-time fix for corrupted score data from sandboxed challenges
+                    if !UserDefaults.standard.bool(forKey: "hasResetCorruptedScore_v1") {
+                        gameStore.resetCorruptedScoreData()
+                        UserDefaults.standard.set(true, forKey: "hasResetCorruptedScore_v1")
+                    }
+
                     // Load initial progress
                     loadInitialProgress()
                 }
