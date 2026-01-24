@@ -9,6 +9,11 @@ public enum UserLeaderboardData {
         UserDefaults.standard.string(forKey: "leaderboard.milestone") ?? "16M"
     }
 
+    /// Calculate global rank for a specific milestone (for immediate updates)
+    public static func globalRank(for milestone: String) -> Int {
+        return calculateGlobalRank(for: milestone)
+    }
+
     /// The user's display name
     /// Reads from UserDefaults "playerName" (set by profile)
     public static var playerName: String {
@@ -30,8 +35,11 @@ public enum UserLeaderboardData {
     /// The user's global rank based on their current milestone
     /// Uses the same bracket-based calculation as ProfileClient for consistency
     public static var globalRank: Int {
-        let userMilestone = currentMilestone
+        return calculateGlobalRank(for: currentMilestone)
+    }
 
+    /// Calculate global rank for any milestone string
+    private static func calculateGlobalRank(for userMilestone: String) -> Int {
         // Use the SAME allMilestones array as ProfileClient (starts at 1M, not raw numbers)
         let allMilestones: [String] = [
             "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "536M",
