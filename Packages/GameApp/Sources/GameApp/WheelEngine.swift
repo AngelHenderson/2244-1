@@ -64,14 +64,21 @@ public final class WheelEngine {
     public var isSpinning = false
     public var tickerDeflection: CGFloat = 0     // radians, visual peg bend
     public var segments: [WheelSegment]
-    
+
     // Tunables (feel free to tweak)
     public var airDrag: CGFloat = 0.32           // exponential drag coefficient
     public var tickDampingFast: CGFloat = 0.965  // per-notch damping at high speeds
     public var tickDampingSlow: CGFloat = 0.85   // per-notch damping when almost done
     public var stopSpeedThreshold: CGFloat = 0.12 // rad/s => begin snap
     public var snapSpring = (response: 0.35, damping: 0.75)
-    
+
+    // Pin physics state
+    private var pinVelocity: CGFloat = 0         // angular velocity of pin
+    private var pinSpringK: CGFloat = 850        // spring stiffness
+    private var pinDamping: CGFloat = 18         // damping coefficient
+    private var pinMass: CGFloat = 1.0           // effective mass
+    private var lastDividerIndex: Int = -1       // track which divider we last hit
+
     // Private
 #if canImport(UIKit)
     private var displayLink: CADisplayLink?
@@ -95,7 +102,12 @@ public final class WheelEngine {
 #if canImport(UIKit)
         haptic.prepare()
 #endif
-        
+
+        // Reset pin physics
+        pinVelocity = 0
+        tickerDeflection = 0
+        lastDividerIndex = -1
+
         // 5.5–8.5 rotations/sec initial => lively, but not crazy
         // Always spin clockwise (positive direction)
         let rps = Double.random(in: 5.5...8.5)
@@ -167,20 +179,23 @@ public final class WheelEngine {
 #endif
     
     // MARK: - Physics step
-    
+
     private func step(dt: CGFloat) {
         guard isSpinning else { return }
-        
+
         let prevAngle = angle
         angle += angularVelocity * dt
-        
+
         // Air drag (exponential)
         let drag = exp(-airDrag * dt)
         angularVelocity *= drag
-        
-        // Per-notch peg interaction when crossing boundaries
-        applyPegImpulseIfCrossed(from: prevAngle, to: angle)
-        
+
+        // Check for divider crossing and apply impulse to wheel
+        checkDividerCrossing(from: prevAngle, to: angle)
+
+        // Simulate pin physics (spring-mass-damper system)
+        simulatePinPhysics(dt: dt)
+
         // Low-speed termination and snap
         if abs(angularVelocity) < stopSpeedThreshold {
             // If nearly aligned to a boundary center, snap & finish
@@ -189,7 +204,7 @@ public final class WheelEngine {
                 angularVelocity = 0
                 stopAnimation()
                 snapToNearestCenter()
-                
+
                 // Call completion with winning segment
                 if let callback = onComplete {
                     let winningSegment = segments[highlightedIndex]
@@ -199,69 +214,85 @@ public final class WheelEngine {
             }
         }
     }
-    
-    private func applyPegImpulseIfCrossed(from old: CGFloat, to new: CGFloat) {
+
+    private func simulatePinPhysics(dt: CGFloat) {
         let n = max(segments.count, 1)
         let span = 2 * .pi / CGFloat(n)
 
-        // Determine if we've crossed at least one boundary (fast frames only cross 1)
-        let oldIdx = Int(floor(Self.wrap(old, modulus: 2 * .pi) / span))
-        let newIdx = Int(floor(Self.wrap(new, modulus: 2 * .pi) / span))
-        guard oldIdx != newIdx else {
-            // Update sticky peg deflection even if we haven't crossed
-            updateStickyPegDeflection()
-            return
+        // Find distance to nearest slice divider
+        let normalizedAngle = Self.wrap(-angle, modulus: 2 * .pi)
+        let positionInSlice = normalizedAngle.truncatingRemainder(dividingBy: span)
+        let distanceFromEdge = min(positionInSlice, span - positionInSlice)
+
+        // Contact zone where pin touches divider
+        let contactZone: CGFloat = span * 0.15
+        let maxDeflect: CGFloat = 25 * .pi / 180 // 25° max
+
+        // Calculate target deflection based on contact
+        var targetDeflection: CGFloat = 0
+
+        if distanceFromEdge < contactZone {
+            // Pin is in contact with divider - calculate forced deflection
+            let penetration = (contactZone - distanceFromEdge) / contactZone
+            let direction: CGFloat = positionInSlice < span / 2 ? 1.0 : -1.0
+            targetDeflection = penetration * maxDeflect * direction
+
+            // Add extra impulse based on wheel speed when first contacting
+            let speedFactor = min(abs(angularVelocity) / 10.0, 1.5)
+            targetDeflection *= (1.0 + speedFactor * 0.3)
         }
 
-        // Haptic on boundary cross
+        // Spring-mass-damper physics: F = -kx - cv
+        // Where x is displacement from target, v is velocity
+        let displacement = tickerDeflection - targetDeflection
+        let springForce = -pinSpringK * displacement
+        let dampingForce = -pinDamping * pinVelocity
+
+        // Calculate acceleration (F = ma)
+        let acceleration = (springForce + dampingForce) / pinMass
+
+        // Integrate velocity and position (semi-implicit Euler)
+        pinVelocity += acceleration * dt
+        tickerDeflection += pinVelocity * dt
+
+        // Clamp deflection to reasonable range
+        let clampedMax: CGFloat = 30 * .pi / 180
+        tickerDeflection = max(-clampedMax, min(clampedMax, tickerDeflection))
+
+        // Apply velocity damping for stability
+        pinVelocity *= 0.98
+    }
+    
+    private func checkDividerCrossing(from old: CGFloat, to new: CGFloat) {
+        let n = max(segments.count, 1)
+        let span = 2 * .pi / CGFloat(n)
+
+        // Determine which divider index we're at
+        let oldIdx = Int(floor(Self.wrap(old, modulus: 2 * .pi) / span))
+        let newIdx = Int(floor(Self.wrap(new, modulus: 2 * .pi) / span))
+
+        // Check if we crossed a divider
+        guard oldIdx != newIdx else { return }
+
+        // We crossed a divider - apply haptic feedback
         let v = abs(angularVelocity)
 #if canImport(UIKit)
         let intensity = CGFloat(min(max(v / (8 * .pi), 0.15), 1.0))
         haptic.impactOccurred(intensity: intensity)
 #endif
 
-        // Damping depends on speed
-        if v > 1.5 {               // still moving fast
+        // Give the pin an impulse when hitting divider (adds to natural spring response)
+        let impulseStrength = min(v * 0.08, 2.5)
+        pinVelocity += impulseStrength
+
+        // Apply wheel damping - divider slows down the wheel slightly
+        if v > 1.5 {
             angularVelocity *= tickDampingFast
-        } else {                   // near end
+        } else {
             angularVelocity *= tickDampingSlow
         }
 
-        // Update sticky peg after crossing
-        updateStickyPegDeflection()
-    }
-
-    private func updateStickyPegDeflection() {
-        let n = max(segments.count, 1)
-        let span = 2 * .pi / CGFloat(n)
-
-        // Find distance to nearest slice edge
-        let normalizedAngle = Self.wrap(-angle, modulus: 2 * .pi)
-        let positionInSlice = normalizedAngle.truncatingRemainder(dividingBy: span)
-
-        // Distance from nearest edge (0 at edge, span/2 at center)
-        let distanceFromEdge = min(positionInSlice, span - positionInSlice)
-
-        // Sticky zone: peg catches on edge when within this range
-        let stickyZone: CGFloat = span * 0.35 // 35% of slice width
-        let maxDeflect: CGFloat = 20 * .pi / 180 // 20° max deflection
-
-        if distanceFromEdge < stickyZone {
-            // Peg is catching on the edge - deflect proportionally
-            let catchRatio = 1.0 - (distanceFromEdge / stickyZone)
-            let deflectAmount = catchRatio * maxDeflect
-
-            // Direction based on which side of center we're on
-            let direction: CGFloat = positionInSlice < span / 2 ? 1.0 : -1.0
-            tickerDeflection = deflectAmount * direction * (angularVelocity >= 0 ? 1 : -1)
-        } else {
-            // Outside sticky zone - spring back to center
-            if abs(tickerDeflection) > 0.001 {
-                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
-                    tickerDeflection = 0
-                }
-            }
-        }
+        lastDividerIndex = newIdx
     }
     
     private func nearCenter(_ angle: CGFloat) -> Bool {
@@ -279,6 +310,7 @@ public final class WheelEngine {
         let span = 2 * .pi / CGFloat(n)
         let k = round((-angle) / span)
         let target = -k * span
+        pinVelocity = 0
         withAnimation(.spring(response: snapSpring.response, dampingFraction: snapSpring.damping)) {
             angle = target
             tickerDeflection = 0
