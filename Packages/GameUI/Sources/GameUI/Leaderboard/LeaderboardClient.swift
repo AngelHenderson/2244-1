@@ -26,6 +26,15 @@ public enum UserLeaderboardData {
     public static var currentCountry: String {
         UserDefaults.standard.string(forKey: "profileCountryCode") ?? Locale.current.region?.identifier ?? "US"
     }
+
+    /// The user's global rank based on their current milestone
+    /// Uses bracket-based calculation for consistent ranking across profile and leaderboard
+    public static var globalRank: Int {
+        MockLeaderboardData.calculateGlobalRank(
+            milestone: currentMilestone,
+            totalPlayers: MockLeaderboardData.totalPlayers(on: MockLeaderboardData.daysSinceReference, isUS: false)
+        )
+    }
 }
 
 public struct LeaderboardClient: Sendable {
