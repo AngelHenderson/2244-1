@@ -185,24 +185,8 @@ public enum UserLeaderboardData {
             }
         }
 
-        // Distribute user within bracket range based on milestone index
-        // Higher milestone index = better rank (lower number)
-        let range = bracketEnd - bracketStart
-        if range > 0 && foundBracketIndex >= 0 {
-            // Find the bracket's milestone index
-            if let bracketMilestone = globalExtendedBrackets[safe: foundBracketIndex]?.milestone,
-               let bracketMilestoneIndex = allMilestones.firstIndex(of: bracketMilestone) {
-                // Calculate how far into this bracket the user is
-                let milestonesInBracket = userMilestoneIndex - bracketMilestoneIndex
-                // Use deterministic position: closer to bracket start means better rank
-                let position = max(0, min(range, range - milestonesInBracket * (range / max(1, 10))))
-                return bracketStart + position
-            }
-            // Fallback: use milestone index as seed for deterministic distribution
-            let seed = userMilestoneIndex * 12345 + 67890
-            let position = abs(seed) % (range + 1)
-            return bracketStart + position
-        }
+        // Return the bracket start rank - each milestone bracket has a distinct rank
+        // Higher milestone = earlier (lower) bracket index = better (lower) rank
         return bracketStart
     }
 }
@@ -3252,12 +3236,17 @@ public extension LeaderboardClient {
         playerData.append((-1, 999999, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, userCountry, .ios, UserLeaderboardData.avatarID, "me"))
 
         // Sort by milestone index (highest first = best milestone)
-        // Tiebreaker: user comes first when milestones are equal
+        // Tiebreaker 1: user comes first when milestones are equal
+        // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
             }
-            return $0.id == "me"
+            // Equal milestones - user always comes first
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            // Equal milestones - lower original index = reached first = better rank
+            return $0.originalIndex < $1.originalIndex
         }
 
         // Calculate total players for rank calculation
@@ -3369,12 +3358,15 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
         // Sort by milestone index (highest first = best milestone)
-        // Tiebreaker: user comes first when milestones are equal
+        // Tiebreaker 1: user comes first when milestones are equal
+        // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
             }
-            return $0.id == "me"
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
         }
 
         // Build entries with ranks based on sorted order
@@ -3454,7 +3446,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -3540,7 +3538,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -3626,7 +3630,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -3712,7 +3722,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -3798,7 +3814,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -3884,7 +3906,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -3970,7 +3998,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4056,7 +4090,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (highest first = best milestone)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4143,7 +4183,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending - higher milestone = better rank)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4231,7 +4277,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending - higher milestone = better rank)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4319,7 +4371,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending - higher milestone = better rank)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4407,7 +4465,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending - higher milestone = better rank)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4493,7 +4557,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending - higher milestone = better rank)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4579,7 +4649,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending - higher milestone = better rank)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4665,7 +4741,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending - higher milestone = better rank)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
@@ -4749,7 +4831,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks
         var entries: [LeaderboardEntry] = []
@@ -4829,7 +4917,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks
         var entries: [LeaderboardEntry] = []
@@ -4909,7 +5003,13 @@ public extension LeaderboardClient {
         }
 
         // Sort by milestone index (descending)
-        playerData.sort { $0.milestoneIdx > $1.milestoneIdx }
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
 
         // Build entries with ranks
         var entries: [LeaderboardEntry] = []
