@@ -49,11 +49,12 @@ public struct SimplifiedGlassBoardView: View {
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
         VStack(spacing: spacing) {
-            // Crown appears on the single highest tile currently on the board
+            // Crown appears on ALL tiles with the highest value currently on the board
             // Uses stepIndex for accurate comparison of high-value tiles
-            let crownPosition: Position? = {
+            let crownPositions: Set<Position> = {
                 var maxStep = -1
-                var maxPos: Position? = nil
+                var positions: Set<Position> = []
+                // First pass: find the max step
                 for r in 0..<gameStore.state.board.height {
                     for c in 0..<gameStore.state.board.width {
                         let p = Position(row: r, col: c)
@@ -61,12 +62,23 @@ public struct SimplifiedGlassBoardView: View {
                             let step = t.stepIndex ?? 0
                             if step > maxStep {
                                 maxStep = step
-                                maxPos = p
                             }
                         }
                     }
                 }
-                return maxPos
+                // Second pass: collect all positions with max step
+                for r in 0..<gameStore.state.board.height {
+                    for c in 0..<gameStore.state.board.width {
+                        let p = Position(row: r, col: c)
+                        if let t = gameStore.state.board[p] {
+                            let step = t.stepIndex ?? 0
+                            if step == maxStep {
+                                positions.insert(p)
+                            }
+                        }
+                    }
+                }
+                return positions
             }()
             
             // All board rows including glass preview row as first row
@@ -105,7 +117,7 @@ public struct SimplifiedGlassBoardView: View {
                                     .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
                                 }
                                 
-                                if position == crownPosition {
+                                if crownPositions.contains(position) {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
                                         .foregroundStyle(.yellow)
@@ -140,7 +152,7 @@ public struct SimplifiedGlassBoardView: View {
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }
-                                if position == crownPosition {
+                                if crownPositions.contains(position) {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
                                         .foregroundStyle(.yellow)
