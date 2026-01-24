@@ -109,28 +109,27 @@ public struct DailyClaimsView: View {
         VStack(spacing: 12) {
             if let nextDay = store.getNextClaimableDay(),
                let claim = store.dailyClaims.first(where: { $0.day == nextDay }) {
-                let combined = store.combinedRewardForNextClaim() ?? claim.rewards
-                let bonus = bonusEntries(base: claim.rewards, combined: combined)
-                
+                let bonusCount = store.pendingStreakBonusCount(afterClaimingDay: nextDay)
+
                 Text("Day \(claim.day) Reward Available!")
                     .font(.headline)
-                
-                RewardsDisplay(rewards: combined)
+
+                RewardsDisplay(rewards: claim.rewards)
                     .font(.title3)
-                
-                if !bonus.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Includes streak bonus:")
-                            .font(.caption)
+
+                if bonusCount > 0 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "gift.fill")
                             .foregroundStyle(.orange)
-                        HStack(spacing: 8) {
-                            ForEach(bonus, id: \.self) { entry in
-                                RewardChip(entry: entry, style: .compact)
-                            }
-                        }
+                        Text("+ \(bonusCount) Random Bonus\(bonusCount > 1 ? "es" : "")!")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.orange)
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.orange.opacity(0.15), in: Capsule())
                 }
-                
+
                 Text("Claim it from the timeline below.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
