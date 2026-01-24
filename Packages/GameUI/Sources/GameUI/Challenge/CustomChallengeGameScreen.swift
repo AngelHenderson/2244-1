@@ -24,13 +24,17 @@ public struct CustomChallengeGameScreen: View {
     @State private var isMagnetMode = false
     @State private var firstSwapPosition: Position? = nil
 
-    public init(config: CustomChallengeConfig, playerHighestTile: Int = 0, onDismiss: @escaping () -> Void) {
+    // Store player's highest tile for re-applying after game reset
+    private let playerHighestTile: Int
+
+    public init(config: CustomChallengeConfig, playerHighestTile: Int = 0, initialGems: Int = 0, onDismiss: @escaping () -> Void) {
         self.config = config
         self.onDismiss = onDismiss
+        self.playerHighestTile = playerHighestTile
         self._timeRemaining = State(initialValue: config.timeLimitSeconds)
 
-        // Use sandboxed GameStore with player's actual highest tile for consistent power-up pricing
-        self._challengeGameStore = State(initialValue: GameStore.sandboxed(playerHighestTile: playerHighestTile))
+        // Use sandboxed GameStore with player's actual highest tile and gems for consistent pricing
+        self._challengeGameStore = State(initialValue: GameStore.sandboxed(initialGems: initialGems, playerHighestTile: playerHighestTile))
     }
 
     public var body: some View {
@@ -129,6 +133,17 @@ public struct CustomChallengeGameScreen: View {
                 isEnabled: challengeGameStore.state.undoAvailable,
                 action: handleUndo
             )
+
+            // Gem wallet
+            HStack(spacing: 4) {
+                gemImage
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 20, height: 20)
+                Text("\(challengeGameStore.coins)")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+            }
+            .padding(.leading, 4)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
@@ -137,6 +152,15 @@ public struct CustomChallengeGameScreen: View {
                 .fill(.ultraThinMaterial)
                 .shadow(radius: 4)
         )
+    }
+
+    private var gemImage: Image {
+        #if canImport(UIKit)
+        if let img = UIImage(named: "gem") { return Image(uiImage: img) }
+        #elseif canImport(AppKit)
+        if let img = NSImage(named: "gem") { return Image(nsImage: img) }
+        #endif
+        return Image(systemName: "diamond.fill")
     }
 
     private func powerupItem(
@@ -468,6 +492,9 @@ public struct CustomChallengeGameScreen: View {
             maxSpawnStep: config.maxSpawnStep
         )
         challengeGameStore.resetGame(with: gameConfig)
+
+        // Restore player's highest tile for consistent power-up pricing after reset
+        challengeGameStore.playerHighestTile = playerHighestTile
 
         // Initialize gems from player's inventory AFTER reset (since reset clears state)
         challengeGameStore.coins = homeState.gems
