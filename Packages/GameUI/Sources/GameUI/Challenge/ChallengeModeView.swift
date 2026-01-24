@@ -66,14 +66,19 @@ public struct ChallengeModeView: View {
     private func challengeCardView(for challenge: Challenge, index: Int) -> some View {
         let status = store.status(for: challenge)
         let isSelected = selectedChallenge?.id == challenge.id
-        ChallengeCard(
-            challenge: challenge,
-            challengeNumber: index + 1,
-            status: status,
-            currentTime: currentTime,
-            isSelected: isSelected,
-            onTap: status.isPlayable ? { selectedChallenge = challenge } : nil
-        )
+        GeometryReader { geo in
+            ChallengeCard(
+                challenge: challenge,
+                challengeNumber: index + 1,
+                status: status,
+                currentTime: currentTime,
+                isSelected: isSelected,
+                onTap: status.isPlayable ? { selectedChallenge = challenge } : nil
+            )
+            .frame(width: geo.size.width * 0.5)
+            .frame(maxWidth: .infinity)
+        }
+        .frame(height: 180)
         .id(challenge.id)
     }
 
@@ -257,16 +262,10 @@ private struct ChallengeCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("Challenge \(challengeNumber)")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
-                statusIcon
-            }
+        VStack(spacing: 8) {
+            Text("Challenge \(challengeNumber)")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
             Text(targetTileLabel)
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
@@ -289,6 +288,10 @@ private struct ChallengeCard: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(borderColor, lineWidth: 3)
         )
+        .overlay(alignment: .topTrailing) {
+            statusIcon
+                .padding(12)
+        }
         .overlay(alignment: .leading) {
             Circle()
                 .fill(nodeFill)
