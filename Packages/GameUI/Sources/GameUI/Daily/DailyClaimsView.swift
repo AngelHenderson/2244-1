@@ -10,6 +10,7 @@ public struct DailyClaimsView: View {
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
     @State private var claimedBaseRewards: AchievementDef.Rewards?
+    @State private var claimedBonusCount: Int = 0
     @State private var selectedPage = 0
     
     public init() {}
@@ -59,7 +60,7 @@ public struct DailyClaimsView: View {
         }
         .overlay {
             if showClaimAnimation, let rewards = claimedRewards {
-                ClaimAnimationOverlay(rewards: rewards, baseRewards: claimedBaseRewards)
+                ClaimAnimationOverlay(rewards: rewards, randomBonusCount: claimedBonusCount)
                     .transition(.scale.combined(with: .opacity))
                     .zIndex(100)
             }
@@ -300,8 +301,11 @@ public struct DailyClaimsView: View {
     }
     
     private func claimReward(_ rewards: AchievementDef.Rewards) {
+        // Get bonus count BEFORE claiming (since it will change after)
+        let nextDay = store.getNextClaimableDay() ?? (store.currentClaimDay + 1)
+        claimedBonusCount = store.pendingStreakBonusCount(afterClaimingDay: nextDay)
         claimedBaseRewards = rewards
-        claimedRewards = store.combinedRewardForNextClaim() ?? rewards
+        claimedRewards = rewards  // Just use base rewards since bonuses are random
         showClaimAnimation = true
         store.claimDailyReward()
         gameStore.achievementEvaluator?.onDailyClaimed()
@@ -310,6 +314,7 @@ public struct DailyClaimsView: View {
             withAnimation {
                 showClaimAnimation = false
                 claimedRewards = nil
+                claimedBonusCount = 0
             }
         }
     }
@@ -858,48 +863,49 @@ private struct RewardsDisplay: View {
 
 private struct ClaimAnimationOverlay: View {
     let rewards: AchievementDef.Rewards
-    let baseRewards: AchievementDef.Rewards?
-    
-    init(rewards: AchievementDef.Rewards, baseRewards: AchievementDef.Rewards? = nil) {
+    let randomBonusCount: Int
+
+    init(rewards: AchievementDef.Rewards, randomBonusCount: Int = 0) {
         self.rewards = rewards
-        self.baseRewards = baseRewards
+        self.randomBonusCount = randomBonusCount
     }
-    
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
-            
+
             VStack(spacing: 24) {
                 Image(systemName: "gift.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(.yellow)
                     .symbolEffect(.bounce)
-                
+
                 Text("Reward Claimed!")
                     .font(.largeTitle.bold())
                     .foregroundStyle(.white)
-                
+
                 RewardsDisplay(rewards: rewards)
                     .font(.title3)
                     .padding()
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                
-                if let base = baseRewards {
-                    let bonus = bonusEntries(base: base, combined: rewards)
-                    if !bonus.isEmpty {
-                        VStack(spacing: 8) {
-                            Text("Streak Bonus")
+
+                if randomBonusCount > 0 {
+                    VStack(spacing: 8) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.orange)
+                            Text("+ \(randomBonusCount) Random Bonus\(randomBonusCount > 1 ? "es" : "") Added!")
                                 .font(.headline)
                                 .foregroundStyle(.orange)
-                            HStack(spacing: 8) {
-                                ForEach(bonus, id: \.self) { entry in
-                                    RewardChip(entry: entry, style: .compact)
-                                }
-                            }
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.orange)
                         }
-                        .padding(.horizontal)
+                        Text("Check your inventory!")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.7))
                     }
+                    .padding(.horizontal)
                 }
             }
             .padding()
