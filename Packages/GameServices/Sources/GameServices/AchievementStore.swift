@@ -1562,32 +1562,36 @@ public final class AchievementStore {
         }
     }
 
-    /// Highest tier index that has been claimed (persisted)
-    private var highestClaimedLeaderboardTier: Int {
+    /// Highest tier index that has been claimed (persisted), -1 means no tiers claimed yet
+    private var highestClaimedLeaderboardTier: Int = -1 {
         didSet {
             defaults.set(highestClaimedLeaderboardTier, forKey: "highestClaimedLeaderboardTier")
         }
     }
 
     /// Leaderboard rank tier index based on CURRENT rank (not stored, calculated dynamically)
+    /// Returns the BEST (highest index) tier that current rank qualifies for
     public var leaderboardRankTier: Int {
-        guard currentLeaderboardRank > 0 else { return 0 }
-        // Find the highest tier (lowest index) that the current rank qualifies for
+        guard currentLeaderboardRank > 0 else { return -1 } // No rank = no tier qualifies
+        // Find the best tier (highest index) that the current rank qualifies for
+        // Tiers are sorted from easiest (index 0 = Top 100K) to hardest (index 29 = Top 1)
+        var bestQualifiedIndex = -1
         for (index, tier) in Self.leaderboardRankTiers.enumerated() {
             if currentLeaderboardRank <= tier.milestone {
-                return index
+                bestQualifiedIndex = index
+            } else {
+                break // Once we find a tier we don't qualify for, stop
             }
         }
-        return 0 // Default to first tier if rank is worse than Top 100K
+        return bestQualifiedIndex
     }
 
     /// The tier to display (next claimable tier based on current rank)
     private var displayLeaderboardRankTier: Int {
-        // Show the next tier after highest claimed, but capped by what current rank qualifies for
-        let nextTier = highestClaimedLeaderboardTier + 1
-        let qualifiedTier = leaderboardRankTier
-        // Return whichever is lower (closer to start) - can't display tier you don't qualify for
-        return max(nextTier, 0)
+        // Next tier to claim is one after highest claimed
+        let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
+        // Can't go past the max tier
+        return min(nextTierToClaimIndex, Self.leaderboardRankTiers.count - 1)
     }
 
     private var currentLeaderboardRankTier: ComboTierDefinition {
@@ -1788,13 +1792,18 @@ public final class AchievementStore {
         self.boost20xUsesProgressionTier = defaults.integer(forKey: "boost20xUsesProgressionTier")
         self.wheelCollectsProgressionTier = defaults.integer(forKey: "wheelCollectsProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
-        self.highestClaimedLeaderboardTier = defaults.integer(forKey: "highestClaimedLeaderboardTier")
-        self.currentLeaderboardRank = defaults.integer(forKey: "currentLeaderboardRank")
-        // Migrate old leaderboardRankTier to highestClaimedLeaderboardTier if needed
-        let oldTier = defaults.integer(forKey: "leaderboardRankTier")
-        if oldTier > 0 && highestClaimedLeaderboardTier == 0 {
-            self.highestClaimedLeaderboardTier = oldTier - 1  // Convert to 0-indexed claimed tier
+        // Load highestClaimedLeaderboardTier (-1 means no tiers claimed)
+        if defaults.object(forKey: "highestClaimedLeaderboardTier") != nil {
+            self.highestClaimedLeaderboardTier = defaults.integer(forKey: "highestClaimedLeaderboardTier")
+        } else {
+            // Migrate old leaderboardRankTier if it exists
+            let oldTier = defaults.integer(forKey: "leaderboardRankTier")
+            if oldTier > 0 {
+                self.highestClaimedLeaderboardTier = oldTier - 1  // Convert to 0-indexed claimed tier
+            }
+            // Otherwise keep default of -1
         }
+        self.currentLeaderboardRank = defaults.integer(forKey: "currentLeaderboardRank")
         loadUnlocks()
         loadPersistedSnapshot()
     }
