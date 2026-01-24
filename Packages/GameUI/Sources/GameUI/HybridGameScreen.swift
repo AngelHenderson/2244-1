@@ -221,8 +221,12 @@ public struct HybridGameScreen: View {
             .onChange(of: gameStore.coins) { _, newValue in
                 tempHomeState.gems = newValue
             }
-            .onChange(of: gameStore.state.score) { _, _ in
-                tempHomeState.rank = UserLeaderboardData.globalRank
+            .onChange(of: gameStore.state.highestTileStep) { _, _ in
+                // Update rank when milestone changes (new highest tile achieved)
+                // Small delay to ensure UserDefaults is updated first
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    tempHomeState.rank = UserLeaderboardData.globalRank
+                }
             }
         
         let sessionTracking = changeHandlers
