@@ -296,10 +296,6 @@ public struct HybridGameScreen: View {
     @ViewBuilder
     private var mainGameView: some View {
         ZStack {
-            // Wallpaper background for gameplay
-            wallpaperBackground
-                .ignoresSafeArea()
-
             // Board container with glass preview (clear background)
             SimplifiedGlassBoardView(onTileTap: { position in
                 handleTileTap(at: position)
