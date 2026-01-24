@@ -40,7 +40,7 @@ public struct HybridGameScreen: View {
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState: HomeState = {
         let state = HomeState()
-        state.rank = 1  // Default rank until properly loaded
+        state.rank = UserLeaderboardData.globalRank
         return state
     }()
 
@@ -221,15 +221,15 @@ public struct HybridGameScreen: View {
             .onChange(of: gameStore.coins) { _, newValue in
                 tempHomeState.gems = newValue
             }
-            .onChange(of: gameStore.state.score) { _, newValue in
-                tempHomeState.rank = max(1, 100000 - newValue)
+            .onChange(of: gameStore.state.score) { _, _ in
+                tempHomeState.rank = UserLeaderboardData.globalRank
             }
         
         let sessionTracking = changeHandlers
             .onAppear {
                 // Initialize tempHomeState with current values
                 tempHomeState.gems = gameStore.coins
-                tempHomeState.rank = max(1, 100000 - gameStore.state.score)
+                tempHomeState.rank = UserLeaderboardData.globalRank
                 isShowingUnlockReward = gameStore.pendingUnlockRewardBase != nil
                 
                 // Initialize comprehensive session tracking
