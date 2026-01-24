@@ -122,7 +122,7 @@ public final class ChallengeStore: Sendable {
             return .expert
         }
 
-        // Specific rewards for challenges (1M, 1B, 1a-1z, 1aa-1ac)
+        // Specific rewards for challenges (1M, 1B, 1a-1z, 1aa-1ag)
         // MegaMerge = .magnet power-up
         let specificRewards: [Int: ChallengeReward] = [
             0: ChallengeReward(coins: 50),                                              // 1M: 50 Gems
@@ -155,7 +155,11 @@ public final class ChallengeStore: Sendable {
             27: ChallengeReward(powerUps: [.hammer: 1, .swap: 1, .magnet: 1], spins: 1),// 1z: 1 Hammer, 1 Swap, 1 MegaMerge, 1 Spin
             28: ChallengeReward(coins: 225, powerUps: [.swap: 1], spins: 1, scoreBoosts: [2: 1, 3: 1]), // 1aa: 225 Gems, 1 Swap, 1 Spin, 2X Boost, 3X Boost
             29: ChallengeReward(coins: 220, spins: 2),                                  // 1ab: 220 Gems, 2 Spins
-            30: ChallengeReward(coins: 150, spins: 3)                                   // 1ac: 150 Gems, 3 Spins
+            30: ChallengeReward(coins: 150, spins: 3),                                  // 1ac: 150 Gems, 3 Spins
+            31: ChallengeReward(coins: 220, powerUps: [.magnet: 1], spins: 1, scoreBoosts: [3: 1]), // 1ad: 220 Gems, 1 MegaMerge, 1 Spin, 3X Boost
+            32: ChallengeReward(powerUps: [.hammer: 1, .swap: 1], scoreBoosts: [4: 1]), // 1ae: 1 Hammer, 1 Swap, 4X Boost
+            33: ChallengeReward(powerUps: [.hammer: 2], spins: 2),                      // 1af: 2 Hammers, 2 Spins
+            34: ChallengeReward(coins: 250, powerUps: [.swap: 1])                       // 1ag: 250 Gems, 1 Swap
         ]
 
         // Helper to get reward - uses specific reward if defined, otherwise falls back to formula
@@ -163,7 +167,7 @@ public final class ChallengeStore: Sendable {
             if let specific = specificRewards[index] {
                 return specific
             }
-            // Fallback formula for challenges beyond 1ac
+            // Fallback formula for challenges beyond 1ag
             let baseCoins = 50 + (index * 25)
             return ChallengeReward(coins: baseCoins)
         }
