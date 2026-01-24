@@ -530,8 +530,7 @@ private struct DayGridCell: View {
             HStack(spacing: 6) {
                 ForEach(displayRewards.entries.prefix(3), id: \.self) { entry in
                     HStack(spacing: 3) {
-                        Image(systemName: entry.kind.iconName)
-                            .foregroundStyle(entry.kind.iconColor)
+                        RewardIconView(kind: entry.kind, font: .subheadline)
                         Text("\(entry.amount)")
                     }
                     .font(.subheadline)
@@ -637,8 +636,7 @@ private struct YearlyRewardPageView: View {
                 HStack(spacing: 12) {
                     ForEach(claim.rewards.entries, id: \.self) { entry in
                         HStack(spacing: 6) {
-                            Image(systemName: entry.kind.iconName)
-                                .foregroundStyle(entry.kind.iconColor)
+                            RewardIconView(kind: entry.kind, font: .title2)
                             Text("\(entry.amount) \(entry.kind.displayName)")
                         }
                         .font(.title2)
@@ -925,19 +923,43 @@ private struct ClaimAnimationOverlay: View {
     }
 }
 
+/// Custom icon view that handles special cases like swap (two-colored arrows)
+private struct RewardIconView: View {
+    let kind: AchievementDef.Rewards.Entry.Kind
+    var font: Font = .body
+
+    var body: some View {
+        if kind == .swaps {
+            // Swap icon with green and yellow arrows
+            ZStack {
+                Image(systemName: "arrow.right")
+                    .foregroundStyle(.green)
+                    .offset(x: -2, y: -3)
+                Image(systemName: "arrow.left")
+                    .foregroundStyle(.yellow)
+                    .offset(x: 2, y: 3)
+            }
+            .font(font)
+        } else {
+            Image(systemName: kind.iconName)
+                .foregroundStyle(kind.iconColor)
+                .font(font)
+        }
+    }
+}
+
 private struct RewardChip: View {
     enum Style {
         case compact
         case detailed
     }
-    
+
     let entry: AchievementDef.Rewards.Entry
     let style: Style
-    
+
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: entry.kind.iconName)
-                .foregroundStyle(entry.kind.iconColor)
+            RewardIconView(kind: entry.kind)
             switch style {
             case .compact:
                 Text(compactText)
@@ -956,11 +978,11 @@ private struct RewardChip: View {
         .padding(style == .compact ? 4 : 8)
         .background(entry.kind.iconColor.opacity(0.12), in: Capsule())
     }
-    
+
     private var compactText: String {
         return "\(entry.amount) \(entry.kind.displayName)"
     }
-    
+
     private var detailedTitle: String {
         return "\(entry.amount) \(entry.kind.displayName)"
     }
@@ -1070,29 +1092,20 @@ private func bonusEntries(base: AchievementDef.Rewards, combined: AchievementDef
 private struct IconLegendView: View {
     @Environment(\.dismiss) private var dismiss
 
-    private let legendItems: [(icon: String, color: Color, name: String)] = [
-        ("diamond.fill", .cyan, "Gems"),
-        ("arrow.triangle.2.circlepath", .purple, "Spins"),
-        ("hammer.fill", .orange, "Hammers"),
-        ("dot.radiowaves.left.and.right", .blue, "MegaMerges"),
-        ("arrow.2.squarepath", .green, "Swaps"),
-        ("bolt.circle.fill", .yellow, "2× Boost"),
-        ("bolt.circle.fill", .pink, "3× Boost"),
-        ("bolt.circle.fill", .red, "4× Boost")
+    private let legendItems: [AchievementDef.Rewards.Entry.Kind] = [
+        .gems, .spins, .hammers, .magnets, .swaps, .boost2x, .boost3x, .boost4x
     ]
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(legendItems, id: \.name) { item in
+                    ForEach(legendItems, id: \.self) { kind in
                         HStack(spacing: 16) {
-                            Image(systemName: item.icon)
-                                .font(.title2)
-                                .foregroundStyle(item.color)
+                            RewardIconView(kind: kind, font: .title2)
                                 .frame(width: 32)
 
-                            Text(item.name)
+                            Text(kind.displayName)
                                 .font(.body)
 
                             Spacer()
@@ -1100,7 +1113,7 @@ private struct IconLegendView: View {
                         .padding(.horizontal)
                         .padding(.vertical, 12)
 
-                        if item.name != legendItems.last?.name {
+                        if kind != legendItems.last {
                             Divider()
                                 .padding(.leading, 64)
                         }
