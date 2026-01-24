@@ -691,15 +691,14 @@ public final class GameEngine {
         previousState = state
         state.undoAvailable = true
         
-        // Perform the swap
+        // Perform the swap - ONLY swap the two blocks, no gravity or refill
         let temp = state.board[a]
         state.board[a] = state.board[b]
         state.board[b] = temp
         state.moves += 1
-        
-        // Swap-drop-refill: keep gravity/refill consistent without triggering auto-cascade
-        refillAfterGravity()
-        
+
+        // Note: No gravity or refill after swap - only the two swapped blocks should move
+
         if !hasValidMoves() {
             state.isGameOver = true
         }
