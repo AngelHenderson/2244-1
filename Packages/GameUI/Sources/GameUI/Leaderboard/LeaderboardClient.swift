@@ -185,11 +185,23 @@ public enum UserLeaderboardData {
             }
         }
 
-        // Distribute user within bracket range using hash
+        // Distribute user within bracket range based on milestone index
+        // Higher milestone index = better rank (lower number)
         let range = bracketEnd - bracketStart
         if range > 0 && foundBracketIndex >= 0 {
-            let milestoneHash = abs(userMilestone.hashValue) % (range + 1)
-            return bracketStart + milestoneHash
+            // Find the bracket's milestone index
+            if let bracketMilestone = globalExtendedBrackets[safe: foundBracketIndex]?.milestone,
+               let bracketMilestoneIndex = allMilestones.firstIndex(of: bracketMilestone) {
+                // Calculate how far into this bracket the user is
+                let milestonesInBracket = userMilestoneIndex - bracketMilestoneIndex
+                // Use deterministic position: closer to bracket start means better rank
+                let position = max(0, min(range, range - milestonesInBracket * (range / max(1, 10))))
+                return bracketStart + position
+            }
+            // Fallback: use milestone index as seed for deterministic distribution
+            let seed = userMilestoneIndex * 12345 + 67890
+            let position = abs(seed) % (range + 1)
+            return bracketStart + position
         }
         return bracketStart
     }
@@ -668,13 +680,33 @@ private enum MockLeaderboardData {
         return 0.5 + random * 3.5  // 0.5 to 4 new players per day
     }
 
+    // Reasons why a player might leave the leaderboard
+    enum PlayerLeavingReason: String, CaseIterable {
+        case gameOver = "Game Over"      // 25% - ran out of moves
+        case banned = "Banned"           // 25% - violated terms
+        case deleted = "Deleted"         // 25% - deleted the game
+        case restart = "Restart"         // 25% - chose to restart progress
+    }
+
+    // Determine why a specific player left (equal 25% for each reason)
+    static func leavingReason(for playerIndex: Int, on day: Int, seed: Int) -> PlayerLeavingReason {
+        let random = seededRandom(seed: seed + playerIndex * 7, index: day)
+        let reasonIndex = Int(random * 4.0) // 0, 1, 2, or 3
+        return PlayerLeavingReason.allCases[min(reasonIndex, 3)]
+    }
+
     // Calculate players leaving per day (0.1-0.5 per day)
-    // Reasons: banned, ran out of moves, deleted game, chose to restart
+    // Reasons distributed equally (25% each): game over, banned, deleted, restart
     // 95% of leaving players are from ranks 151+, only 5% from top 150
     static func playersLeaving(on day: Int, isUS: Bool) -> Double {
         let seed = isUS ? 11111 : 22222
         let random = seededRandom(seed: seed, index: day)
         return 0.1 + random * 0.4  // 0.1 to 0.5 players per day
+    }
+
+    // Calculate players leaving for a specific reason (25% of total leaving)
+    static func playersLeavingFor(reason: PlayerLeavingReason, on day: Int, isUS: Bool) -> Double {
+        return playersLeaving(on: day, isUS: isUS) * 0.25
     }
 
     // Calculate players leaving from outside top 150 (95% of total leaving)
@@ -689,10 +721,16 @@ private enum MockLeaderboardData {
 
     // Calculate country-specific players leaving per day (0.1-0.5 per day)
     // Each country has a unique seed for varied attrition patterns
+    // Reasons distributed equally (25% each): game over, banned, deleted, restart
     // 95% are from outside top 150, only 5% from top 150
     static func countryPlayersLeaving(on day: Int, countrySeed: Int) -> Double {
         let random = seededRandom(seed: countrySeed, index: day)
         return 0.1 + random * 0.4  // 0.1 to 0.5 players per day
+    }
+
+    // Country-specific players leaving for a specific reason (25% of total leaving)
+    static func countryPlayersLeavingFor(reason: PlayerLeavingReason, on day: Int, countrySeed: Int) -> Double {
+        return countryPlayersLeaving(on: day, countrySeed: countrySeed) * 0.25
     }
 
     // Country-specific players leaving from outside top 150 (95%)
