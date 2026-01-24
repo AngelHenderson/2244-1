@@ -1845,9 +1845,15 @@ public final class AchievementStore {
         persistSnapshot(snapshot)
         var didUnlock = false
         for def in catalog {
-            guard unlocks[def.id]?.unlocked != true else { continue }
-            
+            // Allow tile_progression and leaderboard_rank_progression to be re-evaluated
+            // even if previously unlocked, since they can be locked when values drop
+            guard unlocks[def.id]?.unlocked != true ||
+                  def.id == "tile_progression" ||
+                  def.id == "leaderboard_rank_progression"
+            else { continue }
+
             // Special handling for tile progression achievement
+            // This achievement resets when game over happens and tile drops below target
             if def.id == "tile_progression" {
                 let targetValue = currentTileTier.value
                 let tierLabel = currentTileTier.label
@@ -1861,6 +1867,10 @@ public final class AchievementStore {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                     print("   ✅ TIER UNLOCKED! Ready to claim.")
+                } else {
+                    // Lock if current tile no longer qualifies (e.g., after game over)
+                    unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+                    print("   🔒 TIER LOCKED - tile dropped below target")
                 }
                 continue
             }
