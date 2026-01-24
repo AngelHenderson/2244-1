@@ -35,7 +35,7 @@ public final class AchievementEvaluator {
     private var boost5xUsesTotal: Int = 0
     private var boost20xUsesTotal: Int = 0
     private var wheelCollectsTotal: Int = 0
-    private var bestLeaderboardRank: Int = 0
+    private var currentLeaderboardRank: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
@@ -58,7 +58,7 @@ public final class AchievementEvaluator {
     private let boost5xUsesKey = "powerUses.boost5x"
     private let boost20xUsesKey = "powerUses.boost20x"
     private let wheelCollectsKey = "wheelCollects.total"
-    private let bestLeaderboardRankKey = "leaderboard.bestRank"
+    private let currentLeaderboardRankKey = "leaderboard.currentRank"
     private let achievementBoostTierKey = "achievementBoost.activeTierID"
     private let achievementBoostExpirationKey = "achievementBoost.expiresAt"
     private let defaults = UserDefaults.standard
@@ -139,7 +139,7 @@ public final class AchievementEvaluator {
         boost5xUsesTotal = defaults.integer(forKey: boost5xUsesKey)
         boost20xUsesTotal = defaults.integer(forKey: boost20xUsesKey)
         wheelCollectsTotal = defaults.integer(forKey: wheelCollectsKey)
-        bestLeaderboardRank = defaults.integer(forKey: bestLeaderboardRankKey)
+        currentLeaderboardRank = defaults.integer(forKey: currentLeaderboardRankKey)
         if challengeCreationTotal == 0,
            let data = UserDefaults.standard.data(forKey: "challengeCompletedIds"),
            let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
@@ -169,7 +169,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
         currentGameSnapshot.boost20x_uses_total = boost20xUsesTotal
         currentGameSnapshot.wheel_collects_total = wheelCollectsTotal
-        currentGameSnapshot.best_leaderboard_rank = bestLeaderboardRank
+        currentGameSnapshot.best_leaderboard_rank = currentLeaderboardRank
     }
 
     /// Updates the best leaderboard rank when fetched from Game Center
@@ -177,17 +177,15 @@ public final class AchievementEvaluator {
     public func onLeaderboardRankUpdated(_ rank: Int) {
         guard rank > 0 else { return }
 
-        // Only update if this is a better (lower) rank or first time
-        if bestLeaderboardRank == 0 || rank < bestLeaderboardRank {
-            bestLeaderboardRank = rank
-            defaults.set(bestLeaderboardRank, forKey: bestLeaderboardRankKey)
-            print("🏆 New best leaderboard rank: #\(rank)")
-        }
+        // Always use current rank for achievement validation (not best historical rank)
+        currentLeaderboardRank = rank
+        defaults.set(currentLeaderboardRank, forKey: currentLeaderboardRankKey)
+        print("🏆 Current leaderboard rank: #\(rank)")
 
-        currentGameSnapshot.best_leaderboard_rank = bestLeaderboardRank
+        currentGameSnapshot.best_leaderboard_rank = currentLeaderboardRank
 
         var snapshot = currentGameSnapshot
-        snapshot.best_leaderboard_rank = bestLeaderboardRank
+        snapshot.best_leaderboard_rank = currentLeaderboardRank
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }
@@ -219,7 +217,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
         currentGameSnapshot.boost20x_uses_total = boost20xUsesTotal
         currentGameSnapshot.wheel_collects_total = wheelCollectsTotal
-        currentGameSnapshot.best_leaderboard_rank = bestLeaderboardRank
+        currentGameSnapshot.best_leaderboard_rank = currentLeaderboardRank
     }
 
     /// Saves accumulated playtime without ending the game session.

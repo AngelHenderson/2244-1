@@ -1555,28 +1555,60 @@ public final class AchievementStore {
         challengeCreationTier >= Self.challengeCreationTiers.count - 1
     }
 
-    /// Leaderboard rank progression tier index (persisted)
-    public var leaderboardRankTier: Int {
+    /// Current leaderboard rank from Game Center (lower is better)
+    public var currentLeaderboardRank: Int = 0 {
         didSet {
-            defaults.set(leaderboardRankTier, forKey: "leaderboardRankTier")
-            unlocks["leaderboard_rank_progression"] = .init(unlocked: false, unlockedAt: nil, claimed: false)
-            saveUnlocks()
+            defaults.set(currentLeaderboardRank, forKey: "currentLeaderboardRank")
         }
     }
 
+    /// Highest tier index that has been claimed (persisted)
+    private var highestClaimedLeaderboardTier: Int {
+        didSet {
+            defaults.set(highestClaimedLeaderboardTier, forKey: "highestClaimedLeaderboardTier")
+        }
+    }
+
+    /// Leaderboard rank tier index based on CURRENT rank (not stored, calculated dynamically)
+    public var leaderboardRankTier: Int {
+        guard currentLeaderboardRank > 0 else { return 0 }
+        // Find the highest tier (lowest index) that the current rank qualifies for
+        for (index, tier) in Self.leaderboardRankTiers.enumerated() {
+            if currentLeaderboardRank <= tier.milestone {
+                return index
+            }
+        }
+        return 0 // Default to first tier if rank is worse than Top 100K
+    }
+
+    /// The tier to display (next claimable tier based on current rank)
+    private var displayLeaderboardRankTier: Int {
+        // Show the next tier after highest claimed, but capped by what current rank qualifies for
+        let nextTier = highestClaimedLeaderboardTier + 1
+        let qualifiedTier = leaderboardRankTier
+        // Return whichever is lower (closer to start) - can't display tier you don't qualify for
+        return max(nextTier, 0)
+    }
+
     private var currentLeaderboardRankTier: ComboTierDefinition {
-        let index = min(leaderboardRankTier, Self.leaderboardRankTiers.count - 1)
+        let index = min(displayLeaderboardRankTier, Self.leaderboardRankTiers.count - 1)
         return Self.leaderboardRankTiers[index]
     }
 
     public var leaderboardRankDisplay: ProgressTierDisplay {
         let tier = currentLeaderboardRankTier
-        let clampedIndex = min(leaderboardRankTier, Self.leaderboardRankTiers.count - 1)
+        let clampedIndex = min(displayLeaderboardRankTier, Self.leaderboardRankTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = leaderboardRankTier >= Self.leaderboardRankTiers.count - 1
-        let description = isMaxed
-            ? "You've reached #1 on the Global Leaderboard. Claim your ultimate reward!"
-            : "Reach Top \(tier.milestone) on the Global Leaderboard to unlock the next tier."
+        let isMaxed = displayLeaderboardRankTier >= Self.leaderboardRankTiers.count - 1
+        let qualifiesForCurrentTier = currentLeaderboardRank > 0 && currentLeaderboardRank <= tier.milestone
+        let description: String
+        if isMaxed && qualifiesForCurrentTier {
+            description = "You've reached #1 on the Global Leaderboard. Claim your ultimate reward!"
+        } else if qualifiesForCurrentTier {
+            description = "You're in the Top \(tier.milestone)! Claim your reward."
+        } else {
+            description = "Reach Top \(tier.milestone) on the Global Leaderboard to unlock the next tier."
+        }
         let title = "Level \(level): Top \(tier.milestone)"
         return ProgressTierDisplay(
             milestone: tier.milestone,
@@ -1589,7 +1621,7 @@ public final class AchievementStore {
     }
 
     public var isLeaderboardRankMaxed: Bool {
-        leaderboardRankTier >= Self.leaderboardRankTiers.count - 1
+        highestClaimedLeaderboardTier >= Self.leaderboardRankTiers.count - 1
     }
 
     private func makeComboDisplay(
@@ -1756,7 +1788,13 @@ public final class AchievementStore {
         self.boost20xUsesProgressionTier = defaults.integer(forKey: "boost20xUsesProgressionTier")
         self.wheelCollectsProgressionTier = defaults.integer(forKey: "wheelCollectsProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
-        self.leaderboardRankTier = defaults.integer(forKey: "leaderboardRankTier")
+        self.highestClaimedLeaderboardTier = defaults.integer(forKey: "highestClaimedLeaderboardTier")
+        self.currentLeaderboardRank = defaults.integer(forKey: "currentLeaderboardRank")
+        // Migrate old leaderboardRankTier to highestClaimedLeaderboardTier if needed
+        let oldTier = defaults.integer(forKey: "leaderboardRankTier")
+        if oldTier > 0 && highestClaimedLeaderboardTier == 0 {
+            self.highestClaimedLeaderboardTier = oldTier - 1  // Convert to 0-indexed claimed tier
+        }
         loadUnlocks()
         loadPersistedSnapshot()
     }
@@ -2019,11 +2057,21 @@ public final class AchievementStore {
             }
 
             if def.id == "leaderboard_rank_progression" {
+                // Update current rank from snapshot
+                if snapshot.best_leaderboard_rank > 0 {
+                    currentLeaderboardRank = snapshot.best_leaderboard_rank
+                }
                 let targetRank = currentLeaderboardRankTier.milestone
-                // Lower rank is better; rank must be > 0 and <= target to unlock
-                if snapshot.best_leaderboard_rank > 0 && snapshot.best_leaderboard_rank <= targetRank {
+                let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
+                // Lower rank is better; unlock if rank qualifies AND this tier hasn't been claimed
+                if currentLeaderboardRank > 0 &&
+                   currentLeaderboardRank <= targetRank &&
+                   nextTierToClaimIndex <= leaderboardRankTier {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
+                } else {
+                    // Lock if rank no longer qualifies
+                    unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
                 }
                 continue
             }
@@ -2459,13 +2507,15 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isLeaderboardRankMaxed {
-                leaderboardRankTier += 1
-            } else {
-                state.claimed = true
-                unlocks[definition.id] = state
-                saveUnlocks()
+            // Mark this tier as claimed by advancing highestClaimedLeaderboardTier
+            let claimedTierIndex = displayLeaderboardRankTier
+            if claimedTierIndex > highestClaimedLeaderboardTier {
+                highestClaimedLeaderboardTier = claimedTierIndex
             }
+
+            // Reset unlock state for next tier evaluation
+            unlocks[definition.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
             return
         }
 
@@ -2896,7 +2946,7 @@ public final class AchievementStore {
         case "wheel_collects_progression":
             return allComboTiers(tiers: Self.wheelCollectsTiers, currentTierIndex: wheelCollectsProgressionTier)
         case "leaderboard_rank_progression":
-            return allComboTiers(tiers: Self.leaderboardRankTiers, currentTierIndex: leaderboardRankTier)
+            return allComboTiers(tiers: Self.leaderboardRankTiers, currentTierIndex: displayLeaderboardRankTier)
         default:
             return []
         }
