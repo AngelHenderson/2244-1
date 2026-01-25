@@ -313,5 +313,5 @@ extension View {
         .environment(\.storage, storage)
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
-        .environment(\.leaderboardClient, .noop)
+        .environment(\.leaderboardClient, .gameCenter())
 }
