@@ -400,7 +400,6 @@ public struct LiveProfileClient: ProfileClient, Sendable {
             // Iterate forward and find the FIRST bracket where user's milestone index >= bracket's index
             // (brackets are ordered high-to-low milestone, so first match is the correct one)
             var bracketStart = totalPlayers
-            var bracketEnd = totalPlayers
             var foundBracketIndex = -1
 
             for (i, bracket) in globalExtendedBrackets.enumerated() {
@@ -414,11 +413,6 @@ public struct LiveProfileClient: ProfileClient, Sendable {
 
             if foundBracketIndex >= 0 {
                 bracketStart = globalExtendedBrackets[foundBracketIndex].startRank
-                if foundBracketIndex + 1 < globalExtendedBrackets.count {
-                    bracketEnd = globalExtendedBrackets[foundBracketIndex + 1].startRank - 1
-                } else {
-                    bracketEnd = totalPlayers
-                }
             }
 
             // Return the bracket start rank - each milestone bracket has a distinct rank
