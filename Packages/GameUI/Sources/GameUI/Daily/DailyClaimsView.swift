@@ -1007,7 +1007,7 @@ private extension AchievementDef.Rewards.Entry.Kind {
         switch self {
         case .gems: return .cyan
         case .spins: return .purple
-        case .hammers: return .orange
+        case .hammers: return .gray
         case .magnets: return .red
         case .swaps: return .green
         case .boost2x: return .yellow
