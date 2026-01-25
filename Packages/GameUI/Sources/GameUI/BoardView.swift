@@ -258,7 +258,7 @@ public struct BoardView: View {
                         gameStore.extendPath(to: position)
                         if gameStore.pathValidation.isValid {
                             haptics.lightImpact()
-                            Task { await audioService.playSfx(name: "drag") }
+                            Task { await audioService.playSfx(name: "chain") }
                         } else {
                             haptics.warning()
                         }
@@ -272,6 +272,7 @@ public struct BoardView: View {
                 if gameStore.pathValidation.isValid && gameStore.currentPath.count >= 2 {
                     gameStore.commitPath()
                     haptics.success()
+                    Task { await audioService.playSfx(name: "merge") }
                 } else {
                     gameStore.cancelPath()
                     if gameStore.currentPath.count >= 2 {
@@ -380,6 +381,10 @@ public struct BoardView: View {
             return
         }
         magnetAnimations = contributors.map { MagnetAnimationModel(value: event.value, start: $0, target: event.target, progress: 0) }
+
+        // Play electric sound when magnet starts sucking
+        Task { await audioService.playSfx(name: "electric") }
+
         DispatchQueue.main.async {
             withAnimation(.easeInOut(duration: 0.35)) {
                 for index in magnetAnimations.indices {
@@ -389,6 +394,8 @@ public struct BoardView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 magnetAnimations.removeAll()
                 gameStore.clearLastMagnetEvent()
+                // Play merge sound when magnet completes
+                Task { await audioService.playSfx(name: "merge") }
             }
         }
     }

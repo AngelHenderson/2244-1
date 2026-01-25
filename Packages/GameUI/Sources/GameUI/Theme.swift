@@ -27,7 +27,7 @@ public struct Theme {
         (Color(hex: "#F05B59"), false), // 17: Coral Red
         (Color(hex: "#55DFFE"), true),  // 18: Light Cyan / Blue (dark text)
         (Color(hex: "#39B54A"), true),  // 19: Green (dark text)
-        (Color(hex: "#9C27B0"), false), // 20: Purple (1M)
+        (Color(hex: "#B4299B"), false), // 20: Magenta (1M)
         (Color(hex: "#673AB7"), false), // 21: Deep Purple (2M)
         (Color(hex: "#F05B59"), false), // 22: Coral Red (4M) - same as 226u
         (Color(hex: "#1565C0"), false), // 23: Dark Blue

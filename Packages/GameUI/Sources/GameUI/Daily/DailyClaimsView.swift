@@ -10,7 +10,9 @@ public struct DailyClaimsView: View {
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
     @State private var claimedBaseRewards: AchievementDef.Rewards?
+    @State private var claimedBonusCount: Int = 0
     @State private var selectedPage = 0
+    @State private var showIconLegend = false
     
     public init() {}
     
@@ -36,12 +38,23 @@ public struct DailyClaimsView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Daily Claims")
+            .navigationTitle("Daily Rewards")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                    HStack(spacing: 16) {
+                        Button {
+                            showIconLegend = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                        }
+                        Button("Done") { dismiss() }
+                    }
                 }
+            }
+            .sheet(isPresented: $showIconLegend) {
+                IconLegendView()
+                    .presentationDetents([.medium, .large])
             }
         }
         .onAppear {
@@ -59,7 +72,7 @@ public struct DailyClaimsView: View {
         }
         .overlay {
             if showClaimAnimation, let rewards = claimedRewards {
-                ClaimAnimationOverlay(rewards: rewards, baseRewards: claimedBaseRewards)
+                ClaimAnimationOverlay(rewards: rewards, randomBonusCount: claimedBonusCount)
                     .transition(.scale.combined(with: .opacity))
                     .zIndex(100)
             }
@@ -109,28 +122,27 @@ public struct DailyClaimsView: View {
         VStack(spacing: 12) {
             if let nextDay = store.getNextClaimableDay(),
                let claim = store.dailyClaims.first(where: { $0.day == nextDay }) {
-                let combined = store.combinedRewardForNextClaim() ?? claim.rewards
-                let bonus = bonusEntries(base: claim.rewards, combined: combined)
-                
+                let bonusCount = store.pendingStreakBonusCount(afterClaimingDay: nextDay)
+
                 Text("Day \(claim.day) Reward Available!")
                     .font(.headline)
-                
-                RewardsDisplay(rewards: combined)
+
+                RewardsDisplay(rewards: claim.rewards)
                     .font(.title3)
-                
-                if !bonus.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Includes streak bonus:")
-                            .font(.caption)
+
+                if bonusCount > 0 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "gift.fill")
                             .foregroundStyle(.orange)
-                        HStack(spacing: 8) {
-                            ForEach(bonus, id: \.self) { entry in
-                                RewardChip(entry: entry, style: .compact)
-                            }
-                        }
+                        Text("+ \(bonusCount) Random Bonus\(bonusCount > 1 ? "es" : "")!")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.orange)
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.orange.opacity(0.15), in: Capsule())
                 }
-                
+
                 Text("Claim it from the timeline below.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -174,27 +186,35 @@ public struct DailyClaimsView: View {
                 TabView(selection: $selectedPage) {
                     let highlightDay = store.getNextClaimableDay() ?? (store.currentClaimDay + 1)
                     ForEach(Array(chunkedClaims.enumerated()), id: \.offset) { index, claims in
-                        VStack(spacing: 12) {
-                            let nextDay = store.getNextClaimableDay()
-                            ForEach(claims) { claim in
-                                let isNext = (claim.day == nextDay)
-                                let combined = isNext ? (store.combinedRewardForNextClaim() ?? claim.rewards) : claim.rewards
-                                let bonus = isNext ? bonusEntries(base: claim.rewards, combined: combined) : []
-                                DailyRewardRow(
-                                    claim: claim,
-                                    currentClaimDay: store.currentClaimDay,
-                                    highlightDay: highlightDay,
-                                    combinedReward: combined,
-                                    bonusEntries: bonus,
-                                    onClaim: claim.isAvailable ? { claimReward(claim.rewards) } : nil
-                                )
-                            }
-                            if claims.count < 7 {
-                                Spacer(minLength: CGFloat(7 - claims.count) * 72)
-                            }
+                        // Special full-page layout for Day 365 (Year 1)
+                        if index == 52, let day365 = claims.first, day365.day == 365 {
+                            YearlyRewardPageView(
+                                claim: day365,
+                                currentClaimDay: store.currentClaimDay,
+                                yearNumber: 1,
+                                onClaim: day365.isAvailable ? { claimReward(day365.rewards) } : nil
+                            )
+                            .tag(index)
+                        // Special full-page layout for Day 730 (Year 2)
+                        } else if index == 106, let day730 = claims.first, day730.day == 730 {
+                            YearlyRewardPageView(
+                                claim: day730,
+                                currentClaimDay: store.currentClaimDay,
+                                yearNumber: 2,
+                                onClaim: day730.isAvailable ? { claimReward(day730.rewards) } : nil
+                            )
+                            .tag(index)
+                        } else {
+                            WeekGridView(
+                                claims: claims,
+                                currentClaimDay: store.currentClaimDay,
+                                highlightDay: highlightDay,
+                                nextDay: store.getNextClaimableDay(),
+                                combinedRewardForNext: store.combinedRewardForNextClaim(),
+                                onClaim: { claim in claimReward(claim.rewards) }
+                            )
+                            .tag(index)
                         }
-                        .padding(.vertical, 4)
-                        .tag(index)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .automatic))
@@ -204,20 +224,100 @@ public struct DailyClaimsView: View {
     }
     
     private var chunkedClaims: [[DailyClaimsStore.DailyClaim]] {
-        store.dailyClaims.chunked(into: 7)
+        // Special handling for yearly rewards:
+        // - Pages 0-51: Weeks 1-52 (days 1-364)
+        // - Page 52: Day 365 (Year 1)
+        // - Page 53: Week 53 (days 366-371, 6 days)
+        // - Pages 54-104: Weeks 54-104 (days 372-728)
+        // - Page 105: Week 105 first part (day 729 only)
+        // - Page 106: Day 730 (Year 2)
+        // - Page 107: Rest of Week 105 (days 731-735, 5 days)
+        // - Pages 108+: Week 106+ (days 736+)
+        var chunks: [[DailyClaimsStore.DailyClaim]] = []
+        let claims = store.dailyClaims
+
+        // First 364 days in normal 7-day chunks (weeks 1-52)
+        let regularDays = claims.filter { $0.day <= 364 }
+        chunks.append(contentsOf: regularDays.chunked(into: 7))
+
+        // Day 365 as its own page (Year 1)
+        if let day365 = claims.first(where: { $0.day == 365 }) {
+            chunks.append([day365])
+        }
+
+        // Week 53: Days 366-371 (6 days only)
+        let week53Days = claims.filter { $0.day >= 366 && $0.day <= 371 }
+        if !week53Days.isEmpty {
+            chunks.append(week53Days)
+        }
+
+        // Days 372-728 in 7-day chunks (weeks 54-104)
+        let year2RegularDays = claims.filter { $0.day >= 372 && $0.day <= 728 }
+        if !year2RegularDays.isEmpty {
+            chunks.append(contentsOf: year2RegularDays.chunked(into: 7))
+        }
+
+        // Week 105 first part: Day 729 only
+        if let day729 = claims.first(where: { $0.day == 729 }) {
+            chunks.append([day729])
+        }
+
+        // Day 730 as its own page (Year 2)
+        if let day730 = claims.first(where: { $0.day == 730 }) {
+            chunks.append([day730])
+        }
+
+        // Rest of Week 105: Days 731-735 (5 days)
+        let week105Rest = claims.filter { $0.day >= 731 && $0.day <= 735 }
+        if !week105Rest.isEmpty {
+            chunks.append(week105Rest)
+        }
+
+        // Days 736+ in 7-day chunks (week 106+)
+        let year3Days = claims.filter { $0.day >= 736 }
+        if !year3Days.isEmpty {
+            chunks.append(contentsOf: year3Days.chunked(into: 7))
+        }
+
+        return chunks
     }
-    
+
+    private func pageIndex(for day: Int) -> Int {
+        if day <= 364 {
+            return (day - 1) / 7
+        } else if day == 365 {
+            return 52  // Day 365 page
+        } else if day <= 371 {
+            return 53  // Week 53 (days 366-371)
+        } else if day <= 728 {
+            // Days 372-728: pages 54-104
+            return 54 + (day - 372) / 7
+        } else if day == 729 {
+            return 105  // Week 105 first part
+        } else if day == 730 {
+            return 106  // Day 730 page
+        } else if day <= 735 {
+            return 107  // Rest of Week 105
+        } else {
+            // Days 736+: page 108 + offset
+            return 108 + (day - 736) / 7
+        }
+    }
+
     private func syncSelectedPage() {
         let focusDay = store.getNextClaimableDay() ?? max(store.currentClaimDay, 1)
-        let targetPage = max((focusDay - 1) / 7, 0)
+        let targetPage = pageIndex(for: focusDay)
         if selectedPage != targetPage {
             selectedPage = targetPage
         }
     }
     
     private func claimReward(_ rewards: AchievementDef.Rewards) {
+        // Get bonus count BEFORE claiming (since it will change after)
+        let nextDay = store.getNextClaimableDay() ?? (store.currentClaimDay + 1)
+        claimedBonusCount = store.pendingStreakBonusCount(afterClaimingDay: nextDay)
         claimedBaseRewards = rewards
-        claimedRewards = store.combinedRewardForNextClaim() ?? rewards
+        claimedRewards = rewards  // Just use base rewards since bonuses are random
         showClaimAnimation = true
         store.claimDailyReward()
         gameStore.achievementEvaluator?.onDailyClaimed()
@@ -226,12 +326,15 @@ public struct DailyClaimsView: View {
             withAnimation {
                 showClaimAnimation = false
                 claimedRewards = nil
+                claimedBonusCount = 0
             }
         }
     }
 
     private var weekNavigator: some View {
-        HStack(spacing: 12) {
+        let maxPage = 115  // Covers 2+ years
+
+        return HStack(spacing: 12) {
             Button {
                 if selectedPage > 0 {
                     withAnimation { selectedPage -= 1 }
@@ -244,15 +347,51 @@ public struct DailyClaimsView: View {
             .disabled(selectedPage == 0)
 
             Menu {
-                ForEach(0..<52, id: \.self) { week in
-                    Button("Week \(week + 1)") {
-                        store.ensureClaimsCovering(pageIndex: week)
-                        withAnimation { selectedPage = week }
+                // Weeks 1-52
+                ForEach(0..<52, id: \.self) { page in
+                    Button("Week \(page + 1)") {
+                        store.ensureClaimsCovering(pageIndex: page)
+                        withAnimation { selectedPage = page }
+                    }
+                }
+                // Day 365 (Year 1)
+                Button("Day 365") {
+                    store.ensureClaimsCovering(pageIndex: 52)
+                    withAnimation { selectedPage = 52 }
+                }
+                // Weeks 53-104
+                ForEach(53...104, id: \.self) { page in
+                    Button("Week \(page)") {
+                        store.ensureClaimsCovering(pageIndex: page)
+                        withAnimation { selectedPage = page }
+                    }
+                }
+                // Week 105 (Day 729)
+                Button("Week 105") {
+                    store.ensureClaimsCovering(pageIndex: 105)
+                    withAnimation { selectedPage = 105 }
+                }
+                // Day 730 (Year 2)
+                Button("Day 730") {
+                    store.ensureClaimsCovering(pageIndex: 106)
+                    withAnimation { selectedPage = 106 }
+                }
+                // Rest of Week 105 (Days 731-735)
+                Button("Week 105 (cont.)") {
+                    store.ensureClaimsCovering(pageIndex: 107)
+                    withAnimation { selectedPage = 107 }
+                }
+                // Weeks 106+ (pages 108+)
+                ForEach(108...maxPage, id: \.self) { page in
+                    let weekNum = page - 2  // Offset by 2 for the extra pages
+                    Button("Week \(weekNum)") {
+                        store.ensureClaimsCovering(pageIndex: page)
+                        withAnimation { selectedPage = page }
                     }
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text("Week \(selectedPage + 1)")
+                    Text(pageLabel(for: selectedPage))
                         .font(.subheadline.bold())
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption)
@@ -264,17 +403,316 @@ public struct DailyClaimsView: View {
             }
 
             Button {
-                if selectedPage < 51 {
+                if selectedPage < maxPage {
                     store.ensureClaimsCovering(pageIndex: selectedPage + 1)
                     withAnimation { selectedPage += 1 }
                 }
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.headline)
-                    .foregroundStyle(selectedPage < 51 ? .primary : .tertiary)
+                    .foregroundStyle(selectedPage < maxPage ? .primary : .tertiary)
             }
-            .disabled(selectedPage >= 51)
+            .disabled(selectedPage >= maxPage)
         }
+    }
+
+    private func pageLabel(for page: Int) -> String {
+        if page < 52 {
+            return "Week \(page + 1)"
+        } else if page == 52 {
+            return "Day 365"
+        } else if page <= 104 {
+            return "Week \(page)"  // Pages 53-104 = Weeks 53-104
+        } else if page == 105 {
+            return "Week 105"  // Day 729
+        } else if page == 106 {
+            return "Day 730"
+        } else if page == 107 {
+            return "Week 105 (cont.)"  // Days 731-735
+        } else {
+            return "Week \(page - 2)"  // Pages 108+ = Weeks 106+ (offset by 2)
+        }
+    }
+}
+
+private struct WeekGridView: View {
+    let claims: [DailyClaimsStore.DailyClaim]
+    let currentClaimDay: Int
+    let highlightDay: Int
+    let nextDay: Int?
+    let combinedRewardForNext: AchievementDef.Rewards?
+    let onClaim: (DailyClaimsStore.DailyClaim) -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            // Grid of days in 2 columns
+            let pairCount = claims.count / 2
+            let hasOddDay = claims.count % 2 == 1
+
+            // First 6 days (or pairs) in 2-column grid
+            ForEach(0..<pairCount, id: \.self) { rowIndex in
+                HStack(spacing: 12) {
+                    let leftIndex = rowIndex * 2
+                    let rightIndex = rowIndex * 2 + 1
+
+                    DayGridCell(
+                        claim: claims[leftIndex],
+                        currentClaimDay: currentClaimDay,
+                        highlightDay: highlightDay,
+                        isNext: claims[leftIndex].day == nextDay,
+                        combinedReward: claims[leftIndex].day == nextDay ? combinedRewardForNext : nil,
+                        onClaim: claims[leftIndex].isAvailable ? { onClaim(claims[leftIndex]) } : nil
+                    )
+                    .frame(maxHeight: .infinity)
+
+                    DayGridCell(
+                        claim: claims[rightIndex],
+                        currentClaimDay: currentClaimDay,
+                        highlightDay: highlightDay,
+                        isNext: claims[rightIndex].day == nextDay,
+                        combinedReward: claims[rightIndex].day == nextDay ? combinedRewardForNext : nil,
+                        onClaim: claims[rightIndex].isAvailable ? { onClaim(claims[rightIndex]) } : nil
+                    )
+                    .frame(maxHeight: .infinity)
+                }
+                .frame(maxHeight: .infinity)
+            }
+
+            // Last day centered (Day 7 or odd remaining day)
+            if hasOddDay, let lastClaim = claims.last {
+                DayGridCell(
+                    claim: lastClaim,
+                    currentClaimDay: currentClaimDay,
+                    highlightDay: highlightDay,
+                    isNext: lastClaim.day == nextDay,
+                    combinedReward: lastClaim.day == nextDay ? combinedRewardForNext : nil,
+                    onClaim: lastClaim.isAvailable ? { onClaim(lastClaim) } : nil
+                )
+                .frame(maxHeight: .infinity)
+            }
+        }
+        .frame(maxHeight: .infinity)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+    }
+}
+
+private struct DayGridCell: View {
+    let claim: DailyClaimsStore.DailyClaim
+    let currentClaimDay: Int
+    let highlightDay: Int
+    let isNext: Bool
+    let combinedReward: AchievementDef.Rewards?
+    let onClaim: (() -> Void)?
+
+    private var displayRewards: AchievementDef.Rewards {
+        combinedReward ?? claim.rewards
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Day title
+            HStack {
+                Text("Day \(claim.day)")
+                    .font(.title2.bold())
+                if claim.day == highlightDay {
+                    Text("Today")
+                        .font(.caption2)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.blue.opacity(0.15), in: Capsule())
+                }
+                Spacer()
+                statusIndicator
+            }
+
+            // Rewards
+            HStack(spacing: 6) {
+                ForEach(displayRewards.entries.prefix(3), id: \.self) { entry in
+                    HStack(spacing: 3) {
+                        RewardIconView(kind: entry.kind, font: .subheadline)
+                        Text("\(entry.amount)")
+                    }
+                    .font(.subheadline)
+                }
+                if displayRewards.entries.count > 3 {
+                    Text("+\(displayRewards.entries.count - 3)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+
+            // Claim button if available
+            if let onClaim, claim.isAvailable {
+                Button(action: onClaim) {
+                    Text("Claim")
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.purple.gradient, in: RoundedRectangle(cornerRadius: 10))
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(backgroundColor, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(borderColor, lineWidth: 1)
+        )
+    }
+
+    @ViewBuilder
+    private var statusIndicator: some View {
+        if claim.isClaimed {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+        } else if !claim.isAvailable {
+            Image(systemName: "clock")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var backgroundColor: Color {
+        if claim.isClaimed {
+            return Color.green.opacity(0.12)
+        } else if claim.isAvailable {
+            return Color.yellow.opacity(0.15)
+        } else {
+            return Color(.secondarySystemBackground)
+        }
+    }
+
+    private var borderColor: Color {
+        if claim.isAvailable {
+            return .yellow
+        } else if claim.isClaimed {
+            return .green.opacity(0.6)
+        } else {
+            return .gray.opacity(0.2)
+        }
+    }
+}
+
+private struct YearlyRewardPageView: View {
+    let claim: DailyClaimsStore.DailyClaim
+    let currentClaimDay: Int
+    let yearNumber: Int
+    let onClaim: (() -> Void)?
+
+    private var targetDay: Int {
+        yearNumber == 1 ? 365 : 730
+    }
+
+    private var requiredDay: Int {
+        yearNumber == 1 ? 364 : 729
+    }
+
+    private var hasReachedTarget: Bool {
+        currentClaimDay >= requiredDay || claim.isClaimed
+    }
+
+    private var yearlyRewardText: String {
+        if yearNumber == 1 {
+            return "YEARLY REWARD!\nWOOHOO!"
+        } else {
+            return "YEARLY REWARD \(yearNumber)!\nWOOHOO!"
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Text("Day \(targetDay)")
+                .font(.system(size: 56, weight: .bold, design: .rounded))
+
+            if hasReachedTarget {
+                // Rewards with icons
+                HStack(spacing: 12) {
+                    ForEach(claim.rewards.entries, id: \.self) { entry in
+                        HStack(spacing: 6) {
+                            RewardIconView(kind: entry.kind, font: .title2)
+                            Text("\(entry.amount) \(entry.kind.displayName)")
+                        }
+                        .font(.title2)
+                    }
+                }
+
+                Text(yearlyRewardText)
+                    .font(.title.bold())
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.purple)
+
+                // Claim button or status - directly under celebration text
+                if claim.isClaimed {
+                    Label("Claimed", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.title2.bold())
+                } else if let onClaim {
+                    Button(action: onClaim) {
+                        Text("Claim Yearly Reward")
+                            .font(.title3.bold())
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 14)
+                            .background(Color.purple.gradient, in: Capsule())
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                    .shadow(color: .purple.opacity(0.3), radius: 10, y: 5)
+                } else {
+                    VStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.title2)
+                        Text("Come back tomorrow!")
+                            .font(.subheadline)
+                    }
+                    .foregroundStyle(.secondary)
+                }
+            } else {
+                // Locked state - hasn't reached target yet
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.secondary)
+
+                Text("Complete \(requiredDay) days\nto unlock this reward!")
+                    .font(.title3)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+
+                Text("Day \(currentClaimDay) / \(requiredDay)")
+                    .font(.headline)
+                    .foregroundStyle(.purple)
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.yellow.opacity(0.15), Color.purple.opacity(0.15)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.yellow, .purple],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2
+                )
+        )
     }
 }
 
@@ -285,7 +723,7 @@ private struct DailyRewardRow: View {
     let combinedReward: AchievementDef.Rewards
     let bonusEntries: [AchievementDef.Rewards.Entry]
     let onClaim: (() -> Void)?
-    
+
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
@@ -435,51 +873,97 @@ private struct RewardsDisplay: View {
 
 private struct ClaimAnimationOverlay: View {
     let rewards: AchievementDef.Rewards
-    let baseRewards: AchievementDef.Rewards?
-    
-    init(rewards: AchievementDef.Rewards, baseRewards: AchievementDef.Rewards? = nil) {
+    let randomBonusCount: Int
+
+    init(rewards: AchievementDef.Rewards, randomBonusCount: Int = 0) {
         self.rewards = rewards
-        self.baseRewards = baseRewards
+        self.randomBonusCount = randomBonusCount
     }
-    
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
-            
+
             VStack(spacing: 24) {
                 Image(systemName: "gift.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(.yellow)
                     .symbolEffect(.bounce)
-                
+
                 Text("Reward Claimed!")
                     .font(.largeTitle.bold())
                     .foregroundStyle(.white)
-                
+
                 RewardsDisplay(rewards: rewards)
                     .font(.title3)
                     .padding()
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                
-                if let base = baseRewards {
-                    let bonus = bonusEntries(base: base, combined: rewards)
-                    if !bonus.isEmpty {
-                        VStack(spacing: 8) {
-                            Text("Streak Bonus")
+
+                if randomBonusCount > 0 {
+                    VStack(spacing: 8) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.orange)
+                            Text("+ \(randomBonusCount) Random Bonus\(randomBonusCount > 1 ? "es" : "") Added!")
                                 .font(.headline)
                                 .foregroundStyle(.orange)
-                            HStack(spacing: 8) {
-                                ForEach(bonus, id: \.self) { entry in
-                                    RewardChip(entry: entry, style: .compact)
-                                }
-                            }
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.orange)
                         }
-                        .padding(.horizontal)
+                        Text("Check your inventory!")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.7))
                     }
+                    .padding(.horizontal)
                 }
             }
             .padding()
+        }
+    }
+}
+
+/// Custom icon view that handles special cases like swap (two-colored arrows) and hammer (two-colored)
+private struct RewardIconView: View {
+    let kind: AchievementDef.Rewards.Entry.Kind
+    var font: Font = .body
+
+    var body: some View {
+        if kind == .swaps {
+            // Swap icon with green and yellow curved arrows forming a refresh cycle
+            ZStack {
+                // Green arrow: curves from top-left to bottom-right
+                Image(systemName: "arrowshape.turn.up.left")
+                    .foregroundStyle(.green)
+                    .rotationEffect(.degrees(180))
+                    .offset(x: -2, y: 3)
+                // Yellow arrow: curves from bottom-right to top-left
+                Image(systemName: "arrowshape.turn.up.left")
+                    .foregroundStyle(.yellow)
+                    .offset(x: 2, y: -3)
+            }
+            .font(font)
+        } else if kind == .hammers {
+            // Hammer icon with gray head and brown handle
+            ZStack {
+                // Brown handle (bottom layer)
+                Image(systemName: "hammer.fill")
+                    .foregroundStyle(.brown)
+                    .font(font)
+                // Gray head overlay using mask
+                Image(systemName: "hammer.fill")
+                    .foregroundStyle(.gray)
+                    .font(font)
+                    .mask(
+                        Rectangle()
+                            .frame(width: 50, height: 8)
+                            .offset(x: 5, y: -6)
+                    )
+            }
+        } else {
+            Image(systemName: kind.iconName)
+                .foregroundStyle(kind.iconColor)
+                .font(font)
         }
     }
 }
@@ -489,14 +973,13 @@ private struct RewardChip: View {
         case compact
         case detailed
     }
-    
+
     let entry: AchievementDef.Rewards.Entry
     let style: Style
-    
+
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: entry.kind.iconName)
-                .foregroundStyle(entry.kind.iconColor)
+            RewardIconView(kind: entry.kind)
             switch style {
             case .compact:
                 Text(compactText)
@@ -515,11 +998,11 @@ private struct RewardChip: View {
         .padding(style == .compact ? 4 : 8)
         .background(entry.kind.iconColor.opacity(0.12), in: Capsule())
     }
-    
+
     private var compactText: String {
         return "\(entry.amount) \(entry.kind.displayName)"
     }
-    
+
     private var detailedTitle: String {
         return "\(entry.amount) \(entry.kind.displayName)"
     }
@@ -531,7 +1014,7 @@ private extension AchievementDef.Rewards.Entry.Kind {
         case .gems: return "diamond.fill"
         case .spins: return "arrow.triangle.2.circlepath"
         case .hammers: return "hammer.fill"
-        case .magnets: return "magnet.fill"
+        case .magnets: return "dot.radiowaves.left.and.right"
         case .swaps: return "arrow.2.squarepath"
         case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
         }
@@ -541,8 +1024,8 @@ private extension AchievementDef.Rewards.Entry.Kind {
         switch self {
         case .gems: return .cyan
         case .spins: return .purple
-        case .hammers: return .orange
-        case .magnets: return .blue
+        case .hammers: return .gray
+        case .magnets: return .red
         case .swaps: return .green
         case .boost2x: return .yellow
         case .boost3x: return .pink
@@ -626,3 +1109,45 @@ private func bonusEntries(base: AchievementDef.Rewards, combined: AchievementDef
         .sorted { $0.kind.displayName < $1.kind.displayName }
 }
 
+private struct IconLegendView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let legendItems: [AchievementDef.Rewards.Entry.Kind] = [
+        .gems, .spins, .hammers, .magnets, .swaps, .boost2x, .boost3x, .boost4x
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(legendItems, id: \.self) { kind in
+                        HStack(spacing: 16) {
+                            RewardIconView(kind: kind, font: .title2)
+                                .frame(width: 32)
+
+                            Text(kind.displayName)
+                                .font(.body)
+
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
+
+                        if kind != legendItems.last {
+                            Divider()
+                                .padding(.leading, 64)
+                        }
+                    }
+                }
+                .padding(.vertical)
+            }
+            .navigationTitle("Reward Icons")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+}

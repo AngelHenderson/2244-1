@@ -5,7 +5,7 @@ import Observation
 @Observable
 public final class HomeState {
     // Top HUD
-    public var rank: Int = 231_105
+    public var rank: Int = 4564  // Default for "16M" milestone, will be updated on load
     public var gems: Int = 305
 
     // Progression

@@ -1,6 +1,7 @@
 import SwiftUI
 import GameCore
 import GameApp
+import GameServices
 import OSLog
 
 // MARK: - Simplified Glass Board View (Visual Only)
@@ -9,6 +10,7 @@ public struct SimplifiedGlassBoardView: View {
     @Environment(\.hapticsService) private var haptics
     @Environment(\.colorBlindMode) private var colorBlindMode
     @Environment(\.currentTheme) private var currentTheme
+    @Environment(\.audio) private var audioService
     
     @State private var dragLocation: CGPoint = .zero
     @State private var isDragging = false
@@ -47,15 +49,36 @@ public struct SimplifiedGlassBoardView: View {
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
         VStack(spacing: spacing) {
-            let currentMax: Int = {
-                var maxVal = 0
+            // Crown appears on ALL tiles with the highest value currently on the board
+            // Uses stepIndex for accurate comparison of high-value tiles
+            let crownPositions: Set<Position> = {
+                var maxStep = -1
+                var positions: Set<Position> = []
+                // First pass: find the max step
                 for r in 0..<gameStore.state.board.height {
                     for c in 0..<gameStore.state.board.width {
                         let p = Position(row: r, col: c)
-                        if let t = gameStore.state.board[p], t.value > maxVal { maxVal = t.value }
+                        if let t = gameStore.state.board[p] {
+                            let step = t.stepIndex ?? 0
+                            if step > maxStep {
+                                maxStep = step
+                            }
+                        }
                     }
                 }
-                return maxVal
+                // Second pass: collect all positions with max step
+                for r in 0..<gameStore.state.board.height {
+                    for c in 0..<gameStore.state.board.width {
+                        let p = Position(row: r, col: c)
+                        if let t = gameStore.state.board[p] {
+                            let step = t.stepIndex ?? 0
+                            if step == maxStep {
+                                positions.insert(p)
+                            }
+                        }
+                    }
+                }
+                return positions
             }()
             
             // All board rows including glass preview row as first row
@@ -94,13 +117,13 @@ public struct SimplifiedGlassBoardView: View {
                                     .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
                                 }
                                 
-                                if let t = gameStore.state.board[position], t.value == currentMax {
+                                if crownPositions.contains(position) {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
                                         .foregroundStyle(.yellow)
                                         .offset(y: -tileSize * 0.45)
                                 }
-                                
+
                                 if gameStore.pendingGiftBoxes[position] != nil {
                                     GiftBoxOverlay(size: tileSize)
                                         .onTapGesture {
@@ -129,7 +152,7 @@ public struct SimplifiedGlassBoardView: View {
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }
-                                if let t = gameStore.state.board[position], t.value == currentMax {
+                                if crownPositions.contains(position) {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
                                         .foregroundStyle(.yellow)
@@ -342,6 +365,7 @@ public struct SimplifiedGlassBoardView: View {
                         gameStore.extendPath(to: position)
                         if gameStore.pathValidation.isValid {
                             haptics.lightImpact()
+                            Task { await audioService.playSfx(name: "chain") }
                             gestureLogger.info("extendPath valid | row=\(position.row) col=\(position.col) count=\(self.gameStore.currentPath.count)")
                         } else {
                             haptics.warning()
@@ -359,6 +383,7 @@ public struct SimplifiedGlassBoardView: View {
                 if gameStore.pathValidation.isValid && gameStore.currentPath.count >= 2 {
                     gameStore.commitPath()
                     haptics.success()
+                    Task { await audioService.playSfx(name: "merge") }
                 } else {
                     gameStore.cancelPath()
                     if gameStore.currentPath.count >= 2 {
@@ -458,6 +483,10 @@ public struct SimplifiedGlassBoardView: View {
             return
         }
         magnetAnimations = contributors.map { MagnetAnimationModel(value: event.value, start: $0, target: event.target, progress: 0) }
+
+        // Play electric sound when magnet starts sucking
+        Task { await audioService.playSfx(name: "electric") }
+
         DispatchQueue.main.async {
             withAnimation(.easeInOut(duration: 0.35)) {
                 for index in magnetAnimations.indices {
@@ -467,6 +496,8 @@ public struct SimplifiedGlassBoardView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 magnetAnimations.removeAll()
                 gameStore.clearLastMagnetEvent()
+                // Play merge sound when magnet completes
+                Task { await audioService.playSfx(name: "merge") }
             }
         }
     }

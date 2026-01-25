@@ -60,6 +60,18 @@ public struct PlayerProfileView: View {
                     }
                 )
             }
+            #if os(iOS)
+            .fullScreenCover(isPresented: $model.showCountryPicker) {
+                CountryPickerView(
+                    selectedCountry: model.countryCode,
+                    onSelect: { countryCode in
+                        Task {
+                            await model.updateCountry(to: countryCode, using: client)
+                        }
+                    }
+                )
+            }
+            #else
             .sheet(isPresented: $model.showCountryPicker) {
                 CountryPickerView(
                     selectedCountry: model.countryCode,
@@ -70,6 +82,7 @@ public struct PlayerProfileView: View {
                     }
                 )
             }
+            #endif
             .onChange(of: gameStore.tierMasteryCounts) { _, _ in
                 updateTierStatsFromStore()
             }
@@ -275,18 +288,21 @@ public struct PlayerProfileView: View {
     }
     
     // MARK: - Helper Functions
-    
+
     private func flagEmoji(_ countryCode: String) -> String {
-        let base: UInt32 = 127397
-        var emoji = ""
-        for scalar in countryCode.uppercased().unicodeScalars {
-            if let unicodeScalar = UnicodeScalar(base + scalar.value) {
-                emoji.unicodeScalars.append(unicodeScalar)
-            }
+        let uppercased = countryCode.uppercased()
+        let regionalIndicatorBase: UInt32 = 0x1F1E6 // 🇦
+        let asciiA: UInt32 = 0x41 // A
+
+        return uppercased.unicodeScalars.compactMap { scalar in
+            guard scalar.value >= asciiA && scalar.value <= 0x5A else { return nil } // A-Z range
+            let offset = scalar.value - asciiA
+            return UnicodeScalar(regionalIndicatorBase + offset)
         }
-        return emoji
+        .map(String.init)
+        .joined()
     }
-    
+
     private func countryName(_ countryCode: String) -> String {
         let locale = Locale.current
         return locale.localizedString(forRegionCode: countryCode) ?? countryCode
@@ -344,42 +360,107 @@ private struct CountryPickerView: View {
     let selectedCountry: String?
     let onSelect: (String?) -> Void
     @Environment(\.dismiss) private var dismiss
-    
-    private let popularCountries = ["US", "GB", "CA", "AU", "DE", "FR", "JP", "IN", "BR", "MX"]
-    
+    @State private var searchText = ""
+
+    private let popularCountries = [
+        "US", "GB", "CA", "AU", "DE", "FR", "JP", "IN", "BR", "MX",
+        "CN", "KR", "IT", "ES", "NL", "SE", "CH", "NO", "DK", "FI",
+        "PL", "BE", "AT", "IE", "PT", "GR", "CZ", "RO", "HU", "NZ",
+        "SG", "MY", "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
+        "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
+    ]
+
+    private var filteredPopularCountries: [String] {
+        if searchText.isEmpty {
+            return popularCountries
+        }
+        return popularCountries.filter { countryCode in
+            let name = countryName(countryCode).lowercased()
+            let code = countryCode.lowercased()
+            let search = searchText.lowercased()
+            return name.contains(search) || code.contains(search)
+        }
+    }
+
+    private var filteredAllCountries: [String] {
+        let allExcludingPopular = allCountryCodes.filter { !popularCountries.contains($0) }
+        if searchText.isEmpty {
+            return allExcludingPopular
+        }
+        return allExcludingPopular.filter { countryCode in
+            let name = countryName(countryCode).lowercased()
+            let code = countryCode.lowercased()
+            let search = searchText.lowercased()
+            return name.contains(search) || code.contains(search)
+        }
+    }
+
+    @FocusState private var isSearchFocused: Bool
+
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Button {
-                        onSelect(nil)
-                        dismiss()
-                    } label: {
-                        HStack {
-                            Image(systemName: "globe")
+            VStack(spacing: 0) {
+                // Search bar with keyboard support
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    TextField("Search countries", text: $searchText)
+                        .textFieldStyle(.plain)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .focused($isSearchFocused)
+                    if !searchText.isEmpty {
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
                                 .foregroundStyle(.secondary)
-                            Text("No Country")
-                            Spacer()
-                            if selectedCountry == nil {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.tint)
+                        }
+                    }
+                }
+                .padding(12)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+
+                List {
+                    Section {
+                        Button {
+                            onSelect(nil)
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Image(systemName: "globe")
+                                    .foregroundStyle(.secondary)
+                                Text("No Country")
+                                Spacer()
+                                if selectedCountry == nil {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.tint)
+                                }
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                    }
+
+                    if !filteredPopularCountries.isEmpty {
+                        Section("Popular Countries") {
+                            ForEach(filteredPopularCountries, id: \.self) { countryCode in
+                                countryRow(countryCode: countryCode)
                             }
                         }
                     }
-                    .foregroundStyle(.primary)
-                }
-                
-                Section("Popular Countries") {
-                    ForEach(popularCountries, id: \.self) { countryCode in
-                        countryRow(countryCode: countryCode)
+
+                    if !filteredAllCountries.isEmpty {
+                        Section("All Countries") {
+                            ForEach(filteredAllCountries, id: \.self) { countryCode in
+                                countryRow(countryCode: countryCode)
+                            }
+                        }
                     }
                 }
-                
-                Section("All Countries") {
-                    ForEach(allCountryCodes.filter { !popularCountries.contains($0) }, id: \.self) { countryCode in
-                        countryRow(countryCode: countryCode)
-                    }
-                }
+                .listStyle(.insetGrouped)
             }
             .navigationTitle("Select Country")
             .navigationBarTitleDisplayMode(.inline)
@@ -387,6 +468,9 @@ private struct CountryPickerView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
+            }
+            .onAppear {
+                isSearchFocused = true
             }
         }
     }
@@ -408,29 +492,45 @@ private struct CountryPickerView: View {
         }
         .foregroundStyle(.primary)
     }
-    
+
     private func flagEmoji(_ countryCode: String) -> String {
-        let base: UInt32 = 127397
-        var emoji = ""
-        for scalar in countryCode.uppercased().unicodeScalars {
-            if let unicodeScalar = UnicodeScalar(base + scalar.value) {
-                emoji.unicodeScalars.append(unicodeScalar)
-            }
+        let uppercased = countryCode.uppercased()
+        let regionalIndicatorBase: UInt32 = 0x1F1E6 // 🇦
+        let asciiA: UInt32 = 0x41 // A
+
+        return uppercased.unicodeScalars.compactMap { scalar in
+            guard scalar.value >= asciiA && scalar.value <= 0x5A else { return nil } // A-Z range
+            let offset = scalar.value - asciiA
+            return UnicodeScalar(regionalIndicatorBase + offset)
         }
-        return emoji
+        .map(String.init)
+        .joined()
     }
-    
+
     private func countryName(_ countryCode: String) -> String {
         let locale = Locale.current
         return locale.localizedString(forRegionCode: countryCode) ?? countryCode
     }
-    
+
+    // Codes that are not actual countries (continents, regions, organizations, etc.)
+    private let excludedCodes: Set<String> = [
+        "EU", "EZ", "UN", "QO", "ZZ", "XK",  // Organizations and special codes
+        "AC", "CP", "DG", "EA", "IC", "TA",  // Minor territories
+        "001", "002", "003", "005", "009", "011", "013", "014", "015", "017", "018", "019",  // Continents/regions (numeric)
+        "021", "029", "030", "034", "035", "039", "053", "054", "057", "061",
+        "142", "143", "145", "150", "151", "154", "155", "202", "419"
+    ]
+
     private var allCountryCodes: [String] {
+        let codes: [String]
         if #available(iOS 16.0, *) {
-            return Locale.Region.isoRegions.compactMap { $0.identifier }.sorted { countryName($0) < countryName($1) }
+            codes = Locale.Region.isoRegions.compactMap { $0.identifier }
         } else {
-            return Locale.isoRegionCodes.sorted { countryName($0) < countryName($1) }
+            codes = Locale.isoRegionCodes
         }
+        return codes
+            .filter { !excludedCodes.contains($0) }
+            .sorted { countryName($0) < countryName($1) }
     }
 }
 

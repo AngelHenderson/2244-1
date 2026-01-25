@@ -18,6 +18,18 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
     case countryJP = "Japan"
     case countryIN = "India"
     case countryBR = "Brazil"
+    case countryMX = "Mexico"
+    case countryAF = "Afghanistan"
+    case countryAL = "Albania"
+    case countryDZ = "Algeria"
+    case countryCN = "China"
+    case countryKR = "South Korea"
+    case countryIT = "Italy"
+    case countryES = "Spain"
+    case countryNL = "Netherlands"
+    case countryCH = "Switzerland"
+    case countryNO = "Norway"
+    case countryDK = "Denmark"
 
     public var id: Self { self }
 
@@ -34,6 +46,18 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
         case .countryJP: return "flag.fill"
         case .countryIN: return "flag.fill"
         case .countryBR: return "flag.fill"
+        case .countryMX: return "flag.fill"
+        case .countryAF: return "flag.fill"
+        case .countryAL: return "flag.fill"
+        case .countryDZ: return "flag.fill"
+        case .countryCN: return "flag.fill"
+        case .countryKR: return "flag.fill"
+        case .countryIT: return "flag.fill"
+        case .countryES: return "flag.fill"
+        case .countryNL: return "flag.fill"
+        case .countryCH: return "flag.fill"
+        case .countryNO: return "flag.fill"
+        case .countryDK: return "flag.fill"
         }
     }
 
@@ -48,6 +72,18 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
         case .countryJP: return "JP"
         case .countryIN: return "IN"
         case .countryBR: return "BR"
+        case .countryMX: return "MX"
+        case .countryAF: return "AF"
+        case .countryAL: return "AL"
+        case .countryDZ: return "DZ"
+        case .countryCN: return "CN"
+        case .countryKR: return "KR"
+        case .countryIT: return "IT"
+        case .countryES: return "ES"
+        case .countryNL: return "NL"
+        case .countryCH: return "CH"
+        case .countryNO: return "NO"
+        case .countryDK: return "DK"
         default: return nil
         }
     }
@@ -73,6 +109,30 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
             return [.global, .hallOfFame, .countryIN]
         case "BR":
             return [.global, .hallOfFame, .countryBR]
+        case "MX":
+            return [.global, .hallOfFame, .countryMX]
+        case "AF":
+            return [.global, .hallOfFame, .countryAF]
+        case "AL":
+            return [.global, .hallOfFame, .countryAL]
+        case "DZ":
+            return [.global, .hallOfFame, .countryDZ]
+        case "CN":
+            return [.global, .hallOfFame, .countryCN]
+        case "KR":
+            return [.global, .hallOfFame, .countryKR]
+        case "IT":
+            return [.global, .hallOfFame, .countryIT]
+        case "ES":
+            return [.global, .hallOfFame, .countryES]
+        case "NL":
+            return [.global, .hallOfFame, .countryNL]
+        case "CH":
+            return [.global, .hallOfFame, .countryCH]
+        case "NO":
+            return [.global, .hallOfFame, .countryNO]
+        case "DK":
+            return [.global, .hallOfFame, .countryDK]
         default:
             return [.global, .hallOfFame]
         }

@@ -232,15 +232,27 @@ public final class AchievementStore {
         ("2K", 2000),
         ("3K", 3000),
         ("5K", 5000),
+        ("7.5K", 7500),
         ("10K", 10000),
+        ("20K", 20000),
         ("30K", 30000),
         ("50K", 50000),
+        ("75K", 75000),
         ("100K", 100000),
+        ("150K", 150000),
         ("200K", 200000),
+        ("250K", 250000),
         ("300K", 300000),
+        ("400K", 400000),
         ("500K", 500000),
+        ("625K", 625000),
         ("750K", 750000),
-        ("1M", 1000000)
+        ("875K", 875000),
+        ("1M", 1000000),
+        ("1.125M", 1125000),
+        ("1.25M", 1250000),
+        ("1.5M", 1500000),
+        ("2M", 2000000)
     ]
 
     // Tier-specific rewards for moves progression (indexed to movesTiers)
@@ -254,15 +266,27 @@ public final class AchievementStore {
         .init(gems: 250, boost2x: 1),                     // 2K moves
         .init(gems: 300, boost3x: 1),                     // 3K moves
         .init(gems: 400, hammers: 1, magnets: 1),         // 5K moves
+        .init(gems: 450),                                 // 7.5K moves
         .init(gems: 500, spins: 1, boost4x: 1),           // 10K moves
+        .init(magnets: 1),                                // 20K moves
         .init(gems: 600, hammers: 2),                     // 30K moves
         .init(gems: 750, magnets: 2),                     // 50K moves
+        .init(swaps: 1, boost3x: 1),                      // 75K moves
         .init(gems: 1000, spins: 2),                      // 100K moves
+        .init(spins: 3),                                  // 150K moves
         .init(gems: 1250, swaps: 2, boost3x: 1),          // 200K moves
+        .init(gems: 1350),                                // 250K moves
         .init(gems: 1500, hammers: 1, magnets: 1, swaps: 1), // 300K moves
+        .init(gems: 1800, spins: 1),                      // 400K moves
         .init(gems: 2000, spins: 2, boost4x: 1),          // 500K moves
+        .init(boost4x: 1),                                // 625K moves
         .init(gems: 2500, hammers: 2, magnets: 2),        // 750K moves
-        .init(gems: 3000, spins: 3, boost2x: 1, boost3x: 1, boost4x: 1) // 1M moves
+        .init(spins: 4),                                  // 875K moves
+        .init(gems: 3000, spins: 3, boost2x: 1, boost3x: 1, boost4x: 1), // 1M moves
+        .init(spins: 1, magnets: 2, boost2x: 1),          // 1.125M moves
+        .init(magnets: 3, boost3x: 1),                    // 1.25M moves
+        .init(gems: 3500, boost4x: 1),                    // 1.5M moves
+        .init(gems: 4000, hammers: 1, swaps: 1)           // 2M moves
     ]
 
     private struct ComboTierDefinition {
@@ -516,7 +540,16 @@ public final class AchievementStore {
         .init(milestone: 6500, categoryLabel: "Use MegaMerge 6500 Times", rewards: .init(gems: 2500)),
         // Tiers 21-22
         .init(milestone: 8250, categoryLabel: "Use MegaMerge 8250 Times", rewards: .init(hammers: 3)),
-        .init(milestone: 10000, categoryLabel: "Use MegaMerge 10000 Times", rewards: .init(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1))
+        .init(milestone: 10000, categoryLabel: "Use MegaMerge 10000 Times", rewards: .init(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1)),
+        // Tiers 23-30
+        .init(milestone: 12500, categoryLabel: "Use MegaMerge 12500 Times", rewards: .init(gems: 2500, hammers: 1)),
+        .init(milestone: 15000, categoryLabel: "Use MegaMerge 15000 Times", rewards: .init(spins: 3)),
+        .init(milestone: 17500, categoryLabel: "Use MegaMerge 17500 Times", rewards: .init(magnets: 1, boost2x: 1)),
+        .init(milestone: 20000, categoryLabel: "Use MegaMerge 20000 Times", rewards: .init(magnets: 1, boost3x: 1)),
+        .init(milestone: 22500, categoryLabel: "Use MegaMerge 22500 Times", rewards: .init(boost4x: 1)),
+        .init(milestone: 25000, categoryLabel: "Use MegaMerge 25000 Times", rewards: .init(gems: 1600, spins: 1, hammers: 2, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 27500, categoryLabel: "Use MegaMerge 27500 Times", rewards: .init(spins: 1, hammers: 2, swaps: 1)),
+        .init(milestone: 30000, categoryLabel: "Use MegaMerge 30000 Times", rewards: .init(spins: 2, magnets: 1, swaps: 2))
     ]
 
     private static let spinUseTiers: [ComboTierDefinition] = [
@@ -567,7 +600,25 @@ public final class AchievementStore {
         .init(milestone: 7500, categoryLabel: "7500 Moves", rewards: .init(gems: 850, spins: 1, hammers: 1, magnets: nil, swaps: nil, boost2x: nil, boost3x: nil, boost4x: 1)),
         .init(milestone: 10000, categoryLabel: "10000 Moves", rewards: .init(gems: 885, spins: 2, swaps: 1)),
         .init(milestone: 20000, categoryLabel: "20000 Moves", rewards: .init(gems: 955, spins: 1, magnets: 2)),
-        .init(milestone: 50000, categoryLabel: "50000 Moves", rewards: .init(gems: 1100, spins: 1, swaps: 2))
+        // Tiers 13-30 (extended)
+        .init(milestone: 30000, categoryLabel: "30K Moves", rewards: .init(gems: 1000)),
+        .init(milestone: 50000, categoryLabel: "50000 Moves", rewards: .init(gems: 1100, spins: 1, swaps: 2)),
+        .init(milestone: 75000, categoryLabel: "75K Moves", rewards: .init(magnets: 1, boost3x: 1)),
+        .init(milestone: 100000, categoryLabel: "100K Moves", rewards: .init(gems: 1300)),
+        .init(milestone: 125000, categoryLabel: "125K Moves", rewards: .init(gems: 1400, boost2x: 1)),
+        .init(milestone: 150000, categoryLabel: "150K Moves", rewards: .init(boost2x: 1)),
+        .init(milestone: 200000, categoryLabel: "200K Moves", rewards: .init(magnets: 1, swaps: 1)),
+        .init(milestone: 250000, categoryLabel: "250K Moves", rewards: .init(gems: 1450, spins: 1)),
+        .init(milestone: 300000, categoryLabel: "300K Moves", rewards: .init(gems: 1500, hammers: 1)),
+        .init(milestone: 400000, categoryLabel: "400K Moves", rewards: .init(spins: 1, boost4x: 1)),
+        .init(milestone: 500000, categoryLabel: "500K Moves", rewards: .init(gems: 1450, swaps: 1, boost2x: 1)),
+        .init(milestone: 625000, categoryLabel: "625K Moves", rewards: .init(gems: 1550, hammers: 1)),
+        .init(milestone: 750000, categoryLabel: "750K Moves", rewards: .init(gems: 1300, hammers: 1, magnets: 1, boost3x: 1)),
+        .init(milestone: 875000, categoryLabel: "875K Moves", rewards: .init(gems: 1800)),
+        .init(milestone: 1000000, categoryLabel: "1M Moves", rewards: .init(magnets: 1)),
+        .init(milestone: 1250000, categoryLabel: "1.25M Moves", rewards: .init(spins: 1, magnets: 2)),
+        .init(milestone: 1500000, categoryLabel: "1.5M Moves", rewards: .init(spins: 2)),
+        .init(milestone: 2000000, categoryLabel: "2M Moves", rewards: .init(gems: 2000, swaps: 1, boost2x: 1))
     ]
 
     private static let playtimeTiers: [ComboTierDefinition] = [
@@ -670,17 +721,38 @@ public final class AchievementStore {
     ]
 
     private static let dailyClaimsTiers: [ComboTierDefinition] = [
+        // Original tiers
         .init(milestone: 1, categoryLabel: "1 day", rewards: .init(gems: 5)),
         .init(milestone: 2, categoryLabel: "2 days", rewards: .init(gems: 10)),
         .init(milestone: 3, categoryLabel: "3 days", rewards: .init(hammers: 1)),
+        .init(milestone: 4, categoryLabel: "4 days", rewards: .init(gems: 15, swaps: 1)),
         .init(milestone: 5, categoryLabel: "5 days", rewards: .init(gems: 25)),
+        .init(milestone: 6, categoryLabel: "6 days", rewards: .init(gems: 30)),
         .init(milestone: 7, categoryLabel: "7 days", rewards: .init(gems: 35, swaps: 1)),
+        .init(milestone: 8, categoryLabel: "8 days", rewards: .init(gems: 21, hammers: 1)),
         .init(milestone: 10, categoryLabel: "10 days", rewards: .init(gems: 23, spins: 1, boost3x: 1)),
+        .init(milestone: 12, categoryLabel: "12 days", rewards: .init(gems: 22, magnets: 3)),
         .init(milestone: 14, categoryLabel: "14 days", rewards: .init(gems: 35, magnets: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 16, categoryLabel: "16 days", rewards: .init(gems: 33, swaps: 2)),
+        .init(milestone: 18, categoryLabel: "18 days", rewards: .init(hammers: 1)),
         .init(milestone: 21, categoryLabel: "21 days", rewards: .init(gems: 50)),
+        .init(milestone: 24, categoryLabel: "24 days", rewards: .init(boost2x: 1)),
+        .init(milestone: 27, categoryLabel: "27 days", rewards: .init(boost3x: 1)),
         .init(milestone: 30, categoryLabel: "30 days", rewards: .init(magnets: 1)),
+        // Extended tiers
+        .init(milestone: 60, categoryLabel: "60 days", rewards: .init(hammers: 1, boost3x: 1)),
+        .init(milestone: 90, categoryLabel: "90 days", rewards: .init(magnets: 1, boost2x: 1)),
         .init(milestone: 98, categoryLabel: "98 days", rewards: .init(boost2x: 1)),
-        .init(milestone: 365, categoryLabel: "365 days", rewards: .init(gems: 1000))
+        .init(milestone: 120, categoryLabel: "120 days", rewards: .init(boost4x: 1)),
+        .init(milestone: 180, categoryLabel: "180 days", rewards: .init(spins: 1, magnets: 4, boost2x: 1)),
+        .init(milestone: 240, categoryLabel: "240 days", rewards: .init(gems: 600, magnets: 1, boost3x: 1)),
+        .init(milestone: 300, categoryLabel: "300 days", rewards: .init(gems: 700, hammers: 1)),
+        .init(milestone: 330, categoryLabel: "330 days", rewards: .init(gems: 850, spins: 3)),
+        .init(milestone: 365, categoryLabel: "365 days", rewards: .init(gems: 1000)),
+        .init(milestone: 730, categoryLabel: "730 days", rewards: .init(gems: 1100)),
+        .init(milestone: 1095, categoryLabel: "1095 days", rewards: .init(gems: 1200)),
+        .init(milestone: 1460, categoryLabel: "1460 days", rewards: .init(gems: 900, boost4x: 1)),
+        .init(milestone: 1825, categoryLabel: "1825 days", rewards: .init(gems: 1000, boost3x: 1))
     ]
 
     private static let boost5xUseTiers: [ComboTierDefinition] = [
@@ -722,6 +794,7 @@ public final class AchievementStore {
     ]
 
     private static let challengeCreationTiers: [ComboTierDefinition] = [
+        .init(milestone: 5, categoryLabel: "Create & complete 5", rewards: .init(gems: 55)),
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
         .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
         .init(milestone: 35, categoryLabel: "Create & complete 35", rewards: .init(gems: 300, hammers: 1)),
@@ -731,7 +804,41 @@ public final class AchievementStore {
         .init(milestone: 150, categoryLabel: "Create & complete 150", rewards: .init(gems: 500, magnets: 1, boost2x: 1)),
         .init(milestone: 200, categoryLabel: "Create & complete 200", rewards: .init(gems: 700, spins: 1, magnets: 1, boost3x: 1))
     ]
-    
+
+    // Leaderboard rank tiers (lower rank is better, so milestones descend)
+    private static let leaderboardRankTiers: [ComboTierDefinition] = [
+        .init(milestone: 100000, categoryLabel: "Top 100K", rewards: .init(hammers: 1, magnets: 1)),
+        .init(milestone: 75000, categoryLabel: "Top 75K", rewards: .init(spins: 1)),
+        .init(milestone: 50000, categoryLabel: "Top 50K", rewards: .init(swaps: 1)),
+        .init(milestone: 40000, categoryLabel: "Top 40K", rewards: .init(hammers: 1)),
+        .init(milestone: 30000, categoryLabel: "Top 30K", rewards: .init(gems: 75)),
+        .init(milestone: 25000, categoryLabel: "Top 25K", rewards: .init(gems: 80)),
+        .init(milestone: 20000, categoryLabel: "Top 20K", rewards: .init(spins: 1)),
+        .init(milestone: 15000, categoryLabel: "Top 15K", rewards: .init(boost2x: 1)),
+        .init(milestone: 10000, categoryLabel: "Top 10K", rewards: .init(boost4x: 1)),
+        .init(milestone: 7500, categoryLabel: "Top 7.5K", rewards: .init(gems: 150)),
+        .init(milestone: 5000, categoryLabel: "Top 5K", rewards: .init(magnets: 1)),
+        .init(milestone: 3750, categoryLabel: "Top 3.75K", rewards: .init(spins: 1)),
+        .init(milestone: 2500, categoryLabel: "Top 2.5K", rewards: .init(gems: 200, magnets: 1)),
+        .init(milestone: 2000, categoryLabel: "Top 2K", rewards: .init(gems: 300)),
+        .init(milestone: 1500, categoryLabel: "Top 1.5K", rewards: .init(gems: 400)),
+        .init(milestone: 1000, categoryLabel: "Top 1K", rewards: .init(gems: 500, swaps: 1, boost2x: 1)),
+        .init(milestone: 750, categoryLabel: "Top 750", rewards: .init(gems: 500, magnets: 3)),
+        .init(milestone: 500, categoryLabel: "Top 500", rewards: .init(magnets: 2, boost4x: 1)),
+        .init(milestone: 375, categoryLabel: "Top 375", rewards: .init(gems: 750, magnets: 1)),
+        .init(milestone: 250, categoryLabel: "Top 250", rewards: .init(gems: 2000, boost4x: 1)),
+        .init(milestone: 150, categoryLabel: "Top 150", rewards: .init(gems: 2000, spins: 1, magnets: 1, swaps: 1, boost4x: 1)),
+        .init(milestone: 100, categoryLabel: "Top 100", rewards: .init(gems: 2500, spins: 2, magnets: 2, swaps: 1, boost2x: 1, boost4x: 1)),
+        .init(milestone: 50, categoryLabel: "Top 50", rewards: .init(gems: 5000, boost3x: 1)),
+        .init(milestone: 25, categoryLabel: "Top 25", rewards: .init(gems: 5250, spins: 3)),
+        .init(milestone: 15, categoryLabel: "Top 15", rewards: .init(hammers: 4)),
+        .init(milestone: 10, categoryLabel: "Top 10", rewards: .init(gems: 6000, boost4x: 1)),
+        .init(milestone: 5, categoryLabel: "Top 5", rewards: .init(magnets: 5)),
+        .init(milestone: 3, categoryLabel: "Top 3", rewards: .init(gems: 7000, spins: 1)),
+        .init(milestone: 2, categoryLabel: "Top 2", rewards: .init(gems: 8500)),
+        .init(milestone: 1, categoryLabel: "Top 1", rewards: .init(gems: 10000))
+    ]
+
     /// Current tier index for the moves progression achievement (persisted)
     public var movesProgressionTier: Int {
         didSet {
@@ -1447,7 +1554,80 @@ public final class AchievementStore {
     public var isChallengeCreationMaxed: Bool {
         challengeCreationTier >= Self.challengeCreationTiers.count - 1
     }
-    
+
+    /// Current leaderboard rank from Game Center (lower is better)
+    public var currentLeaderboardRank: Int = 0 {
+        didSet {
+            defaults.set(currentLeaderboardRank, forKey: "currentLeaderboardRank")
+        }
+    }
+
+    /// Highest tier index that has been claimed (persisted), -1 means no tiers claimed yet
+    private var highestClaimedLeaderboardTier: Int = -1 {
+        didSet {
+            defaults.set(highestClaimedLeaderboardTier, forKey: "highestClaimedLeaderboardTier")
+        }
+    }
+
+    /// Leaderboard rank tier index based on CURRENT rank (not stored, calculated dynamically)
+    /// Returns the BEST (highest index) tier that current rank qualifies for
+    public var leaderboardRankTier: Int {
+        guard currentLeaderboardRank > 0 else { return -1 } // No rank = no tier qualifies
+        // Find the best tier (highest index) that the current rank qualifies for
+        // Tiers are sorted from easiest (index 0 = Top 100K) to hardest (index 29 = Top 1)
+        var bestQualifiedIndex = -1
+        for (index, tier) in Self.leaderboardRankTiers.enumerated() {
+            if currentLeaderboardRank <= tier.milestone {
+                bestQualifiedIndex = index
+            } else {
+                break // Once we find a tier we don't qualify for, stop
+            }
+        }
+        return bestQualifiedIndex
+    }
+
+    /// The tier to display (next claimable tier based on current rank)
+    private var displayLeaderboardRankTier: Int {
+        // Next tier to claim is one after highest claimed
+        let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
+        // Can't go past the max tier
+        return min(nextTierToClaimIndex, Self.leaderboardRankTiers.count - 1)
+    }
+
+    private var currentLeaderboardRankTier: ComboTierDefinition {
+        let index = min(displayLeaderboardRankTier, Self.leaderboardRankTiers.count - 1)
+        return Self.leaderboardRankTiers[index]
+    }
+
+    public var leaderboardRankDisplay: ProgressTierDisplay {
+        let tier = currentLeaderboardRankTier
+        let clampedIndex = min(displayLeaderboardRankTier, Self.leaderboardRankTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = displayLeaderboardRankTier >= Self.leaderboardRankTiers.count - 1
+        let qualifiesForCurrentTier = currentLeaderboardRank > 0 && currentLeaderboardRank <= tier.milestone
+        let description: String
+        if isMaxed && qualifiesForCurrentTier {
+            description = "You've reached #1 on the Global Leaderboard. Claim your ultimate reward!"
+        } else if qualifiesForCurrentTier {
+            description = "You're in the Top \(tier.milestone)! Claim your reward."
+        } else {
+            description = "Reach Top \(tier.milestone) on the Global Leaderboard to unlock the next tier."
+        }
+        let title = "Level \(level): Top \(tier.milestone)"
+        return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
+            title: title,
+            description: description,
+            categoryLabel: "Leaderboard Rank",
+            rewards: tier.rewards
+        )
+    }
+
+    public var isLeaderboardRankMaxed: Bool {
+        highestClaimedLeaderboardTier >= Self.leaderboardRankTiers.count - 1
+    }
+
     private func makeComboDisplay(
         rangeLabel: String,
         tier: ComboTierDefinition,
@@ -1612,6 +1792,18 @@ public final class AchievementStore {
         self.boost20xUsesProgressionTier = defaults.integer(forKey: "boost20xUsesProgressionTier")
         self.wheelCollectsProgressionTier = defaults.integer(forKey: "wheelCollectsProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
+        // Load highestClaimedLeaderboardTier (-1 means no tiers claimed)
+        if defaults.object(forKey: "highestClaimedLeaderboardTier") != nil {
+            self.highestClaimedLeaderboardTier = defaults.integer(forKey: "highestClaimedLeaderboardTier")
+        } else {
+            // Migrate old leaderboardRankTier if it exists
+            let oldTier = defaults.integer(forKey: "leaderboardRankTier")
+            if oldTier > 0 {
+                self.highestClaimedLeaderboardTier = oldTier - 1  // Convert to 0-indexed claimed tier
+            }
+            // Otherwise keep default of -1
+        }
+        self.currentLeaderboardRank = defaults.integer(forKey: "currentLeaderboardRank")
         loadUnlocks()
         loadPersistedSnapshot()
     }
@@ -1653,9 +1845,15 @@ public final class AchievementStore {
         persistSnapshot(snapshot)
         var didUnlock = false
         for def in catalog {
-            guard unlocks[def.id]?.unlocked != true else { continue }
-            
+            // Allow tile_progression and leaderboard_rank_progression to be re-evaluated
+            // even if previously unlocked, since they can be locked when values drop
+            guard unlocks[def.id]?.unlocked != true ||
+                  def.id == "tile_progression" ||
+                  def.id == "leaderboard_rank_progression"
+            else { continue }
+
             // Special handling for tile progression achievement
+            // This achievement resets when game over happens and tile drops below target
             if def.id == "tile_progression" {
                 let targetValue = currentTileTier.value
                 let tierLabel = currentTileTier.label
@@ -1669,6 +1867,10 @@ public final class AchievementStore {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
                     print("   ✅ TIER UNLOCKED! Ready to claim.")
+                } else {
+                    // Lock if current tile no longer qualifies (e.g., after game over)
+                    unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+                    print("   🔒 TIER LOCKED - tile dropped below target")
                 }
                 continue
             }
@@ -1872,7 +2074,27 @@ public final class AchievementStore {
                 }
                 continue
             }
-            
+
+            if def.id == "leaderboard_rank_progression" {
+                // Update current rank from snapshot
+                if snapshot.best_leaderboard_rank > 0 {
+                    currentLeaderboardRank = snapshot.best_leaderboard_rank
+                }
+                let targetRank = currentLeaderboardRankTier.milestone
+                let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
+                // Lower rank is better; unlock if rank qualifies AND this tier hasn't been claimed
+                if currentLeaderboardRank > 0 &&
+                   currentLeaderboardRank <= targetRank &&
+                   nextTierToClaimIndex <= leaderboardRankTier {
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                    didUnlock = true
+                } else {
+                    // Lock if rank no longer qualifies
+                    unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+                }
+                continue
+            }
+
             if matches(def: def, snapshot: snapshot) {
                 unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                 didUnlock = true
@@ -2296,7 +2518,26 @@ public final class AchievementStore {
             }
             return
         }
-        
+
+        if definition.id == "leaderboard_rank_progression" {
+            let rewards = leaderboardRankDisplay.rewards
+            if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+            onReward?(rewards)
+
+            // Mark this tier as claimed by advancing highestClaimedLeaderboardTier
+            let claimedTierIndex = displayLeaderboardRankTier
+            if claimedTierIndex > highestClaimedLeaderboardTier {
+                highestClaimedLeaderboardTier = claimedTierIndex
+            }
+
+            // Reset unlock state for next tier evaluation
+            unlocks[definition.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            saveUnlocks()
+            return
+        }
+
         // Standard achievement claim
         state.claimed = true
         unlocks[definition.id] = state
@@ -2375,10 +2616,13 @@ public final class AchievementStore {
             return makeProgress(current: Double(snapshot.challenge_creations_total), target: Double(currentChallengeCreationTier.milestone))
         case "magnet_usage_progression":
             return makeProgress(current: Double(snapshot.magnet_uses_total), target: Double(currentMagnetUsesTier.milestone))
+        case "leaderboard_rank_progression":
+            // No progress bar for leaderboard rank
+            return nil
         default:
             break
         }
-        
+
         guard let condition = definition.conditions.first,
               let target = condition.value else {
             return nil
@@ -2478,6 +2722,8 @@ public final class AchievementStore {
             return challengeCreationDisplay.rewards
         case "magnet_usage_progression":
             return magnetUsesDisplay.rewards
+        case "leaderboard_rank_progression":
+            return leaderboardRankDisplay.rewards
         default:
             return definition.rewards
         }
@@ -2568,6 +2814,7 @@ public final class AchievementStore {
         case "made_2244_square": return b(s.made_2244_square)
         case "max_tile": return .init(s.max_tile)
         case "win": return b(s.win)
+        case "best_leaderboard_rank": return .init(s.best_leaderboard_rank)
         default:
             #if DEBUG
             print("⚠️ Unknown telemetry field: \(field) -> treating as 0")
@@ -2717,6 +2964,8 @@ public final class AchievementStore {
             return allComboTiers(tiers: Self.boost20xUseTiers, currentTierIndex: boost20xUsesProgressionTier)
         case "wheel_collects_progression":
             return allComboTiers(tiers: Self.wheelCollectsTiers, currentTierIndex: wheelCollectsProgressionTier)
+        case "leaderboard_rank_progression":
+            return allComboTiers(tiers: Self.leaderboardRankTiers, currentTierIndex: displayLeaderboardRankTier)
         default:
             return []
         }

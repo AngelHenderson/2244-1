@@ -361,8 +361,8 @@ public extension AlphaMag {
     static func shouldUseAlphaMagFormatting(for value: Int) -> Bool {
         return value >= 16384
     }
-    
-    /// Format a tile value appropriately 
+
+    /// Format a tile value appropriately
     /// < 16384: plain numbers without grouping (2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192)
     /// >= 16384: AlphaMag format (16K, 32K, 64K, 128K, 256K, 512K, 1M, 2M, 4M, 8M, 16M, 32M, 64M, 128M, 256M, 512M, 1B, 2B, 4B, 8B, etc.)
     static func formatTileValue(_ value: Int) -> String {

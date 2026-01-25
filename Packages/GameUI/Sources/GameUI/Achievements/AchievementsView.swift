@@ -12,9 +12,26 @@ public struct AchievementsView: View {
 
     public init() {}
     
-    /// Sorted achievements: highest level first, then by progress bar (highest first), then by claimable status
+    /// Sorted achievements: claimable first, then by level (highest first), then by progress bar (highest first)
     private var sortedAchievements: [AchievementDef] {
         achievements.catalog.sorted { a, b in
+            let stateA = achievements.unlocks[a.id]
+            let stateB = achievements.unlocks[b.id]
+            let claimableA = stateA?.isClaimable == true
+            let claimableB = stateB?.isClaimable == true
+            let maxedA = isMaxed(for: a.id)
+            let maxedB = isMaxed(for: b.id)
+
+            // Claimable achievements go to the top
+            if claimableA != claimableB {
+                return claimableA
+            }
+
+            // Maxed out achievements go to the bottom
+            if maxedA != maxedB {
+                return maxedB // B is maxed, so A comes first
+            }
+
             let levelA = achievementLevel(for: a.id)
             let levelB = achievementLevel(for: b.id)
 
@@ -30,9 +47,7 @@ public struct AchievementsView: View {
                 return progressA > progressB
             }
 
-            // If same level and progress, sort by claimable status
-            let stateA = achievements.unlocks[a.id]
-            let stateB = achievements.unlocks[b.id]
+            // If same level and progress, sort by category/name
             let priorityA = sortPriority(for: a.id, state: stateA)
             let priorityB = sortPriority(for: b.id, state: stateB)
 
@@ -89,6 +104,8 @@ public struct AchievementsView: View {
             return achievements.boost20xUsesDisplay.level
         case "wheel_collects_progression":
             return achievements.wheelCollectsDisplay.level
+        case "leaderboard_rank_progression":
+            return achievements.leaderboardRankDisplay.level
         default:
             return 1
         }
@@ -151,6 +168,8 @@ public struct AchievementsView: View {
             return achievements.isBoost20xUsesProgressionMaxed
         case "wheel_collects_progression":
             return achievements.isWheelCollectsProgressionMaxed
+        case "leaderboard_rank_progression":
+            return achievements.isLeaderboardRankMaxed
         default:
             // For non-progressive achievements, check if claimed
             return achievements.unlocks[id]?.claimed == true
@@ -271,6 +290,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.boost20xUsesDisplay
         case "wheel_collects_progression":
             return achievements.wheelCollectsDisplay
+        case "leaderboard_rank_progression":
+            return achievements.leaderboardRankDisplay
         default:
             return nil
         }
@@ -352,88 +373,90 @@ private struct AchievementRow: View {
     }
     
     var body: some View {
-        HStack(spacing: 16) {
-            LockupIcon(isUnlocked: isUnlocked, isMaxed: isMaxed)
-                .frame(width: 64, height: 64)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text(categoryLabel)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                
-                Text(displayTitle)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                
-                Text(displayDescription)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                
-                if let progress = progress {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(progressLabel(for: progress))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text(progressValueText(for: progress))
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                        ProgressView(
-                            value: clampedProgressValue(progress).current,
-                            total: clampedProgressValue(progress).target
-                        )
-                        .progressViewStyle(.linear)
-                        .tint(.green)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 2)
-                }
-                
-                HStack(spacing: 8) {
-                    if isClaimed {
-                        StatusBadge(text: "Completed", color: .green)
-                    } else if !isUnlocked {
-                        StatusBadge(text: "In Progress", color: .orange)
-                    } else if isClaimable {
-                        StatusBadge(text: "Ready!", color: .green)
-                    }
+        VStack(alignment: .leading, spacing: 10) {
+            // Top row: Icon, Title/Category, Claim button
+            HStack(alignment: .top, spacing: 12) {
+                LockupIcon(isUnlocked: isUnlocked, isMaxed: isMaxed)
+                    .frame(width: 52, height: 52)
 
-                    if hasMultipleTiers {
-                        Button(action: onTapTiers) {
-                            HStack(spacing: 4) {
-                                Text("View All Tiers")
-                                    .font(.caption2.bold())
-                                Image(systemName: "chevron.right")
-                                    .font(.caption2)
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.blue.opacity(0.15), in: Capsule())
-                            .foregroundStyle(.blue)
-                        }
-                        .buttonStyle(.plain)
-                    }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(categoryLabel)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+
+                    Text(displayTitle)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(alignment: .trailing, spacing: 6) {
+                    ClaimButton(
+                        title: isClaimed ? "Done" : "Claim",
+                        enabled: isClaimable,
+                        action: onClaim
+                    )
+                    RewardSummary(rewards: rewardsForDisplay)
                 }
             }
 
-            Spacer()
+            // Description
+            Text(displayDescription)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
-            VStack(alignment: .trailing, spacing: 12) {
-                ClaimButton(
-                    title: isClaimed ? "Done" : "Claim",
-                    enabled: isClaimable,
-                    action: onClaim
-                )
+            // Progress bar (full width)
+            if let progress = progress {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(progressValueText(for: progress))
+                            .font(.caption.monospacedDigit().bold())
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    ProgressView(
+                        value: clampedProgressValue(progress).current,
+                        total: clampedProgressValue(progress).target
+                    )
+                    .progressViewStyle(.linear)
+                    .tint(.green)
+                }
+            }
 
-                RewardSummary(rewards: rewardsForDisplay)
+            // Status badges
+            HStack(spacing: 8) {
+                if isClaimed {
+                    StatusBadge(text: "Completed", color: .green)
+                } else if !isUnlocked {
+                    StatusBadge(text: "In Progress", color: .orange)
+                } else if isClaimable {
+                    StatusBadge(text: "Ready!", color: .green)
+                }
+
+                Spacer()
+
+                if hasMultipleTiers {
+                    Button(action: onTapTiers) {
+                        HStack(spacing: 4) {
+                            Text("View All Tiers")
+                                .font(.caption2.bold())
+                            Image(systemName: "chevron.right")
+                                .font(.caption2)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.blue.opacity(0.15), in: Capsule())
+                        .foregroundStyle(.blue)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
-        .padding(16)
+        .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(
@@ -501,13 +524,13 @@ private struct AchievementRow: View {
             return value.formatted(.number.precision(.fractionLength(0)))
         } else if value < 1_000_000 {
             let k = value / 1_000
-            return k.formatted(.number.precision(.fractionLength(0...1))) + "K"
+            return k.formatted(.number.precision(.fractionLength(0...2))) + "K"
         } else if value < 1_000_000_000 {
             let m = value / 1_000_000
-            return m.formatted(.number.precision(.fractionLength(0...1))) + "M"
+            return m.formatted(.number.precision(.fractionLength(0...2))) + "M"
         } else if value < 1_000_000_000_000 {
             let b = value / 1_000_000_000
-            return b.formatted(.number.precision(.fractionLength(0...1))) + "B"
+            return b.formatted(.number.precision(.fractionLength(0...2))) + "B"
         } else {
             // Use alphabetic suffixes for trillions+: a, b, c, ..., z, aa, ab, ..., az, ba, ..., bz
             var remaining = value
@@ -519,7 +542,7 @@ private struct AchievementRow: View {
             // tierIndex 4 = trillions = 'a', 5 = quadrillions = 'b', etc.
             let letterIndex = tierIndex - 3 // 4->1 (a), 5->2 (b), etc.
             let suffix = excelStyleLetters(for: letterIndex)
-            return remaining.formatted(.number.precision(.fractionLength(0...1))) + suffix
+            return remaining.formatted(.number.precision(.fractionLength(0...2))) + suffix
         }
     }
 

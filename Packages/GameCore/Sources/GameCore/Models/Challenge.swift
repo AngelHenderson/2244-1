@@ -15,6 +15,8 @@ public struct Challenge: Identifiable, Codable, Sendable {
     public let createdAt: Date
     public let createdBy: String?
     public let seed: UInt64?
+    public let maxSpawnTile: Int?
+    public let minSpawnTile: Int?
 
     public init(
         id: UUID = UUID(),
@@ -30,7 +32,9 @@ public struct Challenge: Identifiable, Codable, Sendable {
         reward: ChallengeReward? = nil,
         createdAt: Date = Date(),
         createdBy: String? = nil,
-        seed: UInt64? = nil
+        seed: UInt64? = nil,
+        maxSpawnTile: Int? = nil,
+        minSpawnTile: Int? = nil
     ) {
         self.id = id
         self.name = name
@@ -46,6 +50,8 @@ public struct Challenge: Identifiable, Codable, Sendable {
         self.createdAt = createdAt
         self.createdBy = createdBy
         self.seed = seed
+        self.maxSpawnTile = maxSpawnTile
+        self.minSpawnTile = minSpawnTile
     }
 }
 
@@ -69,12 +75,23 @@ public struct ChallengeReward: Codable, Sendable {
     public let experience: Int
     public let powerUps: [PowerUpType: Int]
     public let trophyType: TrophyType?
+    public let spins: Int
+    public let scoreBoosts: [Int: Int]  // multiplier -> count (e.g., [2: 1, 3: 1] = one 2X and one 3X boost)
 
-    public init(coins: Int, experience: Int, powerUps: [PowerUpType: Int] = [:], trophyType: TrophyType? = nil) {
+    public init(
+        coins: Int = 0,
+        experience: Int = 0,
+        powerUps: [PowerUpType: Int] = [:],
+        trophyType: TrophyType? = nil,
+        spins: Int = 0,
+        scoreBoosts: [Int: Int] = [:]
+    ) {
         self.coins = coins
         self.experience = experience
         self.powerUps = powerUps
         self.trophyType = trophyType
+        self.spins = spins
+        self.scoreBoosts = scoreBoosts
     }
 
     public static func `default`(for difficulty: ChallengeDifficulty) -> ChallengeReward {

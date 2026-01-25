@@ -69,10 +69,15 @@ public struct LeaderboardView: View {
         self.model = m
         await m.authenticate()
         await m.refresh()
-        
+
         // Auto-submit current score if it's better than what's on the leaderboard
         if let myEntry = m.myEntry, gameStore.state.score > myEntry.score {
             await m.submitScore(gameStore.state.score)
+        }
+
+        // Track global leaderboard rank for achievements
+        if m.selectedFilter == .global, let myEntry = m.myEntry {
+            gameStore.registerLeaderboardRank(myEntry.rank)
         }
     }
     
@@ -84,6 +89,10 @@ public struct LeaderboardView: View {
                 ForEach(LeaderboardFilter.availableFilters(for: UserLeaderboardData.currentCountry)) { filter in
                     filterTab(filter, isSelected: m.selectedFilter == filter) {
                         m.selectedFilter = filter
+                        // Track global rank for achievements when switching to global filter
+                        if filter == .global, let myEntry = m.myEntry {
+                            gameStore.registerLeaderboardRank(myEntry.rank)
+                        }
                     }
                 }
             }
@@ -100,7 +109,7 @@ public struct LeaderboardView: View {
             } else if m.hasData {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(Array(m.entries.enumerated()), id: \.element.id) { index, entry in
+                        ForEach(Array(buildDisplayEntries(m).enumerated()), id: \.element.id) { index, entry in
                             leaderboardRow(entry, index: index)
                                 .task {
                                     // Load more when reaching the end
@@ -117,9 +126,8 @@ public struct LeaderboardView: View {
                                 .padding()
                         }
 
-                        // Show "My Entry" if not in the visible list
-                        if let myEntry = m.myEntry,
-                           !m.entries.contains(where: { $0.id == myEntry.id }) {
+                        // Show "My Entry" only if not in the display range
+                        if let myEntry = m.myEntry, !isUserInDisplayRange(m) {
                             VStack(spacing: 0) {
                                 Rectangle()
                                     .fill(Color.white.opacity(0.1))
@@ -159,8 +167,22 @@ public struct LeaderboardView: View {
                 showError = true
             }
         }
+        .onChange(of: m.myEntry?.rank) { _, newRank in
+            // Track global leaderboard rank for achievements whenever it updates
+            if m.selectedFilter == .global, let rank = newRank, rank > 0 {
+                print("🏆 Tracking leaderboard rank: \(rank)")
+                gameStore.registerLeaderboardRank(rank)
+            }
+        }
+        .onAppear {
+            // Track initial rank when content appears
+            if m.selectedFilter == .global, let myEntry = m.myEntry, myEntry.rank > 0 {
+                print("🏆 Initial leaderboard rank: \(myEntry.rank)")
+                gameStore.registerLeaderboardRank(myEntry.rank)
+            }
+        }
     }
-    
+
     private func filterTab(_ filter: LeaderboardFilter, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
@@ -215,13 +237,72 @@ public struct LeaderboardView: View {
             return Color.orange  // India - saffron from the flag
         case .countryBR:
             return Color.green  // Brazil - green from the flag
+        case .countryMX:
+            return Color.green  // Mexico - green from the flag
+        case .countryAF:
+            return Color.black  // Afghanistan - black from the flag
+        case .countryAL:
+            return Color.red  // Albania - red from the flag
+        case .countryDZ:
+            return Color.green  // Algeria - green from the flag
+        case .countryCN:
+            return Color.red  // China - red from the flag
+        case .countryKR:
+            return Color.blue  // South Korea - blue from the flag
+        case .countryIT:
+            return Color.green  // Italy - green from the flag
+        case .countryES:
+            return Color.red  // Spain - red from the flag
+        case .countryNL:
+            return Color.orange  // Netherlands - orange (national color)
+        case .countryCH:
+            return Color.red  // Switzerland - red from the flag
+        case .countryNO:
+            return Color.red  // Norway - red from the flag
+        case .countryDK:
+            return Color.red  // Denmark - red from the flag
         }
     }
-    
+
+    // Build display entries with user merged at correct position
+    private func buildDisplayEntries(_ m: LeaderboardModel) -> [LeaderboardEntry] {
+        guard let myEntry = m.myEntry else {
+            return m.entries
+        }
+
+        // Filter out any existing user entry to avoid duplicates
+        var result = m.entries.filter { !$0.isMe }
+
+        // Check if user should be in the displayed range
+        guard let lastEntry = result.last else {
+            return [myEntry]
+        }
+
+        // If user's rank is within or just after the displayed range, insert them
+        if myEntry.rank <= lastEntry.rank {
+            // Find the correct position based on rank
+            if let insertIndex = result.firstIndex(where: { $0.rank > myEntry.rank }) {
+                result.insert(myEntry, at: insertIndex)
+            } else {
+                result.append(myEntry)
+            }
+        }
+
+        return result
+    }
+
+    // Check if user is in the display range
+    private func isUserInDisplayRange(_ m: LeaderboardModel) -> Bool {
+        guard let myEntry = m.myEntry else { return false }
+        let entries = m.entries.filter { !$0.isMe }
+        guard let lastEntry = entries.last else { return true }
+        return myEntry.rank <= lastEntry.rank
+    }
+
     private func leaderboardRow(_ entry: LeaderboardEntry, index: Int?) -> some View {
         HStack(spacing: 12) {
             // Rank Number
-            Text(verbatim: entry.isMe && entry.rank > 9 ? "▶\(entry.rank)" : "\(entry.rank)")
+            Text(verbatim: "\(entry.rank)")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .frame(width: 44)

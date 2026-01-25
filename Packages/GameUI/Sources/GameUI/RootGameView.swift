@@ -17,6 +17,8 @@ public struct RootGameView: View {
     @State private var showFreeSpin = false
     @State private var showChallenge = false
     @State private var showChallengeDesigner = false
+    @State private var isPlayingCustomChallenge = false
+    @State private var customChallengeConfig: CustomChallengeConfig?
     @State private var wheelEngine = WheelEngine()
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
@@ -48,7 +50,26 @@ public struct RootGameView: View {
                     .ignoresSafeArea()
                     .zIndex(-1)
             }
-            if isPlaying {
+            if isPlayingCustomChallenge, let config = customChallengeConfig {
+                // Dedicated challenge gameplay screen (separate from regular gameplay)
+                // Challenge uses its own GameStore internally - doesn't affect regular gameplay
+                CustomChallengeGameScreen(
+                    config: config,
+                    playerHighestTile: gameStore.state.highestTile,
+                    initialGems: homeState.gems,
+                    onDismiss: {
+                        // Track challenge creation completion for achievement
+                        gameStore.registerChallengeCreationCompleted()
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isPlayingCustomChallenge = false
+                            customChallengeConfig = nil
+                        }
+                    }
+                )
+                .environment(homeState)
+                .environment(\.challengeStore, challengeStore)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            } else if isPlaying {
                 HybridGameScreen(isPlayingDismiss: {
                     // Return to home
                     withAnimation(.easeInOut(duration: 0.3)) {
@@ -90,22 +111,35 @@ public struct RootGameView: View {
                     }
                     .adaptiveSheet(isPresented: $showChallenge) {
                         ChallengeModeView { challenge in
-                            // Start challenge game
-                            print("Starting challenge: \(challenge.id)")
-                            // TODO: Pass challenge context to game
+                            // Convert Challenge to CustomChallengeConfig
+                            // targetTile is step-based, so use .tileStep
+                            let config = CustomChallengeConfig(
+                                target: challenge.targetTile.map { .tileStep($0) } ?? .score(1_000_000),
+                                timeLimitSeconds: Int(challenge.timeLimit ?? 180),
+                                minTileLevel: challenge.minSpawnTile ?? 0,
+                                levels: 7,
+                                tileAssignments: [:],
+                                predictedRewardGems: challenge.reward.coins,
+                                minSpawnStep: challenge.minSpawnTile,
+                                maxSpawnStep: challenge.maxSpawnTile,
+                                challengeId: challenge.id
+                            )
+                            showChallenge = false
+                            customChallengeConfig = config
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                isPlaying = true
+                                isPlayingCustomChallenge = true
                             }
                         }
                         .environment(\.challengeStore, challengeStore)
                     }
                     .adaptiveSheet(isPresented: $showChallengeDesigner) {
                         ChallengeDesignerView { config in
-                            // Start custom challenge
+                            // Start custom challenge in dedicated screen
                             print("Starting custom challenge with config: \(config)")
-                            // TODO: Pass custom challenge to game
+                            showChallengeDesigner = false
+                            customChallengeConfig = config
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                isPlaying = true
+                                isPlayingCustomChallenge = true
                             }
                         }
                         .environment(\.challengeDesignerStore, challengeDesignerStore)
@@ -221,6 +255,8 @@ public struct RootGameView: View {
                     homeState.apply(progress: progress, planner: planner)
                     // Ensure journey is synced
                     journey.didReach(tile: progress.highestTile)
+                    // Update rank from UserLeaderboardData (based on milestone)
+                    homeState.rank = UserLeaderboardData.globalRank
                 }
             } catch {
                 print("Failed to update progress from game: \(error)")
@@ -272,6 +308,10 @@ public struct RootGameView: View {
                 if progress.highestTile == 0 && finalHighestTile > 2 {
                     homeState.highestTile = finalHighestTile
                 }
+
+                // Update rank from UserLeaderboardData (based on milestone in UserDefaults)
+                homeState.rank = UserLeaderboardData.globalRank
+
                 hasLoadedInitialState = true
             }
         } catch {
@@ -282,6 +322,7 @@ public struct RootGameView: View {
                 homeState.highestTile = 2
                 homeState.milestoneBelow = 0
                 homeState.lockedMilestones = [1024, 2048]
+                homeState.rank = UserLeaderboardData.globalRank
                 journey.didReach(tile: 2)
                 hasLoadedInitialState = true
             }

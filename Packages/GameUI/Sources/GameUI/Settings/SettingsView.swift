@@ -2,6 +2,7 @@ import SwiftUI
 import GameApp
 import GameServices
 import StoreKit
+import GameKit
 
 public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -9,8 +10,6 @@ public struct SettingsView: View {
     @Environment(\.hapticsService) private var hapticsService
     @Environment(\.purchaseService) private var purchaseService
     
-    @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
-
     @State private var sfxVolume: Double = 1.0
     @State private var musicVolume: Double = 1.0
     @State private var sfxMuted: Bool = false
@@ -21,7 +20,12 @@ public struct SettingsView: View {
     @State private var analyticsEnabled: Bool = true
     @State private var removeAdsPrice: String = "..."
     @State private var adsRemoved: Bool = false
-    
+    @State private var isShowingHowToPlay: Bool = false
+    @State private var isShowingTilesInfo: Bool = false
+    @State private var isShowingGameCenter: Bool = false
+    @State private var gameCenterEnabled: Bool = false
+    @State private var gameCenterDisplayName: String = ""
+
     public init() {}
     
     public var body: some View {
@@ -97,15 +101,6 @@ public struct SettingsView: View {
                         }
                     }
                 }
-                
-                // MARK: Appearance
-                Section("Appearance") {
-                    Picker("Tile Theme", selection: $selectedThemeId) {
-                        ForEach(ThemeRegistry.Default.allDescriptors(), id: \.id) { descriptor in
-                            Text(descriptor.name).tag(descriptor.id)
-                        }
-                    }
-                }
 
                 // MARK: Accessibility & Gameplay
                 Section("Accessibility & Gameplay") {
@@ -161,7 +156,41 @@ public struct SettingsView: View {
                             .font(.caption)
                     }
                 }
-                
+
+                // MARK: Game Center
+                Section("Game Center") {
+                    if gameCenterEnabled {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                            Text("Signed In")
+                            Spacer()
+                            Text(gameCenterDisplayName)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        HStack {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundStyle(.orange)
+                            Text("Status Unknown")
+                            Spacer()
+                        }
+
+                        Text("Sign in to Game Center in your device Settings, then tap Open Game Center below.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Button {
+                        isShowingGameCenter = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "gamecontroller.fill")
+                            Text("Open Game Center")
+                        }
+                    }
+                }
+
                 // MARK: Privacy
                 Section("Privacy") {
                     Toggle("Share Analytics", isOn: $analyticsEnabled)
@@ -173,7 +202,11 @@ public struct SettingsView: View {
                 // MARK: Support
                 Section("Support") {
                     Button("How to Play") {
-                        // Open tutorial or help
+                        isShowingHowToPlay = true
+                    }
+
+                    Button("Tiles Info") {
+                        isShowingTilesInfo = true
                     }
                     
                     Button("Contact Support") {
@@ -218,9 +251,39 @@ public struct SettingsView: View {
             .task {
                 loadSettings()
                 await loadPurchaseInfo()
+                // Check Game Center status directly
+                checkGameCenterStatus()
+            }
+            .sheet(isPresented: $isShowingHowToPlay) {
+                HowToPlayView()
+            }
+            .sheet(isPresented: $isShowingTilesInfo) {
+                TilesInfoView()
+            }
+            .sheet(isPresented: $isShowingGameCenter) {
+                GameCenterView()
             }
         }
     }
+
+    private func checkGameCenterStatus() {
+        // Set up the authenticate handler - GameKit requires this
+        GKLocalPlayer.local.authenticateHandler = { viewController, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Game Center error: \(error.localizedDescription)")
+                }
+
+                // Update state after handler is called
+                self.gameCenterEnabled = GKLocalPlayer.local.isAuthenticated
+                if self.gameCenterEnabled {
+                    self.gameCenterDisplayName = GKLocalPlayer.local.displayName
+                }
+                print("Game Center auth callback - isAuthenticated: \(GKLocalPlayer.local.isAuthenticated), name: \(GKLocalPlayer.local.displayName)")
+            }
+        }
+    }
+
     
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -238,6 +301,7 @@ public struct SettingsView: View {
         showHints = UserDefaults.standard.object(forKey: "showHints") as? Bool ?? true
         analyticsEnabled = UserDefaults.standard.object(forKey: "analyticsEnabled") as? Bool ?? true
         adsRemoved = UserDefaults.standard.bool(forKey: "isAdFreePurchased")
+        // Don't check isAuthenticated here - it requires the handler to be set first
     }
     
     private func loadPurchaseInfo() async {
@@ -251,6 +315,35 @@ public struct SettingsView: View {
         #else
         removeAdsPrice = "$2.99"
         #endif
+    }
+}
+
+// MARK: - Game Center View
+struct GameCenterView: UIViewControllerRepresentable {
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> GKGameCenterViewController {
+        let viewController = GKGameCenterViewController(state: .dashboard)
+        viewController.gameCenterDelegate = context.coordinator
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: GKGameCenterViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(dismiss: dismiss)
+    }
+
+    class Coordinator: NSObject, GKGameCenterControllerDelegate {
+        let dismiss: DismissAction
+
+        init(dismiss: DismissAction) {
+            self.dismiss = dismiss
+        }
+
+        func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
+            dismiss()
+        }
     }
 }
 

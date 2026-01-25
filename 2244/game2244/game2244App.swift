@@ -39,6 +39,10 @@ struct game2244App: App {
     @State private var challengeDesignerStore = ChallengeDesignerStore()
     @State private var spinWheelState = SpinWheelState()
 
+    // First-launch tutorial tracking
+    @AppStorage("hasCompletedTutorial") private var hasCompletedTutorial: Bool = false
+    @State private var isShowingTutorial: Bool = false
+
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
     
@@ -185,9 +189,30 @@ struct game2244App: App {
                     
                     // Load daily claims catalogs
                     await dailyClaimsStore.loadCatalogs()
-                    
+
+                    // One-time fix for corrupted score data from sandboxed challenges
+                    if !UserDefaults.standard.bool(forKey: "hasResetCorruptedScore_v1") {
+                        gameStore.resetCorruptedScoreData()
+                        UserDefaults.standard.set(true, forKey: "hasResetCorruptedScore_v1")
+                    }
+
                     // Load initial progress
                     loadInitialProgress()
+
+                    // Show tutorial on first launch (skip for debug/Xcode builds)
+                    #if !DEBUG
+                    if !hasCompletedTutorial {
+                        await MainActor.run {
+                            isShowingTutorial = true
+                        }
+                    }
+                    #endif
+                }
+                .fullScreenCover(isPresented: $isShowingTutorial) {
+                    HowToPlayView(onComplete: {
+                        hasCompletedTutorial = true
+                        isShowingTutorial = false
+                    })
                 }
         }
     }
@@ -288,5 +313,5 @@ extension View {
         .environment(\.storage, storage)
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
-        .environment(\.leaderboardClient, .noop)
+        .environment(\.leaderboardClient, .gameCenter())
 }

@@ -14,15 +14,13 @@ public struct ShopView: View {
         case gems = "Gems"
         case journey = "Journey"
         case perks = "Perks"
-        case special = "Special"
-        
+
         var icon: String {
             switch self {
             case .bundles: return "cube.box.fill"
             case .gems: return "diamond.fill"
             case .journey: return "map.fill"
             case .perks: return "star.fill"
-            case .special: return "gift.fill"
             }
         }
     }
@@ -67,8 +65,6 @@ public struct ShopView: View {
                             journeySection
                         case .perks:
                             perksSection
-                        case .special:
-                            specialSection
                         }
                     }
                     .padding()
@@ -154,35 +150,20 @@ public struct ShopView: View {
             VStack(spacing: 20) {
                 ForEach(Dictionary(grouping: perks, by: { $0.item }).sorted(by: { $0.key < $1.key }), id: \.key) { item, bundles in
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(item.lowercased() == "magnet" ? "MegaMerges" : item.capitalized)
+                        Text(item.lowercased() == "magnet" ? "MegaMerges" : "\(item.capitalized)s")
                             .font(.headline)
-                            .padding(.horizontal)
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(bundles.sorted(by: { $0.quantity < $1.quantity })) { perk in
-                                    PerkCard(perk: perk)
-                                }
+
+                        VStack(spacing: 10) {
+                            ForEach(bundles.sorted(by: { $0.quantity < $1.quantity })) { perk in
+                                PerkBundleRow(perk: perk)
                             }
-                            .padding(.horizontal)
                         }
                     }
                 }
             }
         }
     }
-    
-    @ViewBuilder
-    private var specialSection: some View {
-        if let specials = shopStore.catalog?.specialOffers {
-            LazyVGrid(columns: [GridItem(.flexible())], spacing: 16) {
-                ForEach(specials) { offer in
-                    SpecialOfferCard(offer: offer)
-                }
-            }
-        }
-    }
-    
+
     // MARK: - Helper Methods
     
     private func journeyWindow() -> [(step: Int, currentStep: Int)] {
@@ -275,6 +256,38 @@ struct BundleCard: View {
                         }
                         .font(.caption)
                     }
+                    if let spins = items.spins {
+                        Label {
+                            Text(verbatim: "\(spins) Spins")
+                        } icon: {
+                            Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                        }
+                        .font(.caption)
+                    }
+                    if let boost2x = items.boost2x {
+                        Label {
+                            Text(verbatim: "\(boost2x) 2X Boost")
+                        } icon: {
+                            Image(systemName: "2.circle.fill")
+                        }
+                        .font(.caption)
+                    }
+                    if let boost3x = items.boost3x {
+                        Label {
+                            Text(verbatim: "\(boost3x) 3X Boost")
+                        } icon: {
+                            Image(systemName: "3.circle.fill")
+                        }
+                        .font(.caption)
+                    }
+                    if let boost4x = items.boost4x {
+                        Label {
+                            Text(verbatim: "\(boost4x) 4X Boost")
+                        } icon: {
+                            Image(systemName: "4.circle.fill")
+                        }
+                        .font(.caption)
+                    }
                 }
                 if bundle.perks?.noAds == true {
                     Label("No Ads", systemImage: "xmark.circle.fill")
@@ -299,11 +312,11 @@ struct BundleCard: View {
             .disabled(shopStore.isPurchased(bundle.id) || shopStore.isPurchasing)
         }
         .padding()
-        .frame(height: 200)
+        .frame(minHeight: 200)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-    
+
     private func tagStyle(for tag: String) -> TagView.TagStyle {
         switch tag.lowercased() {
         case "best value": return .success
@@ -318,12 +331,17 @@ struct BundleCard: View {
 struct GemBundleRow: View {
     let gem: GemBundle
     @Environment(\.shopStore) private var shopStore
-    
+
     var body: some View {
         Button {
             Task { await shopStore.purchase(gem.id) }
         } label: {
-            HStack {
+            HStack(spacing: 12) {
+                gemIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 36, height: 36)
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(gem.gems.formatted()) Gems")
                         .font(.headline)
@@ -345,91 +363,84 @@ struct GemBundleRow: View {
         .disabled(shopStore.isPurchasing)
         .accessibilityLabel("\(gem.gems) gems for \(shopStore.formatPrice(gem.price))")
     }
+
+    private var gemIcon: Image {
+        #if canImport(UIKit)
+        if let path = Bundle.module.path(forResource: "GemBagIcon", ofType: "png"),
+           let uiImage = UIImage(contentsOfFile: path) {
+            return Image(uiImage: uiImage)
+        }
+        #elseif canImport(AppKit)
+        if let path = Bundle.module.path(forResource: "GemBagIcon", ofType: "png"),
+           let nsImage = NSImage(contentsOfFile: path) {
+            return Image(nsImage: nsImage)
+        }
+        #endif
+        return Image(systemName: "diamond.fill")
+    }
 }
 
-struct PerkCard: View {
+struct PerkBundleRow: View {
     let perk: PerkBundle
     @Environment(\.shopStore) private var shopStore
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: iconForPerk(perk.item))
-                .font(.title)
-            
-            Text(verbatim: "x\(perk.quantity)")
-                .font(.headline)
-            
-            Button {
-                Task { await shopStore.purchase(perk.id) }
-            } label: {
-                Text(shopStore.formatPrice(perk.price))
-                    .font(.caption.bold())
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(Capsule())
-            }
-        }
-        .padding()
-        .frame(width: 100, height: 120)
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-    
-    private func iconForPerk(_ item: String) -> String {
-        switch item.lowercased() {
-        case "hammer": return "hammer.fill"
-        case "swap": return "arrow.2.squarepath"
-        case "magnet": return "magnet"
-        default: return "star.fill"
-        }
-    }
-}
 
-struct SpecialOfferCard: View {
-    let offer: ShopBundle
-    @Environment(\.shopStore) private var shopStore
-    
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(offer.title)
-                    .font(.headline)
-                
-                if let perks = offer.perks {
-                    HStack(spacing: 12) {
-                        if perks.noAds == true {
-                            Label("No Ads", systemImage: "xmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.green)
-                        }
-                        if perks.allBeats == true {
-                            Label("All Beats", systemImage: "music.note")
-                                .font(.caption)
-                                .foregroundStyle(.purple)
-                        }
-                    }
+        Button {
+            Task { await shopStore.purchase(perk.id) }
+        } label: {
+            HStack(spacing: 12) {
+                perkIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 36, height: 36)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(perk.quantity) \(perkDisplayName):")
+                        .font(.headline)
                 }
+                Spacer()
+                Text(shopStore.formatPrice(perk.price))
+                    .font(.headline)
             }
-            
-            Spacer()
-            
-            Button {
-                Task { await shopStore.purchase(offer.id) }
-            } label: {
-                Text(shopStore.formatPrice(offer.price))
-                    .font(.system(size: 14, weight: .bold))
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(Capsule())
-            }
+            .padding()
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
         }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .buttonStyle(.plain)
+        .disabled(shopStore.isPurchasing)
+        .accessibilityLabel("\(perk.quantity) \(perkDisplayName) for \(shopStore.formatPrice(perk.price))")
+    }
+
+    private var perkDisplayName: String {
+        switch perk.item.lowercased() {
+        case "hammer": return perk.quantity == 1 ? "Hammer" : "Hammers"
+        case "swap": return perk.quantity == 1 ? "Swap" : "Swaps"
+        case "magnet": return perk.quantity == 1 ? "MegaMerge" : "MegaMerges"
+        default: return perk.item.capitalized
+        }
+    }
+
+    private var perkIcon: Image {
+        let iconName: String
+        switch perk.item.lowercased() {
+        case "hammer": iconName = "HammerIcon"
+        case "swap": iconName = "SwapIcon"
+        case "magnet": iconName = "MegaMergeIcon"
+        default: iconName = "HammerIcon"
+        }
+
+        #if canImport(UIKit)
+        if let path = Bundle.module.path(forResource: iconName, ofType: "png"),
+           let uiImage = UIImage(contentsOfFile: path) {
+            return Image(uiImage: uiImage)
+        }
+        #elseif canImport(AppKit)
+        if let path = Bundle.module.path(forResource: iconName, ofType: "png"),
+           let nsImage = NSImage(contentsOfFile: path) {
+            return Image(nsImage: nsImage)
+        }
+        #endif
+        return Image(systemName: "star.fill")
     }
 }
 

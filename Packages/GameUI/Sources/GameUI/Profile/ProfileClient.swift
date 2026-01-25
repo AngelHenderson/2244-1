@@ -84,9 +84,25 @@ public struct LiveProfileClient: ProfileClient, Sendable {
         // Read country code
         let countryCode = defaults.string(forKey: "profileCountryCode")
 
-        // Read highest tile and format it
-        let savedHighestTile = defaults.integer(forKey: "savedHighestTile")
-        let highestTile: String? = savedHighestTile > 0 ? formatTileValue(savedHighestTile) : nil
+        // Read highest tile - use leaderboard.milestone for consistency with HUD
+        // This ensures Profile and HUD always show the same rank
+        let highestTile: String? = {
+            // Primary: Use leaderboard.milestone (same as HUD)
+            if let milestone = defaults.string(forKey: "leaderboard.milestone"), !milestone.isEmpty {
+                return milestone
+            }
+            // Fallback: Use step-based formatting
+            let savedHighestTileStep = defaults.integer(forKey: "savedHighestTileStep")
+            if savedHighestTileStep > 0 {
+                return TileStepLabelFormatter.labelForStep(savedHighestTileStep)
+            }
+            // Legacy fallback
+            let savedHighestTile = defaults.integer(forKey: "savedHighestTile")
+            if savedHighestTile > 0 {
+                return TileStepLabelFormatter.formatTileValue(savedHighestTile)
+            }
+            return nil
+        }()
 
         // Read avatar
         let avatarId = defaults.string(forKey: "profileAvatarId") ?? AvatarCatalog.default.id
@@ -136,13 +152,25 @@ public struct LiveProfileClient: ProfileClient, Sendable {
     }
 
     private func formatScoreString(_ decimalString: String) -> String {
-        // The decimalString is stored as a plain number string (e.g., "13000000")
-        // Parse as Int first, then format with abbreviations
-        if let intValue = Int(decimalString) {
+        // Clean the string first - remove any whitespace or non-numeric characters
+        let cleaned = decimalString.trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: CharacterSet.decimalDigits.inverted)
+            .joined()
+
+        guard !cleaned.isEmpty else { return "0" }
+
+        // Parse as AlphaNumber to handle very large values
+        if let alpha = AlphaNumber(decimalString: cleaned) {
+            return alpha.formattedWithCommas()
+        }
+
+        // Fallback: if we can parse as Int, use that
+        if let intValue = Int(cleaned) {
             return formatScore(intValue)
         }
-        // For very large numbers beyond Int range, return as-is
-        return decimalString
+
+        // Last resort: return the cleaned string
+        return cleaned
     }
 
     private func formatTileValue(_ value: Int) -> String {
@@ -376,7 +404,6 @@ public struct LiveProfileClient: ProfileClient, Sendable {
             // Iterate forward and find the FIRST bracket where user's milestone index >= bracket's index
             // (brackets are ordered high-to-low milestone, so first match is the correct one)
             var bracketStart = totalPlayers
-            var bracketEnd = totalPlayers
             var foundBracketIndex = -1
 
             for (i, bracket) in globalExtendedBrackets.enumerated() {
@@ -390,20 +417,10 @@ public struct LiveProfileClient: ProfileClient, Sendable {
 
             if foundBracketIndex >= 0 {
                 bracketStart = globalExtendedBrackets[foundBracketIndex].startRank
-                if foundBracketIndex + 1 < globalExtendedBrackets.count {
-                    bracketEnd = globalExtendedBrackets[foundBracketIndex + 1].startRank - 1
-                } else {
-                    bracketEnd = totalPlayers
-                }
             }
 
-            // Distribute user within the bracket range
-            let range = bracketEnd - bracketStart
-            if range > 0 && foundBracketIndex >= 0 {
-                // Use milestone string hash for deterministic but varied position
-                let milestoneHash = abs(userMilestone.hashValue) % (range + 1)
-                return bracketStart + milestoneHash
-            }
+            // Return the bracket start rank - each milestone bracket has a distinct rank
+            // Higher milestone = earlier (lower) bracket index = better (lower) rank
             return bracketStart
         }
     }

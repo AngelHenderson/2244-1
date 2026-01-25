@@ -18,7 +18,7 @@ public struct ChallengeDesignerView: View {
                 VStack(spacing: 24) {
                     targetSection
                     steppersSection
-                    bucketsSection
+                    tilesSection
                 }
                 .padding()
             }
@@ -96,22 +96,56 @@ public struct ChallengeDesignerView: View {
         }
     }
     
-    private var bucketsSection: some View {
+    private var tilesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Column headers
             HStack {
-                ForEach(TileBucket.allCases, id: \.self) { bucket in
-                    Text(bucketTitle(for: bucket))
+                ForEach(0..<3, id: \.self) { _ in
+                    Text("Tiles")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
-            
+
+            // Tiles distributed across 3 columns
             HStack(alignment: .top, spacing: 12) {
-                ForEach(TileBucket.allCases, id: \.self) { bucket in
-                    BucketColumn(bucket: bucket, store: store)
+                ForEach(0..<3, id: \.self) { columnIndex in
+                    VStack(spacing: 8) {
+                        ForEach(stepsForColumn(columnIndex), id: \.self) { step in
+                            TileChip(step: step)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(10)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
                 }
             }
+        }
+    }
+
+    private func stepsForColumn(_ column: Int) -> [Int] {
+        let steps = store.candidateTileSteps
+        guard !steps.isEmpty else { return [] }
+
+        // Distribution: 1-4 in column 1, 5-8 in column 2, 9-10 in column 3
+        switch column {
+        case 0:
+            // First column: tiles 1-4 (indices 0-3)
+            let end = min(4, steps.count)
+            return Array(steps.prefix(end))
+        case 1:
+            // Second column: tiles 5-8 (indices 4-7)
+            guard steps.count > 4 else { return [] }
+            let start = 4
+            let end = min(8, steps.count)
+            return Array(steps[start..<end])
+        case 2:
+            // Third column: tiles 9-10 (indices 8-9)
+            guard steps.count > 8 else { return [] }
+            return Array(steps[8...])
+        default:
+            return []
         }
     }
     
@@ -148,71 +182,6 @@ public struct ChallengeDesignerView: View {
         .background(.ultraThinMaterial)
     }
     
-    private func bucketTitle(for bucket: TileBucket) -> String {
-        switch bucket {
-        case .low: return "Low Tiles"
-        case .mid: return "Mid Tiles"
-        case .high: return "High Tiles"
-        }
-    }
-}
-
-private struct BucketColumn: View {
-    let bucket: TileBucket
-    let store: ChallengeDesignerStore
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            let tiles = store.tileAssignments
-                .filter { $0.value == bucket }
-                .map(\.key)
-                .sorted()
-            
-            ScrollView {
-                if tiles.isEmpty {
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                        .fill(Color.secondary.opacity(0.3))
-                        .frame(height: 96)
-                        .overlay(
-                            Text("Tap + to add")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        )
-                } else {
-                    VStack(spacing: 8) {
-                        ForEach(tiles, id: \.self) { tile in
-                            TileChip(value: tile) {
-                                store.cycleBucket(for: tile)
-                            }
-                        }
-                    }
-                }
-            }
-            .frame(maxHeight: 200)
-            
-            Menu {
-                ForEach(availableTiles, id: \.self) { value in
-                    Button("\(value)") {
-                        store.addTile(value, to: bucket)
-                    }
-                }
-            } label: {
-                Label("Add", systemImage: "plus.circle.fill")
-                    .labelStyle(.iconOnly)
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-            }
-            .disabled(availableTiles.isEmpty)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .top)
-        .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
-    }
-    
-    private var availableTiles: [Int] {
-        store.candidateTiles.filter { store.tileAssignments[$0] == nil }
-    }
 }
 
 private struct StepperBox: View {
@@ -257,18 +226,14 @@ private struct StepperBox: View {
 }
 
 private struct TileChip: View {
-    let value: Int
-    let onTap: () -> Void
-    
+    let step: Int
+
     var body: some View {
-        Button(action: onTap) {
-            Text("\(value)")
-                .font(.system(.callout, design: .rounded).weight(.semibold))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color.accentColor.opacity(0.18)))
-        }
-        .buttonStyle(.plain)
+        Text(TileStepLabelFormatter.labelForStep(step))
+            .font(.system(.callout, design: .rounded).weight(.semibold))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.accentColor.opacity(0.18)))
     }
 }
 

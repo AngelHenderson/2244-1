@@ -186,6 +186,7 @@ public struct GameSnapshot: Sendable, Codable {
     public var boost5x_uses_total: Int = 0
     public var boost20x_uses_total: Int = 0
     public var wheel_collects_total: Int = 0
+    public var best_leaderboard_rank: Int = 0
 
     public init() {}
 }

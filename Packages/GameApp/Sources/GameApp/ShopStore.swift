@@ -24,6 +24,10 @@ public struct ShopBundle: Identifiable, Codable {
         public let hammers: Int?
         public let swaps: Int?
         public let magnets: Int?
+        public let spins: Int?
+        public let boost2x: Int?
+        public let boost3x: Int?
+        public let boost4x: Int?
         public let liveThemes: AnyDecodable?  // Can be Int or [String]
         public let tileBeats: AnyDecodable?  // Can be Int or [String]
         public let galaxyThemes: Int?
@@ -173,6 +177,10 @@ public final class ShopStore {
                         hammers: 5,
                         swaps: 3,
                         magnets: 2,
+                        spins: nil,
+                        boost2x: nil,
+                        boost3x: nil,
+                        boost4x: nil,
                         liveThemes: nil,
                         tileBeats: nil,
                         galaxyThemes: nil,
@@ -191,6 +199,10 @@ public final class ShopStore {
                         hammers: 10,
                         swaps: 5,
                         magnets: 5,
+                        spins: nil,
+                        boost2x: nil,
+                        boost3x: nil,
+                        boost4x: nil,
                         liveThemes: nil,
                         tileBeats: nil,
                         galaxyThemes: nil,
@@ -209,6 +221,10 @@ public final class ShopStore {
                         hammers: 30,
                         swaps: 15,
                         magnets: 10,
+                        spins: nil,
+                        boost2x: nil,
+                        boost3x: nil,
+                        boost4x: nil,
                         liveThemes: nil,
                         tileBeats: nil,
                         galaxyThemes: 4,

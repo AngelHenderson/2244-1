@@ -35,6 +35,7 @@ public final class AchievementEvaluator {
     private var boost5xUsesTotal: Int = 0
     private var boost20xUsesTotal: Int = 0
     private var wheelCollectsTotal: Int = 0
+    private var currentLeaderboardRank: Int = 0
     private let combo610Key = "combo6to10Total"
     private let combo1115Key = "combo11to15Total"
     private let combo1620Key = "combo16to20Total"
@@ -57,6 +58,7 @@ public final class AchievementEvaluator {
     private let boost5xUsesKey = "powerUses.boost5x"
     private let boost20xUsesKey = "powerUses.boost20x"
     private let wheelCollectsKey = "wheelCollects.total"
+    private let currentLeaderboardRankKey = "leaderboard.currentRank"
     private let achievementBoostTierKey = "achievementBoost.activeTierID"
     private let achievementBoostExpirationKey = "achievementBoost.expiresAt"
     private let defaults = UserDefaults.standard
@@ -137,6 +139,7 @@ public final class AchievementEvaluator {
         boost5xUsesTotal = defaults.integer(forKey: boost5xUsesKey)
         boost20xUsesTotal = defaults.integer(forKey: boost20xUsesKey)
         wheelCollectsTotal = defaults.integer(forKey: wheelCollectsKey)
+        currentLeaderboardRank = defaults.integer(forKey: currentLeaderboardRankKey)
         if challengeCreationTotal == 0,
            let data = UserDefaults.standard.data(forKey: "challengeCompletedIds"),
            let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
@@ -166,6 +169,26 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
         currentGameSnapshot.boost20x_uses_total = boost20xUsesTotal
         currentGameSnapshot.wheel_collects_total = wheelCollectsTotal
+        currentGameSnapshot.best_leaderboard_rank = currentLeaderboardRank
+    }
+
+    /// Updates the best leaderboard rank when fetched from Game Center
+    /// - Parameter rank: The player's current global rank (1-based)
+    public func onLeaderboardRankUpdated(_ rank: Int) {
+        guard rank > 0 else { return }
+
+        // Always use current rank for achievement validation (not best historical rank)
+        currentLeaderboardRank = rank
+        defaults.set(currentLeaderboardRank, forKey: currentLeaderboardRankKey)
+        print("🏆 Current leaderboard rank: #\(rank)")
+
+        currentGameSnapshot.best_leaderboard_rank = currentLeaderboardRank
+
+        var snapshot = currentGameSnapshot
+        snapshot.best_leaderboard_rank = currentLeaderboardRank
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
     }
 
     public func onGameStart(state: GameState) {
@@ -194,6 +217,7 @@ public final class AchievementEvaluator {
         currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
         currentGameSnapshot.boost20x_uses_total = boost20xUsesTotal
         currentGameSnapshot.wheel_collects_total = wheelCollectsTotal
+        currentGameSnapshot.best_leaderboard_rank = currentLeaderboardRank
     }
 
     /// Saves accumulated playtime without ending the game session.
@@ -495,7 +519,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost2xUsed() {
-        boost2xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost2xUsesTotal += multiplier
         defaults.set(boost2xUsesTotal, forKey: boost2xUsesKey)
         currentGameSnapshot.boost2x_uses_total = boost2xUsesTotal
 
@@ -507,7 +532,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost3xUsed() {
-        boost3xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost3xUsesTotal += multiplier
         defaults.set(boost3xUsesTotal, forKey: boost3xUsesKey)
         currentGameSnapshot.boost3x_uses_total = boost3xUsesTotal
 
@@ -519,7 +545,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost4xUsed() {
-        boost4xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost4xUsesTotal += multiplier
         defaults.set(boost4xUsesTotal, forKey: boost4xUsesKey)
         currentGameSnapshot.boost4x_uses_total = boost4xUsesTotal
 
@@ -531,7 +558,8 @@ public final class AchievementEvaluator {
     }
 
     public func onSpinPurchased(count: Int) {
-        spinPurchasesTotal += count
+        let multiplier = achievementBoostMultiplier
+        spinPurchasesTotal += count * multiplier
         defaults.set(spinPurchasesTotal, forKey: spinPurchasesKey)
         currentGameSnapshot.spin_purchases_total = spinPurchasesTotal
 
@@ -555,7 +583,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost5xUsed() {
-        boost5xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost5xUsesTotal += multiplier
         defaults.set(boost5xUsesTotal, forKey: boost5xUsesKey)
         currentGameSnapshot.boost5x_uses_total = boost5xUsesTotal
 
@@ -567,7 +596,8 @@ public final class AchievementEvaluator {
     }
 
     public func onBoost20xUsed() {
-        boost20xUsesTotal += 1
+        let multiplier = achievementBoostMultiplier
+        boost20xUsesTotal += multiplier
         defaults.set(boost20xUsesTotal, forKey: boost20xUsesKey)
         currentGameSnapshot.boost20x_uses_total = boost20xUsesTotal
 
@@ -579,7 +609,8 @@ public final class AchievementEvaluator {
     }
 
     public func onWheelCollected(count: Int) {
-        wheelCollectsTotal += count
+        let multiplier = achievementBoostMultiplier
+        wheelCollectsTotal += count * multiplier
         defaults.set(wheelCollectsTotal, forKey: wheelCollectsKey)
         currentGameSnapshot.wheel_collects_total = wheelCollectsTotal
 
@@ -591,7 +622,8 @@ public final class AchievementEvaluator {
     }
 
     public func onChallengeCreationCompleted() {
-        challengeCreationTotal += 1
+        let multiplier = achievementBoostMultiplier
+        challengeCreationTotal += multiplier
         defaults.set(challengeCreationTotal, forKey: challengeCreationTotalKey)
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal
         var snapshot = currentGameSnapshot

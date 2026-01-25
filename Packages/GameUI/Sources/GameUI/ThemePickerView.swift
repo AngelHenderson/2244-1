@@ -1,0 +1,438 @@
+import SwiftUI
+
+public struct ThemePickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
+    @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundId: String = "city_1"
+    @AppStorage("selectedWallpaperId") private var selectedWallpaperId: String = "wallpaper_default"
+    @State private var selectedTab: ThemeTab = .tiles
+
+    private enum ThemeTab: String, CaseIterable {
+        case tiles = "Tiles"
+        case backgrounds = "Backgrounds"
+        case wallpapers = "Wallpapers"
+    }
+
+    private let tileColumns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
+    ]
+
+    private let backgroundColumns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                Picker("Theme Type", selection: $selectedTab) {
+                    ForEach(ThemeTab.allCases, id: \.self) { tab in
+                        Text(tab.rawValue).tag(tab)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding()
+
+                ScrollView {
+                    switch selectedTab {
+                    case .tiles:
+                        tileThemesContent
+                    case .backgrounds:
+                        backgroundThemesContent
+                    case .wallpapers:
+                        wallpapersContent
+                    }
+                }
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Theme")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    private var tileThemesContent: some View {
+        LazyVGrid(columns: tileColumns, spacing: 16) {
+            ForEach(ThemeRegistry.Default.allDescriptors(), id: \.id) { descriptor in
+                ThemeCard(
+                    descriptor: descriptor,
+                    isSelected: selectedThemeId == descriptor.id,
+                    onSelect: {
+                        selectedThemeId = descriptor.id
+                    }
+                )
+            }
+        }
+        .padding()
+    }
+
+    private var backgroundThemesContent: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            let themesByCategory = BackgroundThemeRegistry.Default.themesByCategory()
+            let sortedCategories = ["Desert", "Snow", "City", "Jungle", "Underwater", "Solid"]
+                .filter { themesByCategory[$0] != nil }
+
+            ForEach(sortedCategories, id: \.self) { category in
+                BackgroundCategorySection(
+                    category: category,
+                    themes: themesByCategory[category] ?? [],
+                    selectedId: selectedBackgroundId,
+                    onSelect: { id in
+                        selectedBackgroundId = id
+                    }
+                )
+            }
+        }
+        .padding()
+    }
+
+    private var wallpapersContent: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12)
+        ]
+
+        return LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(WallpaperThemeRegistry.Default.allWallpapers(), id: \.id) { wallpaper in
+                WallpaperCard(
+                    wallpaper: wallpaper,
+                    isSelected: selectedWallpaperId == wallpaper.id,
+                    onSelect: { selectedWallpaperId = wallpaper.id }
+                )
+            }
+        }
+        .padding()
+    }
+}
+
+// MARK: - Tile Theme Components
+
+private struct ThemeCard: View {
+    let descriptor: ThemeDescriptor
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    private let sampleValues = [2, 4, 8, 16, 32, 64]
+
+    var body: some View {
+        Button(action: onSelect) {
+            VStack(spacing: 12) {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 4),
+                    GridItem(.flexible(), spacing: 4),
+                    GridItem(.flexible(), spacing: 4)
+                ], spacing: 4) {
+                    ForEach(sampleValues, id: \.self) { value in
+                        ThemePreviewTile(
+                            value: value,
+                            descriptor: descriptor
+                        )
+                    }
+                }
+                .padding(8)
+                .background(Color(.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                Text(descriptor.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.secondarySystemGroupedBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+            )
+            .overlay(alignment: .topTrailing) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.white, Color.accentColor)
+                        .offset(x: 8, y: -8)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct ThemePreviewTile: View {
+    let value: Int
+    let descriptor: ThemeDescriptor
+
+    var body: some View {
+        let color = descriptor.color(for: value)
+        let textColor = Theme.textColor(for: value)
+
+        Group {
+            if descriptor.tileStyle == .raised3D {
+                RoundedRectangle(cornerRadius: tileCornerRadius)
+                    .fill(Color.clear)
+                    .modifier(MiniTile3DStyle(
+                        baseColor: color,
+                        tileShape: descriptor.tileShape
+                    ))
+                    .overlay {
+                        Text("\(value)")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(textColor)
+                    }
+            } else {
+                RoundedRectangle(cornerRadius: tileCornerRadius)
+                    .fill(color)
+                    .overlay {
+                        Text("\(value)")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(textColor)
+                    }
+            }
+        }
+        .aspectRatio(1, contentMode: .fit)
+    }
+
+    private var tileCornerRadius: CGFloat {
+        switch descriptor.tileShape {
+        case .square: return 4
+        case .rounded: return 8
+        }
+    }
+}
+
+private struct MiniTile3DStyle: ViewModifier {
+    let baseColor: Color
+    let tileShape: ThemeDescriptor.TileShape
+
+    func body(content: Content) -> some View {
+        let cornerRadius: CGFloat = tileShape == .square ? 4 : 8
+
+        content
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(baseColor.opacity(0.6))
+                        .offset(y: 2)
+
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    baseColor.opacity(1.0),
+                                    baseColor.opacity(0.85)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.3),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
+                }
+            )
+    }
+}
+
+// MARK: - Background Theme Components
+
+private struct BackgroundCategorySection: View {
+    let category: String
+    let themes: [BackgroundTheme]
+    let selectedId: String
+    let onSelect: (String) -> Void
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(category, systemImage: categoryIcon)
+                .font(.headline)
+                .foregroundStyle(.primary)
+
+            LazyVGrid(columns: columns, spacing: 12) {
+                ForEach(themes, id: \.id) { theme in
+                    BackgroundCard(
+                        theme: theme,
+                        isSelected: selectedId == theme.id,
+                        onSelect: { onSelect(theme.id) }
+                    )
+                }
+            }
+        }
+    }
+
+    private var categoryIcon: String {
+        switch category {
+        case "City": return "building.2.fill"
+        case "Desert": return "sun.max.fill"
+        case "Jungle": return "leaf.fill"
+        case "Snow": return "snowflake"
+        case "Underwater": return "drop.fill"
+        case "Solid": return "square.fill"
+        default: return "photo.fill"
+        }
+    }
+}
+
+private struct BackgroundCard: View {
+    let theme: BackgroundTheme
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            VStack(spacing: 8) {
+                BackgroundPreview(theme: theme)
+                    .aspectRatio(9/16, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+                    )
+                    .overlay(alignment: .topTrailing) {
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(.white, Color.accentColor)
+                                .offset(x: 6, y: -6)
+                        }
+                    }
+
+                Text(theme.name)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct BackgroundPreview: View {
+    let theme: BackgroundTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                if theme.imageName.isEmpty {
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "1a1a2e"),
+                            Color(hex: "16213e")
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                } else {
+                    Image(theme.imageName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+
+                    if theme.overlayOpacity > 0 {
+                        Color.black.opacity(theme.overlayOpacity)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Wallpaper Components
+
+private struct WallpaperCard: View {
+    let wallpaper: WallpaperTheme
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            VStack(spacing: 8) {
+                WallpaperPreview(wallpaper: wallpaper)
+                    .aspectRatio(9/16, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+                    )
+                    .overlay(alignment: .topTrailing) {
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(.white, Color.accentColor)
+                                .offset(x: 6, y: -6)
+                        }
+                    }
+
+                Text(wallpaper.name)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct WallpaperPreview: View {
+    let wallpaper: WallpaperTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                if wallpaper.imageName.isEmpty {
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "1a1a2e"),
+                            Color(hex: "16213e")
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                } else {
+                    Image(wallpaper.imageName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+
+                    if wallpaper.overlayOpacity > 0 {
+                        Color.black.opacity(wallpaper.overlayOpacity)
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    ThemePickerView()
+}

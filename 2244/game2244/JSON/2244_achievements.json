@@ -380,5 +380,21 @@
         "value": 3
       }
     ]
+  },
+  {
+    "id": "leaderboard_rank_progression",
+    "gcIdentifier": "leaderboard_rank_progression",
+    "title": "Global Contender",
+    "description": "Climb the Global Leaderboard to unlock escalating rewards.",
+    "category": "Leaderboard",
+    "hidden": false,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "best_leaderboard_rank",
+        "op": "<=",
+        "value": 100000
+      }
+    ]
   }
 ]

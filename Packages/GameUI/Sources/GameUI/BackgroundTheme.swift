@@ -222,3 +222,93 @@ public struct ThemedBackground: View {
         .ignoresSafeArea()  // Ensure the GeometryReader itself extends to edges
     }
 }
+
+// MARK: - Wallpaper Theme System (Gameplay)
+
+public struct WallpaperTheme: Sendable {
+    public let id: String
+    public let name: String
+    public let imageName: String
+    public let overlayOpacity: Double
+
+    public init(
+        id: String,
+        name: String,
+        imageName: String,
+        overlayOpacity: Double = 0.0
+    ) {
+        self.id = id
+        self.name = name
+        self.imageName = imageName
+        self.overlayOpacity = overlayOpacity
+    }
+}
+
+public struct WallpaperThemeRegistry: Sendable {
+    private var wallpapersById: [String: WallpaperTheme]
+    public var defaultWallpaper: WallpaperTheme
+
+    public init(wallpapers: [WallpaperTheme], defaultId: String) {
+        var mapping: [String: WallpaperTheme] = [:]
+        for wallpaper in wallpapers {
+            mapping[wallpaper.id] = wallpaper
+        }
+        self.wallpapersById = mapping
+        self.defaultWallpaper = mapping[defaultId] ?? wallpapers.first!
+    }
+
+    public func wallpaper(for id: String?) -> WallpaperTheme {
+        guard let id, let wallpaper = wallpapersById[id] else {
+            return defaultWallpaper
+        }
+        return wallpaper
+    }
+
+    public func allWallpapers() -> [WallpaperTheme] {
+        Array(wallpapersById.values).sorted { $0.name < $1.name }
+    }
+}
+
+// MARK: - Default Wallpaper Registry
+
+extension WallpaperThemeRegistry {
+    public static var Default: WallpaperThemeRegistry {
+        let wallpapers = [
+            WallpaperTheme(
+                id: "wallpaper_default",
+                name: "Default",
+                imageName: "",
+                overlayOpacity: 0.0
+            ),
+            WallpaperTheme(
+                id: "wallpaper_mist_moon",
+                name: "Mist Moon",
+                imageName: "mist_moon",
+                overlayOpacity: 0.1
+            ),
+            WallpaperTheme(
+                id: "wallpaper_galaxy",
+                name: "Galaxy",
+                imageName: "galaxy",
+                overlayOpacity: 0.1
+            ),
+            WallpaperTheme(
+                id: "wallpaper_under_blues",
+                name: "Under Blues",
+                imageName: "under_blues",
+                overlayOpacity: 0.15
+            ),
+            WallpaperTheme(
+                id: "wallpaper_spiral_galaxy",
+                name: "Spiral Galaxy",
+                imageName: "spiral_galaxy",
+                overlayOpacity: 0.1
+            )
+        ]
+
+        return WallpaperThemeRegistry(
+            wallpapers: wallpapers,
+            defaultId: "wallpaper_default"
+        )
+    }
+}

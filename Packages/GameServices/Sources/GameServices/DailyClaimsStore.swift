@@ -106,11 +106,15 @@ public final class DailyClaimsStore {
     public func updateAvailability() {
         let calendar = Calendar.current
         let now = Date()
-        
+
         // Check if we can claim today
         if let lastClaim = lastClaimDate {
-            let daysSinceLastClaim = calendar.dateComponents([.day], from: lastClaim, to: now).day ?? 0
-            
+            // IMPORTANT: Compare calendar days using startOfDay, not raw timestamps
+            // This ensures claiming at 11pm and checking at 10am next day works correctly
+            let lastClaimDay = calendar.startOfDay(for: lastClaim)
+            let today = calendar.startOfDay(for: now)
+            let daysSinceLastClaim = calendar.dateComponents([.day], from: lastClaimDay, to: today).day ?? 0
+
             if daysSinceLastClaim == 0 {
                 // Already claimed today
                 canClaimToday = false
@@ -126,55 +130,67 @@ public final class DailyClaimsStore {
             // First time claiming
             canClaimToday = true
         }
-        
+
         // Ensure catalog has enough entries for the next visible window
         ensureClaims(upTo: visibleUpperBound())
-        
-        // Update claim availability
-        let nextClaimDay = currentClaimDay + 1
-        for i in 0..<dailyClaims.count {
-            dailyClaims[i].isAvailable = canClaimToday && dailyClaims[i].day == nextClaimDay
+
+        // Rebuild array with updated states to ensure @Observable properly notifies SwiftUI
+        let nextDay = currentClaimDay + 1
+        dailyClaims = dailyClaims.map { claim in
+            var updated = claim
+            updated.isClaimed = claimedDays.contains(claim.day)
+            updated.isAvailable = canClaimToday && claim.day == nextDay
+            return updated
         }
     }
     
     @MainActor
     public func claimDailyReward() {
         guard canClaimToday else { return }
-        
+
         let nextClaimDay = currentClaimDay + 1
         guard let claimIndex = dailyClaims.firstIndex(where: { $0.day == nextClaimDay }) else { return }
-        
-        // Mark as claimed
-        dailyClaims[claimIndex].isClaimed = true
-        dailyClaims[claimIndex].isAvailable = false
-        
-        // Update progress
+
+        // Get rewards before updating state
+        let rewards = dailyClaims[claimIndex].rewards
+
+        // Update progress state FIRST
         currentClaimDay = nextClaimDay
         currentStreak += 1
         lastClaimDate = Date()
         canClaimToday = false
-        
+
+        // Add to claimed days set
         claimedDays.insert(nextClaimDay)
-        
+
+        // Save progress IMMEDIATELY to ensure persistence
+        saveProgress()
+
+        // Rebuild the dailyClaims array to ensure @Observable triggers SwiftUI updates
+        // This is more reliable than modifying individual struct elements
+        dailyClaims = dailyClaims.map { claim in
+            var updated = claim
+            updated.isClaimed = claimedDays.contains(claim.day)
+            updated.isAvailable = false  // Nothing available after claiming today
+            return updated
+        }
+
         // Distribute rewards
-        let rewards = dailyClaims[claimIndex].rewards
         onReward?(rewards)
-        
-        // Check for newly unlocked streaks
+
+        // Check for newly unlocked streaks and give random bonus rewards
         for i in 0..<dailyStreaks.count {
             if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentStreak {
                 dailyStreaks[i].isUnlocked = true
                 unlockedStreaks.insert(dailyStreaks[i].day)
-                onReward?(dailyStreaks[i].rewards)
+                // Generate random bonus with equal probability (12.5% each type)
+                let randomBonus = BonusRewardGenerator.generateRandomBonus(forStreakDay: dailyStreaks[i].day)
+                onReward?(randomBonus)
             }
         }
-        
-        // Save progress
+
+        // Save again to persist streak unlocks
         saveProgress()
-        
-        // Update availability for next claim
-        ensureClaims(upTo: visibleUpperBound())
-        updateAvailability()
     }
     
     public func getNextClaimableDay() -> Int? {
@@ -202,7 +218,35 @@ public final class DailyClaimsStore {
     }
     
     public func ensureClaimsCovering(pageIndex: Int) {
-        let upperBound = min(max(pageIndex, 0), Int.max / 7) * 7 + 7
+        // Handle special page structure:
+        // Pages 0-51: Weeks 1-52 (days 1-364)
+        // Page 52: Day 365 (Year 1)
+        // Page 53: Week 53 (days 366-371, 6 days)
+        // Pages 54-104: Weeks 54-104 (days 372-728)
+        // Page 105: Week 105 first part (day 729)
+        // Page 106: Day 730 (Year 2)
+        // Page 107: Rest of Week 105 (days 731-735)
+        // Pages 108+: Week 106+ (days 736+)
+        let upperBound: Int
+        if pageIndex < 52 {
+            upperBound = (pageIndex + 1) * 7  // Normal week pages
+        } else if pageIndex == 52 {
+            upperBound = 365  // Day 365 page
+        } else if pageIndex == 53 {
+            upperBound = 371  // Week 53 (days 366-371)
+        } else if pageIndex <= 104 {
+            // Pages 54-104: Weeks 54-104
+            upperBound = 371 + (pageIndex - 53) * 7
+        } else if pageIndex == 105 {
+            upperBound = 729  // Week 105 first part
+        } else if pageIndex == 106 {
+            upperBound = 730  // Day 730 page
+        } else if pageIndex == 107 {
+            upperBound = 735  // Rest of Week 105
+        } else {
+            // Pages 108+: days 736 + (page - 108) * 7 + 7
+            upperBound = 735 + (pageIndex - 107) * 7
+        }
         ensureClaims(upTo: max(upperBound, visibleUpperBound()))
     }
     
@@ -246,9 +290,21 @@ public final class DailyClaimsStore {
     
     private func pendingStreakRewards(afterClaimingDay day: Int) -> [AchievementDef.Rewards] {
         let resultingStreak = currentStreak + 1 // streak increments when day is claimed
+        // Return random bonus rewards for each pending streak unlock
+        // Each bonus type has 12.5% probability (equal distribution)
         return dailyStreaks
             .filter { !$0.isUnlocked && $0.day <= resultingStreak }
-            .map(\.rewards)
+            .map { streak in
+                BonusRewardGenerator.generateRandomBonus(forStreakDay: streak.day)
+            }
+    }
+
+    /// Returns the count of pending streak bonuses without generating rewards
+    public func pendingStreakBonusCount(afterClaimingDay day: Int) -> Int {
+        let resultingStreak = currentStreak + 1
+        return dailyStreaks
+            .filter { !$0.isUnlocked && $0.day <= resultingStreak }
+            .count
     }
 }
 
@@ -365,7 +421,63 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(spins: 2),
         AchievementDef.Rewards(spins: 2, swaps: 1, boost3x: 1),
         AchievementDef.Rewards(hammers: 2, boost2x: 1, boost4x: 1),
-        AchievementDef.Rewards(gems: 933, swaps: 1)
+        AchievementDef.Rewards(gems: 933, swaps: 1),
+        // Week 15
+        AchievementDef.Rewards(gems: 944),
+        AchievementDef.Rewards(gems: 955),
+        AchievementDef.Rewards(magnets: 1),
+        AchievementDef.Rewards(gems: 962, boost2x: 1),
+        AchievementDef.Rewards(gems: 967),
+        AchievementDef.Rewards(gems: 966, swaps: 1),
+        AchievementDef.Rewards(magnets: 1),
+        // Week 16
+        AchievementDef.Rewards(gems: 966, boost4x: 1),
+        AchievementDef.Rewards(gems: 978, magnets: 1, boost3x: 1),
+        AchievementDef.Rewards(magnets: 1, boost4x: 1),
+        AchievementDef.Rewards(hammers: 1, swaps: 1),
+        AchievementDef.Rewards(gems: 974, hammers: 1),
+        AchievementDef.Rewards(gems: 972, swaps: 1),
+        AchievementDef.Rewards(gems: 975, swaps: 1),
+        // Week 17
+        AchievementDef.Rewards(gems: 987, hammers: 1),
+        AchievementDef.Rewards(gems: 983, magnets: 1),
+        AchievementDef.Rewards(gems: 999),
+        AchievementDef.Rewards(swaps: 1),
+        AchievementDef.Rewards(boost3x: 1),
+        AchievementDef.Rewards(hammers: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 1000),
+        // Week 18
+        AchievementDef.Rewards(gems: 1003),
+        AchievementDef.Rewards(swaps: 1),
+        AchievementDef.Rewards(spins: 1),
+        AchievementDef.Rewards(gems: 933, spins: 3, boost2x: 1),
+        AchievementDef.Rewards(boost3x: 1),
+        AchievementDef.Rewards(boost2x: 1),
+        AchievementDef.Rewards(gems: 1000),
+        // Week 19
+        AchievementDef.Rewards(gems: 1000),
+        AchievementDef.Rewards(magnets: 1, boost2x: 1),
+        AchievementDef.Rewards(spins: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 965, hammers: 1, boost4x: 1),
+        AchievementDef.Rewards(hammers: 1, magnets: 1, swaps: 1),
+        AchievementDef.Rewards(swaps: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 975),
+        // Week 20
+        AchievementDef.Rewards(gems: 1100),
+        AchievementDef.Rewards(gems: 875, spins: 2),
+        AchievementDef.Rewards(magnets: 2),
+        AchievementDef.Rewards(swaps: 2),
+        AchievementDef.Rewards(hammers: 2),
+        AchievementDef.Rewards(boost4x: 1),
+        AchievementDef.Rewards(gems: 978, hammers: 1),
+        // Week 21
+        AchievementDef.Rewards(gems: 897),
+        AchievementDef.Rewards(gems: 899),
+        AchievementDef.Rewards(magnets: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 987, swaps: 1),
+        AchievementDef.Rewards(gems: 1111),
+        AchievementDef.Rewards(gems: 766, spins: 3),
+        AchievementDef.Rewards(gems: 779, magnets: 2, boost3x: 1)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {
@@ -389,15 +501,87 @@ private extension AchievementDef.Rewards {
             boost4x: scaleFrequency(base: boost4x, week: week, frequency: 5)
         )
     }
-    
+
     private func scaleLinear(base: Int?, week: Int, step: Int) -> Int? {
         guard let base else { return nil }
         return base + (week * step)
     }
-    
+
     private func scaleFrequency(base: Int?, week: Int, frequency: Int) -> Int? {
         guard let base else { return nil }
         guard frequency > 0 else { return base }
         return base + (week / frequency)
+    }
+}
+
+/// Generates random bonus rewards with equal probability for each type (12.5% each)
+public enum BonusRewardGenerator {
+    public enum BonusType: CaseIterable {
+        case gems
+        case spins
+        case hammers
+        case megaMerges
+        case swaps
+        case boost2x
+        case boost3x
+        case boost4x
+    }
+
+    /// Generates a random bonus reward with equal probability (12.5% each type)
+    public static func generateRandomBonus(baseAmount: Int = 1) -> AchievementDef.Rewards {
+        let allTypes = BonusType.allCases
+        let randomIndex = Int.random(in: 0..<allTypes.count)
+        let selectedType = allTypes[randomIndex]
+
+        return rewardFor(type: selectedType, amount: baseAmount)
+    }
+
+    /// Generates a bonus with scaled amount based on streak day
+    public static func generateRandomBonus(forStreakDay day: Int) -> AchievementDef.Rewards {
+        let allTypes = BonusType.allCases
+        let randomIndex = Int.random(in: 0..<allTypes.count)
+        let selectedType = allTypes[randomIndex]
+
+        // Scale amount based on streak day (higher streak = better bonus)
+        let amount = scaledAmount(for: selectedType, streakDay: day)
+
+        return rewardFor(type: selectedType, amount: amount)
+    }
+
+    private static func rewardFor(type: BonusType, amount: Int) -> AchievementDef.Rewards {
+        switch type {
+        case .gems:
+            return AchievementDef.Rewards(gems: amount * 50)
+        case .spins:
+            return AchievementDef.Rewards(spins: amount)
+        case .hammers:
+            return AchievementDef.Rewards(hammers: amount)
+        case .megaMerges:
+            return AchievementDef.Rewards(magnets: amount)
+        case .swaps:
+            return AchievementDef.Rewards(swaps: amount)
+        case .boost2x:
+            return AchievementDef.Rewards(boost2x: amount)
+        case .boost3x:
+            return AchievementDef.Rewards(boost3x: amount)
+        case .boost4x:
+            return AchievementDef.Rewards(boost4x: amount)
+        }
+    }
+
+    private static func scaledAmount(for type: BonusType, streakDay: Int) -> Int {
+        // Base amount increases every 7 days (weekly bonus scaling)
+        let weekMultiplier = max(1, (streakDay - 1) / 7 + 1)
+
+        switch type {
+        case .gems:
+            return weekMultiplier
+        case .spins, .hammers, .megaMerges, .swaps:
+            // Power-ups scale slower
+            return max(1, weekMultiplier / 2)
+        case .boost2x, .boost3x, .boost4x:
+            // Boosts are always 1
+            return 1
+        }
     }
 }

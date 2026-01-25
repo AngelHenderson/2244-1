@@ -14,12 +14,11 @@ struct MusicThemesView: View {
     // Inputs
     var instruments: [Instrument] = [
         .init(id: "piano", displayName: "Piano", tagline: "Merge with Classic Warmth!", assetName: "piano", priceLabel: "$0.99"),
-        .init(id: "harp", displayName: "Harp", tagline: "Merge with Ethereal Strings!", assetName: "harp", priceLabel: "$0.99"),
-        .init(id: "xylophone", displayName: "Xylophone", tagline: "Merge with Bright Chimes!", assetName: "xylophone", priceLabel: "$0.99"),
-        .init(id: "guitar", displayName: "Guitar", tagline: "Merge with Gentle Resonance!", assetName: "guitar", priceLabel: "$0.99"),
+        .init(id: "xylophone", displayName: "Xylophone", tagline: "Merging Melodies Chime!", assetName: "xylophone", priceLabel: "$0.99"),
+        .init(id: "guitar", displayName: "Guitar", tagline: "Strumming Merges Delight!", assetName: "guitar", priceLabel: "$0.99"),
         .init(id: "kalimba", displayName: "Kalimba", tagline: "Merge with Gentle Resonance!", assetName: "kalimba", priceLabel: "$0.99"),
-        .init(id: "muted-nylon", displayName: "Muted Nylon", tagline: "Merge with Soft Plucks!", assetName: "guitar", priceLabel: "$0.99"),
-        .init(id: "drum", displayName: "Drum", tagline: "Merge with Rhythmic Beats!", assetName: "drum", priceLabel: "$0.99")
+        .init(id: "muted-nylon", displayName: "Muted Nylon", tagline: "Softly Merge Melodies!", assetName: "guitar", priceLabel: "$0.99"),
+        .init(id: "drum", displayName: "Drum", tagline: "Feel the Rhythm Merge!", assetName: "drum", priceLabel: "$0.99")
     ]
     var onTry: @Sendable (Instrument) -> Void = { _ in }
     var onPurchase: @Sendable (Instrument) -> Void = { _ in }
@@ -46,14 +45,16 @@ struct MusicThemesView: View {
             switch instrument.id {
             case "piano":
                 Task { await audioService.playMusic(named: "piano_background", loop: true) }
-            case "harp":
-                Task { await audioService.playMusic(named: "harp_melody", loop: true) }
             case "xylophone":
                 Task { await audioService.playMusic(named: "xylophone_melody", loop: true) }
             case "kalimba":
                 Task { await audioService.playMusic(named: "kalimba_melody", loop: true) }
             case "guitar":
                 Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
+            case "muted-nylon":
+                Task { await audioService.playMusic(named: "muted_nylon_melody", loop: true) }
+            case "drum":
+                Task { await audioService.playMusic(named: "drum_rhythm", loop: true) }
             default:
                 // For other instruments, stop current music
                 Task { await audioService.stopMusic() }
@@ -65,14 +66,16 @@ struct MusicThemesView: View {
             switch currentInstrument.id {
             case "piano":
                 Task { await audioService.playMusic(named: "piano_background", loop: true) }
-            case "harp":
-                Task { await audioService.playMusic(named: "harp_melody", loop: true) }
             case "xylophone":
                 Task { await audioService.playMusic(named: "xylophone_melody", loop: true) }
             case "kalimba":
                 Task { await audioService.playMusic(named: "kalimba_melody", loop: true) }
             case "guitar":
                 Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
+            case "muted-nylon":
+                Task { await audioService.playMusic(named: "muted_nylon_melody", loop: true) }
+            case "drum":
+                Task { await audioService.playMusic(named: "drum_rhythm", loop: true) }
             default:
                 break
             }

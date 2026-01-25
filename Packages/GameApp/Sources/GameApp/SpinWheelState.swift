@@ -183,7 +183,15 @@ public final class SpinWheelState {
     public func formattedActiveMultiplierCountdown(now date: Date = Date()) -> String {
         guard let active = activeMultiplier else { return "" }
         let remaining = max(0, active.expiresAt.timeIntervalSince(date))
-        return Self.formattedDuration(remaining)
+        return Self.formattedBoostDuration(remaining)
+    }
+
+    private static func formattedBoostDuration(_ interval: TimeInterval) -> String {
+        let totalSeconds = Int(interval)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%d:%02d:%02d", hours, minutes, seconds)
     }
     
     public func refresh(now date: Date = Date()) {

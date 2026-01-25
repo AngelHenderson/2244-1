@@ -198,7 +198,7 @@ public struct GiftRewardView: View {
     private func iconName(for item: GiftRewardItem) -> String {
         switch item.type {
         case .hammer: return "hammer.fill"
-        case .magnet: return "magnet"
+        case .magnet: return "magnet.fill"
         case .gems: return "diamond.fill"
         case .swap: return "arrow.2.squarepath"
         case .undo: return "arrow.uturn.backward.circle.fill"

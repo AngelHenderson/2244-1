@@ -49,12 +49,14 @@ public extension TierStat {
         }
 
         // Return tiers in fixed order from allTierKeys
+        // Only show color if user has at least 1 of that tier
         return allTierKeys.map { key in
             let value = normalizedCounts[key] ?? 0
+            let tierColor = value >= 1 ? color(for: key) : Color.gray.opacity(0.4)
             return TierStat(
                 key: key,
                 value: value,
-                color: color(for: key),
+                color: tierColor,
                 label: "\(key.uppercased())-Tier"
             )
         }
