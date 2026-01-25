@@ -930,14 +930,17 @@ private struct RewardIconView: View {
 
     var body: some View {
         if kind == .swaps {
-            // Swap icon with green and yellow arrows
+            // Swap icon with green and yellow curved arrows forming a refresh cycle
             ZStack {
-                Image(systemName: "arrow.right")
+                // Green arrow: curves from top-left to bottom-right
+                Image(systemName: "arrowshape.turn.up.left")
                     .foregroundStyle(.green)
-                    .offset(x: -2, y: -3)
-                Image(systemName: "arrow.left")
+                    .rotationEffect(.degrees(180))
+                    .offset(x: 2, y: 12)
+                // Yellow arrow: curves from bottom-right to top-left
+                Image(systemName: "arrowshape.turn.up.left")
                     .foregroundStyle(.yellow)
-                    .offset(x: 2, y: 3)
+                    .offset(x: 3, y: -3)
             }
             .font(font)
         } else {
@@ -1005,7 +1008,7 @@ private extension AchievementDef.Rewards.Entry.Kind {
         case .gems: return .cyan
         case .spins: return .purple
         case .hammers: return .orange
-        case .magnets: return .blue
+        case .magnets: return .red
         case .swaps: return .green
         case .boost2x: return .yellow
         case .boost3x: return .pink
