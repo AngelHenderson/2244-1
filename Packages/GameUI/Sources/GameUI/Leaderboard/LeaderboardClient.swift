@@ -1334,6 +1334,15 @@ private enum MockLeaderboardData {
         2, 2, 2, 2, 1, 1, 1, 1, 1
     ]
 
+    static let spainHallOfFameInfinityCounts: [Int] = [
+        // Spain Hall of Fame (49 players)
+        12345, 4321, 3443, 2998, 2222, 1676, 1234, 1111, 1098, 932,
+        767, 676, 494, 432, 345, 321, 234, 210, 197, 185,
+        173, 161, 159, 147, 135, 123, 111, 109, 100, 67,
+        55, 49, 43, 34, 23, 22, 20, 17, 13, 8,
+        5, 3, 3, 2, 2, 1, 1, 1, 1
+    ]
+
     static let usNames = [
         "AmericanEagle01", "StarsAndStripes", "USAChamp99", "LibertyGamer", "PatriotPlayer",
         "FreedomFighter", "StateStar77", "CapitalCity55", "RedWhiteBlue", "UncleSamPro",
