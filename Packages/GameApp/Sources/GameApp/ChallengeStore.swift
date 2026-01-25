@@ -179,7 +179,7 @@ public final class ChallengeStore: Sendable {
             if let specific = specificRewards[index] {
                 return specific
             }
-            // Fallback formula for challenges beyond 1al
+            // Fallback formula for challenges beyond 1as
             let baseCoins = 50 + (index * 25)
             return ChallengeReward(coins: baseCoins)
         }
