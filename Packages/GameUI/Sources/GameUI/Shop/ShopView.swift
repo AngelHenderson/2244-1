@@ -14,15 +14,13 @@ public struct ShopView: View {
         case gems = "Gems"
         case journey = "Journey"
         case perks = "Perks"
-        case special = "Special"
-        
+
         var icon: String {
             switch self {
             case .bundles: return "cube.box.fill"
             case .gems: return "diamond.fill"
             case .journey: return "map.fill"
             case .perks: return "star.fill"
-            case .special: return "gift.fill"
             }
         }
     }
@@ -67,8 +65,6 @@ public struct ShopView: View {
                             journeySection
                         case .perks:
                             perksSection
-                        case .special:
-                            specialSection
                         }
                     }
                     .padding()
@@ -167,18 +163,7 @@ public struct ShopView: View {
             }
         }
     }
-    
-    @ViewBuilder
-    private var specialSection: some View {
-        if let specials = shopStore.catalog?.specialOffers {
-            LazyVGrid(columns: [GridItem(.flexible())], spacing: 16) {
-                ForEach(specials) { offer in
-                    SpecialOfferCard(offer: offer)
-                }
-            }
-        }
-    }
-    
+
     // MARK: - Helper Methods
     
     private func journeyWindow() -> [(step: Int, currentStep: Int)] {
@@ -456,52 +441,6 @@ struct PerkBundleRow: View {
         }
         #endif
         return Image(systemName: "star.fill")
-    }
-}
-
-struct SpecialOfferCard: View {
-    let offer: ShopBundle
-    @Environment(\.shopStore) private var shopStore
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(offer.title)
-                    .font(.headline)
-                
-                if let perks = offer.perks {
-                    HStack(spacing: 12) {
-                        if perks.noAds == true {
-                            Label("No Ads", systemImage: "xmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.green)
-                        }
-                        if perks.allBeats == true {
-                            Label("All Beats", systemImage: "music.note")
-                                .font(.caption)
-                                .foregroundStyle(.purple)
-                        }
-                    }
-                }
-            }
-            
-            Spacer()
-            
-            Button {
-                Task { await shopStore.purchase(offer.id) }
-            } label: {
-                Text(shopStore.formatPrice(offer.price))
-                    .font(.system(size: 14, weight: .bold))
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(Capsule())
-            }
-        }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 
