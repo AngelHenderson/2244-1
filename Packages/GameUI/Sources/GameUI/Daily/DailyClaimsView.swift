@@ -923,7 +923,7 @@ private struct ClaimAnimationOverlay: View {
     }
 }
 
-/// Custom icon view that handles special cases like swap (two-colored arrows)
+/// Custom icon view that handles special cases like swap (two-colored arrows) and hammer (two-colored)
 private struct RewardIconView: View {
     let kind: AchievementDef.Rewards.Entry.Kind
     var font: Font = .body
@@ -943,6 +943,23 @@ private struct RewardIconView: View {
                     .offset(x: 3, y: -3)
             }
             .font(font)
+        } else if kind == .hammers {
+            // Hammer icon with gray head and brown handle
+            ZStack {
+                // Brown handle (bottom layer)
+                Image(systemName: "hammer.fill")
+                    .foregroundStyle(.brown)
+                    .font(font)
+                // Gray head overlay using mask
+                Image(systemName: "hammer.fill")
+                    .foregroundStyle(.gray)
+                    .font(font)
+                    .mask(
+                        Rectangle()
+                            .frame(width: 50, height: 8)
+                            .offset(x: 5, y: -6)
+                    )
+            }
         } else {
             Image(systemName: kind.iconName)
                 .foregroundStyle(kind.iconColor)
