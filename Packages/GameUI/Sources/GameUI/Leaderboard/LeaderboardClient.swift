@@ -2025,6 +2025,11 @@ public extension LeaderboardClient {
             playerData.append(("hof_it_\(i)", count, "IT", globalIndex, i + 15000))
             globalIndex += 1
         }
+        // Add Spain players
+        for (i, count) in MockLeaderboardData.spainHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_es_\(i)", count, "ES", globalIndex, i + 16000))
+            globalIndex += 1
+        }
 
         // Sort by base count (highest first) - Hall of Fame data is already current, no progression needed
         playerData.sort { $0.baseCount > $1.baseCount }
