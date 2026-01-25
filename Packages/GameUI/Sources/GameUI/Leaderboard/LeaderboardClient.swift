@@ -1343,6 +1343,14 @@ private enum MockLeaderboardData {
         5, 3, 3, 2, 2, 1, 1, 1, 1
     ]
 
+    static let netherlandsHallOfFameInfinityCounts: [Int] = [
+        // Netherlands Hall of Fame (33 players)
+        32123, 19922, 6769, 4167, 2524, 676, 111, 89, 77, 77,
+        76, 75, 48, 27, 11, 7, 5, 5, 4, 3,
+        3, 3, 2, 2, 2, 2, 1, 1, 1, 1,
+        1, 1, 1
+    ]
+
     static let usNames = [
         "AmericanEagle01", "StarsAndStripes", "USAChamp99", "LibertyGamer", "PatriotPlayer",
         "FreedomFighter", "StateStar77", "CapitalCity55", "RedWhiteBlue", "UncleSamPro",
@@ -1735,7 +1743,20 @@ private enum MockLeaderboardData {
         "AltdorfAlpha", "SarnenStar", "StansSlayer", "SchwyzSword", "FrauenfeldFury"
     ]
 
-    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
+    static let norwayNames = [
+        "OsloOracle", "BergenBolt", "TrondheimTitan", "StavangerStar", "DrammenDestroyer",
+        "FredrikstadFury", "KristiansandKnight", "TromsøThunder", "SandnesSlayer", "SarpsborgSage",
+        "SkienShark", "ÅlesundAce", "SandefjordStar", "HaugesundHero", "TønsbergTitan",
+        "MossMarauder", "PortsgrunnPhantom", "BodøBeast", "HamarHawk", "LarvikLegend",
+        "ArendalAvenger", "KongsvingKnight", "MoldeMonarch", "HaldenHunter", "SteinkjerSword",
+        "GjesdalGladiator", "AskøyAce", "LillestrømLion", "NarvikNinja", "HortenHero",
+        "FlekkefjordFury", "RånumRanger", "FarsundFalcon", "ElverumElite", "StordStar",
+        "EgeroundEagle", "BrekstadBolt", "MandolMaster", "VossViking", "RørosRuler",
+        "KirkeneKnight", "HammerfestHero", "VardøVictor", "LongyearbyenLegend", "SvalbardStar",
+        "LørenSkogLion", "BærumBolt", "AskerAce", "NittedalNinja", "OppegårdOracle"
+    ]
+
+    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
     static func seededRandom(seed: Int, index: Int) -> Double {
@@ -1824,6 +1845,8 @@ public extension LeaderboardClient {
                 entries = netherlandsEntries()
             case .countryCH:
                 entries = switzerlandEntries()
+            case .countryNO:
+                entries = norwayEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -1831,7 +1854,7 @@ public extension LeaderboardClient {
             let totalPlayers: Int
             switch filter {
             case .hallOfFame:
-                totalPlayers = 571  // Total Hall of Fame players across all countries
+                totalPlayers = 604  // Total Hall of Fame players across all countries
             case .country:
                 totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
             case .countryUK:
@@ -1870,9 +1893,11 @@ public extension LeaderboardClient {
                 totalPlayers = 46_767  // Netherlands player count
             case .countryCH:
                 totalPlayers = 20_000  // Switzerland player count
+            case .countryNO:
+                totalPlayers = 34_924  // Norway player count
             case .global:
                 // Global = sum of all country players
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399 + 46_767 + 20_000
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399 + 46_767 + 20_000 + 34_924
             }
             let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
             return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
@@ -2028,6 +2053,11 @@ public extension LeaderboardClient {
         // Add Spain players
         for (i, count) in MockLeaderboardData.spainHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_es_\(i)", count, "ES", globalIndex, i + 16000))
+            globalIndex += 1
+        }
+        // Add Netherlands players
+        for (i, count) in MockLeaderboardData.netherlandsHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_nl_\(i)", count, "NL", globalIndex, i + 17000))
             globalIndex += 1
         }
 
@@ -2325,26 +2355,26 @@ public extension LeaderboardClient {
 
     // Japan player milestones (ranks 1-150)
     private static let japanPlayerMilestones: [String] = [
-        // Ranks 1-30 (using valid milestones from allMilestones only)
-        "436bz", "109bz", "27bz", "853by", "213by", "53by", "833bx", "208bx", "52bx", "406bw",
-        "101bw", "50bw", "794bv", "198bv", "49bv", "775bu", "193bu", "48bu", "758bt", "189bt",
-        "47bt", "740bs", "185bs", "46bs", "722br", "180br", "45br", "706bq", "177bq", "44bq",
-        // Ranks 31-60
-        "689bp", "172bp", "43bp", "673bo", "168bo", "42bo", "657bn", "164bn", "41bn", "642bm",
-        "160bm", "40bm", "627bl", "156bl", "39bl", "612bk", "152bk", "38bk", "598bj", "149bj",
-        "37bj", "583bi", "145bi", "36bi", "570bh", "142bh", "35bh", "556bg", "139bg", "34bg",
-        // Ranks 61-90
-        "543bf", "135bf", "33bf", "531be", "132be", "33be", "518bd", "129bd", "32bd", "506bc",
-        "126bc", "31bc", "494bb", "123bb", "30bb", "483ba", "120ba", "30ba", "471az", "117az",
-        "29az", "460ay", "115ay", "28ay", "449ax", "112ax", "28ax", "439aw", "110aw", "27aw",
-        // Ranks 91-120
-        "429av", "107av", "27av", "419au", "105au", "26au", "409at", "102at", "25at", "399as",
-        "99as", "24as", "390ar", "97ar", "24ar", "381aq", "95aq", "23aq", "372ap", "93ap",
-        "23ap", "363ao", "90ao", "22ao", "354an", "88an", "22an", "346am", "86am", "21am",
-        // Ranks 121-150 (continuing down through lower tiers to B-tier)
-        "338al", "2ai", "1ad", "63z", "3v", "13r", "3q", "2m", "19f", "2c",
-        "9b", "562a", "140a", "70a", "35a", "17a", "8a", "4a", "2a", "1a",
-        "549B", "274B", "137B", "68B", "34B", "17B", "8B", "4B", "2B", "1B"
+        // Ranks 1-30 (from screenshot)
+        "873bz", "436bz", "109bz", "1bz", "24bv", "1br", "642bm", "583bi", "1bf", "15bb",
+        "449ax", "1au", "1ar", "5ao", "84al", "1aj", "2af", "8ab", "2aa", "7z",
+        "15x", "7v", "3v", "1t", "1r", "6p", "91l", "2l", "44k", "696j",
+        // Ranks 31-60 (from screenshot)
+        "1j", "2i", "1i", "332h", "41h", "5h", "649g", "81g", "10g", "1g",
+        "79f", "1f", "77e", "4e", "1e", "604d", "151d", "2d", "1d", "295c",
+        "147c", "36c", "2c", "288b", "72b", "72b", "18b", "18b", "4b", "4b",
+        // Ranks 61-90 (from screenshot)
+        "2b", "1b", "281a", "140a", "140a", "70a", "17a", "1a", "1a", "1a",
+        "549B", "549B", "274B", "137B", "68B", "68B", "17B", "4B", "2B", "2B",
+        "1B", "1B", "1B", "1B", "536M", "536M", "536M", "268M", "268M", "268M",
+        // Ranks 91-121 (from screenshot)
+        "268M", "268M", "134M", "134M", "134M", "134M", "67M", "67M", "67M", "67M",
+        "67M", "67M", "33M", "33M", "33M", "33M", "33M", "33M", "16M", "16M",
+        "16M", "16M", "16M", "16M", "8M", "8M", "8M", "8M", "8M", "8M",
+        // Ranks 122-150 (continuing the pattern)
+        "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M",
+        "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M",
+        "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M"
     ]
 
     // Extended Japan milestone brackets for rank calculation (ranks 151+)
@@ -2787,6 +2817,44 @@ public extension LeaderboardClient {
         ("8192", 1000), ("4096", 1532), ("2048", 1975), ("1024", 2659), ("512", 3872),
         ("256", 5444), ("128", 6767), ("64", 8000), ("32", 9277), ("16", 11111),
         ("8", 12345), ("4", 14321), ("2", 16000), ("0", 18000)  // Score 0 = ranks 18000-20000
+    ]
+
+    // Norway player milestones (ranks 1-150)
+    private static let norwayPlayerMilestones: [String] = [
+        // Ranks 1-40 (from screenshot)
+        "27bz", "853by", "1br", "4bl", "1bj", "2bg", "4bd", "7ba", "117az", "1ay",
+        "1aw", "399as", "1ar", "46ap", "1ao", "1am", "1ak", "2ai", "1ai", "615ah",
+        "615ah", "307ah", "9ah", "1ag", "1ae", "1ac", "1aa", "1aa", "509z", "1v",
+        "1s", "3q", "1q", "200p", "2n", "5l", "1l", "87j", "10j", "2j",
+        // Ranks 41-80 (from screenshot)
+        "1j", "170i", "664h", "1h", "10g", "39f", "154e", "19e", "604d", "4d",
+        "1c", "9b", "2b", "562a", "281a", "70a", "17a", "1a", "274B", "137B",
+        "137B", "34B", "34B", "17B", "17B", "8B", "8B", "8B", "2B", "2B",
+        "2B", "1B", "1B", "1B", "536M", "536M", "268M", "268M", "268M", "134M",
+        // Ranks 81-90 (134M then 67M)
+        "134M", "134M", "134M", "67M", "67M", "67M", "67M", "67M", "67M", "33M",
+        // Ranks 91-110 (33M then 16M)
+        "33M", "33M", "33M", "33M", "33M", "33M", "33M", "16M", "16M", "16M",
+        "16M", "16M", "16M", "16M", "16M", "16M", "16M", "16M", "16M", "16M",
+        // Ranks 111-130 (16M then 8M)
+        "16M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M",
+        "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M",
+        // Ranks 131-150 (8M then 4M)
+        "8M", "8M", "8M", "8M", "8M", "4M", "4M", "4M", "4M", "4M",
+        "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M"
+    ]
+
+    // Extended Norway milestone brackets for rank calculation (ranks 151+)
+    // Total Norway players: ~34,924
+    private static let norwayExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // M-tier brackets (ranks 151-226)
+        ("4M", 151), ("2M", 170), ("1M", 226),
+        // K-tier brackets (ranks 344-1199)
+        ("524K", 344), ("262K", 511), ("131K", 676), ("65K", 838), ("32K", 1000), ("16K", 1199),
+        // Raw number brackets (ranks 1465-34924)
+        ("8192", 1465), ("4096", 1888), ("2048", 2222), ("1024", 2777), ("512", 3444),
+        ("256", 4313), ("128", 5555), ("64", 6767), ("32", 8355), ("16", 10000),
+        ("8", 12934), ("4", 16666), ("2", 21111), ("0", 27131)  // Score 0 = ranks 27131-34924
     ]
 
     // Extended Netherlands milestone brackets for rank calculation (ranks 151+)
@@ -3238,6 +3306,18 @@ public extension LeaderboardClient {
             playerData.append((i, i + 90000, baseMilestone, milestoneIdx, name, "CH", platform, avatar, "ch_\(i)"))
         }
 
+        // Add Norway players
+        for i in 0..<min(150, norwayPlayerMilestones.count) {
+            let baseMilestone = norwayPlayerMilestones[i]
+            let name = MockLeaderboardData.norwayNames[i % MockLeaderboardData.norwayNames.count]
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 200)
+
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+
+            playerData.append((i, i + 95000, baseMilestone, milestoneIdx, name, "NO", platform, avatar, "no_\(i)"))
+        }
+
         // Add the user to playerData so they get sorted with everyone else
         let userMilestone = UserLeaderboardData.currentMilestone
         let userCountry = UserLeaderboardData.currentCountry
@@ -3291,7 +3371,8 @@ public extension LeaderboardClient {
         let totalSpainPlayers = 14_399
         let totalNetherlandsPlayers = 46_767
         let totalSwitzerlandPlayers = 20_000
-        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers + totalNetherlandsPlayers + totalSwitzerlandPlayers
+        let totalNorwayPlayers = 34_924
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers + totalNetherlandsPlayers + totalSwitzerlandPlayers + totalNorwayPlayers
 
         // Build entries with ranks based on sorted order (top 150 only)
         // User is already in playerData and sorted, so they'll appear at correct position
@@ -5085,6 +5166,92 @@ public extension LeaderboardClient {
             name: UserLeaderboardData.playerName,
             score: userScore,
             countryCode: "NL",
+            platform: .ios,
+            isMe: true,
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
+        ))
+
+        return entries
+    }
+
+    private static func norwayEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // Build player data with milestones
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String)] = []
+
+        for i in 0..<min(150, norwayPlayerMilestones.count) {
+            let baseMilestone = norwayPlayerMilestones[i]
+            let name = MockLeaderboardData.norwayNames[i % MockLeaderboardData.norwayNames.count]
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 200)
+
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar))
+        }
+
+        // Sort by milestone index (descending)
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        // Build entries with ranks
+        var entries: [LeaderboardEntry] = []
+        for (rank, player) in playerData.enumerated() {
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 120000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: "no_\(player.originalIndex)",
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "NO",
+                platform: player.platform,
+                isMe: false,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // Add current user entry
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+        let userMilestoneIndex = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let totalNorwayPlayers = 34_924  // Norway player count
+
+        var norwayRank = totalNorwayPlayers
+
+        if let lastTop150 = playerData.last {
+            if userMilestoneIndex > lastTop150.milestoneIdx {
+                for (rank, player) in playerData.enumerated() {
+                    if userMilestoneIndex >= player.milestoneIdx {
+                        norwayRank = rank + 1
+                        break
+                    }
+                }
+            } else {
+                for bracket in norwayExtendedRankBrackets {
+                    if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                       userMilestoneIndex >= bracketIndex {
+                        norwayRank = bracket.startRank
+                        break
+                    }
+                }
+            }
+        }
+
+        entries.append(LeaderboardEntry(
+            id: "me",
+            rank: norwayRank,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
+            countryCode: "NO",
             platform: .ios,
             isMe: true,
             avatarURL: UserLeaderboardData.avatarID,
