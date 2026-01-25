@@ -293,10 +293,17 @@ private struct ChallengeCard: View {
                 .padding(12)
         }
         .overlay(alignment: .leading) {
-            Circle()
-                .fill(nodeFill)
-                .frame(width: 12, height: 12)
-                .offset(x: -44)
+            HStack(spacing: 0) {
+                // Horizontal line connecting spine to dot
+                Rectangle()
+                    .fill(nodeFill)
+                    .frame(width: 150, height: 3)
+                // Dot
+                Circle()
+                    .fill(nodeFill)
+                    .frame(width: 12, height: 12)
+            }
+            .offset(x: -162)
         }
         .contentShape(Rectangle())
         .onTapGesture {
