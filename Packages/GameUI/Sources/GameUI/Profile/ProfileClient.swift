@@ -421,13 +421,8 @@ public struct LiveProfileClient: ProfileClient, Sendable {
                 }
             }
 
-            // Distribute user within the bracket range
-            let range = bracketEnd - bracketStart
-            if range > 0 && foundBracketIndex >= 0 {
-                // Use milestone string hash for deterministic but varied position
-                let milestoneHash = abs(userMilestone.hashValue) % (range + 1)
-                return bracketStart + milestoneHash
-            }
+            // Return the bracket start rank - each milestone bracket has a distinct rank
+            // Higher milestone = earlier (lower) bracket index = better (lower) rank
             return bracketStart
         }
     }
