@@ -1048,12 +1048,7 @@ private enum MockLeaderboardData {
             }
         }
 
-        // Distribute user within the bracket range
-        let range = bracketEnd - bracketStart
-        if range > 0 && foundBracketIndex >= 0 {
-            let milestoneHash = abs(milestone.hashValue) % (range + 1)
-            return bracketStart + milestoneHash
-        }
+        // Return bracket start rank (consistent with Profile and HUD)
         return bracketStart
     }
 
@@ -2471,7 +2466,7 @@ public extension LeaderboardClient {
     // Mexico player milestones - exact values from positions 1-150
     private static let mexicoPlayerMilestones: [String] = [
         // Ranks 1-30
-        "97bu", "1bu", "2bs", "5bn", "10bm", "615bk", "285bh", "1bf", "64bd", "235az",
+        "97bu", "1bu", "2bs", "5bn", "10bm", "615ah", "285bh", "1bf", "64bd", "235az",
         "28ax", "3av", "6at", "12ar", "11ap", "338al", "82ak", "20aj", "587af", "2ae",
         "4ab", "63y", "3w", "883t", "13r", "205q", "3o", "730l", "1k", "170i",
         // Ranks 31-60
@@ -2697,27 +2692,27 @@ public extension LeaderboardClient {
         "3w", "28u", "215s", "1r", "12p", "95n", "730l", "11k", "340i", "20h",
         // Ranks 31-60
         "2g", "618e", "1e", "4d", "9c", "72b", "2b", "70a", "4a", "4a",
-        "2d", "549b", "68b", "34b", "34b", "4b", "4b", "2b", "2b", "2b",
-        "1b", "1b", "1b", "1b", "536m", "536m", "536m", "536m", "268m", "268m",
+        "2d", "549B", "68B", "34B", "34B", "4B", "4B", "2B", "2B", "2B",
+        "1B", "1B", "1B", "1B", "536M", "536M", "536M", "536M", "268M", "268M",
         // Ranks 61-90
-        "268m", "268m", "268m", "134m", "134m", "134m", "134m", "67m", "67m", "67m",
-        "67m", "67m", "67m", "67m", "33m", "33m", "33m", "33m", "33m", "33m",
-        "33m", "16m", "16m", "16m", "16m", "16m", "16m", "16m", "8m", "8m",
+        "268M", "268M", "268M", "134M", "134M", "134M", "134M", "67M", "67M", "67M",
+        "67M", "67M", "67M", "67M", "33M", "33M", "33M", "33M", "33M", "33M",
+        "33M", "16M", "16M", "16M", "16M", "16M", "16M", "16M", "8M", "8M",
         // Ranks 91-120
-        "8m", "8m", "8m", "8m", "8m", "8m", "8m", "8m", "4m", "4m",
-        "4m", "4m", "4m", "4m", "4m", "4m", "4m", "4m", "4m", "4m",
-        "4m", "4m", "4m", "4m", "4m", "2m", "2m", "2m", "2m", "2m",
+        "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "4M", "4M",
+        "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M",
+        "4M", "4M", "4M", "4M", "4M", "2M", "2M", "2M", "2M", "2M",
         // Ranks 121-150
-        "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m",
-        "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m",
-        "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m", "2m"
+        "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M",
+        "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M",
+        "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M"
     ]
 
     // Extended Italy milestone brackets for rank calculation (ranks 151+)
     // Total Italy players: ~13,856
     private static let italyExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets (ranks 151-208)
-        ("2m", 151), ("1m", 175),
+        ("2M", 151), ("1M", 175),
         // K-tier brackets (ranks 209-943)
         ("524k", 209), ("262k", 288), ("131k", 368), ("65k", 444), ("32k", 676), ("16k", 944),
         // Raw number brackets (ranks 1222-13856)
