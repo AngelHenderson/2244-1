@@ -512,12 +512,25 @@ private struct CountryPickerView: View {
         return locale.localizedString(forRegionCode: countryCode) ?? countryCode
     }
 
+    // Codes that are not actual countries (continents, regions, organizations, etc.)
+    private let excludedCodes: Set<String> = [
+        "EU", "EZ", "UN", "QO", "ZZ", "XK",  // Organizations and special codes
+        "AC", "CP", "DG", "EA", "IC", "TA",  // Minor territories
+        "001", "002", "003", "005", "009", "011", "013", "014", "015", "017", "018", "019",  // Continents/regions (numeric)
+        "021", "029", "030", "034", "035", "039", "053", "054", "057", "061",
+        "142", "143", "145", "150", "151", "154", "155", "202", "419"
+    ]
+
     private var allCountryCodes: [String] {
+        let codes: [String]
         if #available(iOS 16.0, *) {
-            return Locale.Region.isoRegions.compactMap { $0.identifier }.sorted { countryName($0) < countryName($1) }
+            codes = Locale.Region.isoRegions.compactMap { $0.identifier }
         } else {
-            return Locale.isoRegionCodes.sorted { countryName($0) < countryName($1) }
+            codes = Locale.isoRegionCodes
         }
+        return codes
+            .filter { !excludedCodes.contains($0) }
+            .sorted { countryName($0) < countryName($1) }
     }
 }
 
