@@ -234,7 +234,7 @@ private struct ChallengeCard: View {
                 icon = "arrow.left.arrow.right"
             case .magnet:
                 name = "MegaMerge"
-                icon = "magnet"
+                icon = "dot.radiowaves.left.and.right"
             case .shuffle:
                 name = "Shuffle"
                 icon = "shuffle"
