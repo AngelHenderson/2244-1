@@ -20,7 +20,8 @@ public struct SettingsView: View {
     @State private var removeAdsPrice: String = "..."
     @State private var adsRemoved: Bool = false
     @State private var isShowingHowToPlay: Bool = false
-    
+    @State private var isShowingTilesInfo: Bool = false
+
     public init() {}
     
     public var body: some View {
@@ -165,6 +166,10 @@ public struct SettingsView: View {
                     Button("How to Play") {
                         isShowingHowToPlay = true
                     }
+
+                    Button("Tiles Info") {
+                        isShowingTilesInfo = true
+                    }
                     
                     Button("Contact Support") {
                         if let url = URL(string: "mailto:support@game2244.com?subject=Game Support") {
@@ -211,6 +216,9 @@ public struct SettingsView: View {
             }
             .sheet(isPresented: $isShowingHowToPlay) {
                 HowToPlayView()
+            }
+            .sheet(isPresented: $isShowingTilesInfo) {
+                TilesInfoView()
             }
         }
     }
