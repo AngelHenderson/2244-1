@@ -47,11 +47,11 @@ public struct SpinWheelView: View {
                                 availabilityCard
                                     .padding(.horizontal, 24)
                                 
-                                purchaseOptions
-                                    .padding(.horizontal, 24)
-                                
-                                spinButton
-                                    .padding(.horizontal, 24)
+                                HStack(spacing: 12) {
+                                    purchaseOptions
+                                    spinButton
+                                }
+                                .padding(.horizontal, 24)
                             }
                             .padding(.top, 8)
                             .padding(.bottom, 32)
@@ -223,39 +223,24 @@ public struct SpinWheelView: View {
     }
     
     private var purchaseOptions: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Need more spins?")
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white)
-            
-            HStack(spacing: 12) {
-                purchaseButton(title: "1 Free Spin", cost: 2000, grant: 1)
-                purchaseButton(title: "3 Free Spins", cost: 10000, grant: 3)
-            }
-            
-            if let feedback = purchaseFeedback {
-                Text(feedback)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.8))
-            }
+        VStack(spacing: 8) {
+            purchaseButton(title: "1 Spin", cost: 2000, grant: 1)
+            purchaseButton(title: "3 Spins", cost: 10000, grant: 3)
         }
-        .padding(20)
-        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
     
     private func purchaseButton(title: String, cost: Int, grant: Int) -> some View {
         Button {
             purchaseBonusSpins(count: grant, cost: cost)
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Text(title)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
                 Text("\(cost) gems")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.8))
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .frame(width: 120, height: 46)
             .foregroundStyle(.white)
             .glassOrMaterialBackground(cornerRadius: 20)
             .opacity(homeState.gems >= cost ? 1.0 : 0.5)
@@ -266,14 +251,13 @@ public struct SpinWheelView: View {
     
     private var spinButton: some View {
         Button(action: startSpin) {
-            Text(canSpin ? "SPIN" : "COME BACK SOON")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
+            Text(canSpin ? "SPIN" : "WAIT")
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .foregroundStyle(.white)
-                .glassOrMaterialBackground(cornerRadius: 28)
+                .glassOrMaterialBackground(cornerRadius: 20)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(
                             LinearGradient(
                                 colors: canSpin ? [Color(red: 0.29, green: 0.96, blue: 0.52), Color(red: 0.17, green: 0.76, blue: 0.99)]
@@ -284,8 +268,8 @@ public struct SpinWheelView: View {
                             lineWidth: 2
                         )
                 )
-                .shadow(color: canSpin ? Color.black.opacity(0.4) : .clear, radius: 12, y: 8)
         }
+        .frame(height: 100)
         .opacity(canSpin ? 1.0 : 0.6)
         .disabled(!canSpin)
     }
