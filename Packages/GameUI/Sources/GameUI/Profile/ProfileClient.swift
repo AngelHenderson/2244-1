@@ -84,17 +84,21 @@ public struct LiveProfileClient: ProfileClient, Sendable {
         // Read country code
         let countryCode = defaults.string(forKey: "profileCountryCode")
 
-        // Read highest tile and format it using the saved step for accuracy
-        // For high tiles (step >= 62), we must use step-based formatting to avoid Int.max issues
-        let savedHighestTileStep = defaults.integer(forKey: "savedHighestTileStep")
-        let savedHighestTile = defaults.integer(forKey: "savedHighestTile")
-
+        // Read highest tile - use leaderboard.milestone for consistency with HUD
+        // This ensures Profile and HUD always show the same rank
         let highestTile: String? = {
+            // Primary: Use leaderboard.milestone (same as HUD)
+            if let milestone = defaults.string(forKey: "leaderboard.milestone"), !milestone.isEmpty {
+                return milestone
+            }
+            // Fallback: Use step-based formatting
+            let savedHighestTileStep = defaults.integer(forKey: "savedHighestTileStep")
             if savedHighestTileStep > 0 {
-                // Use step-based formatting (accurate for all tile values)
                 return TileStepLabelFormatter.labelForStep(savedHighestTileStep)
-            } else if savedHighestTile > 0 {
-                // Fallback to value-based formatting for legacy saves
+            }
+            // Legacy fallback
+            let savedHighestTile = defaults.integer(forKey: "savedHighestTile")
+            if savedHighestTile > 0 {
                 return TileStepLabelFormatter.formatTileValue(savedHighestTile)
             }
             return nil
