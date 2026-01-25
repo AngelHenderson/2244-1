@@ -936,11 +936,11 @@ private struct RewardIconView: View {
                 Image(systemName: "arrowshape.turn.up.left")
                     .foregroundStyle(.green)
                     .rotationEffect(.degrees(180))
-                    .offset(x: 2, y: 12)
+                    .offset(x: -2, y: 3)
                 // Yellow arrow: curves from bottom-right to top-left
                 Image(systemName: "arrowshape.turn.up.left")
                     .foregroundStyle(.yellow)
-                    .offset(x: 3, y: -3)
+                    .offset(x: 2, y: -3)
             }
             .font(font)
         } else if kind == .hammers {
