@@ -255,6 +255,8 @@ public struct RootGameView: View {
                     homeState.apply(progress: progress, planner: planner)
                     // Ensure journey is synced
                     journey.didReach(tile: progress.highestTile)
+                    // Update rank from UserLeaderboardData (based on milestone)
+                    homeState.rank = UserLeaderboardData.globalRank
                 }
             } catch {
                 print("Failed to update progress from game: \(error)")
@@ -306,6 +308,10 @@ public struct RootGameView: View {
                 if progress.highestTile == 0 && finalHighestTile > 2 {
                     homeState.highestTile = finalHighestTile
                 }
+
+                // Update rank from UserLeaderboardData (based on milestone in UserDefaults)
+                homeState.rank = UserLeaderboardData.globalRank
+
                 hasLoadedInitialState = true
             }
         } catch {
@@ -316,6 +322,7 @@ public struct RootGameView: View {
                 homeState.highestTile = 2
                 homeState.milestoneBelow = 0
                 homeState.lockedMilestones = [1024, 2048]
+                homeState.rank = UserLeaderboardData.globalRank
                 journey.didReach(tile: 2)
                 hasLoadedInitialState = true
             }
