@@ -24,15 +24,7 @@ struct HUDTopBar: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            // Compact boost status button (left side)
-            BoostStatusButton()
-
-            // Game Center profile button (shown only if available / authenticated)
-            gameCenterButton
-
-            Spacer()
-
-            // Rank button
+            // Rank button (left side)
             Button(action: { actions.openLeaderboard() }) {
                 HStack(spacing: 3) {
                     Text("#")
@@ -49,6 +41,14 @@ struct HUDTopBar: View {
             .modifier(GlassButtonCompat())
             .fixedSize(horizontal: true, vertical: false)
             .accessibilityLabel("Rank \(String(state.rank)). Open leaderboard.")
+
+            // Game Center profile button (shown only if available / authenticated)
+            gameCenterButton
+
+            Spacer()
+
+            // Compact boost status button
+            BoostStatusButton()
 
             // Score display (only shown if provided)
             if let scoreText = scoreText {
