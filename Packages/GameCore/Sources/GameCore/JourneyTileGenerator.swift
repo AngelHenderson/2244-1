@@ -3,75 +3,28 @@ import Foundation
 /// Generates tiles for the journey display, including values beyond Int.max
 public struct JourneyTileGenerator {
     
-    /// Generate journey tiles up to 873bz
-    /// Returns an array of tiles with special handling for values beyond Int.max
+    /// Generate journey tiles from step 0 (value 2) to step 816 (873bz) then infinity
+    /// Returns an array of 818 tiles total
     public static func generateFullJourney() -> [Tile] {
-        var tiles: [Tile] = []
+        // Generate tiles for steps 0 through 816 (817 tiles)
+        // Tile.make(forStep:) handles both normal values and high values correctly
+        var tiles = (0...816).map { Tile.make(forStep: $0) }
 
-        // Start with normal doubling sequence
-        var current = 2
-        var exponent = 1  // Track the exponent (2^exponent = current)
-
-        // Generate tiles up to Int.max/2 (up to 2^62)
-        while current > 0 && current <= (Int.max >> 1) {
-            tiles.append(Tile(value: current))
-            current = current << 1
-            exponent += 1
-        }
-
-        // After 2^62, we can't double anymore without overflow
-        // But we need to continue to 2^817 to reach 873bz
-        // Use highValue type to track the step number
-
-        // For exponents 63-817, create tiles with highValue type
-        // The step should be consistent with stepForValue: step = exponent - 1
-        while exponent <= 817 {
-            let step = exponent - 1  // Convert to 0-based step
-            tiles.append(Tile(value: Int.max, type: .highValue(step: step)))
-            exponent += 1
-        }
-        
         // Add infinity tile at the end
-        tiles.append(Tile(value: 0, type: .infinity))
-        
+        tiles.append(Tile.infinity())
+
         return tiles
     }
     
-    /// Generate journey tiles relative to current highest
+    /// Generate journey tiles relative to current highest (shows window around current position)
     public static func generateJourney(highest: Int, stepsAhead: Int = 20) -> [Tile] {
-        var tiles: [Tile] = []
-        var current = 2
-        var exponent = 1  // Track exponent: 2^exponent = current
+        let currentStep = TileStepLabelFormatter.stepForValue(highest, start: 2) ?? 0
+        let startStep = max(0, currentStep - 10)
+        let endStep = min(816, currentStep + stepsAhead)
 
-        // First, add all tiles up to highest
-        while current > 0 && current <= highest {
-            tiles.append(Tile(value: current))
-            if current > (Int.max >> 1) {
-                break
-            }
-            current = current << 1
-            exponent += 1
-        }
+        var tiles = (startStep...endStep).map { Tile.make(forStep: $0) }
+        tiles.append(Tile.infinity())
 
-        // Then add more tiles beyond highest
-        var stepsAdded = 0
-        while stepsAdded < stepsAhead {
-            if current > (Int.max >> 1) || current <= 0 {
-                // Use highValue type for tiles we can't represent
-                // Step should be consistent with stepForValue: step = exponent - 1
-                let step = exponent - 1
-                tiles.append(Tile(value: Int.max, type: .highValue(step: step)))
-            } else {
-                current = current << 1
-                tiles.append(Tile(value: current))
-            }
-            exponent += 1
-            stepsAdded += 1
-        }
-        
-        // Add infinity tile at the end
-        tiles.append(Tile(value: 0, type: .infinity))
-        
         return tiles
     }
     
