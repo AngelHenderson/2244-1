@@ -8,31 +8,11 @@ public enum JourneyTileGenerator {
     /// Goes up to step 816 which corresponds to 873bz
     private static let milestoneSteps: [Int] = Array(0...816)
 
-    /// Generate journey tiles up to the current highest tile with dynamic lookahead
+    /// Generate the full journey from step 0 (value 2) to step 816 (873bz) then infinity
     public static func generateJourney(highest: Int, stepsAhead: Int) -> [Tile] {
-        let currentStep = TileStepLabelFormatter.stepForValue(highest, start: 2) ?? 0
-
-        // Find current position in milestones
-        let currentMilestoneIndex = milestoneSteps.firstIndex(where: { $0 >= currentStep }) ?? (milestoneSteps.count - 1)
-
-        // Show milestones: 10 behind current position, and 15 ahead
-        let milestonesBack = 10
-        let milestonesAhead = 15
-
-        // Generate tiles for visible milestones
-        var tiles: [Tile] = []
-
-        let startIndex = max(0, currentMilestoneIndex - milestonesBack)
-        let endIndex = min(milestoneSteps.count, currentMilestoneIndex + milestonesAhead)
-
-        for i in startIndex..<endIndex {
-            let step = milestoneSteps[i]
-            tiles.append(Tile.make(forStep: step))
-        }
-
-        // Add infinity at the very end
+        // Always show the full road from start to 873bz
+        var tiles = milestoneSteps.map { Tile.make(forStep: $0) }
         tiles.append(Tile.infinity())
-
         return tiles
     }
 
