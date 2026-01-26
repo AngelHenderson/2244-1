@@ -37,8 +37,12 @@ public struct PlayerProfileView: View {
                     Button("Compare") { model.showCompare = true }
                 }
             }
-            .task { 
+            .task {
                 await model.load(using: client)
+                updateTierStatsFromStore()
+            }
+            .onAppear {
+                // Also load tiers synchronously on appear to ensure they're always fresh
                 updateTierStatsFromStore()
             }
             .sheet(isPresented: $model.showCustomize) {
