@@ -40,162 +40,12 @@ public enum UserLeaderboardData {
 
     /// Calculate global rank for any milestone string
     private static func calculateGlobalRank(for userMilestone: String) -> Int {
-        // Use the SAME allMilestones array as ProfileClient (starts at 1M, not raw numbers)
-        let allMilestones: [String] = [
-            "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "536M",
-            "1B", "2B", "4B", "8B", "17B", "34B", "68B", "137B", "274B", "549B",
-            "1a", "2a", "4a", "8a", "17a", "35a", "70a", "140a", "281a", "562a",
-            "1b", "2b", "4b", "9b", "18b", "36b", "72b", "144b", "288b", "576b",
-            "1c", "2c", "4c", "9c", "18c", "36c", "73c", "147c", "295c", "590c",
-            "1d", "2d", "4d", "9d", "18d", "37d", "75d", "151d", "302d", "604d",
-            "1e", "2e", "4e", "9e", "19e", "38e", "77e", "154e", "309e", "618e",
-            "1f", "2f", "4f", "9f", "19f", "39f", "79f", "158f", "316f", "633f",
-            "1g", "2g", "5g", "10g", "20g", "40g", "81g", "162g", "324g", "649g",
-            "1h", "2h", "5h", "10h", "20h", "41h", "83h", "166h", "332h", "664h",
-            "1i", "2i", "5i", "10i", "21i", "42i", "85i", "170i", "340i", "680i",
-            "1j", "2j", "5j", "10j", "21j", "43j", "87j", "174j", "348j", "696j",
-            "1k", "2k", "5k", "11k", "22k", "44k", "89k", "178k", "356k", "713k",
-            "1l", "2l", "5l", "11l", "22l", "45l", "91l", "182l", "365l", "730l",
-            "1m", "2m", "5m", "11m", "23m", "46m", "93m", "187m", "374m", "748m",
-            "1n", "2n", "5n", "11n", "23n", "47n", "95n", "191n", "383n", "766n",
-            "1o", "3o", "6o", "12o", "24o", "49o", "98o", "196o", "392o", "784o",
-            "1p", "3p", "6p", "12p", "25p", "50p", "100p", "200p", "401p", "803p",
-            "1q", "3q", "6q", "12q", "25q", "51q", "102q", "205q", "411q", "822q",
-            "1r", "3r", "6r", "13r", "26r", "52r", "105r", "210r", "421r", "842r",
-            "1s", "3s", "6s", "13s", "26s", "53s", "107s", "215s", "431s", "862s",
-            "1t", "3t", "6t", "13t", "27t", "55t", "110t", "220t", "441t", "883t",
-            "1u", "3u", "7u", "14u", "28u", "56u", "113u", "226u", "452u", "904u",
-            "1v", "3v", "7v", "14v", "28v", "57v", "115v", "231v", "463v", "926v",
-            "1w", "3w", "7w", "14w", "29w", "59w", "118w", "237w", "474w", "948w",
-            "1x", "3x", "7x", "15x", "30x", "60x", "121x", "242x", "485x", "971x",
-            "1y", "3y", "7y", "15y", "31y", "62y", "124y", "248y", "497y", "994y",
-            "1z", "3z", "7z", "15z", "31z", "63z", "127z", "254z", "509z", "1aa",
-            "2aa", "4aa", "8aa", "16aa", "32aa", "65aa", "130aa", "260aa", "521aa", "1ab",
-            "2ab", "4ab", "8ab", "16ab", "33ab", "66ab", "133ab", "266ab", "533ab", "1ac",
-            "2ac", "4ac", "8ac", "17ac", "34ac", "68ac", "136ac", "273ac", "546ac", "1ad",
-            "2ad", "4ad", "8ad", "17ad", "34ad", "69ad", "139ad", "279ad", "559ad", "1ae",
-            "2ae", "4ae", "8ae", "17ae", "35ae", "71ae", "143ae", "286ae", "573ae", "1af",
-            "2af", "4af", "9af", "18af", "36af", "73af", "146af", "293af", "587af", "1ag",
-            "2ag", "4ag", "9ag", "18ag", "37ag", "75ag", "150ag", "300ag", "601ag", "1ah",
-            "2ah", "4ah", "9ah", "19ah", "38ah", "76ah", "153ah", "307ah", "615ah", "1ai",
-            "2ai", "4ai", "9ai", "19ai", "39ai", "78ai", "157ai", "315ai", "630ai", "1aj",
-            "2aj", "5aj", "10aj", "20aj", "40aj", "80aj", "161aj", "322aj", "645aj", "1ak",
-            "2ak", "5ak", "10ak", "20ak", "41ak", "82ak", "165ak", "330ak", "661ak", "1al",
-            "2al", "5al", "10al", "21al", "42al", "84al", "169al", "338al", "676al", "1am",
-            "2am", "5am", "10am", "21am", "43am", "86am", "173am", "346am", "693am", "1an",
-            "2an", "5an", "11an", "22an", "44an", "88an", "177an", "354an", "709an", "1ao",
-            "2ao", "5ao", "11ao", "22ao", "45ao", "90ao", "181ao", "363ao", "726ao", "1ap",
-            "2ap", "5ap", "11ap", "23ap", "46ap", "93ap", "186ap", "372ap", "744ap", "1aq",
-            "2aq", "5aq", "11aq", "23aq", "47aq", "95aq", "190aq", "381aq", "762aq", "1ar",
-            "3ar", "6ar", "12ar", "24ar", "48ar", "97ar", "195ar", "390ar", "780ar", "1as",
-            "3as", "6as", "12as", "24as", "49as", "99as", "199as", "399as", "799as", "1at",
-            "3at", "6at", "12at", "25at", "51at", "102at", "204at", "409at", "818at", "1au"
-        ]
+        // Dynamic global rank calculation based on actual country data aggregation
+        // This counts how many players across all countries have a better milestone than the user
+        let betterPlayers = MockLeaderboardData.countAllPlayersBetterThan(userMilestone: userMilestone)
 
-        // Global top 150 cutoff is "2aq"
-        let globalTop150Cutoff = "2aq"
-        let globalCutoffIndex = allMilestones.firstIndex(of: globalTop150Cutoff) ?? 480
-        let userMilestoneIndex = allMilestones.firstIndex(of: userMilestone) ?? 0
-
-        // Calculate dynamic total players (same as ProfileClient)
-        let referenceDate = DateComponents(calendar: .current, year: 2025, month: 1, day: 1).date ?? Date()
-        let day = max(0, Calendar.current.dateComponents([.day], from: referenceDate, to: Date()).day ?? 0)
-        let baseGlobalPlayers = 885_676
-        var totalNewPlayers = 0
-        for d in 0...day {
-            let seed = 67890
-            let random = Double((seed * 31 + d * 17) % 1000) / 1000.0
-            totalNewPlayers += 10 + Int(random * 990)
-        }
-        let totalPlayers = baseGlobalPlayers + totalNewPlayers
-
-        if userMilestoneIndex >= globalCutoffIndex {
-            // User is in top 150
-            let aboveCutoff = userMilestoneIndex - globalCutoffIndex
-            return max(1, 150 - aboveCutoff)
-        }
-
-        // Extended bracket system (same as ProfileClient)
-        let globalExtendedBrackets: [(milestone: String, startRank: Int)] = [
-            ("372ap", 151), ("46ap", 152), ("11ap", 153), ("2ap", 154),
-            ("726ao", 155), ("22ao", 156), ("5ao", 157),
-            ("709an", 158), ("354an", 159), ("177an", 160), ("44an", 161), ("2an", 162), ("1an", 163),
-            ("693am", 164), ("173am", 165), ("86am", 166), ("1am", 168),
-            ("676al", 169), ("338al", 171), ("169al", 172), ("42al", 173),
-            ("661ak", 174), ("165ak", 175), ("41ak", 176), ("2ak", 177),
-            ("645aj", 178), ("322aj", 179), ("161aj", 181), ("80aj", 182), ("40aj", 183), ("20aj", 184), ("10aj", 185),
-            ("630ai", 186), ("315ai", 187), ("157ai", 188), ("78ai", 189), ("39ai", 190), ("19ai", 192), ("9ai", 193), ("2ai", 194),
-            ("615ah", 195), ("38ah", 196), ("4ah", 197), ("1ah", 198),
-            ("601ag", 199), ("300ag", 201), ("150ag", 203), ("75ag", 204), ("37ag", 205), ("9ag", 206), ("2ag", 207),
-            ("587af", 208), ("293af", 209), ("146af", 210), ("36af", 211), ("4af", 212), ("2af", 214), ("1af", 216),
-            ("573ae", 218), ("143ae", 219), ("71ae", 220), ("8ae", 221),
-            ("559ad", 222), ("69ad", 223), ("17ad", 224), ("2ad", 225),
-            ("546ac", 226), ("136ac", 227), ("68ac", 228), ("17ac", 229),
-            ("533ab", 230), ("266ab", 231), ("133ab", 233), ("66ab", 234), ("33ab", 235), ("2ab", 236),
-            ("521aa", 237), ("260aa", 238), ("130aa", 239), ("65aa", 240), ("32aa", 241), ("16aa", 242), ("8aa", 243), ("2aa", 244),
-            ("509z", 245), ("254z", 247), ("127z", 248), ("63z", 249), ("15z", 250), ("3z", 251),
-            ("994y", 252), ("497y", 253), ("248y", 254), ("31y", 255), ("3y", 256),
-            ("971x", 257), ("485x", 258), ("242x", 259), ("60x", 260), ("30x", 261), ("15x", 262), ("7x", 263),
-            ("948w", 264), ("474w", 265), ("237w", 266), ("59w", 267), ("14w", 268), ("7w", 269),
-            ("926v", 270), ("463v", 271), ("115v", 272), ("28v", 273), ("3v", 274),
-            ("904u", 275), ("452u", 276), ("226u", 277), ("113u", 278), ("28u", 279), ("7u", 280), ("1u", 281),
-            ("883t", 282), ("220t", 283), ("110t", 284), ("27t", 285), ("6t", 286), ("3t", 287),
-            ("862s", 288), ("431s", 289), ("215s", 290), ("107s", 291), ("53s", 292), ("26s", 293), ("13s", 294), ("3s", 295),
-            ("842r", 296), ("421r", 297), ("52r", 298), ("13r", 299), ("6r", 300), ("3r", 301),
-            ("822q", 302), ("411q", 303), ("205q", 304), ("102q", 305), ("51q", 306), ("12q", 307), ("6q", 308), ("3q", 309),
-            ("803p", 310), ("401p", 311), ("200p", 313), ("100p", 314), ("25p", 315), ("12p", 316), ("6p", 317),
-            ("784o", 318), ("392o", 319), ("98o", 320), ("49o", 321), ("12o", 322), ("3o", 323),
-            ("766n", 324), ("383n", 325), ("95n", 326), ("23n", 327),
-            ("748m", 328), ("374m", 329), ("93m", 330), ("23m", 331), ("11m", 332), ("2m", 333), ("1m", 334),
-            ("730l", 335), ("365l", 336), ("182l", 337), ("45l", 338), ("11l", 339), ("5l", 340), ("2l", 342),
-            ("713k", 343), ("356k", 344), ("178k", 345), ("44k", 346), ("11k", 347), ("5k", 348),
-            ("696j", 349), ("348j", 350), ("87j", 351), ("10j", 352),
-            ("680i", 353), ("340i", 354), ("170i", 355), ("85i", 356), ("42i", 357), ("10i", 358),
-            ("664h", 359), ("332h", 360), ("83h", 361), ("41h", 362), ("20h", 365), ("10h", 366), ("5h", 367),
-            ("649g", 368), ("324g", 369), ("81g", 371), ("40g", 372), ("20g", 373), ("10g", 374), ("5g", 375), ("1g", 376),
-            ("633f", 377), ("316f", 379), ("158f", 380), ("79f", 381), ("39f", 383), ("19f", 384), ("9f", 385), ("4f", 387), ("2f", 389), ("1f", 390),
-            ("309e", 391), ("154e", 392), ("77e", 393), ("38e", 394), ("19e", 395), ("9e", 396), ("4e", 398), ("1e", 399),
-            ("604d", 400), ("302d", 401), ("151d", 403), ("75d", 404), ("37d", 406), ("18d", 409), ("9d", 410), ("4d", 411), ("2d", 412), ("1d", 413),
-            ("590c", 416), ("295c", 417), ("147c", 418), ("73c", 419), ("36c", 420), ("18c", 421), ("9c", 423), ("4c", 425), ("2c", 427), ("1c", 429),
-            ("576b", 431), ("288b", 433), ("144b", 434), ("72b", 436), ("36b", 437), ("18b", 438), ("9b", 440), ("4b", 444), ("2b", 447), ("1b", 450),
-            ("562a", 456), ("281a", 463), ("140a", 472), ("70a", 479), ("35a", 484),
-            ("17a", 497), ("8a", 512), ("4a", 529), ("2a", 554), ("1a", 687),
-            ("549B", 734), ("274B", 774), ("137B", 810), ("68B", 945), ("34B", 1002),
-            ("17B", 1134), ("8B", 1248), ("4B", 1404), ("2B", 1467), ("1B", 1633),
-            ("536M", 1743), ("268M", 1902), ("134M", 2123), ("67M", 2975), ("33M", 3784),
-            ("16M", 4564), ("8M", 5223), ("4M", 6530), ("2M", 7399), ("1M", 11248),
-            ("524K", 17132), ("262K", 23582), ("131K", 32486), ("65K", 42421), ("32K", 54867), ("16K", 67412),
-            ("8192", 76767), ("4096", 112486), ("2048", 157780), ("1024", 248624),
-            ("512", 402486), ("256", 577398), ("128", 676767), ("64", 733337),
-            ("32", 789012), ("16", 822228), ("8", 847790), ("4", 863074), ("2", 877890),
-            ("0", 882349)
-        ]
-
-        // Find bracket and distribute within range (same logic as ProfileClient)
-        var bracketStart = totalPlayers
-        var bracketEnd = totalPlayers
-        var foundBracketIndex = -1
-
-        for (i, bracket) in globalExtendedBrackets.enumerated() {
-            if let bracketIndex = allMilestones.firstIndex(of: bracket.milestone),
-               userMilestoneIndex >= bracketIndex {
-                foundBracketIndex = i
-                break
-            }
-        }
-
-        if foundBracketIndex >= 0 {
-            bracketStart = globalExtendedBrackets[foundBracketIndex].startRank
-            if foundBracketIndex + 1 < globalExtendedBrackets.count {
-                bracketEnd = globalExtendedBrackets[foundBracketIndex + 1].startRank - 1
-            } else {
-                bracketEnd = totalPlayers
-            }
-        }
-
-        // Return the bracket start rank - each milestone bracket has a distinct rank
-        // Higher milestone = earlier (lower) bracket index = better (lower) rank
-        return bracketStart
+        // User's rank = number of players better than them + 1
+        return betterPlayers + 1
     }
 }
 
@@ -911,145 +761,79 @@ private enum MockLeaderboardData {
         return Int(currentCount)
     }
 
-    // Calculate global rank using bracket system (same as profile)
+    // Calculate global rank using country data aggregation (same as HUD)
     static func calculateGlobalRank(milestone: String, totalPlayers: Int) -> Int {
-        let userMilestoneIndex = milestoneIndex(for: milestone)
+        // Use the same aggregation logic as UserLeaderboardData.globalRank
+        return countAllPlayersBetterThan(userMilestone: milestone) + 1
+    }
 
-        // Global top 150 cutoff is around "2aq" milestone
-        let globalCutoffIndex = milestoneIndex(for: "2aq")
-
-        if userMilestoneIndex >= globalCutoffIndex {
-            // User is in top 150 - rank based on position above cutoff
-            let aboveCutoff = userMilestoneIndex - globalCutoffIndex
-            return max(1, 150 - aboveCutoff)
-        }
-
-        // Extended bracket system for ranks below 150
-        let globalExtendedBrackets: [(milestone: String, startRank: Int)] = [
-            // ap-tier brackets (ranks 151-154)
-            ("372ap", 151), ("46ap", 152), ("11ap", 153), ("2ap", 154),
-            // ao-tier brackets (ranks 155-157)
-            ("726ao", 155), ("22ao", 156), ("5ao", 157),
-            // an-tier brackets (ranks 158-163)
-            ("709an", 158), ("354an", 159), ("177an", 160), ("44an", 161), ("2an", 162), ("1an", 163),
-            // am-tier brackets (ranks 164-168)
-            ("693am", 164), ("173am", 165), ("86am", 166), ("1am", 168),
-            // al-tier brackets (ranks 169-173)
-            ("676al", 169), ("338al", 171), ("169al", 172), ("42al", 173),
-            // ak-tier brackets (ranks 174-177)
-            ("661ak", 174), ("165ak", 175), ("41ak", 176), ("2ak", 177),
-            // aj-tier brackets (ranks 178-185)
-            ("645aj", 178), ("322aj", 179), ("161aj", 181), ("80aj", 182), ("40aj", 183), ("20aj", 184), ("10aj", 185),
-            // ai-tier brackets (ranks 186-194)
-            ("630ai", 186), ("315ai", 187), ("157ai", 188), ("78ai", 189), ("39ai", 190), ("19ai", 192), ("9ai", 193), ("2ai", 194),
-            // ah-tier brackets (ranks 195-198)
-            ("615ah", 195), ("38ah", 196), ("4ah", 197), ("1ah", 198),
-            // ag-tier brackets (ranks 199-207)
-            ("601ag", 199), ("300ag", 201), ("150ag", 203), ("75ag", 204), ("37ag", 205), ("9ag", 206), ("2ag", 207),
-            // af-tier brackets (ranks 208-217)
-            ("587af", 208), ("293af", 209), ("146af", 210), ("36af", 211), ("4af", 212), ("2af", 214), ("1af", 216),
-            // ae-tier brackets (ranks 218-221)
-            ("573ae", 218), ("143ae", 219), ("71ae", 220), ("8ae", 221),
-            // ad-tier brackets (ranks 222-225)
-            ("559ad", 222), ("69ad", 223), ("17ad", 224), ("2ad", 225),
-            // ac-tier brackets (ranks 226-229)
-            ("546ac", 226), ("136ac", 227), ("68ac", 228), ("17ac", 229),
-            // ab-tier brackets (ranks 230-236)
-            ("533ab", 230), ("266ab", 231), ("133ab", 233), ("66ab", 234), ("33ab", 235), ("2ab", 236),
-            // aa-tier brackets (ranks 237-244)
-            ("521aa", 237), ("260aa", 238), ("130aa", 239), ("65aa", 240), ("32aa", 241), ("16aa", 242), ("8aa", 243), ("2aa", 244),
-            // z-tier brackets (ranks 245-251)
-            ("509z", 245), ("254z", 247), ("127z", 248), ("63z", 249), ("15z", 250), ("3z", 251),
-            // y-tier brackets (ranks 252-256)
-            ("994y", 252), ("497y", 253), ("248y", 254), ("31y", 255), ("3y", 256),
-            // x-tier brackets (ranks 257-263)
-            ("971x", 257), ("485x", 258), ("242x", 259), ("60x", 260), ("30x", 261), ("15x", 262), ("7x", 263),
-            // w-tier brackets (ranks 264-269)
-            ("948w", 264), ("474w", 265), ("237w", 266), ("59w", 267), ("14w", 268), ("7w", 269),
-            // v-tier brackets (ranks 270-274)
-            ("926v", 270), ("463v", 271), ("115v", 272), ("28v", 273), ("3v", 274),
-            // u-tier brackets (ranks 275-281)
-            ("904u", 275), ("452u", 276), ("226u", 277), ("113u", 278), ("28u", 279), ("7u", 280), ("1u", 281),
-            // t-tier brackets (ranks 282-287)
-            ("883t", 282), ("220t", 283), ("110t", 284), ("27t", 285), ("6t", 286), ("3t", 287),
-            // s-tier brackets (ranks 288-295)
-            ("862s", 288), ("431s", 289), ("215s", 290), ("107s", 291), ("53s", 292), ("26s", 293), ("13s", 294), ("3s", 295),
-            // r-tier brackets (ranks 296-301)
-            ("842r", 296), ("421r", 297), ("52r", 298), ("13r", 299), ("6r", 300), ("3r", 301),
-            // q-tier brackets (ranks 302-309)
-            ("822q", 302), ("411q", 303), ("205q", 304), ("102q", 305), ("51q", 306), ("12q", 307), ("6q", 308), ("3q", 309),
-            // p-tier brackets (ranks 310-317)
-            ("803p", 310), ("401p", 311), ("200p", 313), ("100p", 314), ("25p", 315), ("12p", 316), ("6p", 317),
-            // o-tier brackets (ranks 318-323)
-            ("784o", 318), ("392o", 319), ("98o", 320), ("49o", 321), ("12o", 322), ("3o", 323),
-            // n-tier brackets (ranks 324-327)
-            ("766n", 324), ("383n", 325), ("95n", 326), ("23n", 327),
-            // m-tier brackets (ranks 328-334)
-            ("748m", 328), ("374m", 329), ("93m", 330), ("23m", 331), ("11m", 332), ("2m", 333), ("1m", 334),
-            // l-tier brackets (ranks 335-342)
-            ("730l", 335), ("365l", 336), ("182l", 337), ("45l", 338), ("11l", 339), ("5l", 340), ("2l", 342),
-            // k-tier brackets (ranks 343-348)
-            ("713k", 343), ("356k", 344), ("178k", 345), ("44k", 346), ("11k", 347), ("5k", 348),
-            // j-tier brackets (ranks 349-352)
-            ("696j", 349), ("348j", 350), ("87j", 351), ("10j", 352),
-            // i-tier brackets (ranks 353-358)
-            ("680i", 353), ("340i", 354), ("170i", 355), ("85i", 356), ("42i", 357), ("10i", 358),
-            // h-tier brackets (ranks 359-367)
-            ("664h", 359), ("332h", 360), ("83h", 361), ("41h", 362), ("20h", 365), ("10h", 366), ("5h", 367),
-            // g-tier brackets (ranks 368-376)
-            ("649g", 368), ("324g", 369), ("81g", 371), ("40g", 372), ("20g", 373), ("10g", 374), ("5g", 375), ("1g", 376),
-            // f-tier brackets (ranks 377-390)
-            ("633f", 377), ("316f", 379), ("158f", 380), ("79f", 381), ("39f", 383), ("19f", 384), ("9f", 385), ("4f", 387), ("2f", 389), ("1f", 390),
-            // e-tier brackets (ranks 391-399)
-            ("309e", 391), ("154e", 392), ("77e", 393), ("38e", 394), ("19e", 395), ("9e", 396), ("4e", 398), ("1e", 399),
-            // d-tier brackets (ranks 400-415)
-            ("604d", 400), ("302d", 401), ("151d", 403), ("75d", 404), ("37d", 406), ("18d", 409), ("9d", 410), ("4d", 411), ("2d", 412), ("1d", 413),
-            // c-tier brackets (ranks 416-430)
-            ("590c", 416), ("295c", 417), ("147c", 418), ("73c", 419), ("36c", 420), ("18c", 421), ("9c", 423), ("4c", 425), ("2c", 427), ("1c", 429),
-            // b-tier brackets (ranks 431-450)
-            ("576b", 431), ("288b", 433), ("144b", 434), ("72b", 436), ("36b", 437), ("18b", 438), ("9b", 440), ("4b", 444), ("2b", 447), ("1b", 450),
-            // a-tier brackets (ranks 456-687)
-            ("562a", 456), ("281a", 463), ("140a", 472), ("70a", 479), ("35a", 484),
-            ("17a", 497), ("8a", 512), ("4a", 529), ("2a", 554), ("1a", 687),
-            // B-tier brackets (ranks 734-1633)
-            ("549B", 734), ("274B", 774), ("137B", 810), ("68B", 945), ("34B", 1002),
-            ("17B", 1134), ("8B", 1248), ("4B", 1404), ("2B", 1467), ("1B", 1633),
-            // M-tier brackets (ranks 1743-11248)
-            ("536M", 1743), ("268M", 1902), ("134M", 2123), ("67M", 2975), ("33M", 3784),
-            ("16M", 4564), ("8M", 5223), ("4M", 6530), ("2M", 7399), ("1M", 11248),
-            // K-tier brackets (ranks 17132-67412)
-            ("524K", 17132), ("262K", 23582), ("131K", 32486), ("65K", 42421), ("32K", 54867), ("16K", 67412),
-            // Raw number brackets (ranks 76767-877890+)
-            ("8192", 76767), ("4096", 112486), ("2048", 157780), ("1024", 248624),
-            ("512", 402486), ("256", 577398), ("128", 676767), ("64", 733337),
-            ("32", 789012), ("16", 822228), ("8", 847790), ("4", 863074), ("2", 877890),
-            ("0", 882349)
-        ]
-
-        // Find the bracket for the user's milestone
-        var bracketStart = totalPlayers
-        var bracketEnd = totalPlayers
-        var foundBracketIndex = -1
-
-        for (i, bracket) in globalExtendedBrackets.enumerated() {
-            let bracketIndex = milestoneIndex(for: bracket.milestone)
-            if userMilestoneIndex >= bracketIndex {
-                foundBracketIndex = i
-                break
+    /// Helper to count better players in a single country
+    private static func countBetterInCountry(
+        userMilestoneIdx: Int,
+        milestones: [String],
+        extendedBrackets: [(milestone: String, startRank: Int)],
+        totalPlayers: Int
+    ) -> Int {
+        // Check if user would be in top 150 (better than first extended bracket)
+        if let firstBracket = extendedBrackets.first {
+            let firstBracketIdx = milestoneIndex(for: firstBracket.milestone)
+            if userMilestoneIdx > firstBracketIdx {
+                // User is better than top bracket, count from milestones array
+                var count = 0
+                for m in milestones.prefix(min(150, milestones.count)) {
+                    let mIdx = milestoneIndex(for: m)
+                    if mIdx > userMilestoneIdx {
+                        count += 1
+                    }
+                }
+                return count
             }
         }
 
-        if foundBracketIndex >= 0 {
-            bracketStart = globalExtendedBrackets[foundBracketIndex].startRank
-            if foundBracketIndex + 1 < globalExtendedBrackets.count {
-                bracketEnd = globalExtendedBrackets[foundBracketIndex + 1].startRank - 1
-            } else {
-                bracketEnd = totalPlayers
+        // User is in extended brackets range, find matching bracket
+        for bracket in extendedBrackets {
+            let bracketIdx = milestoneIndex(for: bracket.milestone)
+            if userMilestoneIdx >= bracketIdx {
+                // startRank - 1 = number of players better than this bracket
+                return bracket.startRank - 1
             }
         }
 
-        // Return bracket start rank (consistent with Profile and HUD)
-        return bracketStart
+        // User is below all brackets, almost everyone is better
+        return max(0, totalPlayers - 1)
+    }
+
+    /// Count players better than user's milestone across all countries
+    /// Used by UserLeaderboardData.calculateGlobalRank for accurate global ranking
+    static func countAllPlayersBetterThan(userMilestone: String) -> Int {
+        let userMilestoneIdx = milestoneIndex(for: userMilestone)
+        let day = daysSinceReference
+        var total = 0
+
+        // Add each country's count
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.usPlayerMilestones, extendedBrackets: LeaderboardClient.usExtendedRankBrackets, totalPlayers: Self.totalPlayers(on: day, isUS: true))
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.ukPlayerMilestones, extendedBrackets: LeaderboardClient.ukExtendedRankBrackets, totalPlayers: 17_676)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.canadaPlayerMilestones, extendedBrackets: LeaderboardClient.canadaExtendedRankBrackets, totalPlayers: 12_847)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.australiaPlayerMilestones, extendedBrackets: LeaderboardClient.australiaExtendedRankBrackets, totalPlayers: 63_213)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.germanyPlayerMilestones, extendedBrackets: LeaderboardClient.germanyExtendedRankBrackets, totalPlayers: 76_767)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.francePlayerMilestones, extendedBrackets: LeaderboardClient.franceExtendedRankBrackets, totalPlayers: 127_676)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.japanPlayerMilestones, extendedBrackets: LeaderboardClient.japanExtendedRankBrackets, totalPlayers: 894)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.indiaPlayerMilestones, extendedBrackets: LeaderboardClient.indiaExtendedRankBrackets, totalPlayers: 1_488)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.brazilPlayerMilestones, extendedBrackets: LeaderboardClient.brazilExtendedRankBrackets, totalPlayers: 10_000)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.mexicoPlayerMilestones, extendedBrackets: LeaderboardClient.mexicoExtendedRankBrackets, totalPlayers: 7_229)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.afghanistanPlayerMilestones, extendedBrackets: LeaderboardClient.afghanistanExtendedRankBrackets, totalPlayers: 11_111)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.albaniaPlayerMilestones, extendedBrackets: LeaderboardClient.albaniaExtendedRankBrackets, totalPlayers: 11_222)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.algeriaPlayerMilestones, extendedBrackets: LeaderboardClient.algeriaExtendedRankBrackets, totalPlayers: 3_333)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.chinaPlayerMilestones, extendedBrackets: LeaderboardClient.chinaExtendedRankBrackets, totalPlayers: 8_192)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.southKoreaPlayerMilestones, extendedBrackets: LeaderboardClient.southKoreaExtendedRankBrackets, totalPlayers: 3_123)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.italyPlayerMilestones, extendedBrackets: LeaderboardClient.italyExtendedRankBrackets, totalPlayers: 13_856)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.spainPlayerMilestones, extendedBrackets: LeaderboardClient.spainExtendedRankBrackets, totalPlayers: 14_399)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.netherlandsPlayerMilestones, extendedBrackets: LeaderboardClient.netherlandsExtendedRankBrackets, totalPlayers: 46_767)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.switzerlandPlayerMilestones, extendedBrackets: LeaderboardClient.switzerlandExtendedRankBrackets, totalPlayers: 20_000)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.norwayPlayerMilestones, extendedBrackets: LeaderboardClient.norwayExtendedRankBrackets, totalPlayers: 34_924)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.denmarkPlayerMilestones, extendedBrackets: LeaderboardClient.denmarkExtendedRankBrackets, totalPlayers: 90_123)
+
+        return total
     }
 
     // Calculate milestone progression for regular leaderboard players
@@ -1906,10 +1690,10 @@ public extension LeaderboardClient {
             case .countryNO:
                 totalPlayers = 34_924  // Norway player count
             case .countryDK:
-                totalPlayers = 5_892  // Denmark player count
+                totalPlayers = 90_123  // Denmark player count
             case .global:
                 // Global = sum of all country players
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399 + 46_767 + 20_000 + 34_924 + 5_892
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399 + 46_767 + 20_000 + 34_924 + 90_123
             }
             let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
             return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
@@ -2103,7 +1887,7 @@ public extension LeaderboardClient {
     }
 
     // Exact US player milestones from screenshots (ranks 1-256+)
-    private static let usPlayerMilestones: [String] = [
+    static let usPlayerMilestones: [String] = [
         // Ranks 1-15
         "106by", "3bw", "1br", "1bo", "20bm", "76bk", "74bj", "1bj", "9bi", "35bh", "278bg", "543bf", "16bf", "506bc", "30bb",
         // Ranks 16-30
@@ -2143,7 +1927,7 @@ public extension LeaderboardClient {
     ]
 
     // UK player milestones from screenshots (ranks 1-150)
-    private static let ukPlayerMilestones: [String] = [
+    static let ukPlayerMilestones: [String] = [
         // Ranks 1-30 (from screenshot)
         "54bz", "833bx", "1bx", "758bt", "22br", "172bp", "2bo", "612bk", "17bh", "33be",
         "30bb", "921ay", "3av", "799as", "399as", "49as", "762aq", "2ap", "354an", "2am",
@@ -2167,7 +1951,7 @@ public extension LeaderboardClient {
     ]
 
     // Canada player milestones from screenshots (ranks 1-150)
-    private static let canadaPlayerMilestones: [String] = [
+    static let canadaPlayerMilestones: [String] = [
         // Ranks 1-30 (from screenshot)
         "873bz", "3bz", "853by", "106by", "6bv", "2bt", "361br", "22bq", "1bp", "642bm",
         "2bh", "30bb", "899ax", "3au", "48ar", "48ar", "1ar", "726ao", "2ao", "661ak",
@@ -2192,7 +1976,7 @@ public extension LeaderboardClient {
 
     // Extended Canada milestone brackets for rank calculation (ranks 151+)
     // Total Canada players: ~12,847
-    private static let canadaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let canadaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // a-tier brackets (ranks 151-179)
         ("1b", 151), ("562a", 152), ("281a", 153), ("140a", 155), ("70a", 158), ("35a", 160),
         ("17a", 165), ("8a", 167), ("4a", 169), ("2a", 170), ("1a", 175),
@@ -2211,7 +1995,7 @@ public extension LeaderboardClient {
     ]
 
     // Australia player milestones from screenshots (ranks 1-150)
-    private static let australiaPlayerMilestones: [String] = [
+    static let australiaPlayerMilestones: [String] = [
         // Ranks 1-30 (from screenshot)
         "13bz", "794bv", "2br", "657bn", "1bm", "9bk", "556bg", "278bg", "69bg", "989bb",
         "463ay", "4a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
@@ -2236,7 +2020,7 @@ public extension LeaderboardClient {
 
     // Extended Australia milestone brackets for rank calculation (ranks 151+)
     // Total Australia players: ~63,213
-    private static let australiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let australiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // B-tier brackets
         ("1B", 140), ("536M", 175), ("268M", 183), ("134M", 198), ("67M", 199),
         ("33M", 202), ("16M", 223), ("8M", 240), ("4M", 287), ("2M", 333), ("1M", 388),
@@ -2249,7 +2033,7 @@ public extension LeaderboardClient {
     ]
 
     // Germany player milestones (ranks 1-150)
-    private static let germanyPlayerMilestones: [String] = [
+    static let germanyPlayerMilestones: [String] = [
         // Ranks 1-30
         "218bz", "853by", "3by", "90br", "2bq", "42bo", "321bm", "2bl", "4bj", "8bh",
         "16bf", "32bd", "61bb", "117az", "224ax", "429av", "818at", "1as", "12ar", "762aq",
@@ -2274,7 +2058,7 @@ public extension LeaderboardClient {
 
     // Extended Germany milestone brackets for rank calculation (ranks 151+)
     // Total Germany players: ~76,767
-    private static let germanyExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let germanyExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // c-tier brackets
         ("36c", 150), ("18c", 157), ("9c", 163), ("4c", 169), ("2c", 174), ("1c", 178),
         // b-tier brackets
@@ -2298,7 +2082,7 @@ public extension LeaderboardClient {
     ]
 
     // France player milestones (ranks 1-150)
-    private static let francePlayerMilestones: [String] = [
+    static let francePlayerMilestones: [String] = [
         // Ranks 1-30
         "198bv", "776bu", "379bt", "2bs", "11br", "706bq", "2bq", "299bj", "2bi", "4bg",
         "66be", "64bd", "253bc", "989bb", "241ba", "3ay", "6at", "1at", "363ao", "1ao",
@@ -2323,7 +2107,7 @@ public extension LeaderboardClient {
 
     // Extended France milestone brackets for rank calculation (ranks 151+)
     // Total France players: ~127,676
-    private static let franceExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let franceExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // h-tier brackets
         ("664h", 142), ("332h", 157), ("166h", 175), ("83h", 211), ("20h", 212),
         ("10h", 219), ("5h", 233), ("2h", 248), ("1h", 291),
@@ -2366,7 +2150,7 @@ public extension LeaderboardClient {
     ]
 
     // Japan player milestones (ranks 1-150)
-    private static let japanPlayerMilestones: [String] = [
+    static let japanPlayerMilestones: [String] = [
         // Ranks 1-30 (from screenshot)
         "873bz", "436bz", "109bz", "1bz", "24bv", "1br", "642bm", "583bi", "1bf", "15bb",
         "449ax", "1au", "1ar", "5ao", "84al", "1aj", "2af", "8ab", "2aa", "7z",
@@ -2391,7 +2175,7 @@ public extension LeaderboardClient {
 
     // Extended Japan milestone brackets for rank calculation (ranks 151+)
     // Total Japan players: ~894
-    private static let japanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let japanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets (ranks 152-210)
         ("536M", 152), ("268M", 157), ("134M", 161), ("67M", 164), ("33M", 177),
         ("16M", 184), ("8M", 191), ("4M", 198), ("2M", 204), ("1M", 211),
@@ -2406,7 +2190,7 @@ public extension LeaderboardClient {
     ]
 
     // India player milestones (ranks 1-150)
-    private static let indiaPlayerMilestones: [String] = [
+    static let indiaPlayerMilestones: [String] = [
         // Ranks 1-30
         "47bt", "1bo", "4bl", "583bi", "1bh", "2bf", "4be", "32bd", "230ay", "25at",
         "1as", "11an", "330ak", "20aj", "307ah", "587af", "35ae", "546ac", "16aa", "7z",
@@ -2431,7 +2215,7 @@ public extension LeaderboardClient {
 
     // Extended India milestone brackets for rank calculation (ranks 151+)
     // Total India players: ~1,488
-    private static let indiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let indiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // Raw number brackets (ranks 151-1210)
         ("8192", 151), ("4096", 162), ("2048", 171), ("1024", 180), ("512", 196),
         ("256", 222), ("128", 258), ("64", 300), ("32", 377), ("16", 512),
@@ -2441,7 +2225,7 @@ public extension LeaderboardClient {
     ]
 
     // Brazil player milestones (ranks 1-150)
-    private static let brazilPlayerMilestones: [String] = [
+    static let brazilPlayerMilestones: [String] = [
         // Ranks 1-30
         "24bv", "1bu", "2bs", "76bk", "1bh", "259bd", "2bb", "7ba", "14az", "899ax",
         "54aw", "837au", "3au", "3ar", "5ao", "10al", "19ai", "36af", "68ac", "127z",
@@ -2466,7 +2250,7 @@ public extension LeaderboardClient {
 
     // Extended Brazil milestone brackets for rank calculation (ranks 151+)
     // Total Brazil players: ~10,000
-    private static let brazilExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let brazilExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets
         ("536M", 149), ("268M", 157), ("134M", 173), ("67M", 196), ("33M", 229),
         ("16M", 267), ("8M", 312), ("4M", 388), ("2M", 453), ("1M", 522),
@@ -2481,7 +2265,7 @@ public extension LeaderboardClient {
     ]
 
     // Mexico player milestones - exact values from positions 1-150
-    private static let mexicoPlayerMilestones: [String] = [
+    static let mexicoPlayerMilestones: [String] = [
         // Ranks 1-30
         "97bu", "1bu", "2bs", "5bn", "10bm", "615ah", "285bh", "1bf", "64bd", "235az",
         "28ax", "3av", "6at", "12ar", "11ap", "338al", "82ak", "20aj", "587af", "2ae",
@@ -2506,7 +2290,7 @@ public extension LeaderboardClient {
 
     // Extended Mexico milestone brackets for rank calculation (ranks 151+)
     // Total Mexico players: 7,229
-    private static let mexicoExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let mexicoExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // K-tier brackets
         ("524K", 150), ("262K", 161), ("131K", 173), ("65K", 186), ("32K", 203), ("16K", 226),
         // Raw number brackets
@@ -2518,7 +2302,7 @@ public extension LeaderboardClient {
     ]
 
     // Afghanistan player milestones - exact values from positions 1-150
-    private static let afghanistanPlayerMilestones: [String] = [
+    static let afghanistanPlayerMilestones: [String] = [
         // Ranks 1-30
         "1bz", "2br", "4bl", "583bi", "1bh", "32bd", "30ba", "449ax", "53av", "1as",
         "726ao", "42al", "9ai", "4af", "8ac", "31z", "3x", "7v", "210r", "3p",
@@ -2543,7 +2327,7 @@ public extension LeaderboardClient {
 
     // Extended Afghanistan milestone brackets for rank calculation (ranks 151+)
     // Total Afghanistan players: 11,111
-    private static let afghanistanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let afghanistanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets
         ("8M", 143), ("4M", 162), ("2M", 186), ("1M", 218),
         // K-tier brackets
@@ -2557,7 +2341,7 @@ public extension LeaderboardClient {
     ]
 
     // Albania player milestones - exact values from positions 1-150
-    private static let albaniaPlayerMilestones: [String] = [
+    static let albaniaPlayerMilestones: [String] = [
         // Ranks 1-30
         "436bz", "109bz", "6bz", "1by", "3bu", "2bq", "39bl", "2bh", "7ba", "3ax",
         "418au", "3at", "47aq", "2an", "5al", "19ai", "546ac", "65aa", "497y", "7x",
@@ -2582,7 +2366,7 @@ public extension LeaderboardClient {
 
     // Extended Albania milestone brackets for rank calculation (ranks 151+)
     // Total Albania players: 11,222
-    private static let albaniaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let albaniaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets
         ("33M", 147), ("16M", 152), ("8M", 158), ("4M", 165), ("2M", 173), ("1M", 182),
         // K-tier brackets
@@ -2596,7 +2380,7 @@ public extension LeaderboardClient {
     ]
 
     // Algeria player milestones - exact values from positions 1-150
-    private static let algeriaPlayerMilestones: [String] = [
+    static let algeriaPlayerMilestones: [String] = [
         // Ranks 1-30
         "706bq", "2bm", "145bi", "2bf", "1bc", "1az", "858av", "1av", "837au", "5ao",
         "19ai", "2af", "68ac", "1ab", "30x", "57v", "110t", "6r", "784o", "748m",
@@ -2621,7 +2405,7 @@ public extension LeaderboardClient {
 
     // Extended Algeria milestone brackets for rank calculation (ranks 151+)
     // Total Algeria players: 3,333
-    private static let algeriaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let algeriaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // K-tier brackets
         ("16K", 141), ("8192", 164), ("4096", 188), ("2048", 222), ("1024", 264), ("512", 311),
         // Raw number brackets
@@ -2631,7 +2415,7 @@ public extension LeaderboardClient {
         ("0", 2777)
     ]
 
-    private static let chinaPlayerMilestones: [String] = [
+    static let chinaPlayerMilestones: [String] = [
         // Ranks 1-30
         "99bv", "1br", "5bo", "4bl", "598bj", "8bf", "8be", "518bc", "129ba", "16bd",
         "943az", "235az", "14ax", "6av", "3au", "190ao", "1ao", "2al", "4ai", "9af",
@@ -2656,7 +2440,7 @@ public extension LeaderboardClient {
 
     // Extended China milestone brackets for rank calculation (ranks 151+)
     // Total China players: 8,192
-    private static let chinaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let chinaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets
         ("2M", 151), ("1M", 220), ("524K", 320), ("262K", 450), ("131K", 620),
         ("65K", 820), ("32K", 1050), ("16K", 1300), ("8192", 1450), ("4096", 1530),
@@ -2668,7 +2452,7 @@ public extension LeaderboardClient {
         ("0", 6767)
     ]
 
-    private static let southKoreaPlayerMilestones: [String] = [
+    static let southKoreaPlayerMilestones: [String] = [
         // Ranks 1-30
         "1bt", "1bo", "2bj", "8be", "32bd", "235az", "429av", "48ar", "2ao", "615ah",
         "1ag", "559ad", "1ac", "63z", "3y", "3x", "1w", "452u", "55t", "26s",
@@ -2693,7 +2477,7 @@ public extension LeaderboardClient {
 
     // Extended South Korea milestone brackets for rank calculation (ranks 151+)
     // Total South Korea players: 3,123
-    private static let southKoreaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let southKoreaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // K-tier brackets
         ("16K", 140), ("8192", 157), ("4096", 180), ("2048", 221), ("1024", 277),
         ("512", 333), ("256", 400), ("128", 485), ("64", 581), ("32", 676),
@@ -2702,7 +2486,7 @@ public extension LeaderboardClient {
         ("0", 2676)
     ]
 
-    private static let italyPlayerMilestones: [String] = [
+    static let italyPlayerMilestones: [String] = [
         // Ranks 1-30
         "19bl", "2be", "1bd", "494bb", "1az", "1ax", "837au", "799as", "1ar", "2ap",
         "5an", "10al", "20aj", "38ah", "146af", "559ad", "2ac", "8aa", "63z", "485x",
@@ -2727,7 +2511,7 @@ public extension LeaderboardClient {
 
     // Extended Italy milestone brackets for rank calculation (ranks 151+)
     // Total Italy players: ~13,856
-    private static let italyExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let italyExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets (ranks 151-208)
         ("2M", 151), ("1M", 175),
         // K-tier brackets (ranks 209-943)
@@ -2738,7 +2522,7 @@ public extension LeaderboardClient {
         ("8", 7777), ("4", 8888), ("2", 10284), ("0", 12000)  // Score 0 = ranks 12000-13856
     ]
 
-    private static let spainPlayerMilestones: [String] = [
+    static let spainPlayerMilestones: [String] = [
         // Ranks 1-30 (from screenshot data)
         "2bh", "1bf", "4bd", "7bc", "483ba", "1ax", "818at", "190aq", "1am", "601ag",
         "2ae", "4ac", "8aa", "242x", "1v", "1t", "3r", "6p", "23n", "182l",
@@ -2763,7 +2547,7 @@ public extension LeaderboardClient {
 
     // Extended Spain milestone brackets for rank calculation (ranks 151+)
     // Total Spain players: ~14,399
-    private static let spainExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let spainExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // K-tier brackets (ranks 151-228)
         ("32K", 151), ("16K", 177),
         // Raw number brackets (ranks 229-14399)
@@ -2772,7 +2556,7 @@ public extension LeaderboardClient {
         ("8", 4444), ("4", 6221), ("2", 8456), ("0", 11147)  // Score 0 = ranks 11147-14399
     ]
 
-    private static let netherlandsPlayerMilestones: [String] = [
+    static let netherlandsPlayerMilestones: [String] = [
         // Ranks 1-30
         "218bz", "1bu", "689bp", "1bn", "4bk", "1bj", "2bi", "1bi", "2bh", "4be",
         "1bd", "1bb", "3az", "1av", "199as", "1ar", "11ap", "2ao", "5aj", "300ag",
@@ -2796,7 +2580,7 @@ public extension LeaderboardClient {
     ]
 
     // Switzerland player milestones (ranks 1-150)
-    private static let switzerlandPlayerMilestones: [String] = [
+    static let switzerlandPlayerMilestones: [String] = [
         // Ranks 1-39 (from screenshot)
         "104bx", "1bq", "2bn", "38bk", "1bi", "2bh", "4bg", "4bg", "1bg", "483ba",
         "1az", "1ay", "214av", "107av", "1au", "1as", "390ar", "2aq", "181ao", "1ao",
@@ -2820,7 +2604,7 @@ public extension LeaderboardClient {
 
     // Extended Switzerland milestone brackets for rank calculation (ranks 151+)
     // Total Switzerland players: ~20,000
-    private static let switzerlandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let switzerlandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets (ranks 151-180) from screenshot
         ("4M", 151), ("2M", 163), ("1M", 176),
         // K-tier brackets (ranks 181-676) from screenshot
@@ -2832,7 +2616,7 @@ public extension LeaderboardClient {
     ]
 
     // Norway player milestones (ranks 1-150)
-    private static let norwayPlayerMilestones: [String] = [
+    static let norwayPlayerMilestones: [String] = [
         // Ranks 1-40 (from screenshot)
         "27bz", "853by", "1br", "4bl", "1bj", "2bg", "4bd", "7ba", "117az", "1ay",
         "1aw", "399as", "1ar", "46ap", "1ao", "1am", "1ak", "2ai", "1ai", "615ah",
@@ -2858,7 +2642,7 @@ public extension LeaderboardClient {
 
     // Extended Norway milestone brackets for rank calculation (ranks 151+)
     // Total Norway players: ~34,924
-    private static let norwayExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let norwayExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets (ranks 151-226)
         ("4M", 151), ("2M", 170), ("1M", 226),
         // K-tier brackets (ranks 344-1199)
@@ -2870,7 +2654,7 @@ public extension LeaderboardClient {
     ]
 
     // Denmark player milestones (ranks 1-150)
-    private static let denmarkPlayerMilestones: [String] = [
+    static let denmarkPlayerMilestones: [String] = [
         // Ranks 1-30
         "873bz", "13bz", "26by", "1bx", "3bw", "379bt", "1bt", "11br", "86bp", "2bl",
         "1bl", "76bk", "19bk", "2bk", "74bj", "1bj", "1bi", "2bh", "4bg", "32bd",
@@ -2895,7 +2679,7 @@ public extension LeaderboardClient {
 
     // Extended Denmark milestone brackets for rank calculation (ranks 151+)
     // Total Denmark players: ~90,123
-    private static let denmarkExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let denmarkExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // B-tier brackets (ranks 151-220)
         ("2B", 151), ("1B", 166),
         // M-tier brackets (ranks 221-2965)
@@ -2911,7 +2695,7 @@ public extension LeaderboardClient {
 
     // Extended Netherlands milestone brackets for rank calculation (ranks 151+)
     // Total Netherlands players: ~46,767
-    private static let netherlandsExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let netherlandsExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets (ranks 151-599)
         ("134M", 151), ("67M", 153), ("33M", 172), ("16M", 211), ("8M", 263),
         ("4M", 331), ("2M", 441), ("1M", 600),
@@ -2938,7 +2722,7 @@ public extension LeaderboardClient {
 
     // Extended US milestone brackets for rank calculation (ranks 151+)
     // Total US players: 84,721
-    private static let usExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let usExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // a-tier brackets (ranks 151-256)
         ("4b", 151), ("2b", 153), ("1b", 154), ("562a", 155), ("281a", 158),
         ("140a", 164), ("70a", 168), ("35a", 171), ("17a", 182), ("8a", 196),
@@ -2959,7 +2743,7 @@ public extension LeaderboardClient {
 
     // Extended UK milestone brackets for rank calculation (ranks 151+)
     // Total UK players: ~17,676
-    private static let ukExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let ukExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // M-tier brackets (ranks 151-190)
         ("67M", 151), ("33M", 155), ("16M", 162), ("8M", 168), ("4M", 175), ("2M", 183), ("1M", 190),
         // K-tier brackets (ranks 200-263)
