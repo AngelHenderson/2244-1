@@ -84,7 +84,7 @@ public struct LeaderboardClient: Sendable {
 // MARK: - Daily Progression System
 // Players progress through milestones daily. The leaderboard updates at midnight.
 
-private enum MockLeaderboardData {
+enum MockLeaderboardData {
     // Reference date for calculating day offset
     static let referenceDate: Date = {
         var components = DateComponents()
@@ -765,6 +765,110 @@ private enum MockLeaderboardData {
     static func calculateGlobalRank(milestone: String, totalPlayers: Int) -> Int {
         // Use the same aggregation logic as UserLeaderboardData.globalRank
         return countAllPlayersBetterThan(userMilestone: milestone) + 1
+    }
+
+    /// Calculate Hall of Fame rank for a given milestone
+    /// Hall of Fame has ~2,500 total entries, with top players having infinity tiles
+    static func calculateHallOfFameRank(milestone: String) -> Int {
+        let userMilestoneIdx = milestoneIndex(for: milestone)
+        let day = daysSinceReference
+
+        // Hall of Fame total players (grows slowly - elite players only)
+        let baseHofPlayers = 2_500
+        let hofGrowth = day / 7  // ~1 new elite player per week
+        let totalHofPlayers = baseHofPlayers + hofGrowth
+
+        // Hall of Fame brackets - much more compressed since only top players
+        let hofExtendedBrackets: [(milestone: String, startRank: Int)] = [
+            // Top tier (infinity and beyond)
+            ("1an", 1), ("693am", 3), ("346am", 5), ("173am", 8),
+            ("86am", 12), ("43am", 18), ("21am", 25), ("10am", 35),
+            // High alphabetic tiers
+            ("1am", 50), ("676al", 70), ("338al", 95), ("169al", 125),
+            ("1al", 160), ("661ak", 200), ("330ak", 250), ("165ak", 310),
+            ("1ak", 380), ("645aj", 460), ("322aj", 550), ("161aj", 650),
+            ("1aj", 760), ("630ai", 880), ("315ai", 1010), ("157ai", 1150),
+            ("1ai", 1300), ("615ah", 1460), ("307ah", 1630), ("153ah", 1810),
+            ("1ah", 2000), ("1B", 2200), ("536M", 2400)
+        ]
+
+        // Find matching bracket
+        for bracket in hofExtendedBrackets {
+            let bracketIdx = milestoneIndex(for: bracket.milestone)
+            if userMilestoneIdx >= bracketIdx {
+                return bracket.startRank
+            }
+        }
+
+        // Below all brackets
+        return totalHofPlayers
+    }
+
+    /// Calculate country-specific rank for a given milestone
+    static func calculateCountryRank(milestone: String, countryCode: String) -> Int {
+        let userMilestoneIdx = milestoneIndex(for: milestone)
+        let day = daysSinceReference
+
+        // Get country-specific data
+        let (milestones, extendedBrackets, totalPlayers) = countryData(for: countryCode, day: day)
+
+        return countBetterInCountry(
+            userMilestoneIdx: userMilestoneIdx,
+            milestones: milestones,
+            extendedBrackets: extendedBrackets,
+            totalPlayers: totalPlayers
+        ) + 1
+    }
+
+    /// Returns country-specific milestone data
+    private static func countryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int) {
+        switch countryCode {
+        case "US":
+            return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
+        case "GB":
+            return (LeaderboardClient.ukPlayerMilestones, LeaderboardClient.ukExtendedRankBrackets, 17_676)
+        case "CA":
+            return (LeaderboardClient.canadaPlayerMilestones, LeaderboardClient.canadaExtendedRankBrackets, 14_567)
+        case "AU":
+            return (LeaderboardClient.australiaPlayerMilestones, LeaderboardClient.australiaExtendedRankBrackets, 9_823)
+        case "DE":
+            return (LeaderboardClient.germanyPlayerMilestones, LeaderboardClient.germanyExtendedRankBrackets, 18_234)
+        case "FR":
+            return (LeaderboardClient.francePlayerMilestones, LeaderboardClient.franceExtendedRankBrackets, 15_678)
+        case "JP":
+            return (LeaderboardClient.japanPlayerMilestones, LeaderboardClient.japanExtendedRankBrackets, 22_456)
+        case "IN":
+            return (LeaderboardClient.indiaPlayerMilestones, LeaderboardClient.indiaExtendedRankBrackets, 45_678)
+        case "BR":
+            return (LeaderboardClient.brazilPlayerMilestones, LeaderboardClient.brazilExtendedRankBrackets, 28_901)
+        case "MX":
+            return (LeaderboardClient.mexicoPlayerMilestones, LeaderboardClient.mexicoExtendedRankBrackets, 12_345)
+        case "AF":
+            return (LeaderboardClient.afghanistanPlayerMilestones, LeaderboardClient.afghanistanExtendedRankBrackets, 2_134)
+        case "AL":
+            return (LeaderboardClient.albaniaPlayerMilestones, LeaderboardClient.albaniaExtendedRankBrackets, 1_567)
+        case "DZ":
+            return (LeaderboardClient.algeriaPlayerMilestones, LeaderboardClient.algeriaExtendedRankBrackets, 8_901)
+        case "CN":
+            return (LeaderboardClient.chinaPlayerMilestones, LeaderboardClient.chinaExtendedRankBrackets, 156_789)
+        case "KR":
+            return (LeaderboardClient.southKoreaPlayerMilestones, LeaderboardClient.southKoreaExtendedRankBrackets, 34_567)
+        case "IT":
+            return (LeaderboardClient.italyPlayerMilestones, LeaderboardClient.italyExtendedRankBrackets, 21_234)
+        case "ES":
+            return (LeaderboardClient.spainPlayerMilestones, LeaderboardClient.spainExtendedRankBrackets, 16_789)
+        case "NL":
+            return (LeaderboardClient.netherlandsPlayerMilestones, LeaderboardClient.netherlandsExtendedRankBrackets, 8_456)
+        case "CH":
+            return (LeaderboardClient.switzerlandPlayerMilestones, LeaderboardClient.switzerlandExtendedRankBrackets, 4_567)
+        case "NO":
+            return (LeaderboardClient.norwayPlayerMilestones, LeaderboardClient.norwayExtendedRankBrackets, 3_234)
+        case "DK":
+            return (LeaderboardClient.denmarkPlayerMilestones, LeaderboardClient.denmarkExtendedRankBrackets, 90_123)
+        default:
+            // Default to US data for unknown countries
+            return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
+        }
     }
 
     /// Helper to count better players in a single country

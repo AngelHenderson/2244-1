@@ -43,8 +43,8 @@ public struct LeaderboardView: View {
 
                     Spacer()
 
-                    // Top 150 button (only show in milestone view)
-                    if !showingTop150 {
+                    // Top 150 button (only show in milestone view, not for Hall of Fame)
+                    if !showingTop150 && model?.selectedFilter != .hallOfFame {
                         Button {
                             showingTop150 = true
                         } label: {
@@ -70,9 +70,12 @@ public struct LeaderboardView: View {
                 .padding(.vertical, 12)
 
                 if let model {
-                    if showingTop150 {
+                    if showingTop150 || model.selectedFilter == .hallOfFame {
+                        // Show Top 150 view for Hall of Fame (requires infinity to rank)
+                        // or when user explicitly requests Top 150
                         top150Content(model)
                     } else {
+                        // Show milestone-based view for Global and Country leaderboards
                         milestoneContent(model)
                     }
                 } else {
@@ -114,12 +117,24 @@ public struct LeaderboardView: View {
     @ViewBuilder
     private func milestoneContent(_ m: LeaderboardModel) -> some View {
         let userMilestone = UserLeaderboardData.currentMilestone
-        let userRank = UserLeaderboardData.globalRank
+        let userRank = rankForFilter(m.selectedFilter, milestone: userMilestone)
+        let headerTitle = headerTitleForFilter(m.selectedFilter)
 
         VStack(spacing: 0) {
+            // Filter Tabs (Global, Hall of Fame, Country)
+            HStack(spacing: 8) {
+                ForEach(LeaderboardFilter.availableFilters(for: UserLeaderboardData.currentCountry)) { filter in
+                    filterTab(filter, isSelected: m.selectedFilter == filter) {
+                        m.selectedFilter = filter
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+
             // User's current position header
             VStack(spacing: 6) {
-                Text("Your Global Rank")
+                Text(headerTitle)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.white.opacity(0.5))
                     .textCase(.uppercase)
@@ -152,7 +167,7 @@ public struct LeaderboardView: View {
             // Milestone tiers list (shows context around user's position)
             ScrollView {
                 LazyVStack(spacing: 8) {
-                    ForEach(milestoneTiersAroundUser(userMilestone: userMilestone), id: \.milestone) { tier in
+                    ForEach(milestoneTiersAroundUser(userMilestone: userMilestone, filter: m.selectedFilter), id: \.milestone) { tier in
                         milestoneRow(
                             milestone: tier.milestone,
                             rankLabel: tier.rankLabel,
@@ -163,6 +178,34 @@ public struct LeaderboardView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 16)
             }
+        }
+    }
+
+    /// Returns the header title based on the selected filter
+    private func headerTitleForFilter(_ filter: LeaderboardFilter) -> String {
+        switch filter {
+        case .global:
+            return "Your Global Rank"
+        case .hallOfFame:
+            return "Your Hall of Fame Rank"
+        default:
+            return "Your \(filter.rawValue) Rank"
+        }
+    }
+
+    /// Calculate rank for a milestone based on the selected filter
+    private func rankForFilter(_ filter: LeaderboardFilter, milestone: String) -> Int {
+        switch filter {
+        case .global:
+            return UserLeaderboardData.globalRank(for: milestone)
+        case .hallOfFame:
+            return MockLeaderboardData.calculateHallOfFameRank(milestone: milestone)
+        default:
+            // Country-specific rank
+            if let countryCode = filter.countryCode {
+                return MockLeaderboardData.calculateCountryRank(milestone: milestone, countryCode: countryCode)
+            }
+            return UserLeaderboardData.globalRank(for: milestone)
         }
     }
 
@@ -221,8 +264,8 @@ public struct LeaderboardView: View {
     ]
 
     /// Returns milestones around the user's current milestone (3 above, user, 3 below)
-    /// Each entry includes the rank number for that milestone tier
-    private func milestoneTiersAroundUser(userMilestone: String) -> [(milestone: String, rankLabel: String)] {
+    /// Each entry includes the rank number for that milestone tier based on selected filter
+    private func milestoneTiersAroundUser(userMilestone: String, filter: LeaderboardFilter) -> [(milestone: String, rankLabel: String)] {
         let milestones = Self.allMilestones
 
         // Find user's position in the milestone list
@@ -230,7 +273,7 @@ public struct LeaderboardView: View {
             // User milestone not found - show starting milestones with calculated ranks
             let endIndex = min(7, milestones.count)
             return milestones[0..<endIndex].map { milestone in
-                let rank = UserLeaderboardData.globalRank(for: milestone)
+                let rank = rankForFilter(filter, milestone: milestone)
                 return (milestone, "\(rank) - \(milestone)")
             }
         }
@@ -240,7 +283,7 @@ public struct LeaderboardView: View {
         let endIndex = min(milestones.count, userIndex + 4)  // +4 because endIndex is exclusive
 
         return milestones[startIndex..<endIndex].map { milestone in
-            let rank = UserLeaderboardData.globalRank(for: milestone)
+            let rank = rankForFilter(filter, milestone: milestone)
             return (milestone, "\(rank) - \(milestone)")
         }
     }
