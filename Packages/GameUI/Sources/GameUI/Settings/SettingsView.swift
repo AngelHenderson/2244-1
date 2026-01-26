@@ -33,60 +33,68 @@ public struct SettingsView: View {
             Form {
                 // MARK: Audio & Haptics
                 Section("Audio & Haptics") {
+                    // Sound Effects
                     HStack {
                         Text("Sound Effects")
                         Spacer()
-                        if sfxMuted {
-                            Text("Muted")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Text("\(Int(sfxVolume * 100))%")
-                                .foregroundStyle(.secondary)
+                        Text(sfxMuted ? "Muted" : "\(Int(sfxVolume * 100))%")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Slider(value: $sfxVolume, in: 0...1) { editing in
+                        if !editing {
+                            UserDefaults.standard.set(sfxVolume, forKey: "sfxVolume")
+                            // Auto-mute when slider reaches 0%
+                            if sfxVolume == 0 && !sfxMuted {
+                                sfxMuted = true
+                                Task { await audioService.setSfxEnabled(false) }
+                                UserDefaults.standard.set(true, forKey: "sfxMuted")
+                            } else if sfxVolume > 0 && sfxMuted {
+                                sfxMuted = false
+                                Task { await audioService.setSfxEnabled(true) }
+                                UserDefaults.standard.set(false, forKey: "sfxMuted")
+                            }
                         }
                     }
-                    
+                    .disabled(sfxMuted && sfxVolume > 0)
+
                     Toggle("Mute Sound Effects", isOn: $sfxMuted)
                         .onChange(of: sfxMuted) { _, newValue in
                             Task { await audioService.setSfxEnabled(!newValue) }
                             UserDefaults.standard.set(newValue, forKey: "sfxMuted")
                         }
-                    
-                    if !sfxMuted {
-                        Slider(value: $sfxVolume, in: 0...1) { editing in
-                            // Volume control not available in current AudioService
-                            if !editing {
-                                UserDefaults.standard.set(sfxVolume, forKey: "sfxVolume")
-                            }
-                        }
-                    }
-                    
+
+                    // Music
                     HStack {
                         Text("Music")
                         Spacer()
-                        if musicMuted {
-                            Text("Muted")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Text("\(Int(musicVolume * 100))%")
-                                .foregroundStyle(.secondary)
+                        Text(musicMuted ? "Muted" : "\(Int(musicVolume * 100))%")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Slider(value: $musicVolume, in: 0...1) { editing in
+                        if !editing {
+                            UserDefaults.standard.set(musicVolume, forKey: "musicVolume")
+                            // Auto-mute when slider reaches 0%
+                            if musicVolume == 0 && !musicMuted {
+                                musicMuted = true
+                                Task { await audioService.setMusicEnabled(false) }
+                                UserDefaults.standard.set(true, forKey: "musicMuted")
+                            } else if musicVolume > 0 && musicMuted {
+                                musicMuted = false
+                                Task { await audioService.setMusicEnabled(true) }
+                                UserDefaults.standard.set(false, forKey: "musicMuted")
+                            }
                         }
                     }
-                    
+                    .disabled(musicMuted && musicVolume > 0)
+
                     Toggle("Mute Music", isOn: $musicMuted)
                         .onChange(of: musicMuted) { _, newValue in
                             Task { await audioService.setMusicEnabled(!newValue) }
                             UserDefaults.standard.set(newValue, forKey: "musicMuted")
                         }
-                    
-                    if !musicMuted {
-                        Slider(value: $musicVolume, in: 0...1) { editing in
-                            // Volume control not available in current AudioService
-                            if !editing {
-                                UserDefaults.standard.set(musicVolume, forKey: "musicVolume")
-                            }
-                        }
-                    }
-                    
+
                     Toggle("Haptic Feedback", isOn: $hapticsEnabled)
                         .onChange(of: hapticsEnabled) { _, newValue in
                             UserDefaults.standard.set(newValue, forKey: "hapticsEnabled")
