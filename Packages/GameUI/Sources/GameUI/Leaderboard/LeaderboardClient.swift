@@ -2551,9 +2551,9 @@ public extension LeaderboardClient {
         ("2048", 555), ("1024", 600), ("512", 733), ("256", 777), ("128", 888),
         ("64", 1022), ("32", 1234), ("16", 1600),
         // Raw number brackets
-        ("8", 2222), ("4", 4000), ("2", 6000),
+        ("8", 2222), ("4", 3111), ("2", 4666),
         // Score 0 bracket
-        ("0", 7500)
+        ("0", 6767)
     ]
 
     static let southKoreaPlayerMilestones: [String] = [

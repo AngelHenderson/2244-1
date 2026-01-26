@@ -364,7 +364,7 @@ public struct LeaderboardView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
 
-            // Leaderboard List
+            // Leaderboard List - Top 150 only (no pagination)
             if m.isLoading && !m.hasData {
                 Spacer()
                 ProgressView()
@@ -374,39 +374,10 @@ public struct LeaderboardView: View {
             } else if m.hasData {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(Array(buildDisplayEntries(m).enumerated()), id: \.element.id) { index, entry in
+                        // Only show top 150 entries
+                        let top150Entries = Array(buildDisplayEntries(m).prefix(150))
+                        ForEach(Array(top150Entries.enumerated()), id: \.element.id) { index, entry in
                             leaderboardRow(entry, index: index)
-                                .task {
-                                    // Load more when reaching the end
-                                    if entry.id == m.entries.last?.id, m.canLoadMore {
-                                        await m.loadMore()
-                                    }
-                                }
-                        }
-
-                        // Show loading indicator for pagination
-                        if m.isLoadingMore {
-                            ProgressView()
-                                .tint(.white)
-                                .padding()
-                        }
-
-                        // Show "My Entry" only if not in the display range
-                        if let myEntry = m.myEntry, !isUserInDisplayRange(m) {
-                            VStack(spacing: 0) {
-                                Rectangle()
-                                    .fill(Color.white.opacity(0.1))
-                                    .frame(height: 1)
-                                    .padding(.vertical, 16)
-
-                                Text("Your Position")
-                                    .font(.caption)
-                                    .foregroundStyle(.white.opacity(0.6))
-                                    .padding(.bottom, 8)
-
-                                leaderboardRow(myEntry, index: nil)
-                            }
-                            .padding(.vertical)
                         }
                     }
                     .padding(.top, 8)
