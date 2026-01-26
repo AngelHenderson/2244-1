@@ -122,7 +122,7 @@ public final class ChallengeStore: Sendable {
             return .expert
         }
 
-        // Specific rewards for challenges (1M, 1B, 1a-1z, 1aa-1ay)
+        // Specific rewards for challenges (1M, 1B, 1a-1z, 1aa-1az, 1ba-1bd)
         // MegaMerge = .magnet power-up
         let specificRewards: [Int: ChallengeReward] = [
             0: ChallengeReward(coins: 50),                                              // 1M: 50 Gems
@@ -190,7 +190,7 @@ public final class ChallengeStore: Sendable {
             if let specific = specificRewards[index] {
                 return specific
             }
-            // Fallback formula for challenges beyond 1ay
+            // Fallback formula for challenges beyond 1bd
             let baseCoins = 50 + (index * 25)
             return ChallengeReward(coins: baseCoins)
         }
