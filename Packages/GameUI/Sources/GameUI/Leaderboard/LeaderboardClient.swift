@@ -828,41 +828,41 @@ enum MockLeaderboardData {
         case "GB":
             return (LeaderboardClient.ukPlayerMilestones, LeaderboardClient.ukExtendedRankBrackets, 17_676)
         case "CA":
-            return (LeaderboardClient.canadaPlayerMilestones, LeaderboardClient.canadaExtendedRankBrackets, 14_567)
+            return (LeaderboardClient.canadaPlayerMilestones, LeaderboardClient.canadaExtendedRankBrackets, 12_847)
         case "AU":
-            return (LeaderboardClient.australiaPlayerMilestones, LeaderboardClient.australiaExtendedRankBrackets, 9_823)
+            return (LeaderboardClient.australiaPlayerMilestones, LeaderboardClient.australiaExtendedRankBrackets, 63_213)
         case "DE":
-            return (LeaderboardClient.germanyPlayerMilestones, LeaderboardClient.germanyExtendedRankBrackets, 18_234)
+            return (LeaderboardClient.germanyPlayerMilestones, LeaderboardClient.germanyExtendedRankBrackets, 76_767)
         case "FR":
-            return (LeaderboardClient.francePlayerMilestones, LeaderboardClient.franceExtendedRankBrackets, 15_678)
+            return (LeaderboardClient.francePlayerMilestones, LeaderboardClient.franceExtendedRankBrackets, 127_676)
         case "JP":
-            return (LeaderboardClient.japanPlayerMilestones, LeaderboardClient.japanExtendedRankBrackets, 22_456)
+            return (LeaderboardClient.japanPlayerMilestones, LeaderboardClient.japanExtendedRankBrackets, 894)
         case "IN":
-            return (LeaderboardClient.indiaPlayerMilestones, LeaderboardClient.indiaExtendedRankBrackets, 45_678)
+            return (LeaderboardClient.indiaPlayerMilestones, LeaderboardClient.indiaExtendedRankBrackets, 1_488)
         case "BR":
-            return (LeaderboardClient.brazilPlayerMilestones, LeaderboardClient.brazilExtendedRankBrackets, 28_901)
+            return (LeaderboardClient.brazilPlayerMilestones, LeaderboardClient.brazilExtendedRankBrackets, 10_000)
         case "MX":
-            return (LeaderboardClient.mexicoPlayerMilestones, LeaderboardClient.mexicoExtendedRankBrackets, 12_345)
+            return (LeaderboardClient.mexicoPlayerMilestones, LeaderboardClient.mexicoExtendedRankBrackets, 7_229)
         case "AF":
-            return (LeaderboardClient.afghanistanPlayerMilestones, LeaderboardClient.afghanistanExtendedRankBrackets, 2_134)
+            return (LeaderboardClient.afghanistanPlayerMilestones, LeaderboardClient.afghanistanExtendedRankBrackets, 11_111)
         case "AL":
-            return (LeaderboardClient.albaniaPlayerMilestones, LeaderboardClient.albaniaExtendedRankBrackets, 1_567)
+            return (LeaderboardClient.albaniaPlayerMilestones, LeaderboardClient.albaniaExtendedRankBrackets, 11_222)
         case "DZ":
-            return (LeaderboardClient.algeriaPlayerMilestones, LeaderboardClient.algeriaExtendedRankBrackets, 8_901)
+            return (LeaderboardClient.algeriaPlayerMilestones, LeaderboardClient.algeriaExtendedRankBrackets, 3_333)
         case "CN":
-            return (LeaderboardClient.chinaPlayerMilestones, LeaderboardClient.chinaExtendedRankBrackets, 156_789)
+            return (LeaderboardClient.chinaPlayerMilestones, LeaderboardClient.chinaExtendedRankBrackets, 8_192)
         case "KR":
-            return (LeaderboardClient.southKoreaPlayerMilestones, LeaderboardClient.southKoreaExtendedRankBrackets, 34_567)
+            return (LeaderboardClient.southKoreaPlayerMilestones, LeaderboardClient.southKoreaExtendedRankBrackets, 3_123)
         case "IT":
-            return (LeaderboardClient.italyPlayerMilestones, LeaderboardClient.italyExtendedRankBrackets, 21_234)
+            return (LeaderboardClient.italyPlayerMilestones, LeaderboardClient.italyExtendedRankBrackets, 13_856)
         case "ES":
-            return (LeaderboardClient.spainPlayerMilestones, LeaderboardClient.spainExtendedRankBrackets, 16_789)
+            return (LeaderboardClient.spainPlayerMilestones, LeaderboardClient.spainExtendedRankBrackets, 14_399)
         case "NL":
-            return (LeaderboardClient.netherlandsPlayerMilestones, LeaderboardClient.netherlandsExtendedRankBrackets, 8_456)
+            return (LeaderboardClient.netherlandsPlayerMilestones, LeaderboardClient.netherlandsExtendedRankBrackets, 46_767)
         case "CH":
-            return (LeaderboardClient.switzerlandPlayerMilestones, LeaderboardClient.switzerlandExtendedRankBrackets, 4_567)
+            return (LeaderboardClient.switzerlandPlayerMilestones, LeaderboardClient.switzerlandExtendedRankBrackets, 20_000)
         case "NO":
-            return (LeaderboardClient.norwayPlayerMilestones, LeaderboardClient.norwayExtendedRankBrackets, 3_234)
+            return (LeaderboardClient.norwayPlayerMilestones, LeaderboardClient.norwayExtendedRankBrackets, 34_924)
         case "DK":
             return (LeaderboardClient.denmarkPlayerMilestones, LeaderboardClient.denmarkExtendedRankBrackets, 90_123)
         default:
@@ -2545,15 +2545,15 @@ public extension LeaderboardClient {
     // Extended China milestone brackets for rank calculation (ranks 151+)
     // Total China players: 8,192
     static let chinaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
-        // M-tier brackets
-        ("2M", 151), ("1M", 220), ("524K", 320), ("262K", 450), ("131K", 620),
-        ("65K", 820), ("32K", 1050), ("16K", 1300), ("8192", 1450), ("4096", 1530),
-        ("2048", 1580), ("1024", 1610), ("512", 1630), ("256", 1645), ("128", 1655),
-        ("64", 1660), ("32", 1663), ("16", 1665),
-        // Raw number brackets (from user data)
-        ("8", 1666), ("4", 3111), ("2", 4666),
-        // Score 0 bracket (ranks 6767-8192)
-        ("0", 6767)
+        // M-tier brackets (updated from leaderboard data)
+        ("2M", 151), ("1M", 165), ("524K", 187), ("262K", 211), ("131K", 243),
+        ("65K", 288), ("32K", 333), ("16K", 388), ("8192", 455), ("4096", 505),
+        ("2048", 555), ("1024", 600), ("512", 733), ("256", 777), ("128", 888),
+        ("64", 1022), ("32", 1234), ("16", 1600),
+        // Raw number brackets
+        ("8", 2222), ("4", 4000), ("2", 6000),
+        // Score 0 bracket
+        ("0", 7500)
     ]
 
     static let southKoreaPlayerMilestones: [String] = [
