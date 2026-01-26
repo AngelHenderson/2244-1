@@ -70,11 +70,10 @@ public struct TileScrollerView: View {
                                 if showCurvedTrail {
                                     CurvedTrailView(color: .cyan.opacity(0.7), lineWidth: 5)
                                 } else {
-                                    DottedTrail(dotSize: 7, spacing: 15, color: .white.opacity(0.5))
+                                    DottedTrail(dotCount: 5, dotSize: 8, dotSpacing: 10, color: .white.opacity(0.5))
                                 }
                             }
-                            .frame(height: 60)
-                            .padding(.vertical, 8) // Extra spacing between trails and tiles
+                            .frame(height: 80)
                         }
                     }
                 }
@@ -206,8 +205,12 @@ private struct TileRowItem: View {
     let tileSize: CGFloat
     let theme: ThemeDescriptor?
     
+    private var hasLabel: Bool {
+        tile.isInfinity || isCurrentHighest
+    }
+    
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
             TileView(
                 tile: tile,
                 isSelected: false,
@@ -232,6 +235,7 @@ private struct TileRowItem: View {
             .animation(.snappy(duration: 0.25), value: isLocked)
             .animation(.snappy(duration: 0.25), value: isCurrentHighest)
             
+            // Only show label section with spacing when there's actually a label
             if tile.isInfinity {
                 Text("Ultimate Goal")
                     .font(.caption.weight(.semibold))
@@ -242,6 +246,7 @@ private struct TileRowItem: View {
                             endPoint: .trailing
                         )
                     )
+                    .padding(.top, 12)
             } else if isCurrentHighest {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
@@ -256,9 +261,9 @@ private struct TileRowItem: View {
                         endPoint: .trailing
                     )
                 )
-            } else {
-                EmptyView()
+                .padding(.top, 12)
             }
+            // No EmptyView needed - VStack with spacing 0 won't add extra space
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 80)

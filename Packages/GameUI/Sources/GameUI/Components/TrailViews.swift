@@ -1,35 +1,35 @@
 import SwiftUI
 
-/// A dotted vertical trail connector between tiles
+/// A centered dotted vertical trail connector between tiles
+/// Uses explicit dot count for perfect centering in the gap
 public struct DottedTrail: View {
+    public var dotCount: Int
     public var dotSize: CGFloat
-    public var spacing: CGFloat
+    public var dotSpacing: CGFloat
     public var color: Color
 
-    public init(dotSize: CGFloat = 6, spacing: CGFloat = 14, color: Color = .white.opacity(0.6)) {
+    public init(dotCount: Int = 5, dotSize: CGFloat = 8, dotSpacing: CGFloat = 10, color: Color = .white.opacity(0.5)) {
+        self.dotCount = dotCount
         self.dotSize = dotSize
-        self.spacing = spacing
+        self.dotSpacing = dotSpacing
         self.color = color
     }
 
     public var body: some View {
-        GeometryReader { geometry in
-            Path { path in
-                // Draw a vertical line down the center
-                path.move(to: CGPoint(x: dotSize / 2, y: 0))
-                path.addLine(to: CGPoint(x: dotSize / 2, y: geometry.size.height))
+        VStack {
+            Spacer(minLength: 0)
+            
+            VStack(spacing: dotSpacing) {
+                ForEach(0..<dotCount, id: \.self) { _ in
+                    Circle()
+                        .fill(color)
+                        .frame(width: dotSize, height: dotSize)
+                }
             }
-            .stroke(
-                color,
-                style: StrokeStyle(
-                    lineWidth: dotSize,
-                    lineCap: .round,
-                    dash: [0.1, spacing]
-                )
-            )
-            .frame(width: dotSize) // Constrain path width
-            .frame(maxWidth: .infinity) // Center in available space
+            
+            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
@@ -53,7 +53,7 @@ public struct CurvedTrailShape: Shape {
     }
 }
 
-/// A curved S-trail connector between tiles
+/// A curved S-trail connector between tiles, centered in its frame
 public struct CurvedTrailView: View {
     public var color: Color
     public var lineWidth: CGFloat
@@ -64,41 +64,55 @@ public struct CurvedTrailView: View {
     }
 
     public var body: some View {
-        CurvedTrailShape()
-            .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-            .frame(width: 40)
+        VStack {
+            Spacer(minLength: 0)
+            
+            CurvedTrailShape()
+                .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .frame(width: 40)
+            
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
 #Preview("Dotted Trail") {
-    VStack {
+    VStack(spacing: 0) {
         RoundedRectangle(cornerRadius: 12)
             .fill(Color.gray)
-            .frame(width: 100, height: 100)
+            .frame(width: 140, height: 140)
         
-        DottedTrail(dotSize: 7, spacing: 15, color: .white.opacity(0.5))
-            .frame(height: 60)
+        DottedTrail(dotCount: 5, dotSize: 8, dotSpacing: 10, color: .white.opacity(0.5))
+            .frame(height: 80)
         
         RoundedRectangle(cornerRadius: 12)
             .fill(Color.gray)
-            .frame(width: 100, height: 100)
+            .frame(width: 140, height: 140)
+        
+        DottedTrail(dotCount: 5, dotSize: 8, dotSpacing: 10, color: .white.opacity(0.5))
+            .frame(height: 80)
+        
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.gray)
+            .frame(width: 140, height: 140)
     }
     .padding()
     .background(Color.black)
 }
 
 #Preview("Curved Trail") {
-    VStack {
+    VStack(spacing: 0) {
         RoundedRectangle(cornerRadius: 12)
             .fill(Color.gray)
-            .frame(width: 100, height: 100)
+            .frame(width: 140, height: 140)
         
         CurvedTrailView(color: .cyan.opacity(0.7), lineWidth: 5)
-            .frame(height: 60)
+            .frame(height: 80)
         
         RoundedRectangle(cornerRadius: 12)
             .fill(Color.gray)
-            .frame(width: 100, height: 100)
+            .frame(width: 140, height: 140)
     }
     .padding()
     .background(Color.black)
