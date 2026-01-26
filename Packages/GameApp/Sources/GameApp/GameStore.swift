@@ -2452,7 +2452,10 @@ extension GameStore {
     
     private func incrementTierMasteryCount(for tile: Tile?, value: Int, chainLength: Int = 1) {
         guard let suffix = tierSuffix(for: tile, value: value) else { return }
-        tierMasteryCounts[suffix, default: 0] += chainLength
+        // Use full assignment to ensure @Observable detects the change
+        var newCounts = tierMasteryCounts
+        newCounts[suffix, default: 0] += chainLength
+        tierMasteryCounts = newCounts
         persistTierMasteryCountsToDefaults()
     }
     
@@ -2970,9 +2973,9 @@ extension GameStore {
         // Update session statistics
         let currentMerges = UserDefaults.standard.integer(forKey: "totalMerges")
         UserDefaults.standard.set(currentMerges + 1, forKey: "totalMerges")
-        
-        let currentTotalMoves = UserDefaults.standard.integer(forKey: "totalMoves")
-        UserDefaults.standard.set(currentTotalMoves + 1, forKey: "totalMoves")
+
+        // Note: totalMoves is now incremented in AchievementEvaluator.onMoveSurvived()
+        // to apply the achievement boost multiplier
         
         // Update total time played
         if let sessionStart = UserDefaults.standard.object(forKey: "sessionStartTime") as? Date {
