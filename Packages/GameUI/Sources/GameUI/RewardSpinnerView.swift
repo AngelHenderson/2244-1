@@ -49,7 +49,7 @@ struct RewardSpinnerView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .glassBackground(in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             
             spinner
             

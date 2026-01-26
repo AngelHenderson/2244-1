@@ -25,6 +25,9 @@ public struct SettingsView: View {
     @State private var isShowingGameCenter: Bool = false
     @State private var gameCenterEnabled: Bool = false
     @State private var gameCenterDisplayName: String = ""
+    
+    // Trail style toggle (shared with TileScrollerView via AppStorage)
+    @AppStorage("useCurvedTrail") private var useCurvedTrail: Bool = false
 
     public init() {}
     
@@ -113,6 +116,8 @@ public struct SettingsView: View {
                         .onChange(of: showHints) { _, newValue in
                             UserDefaults.standard.set(newValue, forKey: "showHints")
                         }
+                    
+                    Toggle("Curved Trail Style", isOn: $useCurvedTrail)
                 }
                 
                 // MARK: Purchases

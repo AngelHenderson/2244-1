@@ -10,6 +10,7 @@ public struct TileScrollerView: View {
     @Environment(\.tileJourney) private var journey
     @Environment(\.homeActions) private var actions
     @State private var focusedTileID: Int? = nil
+    @AppStorage("useCurvedTrail") private var showCurvedTrail: Bool = false
     @State private var showAnimation = false
     @State private var scrollPosition = ScrollPosition(idType: Int.self)
     
@@ -22,7 +23,7 @@ public struct TileScrollerView: View {
         max(0, gameStore.state.highestTileStep)
     }
     
-    private let itemSpacing: CGFloat = 24
+    private let itemSpacing: CGFloat = 0 // Spacing is now handled by the trails
     private let tileSize: CGFloat = 140
     
     // Build the full journey, then reverse for an upward-growing panel (2 near bottom, Infinity toward top).
@@ -48,7 +49,7 @@ public struct TileScrollerView: View {
         ZStack {
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(spacing: itemSpacing) {
-                    ForEach(tiles, id: \.id) { item in
+                    ForEach(Array(tiles.enumerated()), id: \.element.id) { index, item in
                         TileRowItem(
                             tile: item.tile,
                             isLocked: isLocked(item.tile),
@@ -62,6 +63,19 @@ public struct TileScrollerView: View {
                             view
                                 .scaleEffect(phase.isIdentity ? 1.0 : 0.92)
                         }
+                        
+                        // Connector Trail - only add if not the last item
+                        if index < tiles.count - 1 {
+                            Group {
+                                if showCurvedTrail {
+                                    CurvedTrailView(color: .cyan.opacity(0.7), lineWidth: 5)
+                                } else {
+                                    DottedTrail(dotSize: 7, spacing: 15, color: .white.opacity(0.5))
+                                }
+                            }
+                            .frame(height: 60)
+                            .padding(.vertical, 8) // Extra spacing between trails and tiles
+                        }
                     }
                 }
                 .scrollTargetLayout()
@@ -70,7 +84,7 @@ public struct TileScrollerView: View {
             .scrollTargetBehavior(.viewAligned)
             .scrollPosition($scrollPosition, anchor: .center)
             .defaultScrollAnchor(.center)
-            .contentMargins(.vertical, tileSize / 2 + itemSpacing, for: .scrollContent)
+            .contentMargins(.vertical, tileSize / 2 + 24, for: .scrollContent)
             .background(Color.black.opacity(0.001))
             .safeAreaPadding(.top, topInset)
             .safeAreaPadding(.bottom, bottomInset)
@@ -192,62 +206,31 @@ private struct TileRowItem: View {
     let tileSize: CGFloat
     let theme: ThemeDescriptor?
     
-    private var showCrown: Bool {
-        !tile.isInfinity
-    }
-    
     var body: some View {
         VStack(spacing: 12) {
-            ZStack {
-                TileView(
-                    tile: tile,
-                    isSelected: false,
-                    isValid: true,
-                    size: tileSize,
-                    theme: theme,
-                    useLegacyTypography: true   // Preserve the previous journey look
-                )
-                .saturation(isLocked ? 0.0 : 1.0)
-                .conditionalOverlay(isCurrentHighest) {
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(
-                            LinearGradient(
-                                colors: [.yellow, .orange],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 3
-                        )
-                        .shadow(color: .orange.opacity(0.5), radius: 8)
-                }
-                .animation(.snappy(duration: 0.25), value: isLocked)
-                .animation(.snappy(duration: 0.25), value: isCurrentHighest)
-                
-                // Crown overlay to match design
-                if showCrown {
-                    VStack {
-                        #if canImport(UIKit)
-                        if let uiImage = UIImage(named: "crownBadge"), uiImage.size != .zero {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: tileSize * 0.28)
-                                .offset(y: -tileSize * 0.62)
-                        } else {
-                            Image(systemName: "crown.fill")
-                                .font(.system(size: tileSize * 0.22))
-                                .foregroundStyle(.orange)
-                                .offset(y: -tileSize * 0.62)
-                        }
-                        #else
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: tileSize * 0.22))
-                            .foregroundStyle(.orange)
-                            .offset(y: -tileSize * 0.62)
-                        #endif
-                    }
-                }
+            TileView(
+                tile: tile,
+                isSelected: false,
+                isValid: true,
+                size: tileSize,
+                theme: theme,
+                useLegacyTypography: true   // Preserve the previous journey look
+            )
+            .saturation(isLocked ? 0.0 : 1.0)
+            .conditionalOverlay(isCurrentHighest) {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        LinearGradient(
+                            colors: [.yellow, .orange],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 3
+                    )
+                    .shadow(color: .orange.opacity(0.5), radius: 8)
             }
+            .animation(.snappy(duration: 0.25), value: isLocked)
+            .animation(.snappy(duration: 0.25), value: isCurrentHighest)
             
             if tile.isInfinity {
                 Text("Ultimate Goal")

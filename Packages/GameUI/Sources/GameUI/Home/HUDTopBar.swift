@@ -28,10 +28,9 @@ struct HUDTopBar: View {
             Button(action: { actions.openLeaderboard() }) {
                 HStack(spacing: 3) {
                     Text("#")
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(.white)
                     Text(verbatim: String(state.rank))
                         .foregroundStyle(.white)
-                        .monospacedDigit()
                 }
                 .font(.subheadline.bold())
                 .lineLimit(1)
@@ -48,7 +47,7 @@ struct HUDTopBar: View {
             Spacer()
 
             // Compact boost status button
-            BoostStatusButton()
+//            BoostStatusButton()
 
             // Score display (only shown if provided)
             if let scoreText = scoreText {

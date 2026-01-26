@@ -84,7 +84,7 @@ public struct ShopView: View {
                 ProgressView()
                     .scaleEffect(1.5)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(.ultraThinMaterial)
+                    .glassBackground()
             }
         }
     }

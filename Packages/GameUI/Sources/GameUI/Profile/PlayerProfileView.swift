@@ -157,7 +157,7 @@ public struct PlayerProfileView: View {
                         }
                         .font(.footnote.weight(.medium))
                         .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
+                        .glassBackground(in: Capsule())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Country selection")
@@ -174,7 +174,7 @@ public struct PlayerProfileView: View {
                         }
                         .font(.footnote.weight(.semibold))
                         .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
+                        .glassBackground(in: Capsule())
                     }
                 }
             }

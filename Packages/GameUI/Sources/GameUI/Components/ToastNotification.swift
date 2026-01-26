@@ -46,15 +46,12 @@ public struct ToastNotification: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(
+        .glassBackground(in: Capsule())
+        .overlay(
             Capsule()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Capsule()
-                        .strokeBorder(.white.opacity(0.2), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 6)
+                .strokeBorder(.white.opacity(0.2), lineWidth: 1)
         )
+        .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 6)
     }
 }
 

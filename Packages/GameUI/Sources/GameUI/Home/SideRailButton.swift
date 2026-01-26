@@ -25,11 +25,6 @@ struct SideRailButton: View {
                                     .frame(width: 56, height: 56)
                                     .accessibilityHidden(true)
                             }
-
-                            if let specialLabel = specialLabel {
-                                Text(specialLabel)
-                                    .font(.caption.bold())
-                            }
                         }
                         .frame(width: 56, height: 56)
                         .overlay {
@@ -58,12 +53,22 @@ struct SideRailButton: View {
             .disabled(locked)
             .accessibilityLabel("\(title)\(locked ? ", locked" : "")")
 
-            Text(title)
-                .font(.caption2)
-                .fontWeight(.heavy)
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+            // Display title or specialLabel below the button with consistent styling
+            if let specialLabel = specialLabel, !specialLabel.isEmpty {
+                Text(specialLabel)
+                    .font(.caption2)
+                    .fontWeight(.heavy)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            } else if !title.isEmpty {
+                Text(title)
+                    .font(.caption2)
+                    .fontWeight(.heavy)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
         }
 
     }

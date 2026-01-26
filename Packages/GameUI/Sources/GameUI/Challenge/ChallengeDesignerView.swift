@@ -179,7 +179,7 @@ public struct ChallengeDesignerView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(.ultraThinMaterial)
+        .glassBackground()
     }
     
 }
