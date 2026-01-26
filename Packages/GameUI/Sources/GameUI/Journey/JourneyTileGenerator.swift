@@ -4,94 +4,34 @@ import GameCore
 /// Generates milestone tiles for the infinite journey road
 public enum JourneyTileGenerator {
 
-    /// Milestone spacing configuration - farther apart as requested
-    private static let milestoneSteps: [Int] = [
-        0,    // 2
-        1,    // 4
-        2,    // 8
-        3,    // 16
-        4,    // 32
-        5,    // 64
-        6,    // 128
-        7,    // 256
-        8,    // 512
-        9,    // 1K
-        10,   // 2K
-        12,   // 8K    (skip 4K)
-        14,   // 32K   (skip 16K)
-        16,   // 128K  (skip 64K)
-        18,   // 512K  (skip 256K)
-        20,   // 2M    (skip 1M)
-        23,   // 16M   (skip 4M, 8M)
-        26,   // 128M  (skip 32M, 64M)
-        29,   // 1B    (skip 256M, 512M)
-        32,   // 8B    (skip 2B, 4B)
-        35,   // 64B   (skip 16B, 32B)
-        38,   // 512B  (skip 128B, 256B)
-        42,   // 8T    (skip 1T, 2T, 4T)
-        46,   // 128T  (skip 16T, 32T, 64T)
-        50,   // 2q    (skip 256T, 512T, 1q)
-        55,   // 64q   (skip 4q, 8q, 16q, 32q)
-        60,   // 2Q    (skip 128q, 256q, 512q, 1Q)
-        65,   // 64Q   (skip 4Q, 8Q, 16Q, 32Q)
-        70,   // 2s    (skip 128Q, 256Q, 512Q, 1s)
-        75,   // 64s   (skip 4s, 8s, 16s, 32s)
-        80,   // 2S    (skip 128s, 256s, 512s, 1S)
-        86,   // 128S  (skip 4S, 8S, 16S, 32S, 64S)
-        92,   // 2o    (skip 256S, 512S, 1o)
-        98,   // 32o   (skip 4o, 8o, 16o)
-        104,  // 512o  (skip 64o, 128o, 256o)
-        111,  // 16O   (skip 1O, 2O, 4O, 8O)
-        118,  // 512O  (skip 32O, 64O, 128O, 256O)
-        125,  // 16n   (skip 1n, 2n, 4n, 8n)
-        133,  // 1N    (skip 32n, 64n, 128n, 256n, 512n)
-        141,  // 64N   (skip 2N, 4N, 8N, 16N, 32N)
-        150,  // 8d    (skip 128N, 256N, 512N, 1d, 2d, 4d)
-        160,  // 1D    (skip 16d, 32d, 64d, 128d, 256d, 512d)
-        170,  // 128D  (skip 2D, 4D, 8D, 16D, 32D, 64D)
-        181,  // 32u   (skip 256D, 512D, 1u, 2u, 4u, 8u, 16u)
-        193,  // 16U   (skip 64u, 128u, 256u, 512u, 1U, 2U, 4U, 8U)
-        206,  // 16v   (skip 32U, 64U, 128U, 256U, 512U, 1v, 2v, 4v, 8v)
-        220,  // 32V   (skip 32v, 64v, 128v, 256v, 512v, 1V, 2V, 4V, 8V, 16V)
-        235,  // 128g  (skip 64V, 128V, 256V, 512V, 1g, 2g, 4g, 8g, 16g, 32g, 64g)
-        251,  // 1G    (skip 256g, 512g)
-        268,  // 16G   (skip 2G, 4G, 8G)
-        286,  // 512G  (skip 32G, 64G, 128G, 256G)
-        305,  // 32h   (skip 1h, 2h, 4h, 8h, 16h)
-        325   // 4H    (skip 64h, 128h, 256h, 512h, 1H, 2H)
-    ]
+    /// Milestone spacing configuration - every step for smooth progression
+    /// Goes up to step 816 which corresponds to 873bz
+    private static let milestoneSteps: [Int] = Array(0...816)
 
     /// Generate journey tiles up to the current highest tile with dynamic lookahead
     public static func generateJourney(highest: Int, stepsAhead: Int) -> [Tile] {
         let currentStep = TileStepLabelFormatter.stepForValue(highest, start: 2) ?? 0
 
         // Find current position in milestones
-        let currentMilestoneIndex = milestoneSteps.firstIndex(where: { $0 >= currentStep }) ?? 0
+        let currentMilestoneIndex = milestoneSteps.firstIndex(where: { $0 >= currentStep }) ?? (milestoneSteps.count - 1)
 
-        // Calculate how many milestones to show ahead based on stepsAhead
-        let milestonesToShow = min(
-            (stepsAhead / 10) + 5, // Show more milestones as stepsAhead increases
-            milestoneSteps.count - currentMilestoneIndex + 10 // But don't go too far beyond infinity
-        )
+        // Show milestones: 10 behind current position, and 15 ahead
+        let milestonesBack = 10
+        let milestonesAhead = 15
 
         // Generate tiles for visible milestones
         var tiles: [Tile] = []
 
-        // Start from a few milestones back if we've progressed
-        let startIndex = max(0, currentMilestoneIndex - 3)
-        let endIndex = min(milestoneSteps.count, currentMilestoneIndex + milestonesToShow)
+        let startIndex = max(0, currentMilestoneIndex - milestonesBack)
+        let endIndex = min(milestoneSteps.count, currentMilestoneIndex + milestonesAhead)
 
         for i in startIndex..<endIndex {
-            if i < milestoneSteps.count {
-                let step = milestoneSteps[i]
-                tiles.append(Tile.make(forStep: step))
-            }
+            let step = milestoneSteps[i]
+            tiles.append(Tile.make(forStep: step))
         }
 
-        // Add infinity at the end if we're close enough
-        if endIndex >= milestoneSteps.count - 5 {
-            tiles.append(Tile.infinity())
-        }
+        // Add infinity at the very end
+        tiles.append(Tile.infinity())
 
         return tiles
     }
