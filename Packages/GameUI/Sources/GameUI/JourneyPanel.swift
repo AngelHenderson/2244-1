@@ -218,198 +218,163 @@ private struct SerpentineRoadView: View {
     let rowHeight: CGFloat
     let onClaimReward: (JourneyAbbreviationTier) -> Void
 
-    private let roadWidth: CGFloat = 45
-    private let tileSize: CGFloat = 65
-
-    // Group tiles: 2 tiles per horizontal segment, alternating left/right
-    private let tilesPerSegment = 2
+    private let roadWidth: CGFloat = 50
+    private let tileSize: CGFloat = 60
 
     var body: some View {
         GeometryReader { geo in
             let width = geo.size.width
-            let leftX = width * 0.22
-            let rightX = width * 0.78
-            let segmentHeight: CGFloat = 180 // Height for each S-curve segment
+            let positions = calculateAllPositions(count: milestones.count, width: width)
+            let totalHeight = positions.last.map { $0.y + 100 } ?? 500
 
             ZStack {
-                // Draw the serpentine road
+                // Draw the serpentine road through all tile positions
                 SerpentineRoadPath(
-                    milestoneCount: milestones.count,
-                    tilesPerSegment: tilesPerSegment,
-                    segmentHeight: segmentHeight,
-                    leftX: leftX,
-                    rightX: rightX,
-                    roadWidth: roadWidth,
-                    width: width
+                    positions: positions,
+                    roadWidth: roadWidth
                 )
 
-                // Place milestones along the road
+                // Place milestones at calculated positions
                 ForEach(Array(milestones.enumerated()), id: \.element.id) { index, milestone in
-                    let pos = tilePosition(index: index, width: width, leftX: leftX, rightX: rightX, segmentHeight: segmentHeight)
-
-                    MilestoneTileView(
-                        milestone: milestone,
-                        size: tileSize,
-                        onClaimReward: {
-                            if let tier = milestone.tier {
-                                onClaimReward(tier)
+                    if index < positions.count {
+                        MilestoneTileView(
+                            milestone: milestone,
+                            size: tileSize,
+                            onClaimReward: {
+                                if let tier = milestone.tier {
+                                    onClaimReward(tier)
+                                }
                             }
-                        }
-                    )
-                    .position(x: pos.x, y: pos.y)
-                    .id(index)
+                        )
+                        .position(positions[index])
+                        .id(index)
+                    }
                 }
             }
-            .frame(height: totalHeight(segmentHeight: segmentHeight))
+            .frame(height: totalHeight)
         }
     }
 
-    private func totalHeight(segmentHeight: CGFloat) -> CGFloat {
-        let segments = (milestones.count + tilesPerSegment - 1) / tilesPerSegment
-        return CGFloat(segments) * segmentHeight + 100
-    }
+    /// Calculate positions for all tiles along the serpentine path
+    private func calculateAllPositions(count: Int, width: CGFloat) -> [CGPoint] {
+        guard count > 0 else { return [] }
 
-    private func tilePosition(index: Int, width: CGFloat, leftX: CGFloat, rightX: CGFloat, segmentHeight: CGFloat) -> CGPoint {
-        let segmentIndex = index / tilesPerSegment
-        let positionInSegment = index % tilesPerSegment
-        let isRightSegment = segmentIndex % 2 == 0
+        var positions: [CGPoint] = []
+        let leftX = width * 0.20
+        let rightX = width * 0.80
+        let centerX = width * 0.50
+        let verticalSpacing: CGFloat = 90
 
-        let totalSegments = (milestones.count + tilesPerSegment - 1) / tilesPerSegment
-        let baseY = CGFloat(totalSegments - segmentIndex) * segmentHeight
+        // Start from bottom, go up
+        var currentY: CGFloat = CGFloat(count) * verticalSpacing
+        var goingRight = false // Start on right, will go left first
 
-        // Calculate Y position within segment
-        let y: CGFloat
-        if positionInSegment == 0 {
-            y = baseY - segmentHeight * 0.25
-        } else {
-            y = baseY - segmentHeight * 0.75
+        var i = 0
+        while i < count {
+            if goingRight {
+                // Curve section going right: place 1 tile at curve apex
+                positions.append(CGPoint(x: centerX + (rightX - centerX) * 0.3, y: currentY))
+                currentY -= verticalSpacing
+                i += 1
+
+                // Horizontal section on right: place 2 tiles
+                if i < count {
+                    positions.append(CGPoint(x: rightX, y: currentY))
+                    currentY -= verticalSpacing * 0.7
+                    i += 1
+                }
+                if i < count {
+                    positions.append(CGPoint(x: rightX - (rightX - centerX) * 0.4, y: currentY))
+                    currentY -= verticalSpacing
+                    i += 1
+                }
+            } else {
+                // Curve section going left: place 1 tile at curve apex
+                positions.append(CGPoint(x: centerX - (centerX - leftX) * 0.3, y: currentY))
+                currentY -= verticalSpacing
+                i += 1
+
+                // Horizontal section on left: place 2 tiles
+                if i < count {
+                    positions.append(CGPoint(x: leftX, y: currentY))
+                    currentY -= verticalSpacing * 0.7
+                    i += 1
+                }
+                if i < count {
+                    positions.append(CGPoint(x: leftX + (centerX - leftX) * 0.4, y: currentY))
+                    currentY -= verticalSpacing
+                    i += 1
+                }
+            }
+            goingRight = !goingRight
         }
 
-        // Calculate X position - tiles spread across the horizontal section
-        let x: CGFloat
-        if isRightSegment {
-            // Right segment: first tile on right, second tile toward center
-            if positionInSegment == 0 {
-                x = rightX
-            } else {
-                x = rightX - (rightX - width * 0.5) * 0.6
-            }
-        } else {
-            // Left segment: first tile on left, second tile toward center
-            if positionInSegment == 0 {
-                x = leftX
-            } else {
-                x = leftX + (width * 0.5 - leftX) * 0.6
-            }
-        }
-
-        return CGPoint(x: x, y: y)
+        // Reverse so index 0 is at bottom (lowest tile values at bottom)
+        return positions.reversed()
     }
 }
 
 // MARK: - Serpentine Road Path
 
 private struct SerpentineRoadPath: View {
-    let milestoneCount: Int
-    let tilesPerSegment: Int
-    let segmentHeight: CGFloat
-    let leftX: CGFloat
-    let rightX: CGFloat
+    let positions: [CGPoint]
     let roadWidth: CGFloat
-    let width: CGFloat
 
     var body: some View {
         Canvas { context, size in
-            guard milestoneCount > 0 else { return }
-
-            let totalSegments = (milestoneCount + tilesPerSegment - 1) / tilesPerSegment
-            let totalHeight = CGFloat(totalSegments) * segmentHeight + 100
+            guard positions.count > 1 else { return }
 
             var roadPath = Path()
 
-            // Start from bottom right
-            let startY = totalHeight - 50
-            let startX = rightX
-            roadPath.move(to: CGPoint(x: startX, y: startY))
+            // Start below the first position
+            let first = positions[0]
+            roadPath.move(to: CGPoint(x: first.x, y: first.y + 60))
+            roadPath.addLine(to: first)
 
-            for segment in 0..<totalSegments {
-                let isRightSegment = segment % 2 == 0
-                let segmentTopY = totalHeight - CGFloat(segment + 1) * segmentHeight
+            // Draw smooth curves through all positions
+            for i in 1..<positions.count {
+                let current = positions[i]
+                let prev = positions[i - 1]
 
-                if isRightSegment {
-                    // Right side segment - draw horizontal then curve to left
-                    let currentX = rightX
-                    let centerX = width * 0.5
+                // Use quadratic curve with control point for smooth S-curves
+                let controlX = (prev.x + current.x) / 2
+                let controlY = prev.y - (prev.y - current.y) * 0.3
 
-                    // Horizontal section on right
-                    roadPath.addLine(to: CGPoint(x: currentX, y: segmentTopY + segmentHeight * 0.75))
+                // Add a smoother curve
+                roadPath.addQuadCurve(
+                    to: current,
+                    control: CGPoint(x: prev.x, y: controlY)
+                )
+            }
 
-                    // Curve toward center
-                    roadPath.addQuadCurve(
-                        to: CGPoint(x: centerX, y: segmentTopY + segmentHeight * 0.5),
-                        control: CGPoint(x: currentX, y: segmentTopY + segmentHeight * 0.5)
-                    )
-
-                    // Continue curve to left side
-                    if segment < totalSegments - 1 {
-                        roadPath.addQuadCurve(
-                            to: CGPoint(x: leftX, y: segmentTopY + segmentHeight * 0.25),
-                            control: CGPoint(x: leftX, y: segmentTopY + segmentHeight * 0.5)
-                        )
-                    } else {
-                        // Last segment - end at center top
-                        roadPath.addLine(to: CGPoint(x: centerX, y: segmentTopY))
-                    }
-                } else {
-                    // Left side segment - draw horizontal then curve to right
-                    let currentX = leftX
-                    let centerX = width * 0.5
-
-                    // Horizontal section on left
-                    roadPath.addLine(to: CGPoint(x: currentX, y: segmentTopY + segmentHeight * 0.75))
-
-                    // Curve toward center
-                    roadPath.addQuadCurve(
-                        to: CGPoint(x: centerX, y: segmentTopY + segmentHeight * 0.5),
-                        control: CGPoint(x: currentX, y: segmentTopY + segmentHeight * 0.5)
-                    )
-
-                    // Continue curve to right side
-                    if segment < totalSegments - 1 {
-                        roadPath.addQuadCurve(
-                            to: CGPoint(x: rightX, y: segmentTopY + segmentHeight * 0.25),
-                            control: CGPoint(x: rightX, y: segmentTopY + segmentHeight * 0.5)
-                        )
-                    } else {
-                        // Last segment - end at center top
-                        roadPath.addLine(to: CGPoint(x: centerX, y: segmentTopY))
-                    }
-                }
+            // Extend past the last position
+            if let last = positions.last {
+                roadPath.addLine(to: CGPoint(x: last.x, y: last.y - 60))
             }
 
             // Draw road edge first (darker, wider)
             context.stroke(
                 roadPath,
                 with: .color(Color(red: 0.20, green: 0.20, blue: 0.25)),
-                style: StrokeStyle(lineWidth: roadWidth + 6, lineCap: .round, lineJoin: .round)
+                style: StrokeStyle(lineWidth: roadWidth + 8, lineCap: .round, lineJoin: .round)
             )
 
             // Draw the main road
             context.stroke(
                 roadPath,
-                with: .color(Color(red: 0.40, green: 0.40, blue: 0.45)),
+                with: .color(Color(red: 0.45, green: 0.45, blue: 0.50)),
                 style: StrokeStyle(lineWidth: roadWidth, lineCap: .round, lineJoin: .round)
             )
 
             // Draw the dashed center line
             context.stroke(
                 roadPath,
-                with: .color(.white.opacity(0.6)),
+                with: .color(.white.opacity(0.7)),
                 style: StrokeStyle(
-                    lineWidth: 2.5,
+                    lineWidth: 3,
                     lineCap: .round,
                     lineJoin: .round,
-                    dash: [10, 8]
+                    dash: [12, 10]
                 )
             )
         }
