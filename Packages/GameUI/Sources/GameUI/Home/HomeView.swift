@@ -53,18 +53,15 @@ public struct HomeView: View {
             VStack(spacing: 0) {
                 // Top HUD
                 HUDTopBar()
-                    .padding(.top, 8)
-                    // Add background material to prevent scrolling content overlap visibility
-                    .background(.ultraThinMaterial)
-                    .ignoresSafeArea(edges: .top)
-                    .overlay(alignment: .top) {
-                        // Measure header height so scroller can center correctly
-                        GeometryReader { geo in
-                            Color.clear
-                                .onAppear { headerHeight = geo.size.height }
-                                .onChange(of: geo.size.height) { _, new in headerHeight = new }
-                        }
-                    }
+//                    .safeAreaPadding(.top) // 1. Adds internal padding for the Dynamic Island
+//                    .overlay(alignment: .top) {
+//                        // Measure header height so scroller can center correctly
+//                        GeometryReader { geo in
+//                            Color.clear
+//                                .onAppear { headerHeight = geo.size.height }
+//                                .onChange(of: geo.size.height) { _, new in headerHeight = new }
+//                        }
+//                    }
 
                 // Main content with side rails and center progression
                 GeometryReader { geo in
