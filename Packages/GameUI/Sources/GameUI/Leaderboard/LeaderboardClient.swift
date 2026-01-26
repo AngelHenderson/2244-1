@@ -2072,10 +2072,10 @@ public extension LeaderboardClient {
         "20g", "10g", "5g", "5g", "1g", "316f", "316f", "158f", "79f", "9f",
         "9f", "77e", "38e", "38e", "19e", "19e", "4e", "2e", "2e", "1e",
         "1e", "604d", "604d", "302d", "151d", "75d", "37d", "18d", "18d", "2d",
-        // Ranks 121-150
-        "562a", "140a", "35a", "8a", "2a", "549B", "137B", "34B", "8B", "2B",
-        "536M", "134M", "33M", "8M", "2M", "524K", "131K", "32K", "8192", "4096",
-        "8192", "2048", "512", "128", "32", "16", "8", "4", "2", "2"
+        // Ranks 121-150 (c-tier then b-tier, transitioning to extended brackets at rank 151)
+        "1d", "590c", "295c", "147c", "73c", "36c", "18c", "9c", "4c", "2c",
+        "1c", "576b", "288b", "144b", "72b", "36b", "18b", "9b", "4b", "2b",
+        "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b"
     ]
 
     // Extended Canada milestone brackets for rank calculation (ranks 151+)
