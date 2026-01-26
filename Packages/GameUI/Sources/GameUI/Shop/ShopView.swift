@@ -252,7 +252,7 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(magnets) MegaMerges")
                         } icon: {
-                            Image(systemName: "magnet.fill")
+                            Image(systemName: "dot.radiowaves.left.and.right")
                         }
                         .font(.caption)
                     }
@@ -432,7 +432,7 @@ struct PerkBundleRow: View {
             fallbackSystemName = "arrow.left.arrow.right"
         case "magnet":
             iconName = "MegaMergeIcon"
-            fallbackSystemName = "magnet.fill"
+            fallbackSystemName = "dot.radiowaves.left.and.right"
         default:
             iconName = "HammerIcon"
             fallbackSystemName = "star.fill"
