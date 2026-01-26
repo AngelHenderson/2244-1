@@ -13,6 +13,8 @@ public struct CustomChallengeGameScreen: View {
     @Environment(HomeState.self) private var homeState
     @Environment(\.hapticsService) private var haptics
     @Environment(\.challengeStore) private var challengeStore
+    // Reference to main game store for achievement tracking
+    @Environment(\.gameStore) private var mainGameStore
     @State private var timeRemaining: Int
     @State private var isTimerActive = true
     @State private var showResult = false
@@ -90,9 +92,12 @@ public struct CustomChallengeGameScreen: View {
                 endChallenge(won: true)
             }
         }
-        .onChange(of: challengeGameStore.coins) { _, newValue in
-            // Sync gem spending back to player's inventory
-            homeState.gems = newValue
+        .onChange(of: challengeGameStore.coins) { oldValue, newValue in
+            // Only sync gem spending (decreases) back to player's inventory
+            // Don't sync gems earned during challenge - those don't count
+            if newValue < oldValue {
+                homeState.gems = newValue
+            }
         }
     }
 
@@ -272,6 +277,8 @@ public struct CustomChallengeGameScreen: View {
     private func handleUndo() {
         if challengeGameStore.state.undoAvailable {
             _ = challengeGameStore.useUndo()
+            // Track achievement progress using main game store
+            mainGameStore.achievementEvaluator?.onUndoUsed()
             haptics.lightImpact()
         } else {
             haptics.error()
@@ -283,6 +290,8 @@ public struct CustomChallengeGameScreen: View {
         if isHammerMode {
             if challengeGameStore.state.board[position] != nil {
                 _ = challengeGameStore.useHammer(at: position)
+                // Track achievement progress using main game store
+                mainGameStore.achievementEvaluator?.onPowerUpUsed(type: "hammer")
                 haptics.success()
                 isHammerMode = false
             } else {
@@ -297,6 +306,8 @@ public struct CustomChallengeGameScreen: View {
                 if let first = firstSwapPosition {
                     if first != position {
                         _ = challengeGameStore.useSwap(first, position)
+                        // Track achievement progress using main game store
+                        mainGameStore.achievementEvaluator?.onPowerUpUsed(type: "swap")
                         haptics.success()
                         isSwapMode = false
                         firstSwapPosition = nil
@@ -319,6 +330,8 @@ public struct CustomChallengeGameScreen: View {
             if let tile = challengeGameStore.state.board[position] {
                 let success = challengeGameStore.useMagnet(value: tile.value, to: position)
                 if success {
+                    // Track achievement progress using main game store
+                    mainGameStore.achievementEvaluator?.onPowerUpUsed(type: "magnet")
                     haptics.success()
                 } else {
                     haptics.warning()

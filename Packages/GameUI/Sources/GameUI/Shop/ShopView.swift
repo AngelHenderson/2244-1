@@ -252,7 +252,7 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(magnets) MegaMerges")
                         } icon: {
-                            Image(systemName: "magnet.fill")
+                            Image(systemName: "dot.radiowaves.left.and.right")
                         }
                         .font(.caption)
                     }
@@ -422,16 +422,32 @@ struct PerkBundleRow: View {
 
     private var perkIcon: Image {
         let iconName: String
+        let fallbackSystemName: String
         switch perk.item.lowercased() {
-        case "hammer": iconName = "HammerIcon"
-        case "swap": iconName = "SwapIcon"
-        case "magnet": iconName = "MegaMergeIcon"
-        default: iconName = "HammerIcon"
+        case "hammer":
+            iconName = "HammerIcon"
+            fallbackSystemName = "hammer.fill"
+        case "swap":
+            iconName = "SwapIcon"
+            fallbackSystemName = "arrow.left.arrow.right"
+        case "magnet":
+            iconName = "MegaMergeIcon"
+            fallbackSystemName = "dot.radiowaves.left.and.right"
+        default:
+            iconName = "HammerIcon"
+            fallbackSystemName = "star.fill"
         }
 
         #if canImport(UIKit)
+        // Try path-based loading first
         if let path = Bundle.module.path(forResource: iconName, ofType: "png"),
            let uiImage = UIImage(contentsOfFile: path) {
+            return Image(uiImage: uiImage)
+        }
+        // Try URL-based loading as fallback
+        if let url = Bundle.module.url(forResource: iconName, withExtension: "png"),
+           let data = try? Data(contentsOf: url),
+           let uiImage = UIImage(data: data) {
             return Image(uiImage: uiImage)
         }
         #elseif canImport(AppKit)
@@ -439,8 +455,12 @@ struct PerkBundleRow: View {
            let nsImage = NSImage(contentsOfFile: path) {
             return Image(nsImage: nsImage)
         }
+        if let url = Bundle.module.url(forResource: iconName, withExtension: "png"),
+           let nsImage = NSImage(contentsOf: url) {
+            return Image(nsImage: nsImage)
+        }
         #endif
-        return Image(systemName: "star.fill")
+        return Image(systemName: fallbackSystemName)
     }
 }
 

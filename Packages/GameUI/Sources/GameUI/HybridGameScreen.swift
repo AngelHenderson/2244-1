@@ -222,10 +222,14 @@ public struct HybridGameScreen: View {
                 tempHomeState.gems = newValue
             }
             .onChange(of: gameStore.state.highestTileStep) { _, newStep in
-                // Update rank immediately when milestone changes
-                // Compute milestone directly from step to avoid UserDefaults delay
-                let milestone = TileStepLabelFormatter.labelForStep(newStep, start: 2)
-                tempHomeState.rank = UserLeaderboardData.globalRank(for: milestone)
+                // Only update rank if this session's milestone beats or equals the all-time saved milestone
+                // This prevents the rank from getting worse when starting a new game session
+                let savedHighestStep = UserDefaults.standard.integer(forKey: "savedHighestTileStep")
+                if newStep >= savedHighestStep {
+                    // Compute milestone directly from step to avoid UserDefaults delay
+                    let milestone = TileStepLabelFormatter.labelForStep(newStep, start: 2)
+                    tempHomeState.rank = UserLeaderboardData.globalRank(for: milestone)
+                }
             }
         
         let sessionTracking = changeHandlers
