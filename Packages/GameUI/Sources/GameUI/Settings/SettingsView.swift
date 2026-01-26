@@ -341,8 +341,12 @@ struct GameCenterView: UIViewControllerRepresentable {
             self.dismiss = dismiss
         }
 
+        @available(iOS, deprecated: 26.0)
         func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
-            dismiss()
+            let dismissAction = dismiss
+            Task { @MainActor in
+                dismissAction()
+            }
         }
     }
 }
