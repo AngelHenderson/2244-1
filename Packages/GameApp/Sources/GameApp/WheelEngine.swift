@@ -196,21 +196,19 @@ public final class WheelEngine {
         // Simulate pin physics (spring-mass-damper system)
         simulatePinPhysics(dt: dt)
 
-        // Low-speed termination and snap
+        // Low-speed termination - stop wherever the wheel lands
         if abs(angularVelocity) < stopSpeedThreshold {
-            // If nearly aligned to a boundary center, snap & finish
-            if nearCenter(angle) {
-                isSpinning = false
-                angularVelocity = 0
-                stopAnimation()
-                snapToNearestCenter()
+            isSpinning = false
+            angularVelocity = 0
+            pinVelocity = 0
+            tickerDeflection = 0
+            stopAnimation()
 
-                // Call completion with winning segment
-                if let callback = onComplete {
-                    let winningSegment = segments[highlightedIndex]
-                    callback(winningSegment)
-                    onComplete = nil
-                }
+            // Call completion with winning segment
+            if let callback = onComplete {
+                let winningSegment = segments[highlightedIndex]
+                callback(winningSegment)
+                onComplete = nil
             }
         }
     }
