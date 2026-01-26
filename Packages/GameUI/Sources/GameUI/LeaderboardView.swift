@@ -7,6 +7,7 @@ public struct LeaderboardView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model: LeaderboardModel? = nil
     @State private var showError = false
+    @State private var showingTop150 = false
 
     private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
 
@@ -20,7 +21,11 @@ public struct LeaderboardView: View {
                 // Custom Navigation Bar
                 HStack {
                     Button {
-                        dismiss()
+                        if showingTop150 {
+                            showingTop150 = false
+                        } else {
+                            dismiss()
+                        }
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 18, weight: .semibold))
@@ -32,21 +37,44 @@ public struct LeaderboardView: View {
 
                     Spacer()
 
-                    Text("LEADERBOARD")
+                    Text(showingTop150 ? "TOP 150" : "LEADERBOARD")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(.white)
 
                     Spacer()
 
-                    // Invisible spacer for centering
-                    Color.clear
-                        .frame(width: 44, height: 44)
+                    // Top 150 button (only show in milestone view)
+                    if !showingTop150 {
+                        Button {
+                            showingTop150 = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "crown.fill")
+                                    .font(.system(size: 12))
+                                Text("Top 150")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(Color(red: 0.6, green: 0.5, blue: 0.2))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                    } else {
+                        // Invisible spacer for centering
+                        Color.clear
+                            .frame(width: 44, height: 44)
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
 
                 if let model {
-                    content(model)
+                    if showingTop150 {
+                        top150Content(model)
+                    } else {
+                        milestoneContent(model)
+                    }
                 } else {
                     Spacer()
                     ProgressView("Loading leaderboard...")
@@ -81,8 +109,202 @@ public struct LeaderboardView: View {
         }
     }
     
+    // MARK: - Milestone-Based View (Default)
+
     @ViewBuilder
-    private func content(_ m: LeaderboardModel) -> some View {
+    private func milestoneContent(_ m: LeaderboardModel) -> some View {
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userRank = UserLeaderboardData.globalRank
+
+        VStack(spacing: 0) {
+            // User's current position header
+            VStack(spacing: 6) {
+                Text("Your Global Rank")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .textCase(.uppercase)
+                    .tracking(1)
+
+                HStack(spacing: 8) {
+                    Text("#\(userRank)")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+
+                    Text("–")
+                        .font(.system(size: 28, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.4))
+
+                    Text(userMilestone)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(milestoneColor(for: userMilestone))
+                        )
+                }
+            }
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity)
+            .background(Color(red: 0.1, green: 0.12, blue: 0.18))
+
+            // Milestone tiers list (shows context around user's position)
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(milestoneTiersAroundUser(userMilestone: userMilestone), id: \.milestone) { tier in
+                        milestoneRow(
+                            milestone: tier.milestone,
+                            rankLabel: tier.rankLabel,
+                            isUserTier: tier.milestone == userMilestone
+                        )
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 16)
+            }
+        }
+    }
+
+    // All milestones in order from highest to lowest
+    // Includes: letter tiers (a-z, aa-az, etc.), B (Billion), M (Million), K (Thousand), raw numbers
+    private static let allMilestones: [String] = [
+        // Ultra-high tiers (alphabetic - highest first)
+        "1an", "693am", "346am", "173am", "86am", "43am", "21am", "10am", "5am", "2am",
+        "1am", "676al", "338al", "169al", "84al", "42al", "21al", "10al", "5al", "2al",
+        "1al", "661ak", "330ak", "165ak", "82ak", "41ak", "20ak", "10ak", "5ak", "2ak",
+        "1ak", "645aj", "322aj", "161aj", "80aj", "40aj", "20aj", "10aj", "5aj", "2aj",
+        "1aj", "630ai", "315ai", "157ai", "78ai", "39ai", "19ai", "9ai", "4ai", "2ai",
+        "1ai", "615ah", "307ah", "153ah", "76ah", "38ah", "19ah", "9ah", "4ah", "2ah",
+        "1ah", "601ag", "300ag", "150ag", "75ag", "37ag", "18ag", "9ag", "4ag", "2ag",
+        "1ag", "587af", "293af", "146af", "73af", "36af", "18af", "9af", "4af", "2af",
+        "1af", "573ae", "286ae", "143ae", "71ae", "35ae", "17ae", "8ae", "4ae", "2ae",
+        "1ae", "559ad", "279ad", "139ad", "69ad", "34ad", "17ad", "8ad", "4ad", "2ad",
+        "1ad", "546ac", "273ac", "136ac", "68ac", "34ac", "17ac", "8ac", "4ac", "2ac",
+        "1ac", "533ab", "266ab", "133ab", "66ab", "33ab", "16ab", "8ab", "4ab", "2ab",
+        "1ab", "521aa", "260aa", "130aa", "65aa", "32aa", "16aa", "8aa", "4aa", "2aa",
+        "1aa", "509z", "254z", "127z", "63z", "31z", "15z", "7z", "3z",
+        "1z", "497y", "248y", "124y", "62y", "31y", "15y", "7y", "3y",
+        "1y", "485x", "242x", "121x", "60x", "30x", "15x", "7x", "3x",
+        "1x", "474w", "237w", "118w", "59w", "29w", "14w", "7w", "3w",
+        "1w", "463v", "231v", "115v", "57v", "28v", "14v", "7v", "3v",
+        "1v", "452u", "226u", "113u", "56u", "28u", "14u", "7u", "3u",
+        "1u", "441t", "220t", "110t", "55t", "27t", "13t", "6t", "3t",
+        "1t", "431s", "215s", "107s", "53s", "26s", "13s", "6s", "3s",
+        "1s", "421r", "210r", "105r", "52r", "26r", "13r", "6r", "3r",
+        "1r", "411q", "205q", "102q", "51q", "25q", "12q", "6q", "3q",
+        "1q", "401p", "200p", "100p", "50p", "25p", "12p", "6p", "3p",
+        "1p", "392o", "196o", "98o", "49o", "24o", "12o", "6o", "3o",
+        "1o", "383n", "191n", "95n", "47n", "23n", "11n", "5n", "2n",
+        "1n", "374m", "187m", "93m", "46m", "23m", "11m", "5m", "2m",
+        "1m", "365l", "182l", "91l", "45l", "22l", "11l", "5l", "2l",
+        "1l", "356k", "178k", "89k", "44k", "22k", "11k", "5k", "2k",
+        "1k", "348j", "174j", "87j", "43j", "21j", "10j", "5j", "2j",
+        "1j", "340i", "170i", "85i", "42i", "21i", "10i", "5i", "2i",
+        "1i", "332h", "166h", "83h", "41h", "20h", "10h", "5h", "2h",
+        "1h", "324g", "162g", "81g", "40g", "20g", "10g", "5g", "2g",
+        "1g", "316f", "158f", "79f", "39f", "19f", "9f", "4f", "2f",
+        "1f", "309e", "154e", "77e", "38e", "19e", "9e", "4e", "2e",
+        "1e", "302d", "151d", "75d", "37d", "18d", "9d", "4d", "2d",
+        "1d", "295c", "147c", "73c", "36c", "18c", "9c", "4c", "2c",
+        "1c", "288b", "144b", "72b", "36b", "18b", "9b", "4b", "2b",
+        "1b", "281a", "140a", "70a", "35a", "17a", "8a", "4a", "2a",
+        "1a",
+        // Billions
+        "549B", "274B", "137B", "68B", "34B", "17B", "8B", "4B", "2B", "1B",
+        // Millions
+        "536M", "268M", "134M", "67M", "33M", "16M", "8M", "4M", "2M", "1M",
+        // Thousands
+        "524K", "262K", "131K", "65K", "32K", "16K",
+        // Raw numbers (lowest)
+        "8192", "4096", "2048", "1024", "512", "256", "128", "64", "32", "16", "8", "4", "2"
+    ]
+
+    /// Returns milestones around the user's current milestone (3 above, user, 3 below)
+    /// Each entry includes the rank number for that milestone tier
+    private func milestoneTiersAroundUser(userMilestone: String) -> [(milestone: String, rankLabel: String)] {
+        let milestones = Self.allMilestones
+
+        // Find user's position in the milestone list
+        guard let userIndex = milestones.firstIndex(of: userMilestone) else {
+            // User milestone not found - show starting milestones with calculated ranks
+            let endIndex = min(7, milestones.count)
+            return milestones[0..<endIndex].map { milestone in
+                let rank = UserLeaderboardData.globalRank(for: milestone)
+                return (milestone, "\(rank) - \(milestone)")
+            }
+        }
+
+        // Get 3 milestones above (better) and 3 below (worse)
+        let startIndex = max(0, userIndex - 3)
+        let endIndex = min(milestones.count, userIndex + 4)  // +4 because endIndex is exclusive
+
+        return milestones[startIndex..<endIndex].map { milestone in
+            let rank = UserLeaderboardData.globalRank(for: milestone)
+            return (milestone, "\(rank) - \(milestone)")
+        }
+    }
+
+    @ViewBuilder
+    private func milestoneRow(milestone: String, rankLabel: String, isUserTier: Bool) -> some View {
+        HStack(spacing: 0) {
+            // User indicator on left
+            if isUserTier {
+                Image(systemName: "arrowtriangle.right.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.cyan)
+                    .padding(.trailing, 8)
+            } else {
+                Color.clear.frame(width: 20)
+            }
+
+            // Rank label (e.g., "73150 - 1B")
+            Text(rankLabel)
+                .font(.system(size: 18, weight: isUserTier ? .bold : .medium, design: .rounded))
+                .foregroundStyle(isUserTier ? .white : .white.opacity(0.7))
+
+            Spacer()
+
+            // Milestone badge
+            Text(milestone)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(milestoneColor(for: milestone).opacity(isUserTier ? 1.0 : 0.5))
+                )
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isUserTier ? Color(red: 0.1, green: 0.2, blue: 0.3) : Color(red: 0.12, green: 0.14, blue: 0.18))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isUserTier ? Color.cyan.opacity(0.6) : Color.clear, lineWidth: 2)
+                )
+        )
+    }
+
+    private func milestoneColor(for milestone: String) -> Color {
+        // Color based on tier
+        if milestone.hasSuffix("B") {
+            return Color(red: 1.0, green: 0.84, blue: 0.0)  // Gold for Billions
+        } else if milestone.hasSuffix("M") {
+            return Color(red: 0.75, green: 0.75, blue: 0.78)  // Silver for Millions
+        } else if milestone.hasSuffix("K") {
+            return Color(red: 0.80, green: 0.50, blue: 0.20)  // Bronze for Thousands
+        } else {
+            return Color(red: 0.4, green: 0.3, blue: 0.5)  // Purple for raw numbers
+        }
+    }
+
+    // MARK: - Top 150 View
+
+    @ViewBuilder
+    private func top150Content(_ m: LeaderboardModel) -> some View {
         VStack(spacing: 0) {
             // Filter Tabs (based on user's country)
             HStack(spacing: 8) {
