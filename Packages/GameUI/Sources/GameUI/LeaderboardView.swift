@@ -166,19 +166,126 @@ public struct LeaderboardView: View {
 
             // Milestone tiers list (shows context around user's position)
             ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(milestoneTiersAroundUser(userMilestone: userMilestone, filter: m.selectedFilter), id: \.milestone) { tier in
-                        milestoneRow(
-                            milestone: tier.milestone,
-                            rankLabel: tier.rankLabel,
-                            isUserTier: tier.milestone == userMilestone
-                        )
+                VStack(spacing: 0) {
+                    LazyVStack(spacing: 8) {
+                        ForEach(milestoneTiersAroundUser(userMilestone: userMilestone, filter: m.selectedFilter), id: \.milestone) { tier in
+                            milestoneRow(
+                                milestone: tier.milestone,
+                                rankLabel: tier.rankLabel,
+                                isUserTier: tier.milestone == userMilestone
+                            )
+                        }
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 16)
+
+                    // Rank preview section - shows individual ranks for nearby milestones
+                    rankPreviewSection(userMilestone: userMilestone, filter: m.selectedFilter)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 16)
             }
         }
+    }
+
+    /// Shows individual rank examples for milestones around the user's position
+    @ViewBuilder
+    private func rankPreviewSection(userMilestone: String, filter: LeaderboardFilter) -> some View {
+        let previews = generateRankPreviews(userMilestone: userMilestone, filter: filter)
+
+        if !previews.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Rank Preview")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .textCase(.uppercase)
+                    .tracking(1)
+                    .padding(.bottom, 8)
+
+                ForEach(previews, id: \.rank) { preview in
+                    HStack {
+                        Text("\(preview.rank)")
+                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .foregroundStyle(preview.isUserRank ? .cyan : .white.opacity(0.6))
+
+                        Text(preview.isUserRank ? "-" : "=")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.4))
+
+                        Text(preview.milestone)
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(preview.isUserRank ? .cyan : .white.opacity(0.6))
+
+                        Spacer()
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(Color(red: 0.08, green: 0.09, blue: 0.12))
+        }
+    }
+
+    private struct RankPreview {
+        let rank: Int
+        let milestone: String
+        let isUserRank: Bool
+    }
+
+    /// Generates rank preview entries around the user's current rank
+    private func generateRankPreviews(userMilestone: String, filter: LeaderboardFilter) -> [RankPreview] {
+        let userRank = rankForFilter(filter, milestone: userMilestone)
+        var previews: [RankPreview] = []
+
+        // Get the milestones around user's position
+        let milestones = Self.allMilestones
+        guard let userIndex = milestones.firstIndex(of: userMilestone) else {
+            return []
+        }
+
+        // Show ranks from 3 above to 3 below user's rank
+        // Each milestone maps to a rank range, so show individual rank entries
+        let startRank = max(1, userRank - 3)
+        let endRank = userRank + 3
+
+        for rank in startRank...endRank {
+            // Find the milestone for this rank
+            let milestone = milestoneForRank(rank, filter: filter, userMilestone: userMilestone, userIndex: userIndex)
+            previews.append(RankPreview(
+                rank: rank,
+                milestone: milestone,
+                isUserRank: rank == userRank
+            ))
+        }
+
+        return previews
+    }
+
+    /// Finds the milestone that corresponds to a given rank
+    private func milestoneForRank(_ targetRank: Int, filter: LeaderboardFilter, userMilestone: String, userIndex: Int) -> String {
+        let milestones = Self.allMilestones
+
+        // Search nearby milestones to find one that matches the target rank
+        let searchRange = max(0, userIndex - 10)...min(milestones.count - 1, userIndex + 10)
+
+        var closestMilestone = userMilestone
+        var closestDiff = Int.max
+
+        for i in searchRange {
+            let milestone = milestones[i]
+            let rank = rankForFilter(filter, milestone: milestone)
+            let diff = abs(rank - targetRank)
+
+            if diff < closestDiff {
+                closestDiff = diff
+                closestMilestone = milestone
+            }
+
+            if rank == targetRank {
+                return milestone
+            }
+        }
+
+        return closestMilestone
     }
 
     /// Returns the header title based on the selected filter
