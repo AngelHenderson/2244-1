@@ -124,15 +124,17 @@ public final class SpinWheelState {
     
     public func beginSpin(now date: Date = Date()) -> SpinSource? {
         purgeExpiredMultiplier(now: date)
-        if slotAvailable(on: date) {
+        // Use bonus spins first
+        if bonusSpins > 0 {
+            bonusSpins -= 1
+            saveBonusSpins()
+            return .bonus
+        } else if slotAvailable(on: date) {
+            // Only use the 4-hour slot when no bonus spins remain
             let current = slotStart(for: date)
             lastConsumedSlot = current
             saveLastSlot()
             return .scheduledSlot(current)
-        } else if bonusSpins > 0 {
-            bonusSpins -= 1
-            saveBonusSpins()
-            return .bonus
         }
         return nil
     }
