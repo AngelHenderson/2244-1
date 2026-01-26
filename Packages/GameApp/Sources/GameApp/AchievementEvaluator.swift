@@ -493,12 +493,19 @@ public final class AchievementEvaluator {
     }
     
     public func onMoveSurvived() {
-        // surviveMovesTotal is now computed as: totalMoves - totalGameOvers
-        // Just update the snapshot with the current value
+        let multiplier = achievementBoostMultiplier
+
+        // Increment totalMoves with the achievement boost multiplier
+        let currentTotalMoves = defaults.integer(forKey: "totalMoves")
+        defaults.set(currentTotalMoves + multiplier, forKey: "totalMoves")
+
+        // surviveMovesTotal is computed as: totalMoves - totalGameOvers
         currentGameSnapshot.survive_moves_total = surviveMovesTotal
+        currentGameSnapshot.total_moves = defaults.integer(forKey: "totalMoves")
 
         var snapshot = currentGameSnapshot
         snapshot.survive_moves_total = surviveMovesTotal
+        snapshot.total_moves = currentGameSnapshot.total_moves
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }

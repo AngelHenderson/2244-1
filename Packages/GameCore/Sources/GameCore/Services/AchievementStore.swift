@@ -2128,7 +2128,8 @@ public final class AchievementStore {
             // Advance to next tier (don't mark as claimed, reset for next tier)
             if !isTileProgressionMaxed {
                 tileProgressionTier += 1
-                // State is already reset in the didSet of tileProgressionTier
+                // Re-evaluate to check if next tier is already met
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 // Max tier reached - mark as fully claimed
                 state.claimed = true
@@ -2137,7 +2138,7 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         // Special handling for moves progression achievement
         if definition.id == "moves_progression" {
             // Grant rewards from tier-specific rewards array
@@ -2152,7 +2153,8 @@ public final class AchievementStore {
             // Advance to next tier (don't mark as claimed, reset for next tier)
             if !isMovesProgressionMaxed {
                 movesProgressionTier += 1
-                // State is already reset in the didSet of movesProgressionTier
+                // Re-evaluate to check if next tier is already met
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 // Max tier reached - mark as fully claimed
                 state.claimed = true
@@ -2161,16 +2163,17 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         if definition.id == "combo_6_10" {
             let rewards = combo610Display.rewards
             if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isCombo610Maxed {
                 combo610Tier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2185,9 +2188,10 @@ public final class AchievementStore {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isCombo1115Maxed {
                 combo1115Tier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2195,16 +2199,17 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         if definition.id == "combo_16_20" {
             let rewards = combo1620Display.rewards
             if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isCombo1620Maxed {
                 combo1620Tier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2212,16 +2217,17 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         if definition.id == "combo_21_30" {
             let rewards = combo2130Display.rewards
             if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isCombo2130Maxed {
                 combo2130Tier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2229,16 +2235,17 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         if definition.id == "merge_progression" {
             let rewards = mergeDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isMergeProgressionMaxed {
                 mergeProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2246,16 +2253,17 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         if definition.id == "swap_usage_progression" {
             let rewards = swapUsesDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isSwapUsesProgressionMaxed {
                 swapUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2263,16 +2271,17 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         if definition.id == "hammer_usage_progression" {
             let rewards = hammerUsesDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isHammerUsesProgressionMaxed {
                 hammerUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2280,16 +2289,17 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         if definition.id == "spin_usage_progression" {
             let rewards = spinUsesDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isSpinUsesProgressionMaxed {
                 spinUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2297,16 +2307,17 @@ public final class AchievementStore {
             }
             return
         }
-        
+
         if definition.id == "survive_moves_progression" {
             let rewards = surviveMovesDisplay.rewards
             if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isSurviveMovesProgressionMaxed {
                 surviveMovesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2321,9 +2332,10 @@ public final class AchievementStore {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isPlaytimeProgressionMaxed {
                 playtimeProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2341,6 +2353,7 @@ public final class AchievementStore {
 
             if !isInfinityProgressionMaxed {
                 infinityProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2358,6 +2371,7 @@ public final class AchievementStore {
 
             if !isBoost2xUsesProgressionMaxed {
                 boost2xUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2375,6 +2389,7 @@ public final class AchievementStore {
 
             if !isBoost3xUsesProgressionMaxed {
                 boost3xUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2392,6 +2407,7 @@ public final class AchievementStore {
 
             if !isBoost4xUsesProgressionMaxed {
                 boost4xUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2409,6 +2425,7 @@ public final class AchievementStore {
 
             if !isSpinPurchasesProgressionMaxed {
                 spinPurchasesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2426,6 +2443,7 @@ public final class AchievementStore {
 
             if !isDailyClaimsProgressionMaxed {
                 dailyClaimsProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2443,6 +2461,7 @@ public final class AchievementStore {
 
             if !isBoost5xUsesProgressionMaxed {
                 boost5xUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2460,6 +2479,7 @@ public final class AchievementStore {
 
             if !isBoost20xUsesProgressionMaxed {
                 boost20xUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2477,6 +2497,7 @@ public final class AchievementStore {
 
             if !isWheelCollectsProgressionMaxed {
                 wheelCollectsProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2491,9 +2512,10 @@ public final class AchievementStore {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isChallengeCreationMaxed {
                 challengeCreationTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2508,9 +2530,10 @@ public final class AchievementStore {
                 grantGemsDirectly(gems)
             }
             onReward?(rewards)
-            
+
             if !isMagnetUsesProgressionMaxed {
                 magnetUsesProgressionTier += 1
+                reEvaluateAfterClaim(achievementId: definition.id)
             } else {
                 state.claimed = true
                 unlocks[definition.id] = state
@@ -2532,9 +2555,10 @@ public final class AchievementStore {
                 highestClaimedLeaderboardTier = claimedTierIndex
             }
 
-            // Reset unlock state for next tier evaluation
+            // Reset unlock state for next tier evaluation and re-evaluate
             unlocks[definition.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
             saveUnlocks()
+            reEvaluateAfterClaim(achievementId: definition.id)
             return
         }
 
@@ -2553,7 +2577,162 @@ public final class AchievementStore {
         // Call reward callback for power-ups, spins, etc.
         onReward?(rewards)
     }
-    
+
+    /// Re-evaluates a specific achievement after claiming to check if the next tier is already met.
+    /// This ensures the claim button stays visible when multiple tiers are claimable.
+    private func reEvaluateAfterClaim(achievementId: String) {
+        guard let snapshot = lastEvaluatedSnapshot else { return }
+
+        switch achievementId {
+        case "tile_progression":
+            let targetValue = currentTileTier.value
+            if snapshot.max_tile >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "moves_progression":
+            let targetValue = currentMovesTier.value
+            if Double(snapshot.total_moves) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "combo_6_10":
+            let targetValue = Double(currentCombo610Tier.milestone)
+            if Double(snapshot.combo610Total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "combo_11_15":
+            let targetValue = Double(currentCombo1115Tier.milestone)
+            if Double(snapshot.combo1115Total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "combo_16_20":
+            let targetValue = Double(currentCombo1620Tier.milestone)
+            if Double(snapshot.combo1620Total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "combo_21_30":
+            let targetValue = Double(currentCombo2130Tier.milestone)
+            if Double(snapshot.combo2130Total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "merge_progression":
+            let targetValue = Double(currentMergeTier.milestone)
+            if Double(snapshot.merged_tiles_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "swap_usage_progression":
+            let targetValue = Double(currentSwapUsesTier.milestone)
+            if Double(snapshot.swap_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "hammer_usage_progression":
+            let targetValue = Double(currentHammerUsesTier.milestone)
+            if Double(snapshot.hammer_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "spin_usage_progression":
+            let targetValue = Double(currentSpinUsesTier.milestone)
+            if Double(snapshot.spin_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "survive_moves_progression":
+            let targetValue = Double(currentSurviveMovesTier.milestone)
+            if Double(snapshot.survive_moves_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "magnet_usage_progression":
+            let targetValue = Double(currentMagnetUsesTier.milestone)
+            if Double(snapshot.magnet_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "challenge_creation":
+            let targetValue = Double(currentChallengeCreationTier.milestone)
+            if Double(snapshot.challenge_creations_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "infinity_progression":
+            let targetValue = Double(currentInfinityTier.milestone)
+            if Double(snapshot.infinity_creations_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "playtime_progression":
+            let targetValue = Double(currentPlaytimeTier.milestone)
+            if Double(snapshot.play_minutes_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "boost2x_usage_progression":
+            let targetValue = Double(currentBoost2xUsesTier.milestone)
+            if Double(snapshot.boost2x_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "boost3x_usage_progression":
+            let targetValue = Double(currentBoost3xUsesTier.milestone)
+            if Double(snapshot.boost3x_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "boost4x_usage_progression":
+            let targetValue = Double(currentBoost4xUsesTier.milestone)
+            if Double(snapshot.boost4x_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "boost5x_usage_progression":
+            let targetValue = Double(currentBoost5xUsesTier.milestone)
+            if Double(snapshot.boost5x_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "boost20x_usage_progression":
+            let targetValue = Double(currentBoost20xUsesTier.milestone)
+            if Double(snapshot.boost20x_uses_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "spin_purchases_progression":
+            let targetValue = Double(currentSpinPurchasesTier.milestone)
+            if Double(snapshot.spin_purchases_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "daily_claims_progression":
+            let targetValue = Double(currentDailyClaimsTier.milestone)
+            if Double(snapshot.daily_claims_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "wheel_collects_progression":
+            let targetValue = Double(currentWheelCollectsTier.milestone)
+            if Double(snapshot.wheel_collects_total) >= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        case "leaderboard_rank_progression":
+            let targetValue = currentLeaderboardRankTier.milestone
+            if snapshot.best_leaderboard_rank > 0 && snapshot.best_leaderboard_rank <= targetValue {
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                saveUnlocks()
+            }
+        default:
+            break
+        }
+    }
+
     public func progress(for definition: AchievementDef) -> AchievementProgress? {
         guard let snapshot = lastEvaluatedSnapshot else { return nil }
         

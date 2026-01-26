@@ -221,6 +221,16 @@ public struct LiveProfileClient: ProfileClient, Sendable {
     }
 
     private func calculateGlobalRank(milestone: String?) -> Int {
+        // Use the same aggregated calculation as the HUD and leaderboard for consistency
+        // This delegates to UserLeaderboardData which aggregates all country data
+        let userMilestone = UserDefaults.standard.string(forKey: "leaderboard.milestone") ?? milestone ?? "16M"
+        return UserLeaderboardData.globalRank(for: userMilestone)
+    }
+}
+
+// MARK: - Legacy calculateGlobalRank implementation (kept for reference)
+private enum LegacyProfileRankCalculation {
+    static func calculateGlobalRank(milestone: String?) -> Int {
         // Use milestone from leaderboard data if available, otherwise use profile's highestTile
         let userMilestone = UserDefaults.standard.string(forKey: "leaderboard.milestone") ?? milestone ?? "16M"
 

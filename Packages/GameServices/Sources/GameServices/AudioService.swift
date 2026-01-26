@@ -69,21 +69,21 @@ public actor LiveAudioService: AudioServiceProtocol {
     private let storage = AudioSettingsStorage()
 
     /// Maps theme IDs to their audio configuration
+    /// Note: Files are at bundle root level (synchronized groups flatten directory structure)
     private struct InstrumentConfig {
-        let subdirectory: String
         let filePrefix: String
         let tapSoundCount: Int
 
         static let configs: [String: InstrumentConfig] = [
-            "piano": InstrumentConfig(subdirectory: "Audio/Pianos", filePrefix: "piano_tap_", tapSoundCount: 3),
-            "xylophone": InstrumentConfig(subdirectory: "Audio/Xylophone", filePrefix: "xylophone_tap_", tapSoundCount: 3),
-            "guitar": InstrumentConfig(subdirectory: "Audio/Guitar", filePrefix: "guitar_tap_", tapSoundCount: 3),
-            "kalimba": InstrumentConfig(subdirectory: "Audio/Kalimba", filePrefix: "kalimba_tap_", tapSoundCount: 3),
-            "muted-nylon": InstrumentConfig(subdirectory: "Audio/Muted Nylon", filePrefix: "muted_nylon_tap_", tapSoundCount: 3),
-            "drum": InstrumentConfig(subdirectory: "Audio/Drum", filePrefix: "drum_tap_", tapSoundCount: 3)
+            "piano": InstrumentConfig(filePrefix: "piano_tap_", tapSoundCount: 3),
+            "xylophone": InstrumentConfig(filePrefix: "xylophone_tap_", tapSoundCount: 3),
+            "guitar": InstrumentConfig(filePrefix: "guitar_tap_", tapSoundCount: 3),
+            "kalimba": InstrumentConfig(filePrefix: "kalimba_tap_", tapSoundCount: 3),
+            "muted-nylon": InstrumentConfig(filePrefix: "muted_nylon_tap_", tapSoundCount: 3),
+            "drum": InstrumentConfig(filePrefix: "drum_tap_", tapSoundCount: 3)
         ]
 
-        static let defaultConfig = InstrumentConfig(subdirectory: "Audio/Pianos", filePrefix: "piano_tap_", tapSoundCount: 3)
+        static let defaultConfig = InstrumentConfig(filePrefix: "piano_tap_", tapSoundCount: 3)
     }
     
     public init() {
@@ -123,29 +123,18 @@ public actor LiveAudioService: AudioServiceProtocol {
     public func playMusic(named fileName: String, loop: Bool) async {
         let enabled = await MainActor.run { storage.musicEnabled }
         guard enabled else { return }
-        
+
         await stopMusic()
-        
-        // Try different path combinations
-        var url: URL?
-        
-        // For piano files, look in Audio/Pianos subdirectory
-        if fileName.hasPrefix("piano_") {
-            url = Bundle.main.url(forResource: fileName, withExtension: "mp3", subdirectory: "Audio/Pianos")
-            print("🎵 Looking for piano file: \(fileName) in Audio/Pianos, found: \(url != nil)")
-        }
-        
-        // Fallback to root bundle
-        if url == nil {
-            url = Bundle.main.url(forResource: fileName, withExtension: "mp3") ?? 
+
+        // Look for audio file at bundle root (synchronized groups flatten directory structure)
+        let url = Bundle.main.url(forResource: fileName, withExtension: "mp3") ??
                   Bundle.main.url(forResource: fileName, withExtension: "wav")
-        }
-        
+
         guard let audioUrl = url else {
             print("❌ Audio file not found: \(fileName)")
             return
         }
-        
+
         do {
             print("🎵 Playing music: \(fileName) from \(audioUrl)")
             musicPlayer = try AVAudioPlayer(contentsOf: audioUrl)
@@ -196,20 +185,10 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
         
-        // Try different path combinations for SFX
-        var url: URL?
-        
-        // For piano files, look in Audio/Pianos subdirectory
-        if name.hasPrefix("piano_") {
-            url = Bundle.main.url(forResource: name, withExtension: "mp3", subdirectory: "Audio/Pianos")
-        }
-        
-        // Fallback to root bundle
-        if url == nil {
-            url = Bundle.main.url(forResource: name, withExtension: "mp3") ?? 
+        // Look for SFX at bundle root (synchronized groups flatten directory structure)
+        let url = Bundle.main.url(forResource: name, withExtension: "mp3") ??
                   Bundle.main.url(forResource: name, withExtension: "wav")
-        }
-        
+
         guard let audioUrl = url else {
             print("SFX file not found: \(name)")
             return
@@ -254,20 +233,12 @@ public actor LiveAudioService: AudioServiceProtocol {
 
         for index in 1...soundCount {
             let soundName = "\(config.filePrefix)\(index)"
-            var url: URL?
 
-            // Try instrument-specific subdirectory first (only if not piano)
-            if effectiveTheme != "piano" {
-                url = Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: config.subdirectory)
-            }
+            // Try instrument-specific sound first, fall back to piano
+            // All files are at bundle root (synchronized groups flatten directory structure)
+            var url = Bundle.main.url(forResource: soundName, withExtension: "mp3")
 
-            // Always fall back to piano sounds if not found
-            if url == nil {
-                let pianoSoundName = "piano_tap_\(index)"
-                url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3", subdirectory: "Audio/Pianos")
-            }
-
-            // Final fallback to root bundle (piano files without subdirectory)
+            // Fall back to piano sounds if instrument sound not found
             if url == nil {
                 let pianoSoundName = "piano_tap_\(index)"
                 url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3") ??
@@ -311,32 +282,18 @@ public actor LiveAudioService: AudioServiceProtocol {
         let soundName = "\(config.filePrefix)\(soundIndex)"
         print("🎹 Attempting to play \(effectiveTheme) sound: \(soundName) (index: \(soundIndex))")
 
-        // Try different path combinations for tap sounds
-        var url: URL?
+        // All files are at bundle root (synchronized groups flatten directory structure)
+        // Try instrument-specific sound first
+        var url = Bundle.main.url(forResource: soundName, withExtension: "mp3")
 
-        // Look in instrument-specific subdirectory first (only if not piano, to avoid double lookup)
-        if effectiveTheme != "piano" {
-            url = Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: config.subdirectory)
-            print("🎹 Looking in \(config.subdirectory): \(url != nil ? "found" : "not found")")
-        }
-
-        // Always fall back to piano sounds if not found or if theme is piano
-        if url == nil {
-            let pianoSoundName = "piano_tap_\(soundIndex)"
-            url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3", subdirectory: "Audio/Pianos")
-            if effectiveTheme != "piano" {
-                print("🎹 Falling back to piano sound: \(url != nil ? "found" : "not found")")
-            } else {
-                print("🎹 Looking for piano sound: \(url != nil ? "found" : "not found")")
-            }
-        }
-
-        // Final fallback to root bundle (try piano files without subdirectory)
+        // Fall back to piano sounds if not found
         if url == nil {
             let pianoSoundName = "piano_tap_\(soundIndex)"
             url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3") ??
                   Bundle.main.url(forResource: pianoSoundName, withExtension: "wav")
-            print("🎹 Root bundle piano search: \(url != nil ? "found" : "not found")")
+            if effectiveTheme != "piano" {
+                print("🎹 Falling back to piano sound: \(url != nil ? "found" : "not found")")
+            }
         }
 
         guard let audioUrl = url else {
@@ -345,11 +302,11 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            print("🎹 Playing \(theme) sound: \(soundName) from \(audioUrl)")
+            print("🎹 Playing \(effectiveTheme) sound: \(soundName) from \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.7
             player.play()
-            print("✅ \(theme.capitalized) sound started playing: \(soundName)")
+            print("✅ \(effectiveTheme.capitalized) sound started playing: \(soundName)")
 
             sfxPlayers.append(player)
 
@@ -358,7 +315,7 @@ public actor LiveAudioService: AudioServiceProtocol {
                 await removeSfxPlayer(player)
             }
         } catch {
-            print("❌ Failed to play \(theme) tap sound: \(error)")
+            print("❌ Failed to play \(effectiveTheme) tap sound: \(error)")
         }
     }
     

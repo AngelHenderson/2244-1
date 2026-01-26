@@ -643,8 +643,10 @@ public final class GameStore {
             self.powerUpInventory = progress.powerUpInventory
             
             // Restore journey state
-            self.journey.highestTile = progress.journeyState.highestTile
-            self.journey.claimed = progress.journeyState.claimedTiles
+            self.journey.restoreState(
+                highestTile: progress.journeyState.highestTile,
+                claimed: progress.journeyState.claimedTiles
+            )
             self.claimedJourneyAbbreviationRewards = progress.journeyState.claimedAbbreviationTiers
             
             // Restore session-specific data
@@ -674,8 +676,10 @@ public final class GameStore {
                 syncEngineGems()
                 syncEngineScoreBoost()
                 self.powerUpInventory = progress.powerUpInventory
-                self.journey.highestTile = progress.journeyState.highestTile
-                self.journey.claimed = progress.journeyState.claimedTiles
+                self.journey.restoreState(
+                    highestTile: progress.journeyState.highestTile,
+                    claimed: progress.journeyState.claimedTiles
+                )
                 self.claimedJourneyAbbreviationRewards = progress.journeyState.claimedAbbreviationTiers
                 print("📂 Loaded basic progress - Gems: \(progress.gems), Highest: \(progress.highestTile)")
             } else {
@@ -2448,7 +2452,10 @@ extension GameStore {
     
     private func incrementTierMasteryCount(for tile: Tile?, value: Int, chainLength: Int = 1) {
         guard let suffix = tierSuffix(for: tile, value: value) else { return }
-        tierMasteryCounts[suffix, default: 0] += chainLength
+        // Use full assignment to ensure @Observable detects the change
+        var newCounts = tierMasteryCounts
+        newCounts[suffix, default: 0] += chainLength
+        tierMasteryCounts = newCounts
         persistTierMasteryCountsToDefaults()
     }
     
@@ -2966,9 +2973,9 @@ extension GameStore {
         // Update session statistics
         let currentMerges = UserDefaults.standard.integer(forKey: "totalMerges")
         UserDefaults.standard.set(currentMerges + 1, forKey: "totalMerges")
-        
-        let currentTotalMoves = UserDefaults.standard.integer(forKey: "totalMoves")
-        UserDefaults.standard.set(currentTotalMoves + 1, forKey: "totalMoves")
+
+        // Note: totalMoves is now incremented in AchievementEvaluator.onMoveSurvived()
+        // to apply the achievement boost multiplier
         
         // Update total time played
         if let sessionStart = UserDefaults.standard.object(forKey: "sessionStartTime") as? Date {
@@ -3218,14 +3225,14 @@ extension GameStore {
         
         // Restore JourneyKit state
         let journeyHighest = UserDefaults.standard.integer(forKey: "journeyHighestTile")
-        if journeyHighest > 0 {
-            journey.highestTile = journeyHighest
-        }
-        
+        var claimedTiles: Set<Int> = []
         if let journeyClaimedData = UserDefaults.standard.data(forKey: "journeyClaimedTiles"),
-           let claimedTiles = try? JSONDecoder().decode([Int].self, from: journeyClaimedData) {
-            journey.claimed = Set(claimedTiles)
+           let decoded = try? JSONDecoder().decode([Int].self, from: journeyClaimedData) {
+            claimedTiles = Set(decoded)
             print("🔄 Restored journey claimed tiles: \(claimedTiles.count)")
+        }
+        if journeyHighest > 0 || !claimedTiles.isEmpty {
+            journey.restoreState(highestTile: journeyHighest, claimed: claimedTiles)
         }
         
         if let abbreviationClaimsData = UserDefaults.standard.data(forKey: journeyAbbreviationClaimsKey),

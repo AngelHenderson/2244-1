@@ -37,8 +37,12 @@ public struct PlayerProfileView: View {
                     Button("Compare") { model.showCompare = true }
                 }
             }
-            .task { 
+            .task {
                 await model.load(using: client)
+                updateTierStatsFromStore()
+            }
+            .onAppear {
+                // Also load tiers synchronously on appear to ensure they're always fresh
                 updateTierStatsFromStore()
             }
             .sheet(isPresented: $model.showCustomize) {
@@ -514,12 +518,24 @@ private struct CountryPickerView: View {
 
     // Codes that are not actual countries (continents, regions, organizations, etc.)
     private let excludedCodes: Set<String> = [
-        "EU", "EZ", "UN", "QO", "ZZ", "XK",  // Organizations and special codes
+        "EU", "EZ", "UN", "QO", "ZZ",  // Organizations and special codes
         "AC", "CP", "DG", "EA", "IC", "TA",  // Minor territories
-        "001", "002", "003", "005", "009", "011", "013", "014", "015", "017", "018", "019",  // Continents/regions (numeric)
+        // Numeric codes for continents/regions
+        "001", "002", "003", "005", "009", "011", "013", "014", "015", "017", "018", "019",
         "021", "029", "030", "034", "035", "039", "053", "054", "057", "061",
         "142", "143", "145", "150", "151", "154", "155", "202", "419"
     ]
+
+    // Filter out entries that don't have valid flag emojis (regions show as text without flags)
+    private func isValidCountry(_ code: String) -> Bool {
+        // Exclude codes in the exclusion list
+        if excludedCodes.contains(code) { return false }
+        // Exclude 3-digit numeric codes (regions)
+        if code.count == 3 && code.allSatisfy({ $0.isNumber }) { return false }
+        // Only include 2-letter codes that produce valid flags
+        if code.count != 2 { return false }
+        return true
+    }
 
     private var allCountryCodes: [String] {
         let codes: [String]
@@ -529,7 +545,7 @@ private struct CountryPickerView: View {
             codes = Locale.isoRegionCodes
         }
         return codes
-            .filter { !excludedCodes.contains($0) }
+            .filter { isValidCountry($0) }
             .sorted { countryName($0) < countryName($1) }
     }
 }

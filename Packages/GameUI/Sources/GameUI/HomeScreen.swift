@@ -71,7 +71,7 @@ public struct HomeScreen: View {
                 }
                 
                 // Journey road preview (live view)
-                JourneyPanel(showAll: false)
+                JourneyPanel()
                     .frame(maxWidth: .infinity)
                     .frame(height: 720)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -158,7 +158,7 @@ private struct AllBlocksView: View {
     
     var body: some View {
         NavigationStack {
-            JourneyPanel(showAll: true)
+            JourneyPanel()
                 .navigationTitle("Journey")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {

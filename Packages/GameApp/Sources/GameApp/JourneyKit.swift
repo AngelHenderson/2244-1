@@ -255,6 +255,18 @@ public enum JourneyKit {
       persist()
     }
 
+    /// Restore state from external source (e.g., cloud sync, saved progress).
+    /// This updates the state and persists it.
+    public func restoreState(highestTile newHighest: TileValue, claimed newClaimed: Set<TileValue>) {
+      let oldHighest = highestTile
+      highestTile = max(oldHighest, newHighest)
+      claimed = claimed.union(newClaimed)
+      if highestTile != oldHighest {
+        continuation.yield(.highestUpdated(highestTile))
+      }
+      persist()
+    }
+
     private func persist() {
       let s = State(highestTile: highestTile, claimed: claimed)
       Self.save(s, to: kv, key: stateKey)

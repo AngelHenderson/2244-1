@@ -28,7 +28,8 @@ public struct TileScrollerView: View {
     
     // Build the full journey, then reverse for an upward-growing panel (2 near bottom, Infinity toward top).
     private var tiles: [(id: Int, tile: Tile)] {
-        let modelsAscending = JourneyTileGenerator.generateFullJourney()
+        // Use GameCore's generator which handles values beyond Int.max (up to 873bz)
+        let modelsAscending = GameCore.JourneyTileGenerator.generateFullJourney()
         let models = modelsAscending.reversed() // visual goes up
         return Array(models.enumerated().map { ($0.offset, $0.element) })
     }

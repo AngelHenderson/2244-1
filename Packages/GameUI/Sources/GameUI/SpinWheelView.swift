@@ -116,28 +116,6 @@ public struct SpinWheelView: View {
     
     private var wheelRow: some View {
         VStack(spacing: 16) {
-            HStack(alignment: .center, spacing: 24) {
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [.cyan.opacity(0.9), .blue],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: 140, height: 38)
-                    .overlay(
-                        HStack(spacing: 6) {
-                            Image(systemName: "bolt.fill")
-                                .foregroundStyle(.white)
-                            Text("2X BONUS")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                        }
-                    )
-                
-            }
-            
             ZStack {
                 Circle()
                     .fill(Color(red: 0.10, green: 0.10, blue: 0.24))
@@ -168,7 +146,7 @@ public struct SpinWheelView: View {
                     )
                     .frame(width: 32, height: 48)
                     .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
-                    .offset(y: -229)
+                    .offset(y: -200)
                     .shadow(color: Color(red: 0.2, green: 0.5, blue: 0.2).opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()

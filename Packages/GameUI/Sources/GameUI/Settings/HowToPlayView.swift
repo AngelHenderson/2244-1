@@ -17,36 +17,50 @@ public struct HowToPlayView: View {
         ),
         TutorialPage(
             title: "Connect Tiles",
-            subtitle: "Draw chains",
-            description: "Drag your finger across adjacent tiles to create a chain. Tiles can connect in all 8 directions - horizontal, vertical, and diagonal.",
+            subtitle: "Same or double",
+            description: "You can connect a tile that is the same value or double the previous tile in your chain.",
             systemImage: "hand.draw.fill",
             imageColor: .green
         ),
         TutorialPage(
-            title: "Chain Rules",
-            subtitle: "Same or double",
-            description: "Start with two tiles of the same value. Then you can add tiles that are the same value OR double the previous tile in your chain.",
-            systemImage: "link",
+            title: "8 Directions",
+            subtitle: "Connect anywhere",
+            description: "Connect tiles in all 8 directions - horizontal, vertical, and diagonal.",
+            systemImage: "arrow.up.left.and.arrow.down.right",
             imageColor: .orange
         ),
         TutorialPage(
             title: "Merge & Score",
             subtitle: "Watch them combine",
-            description: "When you release your chain, all tiles merge into one! The final value depends on how many tiles you chained together. Longer chains = higher values!",
+            description: "When you release your chain, all tiles merge into one! Longer chains = higher values!",
             systemImage: "arrow.triangle.merge",
             imageColor: .purple
         ),
         TutorialPage(
-            title: "Power-Ups",
-            subtitle: "Special abilities",
-            description: "Use power-ups to help you:\n\n🔨 Hammer - Remove any tile\n🔄 Swap - Switch two tiles\n🧲 Magnet - Attract matching tiles\n↩️ Undo - Reverse your last move",
-            systemImage: "bolt.fill",
+            title: "Hammer",
+            subtitle: "Power-Up",
+            description: "Remove any single tile from the board.",
+            systemImage: "hammer.fill",
+            imageColor: .red
+        ),
+        TutorialPage(
+            title: "Swap",
+            subtitle: "Power-Up",
+            description: "Switch the positions of two tiles on the board.",
+            systemImage: "arrow.left.arrow.right",
+            imageColor: .cyan
+        ),
+        TutorialPage(
+            title: "MegaMerge",
+            subtitle: "Power-Up",
+            description: "Merge all tiles of the same value on the board at once!",
+            systemImage: "sparkles",
             imageColor: .yellow
         ),
         TutorialPage(
             title: "You're Ready!",
             subtitle: "Start playing",
-            description: "Reach higher tile values to unlock new milestones and climb the leaderboard. Good luck!",
+            description: "Reach higher tile values to climb the leaderboard and get infinity. Good luck!",
             systemImage: "trophy.fill",
             imageColor: .mint
         )

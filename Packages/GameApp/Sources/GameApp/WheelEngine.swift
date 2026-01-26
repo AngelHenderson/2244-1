@@ -196,21 +196,19 @@ public final class WheelEngine {
         // Simulate pin physics (spring-mass-damper system)
         simulatePinPhysics(dt: dt)
 
-        // Low-speed termination and snap
+        // Low-speed termination - stop wherever the wheel lands
         if abs(angularVelocity) < stopSpeedThreshold {
-            // If nearly aligned to a boundary center, snap & finish
-            if nearCenter(angle) {
-                isSpinning = false
-                angularVelocity = 0
-                stopAnimation()
-                snapToNearestCenter()
+            isSpinning = false
+            angularVelocity = 0
+            pinVelocity = 0
+            tickerDeflection = 0
+            stopAnimation()
 
-                // Call completion with winning segment
-                if let callback = onComplete {
-                    let winningSegment = segments[highlightedIndex]
-                    callback(winningSegment)
-                    onComplete = nil
-                }
+            // Call completion with winning segment
+            if let callback = onComplete {
+                let winningSegment = segments[highlightedIndex]
+                callback(winningSegment)
+                onComplete = nil
             }
         }
     }
@@ -219,31 +217,31 @@ public final class WheelEngine {
         let n = max(segments.count, 1)
         let span = 2 * .pi / CGFloat(n)
 
-        // Find distance to nearest slice divider
-        let normalizedAngle = Self.wrap(-angle, modulus: 2 * .pi)
+        // Find position relative to nearest divider using wheel angle directly
+        let normalizedAngle = Self.wrap(angle, modulus: 2 * .pi)
         let positionInSlice = normalizedAngle.truncatingRemainder(dividingBy: span)
-        let distanceFromEdge = min(positionInSlice, span - positionInSlice)
+
+        // Distance to edges
+        let distanceToPrevEdge = positionInSlice
 
         // Contact zone where pin touches divider
-        let contactZone: CGFloat = span * 0.15
-        let maxDeflect: CGFloat = 25 * .pi / 180 // 25° max
+        let contactZone: CGFloat = span * 0.20
+        let maxDeflect: CGFloat = 24 * .pi / 180 // 24° max
 
         // Calculate target deflection based on contact
         var targetDeflection: CGFloat = 0
 
-        if distanceFromEdge < contactZone {
-            // Pin is in contact with divider - calculate forced deflection
-            let penetration = (contactZone - distanceFromEdge) / contactZone
-            let direction: CGFloat = positionInSlice < span / 2 ? 1.0 : -1.0
-            targetDeflection = penetration * maxDeflect * direction
+        // Check if we're near an edge and deflect accordingly
+        if distanceToPrevEdge < contactZone {
+            // Just passed an edge - pin moves with the divider (right when spinning clockwise)
+            let penetration = (contactZone - distanceToPrevEdge) / contactZone
+            targetDeflection = -penetration * maxDeflect
 
-            // Add extra impulse based on wheel speed when first contacting
-            let speedFactor = min(abs(angularVelocity) / 10.0, 1.5)
-            targetDeflection *= (1.0 + speedFactor * 0.3)
+            let speedFactor = min(abs(angularVelocity) / 8.0, 2.0)
+            targetDeflection *= (1.0 + speedFactor * 0.4)
         }
 
         // Spring-mass-damper physics: F = -kx - cv
-        // Where x is displacement from target, v is velocity
         let displacement = tickerDeflection - targetDeflection
         let springForce = -pinSpringK * displacement
         let dampingForce = -pinDamping * pinVelocity
@@ -256,11 +254,11 @@ public final class WheelEngine {
         tickerDeflection += pinVelocity * dt
 
         // Clamp deflection to reasonable range
-        let clampedMax: CGFloat = 30 * .pi / 180
+        let clampedMax: CGFloat = 28 * .pi / 180
         tickerDeflection = max(-clampedMax, min(clampedMax, tickerDeflection))
 
         // Apply velocity damping for stability
-        pinVelocity *= 0.98
+        pinVelocity *= 0.985
     }
     
     private func checkDividerCrossing(from old: CGFloat, to new: CGFloat) {
