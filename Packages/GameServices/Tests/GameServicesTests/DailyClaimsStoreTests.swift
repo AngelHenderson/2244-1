@@ -1,5 +1,5 @@
 import XCTest
-@testable import GameServices
+@testable import GameCore
 
 @MainActor
 final class DailyClaimsStoreTests: XCTestCase {

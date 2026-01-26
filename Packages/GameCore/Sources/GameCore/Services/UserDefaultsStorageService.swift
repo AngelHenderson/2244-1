@@ -77,5 +77,3 @@ public struct UserDefaultsStorageService: StorageServiceProtocol, @unchecked Sen
         defaults.set(value, forKey: Keys.bestScore)
     }
 }
-
-

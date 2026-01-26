@@ -1,6 +1,5 @@
 import SwiftUI
 import GameApp
-import GameServices
 
 struct StoreView: View {
     @Environment(\.gameStore) private var gameStore

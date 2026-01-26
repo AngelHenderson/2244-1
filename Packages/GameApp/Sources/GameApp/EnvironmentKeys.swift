@@ -1,5 +1,5 @@
 import SwiftUI
-import GameServices
+import GameCore
 
 // Default implementations for environment values
 private struct DefaultGameStore: Sendable {
@@ -109,4 +109,3 @@ public struct SpinWheelStateKey: EnvironmentKey {
         }
     }
 }
-

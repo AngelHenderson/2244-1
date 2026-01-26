@@ -1,7 +1,6 @@
 import SwiftUI
 import GameCore
 import GameApp
-import GameServices
 
 /// Dedicated screen for playing custom challenges (separate from regular gameplay)
 public struct CustomChallengeGameScreen: View {

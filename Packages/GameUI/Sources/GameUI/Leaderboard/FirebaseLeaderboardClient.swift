@@ -1,9 +1,12 @@
 import Foundation
-import GameServices
+import GameCore
 
 #if canImport(FirebaseAuth)
 import FirebaseAuth
 #endif
+
+#if canImport(GameServices)
+import GameServices
 
 /// Firebase-based implementation of LeaderboardClient
 public extension LeaderboardClient {
@@ -160,7 +163,7 @@ private func mapPeriodToBoard(_ period: LeaderboardPeriod) -> LeaderboardBoard {
 
 @MainActor
 private func convertFirebaseEntriesToUI(
-    _ firebaseEntries: [GameServices.LeaderboardEntry],
+    _ firebaseEntries: [GameCore.LeaderboardServiceEntry],
     service: LeaderboardService
 ) async throws -> [LeaderboardEntry] {
     
@@ -181,7 +184,7 @@ private func convertFirebaseEntriesToUI(
 
 @MainActor 
 private func convertFirebaseEntryToUI(
-    _ firebaseEntry: GameServices.LeaderboardEntry,
+    _ firebaseEntry: GameCore.LeaderboardServiceEntry,
     rank: Int? = nil,
     service: LeaderboardService
 ) async throws -> LeaderboardEntry {
@@ -240,3 +243,4 @@ private func estimateHighestTileFromScore(_ score: Int) -> Int {
     default: return 8192
     }
 }
+#endif

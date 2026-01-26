@@ -1,6 +1,6 @@
 import SwiftUI
 import GameApp
-import GameServices
+import GameCore
 
 public struct HomeView: View {
     private let managesBackground: Bool
@@ -394,8 +394,8 @@ public extension View {
     }
 }
 
-#Preview("Home - Default") {
-    // Local services and state for preview
+@MainActor
+private func makeHomePreview(bestOffer: Bool) -> some View {
     let gameStore = GameStore()
     let homeState = HomeState()
     let purchaseService = PurchaseService()
@@ -406,15 +406,21 @@ public extension View {
     let themeRegistry = ThemeRegistry.Default
     let toastManager = ToastManager()
 
-    // Seed some demo state for a nicer preview
-    homeState.gems = 305
-    homeState.highestTile = 1024
-    homeState.milestoneBelow = 512
-    homeState.lockedMilestones = [2048, 4096]
-    // Sync journey to highest tile
+    if bestOffer {
+        homeState.gems = 520
+        homeState.highestTile = 2048
+        homeState.milestoneBelow = 1024
+        homeState.lockedMilestones = [4096, 8192]
+        homeState.bestOfferDeadline = Date().addingTimeInterval(60 * 30)
+    } else {
+        homeState.gems = 305
+        homeState.highestTile = 1024
+        homeState.milestoneBelow = 512
+        homeState.lockedMilestones = [2048, 4096]
+    }
+
     gameStore.journey.didReach(tile: homeState.highestTile)
 
-    // Minimal actions for preview
     let actions = HomeActions(
         play: {},
         openShop: {},
@@ -449,56 +455,10 @@ public extension View {
         .environment(\.toastManager, toastManager)
 }
 
+#Preview("Home - Default") {
+    makeHomePreview(bestOffer: false)
+}
+
 #Preview("Home - Best Offer") {
-    // Local services and state for preview
-    let gameStore = GameStore()
-    let homeState = HomeState()
-    let purchaseService = PurchaseService()
-    let adService = DummyAdService()
-    let haptics = HapticsService()
-    let gameCenter = DefaultGameCenterService()
-    let storage = UserDefaultsStorageService()
-    let themeRegistry = ThemeRegistry.Default
-    let toastManager = ToastManager()
-
-    // Seed demo state with an active best offer
-    homeState.gems = 520
-    homeState.highestTile = 2048
-    homeState.milestoneBelow = 1024
-    homeState.lockedMilestones = [4096, 8192]
-    homeState.bestOfferDeadline = Date().addingTimeInterval(60 * 30) // 30 minutes remaining
-    gameStore.journey.didReach(tile: homeState.highestTile)
-
-    let actions = HomeActions(
-        play: {},
-        openShop: {},
-        buyGems: {},
-        watchAd: { 50 },
-        openDaily: {},
-        openFreeSpin: {},
-        openMusic: {},
-        openChallenge: {},
-        openCreate: {},
-        openProfile: {},
-        openAchievements: {},
-        openLeaderboard: {},
-        openSettings: {},
-        openThemeLeft: {},
-        openThemeRight: {},
-        openSaleOffer: {}
-    )
-
-    return HomeView()
-        .environment(homeState)
-        .environment(\.homeActions, actions)
-        .environment(\.gameStore, gameStore)
-        .environment(\.purchaseService, purchaseService)
-        .environment(\.adService, adService)
-        .environment(\.hapticsService, haptics)
-        .environment(\.gameCenter, gameCenter)
-        .environment(\.storage, storage)
-        .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
-        .environment(\.tileJourney, gameStore.journey)
-        .environment(\.leaderboardClient, .noop)
-        .environment(\.toastManager, toastManager)
+    makeHomePreview(bestOffer: true)
 }

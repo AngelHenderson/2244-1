@@ -1,5 +1,5 @@
 import SwiftUI
-import GameServices
+import GameCore
 
 public struct StorageServiceKey: EnvironmentKey {
     nonisolated public static var defaultValue: any StorageServiceProtocol {
@@ -13,5 +13,4 @@ public extension EnvironmentValues {
         set { self[StorageServiceKey.self] = newValue }
     }
 }
-
 

@@ -1,5 +1,5 @@
 import SwiftUI
-import GameServices
+import GameCore
 
 public struct GameCenterServiceKey: EnvironmentKey {
     nonisolated public static var defaultValue: any GameCenterServiceProtocol {
@@ -13,7 +13,6 @@ public extension EnvironmentValues {
         set { self[GameCenterServiceKey.self] = newValue }
     }
 }
-
 
 
 

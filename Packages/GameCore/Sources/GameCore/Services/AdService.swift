@@ -1,12 +1,6 @@
 import Foundation
 import SwiftUI
 
-public enum AdType: Sendable {
-    case banner
-    case interstitial
-    case rewarded
-}
-
 public protocol AdServiceProtocol: Sendable {
     func showBanner() async
     func hideBanner() async

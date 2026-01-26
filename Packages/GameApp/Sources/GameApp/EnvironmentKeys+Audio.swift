@@ -1,4 +1,5 @@
 import SwiftUI
+import GameCore
 import GameServices
 
 public struct AudioServiceKey: EnvironmentKey {

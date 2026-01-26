@@ -51,5 +51,3 @@ public protocol StorageServiceProtocol: Sendable {
     func bestScore() async -> Int
     func setBestScore(_ value: Int) async
 }
-
-

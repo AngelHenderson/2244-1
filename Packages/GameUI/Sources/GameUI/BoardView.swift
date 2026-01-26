@@ -1,7 +1,6 @@
 import SwiftUI
 import GameCore
 import GameApp
-import GameServices
 
 public struct BoardView: View {
     @Environment(\.gameStore) private var gameStore

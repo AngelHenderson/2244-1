@@ -1,4 +1,5 @@
 import Foundation
+import GameCore
 
 #if canImport(FirebaseAuth)
 import FirebaseAuth
@@ -8,7 +9,7 @@ import FirebaseFunctions
 
 /// Service for managing Firebase-based leaderboards
 @MainActor
-public class LeaderboardService: @unchecked Sendable {
+public class LeaderboardService: LeaderboardServiceProtocol, @unchecked Sendable {
     
     // MARK: - Dependencies
     
@@ -79,7 +80,7 @@ public class LeaderboardService: @unchecked Sendable {
     public func fetchTopEntries(
         from board: LeaderboardBoard,
         limit: Int = 50
-    ) async throws -> [LeaderboardEntry] {
+    ) async throws -> [LeaderboardServiceEntry] {
         do {
             let snapshot = try await firestore
                 .collection("leaderboards")
@@ -90,7 +91,7 @@ public class LeaderboardService: @unchecked Sendable {
                 .getDocuments()
             
             return try snapshot.documents.compactMap { document in
-                try document.data(as: LeaderboardEntry.self)
+                try document.data(as: LeaderboardServiceEntry.self)
             }
             
         } catch {
@@ -102,7 +103,7 @@ public class LeaderboardService: @unchecked Sendable {
     /// - Parameter board: The leaderboard to fetch from
     /// - Returns: User's leaderboard entry if it exists
     /// - Throws: LeaderboardError on fetch failure
-    public func fetchUserEntry(from board: LeaderboardBoard) async throws -> LeaderboardEntry? {
+    public func fetchUserEntry(from board: LeaderboardBoard) async throws -> LeaderboardServiceEntry? {
         guard let uid = auth.currentUser?.uid else {
             throw LeaderboardError.notAuthenticated
         }
@@ -117,7 +118,7 @@ public class LeaderboardService: @unchecked Sendable {
             
             guard document.exists else { return nil }
             
-            return try document.data(as: LeaderboardEntry.self)
+            return try document.data(as: LeaderboardServiceEntry.self)
             
         } catch {
             throw LeaderboardError.fetchFailed(error)
@@ -161,7 +162,7 @@ public class LeaderboardService: @unchecked Sendable {
     public func fetchEntriesAroundUser(
         from board: LeaderboardBoard,
         context: Int = 5
-    ) async throws -> [LeaderboardEntry] {
+    ) async throws -> [LeaderboardServiceEntry] {
         guard let userEntry = try await fetchUserEntry(from: board) else {
             return []
         }
@@ -179,6 +180,69 @@ public class LeaderboardService: @unchecked Sendable {
         }
         
         return [userEntry]
+    }
+}
+
+// MARK: - LeaderboardServiceProtocol
+
+public extension LeaderboardService {
+    func submit(score: Int64, for leaderboardId: String) async throws {
+        let board = board(for: leaderboardId, timeScope: .allTime)
+        let decoded = CompositeScore.decode(score)
+        let runData = GameRunData(
+            highestTile: decoded.tile,
+            secondsToHighest: decoded.seconds,
+            movesToHighest: decoded.moves,
+            runScore: decoded.score
+        )
+        let displayName = auth.currentUser?.displayName ?? "Anonymous Player"
+        try await submit(to: board, runData: runData, displayName: displayName)
+    }
+    
+    func loadEntries(
+        for leaderboardId: String,
+        timeScope: LeaderboardTimeScope,
+        limit: Int
+    ) async throws -> [LeaderboardServiceEntry] {
+        let board = board(for: leaderboardId, timeScope: timeScope)
+        return try await fetchTopEntries(from: board, limit: limit)
+    }
+    
+    func loadLocalPlayerEntry(
+        for leaderboardId: String,
+        timeScope: LeaderboardTimeScope
+    ) async throws -> LeaderboardServiceEntry? {
+        let board = board(for: leaderboardId, timeScope: timeScope)
+        return try await fetchUserEntry(from: board)
+    }
+    
+    private func board(
+        for leaderboardId: String,
+        timeScope: LeaderboardTimeScope
+    ) -> LeaderboardBoard {
+        if leaderboardId == LeaderboardBoard.global.identifier {
+            return .global
+        }
+        
+        if leaderboardId.hasPrefix("daily:") {
+            let dateString = String(leaderboardId.dropFirst("daily:".count))
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withFullDate]
+            if let date = formatter.date(from: dateString) {
+                return .daily(date: date)
+            }
+        }
+        
+        if leaderboardId.hasPrefix("mode:") {
+            let modeName = String(leaderboardId.dropFirst("mode:".count))
+            return .mode(modeName)
+        }
+        
+        if timeScope == .today {
+            return .daily(date: Date())
+        }
+        
+        return .mode(leaderboardId)
     }
 }
 
@@ -211,7 +275,7 @@ public enum LeaderboardError: LocalizedError, Sendable {
 
 public final class MockLeaderboardService: @unchecked Sendable {
     
-    private var mockEntries: [String: [LeaderboardEntry]] = [:]
+    private var mockEntries: [String: [LeaderboardServiceEntry]] = [:]
     private var shouldFailSubmission = false
     private var shouldFailFetch = false
     
@@ -237,7 +301,7 @@ public final class MockLeaderboardService: @unchecked Sendable {
             throw LeaderboardError.submissionFailed(NSError(domain: "Mock", code: 1))
         }
         
-        let entry = LeaderboardEntry(
+        let entry = LeaderboardServiceEntry(
             uid: "mock-uid",
             displayName: displayName,
             value: String(runData.compositeScore),
@@ -258,7 +322,7 @@ public final class MockLeaderboardService: @unchecked Sendable {
     public func fetchTopEntries(
         from board: LeaderboardBoard,
         limit: Int = 50
-    ) async throws -> [LeaderboardEntry] {
+    ) async throws -> [LeaderboardServiceEntry] {
         if shouldFailFetch {
             throw LeaderboardError.fetchFailed(NSError(domain: "Mock", code: 1))
         }
@@ -268,7 +332,7 @@ public final class MockLeaderboardService: @unchecked Sendable {
     }
     
     @MainActor
-    public func fetchUserEntry(from board: LeaderboardBoard) async throws -> LeaderboardEntry? {
+    public func fetchUserEntry(from board: LeaderboardBoard) async throws -> LeaderboardServiceEntry? {
         if shouldFailFetch {
             throw LeaderboardError.fetchFailed(NSError(domain: "Mock", code: 1))
         }
@@ -291,7 +355,7 @@ public final class MockLeaderboardService: @unchecked Sendable {
     
     private func setupMockData() {
         let mockEntries = [
-            LeaderboardEntry(
+            LeaderboardServiceEntry(
                 uid: "player1",
                 displayName: "Player 1",
                 value: String(CompositeScore.encode(highestTile: 2048, seconds: 300, moves: 150, score: 25000)),
@@ -300,7 +364,7 @@ public final class MockLeaderboardService: @unchecked Sendable {
                 secondsToHighest: 300,
                 runScore: 25000
             ),
-            LeaderboardEntry(
+            LeaderboardServiceEntry(
                 uid: "player2",
                 displayName: "Player 2",
                 value: String(CompositeScore.encode(highestTile: 1024, seconds: 250, moves: 120, score: 15000)),
@@ -309,7 +373,7 @@ public final class MockLeaderboardService: @unchecked Sendable {
                 secondsToHighest: 250,
                 runScore: 15000
             ),
-            LeaderboardEntry(
+            LeaderboardServiceEntry(
                 uid: "player3",
                 displayName: "Player 3",
                 value: String(CompositeScore.encode(highestTile: 512, seconds: 200, moves: 100, score: 8000)),

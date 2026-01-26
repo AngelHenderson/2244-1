@@ -1,7 +1,6 @@
 import SwiftUI
 import GameApp
 import GameCore
-import GameServices
 
 public struct HomeScreen: View {
     public let onPlay: () -> Void

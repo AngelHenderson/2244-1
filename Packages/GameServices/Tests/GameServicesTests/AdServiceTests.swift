@@ -1,5 +1,5 @@
 import Testing
-@testable import GameServices
+@testable import GameCore
 
 struct AdServiceTests {
     @Test

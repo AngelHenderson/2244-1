@@ -1,5 +1,5 @@
 import Testing
-@testable import GameServices
+@testable import GameCore
 
 struct GameCenterServiceTests {
     @Test
@@ -18,7 +18,6 @@ struct GameCenterServiceTests {
         #expect(last?.leaderboard == "main")
     }
 }
-
 
 
 

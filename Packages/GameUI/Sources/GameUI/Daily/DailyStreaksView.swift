@@ -1,5 +1,5 @@
 import SwiftUI
-import GameServices
+import GameCore
 
 @MainActor
 public struct DailyStreaksView: View {
