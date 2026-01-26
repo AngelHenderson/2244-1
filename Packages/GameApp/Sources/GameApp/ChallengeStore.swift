@@ -177,7 +177,12 @@ public final class ChallengeStore: Sendable {
             49: ChallengeReward(coins: 300),                                            // 1av: 300 Gems
             50: ChallengeReward(coins: 255),                                            // 1aw: 255 Gems
             51: ChallengeReward(coins: 225, powerUps: [.hammer: 1, .swap: 1, .magnet: 1], spins: 1, scoreBoosts: [2: 1]), // 1ax: 225 Gems, 1 Hammer, 1 Swap, 1 MegaMerge, 1 Spin, 2X Boost
-            52: ChallengeReward(coins: 265, powerUps: [.magnet: 1], scoreBoosts: [4: 1]) // 1ay: 265 Gems, 1 MegaMerge, 4X Boost
+            52: ChallengeReward(coins: 265, powerUps: [.magnet: 1], scoreBoosts: [4: 1]), // 1ay: 265 Gems, 1 MegaMerge, 4X Boost
+            53: ChallengeReward(coins: 280, powerUps: [.hammer: 1], spins: 1),          // 1az: 280 Gems, 1 Hammer, 1 Spin
+            54: ChallengeReward(coins: 275, scoreBoosts: [3: 1]),                       // 1ba: 275 Gems, 3X Boost
+            55: ChallengeReward(powerUps: [.magnet: 1]),                                // 1bb: 1 MegaMerge
+            56: ChallengeReward(spins: 1, scoreBoosts: [2: 1]),                         // 1bc: 1 Spin, 2X Boost
+            57: ChallengeReward(powerUps: [.hammer: 1, .swap: 1, .magnet: 1])           // 1bd: 1 Hammer, 1 Swap, 1 MegaMerge
         ]
 
         // Helper to get reward - uses specific reward if defined, otherwise falls back to formula
