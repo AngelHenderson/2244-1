@@ -232,6 +232,28 @@ private struct TileRowItem: View {
                     )
                     .shadow(color: .orange.opacity(0.5), radius: 8)
             }
+            .overlay(alignment: .bottom) {
+                // Star and "Current" label inside the tile
+                if isCurrentHighest {
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .font(.caption2)
+                        Text("Current")
+                            .font(.caption2.weight(.semibold))
+                    }
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.yellow, .orange],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.black.opacity(0.4), in: Capsule())
+                    .padding(.bottom, 8)
+                }
+            }
             .animation(.snappy(duration: 0.25), value: isLocked)
             .animation(.snappy(duration: 0.25), value: isCurrentHighest)
             
@@ -247,21 +269,6 @@ private struct TileRowItem: View {
                         )
                     )
                     .padding(.top, 12)
-            } else if isCurrentHighest {
-                HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .font(.caption)
-                    Text("Current")
-                        .font(.caption.weight(.semibold))
-                }
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.yellow, .orange],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .padding(.top, 12)
             }
             // No EmptyView needed - VStack with spacing 0 won't add extra space
         }
