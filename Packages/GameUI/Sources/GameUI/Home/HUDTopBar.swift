@@ -28,9 +28,7 @@ struct HUDTopBar: View {
             Button(action: { actions.openLeaderboard() }) {
                 HStack(spacing: 3) {
                     Text("#")
-                        .foregroundStyle(.white)
                     Text(verbatim: String(state.rank))
-                        .foregroundStyle(.white)
                 }
                 .font(.subheadline.bold())
                 .lineLimit(1)
