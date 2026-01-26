@@ -1690,6 +1690,105 @@ enum MockLeaderboardData {
         let extraTiles = Int(Double(day) * dailyGain * 0.5)
         return baseCount + extraTiles
     }
+
+    // MARK: - Extended Brackets Access for Rank Preview
+
+    /// Global extended brackets (uses US as representative for global leaderboard)
+    static var globalExtendedBrackets: [(milestone: String, startRank: Int)] {
+        LeaderboardClient.usExtendedRankBrackets
+    }
+
+    /// Hall of Fame extended brackets
+    static let hallOfFameExtendedBrackets: [(milestone: String, startRank: Int)] = [
+        // Top tier (infinity and beyond)
+        ("1an", 1), ("693am", 3), ("346am", 5), ("173am", 8),
+        ("86am", 12), ("43am", 18), ("21am", 25), ("10am", 35),
+        // High alphabetic tiers
+        ("1am", 50), ("676al", 70), ("338al", 95), ("169al", 125),
+        ("1al", 160), ("661ak", 200), ("330ak", 250), ("165ak", 310),
+        ("1ak", 380), ("645aj", 460), ("322aj", 550), ("161aj", 650),
+        ("1aj", 760), ("630ai", 880), ("315ai", 1010), ("157ai", 1150),
+        ("1ai", 1300), ("615ah", 1460), ("307ah", 1630), ("153ah", 1810),
+        ("1ah", 2000), ("1B", 2200), ("536M", 2400)
+    ]
+
+    /// Get extended brackets for a specific country code
+    static func extendedBrackets(for countryCode: String) -> [(milestone: String, startRank: Int)] {
+        switch countryCode {
+        case "US": return LeaderboardClient.usExtendedRankBrackets
+        case "GB": return LeaderboardClient.ukExtendedRankBrackets
+        case "CA": return LeaderboardClient.canadaExtendedRankBrackets
+        case "AU": return LeaderboardClient.australiaExtendedRankBrackets
+        case "DE": return LeaderboardClient.germanyExtendedRankBrackets
+        case "FR": return LeaderboardClient.franceExtendedRankBrackets
+        case "JP": return LeaderboardClient.japanExtendedRankBrackets
+        case "IN": return LeaderboardClient.indiaExtendedRankBrackets
+        case "BR": return LeaderboardClient.brazilExtendedRankBrackets
+        case "MX": return LeaderboardClient.mexicoExtendedRankBrackets
+        case "AF": return LeaderboardClient.afghanistanExtendedRankBrackets
+        case "AL": return LeaderboardClient.albaniaExtendedRankBrackets
+        case "DZ": return LeaderboardClient.algeriaExtendedRankBrackets
+        case "CN": return LeaderboardClient.chinaExtendedRankBrackets
+        case "KR": return LeaderboardClient.southKoreaExtendedRankBrackets
+        case "IT": return LeaderboardClient.italyExtendedRankBrackets
+        case "ES": return LeaderboardClient.spainExtendedRankBrackets
+        case "NL": return LeaderboardClient.netherlandsExtendedRankBrackets
+        case "CH": return LeaderboardClient.switzerlandExtendedRankBrackets
+        case "NO": return LeaderboardClient.norwayExtendedRankBrackets
+        case "DK": return LeaderboardClient.denmarkExtendedRankBrackets
+        default: return LeaderboardClient.usExtendedRankBrackets
+        }
+    }
+
+    // MARK: - Top 150 Milestones Access for Rank Preview
+
+    /// Global top 150 milestones (uses US as representative)
+    static var globalTop150Milestones: [String] {
+        LeaderboardClient.usPlayerMilestones
+    }
+
+    /// Hall of Fame top 150 milestones (all are infinity+ players)
+    static var hallOfFameTop150Milestones: [String] {
+        // Hall of Fame players all have infinity tiles, milestones from hallOfFameExtendedBrackets
+        var milestones: [String] = []
+        for bracket in hallOfFameExtendedBrackets {
+            // Fill from this bracket's start to just before next bracket
+            let nextIndex = hallOfFameExtendedBrackets.firstIndex(where: { $0.startRank > bracket.startRank })
+            let endRank = nextIndex.map { hallOfFameExtendedBrackets[$0].startRank } ?? 151
+            for _ in bracket.startRank..<min(endRank, 151) {
+                milestones.append(bracket.milestone)
+            }
+        }
+        return Array(milestones.prefix(150))
+    }
+
+    /// Get top 150 milestones for a specific country code
+    static func top150Milestones(for countryCode: String) -> [String] {
+        switch countryCode {
+        case "US": return LeaderboardClient.usPlayerMilestones
+        case "GB": return LeaderboardClient.ukPlayerMilestones
+        case "CA": return LeaderboardClient.canadaPlayerMilestones
+        case "AU": return LeaderboardClient.australiaPlayerMilestones
+        case "DE": return LeaderboardClient.germanyPlayerMilestones
+        case "FR": return LeaderboardClient.francePlayerMilestones
+        case "JP": return LeaderboardClient.japanPlayerMilestones
+        case "IN": return LeaderboardClient.indiaPlayerMilestones
+        case "BR": return LeaderboardClient.brazilPlayerMilestones
+        case "MX": return LeaderboardClient.mexicoPlayerMilestones
+        case "AF": return LeaderboardClient.afghanistanPlayerMilestones
+        case "AL": return LeaderboardClient.albaniaPlayerMilestones
+        case "DZ": return LeaderboardClient.algeriaPlayerMilestones
+        case "CN": return LeaderboardClient.chinaPlayerMilestones
+        case "KR": return LeaderboardClient.southKoreaPlayerMilestones
+        case "IT": return LeaderboardClient.italyPlayerMilestones
+        case "ES": return LeaderboardClient.spainPlayerMilestones
+        case "NL": return LeaderboardClient.netherlandsPlayerMilestones
+        case "CH": return LeaderboardClient.switzerlandPlayerMilestones
+        case "NO": return LeaderboardClient.norwayPlayerMilestones
+        case "DK": return LeaderboardClient.denmarkPlayerMilestones
+        default: return LeaderboardClient.usPlayerMilestones
+        }
+    }
 }
 
 public extension LeaderboardClient {

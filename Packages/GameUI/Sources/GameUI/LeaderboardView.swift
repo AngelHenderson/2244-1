@@ -232,24 +232,35 @@ public struct LeaderboardView: View {
     }
 
     /// Generates rank preview entries around the user's current rank
+    /// Shows consecutive individual ranks (-3 to +3) with their corresponding milestones
     private func generateRankPreviews(userMilestone: String, filter: LeaderboardFilter) -> [RankPreview] {
         let userRank = rankForFilter(filter, milestone: userMilestone)
         var previews: [RankPreview] = []
 
-        // Get the milestones around user's position
         let milestones = Self.allMilestones
         guard let userIndex = milestones.firstIndex(of: userMilestone) else {
             return []
         }
 
+        // Build milestone tier boundaries: [(milestone, startRank)]
+        // Each tier starts at its rank and continues until the next tier's rank
+        var tierBoundaries: [(milestone: String, startRank: Int)] = []
+        let rangeStart = max(0, userIndex - 5)
+        let rangeEnd = min(milestones.count - 1, userIndex + 5)
+
+        for i in rangeStart...rangeEnd {
+            let milestone = milestones[i]
+            let rank = rankForFilter(filter, milestone: milestone)
+            tierBoundaries.append((milestone, rank))
+        }
+
         // Show ranks from 3 above to 3 below user's rank
-        // Each milestone maps to a rank range, so show individual rank entries
         let startRank = max(1, userRank - 3)
         let endRank = userRank + 3
 
         for rank in startRank...endRank {
-            // Find the milestone for this rank
-            let milestone = milestoneForRank(rank, filter: filter, userMilestone: userMilestone, userIndex: userIndex)
+            // Find which milestone tier this rank belongs to
+            let milestone = milestoneForRank(rank, tierBoundaries: tierBoundaries, fallback: userMilestone)
             previews.append(RankPreview(
                 rank: rank,
                 milestone: milestone,
@@ -260,32 +271,20 @@ public struct LeaderboardView: View {
         return previews
     }
 
-    /// Finds the milestone that corresponds to a given rank
-    private func milestoneForRank(_ targetRank: Int, filter: LeaderboardFilter, userMilestone: String, userIndex: Int) -> String {
-        let milestones = Self.allMilestones
+    /// Finds the milestone for a given rank based on tier boundaries
+    /// Tier boundaries are sorted by startRank (best rank first, lowest number)
+    private func milestoneForRank(_ targetRank: Int, tierBoundaries: [(milestone: String, startRank: Int)], fallback: String) -> String {
+        // Boundaries are in milestone order (best to worst)
+        // Find the tier where targetRank >= startRank and < next tier's startRank
+        for i in 0..<tierBoundaries.count {
+            let tier = tierBoundaries[i]
+            let nextStartRank = (i + 1 < tierBoundaries.count) ? tierBoundaries[i + 1].startRank : Int.max
 
-        // Search nearby milestones to find one that matches the target rank
-        let searchRange = max(0, userIndex - 10)...min(milestones.count - 1, userIndex + 10)
-
-        var closestMilestone = userMilestone
-        var closestDiff = Int.max
-
-        for i in searchRange {
-            let milestone = milestones[i]
-            let rank = rankForFilter(filter, milestone: milestone)
-            let diff = abs(rank - targetRank)
-
-            if diff < closestDiff {
-                closestDiff = diff
-                closestMilestone = milestone
-            }
-
-            if rank == targetRank {
-                return milestone
+            if targetRank >= tier.startRank && targetRank < nextStartRank {
+                return tier.milestone
             }
         }
-
-        return closestMilestone
+        return fallback
     }
 
     /// Returns the header title based on the selected filter
