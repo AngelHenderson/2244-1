@@ -5,6 +5,7 @@ import GameServices
 public struct HomeView: View {
     private let managesBackground: Bool
     @Environment(HomeState.self) private var state
+    @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
     @Environment(\.toastManager) private var toastManager
@@ -75,7 +76,7 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "dailypic",
                                 title: "DAILY",
-                                badge: state.hasDailyBadge,
+                                badge: dailyClaimsStore.canClaimToday,
                                 action: { actions.openDaily() }
                             )
 
