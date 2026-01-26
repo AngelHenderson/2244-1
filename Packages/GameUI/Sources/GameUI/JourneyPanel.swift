@@ -15,10 +15,8 @@ public struct JourneyPanel: View {
 
     public var body: some View {
         let milestones = roadMilestones
-        let segmentHeight: CGFloat = 180
-        let tilesPerSegment = 2
-        let segments = (milestones.count + tilesPerSegment - 1) / tilesPerSegment
-        let totalHeight = CGFloat(segments) * segmentHeight + 200
+        let verticalSpacing: CGFloat = 100
+        let totalHeight = CGFloat(milestones.count) * verticalSpacing + 200
 
         ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
@@ -30,7 +28,7 @@ public struct JourneyPanel: View {
                     // Road and milestones
                     SerpentineRoadView(
                         milestones: milestones,
-                        rowHeight: segmentHeight,
+                        rowHeight: verticalSpacing,
                         onClaimReward: { tier in
                             gameStore.presentJourneyReward(for: tier)
                         }
@@ -225,7 +223,7 @@ private struct SerpentineRoadView: View {
         GeometryReader { geo in
             let width = geo.size.width
             let positions = calculateAllPositions(count: milestones.count, width: width)
-            let totalHeight = positions.last.map { $0.y + 100 } ?? 500
+            let totalHeight = CGFloat(milestones.count) * 100 + 200
 
             ZStack {
                 // Draw the serpentine road through all tile positions
@@ -233,6 +231,7 @@ private struct SerpentineRoadView: View {
                     positions: positions,
                     roadWidth: roadWidth
                 )
+                .frame(width: width, height: totalHeight)
 
                 // Place milestones at calculated positions
                 ForEach(Array(milestones.enumerated()), id: \.element.id) { index, milestone in
@@ -251,66 +250,55 @@ private struct SerpentineRoadView: View {
                     }
                 }
             }
-            .frame(height: totalHeight)
+            .frame(width: width, height: totalHeight)
         }
     }
 
     /// Calculate positions for all tiles along the serpentine path
+    /// Index 0 = lowest value (2) at bottom, higher indices = higher values going up
     private func calculateAllPositions(count: Int, width: CGFloat) -> [CGPoint] {
         guard count > 0 else { return [] }
 
         var positions: [CGPoint] = []
-        let leftX = width * 0.20
-        let rightX = width * 0.80
-        let centerX = width * 0.50
-        let verticalSpacing: CGFloat = 90
+        let leftX = width * 0.25
+        let rightX = width * 0.75
+        let verticalSpacing: CGFloat = 100
+        let tilesPerSection = 2
 
-        // Start from bottom, go up
-        var currentY: CGFloat = CGFloat(count) * verticalSpacing
-        var goingRight = false // Start on right, will go left first
+        // Calculate total height first
+        let totalHeight = CGFloat(count) * verticalSpacing + 100
 
-        var i = 0
-        while i < count {
-            if goingRight {
-                // Curve section going right: place 1 tile at curve apex
-                positions.append(CGPoint(x: centerX + (rightX - centerX) * 0.3, y: currentY))
-                currentY -= verticalSpacing
-                i += 1
+        // Build positions from bottom (index 0 = tile "2") to top (highest values)
+        for i in 0..<count {
+            let sectionIndex = i / tilesPerSection
+            let posInSection = i % tilesPerSection
+            let sectionOnRight = (sectionIndex % 2 == 0)
 
-                // Horizontal section on right: place 2 tiles
-                if i < count {
-                    positions.append(CGPoint(x: rightX, y: currentY))
-                    currentY -= verticalSpacing * 0.7
-                    i += 1
-                }
-                if i < count {
-                    positions.append(CGPoint(x: rightX - (rightX - centerX) * 0.4, y: currentY))
-                    currentY -= verticalSpacing
-                    i += 1
+            // Y position: index 0 at bottom, increasing index goes up
+            let y = totalHeight - CGFloat(i) * verticalSpacing - 50
+
+            // X position: alternating left/right sections
+            let x: CGFloat
+            if sectionOnRight {
+                // Right section
+                if posInSection == 0 {
+                    x = rightX
+                } else {
+                    x = rightX - (rightX - width * 0.5) * 0.4
                 }
             } else {
-                // Curve section going left: place 1 tile at curve apex
-                positions.append(CGPoint(x: centerX - (centerX - leftX) * 0.3, y: currentY))
-                currentY -= verticalSpacing
-                i += 1
-
-                // Horizontal section on left: place 2 tiles
-                if i < count {
-                    positions.append(CGPoint(x: leftX, y: currentY))
-                    currentY -= verticalSpacing * 0.7
-                    i += 1
-                }
-                if i < count {
-                    positions.append(CGPoint(x: leftX + (centerX - leftX) * 0.4, y: currentY))
-                    currentY -= verticalSpacing
-                    i += 1
+                // Left section
+                if posInSection == 0 {
+                    x = leftX
+                } else {
+                    x = leftX + (width * 0.5 - leftX) * 0.4
                 }
             }
-            goingRight = !goingRight
+
+            positions.append(CGPoint(x: x, y: y))
         }
 
-        // Reverse so index 0 is at bottom (lowest tile values at bottom)
-        return positions.reversed()
+        return positions
     }
 }
 
@@ -326,30 +314,31 @@ private struct SerpentineRoadPath: View {
 
             var roadPath = Path()
 
-            // Start below the first position
+            // Start below the first position (bottom of screen, lowest tile value)
             let first = positions[0]
-            roadPath.move(to: CGPoint(x: first.x, y: first.y + 60))
+            roadPath.move(to: CGPoint(x: first.x, y: first.y + 80))
             roadPath.addLine(to: first)
 
-            // Draw smooth curves through all positions
+            // Draw smooth S-curves through all positions
             for i in 1..<positions.count {
                 let current = positions[i]
                 let prev = positions[i - 1]
 
-                // Use quadratic curve with control point for smooth S-curves
-                let controlX = (prev.x + current.x) / 2
-                let controlY = prev.y - (prev.y - current.y) * 0.3
+                // Calculate midpoint Y
+                let midY = (prev.y + current.y) / 2
 
-                // Add a smoother curve
-                roadPath.addQuadCurve(
+                // Create S-curve: first curve from prev toward center, then curve to current
+                // Control point keeps the curve smooth
+                roadPath.addCurve(
                     to: current,
-                    control: CGPoint(x: prev.x, y: controlY)
+                    control1: CGPoint(x: prev.x, y: midY),
+                    control2: CGPoint(x: current.x, y: midY)
                 )
             }
 
-            // Extend past the last position
+            // Extend past the last position (top of screen, highest tile value)
             if let last = positions.last {
-                roadPath.addLine(to: CGPoint(x: last.x, y: last.y - 60))
+                roadPath.addLine(to: CGPoint(x: last.x, y: last.y - 80))
             }
 
             // Draw road edge first (darker, wider)
