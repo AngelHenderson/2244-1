@@ -17,6 +17,7 @@ public struct HomeView: View {
     @State private var isShowingProfile: Bool = false
     @State private var isShowingSettings: Bool = false
     @State private var isShowingThemePicker: Bool = false
+    @State private var isShowingBoosts: Bool = false
     @State private var centeredMilestone: Int? = nil
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
@@ -104,7 +105,14 @@ public struct HomeView: View {
                                 badge: true,
                                 action: { actions.openSaleOffer() }
                             )
-                            
+
+                            SideRailButton(
+                                systemImage: "bolt.fill",
+                                customImage: nil,
+                                title: "BOOSTS",
+                                action: { isShowingBoosts = true }
+                            )
+
                             Spacer(minLength: 0)
                         }
                         .frame(width: 80)
@@ -267,6 +275,10 @@ public struct HomeView: View {
         // Theme Picker (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingThemePicker) {
             ThemePickerView()
+        }
+        // Boosts Sheet
+        .sheet(isPresented: $isShowingBoosts) {
+            BoostsSheet()
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)
