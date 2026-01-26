@@ -17,8 +17,15 @@ public struct HowToPlayView: View {
         ),
         TutorialPage(
             title: "Connect Tiles",
-            subtitle: "Same or double",
-            description: "You can connect a tile that is the same value or double the previous tile in your chain.",
+            subtitle: "Part A: Start a chain",
+            description: "Start by connecting 2 tiles of the same value.",
+            systemImage: "hand.draw.fill",
+            imageColor: .green
+        ),
+        TutorialPage(
+            title: "Connect Tiles",
+            subtitle: "Part B: Extend your chain",
+            description: "After the first two tiles, you can connect tiles that are the same value or double the previous tile.",
             systemImage: "hand.draw.fill",
             imageColor: .green
         ),
