@@ -18,7 +18,9 @@ public struct HomeView: View {
     @State private var isShowingSettings: Bool = false
     @State private var isShowingThemePicker: Bool = false
     @State private var isShowingBoosts: Bool = false
+    @State private var isShowingWeeklyOffer: Bool = false
     @State private var centeredMilestone: Int? = nil
+    @State private var journeyScrollState = JourneyScrollState()
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
     @State private var playButtonHeight: CGFloat = 0
@@ -161,7 +163,7 @@ public struct HomeView: View {
                                         systemImage: nil,
                                         customImage: "gift",
                                         title: "BEST OFFER",
-                                        action: { actions.openShop() }
+                                        action: { isShowingWeeklyOffer = true }
                                     )
                                     CountdownView(deadline: deadline)
                                 }
@@ -170,7 +172,7 @@ public struct HomeView: View {
                                     systemImage: nil,
                                     customImage: "gift",
                                     title: "BEST OFFER",
-                                    action: { actions.openShop() }
+                                    action: { isShowingWeeklyOffer = true }
                                 )
                             }
 
@@ -189,9 +191,22 @@ public struct HomeView: View {
                     .padding(.horizontal, 12)
                 }
 
+                // Down arrow - scroll to tile "2" (bottom of journey)
+                Button {
+                    journeyScrollState.scrollToBottom()
+                } label: {
+                    Image(systemName: "chevron.down.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(.white)
+                        .background(.black.opacity(0.3), in: Circle())
+                        .shadow(radius: 4)
+                }
+                .accessibilityLabel("Scroll to bottom of journey")
+                .padding(.bottom, 8)
+
                 // Play button
-                PillButton(title: "Play", icon: "play.fill") { 
-                    actions.play() 
+                PillButton(title: "Play", icon: "play.fill") {
+                    actions.play()
                 }
                 .padding(.horizontal)
                 .padding(.vertical)
@@ -240,6 +255,7 @@ public struct HomeView: View {
             .zIndex(1)
             .zIndex(2)
         }
+        .environment(\.journeyScrollState, journeyScrollState)
         // Leaderboard (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingLeaderboard) {
             LeaderboardView()
@@ -279,6 +295,10 @@ public struct HomeView: View {
         // Boosts Sheet
         .sheet(isPresented: $isShowingBoosts) {
             BoostsSheet()
+        }
+        // Weekly Offer Sheet
+        .sheet(isPresented: $isShowingWeeklyOffer) {
+            WeeklyOfferSheet()
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)
