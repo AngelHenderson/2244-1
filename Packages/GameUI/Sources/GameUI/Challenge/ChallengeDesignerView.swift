@@ -54,9 +54,10 @@ public struct ChallengeDesignerView: View {
                 
                 Text(store.targetLabel)
                     .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.textColorForStep(store.targetStep))
                     .padding(.horizontal, 8)
                     .frame(minWidth: 120)
-                    .background(RoundedRectangle(cornerRadius: 14).fill(Color.purple.opacity(0.18)))
+                    .background(RoundedRectangle(cornerRadius: 14).fill(Theme.colorForStep(store.targetStep)))
                 
                 Button {
                     store.nextTarget()
@@ -231,9 +232,10 @@ private struct TileChip: View {
     var body: some View {
         Text(TileStepLabelFormatter.labelForStep(step))
             .font(.system(.callout, design: .rounded).weight(.semibold))
+            .foregroundStyle(Theme.textColorForStep(step))
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.accentColor.opacity(0.18)))
+            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.colorForStep(step)))
     }
 }
 
