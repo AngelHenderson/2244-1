@@ -798,10 +798,43 @@ private struct HammerPage: View {
     @State private var show256: Bool = true
     @State private var showMergeResult: Bool = false
     @State private var connectedTileIds: Set<Int> = []
-    @State private var hammerActive: Bool = true
 
     private let tileSize: CGFloat = 60
     private let tileSpacing: CGFloat = 8
+
+    /// Find which tile is at the given y location (vertical layout)
+    private func tileAt(location: CGPoint, show256: Bool) -> Int? {
+        let x = location.x
+        guard x >= 0 && x <= tileSize else { return nil }
+
+        let y = location.y
+        let cellHeight = tileSize + tileSpacing
+
+        if show256 {
+            // 3 tiles: 0=top 2, 1=256, 2=bottom 2
+            if y >= 0 && y <= tileSize { return 0 }
+            if y >= cellHeight && y <= cellHeight + tileSize { return 1 }
+            if y >= cellHeight * 2 && y <= cellHeight * 2 + tileSize { return 2 }
+        } else {
+            // 2 tiles: 0=top 2, 1=bottom 2
+            if y >= 0 && y <= tileSize { return 0 }
+            if y >= cellHeight && y <= cellHeight + tileSize { return 1 }
+        }
+        return nil
+    }
+
+    /// Get the count of consecutively connected tiles
+    private var connectedCount: Int {
+        var count = 0
+        for i in 0..<2 {
+            if connectedTileIds.contains(i) {
+                count = i + 1
+            } else {
+                break
+            }
+        }
+        return count
+    }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -823,62 +856,87 @@ private struct HammerPage: View {
                     // Show merged result: 4 tile
                     TutorialTile(value: "4", color: Theme.colorForStep(1))
                         .transition(.scale.combined(with: .opacity))
-                } else {
-                    // Vertical stack: 2, 256, 2
+                } else if show256 {
+                    // Show all 3 tiles - tap 256 to remove
                     VStack(spacing: tileSpacing) {
-                        // Top 2
+                        TutorialTile(value: "2", color: Theme.colorForStep(0), size: tileSize)
+
                         TutorialTile(
-                            value: "2",
-                            color: Theme.colorForStep(0),
-                            isHighlighted: connectedTileIds.contains(0),
+                            value: "256",
+                            color: Theme.colorForStep(7),
+                            isHighlighted: true,
                             size: tileSize
                         )
+                        .overlay(
+                            Image(systemName: "hammer.fill")
+                                .font(.title2)
+                                .foregroundStyle(.red)
+                                .offset(x: 25, y: -25)
+                        )
+                        .contentShape(Rectangle())
                         .onTapGesture {
-                            if !hammerActive && !show256 {
-                                handleTileTap(id: 0)
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                show256 = false
                             }
                         }
 
-                        // Middle 256 (removable with hammer)
-                        if show256 {
+                        TutorialTile(value: "2", color: Theme.colorForStep(0), size: tileSize)
+                    }
+                } else {
+                    // Show 2 tiles - drag to merge
+                    ZStack {
+                        // Connection line
+                        if connectedCount == 2 {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.8))
+                                .frame(width: 3, height: tileSpacing + 20)
+                        }
+
+                        VStack(spacing: tileSpacing) {
                             TutorialTile(
-                                value: "256",
-                                color: Theme.colorForStep(7),
-                                isHighlighted: hammerActive,
+                                value: "2",
+                                color: Theme.colorForStep(0),
+                                isHighlighted: connectedTileIds.contains(0),
                                 size: tileSize
                             )
-                            .overlay(
-                                hammerActive ?
-                                Image(systemName: "hammer.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.red)
-                                    .offset(x: 25, y: -25)
-                                : nil
+
+                            TutorialTile(
+                                value: "2",
+                                color: Theme.colorForStep(0),
+                                isHighlighted: connectedTileIds.contains(1),
+                                size: tileSize
                             )
-                            .onTapGesture {
-                                if hammerActive {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        show256 = false
-                                        hammerActive = false
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                if let tileId = tileAt(location: value.location, show256: false) {
+                                    if connectedTileIds.isEmpty {
+                                        connectedTileIds.insert(tileId)
+                                    } else if !connectedTileIds.contains(tileId) {
+                                        connectedTileIds.insert(tileId)
                                     }
                                 }
                             }
-                            .transition(.scale.combined(with: .opacity))
-                        }
-
-                        // Bottom 2
-                        TutorialTile(
-                            value: "2",
-                            color: Theme.colorForStep(0),
-                            isHighlighted: connectedTileIds.contains(1),
-                            size: tileSize
-                        )
-                        .onTapGesture {
-                            if !hammerActive && !show256 {
-                                handleTileTap(id: 1)
+                            .onEnded { _ in
+                                if connectedCount == 2 {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                        showMergeResult = true
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                        withAnimation {
+                                            showMergeResult = false
+                                            show256 = true
+                                            connectedTileIds.removeAll()
+                                        }
+                                    }
+                                } else {
+                                    connectedTileIds.removeAll()
+                                }
                             }
-                        }
-                    }
+                    )
                 }
 
                 // Instruction text
@@ -907,40 +965,10 @@ private struct HammerPage: View {
     private var instructionText: String {
         if showMergeResult {
             return "The 2s merged into 4!"
-        } else if hammerActive {
+        } else if show256 {
             return "Tap the 256 to remove it with the hammer"
-        } else if !show256 && connectedTileIds.isEmpty {
-            return "Now tap both 2s to connect and merge them"
-        } else if connectedTileIds.count == 1 {
-            return "Tap the other 2 to complete the chain"
         } else {
-            return "Tap tiles to connect them"
-        }
-    }
-
-    private func handleTileTap(id: Int) {
-        if connectedTileIds.contains(id) {
-            return
-        }
-
-        connectedTileIds.insert(id)
-
-        // If both tiles are connected, merge them
-        if connectedTileIds.count == 2 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                    showMergeResult = true
-                }
-                // Reset after delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    withAnimation {
-                        showMergeResult = false
-                        show256 = true
-                        hammerActive = true
-                        connectedTileIds.removeAll()
-                    }
-                }
-            }
+            return "Now drag across both 2s to merge them"
         }
     }
 }
