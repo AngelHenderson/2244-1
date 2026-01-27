@@ -158,6 +158,8 @@ private struct ChallengeCard: View {
     var isSelected: Bool = false
     var onTap: (() -> Void)? = nil
 
+    @State private var showingRewards = false
+
     // Format tile target for display using TileStepLabelFormatter
     private var targetTileLabel: String {
         guard let targetTile = challenge.targetTile else { return "??" }
@@ -182,25 +184,40 @@ private struct ChallengeCard: View {
     }
 
     /// Formats the reward for display, showing gems, power-ups, boosts, or spins
-    /// Shows a treasure box for multiple rewards
+    /// Shows a treasure box for multiple rewards (tap to view details)
     @ViewBuilder
     private var rewardLabel: some View {
         let reward = challenge.reward
         let parts = buildRewardParts(reward)
 
         if parts.count > 1 {
-            // Multiple rewards - show treasure box followed by reward list
-            HStack(spacing: 6) {
+            // Multiple rewards - show treasure box, tap to view
+            HStack(spacing: 4) {
                 Image(systemName: "shippingbox.fill")
                     .font(.caption)
-                ForEach(Array(parts.enumerated()), id: \.offset) { index, part in
-                    HStack(spacing: 3) {
-                        Image(systemName: part.icon)
-                            .font(.system(size: 9))
-                        Text(part.text)
-                            .font(.system(size: 10, weight: .semibold))
+                Text("Rewards")
+                    .font(.caption.weight(.semibold))
+            }
+            .onTapGesture {
+                showingRewards = true
+            }
+            .popover(isPresented: $showingRewards) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rewards")
+                        .font(.headline)
+                        .padding(.bottom, 4)
+                    ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
+                        HStack(spacing: 6) {
+                            Image(systemName: part.icon)
+                                .font(.body)
+                                .frame(width: 20)
+                            Text(part.text)
+                                .font(.body.weight(.medium))
+                        }
                     }
                 }
+                .padding()
+                .presentationCompactAdaptation(.popover)
             }
         } else if let part = parts.first {
             // Single reward - show specific icon
