@@ -223,10 +223,31 @@ private struct TutorialPageView: View {
 
 private struct ConnectTilesPartAPage: View {
     let page: TutorialPage
-    @State private var isConnected = false
+    @State private var connectedTileIds: Set<Int> = []
     @State private var showMergeResult = false
-    @State private var dragOffset: CGSize = .zero
     @State private var isDragging = false
+
+    private let tileSize: CGFloat = 70
+    private let tileSpacing: CGFloat = 16
+    private var totalWidth: CGFloat { tileSize * 2 + tileSpacing }
+
+    /// Find which tile (0 or 1) is at the given location
+    private func tileAt(location: CGPoint) -> Int? {
+        // Tiles are laid out horizontally: tile 0 at x=0, tile 1 at x=(tileSize + spacing)
+        let x = location.x
+        let y = location.y
+
+        // Check y is within tile height
+        guard y >= 0 && y <= tileSize else { return nil }
+
+        // Check which tile based on x
+        if x >= 0 && x <= tileSize {
+            return 0
+        } else if x >= tileSize + tileSpacing && x <= totalWidth {
+            return 1
+        }
+        return nil
+    }
 
     var body: some View {
         VStack(spacing: 24) {
@@ -249,43 +270,69 @@ private struct ConnectTilesPartAPage: View {
                     TutorialTile(value: "4", color: Theme.colorForStep(1))
                         .transition(.scale.combined(with: .opacity))
                 } else {
-                    // Show two 2 tiles horizontally
-                    HStack(spacing: 16) {
-                        TutorialTile(
-                            value: "2",
-                            color: Theme.colorForStep(0),
-                            isHighlighted: isConnected || isDragging
-                        )
+                    // Show two 2 tiles horizontally with connection line
+                    ZStack {
+                        // Connection line when both tiles are connected
+                        if connectedTileIds.count == 2 {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.8))
+                                .frame(width: tileSpacing + 20, height: 3)
+                        }
 
-                        TutorialTile(
-                            value: "2",
-                            color: Theme.colorForStep(0),
-                            isHighlighted: isConnected
-                        )
+                        HStack(spacing: tileSpacing) {
+                            TutorialTile(
+                                value: "2",
+                                color: Theme.colorForStep(0),
+                                isHighlighted: connectedTileIds.contains(0),
+                                size: tileSize
+                            )
+
+                            TutorialTile(
+                                value: "2",
+                                color: Theme.colorForStep(0),
+                                isHighlighted: connectedTileIds.contains(1),
+                                size: tileSize
+                            )
+                        }
                     }
+                    .contentShape(Rectangle())
                     .gesture(
-                        DragGesture(minimumDistance: 10)
-                            .onChanged { _ in
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
                                 isDragging = true
-                                isConnected = true
+
+                                // Check if we're over a tile
+                                if let tileId = tileAt(location: value.location) {
+                                    if connectedTileIds.isEmpty {
+                                        // Can start with either tile
+                                        connectedTileIds.insert(tileId)
+                                    } else if !connectedTileIds.contains(tileId) {
+                                        // Add the other tile if not already connected
+                                        connectedTileIds.insert(tileId)
+                                    }
+                                }
                             }
                             .onEnded { _ in
                                 isDragging = false
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                                    showMergeResult = true
-                                }
-                                // Reset after delay
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                    withAnimation {
-                                        showMergeResult = false
-                                        isConnected = false
+                                if connectedTileIds.count == 2 {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                        showMergeResult = true
                                     }
+                                    // Reset after delay
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                        withAnimation {
+                                            showMergeResult = false
+                                            connectedTileIds.removeAll()
+                                        }
+                                    }
+                                } else {
+                                    connectedTileIds.removeAll()
                                 }
                             }
                     )
                 }
 
-                Text(showMergeResult ? "They merged into 4!" : "Swipe across the tiles to connect them")
+                Text(showMergeResult ? "They merged into 4!" : "Drag across both tiles to connect them")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.top, 8)
