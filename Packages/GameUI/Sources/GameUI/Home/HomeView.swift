@@ -20,7 +20,6 @@ public struct HomeView: View {
     @State private var isShowingBoosts: Bool = false
     @State private var isShowingWeeklyOffer: Bool = false
     @State private var centeredMilestone: Int? = nil
-    @State private var journeyScrollActions = JourneyScrollActions()
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
     @State private var playButtonHeight: CGFloat = 0
@@ -51,13 +50,7 @@ public struct HomeView: View {
             
             // Background layer: Tile scroller. We pass measured header/footer insets so
             // the current tile appears visually centered upon first appear.
-            JourneyPanel(
-                topInset: headerHeight + 8,
-                bottomInset: bottomOverlayHeight,
-                onScrollActionsReady: { actions in
-                    journeyScrollActions = actions
-                }
-            )
+            JourneyPanel(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
             
             // Foreground layer: Main UI
             VStack(spacing: 0) {
@@ -197,19 +190,6 @@ public struct HomeView: View {
                     .padding(.horizontal, 12)
                 }
 
-                // Down arrow - scroll to tile "2" (bottom of journey)
-                Button {
-                    journeyScrollActions.scrollToBottom()
-                } label: {
-                    Image(systemName: "chevron.down.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundStyle(.white)
-                        .background(.black.opacity(0.3), in: Circle())
-                        .shadow(radius: 4)
-                }
-                .accessibilityLabel("Scroll to bottom of journey")
-                .padding(.bottom, 8)
-
                 // Play button
                 PillButton(title: "Play", icon: "play.fill") {
                     actions.play()
@@ -261,7 +241,6 @@ public struct HomeView: View {
             .zIndex(1)
             .zIndex(2)
         }
-        .environment(\.journeyScrollActions, journeyScrollActions)
         // Leaderboard (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingLeaderboard) {
             LeaderboardView()
