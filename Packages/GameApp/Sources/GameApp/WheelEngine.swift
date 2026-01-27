@@ -15,7 +15,8 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
     public let shortLabel: String
     public let color: Color
     public let reward: WheelReward
-    
+    public let weight: Int  // Weight for probability (default 1, Gift Box uses 2)
+
     public init(
         title: String,
         subtitle: String,
@@ -23,7 +24,8 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
         iconAssetName: String? = nil,
         shortLabel: String,
         color: Color,
-        reward: WheelReward
+        reward: WheelReward,
+        weight: Int = 1
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -32,6 +34,7 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
         self.shortLabel = shortLabel
         self.color = color
         self.reward = reward
+        self.weight = weight
     }
 }
 
@@ -90,6 +93,7 @@ public final class WheelEngine {
     private var lastTimestamp: CFTimeInterval?
     private var onComplete: ((WheelSegment) -> Void)?
     private var animationTimer: Timer?
+    private var preSelectedWinnerIndex: Int?  // Pre-selected winner using weighted probability
     
     public init(segments: [WheelSegment]? = nil) {
         self.segments = segments ?? WheelEngine.defaultSegments
@@ -111,12 +115,30 @@ public final class WheelEngine {
         tickerDeflection = 0
         lastDividerIndex = -1
 
+        // Pre-select winner using weighted random selection
+        preSelectedWinnerIndex = selectWeightedRandomSegment()
+
         // 5.5–8.5 rotations/sec initial => lively, but not crazy
         // Always spin clockwise (positive direction)
         let rps = Double.random(in: 5.5...8.5)
         angularVelocity = CGFloat(rps * 2.0 * .pi)
         isSpinning = true
         startAnimation()
+    }
+
+    // Select a segment using weighted probability
+    private func selectWeightedRandomSegment() -> Int {
+        let totalWeight = segments.reduce(0) { $0 + $1.weight }
+        let randomValue = Int.random(in: 0..<totalWeight)
+
+        var cumulativeWeight = 0
+        for (index, segment) in segments.enumerated() {
+            cumulativeWeight += segment.weight
+            if randomValue < cumulativeWeight {
+                return index
+            }
+        }
+        return 0  // Fallback
     }
     
     public func stop() {
@@ -199,7 +221,7 @@ public final class WheelEngine {
         // Simulate pin physics (spring-mass-damper system)
         simulatePinPhysics(dt: dt)
 
-        // Low-speed termination - stop wherever the wheel lands
+        // Low-speed termination - snap to pre-selected winner
         if abs(angularVelocity) < stopSpeedThreshold {
             isSpinning = false
             angularVelocity = 0
@@ -207,11 +229,17 @@ public final class WheelEngine {
             tickerDeflection = 0
             stopAnimation()
 
-            // Call completion with winning segment
+            // Call completion with pre-selected winning segment
             if let callback = onComplete {
-                let winningSegment = segments[highlightedIndex]
+                let winnerIndex = preSelectedWinnerIndex ?? highlightedIndex
+                let winningSegment = segments[winnerIndex]
+
+                // Snap wheel to show the winning segment
+                snapToSegment(index: winnerIndex)
+
                 callback(winningSegment)
                 onComplete = nil
+                preSelectedWinnerIndex = nil
             }
         }
     }
@@ -319,6 +347,18 @@ public final class WheelEngine {
             tickerDeflection = 0
         }
     }
+
+    private func snapToSegment(index: Int) {
+        let n = max(segments.count, 1)
+        let span = 2 * .pi / CGFloat(n)
+        // Calculate target angle so segment at index is under the peg (at top)
+        let targetAngle = -CGFloat(index) * span
+        pinVelocity = 0
+        withAnimation(.spring(response: snapSpring.response, dampingFraction: snapSpring.damping)) {
+            angle = targetAngle
+            tickerDeflection = 0
+        }
+    }
     
     // MARK: - Utils
     
@@ -328,9 +368,12 @@ public final class WheelEngine {
     }
     
     public static let defaultSegments: [WheelSegment] = [
+        // 15 segments with weighted probability:
+        // Gift Box has weight 2 (12.5% = 2/16), others have weight 1 (6.25% = 1/16 each)
+        // Total weight = 2 + 14 = 16, giving Gift Box 12.5% and others 6.25%
         .init(title: "Gift Box", subtitle: "Mystery prize", icon: "🎁", iconAssetName: "GiftBoxIcon", shortLabel: "?",
-              color: Color(red: 0.97, green: 0.73, blue: 0.20), reward: .init(type: .giftBox, amount: 1)),
-        .init(title: "4X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "4X",
+              color: Color(red: 0.97, green: 0.73, blue: 0.20), reward: .init(type: .giftBox, amount: 1), weight: 2),
+        .init(title: "4X Boost", subtitle: "12h multiplier", icon: "⚡️", shortLabel: "4X",
               color: Color(red: 0.14, green: 0.41, blue: 0.96), reward: .init(type: .multiplier(.fourX), amount: 1)),
         .init(title: "2 Swaps", subtitle: "Strategic swaps", icon: "🔁", iconAssetName: "SwapIcon", shortLabel: "2x",
               color: Color(red: 90.0/255.0, green: 58.0/255.0, blue: 1.0), reward: .init(type: .swap, amount: 2)),
@@ -344,7 +387,7 @@ public final class WheelEngine {
               color: Color(red: 0.04, green: 0.54, blue: 0.82), reward: .init(type: .gems, amount: 200)),
         .init(title: "2 Hammers", subtitle: "Double smash", icon: "🛠️", iconAssetName: "HammerIcon", shortLabel: "2x",
               color: Color(red: 0.85, green: 0.42, blue: 0.24), reward: .init(type: .hammers, amount: 2)),
-        .init(title: "3X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "3X",
+        .init(title: "3X Boost", subtitle: "18h multiplier", icon: "⚡️", shortLabel: "3X",
               color: Color(red: 0.20, green: 0.64, blue: 0.93), reward: .init(type: .multiplier(.threeX), amount: 1)),
         .init(title: "300 Gems", subtitle: "Jackpot", icon: "💎", iconAssetName: "GemBagIcon", shortLabel: "300",
               color: Color(red: 0.00, green: 0.38, blue: 0.69), reward: .init(type: .gems, amount: 300)),
