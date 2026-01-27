@@ -27,7 +27,16 @@ public final class HomeState {
 
     // Live-ops
     public var adReward: Int = 68
-    public var bestOfferDeadline: Date? = Date().addingTimeInterval(49*60) // ~49m demo
+
+    /// Current weekly offer deadline (Saturday 11:59:59 PM)
+    public var bestOfferDeadline: Date? {
+        WeeklyOfferManager.currentOfferDeadline()
+    }
+
+    /// Current weekly offer
+    public var currentWeeklyOffer: WeeklyOfferManager.WeeklyOffer {
+        WeeklyOfferManager.currentOffer()
+    }
 
     // Personalization
     public var themesLeftName = "Beach"
