@@ -72,6 +72,9 @@ public final class WheelEngine {
     public var stopSpeedThreshold: CGFloat = 0.12 // rad/s => begin snap
     public var snapSpring = (response: 0.35, damping: 0.75)
 
+    // Tick sound callback - called when crossing each divider
+    public var onTick: (() -> Void)?
+
     // Pin physics state
     private var pinVelocity: CGFloat = 0         // angular velocity of pin
     private var pinSpringK: CGFloat = 850        // spring stiffness
@@ -272,12 +275,14 @@ public final class WheelEngine {
         // Check if we crossed a divider
         guard oldIdx != newIdx else { return }
 
-        // We crossed a divider - apply haptic feedback
+        // We crossed a divider - apply haptic feedback and tick sound
         let v = abs(angularVelocity)
 #if canImport(UIKit)
         let intensity = CGFloat(min(max(v / (8 * .pi), 0.15), 1.0))
         haptic.impactOccurred(intensity: intensity)
 #endif
+        // Play tick sound
+        onTick?()
 
         // Give the pin an impulse when hitting divider (adds to natural spring response)
         let impulseStrength = min(v * 0.08, 2.5)

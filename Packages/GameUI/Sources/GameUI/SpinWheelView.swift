@@ -6,6 +6,7 @@ import AppKit
 import SwiftUI
 import Observation
 import GameApp
+import GameServices
 
 // MARK: - View
 
@@ -17,6 +18,7 @@ public struct SpinWheelView: View {
     @Environment(\.hapticsService) private var haptics
     @Environment(HomeState.self) private var homeState
     @Environment(\.spinWheelState) private var spinState
+    @Environment(\.audio) private var audioService
     @State private var showReward = false
     @State private var rewardMessage = ""
     @State private var purchaseFeedback: String?
@@ -87,6 +89,12 @@ public struct SpinWheelView: View {
             }
         } message: {
             Text(rewardMessage)
+        }
+        .onAppear {
+            // Set up tick sound callback for wheel
+            engine.onTick = { [audioService] in
+                Task { await audioService.playSfx(name: "tick") }
+            }
         }
     }
     
@@ -163,6 +171,7 @@ public struct SpinWheelView: View {
                 }
             }
             .frame(width: 400, height: 400)
+            .padding(.top, 50)
         }
     }
     
