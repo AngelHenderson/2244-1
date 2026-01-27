@@ -56,10 +56,10 @@ public struct WeeklyOfferSheet: View {
 
                         VStack(spacing: 0) {
                             if offer.noAdsLifetime {
-                                offerRow(icon: "xmark.circle.fill", text: "No Ads Lifetime", color: .green)
+                                noAdsRow(text: "No Ads Lifetime")
                                 Divider().padding(.leading, 52)
                             } else if offer.noAds {
-                                offerRow(icon: "xmark.circle.fill", text: "No Ads", color: .green)
+                                noAdsRow(text: "No Ads")
                                 Divider().padding(.leading, 52)
                             }
                             if let gems = offer.gems {
@@ -162,6 +162,20 @@ public struct WeeklyOfferSheet: View {
                 .font(.title2)
                 .foregroundStyle(color)
                 .frame(width: 36)
+
+            Text(text)
+                .font(.body)
+
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 14)
+    }
+
+    private func noAdsRow(text: String) -> some View {
+        HStack(spacing: 16) {
+            NoAdsIcon()
+                .frame(width: 36, height: 36)
 
             Text(text)
                 .font(.body)
@@ -425,13 +439,19 @@ struct WeeklyOfferCard: View {
             // Contents
             VStack(alignment: .leading, spacing: 6) {
                 if offer.noAdsLifetime {
-                    Label("No Ads Lifetime", systemImage: "xmark.circle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.green)
+                    HStack(spacing: 8) {
+                        NoAdsIcon()
+                            .frame(width: 20, height: 20)
+                        Text("No Ads Lifetime")
+                            .font(.subheadline)
+                    }
                 } else if offer.noAds {
-                    Label("No Ads", systemImage: "xmark.circle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.green)
+                    HStack(spacing: 8) {
+                        NoAdsIcon()
+                            .frame(width: 20, height: 20)
+                        Text("No Ads")
+                            .font(.subheadline)
+                    }
                 }
                 if let gems = offer.gems {
                     Label {
@@ -659,9 +679,12 @@ struct BundleCard: View {
                     }
                 }
                 if bundle.perks?.noAds == true {
-                    Label("No Ads", systemImage: "xmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                    HStack(spacing: 6) {
+                        NoAdsIcon()
+                            .frame(width: 16, height: 16)
+                        Text("No Ads")
+                            .font(.caption)
+                    }
                 }
             }
             
@@ -898,10 +921,10 @@ struct JourneyTileView: View {
 struct TagView: View {
     let text: String
     let style: TagStyle
-    
+
     enum TagStyle {
         case `default`, success, warning, premium, seasonal
-        
+
         var backgroundColor: Color {
             switch self {
             case .default: return .gray.opacity(0.2)
@@ -911,7 +934,7 @@ struct TagView: View {
             case .seasonal: return .pink.opacity(0.2)
             }
         }
-        
+
         var foregroundColor: Color {
             switch self {
             case .default: return .primary
@@ -922,7 +945,7 @@ struct TagView: View {
             }
         }
     }
-    
+
     var body: some View {
         Text(text)
             .font(.system(size: 10, weight: .semibold))
@@ -931,5 +954,27 @@ struct TagView: View {
             .background(style.backgroundColor)
             .foregroundStyle(style.foregroundColor)
             .clipShape(Capsule())
+    }
+}
+
+/// Custom "No Ads" icon showing "ADS" text with a prohibition symbol overlay
+struct NoAdsIcon: View {
+    var body: some View {
+        ZStack {
+            // "ADS" text
+            Text("ADS")
+                .font(.system(size: 12, weight: .black, design: .rounded))
+                .foregroundStyle(.blue)
+
+            // Prohibition circle and line overlay
+            Circle()
+                .stroke(Color.red, lineWidth: 3)
+
+            // Diagonal line
+            Rectangle()
+                .fill(Color.red)
+                .frame(width: 3)
+                .rotationEffect(.degrees(45))
+        }
     }
 }
