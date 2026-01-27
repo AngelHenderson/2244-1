@@ -146,7 +146,7 @@ public struct SpinWheelView: View {
                     )
                     .frame(width: 32, height: 48)
                     .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
-                    .offset(y: -275)
+                    .offset(y: -225)
                     .shadow(color: Color(red: 0.2, green: 0.5, blue: 0.2).opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()
