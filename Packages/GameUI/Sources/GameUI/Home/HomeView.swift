@@ -20,7 +20,7 @@ public struct HomeView: View {
     @State private var isShowingBoosts: Bool = false
     @State private var isShowingWeeklyOffer: Bool = false
     @State private var centeredMilestone: Int? = nil
-    @State private var journeyScrollState = JourneyScrollState()
+    @State private var journeyScrollActions = JourneyScrollActions()
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
     @State private var playButtonHeight: CGFloat = 0
@@ -51,7 +51,13 @@ public struct HomeView: View {
             
             // Background layer: Tile scroller. We pass measured header/footer insets so
             // the current tile appears visually centered upon first appear.
-            JourneyPanel(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
+            JourneyPanel(
+                topInset: headerHeight + 8,
+                bottomInset: bottomOverlayHeight,
+                onScrollActionsReady: { actions in
+                    journeyScrollActions = actions
+                }
+            )
             
             // Foreground layer: Main UI
             VStack(spacing: 0) {
@@ -193,7 +199,7 @@ public struct HomeView: View {
 
                 // Down arrow - scroll to tile "2" (bottom of journey)
                 Button {
-                    journeyScrollState.scrollToBottom()
+                    journeyScrollActions.scrollToBottom()
                 } label: {
                     Image(systemName: "chevron.down.circle.fill")
                         .font(.system(size: 28))
@@ -255,7 +261,7 @@ public struct HomeView: View {
             .zIndex(1)
             .zIndex(2)
         }
-        .environment(\.journeyScrollState, journeyScrollState)
+        .environment(\.journeyScrollActions, journeyScrollActions)
         // Leaderboard (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingLeaderboard) {
             LeaderboardView()
