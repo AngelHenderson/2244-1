@@ -75,7 +75,7 @@ public struct ChallengeModeView: View {
                 isSelected: isSelected,
                 onTap: status.isPlayable ? { selectedChallenge = challenge } : nil
             )
-            .frame(width: geo.size.width * 0.5)
+            .frame(width: geo.size.width * 0.7)
             .frame(maxWidth: .infinity)
         }
         .frame(height: 180)
