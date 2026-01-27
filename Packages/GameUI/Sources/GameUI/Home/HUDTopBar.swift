@@ -22,8 +22,6 @@ struct HUDTopBar: View {
         return String(format: "⏱️ %d:%02d", minutes, seconds)
     }
 
-    @Environment(\.journeyScrollActions) private var journeyScrollActions
-
     var body: some View {
         HStack(spacing: 6) {
             // Rank button (left side)
@@ -45,20 +43,6 @@ struct HUDTopBar: View {
 
             // Game Center profile button (shown only if available / authenticated)
             gameCenterButton
-
-            Spacer()
-
-            // Up arrow - scroll to infinity (top of journey)
-            Button {
-                journeyScrollActions.scrollToTop()
-            } label: {
-                Image(systemName: "chevron.up.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(.white)
-                    .background(.black.opacity(0.3), in: Circle())
-                    .shadow(radius: 4)
-            }
-            .accessibilityLabel("Scroll to top of journey")
 
             Spacer()
 
