@@ -870,6 +870,8 @@ enum MockLeaderboardData {
             return (LeaderboardClient.denmarkPlayerMilestones, LeaderboardClient.denmarkExtendedRankBrackets, 90_123)
         case "FI":
             return (LeaderboardClient.finlandPlayerMilestones, LeaderboardClient.finlandExtendedRankBrackets, 87_654)
+        case "PL":
+            return (LeaderboardClient.polandPlayerMilestones, LeaderboardClient.polandExtendedRankBrackets, 67_108)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -942,6 +944,7 @@ enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.norwayPlayerMilestones, extendedBrackets: LeaderboardClient.norwayExtendedRankBrackets, totalPlayers: 34_924)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.denmarkPlayerMilestones, extendedBrackets: LeaderboardClient.denmarkExtendedRankBrackets, totalPlayers: 90_123)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.finlandPlayerMilestones, extendedBrackets: LeaderboardClient.finlandExtendedRankBrackets, totalPlayers: 87_654)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.polandPlayerMilestones, extendedBrackets: LeaderboardClient.polandExtendedRankBrackets, totalPlayers: 67_108)
 
         return total
     }
@@ -1755,6 +1758,7 @@ enum MockLeaderboardData {
         case "NO": return LeaderboardClient.norwayExtendedRankBrackets
         case "DK": return LeaderboardClient.denmarkExtendedRankBrackets
         case "FI": return LeaderboardClient.finlandExtendedRankBrackets
+        case "PL": return LeaderboardClient.polandExtendedRankBrackets
         default: return LeaderboardClient.usExtendedRankBrackets
         }
     }
@@ -1806,6 +1810,7 @@ enum MockLeaderboardData {
         case "NO": return LeaderboardClient.norwayPlayerMilestones
         case "DK": return LeaderboardClient.denmarkPlayerMilestones
         case "FI": return LeaderboardClient.finlandPlayerMilestones
+        case "PL": return LeaderboardClient.polandPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -2979,6 +2984,29 @@ public extension LeaderboardClient {
         "4a", "4a", "2a", "2a", "2a", "2a", "2a", "1a", "1a", "1a", "1a", "1a", "1a"
     ]
 
+    static let polandPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "672bo", "1bo", "4bl", "4bi", "570bh", "3bc", "30bb", "3ay", "1aw", "1aw",
+        "1aw", "429av", "53av", "3av", "1at", "3as", "48ar", "3ar", "1ar", "2aq",
+        "11ap", "22ao", "2ao", "709an", "1aj", "300ag", "1af", "69ad", "34ac", "1ac",
+        // Ranks 31-60
+        "1ab", "4aa", "2aa", "497y", "3y", "115v", "7u", "1u", "3s", "26r",
+        "3r", "51q", "3q", "1q", "1q", "1q", "401p", "200p", "50p", "12p",
+        "12p", "1o", "1n", "93m", "11m", "5m", "5m", "2m", "2m", "1m",
+        // Ranks 61-90
+        "1m", "1m", "365l", "182l", "45l", "45l", "22l", "11l", "5l", "2l",
+        "2l", "1l", "1l", "713k", "713k", "356k", "178k", "89k", "22k", "22k",
+        "2k", "1k", "1k", "348j", "174j", "174j", "87j", "43j", "43j", "43j",
+        // Ranks 91-120
+        "21j", "21j", "10j", "5j", "5j", "2j", "1j", "340i", "42i", "10i",
+        "10i", "5i", "5i", "2i", "1i", "1i", "664h", "166h", "41h", "20h",
+        "20h", "10h", "2h", "324g", "20g", "10g", "2g", "2g", "1g", "158f",
+        // Ranks 121-150
+        "39f", "4f", "9e", "9e", "4e", "2e", "2e", "1e", "604d", "604d",
+        "604d", "302d", "302d", "151d", "75d", "37d", "18d", "18d", "9d", "9d",
+        "2d", "73c", "18c", "18c", "4c", "2c", "2c", "1c", "288b", "288b"
+    ]
+
     // Extended Finland milestone brackets for rank calculation (ranks 151+)
     // Total Finland players: ~87,654
     static let finlandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
@@ -2994,6 +3022,29 @@ public extension LeaderboardClient {
         ("8192", 5111), ("4096", 6767), ("2048", 8956), ("1024", 12345), ("512", 17890),
         ("256", 24321), ("128", 29876), ("64", 34543), ("32", 41111), ("16", 50000),
         ("8", 58888), ("4", 67676), ("2", 76767), ("0", 87654)  // Score 0 = end rank
+    ]
+
+    // Extended Poland milestone brackets for rank calculation (ranks 151+)
+    // Total Poland players: ~67,108
+    static let polandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // b-tier brackets (ranks 151-160)
+        ("72b", 151), ("36b", 152), ("18b", 153), ("9b", 154), ("4b", 155),
+        ("2b", 157), ("1b", 159),
+        // a-tier brackets (ranks 161-201)
+        ("562a", 161), ("281a", 162), ("140a", 164), ("70a", 167), ("35a", 171),
+        ("17a", 176), ("8a", 182), ("4a", 189), ("2a", 194), ("1a", 198),
+        // B-tier brackets (ranks 202-244)
+        ("549B", 202), ("274B", 203), ("137B", 205), ("68B", 207), ("34B", 211),
+        ("17B", 216), ("8B", 222), ("4B", 229), ("2B", 236), ("1B", 244),
+        // M-tier brackets (ranks 254-639)
+        ("536M", 254), ("268M", 266), ("134M", 281), ("67M", 300), ("33M", 328),
+        ("16M", 366), ("8M", 419), ("4M", 475), ("2M", 551), ("1M", 639),
+        // K-tier brackets (ranks 737-2222)
+        ("524K", 737), ("262K", 853), ("131K", 991), ("65K", 1200), ("32K", 1667), ("16K", 2222),
+        // Raw number brackets (ranks 3333-67108)
+        ("8192", 3333), ("4096", 4567), ("2048", 6767), ("1024", 8765), ("512", 12345),
+        ("256", 16789), ("128", 22222), ("64", 29876), ("32", 36925), ("16", 41414),
+        ("8", 50000), ("4", 54321), ("2", 56789), ("0", 60000)  // Score 0 = ranks 60000-67108
     ]
 
     // Extended Netherlands milestone brackets for rank calculation (ranks 151+)
@@ -3565,7 +3616,7 @@ public extension LeaderboardClient {
         let totalSwitzerlandPlayers = 20_000
         let totalNorwayPlayers = 34_924
         let totalDenmarkPlayers = 90_123
-        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers + totalNetherlandsPlayers + totalSwitzerlandPlayers + totalNorwayPlayers + totalDenmarkPlayers + totalFinlandPlayers + totalPolandPlayers
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers + totalNetherlandsPlayers + totalSwitzerlandPlayers + totalNorwayPlayers + totalDenmarkPlayers
 
         // Build entries with ranks based on sorted order (top 150 only)
         // User is already in playerData and sorted, so they'll appear at correct position
