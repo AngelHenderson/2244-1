@@ -1844,6 +1844,8 @@ public extension LeaderboardClient {
                 entries = norwayEntries()
             case .countryDK:
                 entries = denmarkEntries()
+            case .countryFI:
+                entries = finlandEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -1894,9 +1896,11 @@ public extension LeaderboardClient {
                 totalPlayers = 34_924  // Norway player count
             case .countryDK:
                 totalPlayers = 90_123  // Denmark player count
+            case .countryFI:
+                totalPlayers = 87_654  // Finland player count
             case .global:
                 // Global = sum of all country players
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399 + 46_767 + 20_000 + 34_924 + 90_123
+                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399 + 46_767 + 20_000 + 34_924 + 90_123 + 87654
             }
             let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
             return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
