@@ -22,7 +22,7 @@ struct HUDTopBar: View {
         return String(format: "⏱️ %d:%02d", minutes, seconds)
     }
 
-    @Environment(\.journeyScrollState) private var journeyScrollState
+    @Environment(\.journeyScrollActions) private var journeyScrollActions
 
     var body: some View {
         HStack(spacing: 6) {
@@ -50,7 +50,7 @@ struct HUDTopBar: View {
 
             // Up arrow - scroll to infinity (top of journey)
             Button {
-                journeyScrollState.scrollToTop()
+                journeyScrollActions.scrollToTop()
             } label: {
                 Image(systemName: "chevron.up.circle.fill")
                     .font(.system(size: 28))
