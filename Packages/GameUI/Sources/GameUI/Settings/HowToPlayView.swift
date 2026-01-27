@@ -25,9 +25,16 @@ public struct HowToPlayView: View {
         TutorialPage(
             title: "Connect Tiles",
             subtitle: "Part B: Same or double",
-            description: "After the first two tiles, connect same value or double. Connect in all 8 directions!",
+            description: "After the first two tiles, you can connect the same value or double.",
             systemImage: "hand.draw.fill",
             imageColor: .green
+        ),
+        TutorialPage(
+            title: "8 Directions",
+            subtitle: "Connect any way",
+            description: "Connect tiles horizontally, vertically, and diagonally - all 8 directions!",
+            systemImage: "arrow.up.left.and.arrow.down.right",
+            imageColor: .orange
         ),
         TutorialPage(
             title: "Merge & Score",
@@ -106,12 +113,28 @@ public struct HowToPlayView: View {
                             ConnectTilesPartAPage(page: pages[index])
                                 .tag(index)
                         } else if index == 2 {
-                            // Page 3 Part B: 8 Directions snake pattern
-                            EightDirectionsPage(page: pages[index])
+                            // Page 3 Part B: Same or double (2,2,4,8,8,16)
+                            ConnectTilesPartBPage(page: pages[index])
                                 .tag(index)
                         } else if index == 3 {
-                            // Page 4: Merge & Score demo
+                            // Page 4: 8 Directions snake pattern
+                            EightDirectionsPage(page: pages[index])
+                                .tag(index)
+                        } else if index == 4 {
+                            // Page 5: Merge & Score demo
                             MergeAndScorePage(page: pages[index])
+                                .tag(index)
+                        } else if index == 5 {
+                            // Page 6: Hammer demo
+                            HammerPage(page: pages[index])
+                                .tag(index)
+                        } else if index == 6 {
+                            // Page 7: Swap demo
+                            SwapPage(page: pages[index])
+                                .tag(index)
+                        } else if index == 7 {
+                            // Page 8: MegaMerge demo
+                            MegaMergePage(page: pages[index])
                                 .tag(index)
                         } else {
                             TutorialPageView(page: pages[index])
@@ -768,17 +791,454 @@ private struct MergeAndScorePage: View {
     }
 }
 
+// MARK: - Hammer Page
+
+private struct HammerPage: View {
+    let page: TutorialPage
+    @State private var show256: Bool = true
+    @State private var showMergeResult: Bool = false
+    @State private var connectedTileIds: Set<Int> = []
+    @State private var hammerActive: Bool = true
+
+    private let tileSize: CGFloat = 60
+    private let tileSpacing: CGFloat = 8
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            // Title
+            Text(page.title)
+                .font(.largeTitle.bold())
+                .multilineTextAlignment(.center)
+
+            // Subtitle
+            Text(page.subtitle)
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
+            // Interactive demo
+            VStack(spacing: 16) {
+                if showMergeResult {
+                    // Show merged result: 4 tile
+                    TutorialTile(value: "4", color: Theme.colorForStep(1))
+                        .transition(.scale.combined(with: .opacity))
+                } else {
+                    // Vertical stack: 2, 256, 2
+                    VStack(spacing: tileSpacing) {
+                        // Top 2
+                        TutorialTile(
+                            value: "2",
+                            color: Theme.colorForStep(0),
+                            isHighlighted: connectedTileIds.contains(0),
+                            size: tileSize
+                        )
+                        .onTapGesture {
+                            if !hammerActive && !show256 {
+                                handleTileTap(id: 0)
+                            }
+                        }
+
+                        // Middle 256 (removable with hammer)
+                        if show256 {
+                            TutorialTile(
+                                value: "256",
+                                color: Theme.colorForStep(7),
+                                isHighlighted: hammerActive,
+                                size: tileSize
+                            )
+                            .overlay(
+                                hammerActive ?
+                                Image(systemName: "hammer.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.red)
+                                    .offset(x: 25, y: -25)
+                                : nil
+                            )
+                            .onTapGesture {
+                                if hammerActive {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        show256 = false
+                                        hammerActive = false
+                                    }
+                                }
+                            }
+                            .transition(.scale.combined(with: .opacity))
+                        }
+
+                        // Bottom 2
+                        TutorialTile(
+                            value: "2",
+                            color: Theme.colorForStep(0),
+                            isHighlighted: connectedTileIds.contains(1),
+                            size: tileSize
+                        )
+                        .onTapGesture {
+                            if !hammerActive && !show256 {
+                                handleTileTap(id: 1)
+                            }
+                        }
+                    }
+                }
+
+                // Instruction text
+                Text(instructionText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 8)
+            }
+            .padding(.vertical, 16)
+
+            // Description
+            Text(page.description)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 32)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+            Spacer()
+        }
+        .padding()
+    }
+
+    private var instructionText: String {
+        if showMergeResult {
+            return "The 2s merged into 4!"
+        } else if hammerActive {
+            return "Tap the 256 to remove it with the hammer"
+        } else if !show256 && connectedTileIds.isEmpty {
+            return "Now tap both 2s to connect and merge them"
+        } else if connectedTileIds.count == 1 {
+            return "Tap the other 2 to complete the chain"
+        } else {
+            return "Tap tiles to connect them"
+        }
+    }
+
+    private func handleTileTap(id: Int) {
+        if connectedTileIds.contains(id) {
+            return
+        }
+
+        connectedTileIds.insert(id)
+
+        // If both tiles are connected, merge them
+        if connectedTileIds.count == 2 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                    showMergeResult = true
+                }
+                // Reset after delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation {
+                        showMergeResult = false
+                        show256 = true
+                        hammerActive = true
+                        connectedTileIds.removeAll()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Swap Page
+
+private struct SwapPage: View {
+    let page: TutorialPage
+    @State private var swapped: Bool = false
+    @State private var showMergeResult: Bool = false
+    @State private var connectedTileIds: Set<Int> = []
+    @State private var firstSwapTile: Int? = nil
+
+    // Tiles: 2-2-2-4-8-32-16-64-128-256-512 (32 and 16 are swapped - need to fix)
+    // After swap: 2-2-2-4-8-16-32-64-128-256-512
+    private struct TileInfo: Identifiable {
+        let id: Int
+        var value: Int
+        var step: Int
+    }
+
+    // Initial state with 32 and 16 in wrong positions
+    private var tiles: [TileInfo] {
+        if swapped {
+            // Correct order after swap
+            return [
+                TileInfo(id: 0, value: 2, step: 0),
+                TileInfo(id: 1, value: 2, step: 0),
+                TileInfo(id: 2, value: 2, step: 0),
+                TileInfo(id: 3, value: 4, step: 1),
+                TileInfo(id: 4, value: 8, step: 2),
+                TileInfo(id: 5, value: 16, step: 3),   // Swapped
+                TileInfo(id: 6, value: 32, step: 4),   // Swapped
+                TileInfo(id: 7, value: 64, step: 5),
+                TileInfo(id: 8, value: 128, step: 6),
+                TileInfo(id: 9, value: 256, step: 7),
+                TileInfo(id: 10, value: 512, step: 8),
+            ]
+        } else {
+            // Wrong order - 32 and 16 need to be swapped
+            return [
+                TileInfo(id: 0, value: 2, step: 0),
+                TileInfo(id: 1, value: 2, step: 0),
+                TileInfo(id: 2, value: 2, step: 0),
+                TileInfo(id: 3, value: 4, step: 1),
+                TileInfo(id: 4, value: 8, step: 2),
+                TileInfo(id: 5, value: 32, step: 4),   // Wrong position
+                TileInfo(id: 6, value: 16, step: 3),   // Wrong position
+                TileInfo(id: 7, value: 64, step: 5),
+                TileInfo(id: 8, value: 128, step: 6),
+                TileInfo(id: 9, value: 256, step: 7),
+                TileInfo(id: 10, value: 512, step: 8),
+            ]
+        }
+    }
+
+    private let tileSize: CGFloat = 32
+    private let tileSpacing: CGFloat = 3
+    private var totalWidth: CGFloat { CGFloat(tiles.count) * tileSize + CGFloat(tiles.count - 1) * tileSpacing }
+
+    /// Find which tile is at the given x location
+    private func tileAt(location: CGPoint) -> Int? {
+        let y = location.y
+        guard y >= 0 && y <= tileSize else { return nil }
+
+        let cellWidth = tileSize + tileSpacing
+        let x = location.x
+
+        for i in 0..<tiles.count {
+            let tileStart = CGFloat(i) * cellWidth
+            let tileEnd = tileStart + tileSize
+            if x >= tileStart && x <= tileEnd {
+                return i
+            }
+        }
+        return nil
+    }
+
+    /// Get the count of consecutively connected tiles from the start
+    private var connectedCount: Int {
+        var count = 0
+        for i in 0..<tiles.count {
+            if connectedTileIds.contains(i) {
+                count = i + 1
+            } else {
+                break
+            }
+        }
+        return count
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            // Title
+            Text(page.title)
+                .font(.largeTitle.bold())
+                .multilineTextAlignment(.center)
+
+            // Subtitle
+            Text(page.subtitle)
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
+            // Interactive demo
+            VStack(spacing: 12) {
+                if showMergeResult {
+                    // Show merged result: 2048 tile
+                    TutorialTile(value: "2048", color: Theme.colorForStep(10))
+                        .transition(.scale.combined(with: .opacity))
+                } else {
+                    // Horizontal tiles with swap indicators
+                    ZStack {
+                        // Connection line when merging
+                        if swapped && connectedCount >= 2 {
+                            let lineWidth = CGFloat(connectedCount - 1) * (tileSize + tileSpacing) + tileSize
+                            Rectangle()
+                                .fill(Color.white.opacity(0.8))
+                                .frame(width: lineWidth, height: 2)
+                                .offset(x: -(totalWidth - lineWidth) / 2)
+                        }
+
+                        HStack(spacing: tileSpacing) {
+                            ForEach(tiles) { tile in
+                                TutorialTile(
+                                    value: "\(tile.value)",
+                                    color: Theme.colorForStep(tile.step),
+                                    isHighlighted: !swapped ? (tile.id == 5 || tile.id == 6) : connectedTileIds.contains(tile.id),
+                                    size: tileSize
+                                )
+                                .overlay(
+                                    // Show swap arrows on 32 and 16 before swap
+                                    !swapped && (tile.id == 5 || tile.id == 6) ?
+                                    Image(systemName: tile.id == 5 ? "arrow.right" : "arrow.left")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(.cyan)
+                                        .offset(y: tileSize / 2 + 8)
+                                    : nil
+                                )
+                                .onTapGesture {
+                                    if !swapped {
+                                        handleSwapTap(tileId: tile.id)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .gesture(
+                        swapped ?
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                if let tileId = tileAt(location: value.location) {
+                                    if connectedTileIds.isEmpty {
+                                        if tileId == 0 {
+                                            connectedTileIds.insert(tileId)
+                                        }
+                                    } else {
+                                        let nextExpectedId = connectedCount
+                                        if tileId == nextExpectedId && nextExpectedId < tiles.count {
+                                            connectedTileIds.insert(tileId)
+                                        }
+                                    }
+                                }
+                            }
+                            .onEnded { _ in
+                                if connectedCount >= 2 {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                        showMergeResult = true
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                        withAnimation {
+                                            showMergeResult = false
+                                            swapped = false
+                                            connectedTileIds.removeAll()
+                                            firstSwapTile = nil
+                                        }
+                                    }
+                                } else {
+                                    connectedTileIds.removeAll()
+                                }
+                            }
+                        : nil
+                    )
+                }
+
+                // Instruction text
+                Text(instructionText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
+            }
+            .padding(.vertical, 12)
+
+            // Description
+            Text(page.description)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 32)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+            Spacer()
+        }
+        .padding()
+    }
+
+    private var instructionText: String {
+        if showMergeResult {
+            return "Merged into 2048!"
+        } else if !swapped {
+            if firstSwapTile == nil {
+                return "Tap the 32 or 16 to swap them"
+            } else {
+                return "Now tap the other tile to complete the swap"
+            }
+        } else {
+            return "Now drag across all tiles to merge into 2048"
+        }
+    }
+
+    private func handleSwapTap(tileId: Int) {
+        // Only allow tapping 32 (id 5) or 16 (id 6)
+        guard tileId == 5 || tileId == 6 else { return }
+
+        if firstSwapTile == nil {
+            firstSwapTile = tileId
+        } else if firstSwapTile != tileId {
+            // Complete the swap
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                swapped = true
+                firstSwapTile = nil
+            }
+        }
+    }
+}
+
 // MARK: - Connect Tiles Part B (Same or Double Demo)
 
 private struct ConnectTilesPartBPage: View {
     let page: TutorialPage
-    @State private var connectedCount = 0
+    @State private var connectedTileIds: Set<Int> = []
     @State private var showMergeResult = false
     @State private var isDragging = false
 
     // Tiles: 2, 2, 4, 8, 8, 16
-    private let tileValues = [2, 2, 4, 8, 8, 16]
-    private let tileSteps = [0, 0, 1, 2, 2, 3]  // Steps for colors
+    private struct TileInfo: Identifiable {
+        let id: Int
+        let value: Int
+        let step: Int
+    }
+
+    private let tiles: [TileInfo] = [
+        TileInfo(id: 0, value: 2, step: 0),
+        TileInfo(id: 1, value: 2, step: 0),
+        TileInfo(id: 2, value: 4, step: 1),
+        TileInfo(id: 3, value: 8, step: 2),
+        TileInfo(id: 4, value: 8, step: 2),
+        TileInfo(id: 5, value: 16, step: 3),
+    ]
+
+    private let tileSize: CGFloat = 52
+    private let tileSpacing: CGFloat = 8
+    private var totalWidth: CGFloat { CGFloat(tiles.count) * tileSize + CGFloat(tiles.count - 1) * tileSpacing }
+
+    /// Find which tile is at the given x location
+    private func tileAt(location: CGPoint) -> Int? {
+        let y = location.y
+        guard y >= 0 && y <= tileSize else { return nil }
+
+        let cellWidth = tileSize + tileSpacing
+        let x = location.x
+
+        for i in 0..<tiles.count {
+            let tileStart = CGFloat(i) * cellWidth
+            let tileEnd = tileStart + tileSize
+            if x >= tileStart && x <= tileEnd {
+                return i
+            }
+        }
+        return nil
+    }
+
+    /// Get the count of consecutively connected tiles from the start
+    private var connectedCount: Int {
+        var count = 0
+        for i in 0..<tiles.count {
+            if connectedTileIds.contains(i) {
+                count = i + 1
+            } else {
+                break
+            }
+        }
+        return count
+    }
 
     var body: some View {
         VStack(spacing: 24) {
@@ -797,30 +1257,52 @@ private struct ConnectTilesPartBPage: View {
             // Interactive tiles demo
             VStack(spacing: 16) {
                 if showMergeResult {
-                    // Show merged result: 64 tile
+                    // Show merged result: 64 tile (sum 2+2+4+8+8+16=40, rounds to 64)
                     TutorialTile(value: "64", color: Theme.colorForStep(5))
                         .transition(.scale.combined(with: .opacity))
                 } else {
-                    // Show tiles: 2, 2, 4, 8, 8, 16
-                    HStack(spacing: 8) {
-                        ForEach(0..<tileValues.count, id: \.self) { index in
-                            TutorialTile(
-                                value: "\(tileValues[index])",
-                                color: Theme.colorForStep(tileSteps[index]),
-                                isHighlighted: index < connectedCount,
-                                size: 52
-                            )
+                    // Show tiles: 2, 2, 4, 8, 8, 16 with connection line
+                    ZStack {
+                        // Connection line
+                        if connectedCount >= 2 {
+                            let lineWidth = CGFloat(connectedCount - 1) * (tileSize + tileSpacing) + tileSize
+                            Rectangle()
+                                .fill(Color.white.opacity(0.8))
+                                .frame(width: lineWidth, height: 3)
+                                .offset(x: -(totalWidth - lineWidth) / 2)
+                        }
+
+                        HStack(spacing: tileSpacing) {
+                            ForEach(tiles) { tile in
+                                TutorialTile(
+                                    value: "\(tile.value)",
+                                    color: Theme.colorForStep(tile.step),
+                                    isHighlighted: connectedTileIds.contains(tile.id),
+                                    size: tileSize
+                                )
+                            }
                         }
                     }
+                    .contentShape(Rectangle())
                     .gesture(
-                        DragGesture(minimumDistance: 5)
+                        DragGesture(minimumDistance: 0)
                             .onChanged { value in
                                 isDragging = true
-                                // Calculate how many tiles are covered based on drag distance
-                                let tileWidth: CGFloat = 60  // tile + spacing
-                                let dragDistance = value.translation.width
-                                let tilesConnected = min(6, max(1, Int(dragDistance / tileWidth) + 1))
-                                connectedCount = tilesConnected
+
+                                if let tileId = tileAt(location: value.location) {
+                                    if connectedTileIds.isEmpty {
+                                        // Must start with first tile
+                                        if tileId == 0 {
+                                            connectedTileIds.insert(tileId)
+                                        }
+                                    } else {
+                                        // Add next tile in sequence
+                                        let nextExpectedId = connectedCount
+                                        if tileId == nextExpectedId && nextExpectedId < tiles.count {
+                                            connectedTileIds.insert(tileId)
+                                        }
+                                    }
+                                }
                             }
                             .onEnded { _ in
                                 isDragging = false
@@ -832,17 +1314,17 @@ private struct ConnectTilesPartBPage: View {
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                         withAnimation {
                                             showMergeResult = false
-                                            connectedCount = 0
+                                            connectedTileIds.removeAll()
                                         }
                                     }
                                 } else {
-                                    connectedCount = 0
+                                    connectedTileIds.removeAll()
                                 }
                             }
                     )
                 }
 
-                Text(showMergeResult ? "All tiles merged into 64!" : "Swipe across to connect same or double values")
+                Text(showMergeResult ? "Merged into 64!" : "Drag across to connect same or double values")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.top, 8)
