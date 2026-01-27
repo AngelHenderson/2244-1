@@ -2,8 +2,44 @@ import SwiftUI
 import GameApp
 import GameCore
 
+// MARK: - Journey Scroll State
+
+@Observable
+public final class JourneyScrollState: @unchecked Sendable {
+    public enum ScrollTarget: Sendable, Equatable {
+        case top      // Scroll to infinity
+        case bottom   // Scroll to tile "2"
+        case current  // Scroll to current milestone
+    }
+
+    // Use a trigger ID to force onChange detection
+    public var scrollTrigger: Int = 0
+    public var targetDestination: ScrollTarget = .current
+
+    public init() {}
+
+    @MainActor
+    public func scrollToTop() {
+        targetDestination = .top
+        scrollTrigger += 1
+    }
+
+    @MainActor
+    public func scrollToBottom() {
+        targetDestination = .bottom
+        scrollTrigger += 1
+    }
+
+    @MainActor
+    public func scrollToCurrent() {
+        targetDestination = .current
+        scrollTrigger += 1
+    }
+}
+
 public struct JourneyPanel: View {
     @Environment(\.gameStore) private var gameStore
+    @Environment(\.journeyScrollState) private var scrollState
 
     private let topInset: CGFloat
     private let bottomInset: CGFloat
@@ -17,28 +53,25 @@ public struct JourneyPanel: View {
         let milestones = roadMilestones
         let verticalSpacing: CGFloat = 100
         let totalHeight = CGFloat(milestones.count) * verticalSpacing + 200
+        // Capture the trigger value to force SwiftUI observation
+        let trigger = scrollState.scrollTrigger
 
         ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
-                ZStack(alignment: .top) {
-                    // Background
-                    SerpentineBackground()
-                        .frame(height: totalHeight)
-
-                    // Road and milestones
-                    SerpentineRoadView(
-                        milestones: milestones,
-                        rowHeight: verticalSpacing,
-                        onClaimReward: { tier in
-                            gameStore.presentJourneyReward(for: tier)
-                        }
-                    )
-                }
+                // Road and milestones - no background, theme shows through
+                SerpentineRoadView(
+                    milestones: milestones,
+                    rowHeight: verticalSpacing,
+                    onClaimReward: { tier in
+                        gameStore.presentJourneyReward(for: tier)
+                    }
+                )
                 .frame(maxWidth: .infinity)
                 .frame(height: totalHeight)
             }
-            .safeAreaPadding(.top, topInset)
-            .safeAreaPadding(.bottom, bottomInset)
+            .scrollClipDisabled()
+            .contentMargins(.top, topInset, for: .scrollContent)
+            .contentMargins(.bottom, bottomInset, for: .scrollContent)
             .onAppear {
                 if let currentIndex = milestones.firstIndex(where: { $0.status == .current }) {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -48,8 +81,40 @@ public struct JourneyPanel: View {
                     }
                 }
             }
+            .onChange(of: trigger) { _, _ in
+                // Read destination fresh when onChange fires
+                let destination = scrollState.targetDestination
+                withAnimation(.snappy(duration: 0.5)) {
+                    switch destination {
+                    case .top:
+                        // Scroll to infinity (last index)
+                        let infinityIndex = milestones.count - 1
+                        proxy.scrollTo(infinityIndex, anchor: .center)
+                    case .bottom:
+                        // Scroll to tile "2" (index 0)
+                        proxy.scrollTo(0, anchor: .center)
+                    case .current:
+                        if let currentIndex = milestones.firstIndex(where: { $0.status == .current }) {
+                            proxy.scrollTo(currentIndex, anchor: .center)
+                        }
+                    }
+                }
+            }
         }
-        .background(SerpentineBackground())
+        .ignoresSafeArea()
+    }
+}
+
+// MARK: - Environment Key
+
+public struct JourneyScrollStateKey: EnvironmentKey {
+    public static let defaultValue = JourneyScrollState()
+}
+
+public extension EnvironmentValues {
+    var journeyScrollState: JourneyScrollState {
+        get { self[JourneyScrollStateKey.self] }
+        set { self[JourneyScrollStateKey.self] = newValue }
     }
 }
 
@@ -166,49 +231,6 @@ struct SerpentineMilestone: Identifiable {
     }
 }
 
-// MARK: - Serpentine Background
-
-private struct SerpentineBackground: View {
-    var body: some View {
-        ZStack {
-            // Dark purple gradient background
-            LinearGradient(
-                colors: [
-                    Color(red: 0.18, green: 0.14, blue: 0.28),
-                    Color(red: 0.12, green: 0.10, blue: 0.20),
-                    Color(red: 0.08, green: 0.06, blue: 0.14)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-
-            // Subtle hills/waves in background
-            GeometryReader { geo in
-                Canvas { context, size in
-                    // Draw subtle wave patterns
-                    for i in 0..<Int(size.height / 300) {
-                        let y = CGFloat(i) * 300 + 150
-                        let opacity = 0.03 + Double(i % 3) * 0.02
-
-                        var path = Path()
-                        path.move(to: CGPoint(x: 0, y: y))
-                        path.addQuadCurve(
-                            to: CGPoint(x: size.width, y: y + 50),
-                            control: CGPoint(x: size.width * 0.5, y: y - 80)
-                        )
-                        path.addLine(to: CGPoint(x: size.width, y: y + 150))
-                        path.addLine(to: CGPoint(x: 0, y: y + 100))
-                        path.closeSubpath()
-
-                        context.fill(path, with: .color(.purple.opacity(opacity)))
-                    }
-                }
-            }
-        }
-        .ignoresSafeArea()
-    }
-}
-
 // MARK: - Serpentine Road View
 
 private struct SerpentineRoadView: View {
@@ -309,64 +331,70 @@ private struct SerpentineRoadPath: View {
     let roadWidth: CGFloat
 
     var body: some View {
-        Canvas { context, size in
-            guard positions.count > 1 else { return }
-
-            var roadPath = Path()
-
-            // Start below the first position (bottom of screen, lowest tile value)
-            let first = positions[0]
-            roadPath.move(to: CGPoint(x: first.x, y: first.y + 80))
-            roadPath.addLine(to: first)
-
-            // Draw smooth S-curves through all positions
-            for i in 1..<positions.count {
-                let current = positions[i]
-                let prev = positions[i - 1]
-
-                // Calculate midpoint Y
-                let midY = (prev.y + current.y) / 2
-
-                // Create S-curve: first curve from prev toward center, then curve to current
-                // Control point keeps the curve smooth
-                roadPath.addCurve(
-                    to: current,
-                    control1: CGPoint(x: prev.x, y: midY),
-                    control2: CGPoint(x: current.x, y: midY)
+        ZStack {
+            // Road edge (darker, wider)
+            RoadShape(positions: positions)
+                .stroke(
+                    Color(red: 0.20, green: 0.20, blue: 0.25),
+                    style: StrokeStyle(lineWidth: roadWidth + 8, lineCap: .round, lineJoin: .round)
                 )
-            }
 
-            // Extend past the last position (top of screen, highest tile value)
-            if let last = positions.last {
-                roadPath.addLine(to: CGPoint(x: last.x, y: last.y - 80))
-            }
-
-            // Draw road edge first (darker, wider)
-            context.stroke(
-                roadPath,
-                with: .color(Color(red: 0.20, green: 0.20, blue: 0.25)),
-                style: StrokeStyle(lineWidth: roadWidth + 8, lineCap: .round, lineJoin: .round)
-            )
-
-            // Draw the main road
-            context.stroke(
-                roadPath,
-                with: .color(Color(red: 0.45, green: 0.45, blue: 0.50)),
-                style: StrokeStyle(lineWidth: roadWidth, lineCap: .round, lineJoin: .round)
-            )
-
-            // Draw the dashed center line
-            context.stroke(
-                roadPath,
-                with: .color(.white.opacity(0.7)),
-                style: StrokeStyle(
-                    lineWidth: 3,
-                    lineCap: .round,
-                    lineJoin: .round,
-                    dash: [12, 10]
+            // Main road
+            RoadShape(positions: positions)
+                .stroke(
+                    Color(red: 0.45, green: 0.45, blue: 0.50),
+                    style: StrokeStyle(lineWidth: roadWidth, lineCap: .round, lineJoin: .round)
                 )
+
+            // Dashed center line
+            RoadShape(positions: positions)
+                .stroke(
+                    Color.white.opacity(0.7),
+                    style: StrokeStyle(
+                        lineWidth: 3,
+                        lineCap: .round,
+                        lineJoin: .round,
+                        dash: [12, 10]
+                    )
+                )
+        }
+    }
+}
+
+private struct RoadShape: Shape {
+    let positions: [CGPoint]
+
+    func path(in rect: CGRect) -> Path {
+        var roadPath = Path()
+        guard positions.count > 1 else { return roadPath }
+
+        // Start below the first position (bottom of screen, lowest tile value)
+        let first = positions[0]
+        roadPath.move(to: CGPoint(x: first.x, y: first.y + 80))
+        roadPath.addLine(to: first)
+
+        // Draw smooth S-curves through all positions
+        for i in 1..<positions.count {
+            let current = positions[i]
+            let prev = positions[i - 1]
+
+            // Calculate midpoint Y
+            let midY = (prev.y + current.y) / 2
+
+            // Create S-curve
+            roadPath.addCurve(
+                to: current,
+                control1: CGPoint(x: prev.x, y: midY),
+                control2: CGPoint(x: current.x, y: midY)
             )
         }
+
+        // Extend past the last position (top of screen, highest tile value)
+        if let last = positions.last {
+            roadPath.addLine(to: CGPoint(x: last.x, y: last.y - 80))
+        }
+
+        return roadPath
     }
 }
 
