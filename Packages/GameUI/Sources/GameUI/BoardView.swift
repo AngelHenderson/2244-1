@@ -41,6 +41,11 @@ public struct BoardView: View {
                     startMagnetAnimations(for: event, tileSize: tileSize)
                 }
             }
+            .onChange(of: gameStore.hammerAnimationState?.phase) { _, newPhase in
+                if newPhase == .impact {
+                    Task { await audioService.playSfx(name: "hammer") }
+                }
+            }
         }
     }
     
