@@ -95,11 +95,14 @@ enum MockLeaderboardData {
     }()
 
     // Calculate days since reference date for progression
+    // Leaderboard only updates at midnight - uses start of today, not current time
     static var daysSinceReference: Int {
         let calendar = Calendar.current
-        let now = Date()
-        let days = calendar.dateComponents([.day], from: referenceDate, to: now).day ?? 0
-        return days
+        // Get start of today (midnight) to ensure leaderboard only changes at midnight
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfReference = calendar.startOfDay(for: referenceDate)
+        let days = calendar.dateComponents([.day], from: startOfReference, to: startOfToday).day ?? 0
+        return max(0, days)
     }
 
     // All milestone tiers in order (lowest to highest) - generated from doubling sequence
