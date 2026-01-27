@@ -477,7 +477,15 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(gems: 987, swaps: 1),
         AchievementDef.Rewards(gems: 1111),
         AchievementDef.Rewards(gems: 766, spins: 3),
-        AchievementDef.Rewards(gems: 779, magnets: 2, boost3x: 1)
+        AchievementDef.Rewards(gems: 779, magnets: 2, boost3x: 1),
+        // Week 22
+        AchievementDef.Rewards(spins: 1),
+        AchievementDef.Rewards(gems: 996, hammers: 1),
+        AchievementDef.Rewards(gems: 799, swaps: 1),
+        AchievementDef.Rewards(gems: 882, boost2x: 1),
+        AchievementDef.Rewards(gems: 921, hammers: 1, swaps: 1, boost2x: 1, boost3x: 1),
+        AchievementDef.Rewards(hammers: 2, boost4x: 1),
+        AchievementDef.Rewards(spins: 1, magnets: 1, swaps: 1)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {
