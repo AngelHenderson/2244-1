@@ -341,7 +341,14 @@ private struct AchievementRow: View {
     /// Dynamic title for progressive achievements
     private var displayTitle: String {
         if let tierDisplay {
-            return tierDisplay.title
+            // Strip "Level X: " prefix from title since it's now shown in categoryLabel
+            let title = tierDisplay.title
+            if let colonIndex = title.firstIndex(of: ":"),
+               title.hasPrefix("Level ") {
+                let afterColon = title.index(colonIndex, offsetBy: 2, limitedBy: title.endIndex) ?? colonIndex
+                return String(title[afterColon...])
+            }
+            return title
         }
         if let tier = tileProgressionTier {
             return "Reach the \(tier.label) tile"
@@ -494,7 +501,10 @@ private struct AchievementRow: View {
     }
     
     private var categoryLabel: String {
-        tierDisplay?.categoryLabel ?? definition.category
+        if let tierDisplay {
+            return "Level \(tierDisplay.level): \(tierDisplay.categoryLabel)"
+        }
+        return definition.category
     }
     
     private var rewardsForDisplay: AchievementDef.Rewards? {
