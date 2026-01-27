@@ -248,49 +248,27 @@ public actor LiveAudioService: AudioServiceProtocol {
         // Clean up before adding new sounds
         cleanupAndPrepareForNewSound()
 
-        // Normalize empty theme to piano
-        let effectiveTheme = theme.isEmpty ? "piano" : theme
+        // Play the electric zap sound file
+        let url = Bundle.main.url(forResource: "electric_zap", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "electric_zap", withExtension: "wav")
 
-        // Get config for current theme, fall back to piano
-        let config = InstrumentConfig.configs[effectiveTheme] ?? InstrumentConfig.defaultConfig
+        guard let audioUrl = url else {
+            print("❌ Electric zap sound not found")
+            return
+        }
 
-        // Play rapid succession of notes to simulate electric/buzzing effect
-        let soundCount = config.tapSoundCount
+        do {
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.volume = 0.7
+            player.play()
+            sfxPlayers.append(player)
 
-        for index in 1...soundCount {
-            let soundName = "\(config.filePrefix)\(index)"
-
-            // Try instrument-specific sound first, fall back to piano
-            // All files are at bundle root (synchronized groups flatten directory structure)
-            var url = Bundle.main.url(forResource: soundName, withExtension: "mp3")
-
-            // Fall back to piano sounds if instrument sound not found
-            if url == nil {
-                let pianoSoundName = "piano_tap_\(index)"
-                url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3") ??
-                      Bundle.main.url(forResource: pianoSoundName, withExtension: "wav")
+            Task {
+                try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                await removeSfxPlayer(player)
             }
-
-            guard let audioUrl = url else { continue }
-
-            do {
-                let player = try AVAudioPlayer(contentsOf: audioUrl)
-                player.volume = 0.5  // Slightly quieter for layered effect
-                player.play()
-                sfxPlayers.append(player)
-
-                Task {
-                    try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                    await removeSfxPlayer(player)
-                }
-            } catch {
-                print("❌ Failed to play electric sound: \(error)")
-            }
-
-            // Small delay between notes for electric effect
-            if index < soundCount {
-                try? await Task.sleep(for: .milliseconds(80))
-            }
+        } catch {
+            print("❌ Failed to play electric sound: \(error)")
         }
     }
 
@@ -298,28 +276,27 @@ public actor LiveAudioService: AudioServiceProtocol {
         // Clean up before adding new sounds
         cleanupAndPrepareForNewSound()
 
-        // Play all notes simultaneously at full volume to create impact/crash effect
-        let sounds = ["piano_tap_1", "piano_tap_2", "piano_tap_3"]
+        // Play the axe chop sound file
+        let url = Bundle.main.url(forResource: "axe_chop", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "axe_chop", withExtension: "wav")
 
-        for soundName in sounds {
-            let url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ??
-                      Bundle.main.url(forResource: soundName, withExtension: "wav")
+        guard let audioUrl = url else {
+            print("❌ Axe chop sound not found")
+            return
+        }
 
-            guard let audioUrl = url else { continue }
+        do {
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.volume = 0.8
+            player.play()
+            sfxPlayers.append(player)
 
-            do {
-                let player = try AVAudioPlayer(contentsOf: audioUrl)
-                player.volume = 1.0  // Full volume for impact
-                player.play()
-                sfxPlayers.append(player)
-
-                Task {
-                    try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                    await removeSfxPlayer(player)
-                }
-            } catch {
-                print("❌ Failed to play hammer sound: \(error)")
+            Task {
+                try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                await removeSfxPlayer(player)
             }
+        } catch {
+            print("❌ Failed to play hammer sound: \(error)")
         }
     }
 
