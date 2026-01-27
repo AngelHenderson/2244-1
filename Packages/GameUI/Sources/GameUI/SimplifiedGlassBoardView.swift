@@ -43,9 +43,14 @@ public struct SimplifiedGlassBoardView: View {
                     startMagnetAnimations(for: event)
                 }
             }
+            .onChange(of: gameStore.hammerAnimationState?.phase) { _, newPhase in
+                if newPhase == .impact {
+                    Task { await audioService.playSfx(name: "hammer") }
+                }
+            }
         }
     }
-    
+
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
         VStack(spacing: spacing) {
