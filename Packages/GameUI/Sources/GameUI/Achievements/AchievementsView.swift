@@ -258,6 +258,8 @@ private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay
             return achievements.mergeDisplay
         case "tile_progression":
             return achievements.tileProgressionDisplay
+        case "moves_progression":
+            return achievements.movesDisplay
         case "playtime_progression":
             return achievements.playtimeDisplay
         case "infinity_progression":
