@@ -242,25 +242,37 @@ public struct LeaderboardView: View {
             return []
         }
 
-        // Build milestone tier boundaries: [(milestone, startRank)]
-        // Each tier starts at its rank and continues until the next tier's rank
-        var tierBoundaries: [(milestone: String, startRank: Int)] = []
+        // Build a map of rank ranges to milestones
+        // Get ranks for milestones around user's position
         let rangeStart = max(0, userIndex - 5)
         let rangeEnd = min(milestones.count - 1, userIndex + 5)
 
+        // Create sorted list of (startRank, milestone) pairs
+        var rankToMilestone: [(startRank: Int, milestone: String)] = []
         for i in rangeStart...rangeEnd {
             let milestone = milestones[i]
             let rank = rankForFilter(filter, milestone: milestone)
-            tierBoundaries.append((milestone, rank))
+            rankToMilestone.append((rank, milestone))
         }
+        // Sort by rank ascending (better ranks first)
+        rankToMilestone.sort { $0.startRank < $1.startRank }
 
         // Show ranks from 3 above to 3 below user's rank
         let startRank = max(1, userRank - 3)
         let endRank = userRank + 3
 
         for rank in startRank...endRank {
-            // Find which milestone tier this rank belongs to
-            let milestone = milestoneForRank(rank, tierBoundaries: tierBoundaries, fallback: userMilestone)
+            let milestone: String
+            if rank == userRank {
+                // User's rank always shows user's milestone
+                milestone = userMilestone
+            } else if rank < userRank {
+                // For better ranks, find the best milestone that starts at or before this rank
+                milestone = findMilestoneForBetterRank(rank, userRank: userRank, userMilestone: userMilestone, rankToMilestone: rankToMilestone)
+            } else {
+                // For worse ranks, find the milestone that starts at or before this rank
+                milestone = findMilestoneForWorseRank(rank, userRank: userRank, userMilestone: userMilestone, rankToMilestone: rankToMilestone)
+            }
             previews.append(RankPreview(
                 rank: rank,
                 milestone: milestone,
@@ -271,20 +283,70 @@ public struct LeaderboardView: View {
         return previews
     }
 
-    /// Finds the milestone for a given rank based on tier boundaries
-    /// Tier boundaries are sorted by startRank (best rank first, lowest number)
-    private func milestoneForRank(_ targetRank: Int, tierBoundaries: [(milestone: String, startRank: Int)], fallback: String) -> String {
-        // Boundaries are in milestone order (best to worst)
-        // Find the tier where targetRank >= startRank and < next tier's startRank
-        for i in 0..<tierBoundaries.count {
-            let tier = tierBoundaries[i]
-            let nextStartRank = (i + 1 < tierBoundaries.count) ? tierBoundaries[i + 1].startRank : Int.max
+    /// Find milestone for a rank better than user (lower rank number = better)
+    private func findMilestoneForBetterRank(_ targetRank: Int, userRank: Int, userMilestone: String, rankToMilestone: [(startRank: Int, milestone: String)]) -> String {
+        // Find user's milestone tier start rank
+        let userTierStart = rankToMilestone.first { $0.milestone == userMilestone }?.startRank ?? userRank
 
-            if targetRank >= tier.startRank && targetRank < nextStartRank {
-                return tier.milestone
+        // If targetRank is within user's tier (>= tier start), show user's milestone
+        if targetRank >= userTierStart {
+            return userMilestone
+        }
+
+        // Otherwise find the appropriate better milestone
+        var bestMatch = userMilestone
+        for entry in rankToMilestone {
+            if entry.startRank <= targetRank {
+                bestMatch = entry.milestone
+            }
+            if entry.startRank > targetRank {
+                break
             }
         }
-        return fallback
+
+        return bestMatch
+    }
+
+    /// Find milestone for a rank worse than user (higher rank number = worse)
+    private func findMilestoneForWorseRank(_ targetRank: Int, userRank: Int, userMilestone: String, rankToMilestone: [(startRank: Int, milestone: String)]) -> String {
+        // Find the next tier's start rank (the tier after user's milestone)
+        var nextTierStart: Int? = nil
+        var foundUserMilestone = false
+
+        for entry in rankToMilestone {
+            if foundUserMilestone && entry.milestone != userMilestone {
+                nextTierStart = entry.startRank
+                break
+            }
+            if entry.milestone == userMilestone {
+                foundUserMilestone = true
+            }
+        }
+
+        // If there's no clear next tier, or the target rank is before it starts,
+        // show user's milestone (players at adjacent ranks likely share milestone)
+        guard let nextStart = nextTierStart else {
+            return userMilestone
+        }
+
+        // Only show a different milestone if targetRank is clearly past the next tier's start
+        // Add a small buffer since adjacent ranks often share milestones
+        if targetRank < nextStart {
+            return userMilestone
+        }
+
+        // Target rank is past the next tier boundary, find appropriate milestone
+        var result = userMilestone
+        for entry in rankToMilestone {
+            if entry.startRank <= targetRank {
+                result = entry.milestone
+            }
+            if entry.startRank > targetRank {
+                break
+            }
+        }
+
+        return result
     }
 
     /// Returns the header title based on the selected filter
