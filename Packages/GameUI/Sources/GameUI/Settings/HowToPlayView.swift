@@ -24,17 +24,10 @@ public struct HowToPlayView: View {
         ),
         TutorialPage(
             title: "Connect Tiles",
-            subtitle: "Part B: Extend your chain",
-            description: "After the first two tiles, you can connect tiles that are the same value or double the previous tile.",
+            subtitle: "Part B: Same or double",
+            description: "After the first two tiles, connect same value or double. Connect in all 8 directions!",
             systemImage: "hand.draw.fill",
             imageColor: .green
-        ),
-        TutorialPage(
-            title: "8 Directions",
-            subtitle: "Connect anywhere",
-            description: "Connect tiles in all 8 directions - horizontal, vertical, and diagonal.",
-            systemImage: "arrow.up.left.and.arrow.down.right",
-            imageColor: .orange
         ),
         TutorialPage(
             title: "Merge & Score",
@@ -113,11 +106,7 @@ public struct HowToPlayView: View {
                             ConnectTilesPartAPage(page: pages[index])
                                 .tag(index)
                         } else if index == 2 {
-                            // Page 2 Part B: Interactive tile demo (2, 2, 4, 8, 8, 16)
-                            ConnectTilesPartBPage(page: pages[index])
-                                .tag(index)
-                        } else if index == 3 {
-                            // Page 4: 8 Directions demo
+                            // Page 3 Part B: 8 Directions snake pattern
                             EightDirectionsPage(page: pages[index])
                                 .tag(index)
                         } else {
@@ -322,15 +311,21 @@ private struct ConnectTilesPartAPage: View {
 
 private struct EightDirectionsPage: View {
     let page: TutorialPage
-    @State private var connectedCount = 0
+    @State private var connectedTileIds: Set<Int> = []
     @State private var showMergeResult = false
     @State private var isDragging = false
 
-    // Grid layout: 5 rows x 5 cols
-    // Tile positions and values following the path:
-    // 1. 2 at (2,0), 2. 2 at (2,1) →right, 3. 4 at (3,1) ↓down
-    // 4. 4 at (4,2) ↘bottom-right, 5. 8 at (3,3) ↗top-right, 6. 16 at (2,2) ↖top-left
-    // 7. 32 at (1,2) ↑up, 8. 64 at (1,1) ←left, 9. 128 at (2,0) ↙bottom-left (ends at start)
+    // Tile positions following the snake path starting from left:
+    // 1. 2 at (1,1) - starts at left
+    // 2. 2 at (1,2) → horizontal right
+    // 3. 4 at (2,2) ↓ vertical down
+    // 4. 4 at (3,3) ↘ diagonal bottom-right
+    // 5. 8 at (2,4) ↗ diagonal top-right
+    // 6. 16 at (1,3) ↖ diagonal top-left
+    // 7. 32 at (0,3) ↑ vertical up
+    // 8. 64 at (0,2) ← horizontal left
+    // 9. 128 at (0,1) ← horizontal left again
+    // 10. 256 at (1,0) ↙ diagonal bottom-left
 
     private struct TilePosition: Identifiable {
         let id: Int
@@ -341,19 +336,49 @@ private struct EightDirectionsPage: View {
     }
 
     private let tiles: [TilePosition] = [
-        TilePosition(id: 0, row: 2, col: 0, value: 2, step: 0),
-        TilePosition(id: 1, row: 2, col: 1, value: 2, step: 0),
-        TilePosition(id: 2, row: 3, col: 1, value: 4, step: 1),
-        TilePosition(id: 3, row: 4, col: 2, value: 4, step: 1),
-        TilePosition(id: 4, row: 3, col: 3, value: 8, step: 2),
-        TilePosition(id: 5, row: 2, col: 2, value: 16, step: 3),
-        TilePosition(id: 6, row: 1, col: 2, value: 32, step: 4),
-        TilePosition(id: 7, row: 1, col: 1, value: 64, step: 5),
-        TilePosition(id: 8, row: 2, col: 0, value: 128, step: 6),  // Overlaps with first, shown as end
+        TilePosition(id: 0, row: 1, col: 1, value: 2, step: 0),      // Start at left
+        TilePosition(id: 1, row: 1, col: 2, value: 2, step: 0),      // → right
+        TilePosition(id: 2, row: 2, col: 2, value: 4, step: 1),      // ↓ down
+        TilePosition(id: 3, row: 3, col: 3, value: 4, step: 1),      // ↘ bottom-right
+        TilePosition(id: 4, row: 2, col: 4, value: 8, step: 2),      // ↗ top-right
+        TilePosition(id: 5, row: 1, col: 3, value: 16, step: 3),     // ↖ top-left
+        TilePosition(id: 6, row: 0, col: 3, value: 32, step: 4),     // ↑ up
+        TilePosition(id: 7, row: 0, col: 2, value: 64, step: 5),     // ← left
+        TilePosition(id: 8, row: 0, col: 1, value: 128, step: 6),    // ← left again
+        TilePosition(id: 9, row: 1, col: 0, value: 256, step: 7),    // ↙ bottom-left
     ]
 
-    private let gridSize = 5
+    private let gridRows = 4
+    private let gridCols = 5
     private let tileSize: CGFloat = 48
+    private var cellSize: CGFloat { tileSize + 4 }
+
+    /// Find which tile is at the given position
+    private func tileAt(location: CGPoint) -> TilePosition? {
+        let col = Int(location.x / cellSize)
+        let row = Int(location.y / cellSize)
+        return tiles.first { $0.row == row && $0.col == col }
+    }
+
+    /// Check if two tiles are adjacent (including diagonals)
+    private func areAdjacent(_ tile1: TilePosition, _ tile2: TilePosition) -> Bool {
+        let rowDiff = abs(tile1.row - tile2.row)
+        let colDiff = abs(tile1.col - tile2.col)
+        return rowDiff <= 1 && colDiff <= 1 && !(rowDiff == 0 && colDiff == 0)
+    }
+
+    /// Get the highest connected tile id in sequence
+    private var connectedCount: Int {
+        var count = 0
+        for i in 0..<tiles.count {
+            if connectedTileIds.contains(i) {
+                count = i + 1
+            } else {
+                break
+            }
+        }
+        return count
+    }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -369,90 +394,110 @@ private struct EightDirectionsPage: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
-            // Grid demo
-            VStack(spacing: 8) {
-                if showMergeResult {
-                    TutorialTile(value: "512", color: Theme.colorForStep(8))
-                        .transition(.scale.combined(with: .opacity))
-                } else {
-                    // Grid with tiles
-                    ZStack {
-                        // Draw connection lines
-                        Canvas { context, size in
-                            let cellSize = tileSize + 4
-                            var path = Path()
+            // Grid demo - aligned to left
+            HStack {
+                VStack(spacing: 8) {
+                    if showMergeResult {
+                        TutorialTile(value: "1024", color: Theme.colorForStep(9))
+                            .transition(.scale.combined(with: .opacity))
+                    } else {
+                        // Grid with tiles
+                        ZStack {
+                            // Draw connection lines
+                            Canvas { context, size in
+                                var path = Path()
+                                let connected = connectedCount
 
-                            for (index, tile) in tiles.dropLast().enumerated() {
-                                let nextTile = tiles[index + 1]
-                                let startX = CGFloat(tile.col) * cellSize + cellSize / 2
-                                let startY = CGFloat(tile.row) * cellSize + cellSize / 2
-                                let endX = CGFloat(nextTile.col) * cellSize + cellSize / 2
-                                let endY = CGFloat(nextTile.row) * cellSize + cellSize / 2
+                                for (index, tile) in tiles.prefix(connected).enumerated() {
+                                    let x = CGFloat(tile.col) * cellSize + cellSize / 2
+                                    let y = CGFloat(tile.row) * cellSize + cellSize / 2
 
-                                if index < connectedCount {
                                     if index == 0 {
-                                        path.move(to: CGPoint(x: startX, y: startY))
+                                        path.move(to: CGPoint(x: x, y: y))
+                                    } else {
+                                        path.addLine(to: CGPoint(x: x, y: y))
                                     }
-                                    path.addLine(to: CGPoint(x: endX, y: endY))
+                                }
+
+                                context.stroke(path, with: .color(.white.opacity(0.8)), lineWidth: 3)
+                            }
+                            .frame(width: CGFloat(gridCols) * cellSize, height: CGFloat(gridRows) * cellSize)
+
+                            // Grid of tiles
+                            VStack(spacing: 4) {
+                                ForEach(0..<gridRows, id: \.self) { row in
+                                    HStack(spacing: 4) {
+                                        ForEach(0..<gridCols, id: \.self) { col in
+                                            if let tile = tiles.first(where: { $0.row == row && $0.col == col }) {
+                                                TutorialTile(
+                                                    value: "\(tile.value)",
+                                                    color: Theme.colorForStep(tile.step),
+                                                    isHighlighted: connectedTileIds.contains(tile.id),
+                                                    size: tileSize
+                                                )
+                                            } else {
+                                                Color.clear
+                                                    .frame(width: tileSize, height: tileSize)
+                                            }
+                                        }
+                                    }
                                 }
                             }
-
-                            context.stroke(path, with: .color(.white.opacity(0.8)), lineWidth: 3)
                         }
-                        .frame(width: CGFloat(gridSize) * (tileSize + 4), height: CGFloat(gridSize) * (tileSize + 4))
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { value in
+                                    isDragging = true
 
-                        // Grid of tiles
-                        VStack(spacing: 4) {
-                            ForEach(0..<gridSize, id: \.self) { row in
-                                HStack(spacing: 4) {
-                                    ForEach(0..<gridSize, id: \.self) { col in
-                                        if let tile = tiles.first(where: { $0.row == row && $0.col == col && $0.id < 8 }) {
-                                            TutorialTile(
-                                                value: "\(tile.value)",
-                                                color: Theme.colorForStep(tile.step),
-                                                isHighlighted: tile.id <= connectedCount,
-                                                size: tileSize
-                                            )
+                                    // Check if we're over a tile
+                                    if let tile = tileAt(location: value.location) {
+                                        // If this is the first tile or adjacent to the last connected tile
+                                        if connectedTileIds.isEmpty {
+                                            // Must start with tile 0
+                                            if tile.id == 0 {
+                                                connectedTileIds.insert(tile.id)
+                                            }
                                         } else {
-                                            Color.clear
-                                                .frame(width: tileSize, height: tileSize)
+                                            // Check if this tile is the next in sequence
+                                            let nextExpectedId = connectedCount
+                                            if tile.id == nextExpectedId && nextExpectedId < tiles.count {
+                                                // Check if adjacent to the previous tile
+                                                let prevTile = tiles[nextExpectedId - 1]
+                                                if areAdjacent(prevTile, tile) {
+                                                    connectedTileIds.insert(tile.id)
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        }
+                                .onEnded { _ in
+                                    isDragging = false
+                                    if connectedCount >= 4 {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                            showMergeResult = true
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                            withAnimation {
+                                                showMergeResult = false
+                                                connectedTileIds.removeAll()
+                                            }
+                                        }
+                                    } else {
+                                        connectedTileIds.removeAll()
+                                    }
+                                }
+                        )
                     }
-                    .gesture(
-                        DragGesture(minimumDistance: 5)
-                            .onChanged { value in
-                                isDragging = true
-                                let dragDistance = sqrt(pow(value.translation.width, 2) + pow(value.translation.height, 2))
-                                let tilesConnected = min(8, max(0, Int(dragDistance / 30)))
-                                connectedCount = tilesConnected
-                            }
-                            .onEnded { _ in
-                                isDragging = false
-                                if connectedCount >= 4 {
-                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                                        showMergeResult = true
-                                    }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                        withAnimation {
-                                            showMergeResult = false
-                                            connectedCount = 0
-                                        }
-                                    }
-                                } else {
-                                    connectedCount = 0
-                                }
-                            }
-                    )
-                }
 
-                Text(showMergeResult ? "Merged into 512!" : "Swipe to connect in all 8 directions")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 8)
+                    Text(showMergeResult ? "Merged into 1024!" : "Drag across tiles to connect them")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 8)
+                }
+                .padding(.leading, 16)
+
+                Spacer()
             }
             .padding(.vertical, 16)
 
