@@ -1651,19 +1651,42 @@ public final class GameStore {
     }
 
     // MARK: - Unlock Rewards
+
+    /// Calculate unlock reward based on tile step (power of 2 exponent - 1).
+    /// This handles values beyond Int.max by using step-based math.
+    /// Step 8 = 512 (2^9), Step 9 = 1024 (2^10), etc.
+    private func baseUnlockRewardForStep(_ step: Int) -> Int {
+        // Milestone rewards start at step 8 (512 = 2^9) with +2 gems per subsequent milestone.
+        // Step 8 = 50 gems, Step 9 = 52 gems, Step 10 = 54 gems, etc.
+        guard step >= 8 else { return 0 }
+        let stepsFromFirstMilestone = step - 8
+        return 50 + (stepsFromFirstMilestone * 2)
+    }
+
+    /// Legacy function for backward compatibility with lower tile values.
     private func baseUnlockReward(for tileValue: Int) -> Int {
+        // For values that overflow or are at Int.max, use step-based calculation
+        if tileValue >= Int.max || tileValue.nonzeroBitCount != 1 {
+            return 0 // Will be handled by step-based version
+        }
         // Milestone rewards start at 512 (2^9) with +2 gems per subsequent milestone.
         guard tileValue >= 512 else { return 0 }
-        guard tileValue.nonzeroBitCount == 1 else { return 0 } // Require true power-of-two milestones.
         let exponent = tileValue.trailingZeroBitCount
         let stepsFromFirstMilestone = max(0, exponent - 9)
         return 50 + (stepsFromFirstMilestone * 2)
     }
-    
+
     private func setPendingUnlockRewardIfNeeded(for newHigh: Int, previousHigh: Int) {
-        guard newHigh > previousHigh else { return }
-        let base = baseUnlockReward(for: newHigh)
+        // Use step-based comparison for reliable handling of values beyond Int.max
+        let newStep = state.highestTileStep
+        let previousStep = TileStepLabelFormatter.stepForValue(previousHigh, start: 2) ?? 0
+
+        guard newStep > previousStep else { return }
+
+        // Use step-based reward calculation to handle arbitrarily large tile values
+        let base = baseUnlockRewardForStep(newStep)
         guard base > 0 else { return }
+
         pendingUnlockRewardBase = base
         pendingUnlockTile = newHigh
     }
@@ -3395,7 +3418,41 @@ extension GameStore {
         let spinState = SpinWheelState()
         spinState.addMultiplier(tier, count: count)
     }
-    
+
+    // MARK: - Challenge Rewards
+
+    /// Grants a full challenge reward including gems, power-ups, spins, and score boosts
+    public func grantChallengeReward(_ reward: ChallengeReward) {
+        // Award gems
+        if reward.coins > 0 {
+            addCoins(reward.coins)
+        }
+
+        // Award power-ups
+        for (powerUpType, count) in reward.powerUps {
+            addPowerUp(powerUpType.rawValue, count: count)
+        }
+
+        // Award spins
+        if reward.spins > 0 {
+            addBonusSpins(reward.spins)
+        }
+
+        // Award score boosts
+        for (multiplier, count) in reward.scoreBoosts {
+            switch multiplier {
+            case 2:
+                addMultipliers(.twoX, count: count)
+            case 3:
+                addMultipliers(.threeX, count: count)
+            case 4:
+                addMultipliers(.fourX, count: count)
+            default:
+                break
+            }
+        }
+    }
+
     // MARK: - Session Tracking & Analytics
     
     /// Initialize comprehensive session tracking system
