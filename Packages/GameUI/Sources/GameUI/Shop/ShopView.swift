@@ -2,6 +2,202 @@ import SwiftUI
 import GameApp
 import GameCore
 
+// MARK: - Weekly Offer Sheet
+
+public struct WeeklyOfferSheet: View {
+    @Environment(\.shopStore) private var shopStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var timeRemaining: String = ""
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    private var offer: WeeklyOfferManager.WeeklyOffer {
+        WeeklyOfferManager.currentOffer()
+    }
+
+    private var deadline: Date {
+        WeeklyOfferManager.currentOfferDeadline()
+    }
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Countdown header
+                    VStack(spacing: 8) {
+                        Text("LIMITED TIME OFFER")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                            .tracking(2)
+
+                        Text(offer.title)
+                            .font(.largeTitle.bold())
+
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.fill")
+                                .foregroundStyle(.orange)
+                            Text("Ends in \(timeRemaining)")
+                                .font(.headline.monospacedDigit())
+                                .foregroundStyle(.orange)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(.orange.opacity(0.15))
+                        .clipShape(Capsule())
+                    }
+                    .padding(.top)
+
+                    // Offer contents
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("What's Included")
+                            .font(.headline)
+                            .padding(.horizontal)
+
+                        VStack(spacing: 0) {
+                            if offer.noAdsLifetime {
+                                offerRow(icon: "xmark.circle.fill", text: "No Ads Lifetime", color: .green)
+                                Divider().padding(.leading, 52)
+                            } else if offer.noAds {
+                                offerRow(icon: "xmark.circle.fill", text: "No Ads", color: .green)
+                                Divider().padding(.leading, 52)
+                            }
+                            if let gems = offer.gems {
+                                offerRow(icon: "diamond.fill", text: "\(gems.formatted()) Gems", color: .cyan)
+                                Divider().padding(.leading, 52)
+                            }
+                            if let hammers = offer.hammers {
+                                offerRow(icon: "hammer.fill", text: "\(hammers) Hammers", color: .gray)
+                                Divider().padding(.leading, 52)
+                            }
+                            if let swaps = offer.swaps {
+                                offerRow(icon: "arrow.2.squarepath", text: "\(swaps) Swaps", color: .blue)
+                                Divider().padding(.leading, 52)
+                            }
+                            if let magnets = offer.magnets {
+                                offerRow(icon: "dot.radiowaves.left.and.right", text: "\(magnets) MegaMerges", color: .purple)
+                                Divider().padding(.leading, 52)
+                            }
+                            if let spins = offer.spins {
+                                offerRow(icon: "arrow.trianglehead.2.clockwise.rotate.90", text: "\(spins) Spins", color: .orange)
+                                Divider().padding(.leading, 52)
+                            }
+                            if let boost2x = offer.boost2x {
+                                offerRow(icon: "2.circle.fill", text: "\(boost2x) 2X Boost", color: .yellow)
+                                Divider().padding(.leading, 52)
+                            }
+                            if let boost3x = offer.boost3x {
+                                offerRow(icon: "3.circle.fill", text: "\(boost3x) 3X Boost", color: .orange)
+                                Divider().padding(.leading, 52)
+                            }
+                            if let boost4x = offer.boost4x {
+                                offerRow(icon: "4.circle.fill", text: "\(boost4x) 4X Boost", color: .red)
+                            }
+                        }
+                        .background(.regularMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal)
+                    }
+
+                    Spacer(minLength: 40)
+
+                    // Purchase button
+                    Button {
+                        Task {
+                            await shopStore.purchase(offer.id)
+                            dismiss()
+                        }
+                    } label: {
+                        VStack(spacing: 4) {
+                            Text("Get This Offer")
+                                .font(.headline)
+                            Text(offer.formattedPrice)
+                                .font(.title.bold())
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            LinearGradient(
+                                colors: [.orange, .yellow],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    .disabled(shopStore.isPurchased(offer.id) || shopStore.isPurchasing)
+                    .padding(.horizontal)
+                    .padding(.bottom)
+                }
+            }
+            .navigationTitle("Best Offer")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+        .onAppear {
+            updateTimeRemaining()
+        }
+        .onReceive(timer) { _ in
+            updateTimeRemaining()
+        }
+        .overlay {
+            if shopStore.isPurchasing {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(.ultraThinMaterial)
+            }
+        }
+    }
+
+    private func offerRow(icon: String, text: String, color: Color) -> some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(color)
+                .frame(width: 36)
+
+            Text(text)
+                .font(.body)
+
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 14)
+    }
+
+    private func updateTimeRemaining() {
+        let interval = deadline.timeIntervalSince(Date())
+        guard interval > 0 else {
+            timeRemaining = "Expired"
+            return
+        }
+
+        let days = Int(interval) / 86400
+        let hours = (Int(interval) % 86400) / 3600
+        let minutes = (Int(interval) % 3600) / 60
+        let seconds = Int(interval) % 60
+
+        if days > 0 {
+            timeRemaining = "\(days)d \(hours)h \(minutes)m \(seconds)s"
+        } else if hours > 0 {
+            timeRemaining = "\(hours)h \(minutes)m \(seconds)s"
+        } else if minutes > 0 {
+            timeRemaining = "\(minutes)m \(seconds)s"
+        } else {
+            timeRemaining = "\(seconds)s"
+        }
+    }
+}
+
+// MARK: - Shop View
+
 public struct ShopView: View {
     @Environment(\.shopStore) private var shopStore
     @Environment(\.tileJourney) private var journeyStore
