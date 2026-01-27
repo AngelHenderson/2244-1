@@ -420,12 +420,12 @@ public extension View {
     let toastManager = ToastManager()
 
     // Seed some demo state for a nicer preview
-    homeState.gems = 305
-    homeState.highestTile = 1024
-    homeState.milestoneBelow = 512
-    homeState.lockedMilestones = [2048, 4096]
+    let _ = (homeState.gems = 305)
+    let _ = (homeState.highestTile = 1024)
+    let _ = (homeState.milestoneBelow = 512)
+    let _ = (homeState.lockedMilestones = [2048, 4096])
     // Sync journey to highest tile
-    gameStore.journey.didReach(tile: homeState.highestTile)
+    let _ = gameStore.journey.didReach(tile: homeState.highestTile)
 
     // Minimal actions for preview
     let actions = HomeActions(
@@ -447,7 +447,7 @@ public extension View {
         openSaleOffer: {}
     )
 
-    return HomeView()
+    HomeView()
         .environment(homeState)
         .environment(\.homeActions, actions)
         .environment(\.gameStore, gameStore)
@@ -475,12 +475,12 @@ public extension View {
     let toastManager = ToastManager()
 
     // Seed demo state with an active best offer
-    homeState.gems = 520
-    homeState.highestTile = 2048
-    homeState.milestoneBelow = 1024
-    homeState.lockedMilestones = [4096, 8192]
-    homeState.bestOfferDeadline = Date().addingTimeInterval(60 * 30) // 30 minutes remaining
-    gameStore.journey.didReach(tile: homeState.highestTile)
+    let _ = (homeState.gems = 520)
+    let _ = (homeState.highestTile = 2048)
+    let _ = (homeState.milestoneBelow = 1024)
+    let _ = (homeState.lockedMilestones = [4096, 8192])
+    // bestOfferDeadline is now auto-calculated from WeeklyOfferManager
+    let _ = gameStore.journey.didReach(tile: homeState.highestTile)
 
     let actions = HomeActions(
         play: {},
@@ -501,7 +501,7 @@ public extension View {
         openSaleOffer: {}
     )
 
-    return HomeView()
+    HomeView()
         .environment(homeState)
         .environment(\.homeActions, actions)
         .environment(\.gameStore, gameStore)
