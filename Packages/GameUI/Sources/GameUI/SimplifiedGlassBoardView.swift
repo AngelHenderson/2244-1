@@ -16,7 +16,6 @@ public struct SimplifiedGlassBoardView: View {
     @State private var isDragging = false
     @State private var glassPreviewValues: [Int] = []
     @State private var magnetAnimations: [MagnetAnimationModel] = []
-    @State private var hammerSoundPlayed = false
     @Namespace private var tileNamespace
     private let gestureLogger = Logger(subsystem: "com.game2244", category: "BoardGesture")
     
@@ -44,12 +43,9 @@ public struct SimplifiedGlassBoardView: View {
                     startMagnetAnimations(for: event)
                 }
             }
-            .onChange(of: gameStore.hammerAnimationState?.phase) { oldPhase, newPhase in
-                if newPhase == .impact && !hammerSoundPlayed {
-                    hammerSoundPlayed = true
+            .onChange(of: gameStore.hammerAnimationState?.phase) { _, newPhase in
+                if newPhase == .impact {
                     Task { await audioService.playSfx(name: "hammer") }
-                } else if newPhase == nil {
-                    hammerSoundPlayed = false
                 }
             }
         }

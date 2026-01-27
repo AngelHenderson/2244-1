@@ -14,7 +14,6 @@ public struct BoardView: View {
     @State private var isDragging = false
     @Namespace private var tileNamespace
     @State private var magnetAnimations: [MagnetAnimationModel] = []
-    @State private var hammerSoundPlayed = false
     
     private let spacing: CGFloat = 8
     private let cornerRadius: CGFloat = 12
@@ -42,12 +41,9 @@ public struct BoardView: View {
                     startMagnetAnimations(for: event, tileSize: tileSize)
                 }
             }
-            .onChange(of: gameStore.hammerAnimationState?.phase) { oldPhase, newPhase in
-                if newPhase == .impact && !hammerSoundPlayed {
-                    hammerSoundPlayed = true
+            .onChange(of: gameStore.hammerAnimationState?.phase) { _, newPhase in
+                if newPhase == .impact {
                     Task { await audioService.playSfx(name: "hammer") }
-                } else if newPhase == nil {
-                    hammerSoundPlayed = false
                 }
             }
         }
