@@ -1181,6 +1181,111 @@ private struct SwapPage: View {
     }
 }
 
+// MARK: - MegaMerge Page
+
+private struct MegaMergePage: View {
+    let page: TutorialPage
+    @State private var showMergeResult: Bool = false
+    @State private var tilesHighlighted: Bool = false
+
+    private let tileSize: CGFloat = 56
+    private let tileSpacing: CGFloat = 6
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            // Title
+            Text(page.title)
+                .font(.largeTitle.bold())
+                .multilineTextAlignment(.center)
+
+            // Subtitle
+            Text(page.subtitle)
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
+            // Interactive demo
+            VStack(spacing: 16) {
+                if showMergeResult {
+                    // Show merged result: 32 tile (9 twos = 2+2+2+2+2+2+2+2+2 = 18 → 32)
+                    TutorialTile(value: "32", color: Theme.colorForStep(4))
+                        .transition(.scale.combined(with: .opacity))
+                } else {
+                    // 3x3 grid of 2s with MegaMerge button
+                    VStack(spacing: tileSpacing) {
+                        ForEach(0..<3, id: \.self) { row in
+                            HStack(spacing: tileSpacing) {
+                                ForEach(0..<3, id: \.self) { col in
+                                    TutorialTile(
+                                        value: "2",
+                                        color: Theme.colorForStep(0),
+                                        isHighlighted: tilesHighlighted,
+                                        size: tileSize
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // MegaMerge button
+                    Button {
+                        // Highlight all tiles first
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            tilesHighlighted = true
+                        }
+                        // Then merge after short delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                showMergeResult = true
+                            }
+                            // Reset after delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                withAnimation {
+                                    showMergeResult = false
+                                    tilesHighlighted = false
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles")
+                                .font(.title3)
+                            Text("MegaMerge")
+                                .font(.headline)
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color.yellow.opacity(0.9), in: RoundedRectangle(cornerRadius: 10))
+                    }
+                    .padding(.top, 8)
+                }
+
+                // Instruction text
+                Text(showMergeResult ? "All 2s merged into 32!" : "Tap MegaMerge to merge all matching tiles")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
+            }
+            .padding(.vertical, 12)
+
+            // Description
+            Text(page.description)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 32)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+            Spacer()
+        }
+        .padding()
+    }
+}
+
 // MARK: - Connect Tiles Part B (Same or Double Demo)
 
 private struct ConnectTilesPartBPage: View {
