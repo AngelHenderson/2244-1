@@ -93,10 +93,16 @@ public struct ShopView: View {
     
     @ViewBuilder
     private var bundlesSection: some View {
-        if let bundles = shopStore.catalog?.bundles {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ForEach(bundles) { bundle in
-                    BundleCard(bundle: bundle)
+        VStack(spacing: 20) {
+            // Weekly Best Offer at the top
+            WeeklyOfferCard()
+
+            // Regular bundles
+            if let bundles = shopStore.catalog?.bundles {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                    ForEach(bundles) { bundle in
+                        BundleCard(bundle: bundle)
+                    }
                 }
             }
         }
@@ -178,6 +184,173 @@ public struct ShopView: View {
 }
 
 // MARK: - Component Views
+
+struct WeeklyOfferCard: View {
+    @Environment(\.shopStore) private var shopStore
+    @State private var timeRemaining: String = ""
+    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    private var offer: WeeklyOfferManager.WeeklyOffer {
+        WeeklyOfferManager.currentOffer()
+    }
+
+    private var deadline: Date {
+        WeeklyOfferManager.currentOfferDeadline()
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            // Header with countdown
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.yellow)
+                        Text("BEST OFFER")
+                            .font(.caption.bold())
+                            .foregroundStyle(.yellow)
+                    }
+                    Text(offer.title)
+                        .font(.title2.bold())
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("Ends in")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(timeRemaining)
+                        .font(.subheadline.bold().monospacedDigit())
+                        .foregroundStyle(.orange)
+                }
+            }
+
+            // Contents
+            VStack(alignment: .leading, spacing: 6) {
+                if offer.noAdsLifetime {
+                    Label("No Ads Lifetime", systemImage: "xmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.green)
+                } else if offer.noAds {
+                    Label("No Ads", systemImage: "xmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.green)
+                }
+                if let gems = offer.gems {
+                    Label {
+                        Text(verbatim: "\(gems.formatted()) Gems")
+                    } icon: {
+                        Image(systemName: "diamond.fill")
+                    }
+                    .font(.subheadline)
+                }
+                if let hammers = offer.hammers {
+                    Label {
+                        Text(verbatim: "\(hammers) Hammers")
+                    } icon: {
+                        Image(systemName: "hammer.fill")
+                    }
+                    .font(.subheadline)
+                }
+                if let swaps = offer.swaps {
+                    Label {
+                        Text(verbatim: "\(swaps) Swaps")
+                    } icon: {
+                        Image(systemName: "arrow.2.squarepath")
+                    }
+                    .font(.subheadline)
+                }
+                if let magnets = offer.magnets {
+                    Label {
+                        Text(verbatim: "\(magnets) MegaMerges")
+                    } icon: {
+                        Image(systemName: "dot.radiowaves.left.and.right")
+                    }
+                    .font(.subheadline)
+                }
+                if let spins = offer.spins {
+                    Label {
+                        Text(verbatim: "\(spins) Spins")
+                    } icon: {
+                        Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                    }
+                    .font(.subheadline)
+                }
+                if let boost2x = offer.boost2x {
+                    Label {
+                        Text(verbatim: "\(boost2x) 2X Boost")
+                    } icon: {
+                        Image(systemName: "2.circle.fill")
+                    }
+                    .font(.subheadline)
+                }
+                if let boost3x = offer.boost3x {
+                    Label {
+                        Text(verbatim: "\(boost3x) 3X Boost")
+                    } icon: {
+                        Image(systemName: "3.circle.fill")
+                    }
+                    .font(.subheadline)
+                }
+                if let boost4x = offer.boost4x {
+                    Label {
+                        Text(verbatim: "\(boost4x) 4X Boost")
+                    } icon: {
+                        Image(systemName: "4.circle.fill")
+                    }
+                    .font(.subheadline)
+                }
+            }
+
+            // Purchase button
+            Button {
+                Task { await shopStore.purchase(offer.id) }
+            } label: {
+                Text(offer.formattedPrice)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        LinearGradient(
+                            colors: [.orange, .yellow],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .disabled(shopStore.isPurchased(offer.id) || shopStore.isPurchasing)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.orange.opacity(0.6), .yellow.opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2
+                        )
+                )
+        )
+        .onAppear {
+            updateTimeRemaining()
+        }
+        .onReceive(timer) { _ in
+            updateTimeRemaining()
+        }
+    }
+
+    private func updateTimeRemaining() {
+        timeRemaining = WeeklyOfferManager.countdownString(to: deadline)
+    }
+}
 
 struct TabButton: View {
     let title: String
