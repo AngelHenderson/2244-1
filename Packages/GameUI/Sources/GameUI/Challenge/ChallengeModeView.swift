@@ -173,6 +173,67 @@ private struct ChallengeCard: View {
         return TileStepLabelFormatter.labelForStep(targetTile, start: 2)
     }
 
+    // Renders the target tile with proper colors
+    @ViewBuilder
+    private var targetTileView: some View {
+        let tileSize: CGFloat = 70
+
+        if let targetTile = challenge.targetTile {
+            if targetTile == Int.max {
+                // Infinity tile - special rainbow gradient
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            LinearGradient(
+                                colors: [.purple, .blue, .cyan, .green, .yellow, .orange, .red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: tileSize, height: tileSize)
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+
+                    Text("∞")
+                        .font(.system(size: tileSize * 0.5, weight: .heavy, design: .rounded))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                }
+                .opacity(isLocked ? 0.5 : 1.0)
+            } else {
+                // Regular tile with theme colors - targetTile is a step value
+                let tileColor = Theme.colorForStep(targetTile)
+                let textColor = Theme.textColorForStep(targetTile)
+
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(tileColor)
+                        .frame(width: tileSize, height: tileSize)
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+
+                    Text(targetTileLabel)
+                        .font(.system(size: fontSize(for: targetTileLabel, tileSize: tileSize), weight: .heavy, design: .rounded))
+                        .foregroundStyle(textColor)
+                        .minimumScaleFactor(0.5)
+                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                }
+                .opacity(isLocked ? 0.5 : 1.0)
+            }
+        } else {
+            // Fallback for missing target
+            Text("??")
+                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func fontSize(for label: String, tileSize: CGFloat) -> CGFloat {
+        let digitCount = label.count
+        if digitCount <= 2 { return tileSize * 0.40 }
+        if digitCount == 3 { return tileSize * 0.36 }
+        if digitCount == 4 { return tileSize * 0.32 }
+        return tileSize * 0.26
+    }
+
     private var isPendingUnlock: Bool {
         if case .pendingUnlock = status { return true }
         return false
@@ -284,9 +345,7 @@ private struct ChallengeCard: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            Text(targetTileLabel)
-                .font(.system(size: 48, weight: .heavy, design: .rounded))
-                .foregroundStyle(isLocked ? .secondary : .primary)
+            targetTileView
 
             VStack(spacing: 6) {
                 statusText
