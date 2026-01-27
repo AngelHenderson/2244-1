@@ -2,59 +2,50 @@ import SwiftUI
 import GameApp
 import GameCore
 
-// MARK: - Journey Scroll State
+// MARK: - Journey Scroll Actions
 
-@Observable
-public final class JourneyScrollState: @unchecked Sendable {
-    public enum ScrollTarget: Sendable, Equatable {
-        case top      // Scroll to infinity
-        case bottom   // Scroll to tile "2"
-        case current  // Scroll to current milestone
+public struct JourneyScrollActions {
+    public var scrollToTop: () -> Void
+    public var scrollToBottom: () -> Void
+
+    public init(scrollToTop: @escaping () -> Void = {}, scrollToBottom: @escaping () -> Void = {}) {
+        self.scrollToTop = scrollToTop
+        self.scrollToBottom = scrollToBottom
     }
+}
 
-    // Use a trigger ID to force onChange detection
-    public var scrollTrigger: Int = 0
-    public var targetDestination: ScrollTarget = .current
+public struct JourneyScrollActionsKey: EnvironmentKey {
+    public static let defaultValue = JourneyScrollActions()
+}
 
-    public init() {}
-
-    @MainActor
-    public func scrollToTop() {
-        targetDestination = .top
-        scrollTrigger += 1
-    }
-
-    @MainActor
-    public func scrollToBottom() {
-        targetDestination = .bottom
-        scrollTrigger += 1
-    }
-
-    @MainActor
-    public func scrollToCurrent() {
-        targetDestination = .current
-        scrollTrigger += 1
+public extension EnvironmentValues {
+    var journeyScrollActions: JourneyScrollActions {
+        get { self[JourneyScrollActionsKey.self] }
+        set { self[JourneyScrollActionsKey.self] = newValue }
     }
 }
 
 public struct JourneyPanel: View {
     @Environment(\.gameStore) private var gameStore
-    @Environment(\.journeyScrollState) private var scrollState
 
     private let topInset: CGFloat
     private let bottomInset: CGFloat
+    private let onScrollActionsReady: ((JourneyScrollActions) -> Void)?
 
-    public init(topInset: CGFloat = 0, bottomInset: CGFloat = 0) {
+    public init(
+        topInset: CGFloat = 0,
+        bottomInset: CGFloat = 0,
+        onScrollActionsReady: ((JourneyScrollActions) -> Void)? = nil
+    ) {
         self.topInset = topInset
         self.bottomInset = bottomInset
+        self.onScrollActionsReady = onScrollActionsReady
     }
 
     public var body: some View {
         let milestones = roadMilestones
         let verticalSpacing: CGFloat = 100
         let totalHeight = CGFloat(milestones.count) * verticalSpacing + 200
-        // Capture the trigger value to force SwiftUI observation
-        let trigger = scrollState.scrollTrigger
 
         ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
@@ -73,6 +64,23 @@ public struct JourneyPanel: View {
             .contentMargins(.top, topInset, for: .scrollContent)
             .contentMargins(.bottom, bottomInset, for: .scrollContent)
             .onAppear {
+                // Provide scroll actions to parent
+                let actions = JourneyScrollActions(
+                    scrollToTop: {
+                        let infinityIndex = milestones.count - 1
+                        withAnimation(.snappy(duration: 0.5)) {
+                            proxy.scrollTo(infinityIndex, anchor: .center)
+                        }
+                    },
+                    scrollToBottom: {
+                        withAnimation(.snappy(duration: 0.5)) {
+                            proxy.scrollTo(0, anchor: .center)
+                        }
+                    }
+                )
+                onScrollActionsReady?(actions)
+
+                // Scroll to current on appear
                 if let currentIndex = milestones.firstIndex(where: { $0.status == .current }) {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         withAnimation(.easeOut(duration: 0.5)) {
@@ -81,40 +89,8 @@ public struct JourneyPanel: View {
                     }
                 }
             }
-            .onChange(of: trigger) { _, _ in
-                // Read destination fresh when onChange fires
-                let destination = scrollState.targetDestination
-                withAnimation(.snappy(duration: 0.5)) {
-                    switch destination {
-                    case .top:
-                        // Scroll to infinity (last index)
-                        let infinityIndex = milestones.count - 1
-                        proxy.scrollTo(infinityIndex, anchor: .center)
-                    case .bottom:
-                        // Scroll to tile "2" (index 0)
-                        proxy.scrollTo(0, anchor: .center)
-                    case .current:
-                        if let currentIndex = milestones.firstIndex(where: { $0.status == .current }) {
-                            proxy.scrollTo(currentIndex, anchor: .center)
-                        }
-                    }
-                }
-            }
         }
         .ignoresSafeArea()
-    }
-}
-
-// MARK: - Environment Key
-
-public struct JourneyScrollStateKey: EnvironmentKey {
-    public static let defaultValue = JourneyScrollState()
-}
-
-public extension EnvironmentValues {
-    var journeyScrollState: JourneyScrollState {
-        get { self[JourneyScrollStateKey.self] }
-        set { self[JourneyScrollStateKey.self] = newValue }
     }
 }
 
