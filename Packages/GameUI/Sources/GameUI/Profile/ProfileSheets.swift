@@ -147,10 +147,9 @@ struct CompareView: View {
     private var filteredPlayers: [MockPlayer] {
         let query = searchText.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return [] }
-        // Filter by any letters typed (contains match), sort by milestone descending, limit to top 50
+        // Filter by any letters typed (contains match), sort alphabetically by code, limit to 50
         return mockPlayers
             .filter { $0.code.uppercased().contains(query) }
-            .sorted { parseMilestone($0.milestone) > parseMilestone($1.milestone) }
             .prefix(50)
             .map { $0 }
     }
@@ -180,7 +179,7 @@ struct CompareView: View {
                 }
 
                 if !filteredPlayers.isEmpty && selectedPlayer == nil {
-                    Section("Top \(filteredPlayers.count) by Milestone") {
+                    Section("Players (\(filteredPlayers.count))") {
                         ForEach(filteredPlayers) { player in
                             HStack {
                                 Text(player.countryFlag)
@@ -192,9 +191,6 @@ struct CompareView: View {
                                         .foregroundColor(.secondary)
                                 }
                                 Spacer()
-                                Text(player.milestone)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
                                 Button("Compare") {
                                     selectedPlayer = player
                                 }
@@ -206,7 +202,7 @@ struct CompareView: View {
                 }
 
                 if let player = selectedPlayer {
-                    Section("Milestone Comparison") {
+                    Section {
                         VStack(spacing: 16) {
                             HStack(alignment: .top, spacing: 20) {
                                 // Your profile
@@ -218,7 +214,6 @@ struct CompareView: View {
                                         .foregroundColor(.secondary)
                                     Text(myProfile.milestone)
                                         .font(.title2.bold())
-                                        .foregroundColor(milestoneComparison > 0 ? .green : (milestoneComparison < 0 ? .primary : .primary))
                                 }
                                 .frame(maxWidth: .infinity)
 
@@ -234,25 +229,29 @@ struct CompareView: View {
                                     Text(player.name)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    Text(player.milestone)
+                                    Text("—")
                                         .font(.title2.bold())
-                                        .foregroundColor(milestoneComparison < 0 ? .green : (milestoneComparison > 0 ? .primary : .primary))
+                                        .foregroundColor(.secondary)
                                 }
                                 .frame(maxWidth: .infinity)
                             }
                             .padding(.vertical, 8)
 
-                            // Result message
-                            Text(comparisonResultMessage)
+                            Text("Milestone data requires server connection")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                         }
-                    }
-
-                    Section {
-                        Button("Compare with someone else") {
-                            selectedPlayer = nil
+                    } header: {
+                        HStack {
+                            Text("Comparing with \(player.name)")
+                            Spacer()
+                            Button {
+                                selectedPlayer = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     }
                 }
@@ -267,22 +266,10 @@ struct CompareView: View {
         }
     }
 
-    private var milestoneComparison: Int {
-        guard let player = selectedPlayer else { return 0 }
-        return compareMilestones(myProfile.milestone, player.milestone)
-    }
+    // MARK: - Milestone Comparison Helpers
 
-    private var comparisonResultMessage: String {
-        guard let player = selectedPlayer else { return "" }
-        if milestoneComparison > 0 {
-            return "Your milestone is higher than \(player.name)'s!"
-        } else if milestoneComparison < 0 {
-            return "\(player.name)'s milestone is higher than yours."
-        } else {
-            return "You and \(player.name) have the same milestone!"
-        }
-    }
-
+    /// Compares two milestone strings and returns comparison result
+    /// Returns: 1 if a > b, -1 if a < b, 0 if equal
     private func compareMilestones(_ a: String, _ b: String) -> Int {
         let aVal = parseMilestone(a)
         let bVal = parseMilestone(b)
@@ -291,6 +278,7 @@ struct CompareView: View {
         return 0
     }
 
+    /// Parses a milestone string (e.g., "256K", "1M", "32a") into a numeric value for comparison
     private func parseMilestone(_ str: String) -> Double {
         var s = str.uppercased()
         var multiplier: Double = 1
@@ -322,7 +310,6 @@ struct MockPlayer: Identifiable {
     let id: String
     let name: String
     let code: String
-    let milestone: String
     let countryCode: String
 
     var countryFlag: String {
@@ -338,9 +325,6 @@ struct MockPlayer: Identifiable {
                      "Blake", "Cameron", "Dakota", "Emerson", "Finley", "Gray", "Hayden", "Jamie",
                      "Kai", "Logan", "Mason", "Noah", "Oliver", "Parker", "Reese", "Sage",
                      "Tyler", "Uma", "Victor", "Wesley", "Xander", "Yuki", "Zara"]
-        let milestones = ["16K", "32K", "64K", "128K", "256K", "512K", "1M", "2M", "4M", "8M",
-                         "16M", "32M", "64M", "128M", "256M", "512M", "1B", "2B", "4B", "8B",
-                         "16B", "32B", "1a", "2a", "4a", "8a", "16a", "1b", "2b", "1c"]
         let countries = ["US", "GB", "CA", "AU", "DE", "FR", "JP", "KR", "BR", "MX",
                         "IN", "IT", "ES", "NL", "SE", "NO", "DK", "FI", "PL", "RU"]
 
@@ -360,7 +344,6 @@ struct MockPlayer: Identifiable {
                 id: code,
                 name: names[seed % names.count],
                 code: code,
-                milestone: milestones[seed % milestones.count],
                 countryCode: countries[seed % countries.count]
             )
             players.append(player)
