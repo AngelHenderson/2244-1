@@ -36,10 +36,17 @@ public struct CustomChallengeGameScreen: View {
         self.config = config
         self.onDismiss = onDismiss
         self.playerHighestTile = playerHighestTile
-        self._timeRemaining = State(initialValue: config.timeLimitSeconds)
+        self.totalDuration = config.timeLimitSeconds
 
         // Use sandboxed GameStore with player's actual highest tile and gems for consistent pricing
         self._challengeGameStore = State(initialValue: GameStore.sandboxed(initialGems: initialGems, playerHighestTile: playerHighestTile))
+    }
+
+    // Computed time remaining based on start time
+    private var timeRemaining: Int {
+        guard !challengeEnded else { return 0 }
+        let elapsed = Int(Date().timeIntervalSince(startTime))
+        return max(0, totalDuration - elapsed)
     }
 
     public var body: some View {
@@ -81,11 +88,9 @@ public struct CustomChallengeGameScreen: View {
         .onAppear {
             startChallenge()
         }
-        .onReceive(timer) { _ in
-            guard isTimerActive else { return }
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-            } else {
+        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+            guard !challengeEnded else { return }
+            if timeRemaining <= 0 {
                 endChallenge(won: checkWinCondition())
             }
         }
@@ -515,7 +520,9 @@ public struct CustomChallengeGameScreen: View {
         // Initialize gems from player's inventory AFTER reset (since reset clears state)
         challengeGameStore.coins = homeState.gems
 
-        isTimerActive = true
+        // Start the timer
+        startTime = Date()
+        challengeEnded = false
     }
 
     private func checkWinCondition() -> Bool {
@@ -534,7 +541,8 @@ public struct CustomChallengeGameScreen: View {
     }
 
     private func endChallenge(won: Bool) {
-        isTimerActive = false
+        guard !challengeEnded else { return } // Prevent multiple calls
+        challengeEnded = true
         challengeWon = won
 
         if won {
