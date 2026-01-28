@@ -418,7 +418,7 @@ public struct CustomChallengeGameScreen: View {
 
     private var resultOverlay: some View {
         ZStack {
-            Color.black.opacity(0.6)
+            Color.black.opacity(0.8)
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
@@ -447,7 +447,6 @@ public struct CustomChallengeGameScreen: View {
                 }
             }
             .padding(32)
-            .background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial))
         }
     }
 

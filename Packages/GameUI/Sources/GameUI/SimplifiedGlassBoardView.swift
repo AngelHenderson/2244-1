@@ -109,12 +109,14 @@ public struct SimplifiedGlassBoardView: View {
                                 }
                                 
                                 // Glass overlay effect - only show if glass hasn't been broken
-                                if !gameStore.brokenGlassTiles.contains(position) {
+                                // Skip glass visuals in sandboxed/challenge mode
+                                if !gameStore.sandboxed && !gameStore.brokenGlassTiles.contains(position) {
                                     glassOverlay(for: tileSize)
                                 }
-                                
+
                                 // Gift indicator (only while glass intact)
-                                if gameStore.pendingGiftBoxes[position] == nil {
+                                // Skip gift visuals in sandboxed/challenge mode
+                                if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] == nil {
                                 Image(systemName: "gift.fill")
                                     .font(.system(size: tileSize * 0.2))
                                     .foregroundColor(.yellow)
@@ -129,7 +131,8 @@ public struct SimplifiedGlassBoardView: View {
                                         .offset(y: -tileSize * 0.45)
                                 }
 
-                                if gameStore.pendingGiftBoxes[position] != nil {
+                                // Skip gift box in sandboxed/challenge mode
+                                if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] != nil {
                                     GiftBoxOverlay(size: tileSize)
                                         .onTapGesture {
                                             haptics.success()
@@ -164,7 +167,8 @@ public struct SimplifiedGlassBoardView: View {
                                         .offset(y: -tileSize * 0.45)
                                 }
                                 
-                                if gameStore.pendingGiftBoxes[position] != nil {
+                                // Skip gift box in sandboxed/challenge mode
+                                if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] != nil {
                                     GiftBoxOverlay(size: tileSize)
                                         .onTapGesture {
                                             haptics.success()
