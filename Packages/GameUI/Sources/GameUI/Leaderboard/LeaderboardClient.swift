@@ -731,6 +731,52 @@ enum MockLeaderboardData {
         return avatarIDs[avatarIndex % avatarIDs.count]
     }
 
+    // Get avatar for a player with daily variation (some players change avatars over time)
+    static func avatarForPlayer(index: Int, countrySeed: Int, day: Int) -> String {
+        // Calculate cumulative name/avatar changes up to this day
+        var totalChanges: Double = 0
+        for d in 0...day {
+            totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+        }
+
+        // Determine which players have changed based on seeded randomness
+        let changeThreshold = seededRandom(seed: index * 199 + countrySeed * 31, index: index)
+        let playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
+
+        if day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1 {
+            // This player has changed - use a different avatar
+            let newSeed = index * 131 + countrySeed * 17 + day * 7
+            let random = seededRandom(seed: newSeed, index: day)
+            let avatarIndex = Int(random * Double(avatarIDs.count))
+            return avatarIDs[avatarIndex % avatarIDs.count]
+        }
+
+        // No change - use base avatar
+        return avatarForPlayer(index: index, countrySeed: countrySeed)
+    }
+
+    // Get name for a player with daily variation (some players change names over time)
+    static func nameForPlayer(index: Int, names: [String], countrySeed: Int, day: Int) -> String {
+        // Calculate cumulative name/avatar changes up to this day
+        var totalChanges: Double = 0
+        for d in 0...day {
+            totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+        }
+
+        // Determine which players have changed based on seeded randomness
+        let changeThreshold = seededRandom(seed: index * 211 + countrySeed * 43, index: index)
+        let playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
+
+        if day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1 {
+            // This player has changed - use a different name
+            let newIndex = (index + day * 3) % names.count
+            return names[newIndex]
+        }
+
+        // No change - use base name
+        return names[index % names.count]
+    }
+
     // Calculate infinity count with daily progression for Hall of Fame players
     // Progression rate is tiered based on current infinity count:
     // 1-99: 0.2-0.55/day, 100-999: 1-4/day, 1000-9999: 3-7/day, 10000-99999: 6-15/day, 100000+: 10-30/day
@@ -989,7 +1035,7 @@ enum MockLeaderboardData {
     }
 
     // Calculate milestone progression for regular leaderboard players
-    // Players progress through milestone tiers at different rates (0.1-0.25 milestones per day)
+    // Players progress through milestone tiers at different rates (0.25-1 milestones per day)
     // But cap total progression to prevent everyone reaching max milestone
     static func milestoneWithProgression(baseMilestone: String, playerIndex: Int, day: Int) -> String {
         guard let baseIndex = allMilestones.firstIndex(of: baseMilestone) else {
@@ -997,7 +1043,7 @@ enum MockLeaderboardData {
         }
 
         // Each player gets a consistent daily milestone progression rate
-        let dailyRate = 0.1 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 0.15  // 0.1 to 0.25 milestones per day
+        let dailyRate = 0.25 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 0.75  // 0.25 to 1 milestones per day
 
         // No cap - allow natural progression over real time (players can eventually reach infinity)
         let tiersGained = Int(dailyRate * Double(day))
@@ -3313,9 +3359,9 @@ public extension LeaderboardClient {
         // Add US players
         for i in 0..<min(150, usPlayerMilestones.count) {
             let baseMilestone = usPlayerMilestones[i]
-            let name = MockLeaderboardData.usNames[i % MockLeaderboardData.usNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.usNames, countrySeed: 0, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = avatarForPlayer(index: i, countrySeed: 0, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i, day: day)
@@ -3327,9 +3373,9 @@ public extension LeaderboardClient {
         // Add UK players
         for i in 0..<min(150, ukPlayerMilestones.count) {
             let baseMilestone = ukPlayerMilestones[i]
-            let name = MockLeaderboardData.ukNames[i % MockLeaderboardData.ukNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.ukNames, countrySeed: 5000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 6) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 5000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 5000, day: day)
@@ -3341,9 +3387,9 @@ public extension LeaderboardClient {
         // Add Canada players
         for i in 0..<min(150, canadaPlayerMilestones.count) {
             let baseMilestone = canadaPlayerMilestones[i]
-            let name = MockLeaderboardData.canadaNames[i % MockLeaderboardData.canadaNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.canadaNames, countrySeed: 10000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 12) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 10000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 10000, day: day)
@@ -3355,9 +3401,9 @@ public extension LeaderboardClient {
         // Add Australia players
         for i in 0..<min(150, australiaPlayerMilestones.count) {
             let baseMilestone = australiaPlayerMilestones[i]
-            let name = MockLeaderboardData.australiaNames[i % MockLeaderboardData.australiaNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.australiaNames, countrySeed: 15000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 18) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 15000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 15000, day: day)
@@ -3369,9 +3415,9 @@ public extension LeaderboardClient {
         // Add Germany players
         for i in 0..<min(150, germanyPlayerMilestones.count) {
             let baseMilestone = germanyPlayerMilestones[i]
-            let name = MockLeaderboardData.germanyNames[i % MockLeaderboardData.germanyNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.germanyNames, countrySeed: 20000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 24) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 20000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 20000, day: day)
@@ -3383,9 +3429,9 @@ public extension LeaderboardClient {
         // Add France players
         for i in 0..<min(150, francePlayerMilestones.count) {
             let baseMilestone = francePlayerMilestones[i]
-            let name = MockLeaderboardData.franceNames[i % MockLeaderboardData.franceNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.franceNames, countrySeed: 25000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 30) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 25000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 25000, day: day)
@@ -3397,9 +3443,9 @@ public extension LeaderboardClient {
         // Add Japan players
         for i in 0..<min(150, japanPlayerMilestones.count) {
             let baseMilestone = japanPlayerMilestones[i]
-            let name = MockLeaderboardData.japanNames[i % MockLeaderboardData.japanNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.japanNames, countrySeed: 30000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 36) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 30000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 30000, day: day)
@@ -3411,9 +3457,9 @@ public extension LeaderboardClient {
         // Add India players
         for i in 0..<min(150, indiaPlayerMilestones.count) {
             let baseMilestone = indiaPlayerMilestones[i]
-            let name = MockLeaderboardData.indiaNames[i % MockLeaderboardData.indiaNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.indiaNames, countrySeed: 35000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 42) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 35000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 35000, day: day)
@@ -3425,9 +3471,9 @@ public extension LeaderboardClient {
         // Add Brazil players
         for i in 0..<min(150, brazilPlayerMilestones.count) {
             let baseMilestone = brazilPlayerMilestones[i]
-            let name = MockLeaderboardData.brazilNames[i % MockLeaderboardData.brazilNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.brazilNames, countrySeed: 40000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 48) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 40000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 40000, day: day)
@@ -3439,9 +3485,9 @@ public extension LeaderboardClient {
         // Add Mexico players
         for i in 0..<min(150, mexicoPlayerMilestones.count) {
             let baseMilestone = mexicoPlayerMilestones[i]
-            let name = MockLeaderboardData.mexicoNames[i % MockLeaderboardData.mexicoNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.mexicoNames, countrySeed: 45000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 54) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 45000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 45000, day: day)
@@ -3453,9 +3499,9 @@ public extension LeaderboardClient {
         // Add Afghanistan players
         for i in 0..<min(150, afghanistanPlayerMilestones.count) {
             let baseMilestone = afghanistanPlayerMilestones[i]
-            let name = MockLeaderboardData.afghanistanNames[i % MockLeaderboardData.afghanistanNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.afghanistanNames, countrySeed: 50000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 60) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 50000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 50000, day: day)
@@ -3467,9 +3513,9 @@ public extension LeaderboardClient {
         // Add Albania players
         for i in 0..<min(150, albaniaPlayerMilestones.count) {
             let baseMilestone = albaniaPlayerMilestones[i]
-            let name = MockLeaderboardData.albaniaNames[i % MockLeaderboardData.albaniaNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.albaniaNames, countrySeed: 55000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 66) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 55000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 55000, day: day)
@@ -3481,9 +3527,9 @@ public extension LeaderboardClient {
         // Add Algeria players
         for i in 0..<min(150, algeriaPlayerMilestones.count) {
             let baseMilestone = algeriaPlayerMilestones[i]
-            let name = MockLeaderboardData.algeriaNames[i % MockLeaderboardData.algeriaNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.algeriaNames, countrySeed: 60000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 72) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 60000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 60000, day: day)
@@ -3495,9 +3541,9 @@ public extension LeaderboardClient {
         // Add China players
         for i in 0..<min(150, chinaPlayerMilestones.count) {
             let baseMilestone = chinaPlayerMilestones[i]
-            let name = MockLeaderboardData.chinaNames[i % MockLeaderboardData.chinaNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.chinaNames, countrySeed: 65000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 78) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 65000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 65000, day: day)
@@ -3509,9 +3555,9 @@ public extension LeaderboardClient {
         // Add South Korea players
         for i in 0..<min(150, southKoreaPlayerMilestones.count) {
             let baseMilestone = southKoreaPlayerMilestones[i]
-            let name = MockLeaderboardData.southKoreaNames[i % MockLeaderboardData.southKoreaNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.southKoreaNames, countrySeed: 70000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 84) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = avatarForPlayer(index: i, countrySeed: 70000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 70000, day: day)
@@ -3523,9 +3569,9 @@ public extension LeaderboardClient {
         // Add Italy players
         for i in 0..<min(150, italyPlayerMilestones.count) {
             let baseMilestone = italyPlayerMilestones[i]
-            let name = MockLeaderboardData.italyNames[i % MockLeaderboardData.italyNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.italyNames, countrySeed: 75000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 91) % MockLeaderboardData.avatarIDs.count]
+            let avatar = avatarForPlayer(index: i, countrySeed: 75000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 75000, day: day)
@@ -3537,9 +3583,9 @@ public extension LeaderboardClient {
         // Add Spain players
         for i in 0..<min(150, spainPlayerMilestones.count) {
             let baseMilestone = spainPlayerMilestones[i]
-            let name = MockLeaderboardData.spainNames[i % MockLeaderboardData.spainNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.spainNames, countrySeed: 80000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 120) % MockLeaderboardData.avatarIDs.count]
+            let avatar = avatarForPlayer(index: i, countrySeed: 80000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 80000, day: day)
@@ -3551,9 +3597,9 @@ public extension LeaderboardClient {
         // Add Netherlands players
         for i in 0..<min(150, netherlandsPlayerMilestones.count) {
             let baseMilestone = netherlandsPlayerMilestones[i]
-            let name = MockLeaderboardData.netherlandsNames[i % MockLeaderboardData.netherlandsNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.netherlandsNames, countrySeed: 85000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 160)
+            let avatar = avatarForPlayer(index: i, countrySeed: 85000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 85000, day: day)
@@ -3565,9 +3611,9 @@ public extension LeaderboardClient {
         // Add Switzerland players
         for i in 0..<min(150, switzerlandPlayerMilestones.count) {
             let baseMilestone = switzerlandPlayerMilestones[i]
-            let name = MockLeaderboardData.switzerlandNames[i % MockLeaderboardData.switzerlandNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.switzerlandNames, countrySeed: 90000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 180)
+            let avatar = avatarForPlayer(index: i, countrySeed: 90000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 90000, day: day)
@@ -3579,9 +3625,9 @@ public extension LeaderboardClient {
         // Add Norway players
         for i in 0..<min(150, norwayPlayerMilestones.count) {
             let baseMilestone = norwayPlayerMilestones[i]
-            let name = MockLeaderboardData.norwayNames[i % MockLeaderboardData.norwayNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.norwayNames, countrySeed: 95000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 200)
+            let avatar = avatarForPlayer(index: i, countrySeed: 95000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 95000, day: day)
@@ -3593,9 +3639,9 @@ public extension LeaderboardClient {
         // Add Denmark players
         for i in 0..<min(150, denmarkPlayerMilestones.count) {
             let baseMilestone = denmarkPlayerMilestones[i]
-            let name = MockLeaderboardData.denmarkNames[i % MockLeaderboardData.denmarkNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.denmarkNames, countrySeed: 100000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 210)
+            let avatar = avatarForPlayer(index: i, countrySeed: 100000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 100000, day: day)
@@ -3607,9 +3653,9 @@ public extension LeaderboardClient {
         // Add Finland players
         for i in 0..<min(150, finlandPlayerMilestones.count) {
             let baseMilestone = finlandPlayerMilestones[i]
-            let name = MockLeaderboardData.finlandNames[i % MockLeaderboardData.finlandNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.finlandNames, countrySeed: 105000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 220)
+            let avatar = avatarForPlayer(index: i, countrySeed: 105000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 105000, day: day)
@@ -3621,9 +3667,9 @@ public extension LeaderboardClient {
         // Add Poland players
         for i in 0..<min(150, polandPlayerMilestones.count) {
             let baseMilestone = polandPlayerMilestones[i]
-            let name = MockLeaderboardData.polandNames[i % MockLeaderboardData.polandNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.polandNames, countrySeed: 110000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 221)
+            let avatar = avatarForPlayer(index: i, countrySeed: 110000, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 110000, day: day)
@@ -3749,10 +3795,10 @@ public extension LeaderboardClient {
 
         for i in 0..<150 {  // Only show top 150 in leaderboard
             let baseMilestone = usPlayerMilestones[i]
-            let name = MockLeaderboardData.usNames[i % MockLeaderboardData.usNames.count]
+            let name = nameForPlayer(index: i, names: MockLeaderboardData.usNames, countrySeed: 0, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
             // Use seeded avatar selection for variety (different from names)
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 1)
+            let avatar = avatarForPlayer(index: i, countrySeed: 0, day: day)
 
             // Apply daily progression to milestones
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i, day: day)

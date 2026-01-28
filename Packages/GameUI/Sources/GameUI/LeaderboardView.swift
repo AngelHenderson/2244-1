@@ -326,16 +326,29 @@ public struct LeaderboardView: View {
             if rank == userRank {
                 // Always show user's actual milestone for their rank
                 milestone = userMilestone
-            } else if rank <= 150 {
-                // For top 150, look up directly from country player data
-                if let playerMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: rank, countryCode: countryCode) {
-                    milestone = playerMilestone
+            } else if rank < userRank {
+                // Ranks above user: look up directly (no shift needed)
+                if rank <= 150 {
+                    if let playerMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: rank, countryCode: countryCode) {
+                        milestone = playerMilestone
+                    } else {
+                        milestone = userMilestone
+                    }
                 } else {
-                    milestone = userMilestone // Fallback
+                    milestone = MockLeaderboardData.milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
                 }
             } else {
-                // For ranks beyond 150, use extended brackets
-                milestone = MockLeaderboardData.milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
+                // Ranks below user: shift down by 1 (user's insertion pushes everyone down)
+                let lookupRank = rank - 1
+                if lookupRank <= 150 {
+                    if let playerMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: lookupRank, countryCode: countryCode) {
+                        milestone = playerMilestone
+                    } else {
+                        milestone = userMilestone
+                    }
+                } else {
+                    milestone = MockLeaderboardData.milestoneForExtendedRank(rank: lookupRank, countryCode: countryCode) ?? userMilestone
+                }
             }
 
             previews.append(RankPreview(
