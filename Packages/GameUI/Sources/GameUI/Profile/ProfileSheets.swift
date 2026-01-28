@@ -137,10 +137,23 @@ struct SeasonHistoryView: View {
 
 struct CompareView: View {
     var friendCode: String
+    var myProfile: CompareProfile
     @Environment(\.dismiss) private var dismiss
-    @State private var inputCode: String = ""
-    @State private var validationMessage: String?
-    @State private var isValidCode: Bool?
+    @State private var searchText: String = ""
+    @State private var selectedPlayer: MockPlayer?
+
+    private let mockPlayers: [MockPlayer] = MockPlayer.generateAll()
+
+    private var filteredPlayers: [MockPlayer] {
+        let query = searchText.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return [] }
+        // Filter by any letters typed (contains match), sort by milestone descending, limit to top 50
+        return mockPlayers
+            .filter { $0.code.uppercased().contains(query) }
+            .sorted { parseMilestone($0.milestone) > parseMilestone($1.milestone) }
+            .prefix(50)
+            .map { $0 }
+    }
 
     var body: some View {
         NavigationStack {
@@ -156,30 +169,90 @@ struct CompareView: View {
                         }
                     }
                 }
+
                 Section("Compare With") {
-                    TextField("Friend Code", text: $inputCode)
+                    TextField("Search codes (e.g., A or XY)", text: $searchText)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
-                        .onChange(of: inputCode) { _, _ in
-                            // Clear validation when user types
-                            validationMessage = nil
-                            isValidCode = nil
+                        .onChange(of: searchText) { _, _ in
+                            selectedPlayer = nil
                         }
-                    Button {
-                        validateAndCompare()
-                    } label: {
-                        Label("Compare", systemImage: "line.3.horizontal.decrease.circle")
-                    }
-                    .disabled(inputCode.trimmed().isEmpty)
                 }
 
-                if let message = validationMessage {
+                if !filteredPlayers.isEmpty && selectedPlayer == nil {
+                    Section("Top \(filteredPlayers.count) by Milestone") {
+                        ForEach(filteredPlayers) { player in
+                            HStack {
+                                Text(player.countryFlag)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(player.name)
+                                        .font(.subheadline.weight(.medium))
+                                    Text(player.code)
+                                        .font(.caption.monospaced())
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(player.milestone)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                Button("Compare") {
+                                    selectedPlayer = player
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                            }
+                        }
+                    }
+                }
+
+                if let player = selectedPlayer {
+                    Section("Milestone Comparison") {
+                        VStack(spacing: 16) {
+                            HStack(alignment: .top, spacing: 20) {
+                                // Your profile
+                                VStack(spacing: 8) {
+                                    Text(myProfile.countryFlag)
+                                        .font(.largeTitle)
+                                    Text("You")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(myProfile.milestone)
+                                        .font(.title2.bold())
+                                        .foregroundColor(milestoneComparison > 0 ? .green : (milestoneComparison < 0 ? .primary : .primary))
+                                }
+                                .frame(maxWidth: .infinity)
+
+                                Text("vs")
+                                    .font(.headline)
+                                    .foregroundColor(.secondary)
+                                    .padding(.top, 20)
+
+                                // Their profile
+                                VStack(spacing: 8) {
+                                    Text(player.countryFlag)
+                                        .font(.largeTitle)
+                                    Text(player.name)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(player.milestone)
+                                        .font(.title2.bold())
+                                        .foregroundColor(milestoneComparison < 0 ? .green : (milestoneComparison > 0 ? .primary : .primary))
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 8)
+
+                            // Result message
+                            Text(comparisonResultMessage)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+
                     Section {
-                        HStack {
-                            Image(systemName: isValidCode == true ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .foregroundColor(isValidCode == true ? .green : .red)
-                            Text(message)
-                                .foregroundColor(isValidCode == true ? .primary : .red)
+                        Button("Compare with someone else") {
+                            selectedPlayer = nil
                         }
                     }
                 }
@@ -194,28 +267,172 @@ struct CompareView: View {
         }
     }
 
-    private func validateAndCompare() {
-        let code = inputCode.trimmed().uppercased()
+    private var milestoneComparison: Int {
+        guard let player = selectedPlayer else { return 0 }
+        return compareMilestones(myProfile.milestone, player.milestone)
+    }
 
-        // Check if it's your own code
-        if code == friendCode.uppercased() {
-            validationMessage = "You cannot compare with yourself."
-            isValidCode = false
-            return
+    private var comparisonResultMessage: String {
+        guard let player = selectedPlayer else { return "" }
+        if milestoneComparison > 0 {
+            return "Your milestone is higher than \(player.name)'s!"
+        } else if milestoneComparison < 0 {
+            return "\(player.name)'s milestone is higher than yours."
+        } else {
+            return "You and \(player.name) have the same milestone!"
         }
+    }
 
-        // Validate format: 3 alphanumeric characters, dash, 3 alphanumeric characters
-        let pattern = "^[A-Z0-9]{3}-[A-Z0-9]{3}$"
-        guard let regex = try? NSRegularExpression(pattern: pattern),
-              regex.firstMatch(in: code, range: NSRange(code.startIndex..., in: code)) != nil else {
-            validationMessage = "Invalid code format. Use format: ABC-123 or A1B-2C3"
-            isValidCode = false
-            return
+    private func compareMilestones(_ a: String, _ b: String) -> Int {
+        let aVal = parseMilestone(a)
+        let bVal = parseMilestone(b)
+        if aVal > bVal { return 1 }
+        if aVal < bVal { return -1 }
+        return 0
+    }
+
+    private func parseMilestone(_ str: String) -> Double {
+        var s = str.uppercased()
+        var multiplier: Double = 1
+
+        // Handle letter suffixes (a, b, c, ... after B)
+        if let last = s.last, last.isLetter {
+            let suffix = String(last)
+            s = String(s.dropLast())
+
+            switch suffix {
+            case "K": multiplier = 1_000
+            case "M": multiplier = 1_000_000
+            case "B": multiplier = 1_000_000_000
+            default:
+                // Extended suffixes: a = 10^12, b = 10^15, etc.
+                if let asciiVal = suffix.lowercased().first?.asciiValue {
+                    let letterIndex = Int(asciiVal) - Int(Character("a").asciiValue!)
+                    multiplier = pow(10, Double(12 + letterIndex * 3))
+                }
+            }
         }
+        return (Double(s) ?? 0) * multiplier
+    }
+}
 
-        // Code format is valid, but we can't look up users without a backend
-        validationMessage = "Code format is valid. Profile comparison requires online connectivity (coming soon)."
-        isValidCode = true
+// MARK: - Mock Player Data
+
+struct MockPlayer: Identifiable {
+    let id: String
+    let name: String
+    let code: String
+    let milestone: String
+    let countryCode: String
+
+    var countryFlag: String {
+        let base: UInt32 = 0x1F1E6
+        return countryCode.uppercased().unicodeScalars.compactMap { scalar -> String? in
+            guard let flag = UnicodeScalar(base + scalar.value - 65) else { return nil }
+            return String(flag)
+        }.joined()
+    }
+
+    static func generateAll() -> [MockPlayer] {
+        let names = ["Alex", "Jordan", "Riley", "Casey", "Morgan", "Taylor", "Quinn", "Avery",
+                     "Blake", "Cameron", "Dakota", "Emerson", "Finley", "Gray", "Hayden", "Jamie",
+                     "Kai", "Logan", "Mason", "Noah", "Oliver", "Parker", "Reese", "Sage",
+                     "Tyler", "Uma", "Victor", "Wesley", "Xander", "Yuki", "Zara"]
+        let milestones = ["16K", "32K", "64K", "128K", "256K", "512K", "1M", "2M", "4M", "8M",
+                         "16M", "32M", "64M", "128M", "256M", "512M", "1B", "2B", "4B", "8B",
+                         "16B", "32B", "1a", "2a", "4a", "8a", "16a", "1b", "2b", "1c"]
+        let countries = ["US", "GB", "CA", "AU", "DE", "FR", "JP", "KR", "BR", "MX",
+                        "IN", "IT", "ES", "NL", "SE", "NO", "DK", "FI", "PL", "RU"]
+
+        var players: [MockPlayer] = []
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+        // Generate ~200 mock players with varied codes
+        for i in 0..<200 {
+            let seed = i * 7 + 13
+            let c1 = letters[letters.index(letters.startIndex, offsetBy: (seed) % 26)]
+            let c2 = letters[letters.index(letters.startIndex, offsetBy: (seed * 3) % 26)]
+            let c3 = letters[letters.index(letters.startIndex, offsetBy: (seed * 7) % 26)]
+            let num = String(format: "%03d", (seed * 11) % 1000)
+            let code = "\(c1)\(c2)\(c3)-\(num)"
+
+            let player = MockPlayer(
+                id: code,
+                name: names[seed % names.count],
+                code: code,
+                milestone: milestones[seed % milestones.count],
+                countryCode: countries[seed % countries.count]
+            )
+            players.append(player)
+        }
+        return players.sorted { $0.code < $1.code }
+    }
+}
+
+// MARK: - Compare Profile Data
+
+struct CompareProfile {
+    let name: String
+    let score: String
+    let milestone: String
+    let countryFlag: String
+    let avatar: String
+}
+
+// MARK: - Comparison Row (kept for potential future use)
+
+private struct ComparisonRow: View {
+    let label: String
+    let myValue: String
+    let theirValue: String
+    var highlightWinner: Bool = false
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .foregroundColor(.secondary)
+                .frame(width: 70, alignment: .leading)
+            Spacer()
+            Text(myValue)
+                .fontWeight(highlightWinner && isMyValueBetter ? .bold : .regular)
+                .foregroundColor(highlightWinner && isMyValueBetter ? .green : .primary)
+            Text("vs")
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 8)
+            Text(theirValue)
+                .fontWeight(highlightWinner && !isMyValueBetter && myValue != theirValue ? .bold : .regular)
+                .foregroundColor(highlightWinner && !isMyValueBetter && myValue != theirValue ? .green : .primary)
+        }
+        .font(.subheadline)
+    }
+
+    private var isMyValueBetter: Bool {
+        // Simple comparison - works for scores/milestones formatted as numbers with K/M/B suffix
+        compareValues(myValue, theirValue) > 0
+    }
+
+    private func compareValues(_ a: String, _ b: String) -> Int {
+        let aNum = parseValue(a)
+        let bNum = parseValue(b)
+        if aNum > bNum { return 1 }
+        if aNum < bNum { return -1 }
+        return 0
+    }
+
+    private func parseValue(_ str: String) -> Double {
+        var s = str.uppercased()
+        var multiplier: Double = 1
+        if s.hasSuffix("B") {
+            multiplier = 1_000_000_000
+            s = String(s.dropLast())
+        } else if s.hasSuffix("M") {
+            multiplier = 1_000_000
+            s = String(s.dropLast())
+        } else if s.hasSuffix("K") {
+            multiplier = 1_000
+            s = String(s.dropLast())
+        }
+        return (Double(s) ?? 0) * multiplier
     }
 }
 
