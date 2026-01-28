@@ -67,6 +67,7 @@ public struct ChallengeModeView: View {
         let status = store.status(for: challenge)
         let isSelected = selectedChallenge?.id == challenge.id
         GeometryReader { geo in
+            let cardWidth = geo.size.width * 0.7
             ChallengeCard(
                 challenge: challenge,
                 challengeNumber: index + 1,
@@ -75,10 +76,10 @@ public struct ChallengeModeView: View {
                 isSelected: isSelected,
                 onTap: status.isPlayable ? { selectedChallenge = challenge } : nil
             )
-            .frame(width: geo.size.width * 0.7)
-            .frame(maxWidth: .infinity)
+            .frame(width: cardWidth)
+            .position(x: geo.size.width / 2, y: geo.size.height / 2)
         }
-        .frame(height: 180)
+        .frame(height: 150)
         .id(challenge.id)
     }
 
@@ -176,7 +177,7 @@ private struct ChallengeCard: View {
     // Renders the target tile with proper colors
     @ViewBuilder
     private var targetTileView: some View {
-        let tileSize: CGFloat = 70
+        let tileSize: CGFloat = 55
 
         if let targetTile = challenge.targetTile {
             if targetTile == Int.max {
@@ -340,14 +341,14 @@ private struct ChallengeCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Text("Challenge \(challengeNumber)")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
 
             targetTileView
 
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 statusText
 
                 if !isCompleted {
@@ -356,7 +357,8 @@ private struct ChallengeCard: View {
                 }
             }
         }
-        .padding(20)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
         .background(cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
