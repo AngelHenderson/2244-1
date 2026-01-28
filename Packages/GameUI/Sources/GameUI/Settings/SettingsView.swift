@@ -22,6 +22,7 @@ public struct SettingsView: View {
     @State private var adsRemoved: Bool = false
     @State private var isShowingHowToPlay: Bool = false
     @State private var isShowingTilesInfo: Bool = false
+    @State private var isShowingPerksInfo: Bool = false
     @State private var isShowingGameCenter: Bool = false
     @State private var gameCenterEnabled: Bool = false
     @State private var gameCenterDisplayName: String = ""
@@ -221,6 +222,10 @@ public struct SettingsView: View {
                     Button("Tiles Info") {
                         isShowingTilesInfo = true
                     }
+
+                    Button("Perks Info") {
+                        isShowingPerksInfo = true
+                    }
                     
                     Button("Contact Support") {
                         if let url = URL(string: "mailto:support@game2244.com?subject=Game Support") {
@@ -272,6 +277,9 @@ public struct SettingsView: View {
             }
             .sheet(isPresented: $isShowingTilesInfo) {
                 TilesInfoView()
+            }
+            .sheet(isPresented: $isShowingPerksInfo) {
+                PerksInfoView()
             }
             .sheet(isPresented: $isShowingGameCenter) {
                 GameCenterView()

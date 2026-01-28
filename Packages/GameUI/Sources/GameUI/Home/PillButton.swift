@@ -24,11 +24,19 @@ struct PillButton: View {
                         .font(.title3.weight(.bold))
                 }
                 .foregroundStyle(.white)
-                .padding(.vertical, 8)
+                .padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
+                .background(
+                    LinearGradient(
+                        colors: [buttonColor, buttonColor.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                )
+                .shadow(color: buttonColor.opacity(0.3), radius: 8, y: 4)
             }
-            .buttonStyle(.glass)
-            .tint(buttonColor)
+            .buttonStyle(.plain)
             .accessibilityLabel(title)
         } else {
             Button(action: action) {

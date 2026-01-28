@@ -146,7 +146,7 @@ public struct PlayButtonColor: Identifiable, Sendable {
     public let name: String
     public let color: Color
 
-    nonisolated(unsafe) public static let allColors: [PlayButtonColor] = [
+    public static let allColors: [PlayButtonColor] = [
         PlayButtonColor(id: "green", name: "Green", color: .green),
         PlayButtonColor(id: "blue", name: "Blue", color: .blue),
         PlayButtonColor(id: "red", name: "Red", color: .red),
