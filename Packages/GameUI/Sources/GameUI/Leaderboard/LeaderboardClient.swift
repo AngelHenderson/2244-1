@@ -767,11 +767,21 @@ enum MockLeaderboardData {
     }
 
     // Get name for a player with daily variation (some players change names over time)
+    // 85% of changes happen outside top 150, only 15% in top 150
     static func nameForPlayer(index: Int, names: [String], countrySeed: Int, day: Int) -> String {
         // Calculate cumulative name/avatar changes up to this day
         var totalChanges: Double = 0
         for d in 0...day {
             totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+        }
+
+        // Top 150 players are much less likely to change (only 15% of changes)
+        if index < 150 {
+            let top150Eligible = seededRandom(seed: index * 331 + countrySeed * 67, index: index)
+            if top150Eligible > 0.15 {
+                // This top-150 player is not in the 15% that changes
+                return names[index % names.count]
+            }
         }
 
         // Determine which players have changed based on seeded randomness
