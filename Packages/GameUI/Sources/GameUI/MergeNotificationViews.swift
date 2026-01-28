@@ -10,10 +10,24 @@ struct UnlockedNotificationView: View {
     @State private var selectedMultiplier = 1
 
     private var tileLabel: String {
-        TileLabelFormatter.format(value)
+        // For high-value tiles (Int.max), use step-based formatting from gameStore
+        if value >= Int.max / 2 {
+            let step = gameStore.state.highestTileStep
+            return JourneyTileGenerator.formatTileAtStep(step)
+        }
+        return TileLabelFormatter.format(value)
     }
 
     private var journeyReward: (previous: String?, current: String, next: String?) {
+        // For high-value tiles, use step-based progression
+        if value >= Int.max / 2 {
+            let step = gameStore.state.highestTileStep
+            let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
+            let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
+            let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
+            return (prevLabel, currentLabel, nextLabel)
+        }
+
         // Get journey tier labels for the progression
         if let tile = Tile.makeFromValue(value) {
             if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
@@ -29,6 +43,16 @@ struct UnlockedNotificationView: View {
     }
 
     private var gemReward: Int {
+        // For high-value tiles, use step-based reward formula
+        if value >= Int.max / 2 {
+            let step = gameStore.state.highestTileStep
+            // Formula: 50 gems for step 8 (512), then +2 per step
+            if step >= 8 {
+                return (50 + (step - 8) * 2) * selectedMultiplier
+            }
+            return 50 * selectedMultiplier
+        }
+
         // Get gem reward from the reward curve based on tier
         if let tile = Tile.makeFromValue(value),
            let tierInfo = JourneyAbbreviationTiers.tier(for: tile) {
@@ -138,11 +162,31 @@ struct AddedNotificationView: View {
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
 
+    // For high-value tiles, the added step is derived from highest step
+    private var displayStep: Int {
+        if value >= Int.max / 2 {
+            // Added tiles appear at a step relative to the highest
+            return max(0, gameStore.state.highestTileStep - 7)
+        }
+        return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
+    }
+
     private var tileLabel: String {
-        TileLabelFormatter.format(value)
+        if value >= Int.max / 2 {
+            return JourneyTileGenerator.formatTileAtStep(displayStep)
+        }
+        return TileLabelFormatter.format(value)
     }
 
     private var journeyReward: (previous: String?, current: String, next: String?) {
+        if value >= Int.max / 2 {
+            let step = displayStep
+            let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
+            let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
+            let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
+            return (prevLabel, currentLabel, nextLabel)
+        }
+
         if let tile = Tile.makeFromValue(value) {
             if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
                 let prevTier = currentTier.order > 0 ?
@@ -155,6 +199,15 @@ struct AddedNotificationView: View {
     }
 
     private var gemReward: Int {
+        // For high-value tiles, use step-based rewards
+        if value >= Int.max / 2 {
+            let step = displayStep
+            if step >= 8 {
+                return (30 + (step - 8)) * selectedMultiplier
+            }
+            return 30 * selectedMultiplier
+        }
+
         // Spawn pool updates get smaller rewards than unlocks
         if let tile = Tile.makeFromValue(value),
            let tierInfo = JourneyAbbreviationTiers.tier(for: tile) {
@@ -254,11 +307,30 @@ struct ExcludedNotificationView: View {
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
 
+    // For high-value tiles, the eliminated step is 14 below highest
+    private var displayStep: Int {
+        if value >= Int.max / 2 {
+            return max(0, gameStore.state.highestTileStep - 14)
+        }
+        return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
+    }
+
     private var tileLabel: String {
-        TileLabelFormatter.format(value)
+        if value >= Int.max / 2 {
+            return JourneyTileGenerator.formatTileAtStep(displayStep)
+        }
+        return TileLabelFormatter.format(value)
     }
 
     private var journeyReward: (previous: String?, current: String, next: String?) {
+        if value >= Int.max / 2 {
+            let step = displayStep
+            let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
+            let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
+            let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
+            return (prevLabel, currentLabel, nextLabel)
+        }
+
         if let tile = Tile.makeFromValue(value) {
             if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
                 let prevTier = currentTier.order > 0 ?
@@ -271,6 +343,15 @@ struct ExcludedNotificationView: View {
     }
 
     private var gemReward: Int {
+        // For high-value tiles, use step-based rewards
+        if value >= Int.max / 2 {
+            let step = displayStep
+            if step >= 8 {
+                return (20 + (step - 8)) * selectedMultiplier
+            }
+            return 20 * selectedMultiplier
+        }
+
         // Eliminations get smallest rewards
         if let tile = Tile.makeFromValue(value),
            let tierInfo = JourneyAbbreviationTiers.tier(for: tile) {
