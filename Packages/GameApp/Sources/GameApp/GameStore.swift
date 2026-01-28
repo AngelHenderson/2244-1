@@ -957,20 +957,23 @@ public final class GameStore {
         // We manually handle refill reveal later in performRefill
         
         // Break glass tiles for any positions in row 0 that were part of this connection
-        for position in positions {
-            if position.row == 0 {
-                if brokenGlassTiles.insert(position).inserted {
-                    newlyBrokenGlass.append(position)
+        // Skip glass breaking in sandboxed/challenge mode
+        if !sandboxed {
+            for position in positions {
+                if position.row == 0 {
+                    if brokenGlassTiles.insert(position).inserted {
+                        newlyBrokenGlass.append(position)
+                    }
                 }
             }
-        }
-        
-        if !newlyBrokenGlass.isEmpty {
-            for position in newlyBrokenGlass {
-                // Use column-based rewards instead of random
-                pendingGiftBoxes[position] = GiftReward.rewardForColumn(position.col, isFromGlassShatter: true)
+
+            if !newlyBrokenGlass.isEmpty {
+                for position in newlyBrokenGlass {
+                    // Use column-based rewards instead of random
+                    pendingGiftBoxes[position] = GiftReward.rewardForColumn(position.col, isFromGlassShatter: true)
+                }
+                persistPendingGiftBoxes()
             }
-            persistPendingGiftBoxes()
         }
         // Added value is the tile now at lastPos
         let addedValue: Int = {
@@ -2164,11 +2167,17 @@ public final class GameStore {
     }
     
     private func milestonePriceDelta() -> Int {
-        // In challenge mode, use player's actual highest tile for consistent pricing
-        let highest = playerHighestTile ?? state.highestTile
-        guard highest >= 512 else { return 0 }
-        let exponent = Int.bitWidth - highest.leadingZeroBitCount - 1
-        let milestonesUnlocked = max(0, exponent - 8)
+        // Use step-based calculation to support high-value tiles beyond Int.max
+        // Step 8 = 512 (first milestone), each step adds +10 gems
+        let step: Int
+        if let playerTile = playerHighestTile {
+            // In challenge/sandbox mode, use player's main game tile for consistent pricing
+            step = TileStepLabelFormatter.stepForValue(playerTile, start: 2) ?? state.highestTileStep
+        } else {
+            step = state.highestTileStep
+        }
+        guard step >= 8 else { return 0 }
+        let milestonesUnlocked = step - 8
         return milestonesUnlocked * 10
     }
     
