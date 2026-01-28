@@ -139,7 +139,9 @@ struct CompareView: View {
     var friendCode: String
     @Environment(\.dismiss) private var dismiss
     @State private var inputCode: String = ""
-    
+    @State private var validationMessage: String?
+    @State private var isValidCode: Bool?
+
     var body: some View {
         NavigationStack {
             Form {
@@ -147,7 +149,7 @@ struct CompareView: View {
                     HStack {
                         Text(friendCode).font(.body.monospaced())
                         Spacer()
-                        Button("Copy") { 
+                        Button("Copy") {
                             #if os(iOS)
                             UIPasteboard.general.string = friendCode
                             #endif
@@ -156,24 +158,64 @@ struct CompareView: View {
                 }
                 Section("Compare With") {
                     TextField("Friend Code", text: $inputCode)
-                        .textInputAutocapitalization(.never)
+                        .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
+                        .onChange(of: inputCode) { _, _ in
+                            // Clear validation when user types
+                            validationMessage = nil
+                            isValidCode = nil
+                        }
                     Button {
-                        // Hook: push a comparison screen
-                    } label: { 
-                        Label("Compare", systemImage: "line.3.horizontal.decrease.circle") 
+                        validateAndCompare()
+                    } label: {
+                        Label("Compare", systemImage: "line.3.horizontal.decrease.circle")
                     }
                     .disabled(inputCode.trimmed().isEmpty)
+                }
+
+                if let message = validationMessage {
+                    Section {
+                        HStack {
+                            Image(systemName: isValidCode == true ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(isValidCode == true ? .green : .red)
+                            Text(message)
+                                .foregroundColor(isValidCode == true ? .primary : .red)
+                        }
+                    }
                 }
             }
             .navigationTitle("Compare Profiles")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { 
-                ToolbarItem(placement: .cancellationAction) { 
-                    Button("Close") { dismiss() } 
-                } 
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
             }
         }
+    }
+
+    private func validateAndCompare() {
+        let code = inputCode.trimmed().uppercased()
+
+        // Check if it's your own code
+        if code == friendCode.uppercased() {
+            validationMessage = "You cannot compare with yourself."
+            isValidCode = false
+            return
+        }
+
+        // Validate format: 3 alphanumeric characters, dash, 3 alphanumeric characters
+        let pattern = "^[A-Z0-9]{3}-[A-Z0-9]{3}$"
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              regex.firstMatch(in: code, range: NSRange(code.startIndex..., in: code)) != nil else {
+            validationMessage = "Invalid code format. Use format: ABC-123 or A1B-2C3"
+            isValidCode = false
+            return
+        }
+
+        // Code format is valid, but we can't look up users without a backend
+        validationMessage = "Code format is valid. Profile comparison requires online connectivity (coming soon)."
+        isValidCode = true
     }
 }
 
