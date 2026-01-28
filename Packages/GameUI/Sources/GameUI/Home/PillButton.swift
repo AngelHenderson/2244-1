@@ -4,8 +4,13 @@ struct PillButton: View {
     let title: String
     var icon: String? = nil
     var action: () -> Void
-    
+
     @Environment(\.gameStore) private var gameStore
+    @AppStorage("selectedPlayButtonColorId") private var selectedPlayButtonColorId: String = "green"
+
+    private var buttonColor: Color {
+        PlayButtonColor.color(for: selectedPlayButtonColorId)
+    }
 
     var body: some View {
         if #available(iOS 26.0, macOS 26.0, *) {
@@ -18,10 +23,12 @@ struct PillButton: View {
                     Text(title)
                         .font(.title3.weight(.bold))
                 }
+                .foregroundStyle(.white)
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.glass)
+            .tint(buttonColor)
             .accessibilityLabel(title)
         } else {
             Button(action: action) {
@@ -33,17 +40,18 @@ struct PillButton: View {
                     Text(title)
                         .font(.title2.weight(.bold))
                 }
+                .foregroundStyle(.white)
                 .padding(.vertical, 20)
                 .frame(maxWidth: .infinity)
                 .background(
                     LinearGradient(
-                        colors: [Color.green, Color.green.opacity(0.8)],
+                        colors: [buttonColor, buttonColor.opacity(0.8)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     in: RoundedRectangle(cornerRadius: 8, style: .continuous)
                 )
-                .shadow(color: .green.opacity(0.3), radius: 8, y: 4)
+                .shadow(color: buttonColor.opacity(0.3), radius: 8, y: 4)
             }
             .background(
                 .regularMaterial,
