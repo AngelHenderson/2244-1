@@ -326,7 +326,14 @@ public final class GameEngine {
     public func overrideGems(with newValue: Int) {
         state.gems = newValue
     }
-    
+
+    /// Synchronize the engine's score with an external source (e.g., restored from persistence).
+    /// This prevents score loss when the engine's internal score is lower than the persisted score.
+    public func overrideScore(with alpha: AlphaNumber) {
+        state.scoreValue = alpha
+        state.score = alpha.toInt()
+    }
+
     /// Apply a temporary score multiplier (defaults to 1 when not boosted).
     public func setScoreMultiplier(_ multiplier: Int) {
         scoreMultiplier = max(1, multiplier)
