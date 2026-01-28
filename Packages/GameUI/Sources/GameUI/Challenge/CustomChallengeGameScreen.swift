@@ -42,11 +42,16 @@ public struct CustomChallengeGameScreen: View {
         self._challengeGameStore = State(initialValue: GameStore.sandboxed(initialGems: initialGems, playerHighestTile: playerHighestTile))
     }
 
-    // Computed time remaining based on start time
-    private var timeRemaining: Int {
+    // Computed time remaining based on start time - takes a date parameter for TimelineView
+    private func timeRemainingAt(_ date: Date) -> Int {
         guard !challengeEnded else { return 0 }
-        let elapsed = Int(Date().timeIntervalSince(startTime))
+        let elapsed = Int(date.timeIntervalSince(startTime))
         return max(0, totalDuration - elapsed)
+    }
+
+    // Convenience for current time
+    private var timeRemaining: Int {
+        timeRemainingAt(Date())
     }
 
     public var body: some View {
@@ -383,14 +388,17 @@ public struct CustomChallengeGameScreen: View {
 
             Spacer()
 
-            // Timer display
-            VStack(spacing: 2) {
-                Text("TIME")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text(formatTime(timeRemaining))
-                    .font(.system(.title3, design: .monospaced).bold())
-                    .foregroundStyle(timeRemaining <= 10 ? .red : .primary)
+            // Timer display - uses TimelineView to update continuously during merges
+            TimelineView(.periodic(from: startTime, by: 0.5)) { context in
+                let remaining = timeRemainingAt(context.date)
+                VStack(spacing: 2) {
+                    Text("TIME")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(formatTime(remaining))
+                        .font(.system(.title3, design: .monospaced).bold())
+                        .foregroundStyle(remaining <= 10 ? .red : .primary)
+                }
             }
 
             Spacer()

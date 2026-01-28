@@ -3,10 +3,10 @@ import GameCore
 
 @Observable
 @MainActor
-public final class ChallengeDesignerStore: Sendable {
+public final class ChallengeDesignerStore {
     // Generate all milestone labels except K values
     // Progression: 1M, 1B, 1a-1z, 1aa-1az, 1ba-1bz, then infinity
-    private(set) var targetLabels: [String] = {
+    private let targetLabels: [String] = {
         var labels: [String] = ["1M", "1B"]
 
         // Single letters: 1a through 1z
@@ -48,15 +48,9 @@ public final class ChallengeDesignerStore: Sendable {
         return targetPower - 1
     }
     
-    public var timeLimitSeconds: Int = 60 {
-        didSet { timeLimitSeconds = min(1500, max(60, timeLimitSeconds)) }
-    }
-    public var minTileLevel: Int = 10 {
-        didSet { minTileLevel = min(10, max(5, minTileLevel)) }
-    }
-    public var levels: Int = 5 {
-        didSet { levels = min(10, max(5, levels)) }
-    }
+    public var timeLimitSeconds: Int = 60
+    public var minTileLevel: Int = 10
+    public var levels: Int = 5
     
     public var tileAssignments: [Int: TileBucket] = [
         64: .low, 128: .low, 256: .low, 512: .low, 1024: .mid
@@ -92,20 +86,39 @@ public final class ChallengeDesignerStore: Sendable {
     }
     
     public func decTime() {
-        timeLimitSeconds = max(60, timeLimitSeconds - 10)
+        // Wrap around: 60 -> 1500
+        if timeLimitSeconds <= 60 {
+            timeLimitSeconds = 1500
+        } else {
+            timeLimitSeconds -= 10
+        }
     }
 
     public func incTime() {
-        timeLimitSeconds = min(1500, timeLimitSeconds + 10)
+        // Wrap around: 1500 -> 60
+        if timeLimitSeconds >= 1500 {
+            timeLimitSeconds = 60
+        } else {
+            timeLimitSeconds += 10
+        }
     }
-    
+
     public func decMinTile() {
-        // Display: 5-10, maps to tile values: 1024 (2^10) to 32K (2^15)
-        minTileLevel = max(5, minTileLevel - 1)
+        // Wrap around: 5 -> 10
+        if minTileLevel <= 5 {
+            minTileLevel = 10
+        } else {
+            minTileLevel -= 1
+        }
     }
 
     public func incMinTile() {
-        minTileLevel = min(10, minTileLevel + 1)
+        // Wrap around: 10 -> 5
+        if minTileLevel >= 10 {
+            minTileLevel = 5
+        } else {
+            minTileLevel += 1
+        }
     }
 
     /// Shift based on target milestone
@@ -163,11 +176,21 @@ public final class ChallengeDesignerStore: Sendable {
     }
     
     public func decLevels() {
-        levels = max(5, levels - 1)
+        // Wrap around: 5 -> 10
+        if levels <= 5 {
+            levels = 10
+        } else {
+            levels -= 1
+        }
     }
 
     public func incLevels() {
-        levels = min(10, levels + 1)
+        // Wrap around: 10 -> 5
+        if levels >= 10 {
+            levels = 5
+        } else {
+            levels += 1
+        }
     }
     
     public func cycleBucket(for tile: Int) {
