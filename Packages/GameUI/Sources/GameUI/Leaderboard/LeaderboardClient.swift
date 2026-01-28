@@ -304,6 +304,51 @@ enum MockLeaderboardData {
         "AmsterdamAce67", "BrussellsBoss78", "ViennaViking89", "ZurichZealot90", "GenevaGhost01"
     ]
 
+    // Real-life names for extended brackets (70% of players rank 151+ use these)
+    static let realNames = [
+        // Common English names
+        "James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel",
+        "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George",
+        "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail",
+        "Emily", "Elizabeth", "Sofia", "Avery", "Ella", "Scarlett", "Grace", "Chloe", "Victoria", "Riley",
+        // Hispanic names
+        "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael",
+        "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila",
+        // German names
+        "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich", "Dieter", "Helmut", "Werner", "Gerhard", "Manfred",
+        "Ingrid", "Helga", "Ursula", "Gisela", "Renate", "Monika", "Petra", "Sabine", "Karin", "Brigitte",
+        // French names
+        "Pierre", "Jean", "Jacques", "François", "Michel", "Philippe", "Alain", "Bernard", "Christophe", "Thierry",
+        "Marie", "Jeanne", "Françoise", "Monique", "Catherine", "Nathalie", "Isabelle", "Sylvie", "Martine", "Christine",
+        // Italian names
+        "Marco", "Giuseppe", "Giovanni", "Francesco", "Antonio", "Alessandro", "Andrea", "Luca", "Matteo", "Lorenzo",
+        "Giulia", "Francesca", "Chiara", "Sara", "Anna", "Alessia", "Valentina", "Elisa", "Martina", "Giorgia",
+        // Japanese names (romanized)
+        "Hiroshi", "Takeshi", "Kenji", "Yuki", "Haruto", "Sota", "Ren", "Kaito", "Asahi", "Minato",
+        "Yui", "Hana", "Aoi", "Sakura", "Himari", "Mei", "Rin", "Mio", "Ichika", "Akari",
+        // Korean names (romanized)
+        "Minho", "Jiwon", "Seojun", "Dohyun", "Hajun", "Junwoo", "Siwoo", "Yejun", "Jiho", "Junseo",
+        "Jiyeon", "Soyeon", "Yuna", "Minji", "Subin", "Hayeon", "Chaewon", "Seoyeon", "Yerin", "Dahyun",
+        // Chinese names (romanized)
+        "Wei", "Fang", "Lei", "Jun", "Ming", "Tao", "Hao", "Chen", "Lin", "Jian",
+        "Mei", "Ling", "Xiu", "Hong", "Yan", "Hui", "Juan", "Ping", "Li", "Na",
+        // Indian names
+        "Raj", "Amit", "Vikram", "Rahul", "Arjun", "Aditya", "Rohan", "Karan", "Nikhil", "Sanjay",
+        "Priya", "Ananya", "Kavya", "Ishita", "Riya", "Neha", "Pooja", "Shreya", "Anika", "Diya",
+        // Brazilian/Portuguese names
+        "Pedro", "Lucas", "Gabriel", "Matheus", "Guilherme", "Rafael", "Bruno", "Felipe", "Gustavo", "Leonardo",
+        "Julia", "Beatriz", "Larissa", "Leticia", "Amanda", "Mariana", "Carolina", "Fernanda", "Bruna", "Gabriela",
+        // Russian names (romanized)
+        "Ivan", "Dmitri", "Alexei", "Sergei", "Nikolai", "Viktor", "Andrei", "Pavel", "Mikhail", "Oleg",
+        "Natasha", "Olga", "Anastasia", "Tatiana", "Ekaterina", "Irina", "Svetlana", "Marina", "Yelena", "Larisa",
+        // Arabic names (romanized)
+        "Ahmed", "Mohamed", "Ali", "Omar", "Hassan", "Yusuf", "Ibrahim", "Khalid", "Tariq", "Nasser",
+        "Fatima", "Aisha", "Layla", "Mariam", "Noor", "Hana", "Sara", "Zara", "Amira", "Dalia",
+        // Scandinavian names
+        "Erik", "Lars", "Anders", "Magnus", "Olaf", "Bjorn", "Sven", "Gunnar", "Harald", "Leif",
+        "Astrid", "Ingrid", "Freya", "Sigrid", "Helga", "Liv", "Solveig", "Greta", "Karin", "Maja"
+    ]
+
     static let hallOfFameNames = [
         // Ranks 1-30
         "InfinityMaster01", "EndlessVoyager", "BeyondLimits99", "EternalChamp", "UltimatePlayer",
@@ -767,35 +812,62 @@ enum MockLeaderboardData {
     }
 
     // Get name for a player with daily variation (some players change names over time)
-    // 85% of changes happen outside top 150, only 15% in top 150
+    // Real name percentages: 15% for top 150, 70% for extended brackets (rank 151+)
+    // (Top 150: 85% gamertag, 15% realistic. Extended: 30% gamertag, 70% realistic)
+    // 85% of name changes happen outside top 150, only 15% in top 150
+    // 1/3 of players can switch between realistic and gamertag when they change
     static func nameForPlayer(index: Int, names: [String], countrySeed: Int, day: Int) -> String {
+        // Determine initial name type (real vs gamertag) based on rank tier
+        let realNameThreshold: Double = index < 150 ? 0.15 : 0.70
+        let baseTypeRandom = seededRandom(seed: index * 401 + countrySeed * 83, index: index)
+        var useRealName = baseTypeRandom < realNameThreshold
+
         // Calculate cumulative name/avatar changes up to this day
         var totalChanges: Double = 0
         for d in 0...day {
             totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
         }
 
-        // Top 150 players are much less likely to change (only 15% of changes)
+        // Check if this player's name has changed
+        let changeThreshold = seededRandom(seed: index * 211 + countrySeed * 43, index: index)
+        let playerChangeDay = Int(changeThreshold * 200)
+
+        // 85% of changes happen outside top 150
+        var canChange = true
         if index < 150 {
             let top150Eligible = seededRandom(seed: index * 331 + countrySeed * 67, index: index)
-            if top150Eligible > 0.15 {
-                // This top-150 player is not in the 15% that changes
-                return names[index % names.count]
+            canChange = top150Eligible <= 0.15
+        }
+
+        let hasChanged = canChange && day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1
+
+        if hasChanged {
+            // 1/3 of players can switch name types when they change
+            let canSwitchType = seededRandom(seed: index * 503 + countrySeed * 97 + day, index: index)
+            if canSwitchType < 0.333 {
+                // Switch name type (real <-> gamertag)
+                useRealName = !useRealName
             }
         }
 
-        // Determine which players have changed based on seeded randomness
-        let changeThreshold = seededRandom(seed: index * 211 + countrySeed * 43, index: index)
-        let playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
-
-        if day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1 {
-            // This player has changed - use a different name
-            let newIndex = (index + day * 3) % names.count
-            return names[newIndex]
+        if useRealName {
+            if hasChanged {
+                // Name has changed - use a different real name
+                let realNameIndex = (index + countrySeed + day * 3) % realNames.count
+                return realNames[realNameIndex]
+            }
+            // Base real name
+            let realNameIndex = (index + countrySeed) % realNames.count
+            return realNames[realNameIndex]
+        } else {
+            if hasChanged {
+                // Name has changed - use a different gamertag
+                let newIndex = (index + day * 3) % names.count
+                return names[newIndex]
+            }
+            // Base gamertag name
+            return names[index % names.count]
         }
-
-        // No change - use base name
-        return names[index % names.count]
     }
 
     // Calculate infinity count with daily progression for Hall of Fame players
