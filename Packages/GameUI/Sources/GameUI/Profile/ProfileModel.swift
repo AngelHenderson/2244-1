@@ -81,13 +81,12 @@ public extension TierStat {
 
     /// Maps a tier key (K, M, B, a, b, ..., aa, ab, ..., bz) to its step index
     private static func stepForTierKey(_ key: String) -> Int? {
-        let uppercased = key.uppercased()
-
-        // Base tiers with fixed steps
+        // Base tiers with fixed steps (UPPERCASE only - don't confuse with lowercase letters)
         // K = step 13 (2^14 = 16,384 = 16K)
         // M = step 19 (2^20 = 1,048,576 = 1M)
         // B = step 29 (2^30 = 1,073,741,824 = 1B)
-        switch uppercased {
+        // Important: Check original key, not uppercased, to distinguish "B" from "b"
+        switch key {
         case "K": return 13
         case "M": return 19
         case "B": return 29
