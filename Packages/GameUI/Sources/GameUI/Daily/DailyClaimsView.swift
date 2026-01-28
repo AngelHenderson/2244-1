@@ -6,6 +6,7 @@ import GameServices
 public struct DailyClaimsView: View {
     @Environment(DailyClaimsStore.self) private var store
     @Environment(\.gameStore) private var gameStore
+    @Environment(\.audio) private var audio
     @Environment(\.dismiss) private var dismiss
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
@@ -319,6 +320,14 @@ public struct DailyClaimsView: View {
         claimedBaseRewards = rewards
         claimedRewards = rewards  // Just use base rewards since bonuses are random
         showClaimAnimation = true
+
+        // Play cheering sound for year milestones (day 365, 730, etc.)
+        if nextDay == 365 || nextDay == 730 {
+            Task {
+                await audio.playSfx(name: "cheer")
+            }
+        }
+
         store.claimDailyReward()
         gameStore.achievementEvaluator?.onDailyClaimed()
 

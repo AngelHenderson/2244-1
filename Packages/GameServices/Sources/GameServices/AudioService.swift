@@ -203,6 +203,12 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
+        // Handle cheer sound (year milestones)
+        if name == "cheer" {
+            await playCheerSound()
+            return
+        }
+
         // Handle tap/select/drag sounds - play instrument-specific sounds
         if name == "tap" || name == "select" || name == "drag" {
             print("🎹 Playing instrument sound for: \(name), theme: \(currentTheme)")
@@ -343,6 +349,37 @@ public actor LiveAudioService: AudioServiceProtocol {
             }
         } catch {
             print("❌ Failed to play tick sound: \(error)")
+        }
+    }
+
+    private func playCheerSound() async {
+        // Clean up before adding new sound
+        cleanupAndPrepareForNewSound()
+
+        // Play cheering/applause sound for year milestones
+        let url = Bundle.main.url(forResource: "cheer", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "cheer", withExtension: "wav") ??
+                  Bundle.main.url(forResource: "applause", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "applause", withExtension: "wav")
+
+        guard let audioUrl = url else {
+            print("❌ Cheer/applause sound not found")
+            return
+        }
+
+        do {
+            print("🎉 Playing cheer sound from \(audioUrl)")
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.volume = 0.8
+            player.play()
+            sfxPlayers.append(player)
+
+            Task {
+                try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                await removeSfxPlayer(player)
+            }
+        } catch {
+            print("❌ Failed to play cheer sound: \(error)")
         }
     }
 
