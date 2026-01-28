@@ -15,13 +15,13 @@ public struct CustomChallengeGameScreen: View {
     @Environment(\.challengeStore) private var challengeStore
     // Reference to main game store for achievement tracking
     @Environment(\.gameStore) private var mainGameStore
-    @State private var timeRemaining: Int
-    @State private var isTimerActive = true
     @State private var showResult = false
     @State private var challengeWon = false
+    @State private var challengeEnded = false
 
-    // Use a stored timer to prevent interruption during view updates
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    // Use start time + duration for reliable timer that doesn't stop during merges
+    @State private var startTime: Date = Date()
+    private let totalDuration: Int
 
     // Power-up selection modes
     @State private var isHammerMode = false

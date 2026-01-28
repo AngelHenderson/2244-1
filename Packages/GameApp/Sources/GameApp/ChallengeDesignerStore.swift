@@ -48,9 +48,15 @@ public final class ChallengeDesignerStore: Sendable {
         return targetPower - 1
     }
     
-    public var timeLimitSeconds: Int = 60
-    public var minTileLevel: Int = 10
-    public var levels: Int = 5
+    public var timeLimitSeconds: Int = 60 {
+        didSet { timeLimitSeconds = min(1500, max(60, timeLimitSeconds)) }
+    }
+    public var minTileLevel: Int = 10 {
+        didSet { minTileLevel = min(10, max(5, minTileLevel)) }
+    }
+    public var levels: Int = 5 {
+        didSet { levels = min(10, max(5, levels)) }
+    }
     
     public var tileAssignments: [Int: TileBucket] = [
         64: .low, 128: .low, 256: .low, 512: .low, 1024: .mid
