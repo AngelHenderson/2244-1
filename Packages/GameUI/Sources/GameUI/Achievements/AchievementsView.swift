@@ -544,32 +544,31 @@ private struct AchievementRow: View {
             let b = value / 1_000_000_000
             return b.formatted(.number.precision(.fractionLength(0...2))) + "B"
         } else {
-            // Use alphabetic suffixes for trillions+: a, b, c, ..., z, aa, ab, ..., az, ba, ..., bz
-            var remaining = value
-            var tierIndex = 0
-            while remaining >= 1_000 && tierIndex < 100 {
-                remaining /= 1_000
-                tierIndex += 1
+            // For trillions and beyond, use alphabetic suffixes (a, b, c, ..., z, aa, ab, ...)
+            var v = value / 1_000_000_000_000 // Start at trillions
+            var exp = 0
+            while v >= 1_000 {
+                v /= 1_000
+                exp += 1
             }
-            // tierIndex 4 = trillions = 'a', 5 = quadrillions = 'b', etc.
-            let letterIndex = tierIndex - 3 // 4->1 (a), 5->2 (b), etc.
-            let suffix = excelStyleLetters(for: letterIndex)
-            return remaining.formatted(.number.precision(.fractionLength(0...2))) + suffix
+            // exp=0 -> "a", exp=1 -> "b", etc.
+            let suffix = alphaSuffix(forOrdinal: exp + 1)
+            return v.formatted(.number.precision(.fractionLength(0...2))) + suffix
         }
     }
 
-    /// Excel-style letters: 1->"a", 26->"z", 27->"aa", 52->"az", 53->"ba", 78->"bz"
-    private func excelStyleLetters(for index: Int) -> String {
-        guard index >= 1 else { return "a" }
-        var i = index
-        var result = ""
-        while i > 0 {
-            let rem = (i - 1) % 26
-            let scalar = UnicodeScalar(97 + rem)! // 'a'..'z'
-            result = String(scalar) + result
-            i = (i - 1) / 26
+    /// Generate alphabetic suffix: 1->"a", 2->"b", ..., 26->"z", 27->"aa", 28->"ab", ...
+    private func alphaSuffix(forOrdinal ord: Int) -> String {
+        guard ord >= 1 else { return "a" }
+        var n = ord
+        var scalars: [UnicodeScalar] = []
+        while n > 0 {
+            n -= 1
+            let r = n % 26
+            scalars.append(UnicodeScalar(UInt32(97 + r))!) // 'a' = 97
+            n /= 26
         }
-        return result
+        return String(String.UnicodeScalarView(scalars.reversed()))
     }
 }
 
