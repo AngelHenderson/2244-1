@@ -528,17 +528,12 @@ private struct DayGridCell: View {
 
             // Rewards
             HStack(spacing: 6) {
-                ForEach(displayRewards.entries.prefix(3), id: \.self) { entry in
+                ForEach(displayRewards.entries, id: \.self) { entry in
                     HStack(spacing: 3) {
                         RewardIconView(kind: entry.kind, font: .subheadline)
                         Text("\(entry.amount)")
                     }
                     .font(.subheadline)
-                }
-                if displayRewards.entries.count > 3 {
-                    Text("+\(displayRewards.entries.count - 3)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
             }
 
