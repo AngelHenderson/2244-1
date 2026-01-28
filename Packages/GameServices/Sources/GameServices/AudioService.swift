@@ -77,6 +77,8 @@ public actor LiveAudioService: AudioServiceProtocol {
     private var instrumentTapIndex: Int = 0
     private let storage = AudioSettingsStorage()
     private let maxConcurrentSfx = 8  // Limit concurrent sound effects
+    private var lastHammerPlayTime: Date?  // Debounce hammer sound
+    private var lastElectricPlayTime: Date?  // Debounce electric sound
 
     /// Maps theme IDs to their audio configuration
     /// Note: Files are at bundle root level (synchronized groups flatten directory structure)
@@ -245,6 +247,13 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     private func playElectricSound(theme: String) async {
+        // Debounce - don't play if played within last 0.5 seconds
+        if let lastPlay = lastElectricPlayTime, Date().timeIntervalSince(lastPlay) < 0.5 {
+            print("🔇 Electric sound debounced")
+            return
+        }
+        lastElectricPlayTime = Date()
+
         // Clean up before adding new sounds
         cleanupAndPrepareForNewSound()
 
@@ -273,6 +282,13 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
 
     private func playHammerSound() async {
+        // Debounce - don't play if played within last 0.5 seconds
+        if let lastPlay = lastHammerPlayTime, Date().timeIntervalSince(lastPlay) < 0.5 {
+            print("🔇 Hammer sound debounced")
+            return
+        }
+        lastHammerPlayTime = Date()
+
         // Clean up before adding new sounds
         cleanupAndPrepareForNewSound()
 
