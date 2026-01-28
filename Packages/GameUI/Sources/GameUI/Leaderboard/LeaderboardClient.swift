@@ -186,12 +186,12 @@ enum MockLeaderboardData {
         "2br", "5br", "11br", "22br", "45br", "90br", "180br", "361br", "722br", "1bs",
         "2bs", "5bs", "11bs", "23bs", "46bs", "92bs", "185bs", "370bs", "740bs", "1bt",
         "2bt", "5bt", "11bt", "23bt", "47bt", "94bt", "189bt", "379bt", "758bt", "1bu",
-        "2bu", "5bu", "11bu", "23bu", "48bu", "97bu", "194bu", "388bu", "776bu", "1bv",
-        "2bv", "5bv", "12bv", "24bv", "49bv", "99bv", "198bv", "397bv", "794bv", "1bw",
+        "3bu", "6bu", "12bu", "24bu", "48bu", "97bu", "194bu", "388bu", "776bu", "1bv",
+        "3bv", "6bv", "12bv", "24bv", "49bv", "99bv", "198bv", "397bv", "794bv", "1bw",
         "3bw", "6bw", "12bw", "25bw", "50bw", "101bw", "203bw", "407bw", "814bw", "1bx",
         "3bx", "6bx", "13bx", "26bx", "52bx", "104bx", "208bx", "416bx", "833bx", "1by",
         "3by", "6by", "13by", "26by", "53by", "106by", "213by", "426by", "853by", "1bz",
-        "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "872bz", "873bz"
+        "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "873bz"
     ]
 
     // Normalize invalid milestone entries to valid ones
@@ -821,6 +821,45 @@ enum MockLeaderboardData {
             extendedBrackets: extendedBrackets,
             totalPlayers: totalPlayers
         ) + 1
+    }
+
+    /// Get the milestone at a specific rank for a country's top 150 players
+    /// Returns nil if rank is out of bounds
+    static func milestoneAtCountryRank(rank: Int, countryCode: String) -> String? {
+        let day = daysSinceReference
+        let (milestones, _, _) = countryData(for: countryCode, day: day)
+
+        // Rank is 1-indexed, array is 0-indexed
+        let index = rank - 1
+        guard index >= 0 && index < min(150, milestones.count) else {
+            return nil
+        }
+
+        return milestones[index]
+    }
+
+    /// Get the milestone for a rank in the extended brackets (ranks 151+)
+    /// Returns the milestone tier that contains this rank
+    static func milestoneForExtendedRank(rank: Int, countryCode: String) -> String? {
+        let day = daysSinceReference
+        let (_, extendedBrackets, _) = countryData(for: countryCode, day: day)
+
+        guard rank > 150 else {
+            return nil
+        }
+
+        // Find the bracket that contains this rank
+        // Brackets are sorted by startRank ascending
+        var result: String? = nil
+        for bracket in extendedBrackets {
+            if bracket.startRank <= rank {
+                result = bracket.milestone
+            } else {
+                break
+            }
+        }
+
+        return result
     }
 
     /// Returns country-specific milestone data
@@ -2283,7 +2322,7 @@ public extension LeaderboardClient {
     static let australiaPlayerMilestones: [String] = [
         // Ranks 1-30 (from screenshot)
         "13bz", "794bv", "2br", "657bn", "1bm", "9bk", "556bg", "278bg", "69bg", "989bb",
-        "463ay", "4a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
+        "463v", "4a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
         "2af", "69ad", "4ac", "1ab", "127z", "1z", "971x", "30x", "1x", "452u",
         // Ranks 31-60 (from screenshot)
         "113u", "14u", "883t", "27t", "431s", "3s", "210r", "52r", "3r", "411q",

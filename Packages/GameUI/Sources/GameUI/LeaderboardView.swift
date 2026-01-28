@@ -237,6 +237,16 @@ public struct LeaderboardView: View {
         let userRank = rankForFilter(filter, milestone: userMilestone)
         var previews: [RankPreview] = []
 
+        // For country leaderboards with top 150 players, use direct lookup
+        if let countryCode = filter.countryCode {
+            return generateCountryRankPreviews(
+                userMilestone: userMilestone,
+                userRank: userRank,
+                countryCode: countryCode
+            )
+        }
+
+        // For non-country leaderboards, we need the user's position in the milestone list
         let milestones = Self.allMilestones
         guard let userIndex = milestones.firstIndex(of: userMilestone) else {
             return []
@@ -251,7 +261,9 @@ public struct LeaderboardView: View {
         let userTierEnd: Int
         if nextWorseMilestoneIndex < milestones.count {
             // The next tier starts where the worse milestone begins
-            userTierEnd = rankForFilter(filter, milestone: milestones[nextWorseMilestoneIndex])
+            let nextTierRank = rankForFilter(filter, milestone: milestones[nextWorseMilestoneIndex])
+            // Ensure userTierEnd is at least userTierStart + 1 to include user's rank
+            userTierEnd = max(nextTierRank, userTierStart + 1)
         } else {
             // User has the worst milestone, tier extends to infinity
             userTierEnd = Int.max
@@ -276,8 +288,10 @@ public struct LeaderboardView: View {
         for rank in startRank...endRank {
             let milestone: String
 
-            // Check if this rank falls within the user's milestone tier
-            if rank >= userTierStart && rank < userTierEnd {
+            // Always show user's actual milestone for their exact rank
+            if rank == userRank {
+                milestone = userMilestone
+            } else if rank >= userTierStart && rank < userTierEnd {
                 // This rank is in the same tier as the user - show user's milestone
                 milestone = userMilestone
             } else if rank < userTierStart {
@@ -286,6 +300,42 @@ public struct LeaderboardView: View {
             } else {
                 // Rank is worse than user's tier - find the appropriate worse milestone
                 milestone = findMilestoneForWorseRank(rank, userRank: userRank, userMilestone: userMilestone, rankToMilestone: rankToMilestone)
+            }
+
+            previews.append(RankPreview(
+                rank: rank,
+                milestone: milestone,
+                isUserRank: rank == userRank
+            ))
+        }
+
+        return previews
+    }
+
+    /// Generate rank previews for country leaderboards using direct player data lookup
+    private func generateCountryRankPreviews(userMilestone: String, userRank: Int, countryCode: String) -> [RankPreview] {
+        var previews: [RankPreview] = []
+
+        // Show ranks from 3 above to 3 below user's rank
+        let startRank = max(1, userRank - 3)
+        let endRank = userRank + 3
+
+        for rank in startRank...endRank {
+            let milestone: String
+
+            if rank == userRank {
+                // Always show user's actual milestone for their rank
+                milestone = userMilestone
+            } else if rank <= 150 {
+                // For top 150, look up directly from country player data
+                if let playerMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: rank, countryCode: countryCode) {
+                    milestone = playerMilestone
+                } else {
+                    milestone = userMilestone // Fallback
+                }
+            } else {
+                // For ranks beyond 150, use extended brackets
+                milestone = MockLeaderboardData.milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
             }
 
             previews.append(RankPreview(
