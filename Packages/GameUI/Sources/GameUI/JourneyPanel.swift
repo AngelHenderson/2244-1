@@ -4,11 +4,11 @@ import GameCore
 
 // MARK: - Journey Scroll Actions
 
-public struct JourneyScrollActions {
-    public var scrollToTop: () -> Void
-    public var scrollToBottom: () -> Void
+public struct JourneyScrollActions: Sendable {
+    public var scrollToTop: @Sendable () -> Void
+    public var scrollToBottom: @Sendable () -> Void
 
-    public init(scrollToTop: @escaping () -> Void = {}, scrollToBottom: @escaping () -> Void = {}) {
+    public init(scrollToTop: @escaping @Sendable () -> Void = {}, scrollToBottom: @escaping @Sendable () -> Void = {}) {
         self.scrollToTop = scrollToTop
         self.scrollToBottom = scrollToBottom
     }
@@ -30,64 +30,104 @@ public struct JourneyPanel: View {
 
     private let topInset: CGFloat
     private let bottomInset: CGFloat
-    private let onScrollActionsReady: ((JourneyScrollActions) -> Void)?
 
-    public init(
-        topInset: CGFloat = 0,
-        bottomInset: CGFloat = 0,
-        onScrollActionsReady: ((JourneyScrollActions) -> Void)? = nil
-    ) {
+    // Scroll position as string ID for reliability
+    @State private var scrollPosition: String?
+
+    public init(topInset: CGFloat = 0, bottomInset: CGFloat = 0) {
         self.topInset = topInset
         self.bottomInset = bottomInset
-        self.onScrollActionsReady = onScrollActionsReady
     }
 
     public var body: some View {
         let milestones = roadMilestones
+        let milestoneCount = milestones.count
         let verticalSpacing: CGFloat = 100
-        let totalHeight = CGFloat(milestones.count) * verticalSpacing + 200
+        let totalHeight = CGFloat(milestoneCount) * verticalSpacing + 200
 
-        ScrollViewReader { proxy in
+        // Find current milestone index for initial position
+        let currentIndex = milestones.firstIndex(where: { $0.status == .current }) ?? 0
+
+        ZStack {
             ScrollView(.vertical, showsIndicators: false) {
-                // Road and milestones - no background, theme shows through
-                SerpentineRoadView(
-                    milestones: milestones,
-                    rowHeight: verticalSpacing,
-                    onClaimReward: { tier in
-                        gameStore.presentJourneyReward(for: tier)
+                ZStack(alignment: .top) {
+                    // The visual road and milestones
+                    SerpentineRoadView(
+                        milestones: milestones,
+                        rowHeight: verticalSpacing,
+                        onClaimReward: { tier in
+                            gameStore.presentJourneyReward(for: tier)
+                        }
+                    )
+                    .frame(maxWidth: .infinity)
+                    .frame(height: totalHeight)
+
+                    // Invisible scroll anchor points at each milestone Y position
+                    VStack(spacing: 0) {
+                        ForEach(0..<milestoneCount, id: \.self) { index in
+                            // Reversed order: top of VStack = highest index (infinity)
+                            let reversedIndex = milestoneCount - 1 - index
+                            Color.clear
+                                .frame(height: verticalSpacing)
+                                .id("milestone-\(reversedIndex)")
+                        }
+                        // Extra space at bottom
+                        Color.clear.frame(height: 100)
+                            .id("milestone-bottom")
                     }
-                )
-                .frame(maxWidth: .infinity)
+                }
                 .frame(height: totalHeight)
             }
+            .scrollPosition(id: $scrollPosition, anchor: .center)
             .scrollClipDisabled()
             .contentMargins(.top, topInset, for: .scrollContent)
             .contentMargins(.bottom, bottomInset, for: .scrollContent)
             .onAppear {
-                // Provide scroll actions to parent
-                let actions = JourneyScrollActions(
-                    scrollToTop: {
-                        let infinityIndex = milestones.count - 1
-                        withAnimation(.snappy(duration: 0.5)) {
-                            proxy.scrollTo(infinityIndex, anchor: .center)
-                        }
-                    },
-                    scrollToBottom: {
-                        withAnimation(.snappy(duration: 0.5)) {
-                            proxy.scrollTo(0, anchor: .center)
-                        }
-                    }
-                )
-                onScrollActionsReady?(actions)
-
-                // Scroll to current on appear
-                if let currentIndex = milestones.firstIndex(where: { $0.status == .current }) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        withAnimation(.easeOut(duration: 0.5)) {
-                            proxy.scrollTo(currentIndex, anchor: .center)
-                        }
+                // Set initial scroll position to current milestone
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        scrollPosition = "milestone-\(currentIndex)"
                     }
                 }
+            }
+
+            // Navigation arrows
+            VStack {
+                // Up arrow - scrolls to infinity (highest index)
+                Button {
+                    withAnimation(.snappy(duration: 0.5)) {
+                        scrollPosition = "milestone-\(milestoneCount - 1)"
+                    }
+                } label: {
+                    Circle()
+                        .fill(Color.black.opacity(0.5))
+                        .frame(width: 44, height: 44)
+                        .overlay {
+                            Image(systemName: "chevron.up")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                }
+                .padding(.top, topInset + 8)
+
+                Spacer()
+
+                // Down arrow - scrolls to tile 2 (index 0)
+                Button {
+                    withAnimation(.snappy(duration: 0.5)) {
+                        scrollPosition = "milestone-0"
+                    }
+                } label: {
+                    Circle()
+                        .fill(Color.black.opacity(0.5))
+                        .frame(width: 44, height: 44)
+                        .overlay {
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                }
+                .padding(.bottom, bottomInset + 8)
             }
         }
         .ignoresSafeArea()
@@ -102,7 +142,8 @@ private extension JourneyPanel {
     }
 
     var highestStep: Int {
-        Tile(value: highestTile).stepIndex ?? 0
+        // Use the step directly from gameStore to handle values beyond Int.max
+        max(0, gameStore.state.highestTileStep)
     }
 
     var roadMilestones: [SerpentineMilestone] {
@@ -196,12 +237,20 @@ struct SerpentineMilestone: Identifiable {
         if tile.isInfinity {
             return Color.purple
         }
+        // Use step-based color to handle values beyond Int.max
+        if let step = tile.stepIndex {
+            return Theme.colorForStep(step)
+        }
         return Theme.color(for: tile.value)
     }
 
     var tileTextColor: Color {
         if tile.isInfinity {
             return .white
+        }
+        // Use step-based color to handle values beyond Int.max
+        if let step = tile.stepIndex {
+            return Theme.textColorForStep(step)
         }
         return Theme.textColor(for: tile.value)
     }
