@@ -9,6 +9,7 @@ public struct HomeView: View {
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
     @Environment(\.toastManager) private var toastManager
+    @Environment(\.spinWheelState) private var spinState
     @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
     @State private var isShowingAchievements: Bool = false
@@ -80,7 +81,7 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "spinthewheel",
                                 title: "FREE SPIN",
-                                badge: state.hasFreeSpinBadge,
+                                badge: spinState.bonusSpins > 0,
                                 action: { actions.openFreeSpin() }
                             )
 
