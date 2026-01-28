@@ -93,7 +93,6 @@ public final class WheelEngine {
     private var lastTimestamp: CFTimeInterval?
     private var onComplete: ((WheelSegment) -> Void)?
     private var animationTimer: Timer?
-    private var preSelectedWinnerIndex: Int?  // Pre-selected winner using weighted probability
     
     public init(segments: [WheelSegment]? = nil) {
         self.segments = segments ?? WheelEngine.defaultSegments
@@ -115,9 +114,6 @@ public final class WheelEngine {
         tickerDeflection = 0
         lastDividerIndex = -1
 
-        // Pre-select winner using weighted random selection
-        preSelectedWinnerIndex = selectWeightedRandomSegment()
-
         // 5.5–8.5 rotations/sec initial => lively, but not crazy
         // Always spin clockwise (positive direction)
         let rps = Double.random(in: 5.5...8.5)
@@ -126,19 +122,31 @@ public final class WheelEngine {
         startAnimation()
     }
 
-    // Select a segment using weighted probability
-    private func selectWeightedRandomSegment() -> Int {
-        let totalWeight = segments.reduce(0) { $0 + $1.weight }
-        let randomValue = Int.random(in: 0..<totalWeight)
+    // MARK: - Weighted Segment Geometry
 
-        var cumulativeWeight = 0
-        for (index, segment) in segments.enumerated() {
-            cumulativeWeight += segment.weight
-            if randomValue < cumulativeWeight {
-                return index
-            }
+    /// Total weight of all segments (used for calculating proportional sizes)
+    public var totalWeight: Int {
+        segments.reduce(0) { $0 + $1.weight }
+    }
+
+    /// Returns the angular span (in radians) for a segment at the given index
+    public func segmentSpan(at index: Int) -> CGFloat {
+        let weight = segments[index].weight
+        return CGFloat(weight) / CGFloat(totalWeight) * 2 * .pi
+    }
+
+    /// Returns the starting angle (in radians) for a segment at the given index
+    public func segmentStartAngle(at index: Int) -> CGFloat {
+        var startAngle: CGFloat = 0
+        for i in 0..<index {
+            startAngle += segmentSpan(at: i)
         }
-        return 0  // Fallback
+        return startAngle
+    }
+
+    /// Returns the center angle (in radians) for a segment at the given index
+    public func segmentCenterAngle(at index: Int) -> CGFloat {
+        segmentStartAngle(at: index) + segmentSpan(at: index) / 2
     }
     
     public func stop() {
@@ -150,11 +158,17 @@ public final class WheelEngine {
     }
     
     // Computed: which segment is currently under the top peg (index)
+    // Uses weighted segment sizes for accurate hit detection
     public var highlightedIndex: Int {
-        let n = max(segments.count, 1)
-        let span = 2 * .pi / CGFloat(n)
-        let normalized = Self.wrap(-angle + span/2, modulus: 2 * .pi)
-        return Int(floor(normalized / span)) % n
+        let normalized = Self.wrap(-angle, modulus: 2 * .pi)
+        var cumulative: CGFloat = 0
+        for i in 0..<segments.count {
+            cumulative += segmentSpan(at: i)
+            if normalized < cumulative {
+                return i
+            }
+        }
+        return 0
     }
     
     // MARK: - Animation
@@ -221,7 +235,7 @@ public final class WheelEngine {
         // Simulate pin physics (spring-mass-damper system)
         simulatePinPhysics(dt: dt)
 
-        // Low-speed termination - snap to pre-selected winner
+        // Low-speed termination - stop wherever the wheel lands
         if abs(angularVelocity) < stopSpeedThreshold {
             isSpinning = false
             angularVelocity = 0
@@ -229,34 +243,38 @@ public final class WheelEngine {
             tickerDeflection = 0
             stopAnimation()
 
-            // Call completion with pre-selected winning segment
+            // Call completion with the segment the pin landed on
             if let callback = onComplete {
-                let winnerIndex = preSelectedWinnerIndex ?? highlightedIndex
-                let winningSegment = segments[winnerIndex]
-
-                // Snap wheel to show the winning segment
-                snapToSegment(index: winnerIndex)
-
+                let winningSegment = segments[highlightedIndex]
                 callback(winningSegment)
                 onComplete = nil
-                preSelectedWinnerIndex = nil
             }
         }
     }
 
     private func simulatePinPhysics(dt: CGFloat) {
-        let n = max(segments.count, 1)
-        let span = 2 * .pi / CGFloat(n)
-
-        // Find position relative to nearest divider using wheel angle directly
         let normalizedAngle = Self.wrap(angle, modulus: 2 * .pi)
-        let positionInSlice = normalizedAngle.truncatingRemainder(dividingBy: span)
 
-        // Distance to edges
+        // Find which segment we're in and position within it
+        var cumulative: CGFloat = 0
+        var currentSpan: CGFloat = segmentSpan(at: 0)
+        var segmentStart: CGFloat = 0
+
+        for i in 0..<segments.count {
+            let span = segmentSpan(at: i)
+            if normalizedAngle < cumulative + span {
+                currentSpan = span
+                segmentStart = cumulative
+                break
+            }
+            cumulative += span
+        }
+
+        let positionInSlice = normalizedAngle - segmentStart
         let distanceToPrevEdge = positionInSlice
 
-        // Contact zone where pin touches divider
-        let contactZone: CGFloat = span * 0.20
+        // Contact zone where pin touches divider (proportional to segment size)
+        let contactZone: CGFloat = currentSpan * 0.20
         let maxDeflect: CGFloat = 24 * .pi / 180 // 24° max
 
         // Calculate target deflection based on contact
@@ -293,12 +311,9 @@ public final class WheelEngine {
     }
     
     private func checkDividerCrossing(from old: CGFloat, to new: CGFloat) {
-        let n = max(segments.count, 1)
-        let span = 2 * .pi / CGFloat(n)
-
-        // Determine which divider index we're at
-        let oldIdx = Int(floor(Self.wrap(old, modulus: 2 * .pi) / span))
-        let newIdx = Int(floor(Self.wrap(new, modulus: 2 * .pi) / span))
+        // Find segment index for old and new angles using weighted geometry
+        let oldIdx = segmentIndex(for: old)
+        let newIdx = segmentIndex(for: new)
 
         // Check if we crossed a divider
         guard oldIdx != newIdx else { return }
@@ -324,6 +339,19 @@ public final class WheelEngine {
         }
 
         lastDividerIndex = newIdx
+    }
+
+    /// Returns the segment index for a given angle (using weighted geometry)
+    private func segmentIndex(for angle: CGFloat) -> Int {
+        let normalized = Self.wrap(angle, modulus: 2 * .pi)
+        var cumulative: CGFloat = 0
+        for i in 0..<segments.count {
+            cumulative += segmentSpan(at: i)
+            if normalized < cumulative {
+                return i
+            }
+        }
+        return 0
     }
     
     private func nearCenter(_ angle: CGFloat) -> Bool {
