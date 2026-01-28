@@ -1889,12 +1889,23 @@ public final class GameStore {
             var pending: [MergeNotification] = []
             pending.append(.unlocked(newTileValue))
 
+            // For high-value tiles, new spawn values are added at step - 7
+            // (max spawn is 7 steps below highest)
+            let addedStep = newStepVal - 7
+            if addedStep >= 0 {
+                // Use Int.max as placeholder - the UI formats based on step
+                pending.append(.added(Int.max))
+            }
+
             // For high-value tiles, eliminations happen based on step patterns
-            // Every milestone eliminates tiles that are 14 steps below
-            if newStepVal >= 76 { // Starts eliminating at step 76 (eliminates step 62)
-                let eliminatedStep = newStepVal - 14
-                if eliminatedStep >= 62 {
-                    // Use Int.max as placeholder - the UI should format based on step
+            // Threshold = milestone - 14, tiles with step < threshold are eliminated
+            // For a highValue tile (step >= 62) to be eliminated, we need:
+            // threshold - 1 >= 62, so threshold >= 63, so milestone >= 77
+            if newStepVal >= 77 {
+                let thresholdStep = newStepVal - 14
+                let highestEliminatedStep = thresholdStep - 1
+                if highestEliminatedStep >= 62 {
+                    // Use Int.max as placeholder - the UI formats based on step
                     pending.append(.excluded(Int.max))
                 }
             }

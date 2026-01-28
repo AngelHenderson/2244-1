@@ -9,23 +9,36 @@ struct UnlockedNotificationView: View {
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
 
+    private var isHighValue: Bool {
+        value >= Int.max / 2
+    }
+
+    private var displayStep: Int {
+        if isHighValue {
+            return gameStore.state.highestTileStep
+        }
+        return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
+    }
+
     private var tileLabel: String {
-        // For high-value tiles (Int.max), use step-based formatting from gameStore
-        if value >= Int.max / 2 {
-            let step = gameStore.state.highestTileStep
-            return JourneyTileGenerator.formatTileAtStep(step)
+        if isHighValue {
+            return JourneyTileGenerator.formatTileAtStep(displayStep)
         }
         return TileLabelFormatter.format(value)
     }
 
-    private var journeyReward: (previous: String?, current: String, next: String?) {
-        // For high-value tiles, use step-based progression
-        if value >= Int.max / 2 {
-            let step = gameStore.state.highestTileStep
+    private var journeyReward: (previous: (label: String, step: Int)?, current: (label: String, step: Int), next: (label: String, step: Int)?) {
+        let step = displayStep
+
+        if isHighValue {
             let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
             let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
             let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
-            return (prevLabel, currentLabel, nextLabel)
+            return (
+                prevLabel.map { ($0, step - 1) },
+                (currentLabel, step),
+                (nextLabel, step + 1)
+            )
         }
 
         // Get journey tier labels for the progression
@@ -35,11 +48,15 @@ struct UnlockedNotificationView: View {
                     JourneyAbbreviationTiers.tiers[safe: currentTier.order - 1] : nil
                 let nextTier = JourneyAbbreviationTiers.tiers[safe: currentTier.order + 1]
 
-                return (prevTier?.label, currentTier.label, nextTier?.label)
+                return (
+                    prevTier.map { ($0.label, step - 1) },
+                    (currentTier.label, step),
+                    nextTier.map { ($0.label, step + 1) }
+                )
             }
         }
         // Default progression - use proper tile label format
-        return (nil, tileLabel, nil)
+        return (nil, (tileLabel, step), nil)
     }
 
     private var gemReward: Int {
@@ -77,11 +94,11 @@ struct UnlockedNotificationView: View {
             HStack(spacing: 12) {
                 // Previous tier (if exists)
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev, isPrimary: false, size: 80)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 80)
                 }
 
                 // Current unlocked tier (highlighted)
-                JourneyTileCard(label: journeyReward.current, value: value, isPrimary: true, size: 100)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 100)
                     .overlay(alignment: .top) {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(.yellow)
@@ -91,7 +108,7 @@ struct UnlockedNotificationView: View {
 
                 // Next tier (locked)
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next, isPrimary: false, size: 80, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 80, isLocked: true)
                 }
             }
             .padding(.vertical, 8)
@@ -162,9 +179,13 @@ struct AddedNotificationView: View {
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
 
+    private var isHighValue: Bool {
+        value >= Int.max / 2
+    }
+
     // For high-value tiles, the added step is derived from highest step
     private var displayStep: Int {
-        if value >= Int.max / 2 {
+        if isHighValue {
             // Added tiles appear at a step relative to the highest
             return max(0, gameStore.state.highestTileStep - 7)
         }
@@ -172,19 +193,24 @@ struct AddedNotificationView: View {
     }
 
     private var tileLabel: String {
-        if value >= Int.max / 2 {
+        if isHighValue {
             return JourneyTileGenerator.formatTileAtStep(displayStep)
         }
         return TileLabelFormatter.format(value)
     }
 
-    private var journeyReward: (previous: String?, current: String, next: String?) {
-        if value >= Int.max / 2 {
-            let step = displayStep
+    private var journeyReward: (previous: (label: String, step: Int)?, current: (label: String, step: Int), next: (label: String, step: Int)?) {
+        let step = displayStep
+
+        if isHighValue {
             let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
             let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
             let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
-            return (prevLabel, currentLabel, nextLabel)
+            return (
+                prevLabel.map { ($0, step - 1) },
+                (currentLabel, step),
+                (nextLabel, step + 1)
+            )
         }
 
         if let tile = Tile.makeFromValue(value) {
@@ -192,10 +218,14 @@ struct AddedNotificationView: View {
                 let prevTier = currentTier.order > 0 ?
                     JourneyAbbreviationTiers.tiers[safe: currentTier.order - 1] : nil
                 let nextTier = JourneyAbbreviationTiers.tiers[safe: currentTier.order + 1]
-                return (prevTier?.label, currentTier.label, nextTier?.label)
+                return (
+                    prevTier.map { ($0.label, step - 1) },
+                    (currentTier.label, step),
+                    nextTier.map { ($0.label, step + 1) }
+                )
             }
         }
-        return (nil, tileLabel, nil)
+        return (nil, (tileLabel, step), nil)
     }
 
     private var gemReward: Int {
@@ -227,10 +257,10 @@ struct AddedNotificationView: View {
 
             HStack(spacing: 12) {
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev, isPrimary: false, size: 80)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 80)
                 }
 
-                JourneyTileCard(label: journeyReward.current, value: value, isPrimary: true, size: 100)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 100)
                     .overlay(alignment: .top) {
                         Image(systemName: "plus.circle.fill")
                             .foregroundStyle(.green)
@@ -239,7 +269,7 @@ struct AddedNotificationView: View {
                     }
 
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next, isPrimary: false, size: 80, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 80, isLocked: true)
                 }
             }
             .padding(.vertical, 8)
@@ -307,28 +337,38 @@ struct ExcludedNotificationView: View {
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
 
-    // For high-value tiles, the eliminated step is 14 below highest
+    private var isHighValue: Bool {
+        value >= Int.max / 2
+    }
+
+    // For high-value tiles, the eliminated tiles are those BELOW threshold (step - 14)
+    // So the highest eliminated step is (step - 14 - 1) = step - 15
     private var displayStep: Int {
-        if value >= Int.max / 2 {
-            return max(0, gameStore.state.highestTileStep - 14)
+        if isHighValue {
+            return max(0, gameStore.state.highestTileStep - 15)
         }
         return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
     }
 
     private var tileLabel: String {
-        if value >= Int.max / 2 {
+        if isHighValue {
             return JourneyTileGenerator.formatTileAtStep(displayStep)
         }
         return TileLabelFormatter.format(value)
     }
 
-    private var journeyReward: (previous: String?, current: String, next: String?) {
-        if value >= Int.max / 2 {
-            let step = displayStep
+    private var journeyReward: (previous: (label: String, step: Int)?, current: (label: String, step: Int), next: (label: String, step: Int)?) {
+        let step = displayStep
+
+        if isHighValue {
             let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
             let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
             let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
-            return (prevLabel, currentLabel, nextLabel)
+            return (
+                prevLabel.map { ($0, step - 1) },
+                (currentLabel, step),
+                (nextLabel, step + 1)
+            )
         }
 
         if let tile = Tile.makeFromValue(value) {
@@ -336,10 +376,14 @@ struct ExcludedNotificationView: View {
                 let prevTier = currentTier.order > 0 ?
                     JourneyAbbreviationTiers.tiers[safe: currentTier.order - 1] : nil
                 let nextTier = JourneyAbbreviationTiers.tiers[safe: currentTier.order + 1]
-                return (prevTier?.label, currentTier.label, nextTier?.label)
+                return (
+                    prevTier.map { ($0.label, step - 1) },
+                    (currentTier.label, step),
+                    nextTier.map { ($0.label, step + 1) }
+                )
             }
         }
-        return (nil, tileLabel, nil)
+        return (nil, (tileLabel, step), nil)
     }
 
     private var gemReward: Int {
@@ -371,10 +415,10 @@ struct ExcludedNotificationView: View {
 
             HStack(spacing: 12) {
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev, isPrimary: false, size: 80)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 80)
                 }
 
-                JourneyTileCard(label: journeyReward.current, value: value, isPrimary: true, size: 100)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 100)
                     .overlay(alignment: .topTrailing) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.red)
@@ -383,7 +427,7 @@ struct ExcludedNotificationView: View {
                     }
 
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next, isPrimary: false, size: 80, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 80, isLocked: true)
                 }
             }
             .padding(.vertical, 8)
@@ -449,13 +493,23 @@ struct ExcludedNotificationView: View {
 struct JourneyTileCard: View {
     let label: String
     var value: Int? = nil  // Optional tile value for Theme.color lookup
+    var step: Int? = nil   // Optional step for high-value tiles
     var isPrimary: Bool = false
     var size: CGFloat = 100
     var accentColor: Color = .orange  // Fallback if value not provided
     var isLocked: Bool = false
 
     private var tileColor: Color {
+        // Use step-based color for high-value tiles
+        if let step = step {
+            return Theme.colorForStep(step)
+        }
         if let value = value {
+            // For high-value tiles (Int.max), try to get step from value
+            if value >= Int.max / 2 {
+                // Can't determine step from Int.max, use accent color
+                return accentColor
+            }
             return Theme.color(for: value)
         }
         return accentColor
@@ -466,7 +520,14 @@ struct JourneyTileCard: View {
             return .gray
         }
         if isPrimary {
+            // Use step-based text color for high-value tiles
+            if let step = step {
+                return Theme.textColorForStep(step)
+            }
             if let value = value {
+                if value >= Int.max / 2 {
+                    return .white
+                }
                 return Theme.textColor(for: value)
             }
             return .white
