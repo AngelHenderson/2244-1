@@ -20,6 +20,9 @@ public struct CustomChallengeGameScreen: View {
     @State private var showResult = false
     @State private var challengeWon = false
 
+    // Use a stored timer to prevent interruption during view updates
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
     // Power-up selection modes
     @State private var isHammerMode = false
     @State private var isSwapMode = false
@@ -78,7 +81,7 @@ public struct CustomChallengeGameScreen: View {
         .onAppear {
             startChallenge()
         }
-        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+        .onReceive(timer) { _ in
             guard isTimerActive else { return }
             if timeRemaining > 0 {
                 timeRemaining -= 1
