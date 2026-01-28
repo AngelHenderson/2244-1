@@ -732,6 +732,7 @@ enum MockLeaderboardData {
     }
 
     // Get avatar for a player with daily variation (some players change avatars over time)
+    // 85% of changes happen outside top 150, only 15% in top 150
     static func avatarForPlayer(index: Int, countrySeed: Int, day: Int) -> String {
         // Calculate cumulative name/avatar changes up to this day
         var totalChanges: Double = 0
@@ -741,7 +742,17 @@ enum MockLeaderboardData {
 
         // Determine which players have changed based on seeded randomness
         let changeThreshold = seededRandom(seed: index * 199 + countrySeed * 31, index: index)
-        let playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
+        var playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
+
+        // Top 150 players are much less likely to change (only 15% of changes)
+        // Multiply their change day by ~5.67x to reduce probability
+        if index < 150 {
+            let top150Eligible = seededRandom(seed: index * 317 + countrySeed * 59, index: index)
+            if top150Eligible > 0.15 {
+                // This top-150 player is not in the 15% that changes
+                return avatarForPlayer(index: index, countrySeed: countrySeed)
+            }
+        }
 
         if day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1 {
             // This player has changed - use a different avatar
