@@ -58,8 +58,11 @@ public struct RootGameView: View {
                     playerHighestTile: gameStore.state.highestTile,
                     initialGems: homeState.gems,
                     onDismiss: {
-                        // Track challenge creation completion for achievement
-                        gameStore.registerChallengeCreationCompleted()
+                        // Only track challenge creation completion for newly created challenges
+                        // (not for playing existing challenges from the challenge list)
+                        if config.challengeId == nil {
+                            gameStore.registerChallengeCreationCompleted()
+                        }
                         withAnimation(.easeInOut(duration: 0.3)) {
                             isPlayingCustomChallenge = false
                             customChallengeConfig = nil
