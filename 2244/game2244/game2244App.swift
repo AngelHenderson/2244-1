@@ -46,10 +46,13 @@ struct game2244App: App {
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
     
+    private var currentBackgroundTheme: BackgroundTheme {
+        backgroundThemeRegistry.theme(for: selectedBackgroundThemeId)
+    }
+
     var body: some Scene {
         WindowGroup {
             ZStack {
-                let currentBackgroundTheme = backgroundThemeRegistry.theme(for: selectedBackgroundThemeId)
                 HomeBackgroundLayer(theme: currentBackgroundTheme)
                     .ignoresSafeArea()
                     .zIndex(0)
