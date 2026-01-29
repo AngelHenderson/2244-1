@@ -5,12 +5,14 @@ public struct ThemePickerView: View {
     @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
     @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundId: String = "city_1"
     @AppStorage("selectedWallpaperId") private var selectedWallpaperId: String = "wallpaper_default"
+    @AppStorage("selectedPlayButtonColorId") private var selectedPlayButtonColorId: String = "green"
     @State private var selectedTab: ThemeTab = .tiles
 
     private enum ThemeTab: String, CaseIterable {
         case tiles = "Tiles"
         case backgrounds = "Backgrounds"
         case wallpapers = "Wallpapers"
+        case playButton = "Play Button"
     }
 
     private let tileColumns = [
@@ -45,6 +47,8 @@ public struct ThemePickerView: View {
                         backgroundThemesContent
                     case .wallpapers:
                         wallpapersContent
+                    case .playButton:
+                        playButtonColorsContent
                     }
                 }
             }
@@ -114,55 +118,92 @@ public struct ThemePickerView: View {
         }
         .padding()
     }
+
+    private var playButtonColorsContent: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16)
+        ]
+
+        return LazyVGrid(columns: columns, spacing: 16) {
+            ForEach(PlayButtonColor.allColors, id: \.id) { colorOption in
+                PlayButtonColorCard(
+                    colorOption: colorOption,
+                    isSelected: selectedPlayButtonColorId == colorOption.id,
+                    onSelect: { selectedPlayButtonColorId = colorOption.id }
+                )
+            }
+        }
+        .padding()
+    }
 }
 
-// MARK: - Tile Theme Components
+// MARK: - Play Button Color Model
 
-private struct ThemeCard: View {
-    let descriptor: ThemeDescriptor
+public struct PlayButtonColor: Identifiable, Sendable {
+    public let id: String
+    public let name: String
+    public let color: Color
+
+    public static let allColors: [PlayButtonColor] = [
+        PlayButtonColor(id: "green", name: "Green", color: .green),
+        PlayButtonColor(id: "blue", name: "Blue", color: .blue),
+        PlayButtonColor(id: "red", name: "Red", color: .red),
+        PlayButtonColor(id: "orange", name: "Orange", color: .orange),
+        PlayButtonColor(id: "purple", name: "Purple", color: .purple),
+        PlayButtonColor(id: "pink", name: "Pink", color: .pink),
+        PlayButtonColor(id: "cyan", name: "Cyan", color: .cyan),
+        PlayButtonColor(id: "yellow", name: "Yellow", color: .yellow),
+        PlayButtonColor(id: "mint", name: "Mint", color: .mint),
+        PlayButtonColor(id: "indigo", name: "Indigo", color: .indigo),
+        PlayButtonColor(id: "teal", name: "Teal", color: .teal),
+        PlayButtonColor(id: "brown", name: "Brown", color: .brown),
+    ]
+
+    public static func color(for id: String) -> Color {
+        allColors.first { $0.id == id }?.color ?? .green
+    }
+}
+
+// MARK: - Play Button Color Card
+
+private struct PlayButtonColorCard: View {
+    let colorOption: PlayButtonColor
     let isSelected: Bool
     let onSelect: () -> Void
-
-    private let sampleValues = [2, 4, 8, 16, 32, 64]
-
+    
     var body: some View {
         Button(action: onSelect) {
             VStack(spacing: 12) {
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 4),
-                    GridItem(.flexible(), spacing: 4),
-                    GridItem(.flexible(), spacing: 4)
-                ], spacing: 4) {
-                    ForEach(sampleValues, id: \.self) { value in
-                        ThemePreviewTile(
-                            value: value,
-                            descriptor: descriptor
-                        )
-                    }
-                }
-                .padding(8)
-                .background(Color(.secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                Text(descriptor.name)
-                    .font(.subheadline.weight(.semibold))
+                // Preview of play button with this color
+                Image(systemName: "play.fill")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 56, height: 56)
+                    .background(colorOption.color, in: Circle())
+                    .shadow(color: colorOption.color.opacity(0.4), radius: 4, y: 2)
+                
+                Text(colorOption.name)
+                    .font(.caption)
+                    .fontWeight(.medium)
                     .foregroundStyle(.primary)
             }
             .padding(12)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color(.secondarySystemGroupedBackground))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
             )
             .overlay(alignment: .topTrailing) {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.title2)
+                        .font(.title3)
                         .foregroundStyle(.white, Color.accentColor)
-                        .offset(x: 8, y: -8)
+                        .offset(x: 6, y: -6)
                 }
             }
         }
@@ -170,269 +211,323 @@ private struct ThemeCard: View {
     }
 }
 
-private struct ThemePreviewTile: View {
-    let value: Int
-    let descriptor: ThemeDescriptor
+// MARK: - Tile Theme Components
 
-    var body: some View {
-        let color = descriptor.color(for: value)
-        let textColor = Theme.textColor(for: value)
-
-        Group {
-            if descriptor.tileStyle == .raised3D {
-                RoundedRectangle(cornerRadius: tileCornerRadius)
-                    .fill(Color.clear)
-                    .modifier(MiniTile3DStyle(
-                        baseColor: color,
-                        tileShape: descriptor.tileShape
-                    ))
-                    .overlay {
-                        Text("\(value)")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(textColor)
+private struct ThemeCard: View {
+        let descriptor: ThemeDescriptor
+        let isSelected: Bool
+        let onSelect: () -> Void
+        
+        private let sampleValues = [2, 4, 8, 16, 32, 64]
+        
+        var body: some View {
+            Button(action: onSelect) {
+                VStack(spacing: 12) {
+                    LazyVGrid(columns: [
+                        GridItem(.flexible(), spacing: 4),
+                        GridItem(.flexible(), spacing: 4),
+                        GridItem(.flexible(), spacing: 4)
+                    ], spacing: 4) {
+                        ForEach(sampleValues, id: \.self) { value in
+                            ThemePreviewTile(
+                                value: value,
+                                descriptor: descriptor
+                            )
+                        }
                     }
-            } else {
-                RoundedRectangle(cornerRadius: tileCornerRadius)
-                    .fill(color)
-                    .overlay {
-                        Text("\(value)")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(textColor)
+                    .padding(8)
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    
+                    Text(descriptor.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+                )
+                .overlay(alignment: .topTrailing) {
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.white, Color.accentColor)
+                            .offset(x: 8, y: -8)
                     }
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    private struct ThemePreviewTile: View {
+        let value: Int
+        let descriptor: ThemeDescriptor
+        
+        var body: some View {
+            let color = descriptor.color(for: value)
+            let textColor = Theme.textColor(for: value)
+            
+            Group {
+                if descriptor.tileStyle == .raised3D {
+                    RoundedRectangle(cornerRadius: tileCornerRadius)
+                        .fill(Color.clear)
+                        .modifier(MiniTile3DStyle(
+                            baseColor: color,
+                            tileShape: descriptor.tileShape
+                        ))
+                        .overlay {
+                            Text("\(value)")
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .foregroundStyle(textColor)
+                        }
+                } else {
+                    RoundedRectangle(cornerRadius: tileCornerRadius)
+                        .fill(color)
+                        .overlay {
+                            Text("\(value)")
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .foregroundStyle(textColor)
+                        }
+                }
+            }
+            .aspectRatio(1, contentMode: .fit)
+        }
+        
+        private var tileCornerRadius: CGFloat {
+            switch descriptor.tileShape {
+            case .square: return 4
+            case .rounded: return 8
             }
         }
-        .aspectRatio(1, contentMode: .fit)
     }
-
-    private var tileCornerRadius: CGFloat {
-        switch descriptor.tileShape {
-        case .square: return 4
-        case .rounded: return 8
+    
+    private struct MiniTile3DStyle: ViewModifier {
+        let baseColor: Color
+        let tileShape: ThemeDescriptor.TileShape
+        
+        func body(content: Content) -> some View {
+            let cornerRadius: CGFloat = tileShape == .square ? 4 : 8
+            
+            content
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(baseColor.opacity(0.6))
+                            .offset(y: 2)
+                        
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        baseColor.opacity(1.0),
+                                        baseColor.opacity(0.85)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                        
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.3),
+                                        Color.clear
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .center
+                                )
+                            )
+                    }
+                )
         }
     }
-}
-
-private struct MiniTile3DStyle: ViewModifier {
-    let baseColor: Color
-    let tileShape: ThemeDescriptor.TileShape
-
-    func body(content: Content) -> some View {
-        let cornerRadius: CGFloat = tileShape == .square ? 4 : 8
-
-        content
-            .background(
+    
+    // MARK: - Background Theme Components
+    
+    private struct BackgroundCategorySection: View {
+        let category: String
+        let themes: [BackgroundTheme]
+        let selectedId: String
+        let onSelect: (String) -> Void
+        
+        private let columns = [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12)
+        ]
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                Label(category, systemImage: categoryIcon)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(themes, id: \.id) { theme in
+                        BackgroundCard(
+                            theme: theme,
+                            isSelected: selectedId == theme.id,
+                            onSelect: { onSelect(theme.id) }
+                        )
+                    }
+                }
+            }
+        }
+        
+        private var categoryIcon: String {
+            switch category {
+            case "City": return "building.2.fill"
+            case "Desert": return "sun.max.fill"
+            case "Jungle": return "leaf.fill"
+            case "Snow": return "snowflake"
+            case "Underwater": return "drop.fill"
+            case "Solid": return "square.fill"
+            default: return "photo.fill"
+            }
+        }
+    }
+    
+    private struct BackgroundCard: View {
+        let theme: BackgroundTheme
+        let isSelected: Bool
+        let onSelect: () -> Void
+        
+        var body: some View {
+            Button(action: onSelect) {
+                VStack(spacing: 8) {
+                    BackgroundPreview(theme: theme)
+                        .aspectRatio(9/16, contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+                        )
+                        .overlay(alignment: .topTrailing) {
+                            if isSelected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.white, Color.accentColor)
+                                    .offset(x: 6, y: -6)
+                            }
+                        }
+                    
+                    Text(theme.name)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    private struct BackgroundPreview: View {
+        let theme: BackgroundTheme
+        
+        var body: some View {
+            GeometryReader { geo in
                 ZStack {
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(baseColor.opacity(0.6))
-                        .offset(y: 2)
-
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    baseColor.opacity(1.0),
-                                    baseColor.opacity(0.85)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
+                    if theme.imageName.isEmpty {
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "1a1a2e"),
+                                Color(hex: "16213e")
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
-
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.3),
-                                    Color.clear
-                                ],
-                                startPoint: .top,
-                                endPoint: .center
-                            )
-                        )
-                }
-            )
-    }
-}
-
-// MARK: - Background Theme Components
-
-private struct BackgroundCategorySection: View {
-    let category: String
-    let themes: [BackgroundTheme]
-    let selectedId: String
-    let onSelect: (String) -> Void
-
-    private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
-    ]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(category, systemImage: categoryIcon)
-                .font(.headline)
-                .foregroundStyle(.primary)
-
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(themes, id: \.id) { theme in
-                    BackgroundCard(
-                        theme: theme,
-                        isSelected: selectedId == theme.id,
-                        onSelect: { onSelect(theme.id) }
-                    )
-                }
-            }
-        }
-    }
-
-    private var categoryIcon: String {
-        switch category {
-        case "City": return "building.2.fill"
-        case "Desert": return "sun.max.fill"
-        case "Jungle": return "leaf.fill"
-        case "Snow": return "snowflake"
-        case "Underwater": return "drop.fill"
-        case "Solid": return "square.fill"
-        default: return "photo.fill"
-        }
-    }
-}
-
-private struct BackgroundCard: View {
-    let theme: BackgroundTheme
-    let isSelected: Bool
-    let onSelect: () -> Void
-
-    var body: some View {
-        Button(action: onSelect) {
-            VStack(spacing: 8) {
-                BackgroundPreview(theme: theme)
-                    .aspectRatio(9/16, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
-                    )
-                    .overlay(alignment: .topTrailing) {
-                        if isSelected {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.title3)
-                                .foregroundStyle(.white, Color.accentColor)
-                                .offset(x: 6, y: -6)
+                    } else {
+                        Image(theme.imageName)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .clipped()
+                        
+                        if theme.overlayOpacity > 0 {
+                            Color.black.opacity(theme.overlayOpacity)
                         }
                     }
-
-                Text(theme.name)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-private struct BackgroundPreview: View {
-    let theme: BackgroundTheme
-
-    var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                if theme.imageName.isEmpty {
-                    LinearGradient(
-                        colors: [
-                            Color(hex: "1a1a2e"),
-                            Color(hex: "16213e")
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    Image(theme.imageName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .clipped()
-
-                    if theme.overlayOpacity > 0 {
-                        Color.black.opacity(theme.overlayOpacity)
-                    }
                 }
             }
         }
     }
-}
-
-// MARK: - Wallpaper Components
-
-private struct WallpaperCard: View {
-    let wallpaper: WallpaperTheme
-    let isSelected: Bool
-    let onSelect: () -> Void
-
-    var body: some View {
-        Button(action: onSelect) {
-            VStack(spacing: 8) {
-                WallpaperPreview(wallpaper: wallpaper)
-                    .aspectRatio(9/16, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
-                    )
-                    .overlay(alignment: .topTrailing) {
-                        if isSelected {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.title3)
-                                .foregroundStyle(.white, Color.accentColor)
-                                .offset(x: 6, y: -6)
+    
+    // MARK: - Wallpaper Components
+    
+    private struct WallpaperCard: View {
+        let wallpaper: WallpaperTheme
+        let isSelected: Bool
+        let onSelect: () -> Void
+        
+        var body: some View {
+            Button(action: onSelect) {
+                VStack(spacing: 8) {
+                    WallpaperPreview(wallpaper: wallpaper)
+                        .aspectRatio(9/16, contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+                        )
+                        .overlay(alignment: .topTrailing) {
+                            if isSelected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.white, Color.accentColor)
+                                    .offset(x: 6, y: -6)
+                            }
+                        }
+                    
+                    Text(wallpaper.name)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    private struct WallpaperPreview: View {
+        let wallpaper: WallpaperTheme
+        
+        var body: some View {
+            GeometryReader { geo in
+                ZStack {
+                    if wallpaper.imageName.isEmpty {
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "1a1a2e"),
+                                Color(hex: "16213e")
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        Image(wallpaper.imageName)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .clipped()
+                        
+                        if wallpaper.overlayOpacity > 0 {
+                            Color.black.opacity(wallpaper.overlayOpacity)
                         }
                     }
-
-                Text(wallpaper.name)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-private struct WallpaperPreview: View {
-    let wallpaper: WallpaperTheme
-
-    var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                if wallpaper.imageName.isEmpty {
-                    LinearGradient(
-                        colors: [
-                            Color(hex: "1a1a2e"),
-                            Color(hex: "16213e")
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    Image(wallpaper.imageName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .clipped()
-
-                    if wallpaper.overlayOpacity > 0 {
-                        Color.black.opacity(wallpaper.overlayOpacity)
-                    }
                 }
             }
         }
     }
-}
-
-#Preview {
-    ThemePickerView()
-}
+    
+    #Preview {
+        ThemePickerView()
+    }

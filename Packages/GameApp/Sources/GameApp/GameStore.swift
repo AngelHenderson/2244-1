@@ -957,20 +957,23 @@ public final class GameStore {
         // We manually handle refill reveal later in performRefill
         
         // Break glass tiles for any positions in row 0 that were part of this connection
-        for position in positions {
-            if position.row == 0 {
-                if brokenGlassTiles.insert(position).inserted {
-                    newlyBrokenGlass.append(position)
+        // Skip glass breaking in sandboxed/challenge mode
+        if !sandboxed {
+            for position in positions {
+                if position.row == 0 {
+                    if brokenGlassTiles.insert(position).inserted {
+                        newlyBrokenGlass.append(position)
+                    }
                 }
             }
-        }
-        
-        if !newlyBrokenGlass.isEmpty {
-            for position in newlyBrokenGlass {
-                // Use column-based rewards instead of random
-                pendingGiftBoxes[position] = GiftReward.rewardForColumn(position.col, isFromGlassShatter: true)
+
+            if !newlyBrokenGlass.isEmpty {
+                for position in newlyBrokenGlass {
+                    // Use column-based rewards instead of random
+                    pendingGiftBoxes[position] = GiftReward.rewardForColumn(position.col, isFromGlassShatter: true)
+                }
+                persistPendingGiftBoxes()
             }
-            persistPendingGiftBoxes()
         }
         // Added value is the tile now at lastPos
         let addedValue: Int = {
@@ -1042,9 +1045,18 @@ public final class GameStore {
             pendingDoubleBase = nil
             pendingDoubleBaseStep = nil
         }
-        let unlockedValue: Int? = state.highestTile > previousHighest ? state.highestTile : nil
-        if let unlockedValue {
-            setPendingUnlockRewardIfNeeded(for: unlockedValue, previousHigh: previousHighest)
+        // Check if we created a new highest tile and show milestone notifications
+        let currentStep = state.highestTileStep
+        let isNewHighest = currentStep > previousHighestStep || state.highestTile > previousHighest
+        if isNewHighest {
+            // Show unlock/added/eliminated notifications
+            setMergeInfoIfMilestone(
+                previousHighest: previousHighest,
+                newTileValue: state.highestTile,
+                previousStep: previousHighestStep,
+                newStep: currentStep
+            )
+            setPendingUnlockRewardIfNeeded(for: state.highestTile, previousHigh: previousHighest)
         }
         movesHistory.append(positions)
         
@@ -1651,19 +1663,42 @@ public final class GameStore {
     }
 
     // MARK: - Unlock Rewards
+
+    /// Calculate unlock reward based on tile step (power of 2 exponent - 1).
+    /// This handles values beyond Int.max by using step-based math.
+    /// Step 8 = 512 (2^9), Step 9 = 1024 (2^10), etc.
+    private func baseUnlockRewardForStep(_ step: Int) -> Int {
+        // Milestone rewards start at step 8 (512 = 2^9) with +2 gems per subsequent milestone.
+        // Step 8 = 50 gems, Step 9 = 52 gems, Step 10 = 54 gems, etc.
+        guard step >= 8 else { return 0 }
+        let stepsFromFirstMilestone = step - 8
+        return 50 + (stepsFromFirstMilestone * 2)
+    }
+
+    /// Legacy function for backward compatibility with lower tile values.
     private func baseUnlockReward(for tileValue: Int) -> Int {
+        // For values that overflow or are at Int.max, use step-based calculation
+        if tileValue >= Int.max || tileValue.nonzeroBitCount != 1 {
+            return 0 // Will be handled by step-based version
+        }
         // Milestone rewards start at 512 (2^9) with +2 gems per subsequent milestone.
         guard tileValue >= 512 else { return 0 }
-        guard tileValue.nonzeroBitCount == 1 else { return 0 } // Require true power-of-two milestones.
         let exponent = tileValue.trailingZeroBitCount
         let stepsFromFirstMilestone = max(0, exponent - 9)
         return 50 + (stepsFromFirstMilestone * 2)
     }
-    
+
     private func setPendingUnlockRewardIfNeeded(for newHigh: Int, previousHigh: Int) {
-        guard newHigh > previousHigh else { return }
-        let base = baseUnlockReward(for: newHigh)
+        // Use step-based comparison for reliable handling of values beyond Int.max
+        let newStep = state.highestTileStep
+        let previousStep = TileStepLabelFormatter.stepForValue(previousHigh, start: 2) ?? 0
+
+        guard newStep > previousStep else { return }
+
+        // Use step-based reward calculation to handle arbitrarily large tile values
+        let base = baseUnlockRewardForStep(newStep)
         guard base > 0 else { return }
+
         pendingUnlockRewardBase = base
         pendingUnlockTile = newHigh
     }
@@ -1762,12 +1797,18 @@ public final class GameStore {
     @discardableResult
     public func applyDouble(to position: Position) -> Bool {
         guard let base = pendingDoubleBase else { return false }
-        
+
         // Capture previous highest for milestone detection
         let previousHighest = state.highestTile
-        
+        let previousHighestStep = state.highestTileStep
+
+        // Get the base step - use stored step for high-value tiles, calculate for normal values
+        let baseStep = pendingDoubleBaseStep ?? TileStepLabelFormatter.stepForValue(base, start: 2) ?? 0
+        let doubledStep = baseStep + 1
+
         let previousBoard = state.board
-        let newState = engine.applyDouble(to: position, from: base)
+        // Pass the base step to handle high-value tiles correctly
+        let newState = engine.applyDouble(to: position, from: base, baseStep: baseStep)
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         pendingDoubleBase = nil
         pendingDoubleBaseStep = nil
@@ -1776,13 +1817,17 @@ public final class GameStore {
         // Use safe multiplication to prevent overflow
         let doubledValue = base <= (Int.max >> 1) ? base * 2 : Int.max
         journey.didReach(tile: doubledValue)
-        
+
         // Show milestone notification if this created a new highest tile
-        setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: doubledValue)
-        
+        // Pass steps for high-value tiles to enable proper comparison
+        setMergeInfoIfMilestone(
+            previousHighest: previousHighest,
+            newTileValue: doubledValue,
+            previousStep: previousHighestStep,
+            newStep: doubledStep
+        )
+
         // Persist if this is a new highest tile
-        // Calculate step for the doubled value (base step + 1)
-        let doubledStep = (TileStepLabelFormatter.stepForValue(base, start: 2) ?? 0) + 1
         let isHighStep = doubledStep >= 62
 
         // Use step-based comparison for very high tiles to avoid overflow issues
@@ -1830,7 +1875,50 @@ public final class GameStore {
     
     /// Queue milestone notifications in the order: unlocked → added → eliminated.
     /// Only shows notifications for actual changes (not for skip milestones)
-    private func setMergeInfoIfMilestone(previousHighest: Int, newTileValue: Int) {
+    /// For high-value tiles (step >= 62), pass the steps directly since values overflow to Int.max.
+    private func setMergeInfoIfMilestone(previousHighest: Int, newTileValue: Int, previousStep: Int? = nil, newStep: Int? = nil) {
+        // For high-value tiles, use step-based comparison
+        let isHighValueTile = (newStep ?? 0) >= 62 || (previousStep ?? 0) >= 62
+
+        if isHighValueTile {
+            // For high-value tiles, we MUST have both steps provided and newStep > prevStep
+            // to show a milestone notification. Otherwise, it's not a new milestone.
+            guard let prevStep = previousStep, let newStepVal = newStep, newStepVal > prevStep else {
+                // Not a new milestone - don't show any notification
+                return
+            }
+
+            // Step-based notification for high-value tiles
+            var pending: [MergeNotification] = []
+            pending.append(.unlocked(newTileValue))
+
+            // For high-value tiles, new spawn values are added at step - 7
+            // (max spawn is 7 steps below highest)
+            let addedStep = newStepVal - 7
+            if addedStep >= 0 {
+                // Use Int.max as placeholder - the UI formats based on step
+                pending.append(.added(Int.max))
+            }
+
+            // For high-value tiles, eliminations happen based on step patterns
+            // Threshold = milestone - 14, tiles with step < threshold are eliminated
+            // For a highValue tile (step >= 62) to be eliminated, we need:
+            // threshold - 1 >= 62, so threshold >= 63, so milestone >= 77
+            if newStepVal >= 77 {
+                let thresholdStep = newStepVal - 14
+                let highestEliminatedStep = thresholdStep - 1
+                if highestEliminatedStep >= 62 {
+                    // Use Int.max as placeholder - the UI formats based on step
+                    pending.append(.excluded(Int.max))
+                }
+            }
+
+            enqueueNotifications(pending)
+            print("🎯 HIGH-VALUE MILESTONE: Unlocked step \(newStepVal), previous step \(prevStep)")
+            return
+        }
+
+        // Standard value-based logic for normal tiles
         guard newTileValue > previousHighest else { return }
 
         var pending: [MergeNotification] = []
@@ -1995,12 +2083,13 @@ public final class GameStore {
         value: Int,
         position: Position,
         matchingPositions: [Position],
-        previousHighest: Int
+        previousHighest: Int,
+        previousHighestStep: Int
     ) {
         mergeCleanupTask?.cancel()
         isInputLocked = true
         lastMagnetEvent = MagnetEvent(target: position, sources: matchingPositions, value: value)
-        
+
         mergeCleanupTask = Task { @MainActor [weak self] in
             guard let self else { return }
             defer {
@@ -2008,7 +2097,7 @@ public final class GameStore {
                 self.mergeCleanupTask = nil
                 self.clearLastMagnetEvent()
             }
-            
+
             do {
                 try await Task.sleep(nanoseconds: Self.magnetSuckDelay)
             } catch {
@@ -2016,21 +2105,28 @@ public final class GameStore {
                 self.clearLastMagnetEvent()
                 return
             }
-            
+
             if Task.isCancelled {
                 print("[GameStore] Magnet pipeline cancelled before merge")
                 return
             }
-            
+
             let magnetResult = self.engine.magnetize(value: value, to: position)
             self.state = magnetResult
             self.processPendingRewards()
 
-            let mergedValue = magnetResult.board[position]?.value ?? {
+            let mergedTile = magnetResult.board[position]
+            let mergedValue = mergedTile?.value ?? {
                 return value <= (Int.max >> 1) ? value * 2 : Int.max
             }()
-            
-            self.setMergeInfoIfMilestone(previousHighest: previousHighest, newTileValue: mergedValue)
+            let mergedStep = mergedTile?.stepIndex ?? (TileStepLabelFormatter.stepForValue(mergedValue, start: 2) ?? 0)
+
+            self.setMergeInfoIfMilestone(
+                previousHighest: previousHighest,
+                newTileValue: mergedValue,
+                previousStep: previousHighestStep,
+                newStep: mergedStep
+            )
             self.achievementEvaluator?.onTilesMerged(count: matchingPositions.count)
             
             let cols = self.columnsWithEmpties(in: self.state.board)
@@ -2071,11 +2167,17 @@ public final class GameStore {
     }
     
     private func milestonePriceDelta() -> Int {
-        // In challenge mode, use player's actual highest tile for consistent pricing
-        let highest = playerHighestTile ?? state.highestTile
-        guard highest >= 512 else { return 0 }
-        let exponent = Int.bitWidth - highest.leadingZeroBitCount - 1
-        let milestonesUnlocked = max(0, exponent - 8)
+        // Use step-based calculation to support high-value tiles beyond Int.max
+        // Step 8 = 512 (first milestone), each step adds +10 gems
+        let step: Int
+        if let playerTile = playerHighestTile {
+            // In challenge/sandbox mode, use player's main game tile for consistent pricing
+            step = TileStepLabelFormatter.stepForValue(playerTile, start: 2) ?? state.highestTileStep
+        } else {
+            step = state.highestTileStep
+        }
+        guard step >= 8 else { return 0 }
+        let milestonesUnlocked = step - 8
         return milestonesUnlocked * 10
     }
     
@@ -2239,7 +2341,8 @@ public final class GameStore {
         
         // Capture previous highest for milestone detection
         let previousHighest = state.highestTile
-        
+        let previousHighestStep = state.highestTileStep
+
         // Track power-up usage
         trackPowerUpAnalytics(action: .magnet(value: value, position: position))
         achievementEvaluator?.onMagnetUsed(mergeCount: matchingPositions.count)
@@ -2247,12 +2350,13 @@ public final class GameStore {
             value: value,
             position: position,
             matchingPositions: matchingPositions,
-            previousHighest: previousHighest
+            previousHighest: previousHighest,
+            previousHighestStep: previousHighestStep
         )
-        
+
         return true
     }
-    
+
     // Helper to check if power-up is available (inventory or affordable)
     public func isPowerUpAvailable(_ powerUp: String) -> Bool {
         if powerUpInventory[powerUp, default: 0] > 0 { return true }
@@ -2503,11 +2607,16 @@ extension GameStore {
             // This prevents accidental score deductions from stale persisted data
             if scoreAlpha >= state.scoreValue {
                 state.scoreValue = scoreAlpha
+                // CRITICAL: Also sync to engine to prevent score loss on next merge
+                engine.overrideScore(with: scoreAlpha)
             } else {
                 print("⚠️ SCORE SAFEGUARD: Blocked attempt to decrease score from \(state.scoreValue.formattedLabel()) to \(scoreAlpha.formattedLabel())")
             }
         } else if state.scoreValue.isZero && state.score > 0 {
-            state.scoreValue = AlphaNumber(state.score)
+            let alpha = AlphaNumber(state.score)
+            state.scoreValue = alpha
+            // CRITICAL: Also sync to engine to prevent score loss on next merge
+            engine.overrideScore(with: alpha)
         }
 
         // CRITICAL FIX: Always use the persisted highestTileStep as the source of truth
@@ -3158,11 +3267,16 @@ extension GameStore {
             // SAFEGUARD: Only update if persisted value is >= current (prevents score decrease)
             if alpha >= state.scoreValue {
                 state.scoreValue = alpha
+                // CRITICAL: Also sync to engine to prevent score loss on next merge
+                engine.overrideScore(with: alpha)
             } else {
                 print("⚠️ RESTORE SAFEGUARD: Blocked score decrease from \(state.scoreValue.formattedLabel()) to \(alpha.formattedLabel())")
             }
         } else if state.scoreValue.isZero && state.score > 0 {
-            state.scoreValue = AlphaNumber(state.score)
+            let alpha = AlphaNumber(state.score)
+            state.scoreValue = alpha
+            // CRITICAL: Also sync to engine to prevent score loss on next merge
+            engine.overrideScore(with: alpha)
         }
 
         // Restore infinity achievement
@@ -3395,7 +3509,41 @@ extension GameStore {
         let spinState = SpinWheelState()
         spinState.addMultiplier(tier, count: count)
     }
-    
+
+    // MARK: - Challenge Rewards
+
+    /// Grants a full challenge reward including gems, power-ups, spins, and score boosts
+    public func grantChallengeReward(_ reward: ChallengeReward) {
+        // Award gems
+        if reward.coins > 0 {
+            addCoins(reward.coins)
+        }
+
+        // Award power-ups
+        for (powerUpType, count) in reward.powerUps {
+            addPowerUp(powerUpType.rawValue, count: count)
+        }
+
+        // Award spins
+        if reward.spins > 0 {
+            addBonusSpins(reward.spins)
+        }
+
+        // Award score boosts
+        for (multiplier, count) in reward.scoreBoosts {
+            switch multiplier {
+            case 2:
+                addMultipliers(.twoX, count: count)
+            case 3:
+                addMultipliers(.threeX, count: count)
+            case 4:
+                addMultipliers(.fourX, count: count)
+            default:
+                break
+            }
+        }
+    }
+
     // MARK: - Session Tracking & Analytics
     
     /// Initialize comprehensive session tracking system

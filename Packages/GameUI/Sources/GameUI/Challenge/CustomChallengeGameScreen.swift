@@ -14,10 +14,13 @@ public struct CustomChallengeGameScreen: View {
     @Environment(\.challengeStore) private var challengeStore
     // Reference to main game store for achievement tracking
     @Environment(\.gameStore) private var mainGameStore
-    @State private var timeRemaining: Int
-    @State private var isTimerActive = true
     @State private var showResult = false
     @State private var challengeWon = false
+    @State private var challengeEnded = false
+
+    // Use start time + duration for reliable timer that doesn't stop during merges
+    @State private var startTime: Date = Date()
+    private let totalDuration: Int
 
     // Power-up selection modes
     @State private var isHammerMode = false
@@ -32,10 +35,22 @@ public struct CustomChallengeGameScreen: View {
         self.config = config
         self.onDismiss = onDismiss
         self.playerHighestTile = playerHighestTile
-        self._timeRemaining = State(initialValue: config.timeLimitSeconds)
+        self.totalDuration = config.timeLimitSeconds
 
         // Use sandboxed GameStore with player's actual highest tile and gems for consistent pricing
         self._challengeGameStore = State(initialValue: GameStore.sandboxed(initialGems: initialGems, playerHighestTile: playerHighestTile))
+    }
+
+    // Computed time remaining based on start time - takes a date parameter for TimelineView
+    private func timeRemainingAt(_ date: Date) -> Int {
+        guard !challengeEnded else { return 0 }
+        let elapsed = Int(date.timeIntervalSince(startTime))
+        return max(0, totalDuration - elapsed)
+    }
+
+    // Convenience for current time
+    private var timeRemaining: Int {
+        timeRemainingAt(Date())
     }
 
     public var body: some View {
@@ -77,11 +92,9 @@ public struct CustomChallengeGameScreen: View {
         .onAppear {
             startChallenge()
         }
-        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
-            guard isTimerActive else { return }
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-            } else {
+        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+            guard !challengeEnded else { return }
+            if timeRemaining <= 0 {
                 endChallenge(won: checkWinCondition())
             }
         }
@@ -374,14 +387,17 @@ public struct CustomChallengeGameScreen: View {
 
             Spacer()
 
-            // Timer display
-            VStack(spacing: 2) {
-                Text("TIME")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text(formatTime(timeRemaining))
-                    .font(.system(.title3, design: .monospaced).bold())
-                    .foregroundStyle(timeRemaining <= 10 ? .red : .primary)
+            // Timer display - uses TimelineView to update continuously during merges
+            TimelineView(.periodic(from: startTime, by: 0.5)) { context in
+                let remaining = timeRemainingAt(context.date)
+                VStack(spacing: 2) {
+                    Text("TIME")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(formatTime(remaining))
+                        .font(.system(.title3, design: .monospaced).bold())
+                        .foregroundStyle(remaining <= 10 ? .red : .primary)
+                }
             }
 
             Spacer()
@@ -401,7 +417,7 @@ public struct CustomChallengeGameScreen: View {
 
     private var resultOverlay: some View {
         ZStack {
-            Color.black.opacity(0.6)
+            Color.black.opacity(0.8)
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
@@ -430,7 +446,6 @@ public struct CustomChallengeGameScreen: View {
                 }
             }
             .padding(32)
-            .background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial))
         }
     }
 
@@ -511,7 +526,9 @@ public struct CustomChallengeGameScreen: View {
         // Initialize gems from player's inventory AFTER reset (since reset clears state)
         challengeGameStore.coins = homeState.gems
 
-        isTimerActive = true
+        // Start the timer
+        startTime = Date()
+        challengeEnded = false
     }
 
     private func checkWinCondition() -> Bool {
@@ -530,7 +547,8 @@ public struct CustomChallengeGameScreen: View {
     }
 
     private func endChallenge(won: Bool) {
-        isTimerActive = false
+        guard !challengeEnded else { return } // Prevent multiple calls
+        challengeEnded = true
         challengeWon = won
 
         if won {

@@ -859,7 +859,29 @@ public final class AchievementStore {
     public var isMovesProgressionMaxed: Bool {
         movesProgressionTier >= Self.movesTiers.count - 1
     }
-    
+
+    /// Display info for moves progression achievement
+    public var movesDisplay: ProgressTierDisplay {
+        let tier = currentMovesTier
+        let clampedIndex = min(movesProgressionTier, Self.movesTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = isMovesProgressionMaxed
+        let description = isMaxed
+            ? "You've mastered total moves. Claim your final reward."
+            : "Make \(tier.label) total moves to unlock the next tier."
+        let rewards = Self.movesTierRewards.indices.contains(clampedIndex)
+            ? Self.movesTierRewards[clampedIndex]
+            : AchievementDef.Rewards()
+        return ProgressTierDisplay(
+            milestone: Int(tier.value),
+            level: level,
+            title: "Level \(level): \(tier.label) moves",
+            description: description,
+            categoryLabel: "Total Moves",
+            rewards: rewards
+        )
+    }
+
     /// Combo 6-10 tier index (persisted)
     public var combo610Tier: Int {
         didSet {

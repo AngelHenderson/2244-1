@@ -64,26 +64,62 @@ public extension TierStat {
     
     @MainActor
     private static func color(for key: String) -> Color {
-        // Special case for K (thousands) which isn't in JourneyAbbreviationTiers
-        // Use step 13 which corresponds to 16K (2^14 = 16384)
-        if key.uppercased() == "K" {
-            return Theme.colorForStep(13)
-        }
-
-        // Look up the tier for "1{key}" (e.g., "1M", "1a", "1ah")
-        let lookupLabel = "1\(key)"
-        let tier = JourneyAbbreviationTiers.tiers.first(where: { $0.label.lowercased() == lookupLabel.lowercased() })
-        if let step = tier?.step {
+        // Map tier key to step index for consistent colors with game tiles
+        // Step indices: K=13 (16K), M=19 (1M), B=29 (1B), then letters follow
+        if let step = stepForTierKey(key) {
             return Theme.colorForStep(step)
         }
 
-        // Special case for infinity - use the same color as the infinity tile (262K)
+        // Special case for infinity
         if key == "∞" {
             return Theme.color(for: 262_144)
         }
 
         // Fallback to gray for unknown tiers
         return .gray
+    }
+
+    /// Maps a tier key (K, M, B, a, b, ..., aa, ab, ..., bz) to its step index
+    private static func stepForTierKey(_ key: String) -> Int? {
+        // Base tiers with fixed steps (UPPERCASE only - don't confuse with lowercase letters)
+        // K = step 13 (2^14 = 16,384 = 16K)
+        // M = step 19 (2^20 = 1,048,576 = 1M)
+        // B = step 29 (2^30 = 1,073,741,824 = 1B)
+        // Important: Check original key, not uppercased, to distinguish "B" from "b"
+        switch key {
+        case "K": return 13
+        case "M": return 19
+        case "B": return 29
+        default: break
+        }
+
+        // Lowercase letter tiers (a-z, aa-bz)
+        // After B (step 29), each new tier suffix adds ~10 steps
+        // a = step 39 (2^40 = 1T), b = step 49 (2^50), etc.
+        let lowercased = key.lowercased()
+
+        if lowercased.count == 1, let firstChar = lowercased.first,
+           firstChar >= "a" && firstChar <= "z" {
+            // Single letter: a=0, b=1, ..., z=25
+            let letterIndex = Int(firstChar.asciiValue! - Character("a").asciiValue!)
+            // Each letter adds ~10 steps from B's base (step 29)
+            return 29 + (letterIndex + 1) * 10
+        }
+
+        if lowercased.count == 2 {
+            let chars = Array(lowercased)
+            guard chars[0] >= "a" && chars[0] <= "b",
+                  chars[1] >= "a" && chars[1] <= "z" else { return nil }
+
+            // aa, ab, ..., az = indices 26-51
+            // ba, bb, ..., bz = indices 52-77
+            let firstIndex = Int(chars[0].asciiValue! - Character("a").asciiValue!) // 0 for 'a', 1 for 'b'
+            let secondIndex = Int(chars[1].asciiValue! - Character("a").asciiValue!) // 0-25
+            let letterIndex = 26 + firstIndex * 26 + secondIndex
+            return 29 + (letterIndex + 1) * 10
+        }
+
+        return nil
     }
     
     private static var allTierKeys: [String] {

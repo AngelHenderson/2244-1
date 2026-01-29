@@ -5,7 +5,8 @@ import GameApp
 public struct ChallengeDesignerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.challengeDesignerStore) private var store
-    
+    @Environment(\.currentTheme) private var currentTheme
+
     public var onPlay: ((CustomChallengeConfig) -> Void)?
     
     public init(onPlay: ((CustomChallengeConfig) -> Void)? = nil) {
@@ -52,11 +53,22 @@ public struct ChallengeDesignerView: View {
                 }
                 .buttonStyle(.plain)
                 
-                Text(store.targetLabel)
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .padding(.horizontal, 8)
-                    .frame(minWidth: 120)
-                    .background(RoundedRectangle(cornerRadius: 14).fill(Color.purple.opacity(0.18)))
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(currentTheme?.colorForStep(store.targetStep) ?? Theme.colorForStep(store.targetStep))
+                        .frame(width: 80, height: 80)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(Color.white.opacity(0.3), lineWidth: 2)
+                        )
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+
+                    Text(store.targetLabel)
+                        .font(.system(size: 24, weight: .heavy, design: .rounded))
+                        .foregroundStyle(currentTheme?.textColorForStep(store.targetStep) ?? Theme.textColorForStep(store.targetStep))
+                        .minimumScaleFactor(0.5)
+                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                }
                 
                 Button {
                     store.nextTarget()
@@ -113,7 +125,7 @@ public struct ChallengeDesignerView: View {
                 ForEach(0..<3, id: \.self) { columnIndex in
                     VStack(spacing: 8) {
                         ForEach(stepsForColumn(columnIndex), id: \.self) { step in
-                            TileChip(step: step)
+                            TileChip(step: step, theme: currentTheme)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -227,13 +239,36 @@ private struct StepperBox: View {
 
 private struct TileChip: View {
     let step: Int
+    let theme: ThemeDescriptor?
+    private let tileSize: CGFloat = 52
+
+    private var tileColor: Color {
+        theme?.colorForStep(step) ?? Theme.colorForStep(step)
+    }
+
+    private var textColor: Color {
+        theme?.textColorForStep(step) ?? Theme.textColorForStep(step)
+    }
 
     var body: some View {
-        Text(TileStepLabelFormatter.labelForStep(step))
-            .font(.system(.callout, design: .rounded).weight(.semibold))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.accentColor.opacity(0.18)))
+        ZStack {
+            // Tile background
+            RoundedRectangle(cornerRadius: 10)
+                .fill(tileColor)
+                .frame(width: tileSize, height: tileSize)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(Color.white.opacity(0.3), lineWidth: 2)
+                )
+                .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+
+            // Tile label
+            Text(TileStepLabelFormatter.labelForStep(step))
+                .font(.system(size: 14, weight: .heavy, design: .rounded))
+                .foregroundStyle(textColor)
+                .minimumScaleFactor(0.5)
+                .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+        }
     }
 }
 

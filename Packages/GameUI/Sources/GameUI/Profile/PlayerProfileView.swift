@@ -54,7 +54,16 @@ public struct PlayerProfileView: View {
                 )
             }
             .sheet(isPresented: $model.showCompare) {
-                CompareView(friendCode: model.friendCode) 
+                CompareView(
+                    friendCode: model.friendCode,
+                    myProfile: CompareProfile(
+                        name: model.playerName,
+                        score: model.bestScoreText,
+                        milestone: model.highestTile ?? "—",
+                        countryFlag: flagEmoji(model.countryCode ?? ""),
+                        avatar: model.avatarSystemName
+                    )
+                )
             }
             .sheet(isPresented: $model.showRename) {
                 RenameSheet(

@@ -15,7 +15,8 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
     public let shortLabel: String
     public let color: Color
     public let reward: WheelReward
-    
+    public let weight: Int  // Weight for probability (default 1, Gift Box uses 2)
+
     public init(
         title: String,
         subtitle: String,
@@ -23,7 +24,8 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
         iconAssetName: String? = nil,
         shortLabel: String,
         color: Color,
-        reward: WheelReward
+        reward: WheelReward,
+        weight: Int = 1
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -32,6 +34,7 @@ public struct WheelSegment: Identifiable, Hashable, Sendable {
         self.shortLabel = shortLabel
         self.color = color
         self.reward = reward
+        self.weight = weight
     }
 }
 
@@ -71,6 +74,9 @@ public final class WheelEngine {
     public var tickDampingSlow: CGFloat = 0.85   // per-notch damping when almost done
     public var stopSpeedThreshold: CGFloat = 0.12 // rad/s => begin snap
     public var snapSpring = (response: 0.35, damping: 0.75)
+
+    // Tick sound callback - called when crossing each divider
+    public var onTick: (() -> Void)?
 
     // Pin physics state
     private var pinVelocity: CGFloat = 0         // angular velocity of pin
@@ -115,6 +121,33 @@ public final class WheelEngine {
         isSpinning = true
         startAnimation()
     }
+
+    // MARK: - Weighted Segment Geometry
+
+    /// Total weight of all segments (used for calculating proportional sizes)
+    public var totalWeight: Int {
+        segments.reduce(0) { $0 + $1.weight }
+    }
+
+    /// Returns the angular span (in radians) for a segment at the given index
+    public func segmentSpan(at index: Int) -> CGFloat {
+        let weight = segments[index].weight
+        return CGFloat(weight) / CGFloat(totalWeight) * 2 * .pi
+    }
+
+    /// Returns the starting angle (in radians) for a segment at the given index
+    public func segmentStartAngle(at index: Int) -> CGFloat {
+        var startAngle: CGFloat = 0
+        for i in 0..<index {
+            startAngle += segmentSpan(at: i)
+        }
+        return startAngle
+    }
+
+    /// Returns the center angle (in radians) for a segment at the given index
+    public func segmentCenterAngle(at index: Int) -> CGFloat {
+        segmentStartAngle(at: index) + segmentSpan(at: index) / 2
+    }
     
     public func stop() {
         isSpinning = false
@@ -125,11 +158,17 @@ public final class WheelEngine {
     }
     
     // Computed: which segment is currently under the top peg (index)
+    // Uses weighted segment sizes for accurate hit detection
     public var highlightedIndex: Int {
-        let n = max(segments.count, 1)
-        let span = 2 * .pi / CGFloat(n)
-        let normalized = Self.wrap(-angle + span/2, modulus: 2 * .pi)
-        return Int(floor(normalized / span)) % n
+        let normalized = Self.wrap(-angle, modulus: 2 * .pi)
+        var cumulative: CGFloat = 0
+        for i in 0..<segments.count {
+            cumulative += segmentSpan(at: i)
+            if normalized < cumulative {
+                return i
+            }
+        }
+        return 0
     }
     
     // MARK: - Animation
@@ -204,7 +243,7 @@ public final class WheelEngine {
             tickerDeflection = 0
             stopAnimation()
 
-            // Call completion with winning segment
+            // Call completion with the segment the pin landed on
             if let callback = onComplete {
                 let winningSegment = segments[highlightedIndex]
                 callback(winningSegment)
@@ -214,18 +253,28 @@ public final class WheelEngine {
     }
 
     private func simulatePinPhysics(dt: CGFloat) {
-        let n = max(segments.count, 1)
-        let span = 2 * .pi / CGFloat(n)
-
-        // Find position relative to nearest divider using wheel angle directly
         let normalizedAngle = Self.wrap(angle, modulus: 2 * .pi)
-        let positionInSlice = normalizedAngle.truncatingRemainder(dividingBy: span)
 
-        // Distance to edges
+        // Find which segment we're in and position within it
+        var cumulative: CGFloat = 0
+        var currentSpan: CGFloat = segmentSpan(at: 0)
+        var segmentStart: CGFloat = 0
+
+        for i in 0..<segments.count {
+            let span = segmentSpan(at: i)
+            if normalizedAngle < cumulative + span {
+                currentSpan = span
+                segmentStart = cumulative
+                break
+            }
+            cumulative += span
+        }
+
+        let positionInSlice = normalizedAngle - segmentStart
         let distanceToPrevEdge = positionInSlice
 
-        // Contact zone where pin touches divider
-        let contactZone: CGFloat = span * 0.20
+        // Contact zone where pin touches divider (proportional to segment size)
+        let contactZone: CGFloat = currentSpan * 0.20
         let maxDeflect: CGFloat = 24 * .pi / 180 // 24° max
 
         // Calculate target deflection based on contact
@@ -262,22 +311,21 @@ public final class WheelEngine {
     }
     
     private func checkDividerCrossing(from old: CGFloat, to new: CGFloat) {
-        let n = max(segments.count, 1)
-        let span = 2 * .pi / CGFloat(n)
-
-        // Determine which divider index we're at
-        let oldIdx = Int(floor(Self.wrap(old, modulus: 2 * .pi) / span))
-        let newIdx = Int(floor(Self.wrap(new, modulus: 2 * .pi) / span))
+        // Find segment index for old and new angles using weighted geometry
+        let oldIdx = segmentIndex(for: old)
+        let newIdx = segmentIndex(for: new)
 
         // Check if we crossed a divider
         guard oldIdx != newIdx else { return }
 
-        // We crossed a divider - apply haptic feedback
+        // We crossed a divider - apply haptic feedback and tick sound
         let v = abs(angularVelocity)
 #if canImport(UIKit)
         let intensity = CGFloat(min(max(v / (8 * .pi), 0.15), 1.0))
         haptic.impactOccurred(intensity: intensity)
 #endif
+        // Play tick sound
+        onTick?()
 
         // Give the pin an impulse when hitting divider (adds to natural spring response)
         let impulseStrength = min(v * 0.08, 2.5)
@@ -291,6 +339,19 @@ public final class WheelEngine {
         }
 
         lastDividerIndex = newIdx
+    }
+
+    /// Returns the segment index for a given angle (using weighted geometry)
+    private func segmentIndex(for angle: CGFloat) -> Int {
+        let normalized = Self.wrap(angle, modulus: 2 * .pi)
+        var cumulative: CGFloat = 0
+        for i in 0..<segments.count {
+            cumulative += segmentSpan(at: i)
+            if normalized < cumulative {
+                return i
+            }
+        }
+        return 0
     }
     
     private func nearCenter(_ angle: CGFloat) -> Bool {
@@ -314,6 +375,18 @@ public final class WheelEngine {
             tickerDeflection = 0
         }
     }
+
+    private func snapToSegment(index: Int) {
+        let n = max(segments.count, 1)
+        let span = 2 * .pi / CGFloat(n)
+        // Calculate target angle so segment at index is under the peg (at top)
+        let targetAngle = -CGFloat(index) * span
+        pinVelocity = 0
+        withAnimation(.spring(response: snapSpring.response, dampingFraction: snapSpring.damping)) {
+            angle = targetAngle
+            tickerDeflection = 0
+        }
+    }
     
     // MARK: - Utils
     
@@ -323,9 +396,12 @@ public final class WheelEngine {
     }
     
     public static let defaultSegments: [WheelSegment] = [
+        // 15 segments with weighted probability:
+        // Gift Box has weight 2 (12.5% = 2/16), others have weight 1 (6.25% = 1/16 each)
+        // Total weight = 2 + 14 = 16, giving Gift Box 12.5% and others 6.25%
         .init(title: "Gift Box", subtitle: "Mystery prize", icon: "🎁", iconAssetName: "GiftBoxIcon", shortLabel: "?",
-              color: Color(red: 0.97, green: 0.73, blue: 0.20), reward: .init(type: .giftBox, amount: 1)),
-        .init(title: "4X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "4X",
+              color: Color(red: 0.97, green: 0.73, blue: 0.20), reward: .init(type: .giftBox, amount: 1), weight: 2),
+        .init(title: "4X Boost", subtitle: "12h multiplier", icon: "⚡️", shortLabel: "4X",
               color: Color(red: 0.14, green: 0.41, blue: 0.96), reward: .init(type: .multiplier(.fourX), amount: 1)),
         .init(title: "2 Swaps", subtitle: "Strategic swaps", icon: "🔁", iconAssetName: "SwapIcon", shortLabel: "2x",
               color: Color(red: 90.0/255.0, green: 58.0/255.0, blue: 1.0), reward: .init(type: .swap, amount: 2)),
@@ -339,7 +415,7 @@ public final class WheelEngine {
               color: Color(red: 0.04, green: 0.54, blue: 0.82), reward: .init(type: .gems, amount: 200)),
         .init(title: "2 Hammers", subtitle: "Double smash", icon: "🛠️", iconAssetName: "HammerIcon", shortLabel: "2x",
               color: Color(red: 0.85, green: 0.42, blue: 0.24), reward: .init(type: .hammers, amount: 2)),
-        .init(title: "3X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "3X",
+        .init(title: "3X Boost", subtitle: "18h multiplier", icon: "⚡️", shortLabel: "3X",
               color: Color(red: 0.20, green: 0.64, blue: 0.93), reward: .init(type: .multiplier(.threeX), amount: 1)),
         .init(title: "300 Gems", subtitle: "Jackpot", icon: "💎", iconAssetName: "GemBagIcon", shortLabel: "300",
               color: Color(red: 0.00, green: 0.38, blue: 0.69), reward: .init(type: .gems, amount: 300)),

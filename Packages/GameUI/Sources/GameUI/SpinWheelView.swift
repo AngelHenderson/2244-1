@@ -6,6 +6,7 @@ import AppKit
 import SwiftUI
 import Observation
 import GameApp
+import GameServices
 
 // MARK: - View
 
@@ -17,6 +18,7 @@ public struct SpinWheelView: View {
     @Environment(\.hapticsService) private var haptics
     @Environment(HomeState.self) private var homeState
     @Environment(\.spinWheelState) private var spinState
+    @Environment(\.audio) private var audioService
     @State private var showReward = false
     @State private var rewardMessage = ""
     @State private var purchaseFeedback: String?
@@ -88,6 +90,12 @@ public struct SpinWheelView: View {
         } message: {
             Text(rewardMessage)
         }
+        .onAppear {
+            // Set up tick sound callback for wheel
+            engine.onTick = { [audioService] in
+                Task { await audioService.playSfx(name: "tick") }
+            }
+        }
     }
     
     private var header: some View {
@@ -123,7 +131,7 @@ public struct SpinWheelView: View {
                 WheelFace(segments: engine.segments)
                     .rotationEffect(.radians(Double(engine.angle)))
 
-                WheelLights(count: max(engine.segments.count, 1))
+                WheelLights(count: max(engine.segments.count, 1), segments: engine.segments)
                     .rotationEffect(.radians(Double(engine.angle)))
                 
                 LocationPinShape()
@@ -146,7 +154,7 @@ public struct SpinWheelView: View {
                     )
                     .frame(width: 32, height: 48)
                     .rotationEffect(.radians(Double(engine.tickerDeflection)), anchor: .top)
-                    .offset(y: -200)
+                    .offset(y: -225)
                     .shadow(color: Color(red: 0.2, green: 0.5, blue: 0.2).opacity(0.6), radius: 6, x: 0, y: 4)
                 
                 Circle()
@@ -163,6 +171,7 @@ public struct SpinWheelView: View {
                 }
             }
             .frame(width: 400, height: 400)
+            .padding(.top, 50)
         }
     }
     
@@ -594,17 +603,41 @@ private struct MultiplierInventoryCard: View {
 
 struct WheelFace: View {
     let segments: [WheelSegment]
-    
+
+    // Calculate total weight for proportional sizing
+    private var totalWeight: Int {
+        segments.reduce(0) { $0 + $1.weight }
+    }
+
+    // Returns the angular span (in radians) for a segment at the given index
+    private func segmentSpan(at index: Int) -> CGFloat {
+        let weight = segments[index].weight
+        return CGFloat(weight) / CGFloat(totalWeight) * 2 * .pi
+    }
+
+    // Returns the starting angle (in radians) for a segment at the given index
+    private func segmentStartAngle(at index: Int) -> CGFloat {
+        var startAngle: CGFloat = 0
+        for i in 0..<index {
+            startAngle += segmentSpan(at: i)
+        }
+        return startAngle
+    }
+
+    // Returns the center angle (in radians) for a segment at the given index
+    private func segmentCenterAngle(at index: Int) -> CGFloat {
+        segmentStartAngle(at: index) + segmentSpan(at: index) / 2
+    }
+
     var body: some View {
         GeometryReader { geo in
             let rect = geo.frame(in: .local)
             let radius = min(rect.width, rect.height) / 2
             ZStack {
+                // Draw segment slices with weighted sizes
                 ForEach(segments.indices, id: \.self) { i in
-                    let n = max(segments.count, 1)
-                    let span = 2 * .pi / CGFloat(n)
-                    let start = CGFloat(i) * span - span / 2
-                    let end = start + span
+                    let start = segmentStartAngle(at: i)
+                    let end = start + segmentSpan(at: i)
                     WheelSectorShape(start: start, end: end)
                         .fill(segments[i].color)
                         .overlay(
@@ -612,15 +645,14 @@ struct WheelFace: View {
                                 .stroke(Color.white.opacity(0.15), lineWidth: 1)
                         )
                 }
-                
+
+                // Draw labels at segment centers
                 ForEach(segments.indices, id: \.self) { i in
-                    let n = max(segments.count, 1)
-                    let span = 2 * .pi / CGFloat(n)
-                    let centerAngle = CGFloat(i) * span
+                    let centerAngle = segmentCenterAngle(at: i)
                     let r = radius * 0.62
                     let x = rect.midX + r * sin(centerAngle)
                     let y = rect.midY - r * cos(centerAngle)
-                    
+
                     RadialLabel(angle: centerAngle - (.pi / 2)) {
                         HStack(spacing: 6) {
                             if let assetName = segments[i].iconAssetName,
@@ -642,11 +674,11 @@ struct WheelFace: View {
                     }
                     .position(x: x, y: y)
                 }
-                
+
                 Circle()
                     .stroke(Color.white.opacity(0.25), lineWidth: 6)
-                
-                Ticks(count: segments.count)
+
+                WeightedTicks(segments: segments)
                     .stroke(Color.white.opacity(0.18), style: .init(lineWidth: 2, lineCap: .round))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -694,15 +726,73 @@ struct Ticks: Shape {
     }
 }
 
+struct WeightedTicks: Shape {
+    let segments: [WheelSegment]
+
+    private var totalWeight: Int {
+        segments.reduce(0) { $0 + $1.weight }
+    }
+
+    private func segmentSpan(at index: Int) -> CGFloat {
+        let weight = segments[index].weight
+        return CGFloat(weight) / CGFloat(totalWeight) * 2 * .pi
+    }
+
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let outer = min(rect.width, rect.height) / 2
+        let inner = outer * 0.93
+
+        var angle: CGFloat = 0
+        for i in 0..<segments.count {
+            let sx = center.x + inner * sin(angle)
+            let sy = center.y - inner * cos(angle)
+            let ex = center.x + outer * sin(angle)
+            let ey = center.y - outer * cos(angle)
+            p.move(to: CGPoint(x: sx, y: sy))
+            p.addLine(to: CGPoint(x: ex, y: ey))
+            angle += segmentSpan(at: i)
+        }
+        return p
+    }
+}
+
 struct WheelLights: View {
     let count: Int
-    
+    var segments: [WheelSegment]? = nil
+
+    private var totalWeight: Int {
+        guard let segments = segments else { return count }
+        return segments.reduce(0) { $0 + $1.weight }
+    }
+
+    private func segmentSpan(at index: Int) -> CGFloat {
+        guard let segments = segments else {
+            return 2 * .pi / CGFloat(max(count, 1))
+        }
+        let weight = segments[index].weight
+        return CGFloat(weight) / CGFloat(totalWeight) * 2 * .pi
+    }
+
+    private func dividerAngle(at index: Int) -> CGFloat {
+        guard let segments = segments else {
+            return 2 * .pi * CGFloat(index) / CGFloat(max(count, 1))
+        }
+        var angle: CGFloat = 0
+        for i in 0..<index {
+            angle += segmentSpan(at: i)
+        }
+        return angle
+    }
+
     var body: some View {
         GeometryReader { geo in
             let rect = geo.frame(in: .local)
             let radius = min(rect.width, rect.height) / 2 - 10
-            ForEach(0..<max(count, 1), id: \.self) { index in
-                let angle = 2 * .pi * CGFloat(index) / CGFloat(max(count, 1))
+            let segmentCount = segments?.count ?? count
+            ForEach(0..<max(segmentCount, 1), id: \.self) { index in
+                let angle = dividerAngle(at: index)
                 let x = rect.midX + radius * sin(angle)
                 let y = rect.midY - radius * cos(angle)
                 Circle()

@@ -1,6 +1,6 @@
 import SwiftUI
 import GameApp
-import GameCore
+import GameServices
 
 public struct HomeView: View {
     private let managesBackground: Bool
@@ -9,6 +9,7 @@ public struct HomeView: View {
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
     @Environment(\.toastManager) private var toastManager
+    @Environment(\.spinWheelState) private var spinState
     @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
     @State private var isShowingAchievements: Bool = false
@@ -17,6 +18,8 @@ public struct HomeView: View {
     @State private var isShowingProfile: Bool = false
     @State private var isShowingSettings: Bool = false
     @State private var isShowingThemePicker: Bool = false
+    @State private var isShowingBoosts: Bool = false
+    @State private var isShowingWeeklyOffer: Bool = false
     @State private var centeredMilestone: Int? = nil
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
@@ -78,7 +81,7 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "spinthewheel",
                                 title: "FREE SPIN",
-                                badge: state.hasFreeSpinBadge,
+                                badge: spinState.bonusSpins > 0,
                                 action: { actions.openFreeSpin() }
                             )
 
@@ -104,7 +107,14 @@ public struct HomeView: View {
                                 badge: true,
                                 action: { actions.openSaleOffer() }
                             )
-                            
+
+                            SideRailButton(
+                                systemImage: "bolt.fill",
+                                customImage: nil,
+                                title: "BOOSTS",
+                                action: { isShowingBoosts = true }
+                            )
+
                             Spacer(minLength: 0)
                         }
                         .frame(width: 80)
@@ -153,7 +163,7 @@ public struct HomeView: View {
                                         systemImage: nil,
                                         customImage: "gift",
                                         title: "BEST OFFER",
-                                        action: { actions.openShop() }
+                                        action: { isShowingWeeklyOffer = true }
                                     )
                                     CountdownView(deadline: deadline)
                                 }
@@ -162,7 +172,7 @@ public struct HomeView: View {
                                     systemImage: nil,
                                     customImage: "gift",
                                     title: "BEST OFFER",
-                                    action: { actions.openShop() }
+                                    action: { isShowingWeeklyOffer = true }
                                 )
                             }
 
@@ -182,8 +192,8 @@ public struct HomeView: View {
                 }
 
                 // Play button
-                PillButton(title: "Play", icon: "play.fill") { 
-                    actions.play() 
+                PillButton(title: "Play", icon: "play.fill") {
+                    actions.play()
                 }
                 .padding(.horizontal)
                 .padding(.vertical)
@@ -267,6 +277,14 @@ public struct HomeView: View {
         // Theme Picker (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingThemePicker) {
             ThemePickerView()
+        }
+        // Boosts Sheet
+        .sheet(isPresented: $isShowingBoosts) {
+            BoostsSheet()
+        }
+        // Weekly Offer Sheet
+        .sheet(isPresented: $isShowingWeeklyOffer) {
+            WeeklyOfferSheet()
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)
@@ -395,8 +413,8 @@ public extension View {
     }
 }
 
-@MainActor
-private func makeHomePreview(bestOffer: Bool) -> some View {
+#Preview("Home - Default") {
+    // Local services and state for preview
     let gameStore = GameStore()
     let homeState = HomeState()
     let purchaseService = PurchaseService()
@@ -407,20 +425,68 @@ private func makeHomePreview(bestOffer: Bool) -> some View {
     let themeRegistry = ThemeRegistry.Default
     let toastManager = ToastManager()
 
-    if bestOffer {
-        homeState.gems = 520
-        homeState.highestTile = 2048
-        homeState.milestoneBelow = 1024
-        homeState.lockedMilestones = [4096, 8192]
-        homeState.bestOfferDeadline = Date().addingTimeInterval(60 * 30)
-    } else {
-        homeState.gems = 305
-        homeState.highestTile = 1024
-        homeState.milestoneBelow = 512
-        homeState.lockedMilestones = [2048, 4096]
-    }
+    // Seed some demo state for a nicer preview
+    let _ = (homeState.gems = 305)
+    let _ = (homeState.highestTile = 1024)
+    let _ = (homeState.milestoneBelow = 512)
+    let _ = (homeState.lockedMilestones = [2048, 4096])
+    // Sync journey to highest tile
+    let _ = gameStore.journey.didReach(tile: homeState.highestTile)
 
-    gameStore.journey.didReach(tile: homeState.highestTile)
+    // Minimal actions for preview
+    let actions = HomeActions(
+        play: {},
+        openShop: {},
+        buyGems: {},
+        watchAd: { 50 },
+        openDaily: {},
+        openFreeSpin: {},
+        openMusic: {},
+        openChallenge: {},
+        openCreate: {},
+        openProfile: {},
+        openAchievements: {},
+        openLeaderboard: {},
+        openSettings: {},
+        openThemeLeft: {},
+        openThemeRight: {},
+        openSaleOffer: {}
+    )
+
+    HomeView()
+        .environment(homeState)
+        .environment(\.homeActions, actions)
+        .environment(\.gameStore, gameStore)
+        .environment(\.purchaseService, purchaseService)
+        .environment(\.adService, adService)
+        .environment(\.hapticsService, haptics)
+        .environment(\.gameCenter, gameCenter)
+        .environment(\.storage, storage)
+        .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
+        .environment(\.tileJourney, gameStore.journey)
+        .environment(\.leaderboardClient, .noop)
+        .environment(\.toastManager, toastManager)
+}
+
+#Preview("Home - Best Offer") {
+    // Local services and state for preview
+    let gameStore = GameStore()
+    let homeState = HomeState()
+    let purchaseService = PurchaseService()
+    let adService = DummyAdService()
+    let haptics = HapticsService()
+    let gameCenter = DefaultGameCenterService()
+    let storage = UserDefaultsStorageService()
+    let themeRegistry = ThemeRegistry.Default
+    let toastManager = ToastManager()
+
+    // Seed demo state with an active best offer
+    let _ = (homeState.gems = 520)
+    let _ = (homeState.highestTile = 2048)
+    let _ = (homeState.milestoneBelow = 1024)
+    let _ = (homeState.lockedMilestones = [4096, 8192])
+    // bestOfferDeadline is now auto-calculated from WeeklyOfferManager
+    let _ = gameStore.journey.didReach(tile: homeState.highestTile)
 
     let actions = HomeActions(
         play: {},
@@ -441,7 +507,7 @@ private func makeHomePreview(bestOffer: Bool) -> some View {
         openSaleOffer: {}
     )
 
-    return HomeView()
+    HomeView()
         .environment(homeState)
         .environment(\.homeActions, actions)
         .environment(\.gameStore, gameStore)
@@ -454,12 +520,4 @@ private func makeHomePreview(bestOffer: Bool) -> some View {
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
         .environment(\.toastManager, toastManager)
-}
-
-#Preview("Home - Default") {
-    makeHomePreview(bestOffer: false)
-}
-
-#Preview("Home - Best Offer") {
-    makeHomePreview(bestOffer: true)
 }

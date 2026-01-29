@@ -326,7 +326,14 @@ public final class GameEngine {
     public func overrideGems(with newValue: Int) {
         state.gems = newValue
     }
-    
+
+    /// Synchronize the engine's score with an external source (e.g., restored from persistence).
+    /// This prevents score loss when the engine's internal score is lower than the persisted score.
+    public func overrideScore(with alpha: AlphaNumber) {
+        state.scoreValue = alpha
+        state.score = alpha.toInt()
+    }
+
     /// Apply a temporary score multiplier (defaults to 1 when not boosted).
     public func setScoreMultiplier(_ multiplier: Int) {
         scoreMultiplier = max(1, multiplier)
@@ -945,8 +952,9 @@ public final class GameEngine {
     
     // Apply: set a target tile's value to double of a given base value.
     // Used by the UI "double to another block" action.
+    // For high-value tiles (step >= 62), pass the baseStep directly since baseValue is Int.max.
     @discardableResult
-    public func applyDouble(to position: Position, from baseValue: Int) -> GameState {
+    public func applyDouble(to position: Position, from baseValue: Int, baseStep: Int? = nil) -> GameState {
         guard position.isValid(for: state.board), state.board[position] != nil else { return state }
         // Save state for undo
         previousState = state
@@ -956,8 +964,9 @@ public final class GameEngine {
             let (next, overflow) = baseValue.multipliedReportingOverflow(by: 2)
             return overflow ? Int.max : next
         }()
-        let baseStep = TileStepLabelFormatter.stepForValue(baseValue, start: 2) ?? 0
-        let doubledStep = baseStep + 1
+        // Use provided baseStep for high-value tiles, otherwise calculate from value
+        let resolvedBaseStep = baseStep ?? TileStepLabelFormatter.stepForValue(baseValue, start: 2) ?? 0
+        let doubledStep = resolvedBaseStep + 1
         state.board[position] = Tile.make(forStep: doubledStep)
         // Update highest tile & level if needed
         if doubledStep > state.highestTileStep {
@@ -1543,6 +1552,30 @@ public final class GameEngine {
 
     /// Remove any tiles that shouldn't exist based on current milestone progress
     private func cleanupTilesBelowThreshold() {
+        // For highValue tiles (step >= 62), use step-based comparison
+        if state.highestTileStep >= 62 {
+            let thresholdStep = getEliminationThresholdStep()
+            guard thresholdStep > 0 else { return }
+
+            var didRemove = false
+            for row in 0..<config.boardHeight {
+                for col in 0..<config.boardWidth {
+                    let pos = Position(row: row, col: col)
+                    if let tile = state.board[pos], let step = tile.stepIndex, step < thresholdStep {
+                        state.board[pos] = nil
+                        didRemove = true
+                    }
+                }
+            }
+
+            if didRemove {
+                applyGravityDown()
+                fillEmptyCellsWithValidTiles()
+            }
+            return
+        }
+
+        // For normal tiles, use value-based comparison
         let threshold = getEliminationThreshold()
         guard threshold > 2 else { return }  // No elimination needed
 

@@ -6,6 +6,7 @@ import GameCore
 public struct DailyClaimsView: View {
     @Environment(DailyClaimsStore.self) private var store
     @Environment(\.gameStore) private var gameStore
+    @Environment(\.audio) private var audio
     @Environment(\.dismiss) private var dismiss
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
@@ -319,6 +320,14 @@ public struct DailyClaimsView: View {
         claimedBaseRewards = rewards
         claimedRewards = rewards  // Just use base rewards since bonuses are random
         showClaimAnimation = true
+
+        // Play cheering sound for year milestones (day 365, 730, etc.)
+        if nextDay == 365 || nextDay == 730 {
+            Task {
+                await audio.playSfx(name: "cheer")
+            }
+        }
+
         store.claimDailyReward()
         gameStore.achievementEvaluator?.onDailyClaimed()
 
@@ -528,17 +537,12 @@ private struct DayGridCell: View {
 
             // Rewards
             HStack(spacing: 6) {
-                ForEach(displayRewards.entries.prefix(3), id: \.self) { entry in
+                ForEach(displayRewards.entries, id: \.self) { entry in
                     HStack(spacing: 3) {
                         RewardIconView(kind: entry.kind, font: .subheadline)
                         Text("\(entry.amount)")
                     }
                     .font(.subheadline)
-                }
-                if displayRewards.entries.count > 3 {
-                    Text("+\(displayRewards.entries.count - 3)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
             }
 

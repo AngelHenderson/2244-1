@@ -122,7 +122,7 @@ public final class ChallengeStore: Sendable {
             return .expert
         }
 
-        // Specific rewards for challenges (1M, 1B, 1a-1z, 1aa-1az, 1ba-1bd)
+        // Specific rewards for all challenges (1M, 1B, 1a-1z, 1aa-1az, 1ba-1bz, Infinity)
         // MegaMerge = .magnet power-up
         let specificRewards: [Int: ChallengeReward] = [
             0: ChallengeReward(coins: 50),                                              // 1M: 50 Gems
@@ -182,7 +182,30 @@ public final class ChallengeStore: Sendable {
             54: ChallengeReward(coins: 275, scoreBoosts: [3: 1]),                       // 1ba: 275 Gems, 3X Boost
             55: ChallengeReward(powerUps: [.magnet: 1]),                                // 1bb: 1 MegaMerge
             56: ChallengeReward(spins: 1, scoreBoosts: [2: 1]),                         // 1bc: 1 Spin, 2X Boost
-            57: ChallengeReward(powerUps: [.hammer: 1, .swap: 1, .magnet: 1])           // 1bd: 1 Hammer, 1 Swap, 1 MegaMerge
+            57: ChallengeReward(powerUps: [.hammer: 1, .swap: 1, .magnet: 1]),          // 1bd: 1 Hammer, 1 Swap, 1 MegaMerge
+            58: ChallengeReward(powerUps: [.hammer: 2]),                                // 1be: 2 Hammers
+            59: ChallengeReward(coins: 300, powerUps: [.hammer: 1], scoreBoosts: [2: 1]), // 1bf: 300 Gems, 1 Hammer, 2X Boost
+            60: ChallengeReward(coins: 180, powerUps: [.hammer: 3]),                    // 1bg: 180 Gems, 3 Hammers
+            61: ChallengeReward(powerUps: [.swap: 2]),                                  // 1bh: 2 Swaps
+            62: ChallengeReward(coins: 255, powerUps: [.hammer: 1, .magnet: 1]),        // 1bi: 255 Gems, 1 Hammer, 1 MegaMerge
+            63: ChallengeReward(spins: 1, scoreBoosts: [3: 1, 4: 1]),                   // 1bj: 1 Spin, 3X Boost, 4X Boost
+            64: ChallengeReward(spins: 3),                                              // 1bk: 3 Spins
+            65: ChallengeReward(powerUps: [.swap: 2, .magnet: 1], spins: 2),            // 1bl: 2 Swaps, 1 MegaMerge, 2 Spins
+            66: ChallengeReward(coins: 350, scoreBoosts: [2: 1]),                       // 1bm: 350 Gems, 2X Boost
+            67: ChallengeReward(coins: 650, scoreBoosts: [3: 1]),                       // 1bn: 650 Gems, 3X Boost
+            68: ChallengeReward(coins: 800, powerUps: [.magnet: 1]),                    // 1bo: 800 Gems, 1 MegaMerge
+            69: ChallengeReward(spins: 1),                                              // 1bp: 1 Spin
+            70: ChallengeReward(coins: 600, powerUps: [.hammer: 2, .swap: 1, .magnet: 1], spins: 1, scoreBoosts: [3: 1]), // 1bq: 600 Gems, 2 Hammers, 1 Swap, 1 MegaMerge, 1 Spin, 3X Boost
+            71: ChallengeReward(coins: 630, spins: 3),                                  // 1br: 630 Gems, 3 Spins
+            72: ChallengeReward(scoreBoosts: [3: 1]),                                   // 1bs: 3X Boost
+            73: ChallengeReward(powerUps: [.magnet: 1], scoreBoosts: [2: 1]),           // 1bt: 1 MegaMerge, 2X Boost
+            74: ChallengeReward(scoreBoosts: [4: 1]),                                   // 1bu: 4X Boost
+            75: ChallengeReward(coins: 875),                                            // 1bv: 875 Gems
+            76: ChallengeReward(coins: 950),                                            // 1bw: 950 Gems
+            77: ChallengeReward(powerUps: [.swap: 1], scoreBoosts: [2: 1]),             // 1bx: 1 Swap, 2X Boost
+            78: ChallengeReward(coins: 700, powerUps: [.hammer: 1, .swap: 1, .magnet: 1], spins: 1, scoreBoosts: [2: 1, 3: 1, 4: 1]), // 1by: 700 Gems, 1 Hammer, 1 Swap, 1 MegaMerge, 1 Spin, 2X Boost, 3X Boost, 4X Boost
+            79: ChallengeReward(powerUps: [.hammer: 2, .swap: 2, .magnet: 2], spins: 2), // 1bz: 2 Hammers, 2 Swaps, 2 MegaMerges, 2 Spins
+            80: ChallengeReward(coins: 1000)                                            // Infinity: 1000 Gems
         ]
 
         // Helper to get reward - uses specific reward if defined, otherwise falls back to formula
@@ -190,7 +213,7 @@ public final class ChallengeStore: Sendable {
             if let specific = specificRewards[index] {
                 return specific
             }
-            // Fallback formula for challenges beyond 1bd
+            // Fallback formula for any challenges beyond defined rewards
             let baseCoins = 50 + (index * 25)
             return ChallengeReward(coins: baseCoins)
         }

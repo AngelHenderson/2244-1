@@ -67,6 +67,7 @@ public struct ChallengeModeView: View {
         let status = store.status(for: challenge)
         let isSelected = selectedChallenge?.id == challenge.id
         GeometryReader { geo in
+            let cardWidth = geo.size.width * 0.7
             ChallengeCard(
                 challenge: challenge,
                 challengeNumber: index + 1,
@@ -75,10 +76,10 @@ public struct ChallengeModeView: View {
                 isSelected: isSelected,
                 onTap: status.isPlayable ? { selectedChallenge = challenge } : nil
             )
-            .frame(width: geo.size.width * 0.5)
-            .frame(maxWidth: .infinity)
+            .frame(width: cardWidth)
+            .position(x: geo.size.width / 2, y: geo.size.height / 2)
         }
-        .frame(height: 180)
+        .frame(height: 150)
         .id(challenge.id)
     }
 
@@ -158,6 +159,8 @@ private struct ChallengeCard: View {
     var isSelected: Bool = false
     var onTap: (() -> Void)? = nil
 
+    @State private var showingRewards = false
+
     // Format tile target for display using TileStepLabelFormatter
     private var targetTileLabel: String {
         guard let targetTile = challenge.targetTile else { return "??" }
@@ -171,6 +174,67 @@ private struct ChallengeCard: View {
         return TileStepLabelFormatter.labelForStep(targetTile, start: 2)
     }
 
+    // Renders the target tile with proper colors
+    @ViewBuilder
+    private var targetTileView: some View {
+        let tileSize: CGFloat = 55
+
+        if let targetTile = challenge.targetTile {
+            if targetTile == Int.max {
+                // Infinity tile - special rainbow gradient
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            LinearGradient(
+                                colors: [.purple, .blue, .cyan, .green, .yellow, .orange, .red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: tileSize, height: tileSize)
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+
+                    Text("∞")
+                        .font(.system(size: tileSize * 0.5, weight: .heavy, design: .rounded))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                }
+                .opacity(isLocked ? 0.5 : 1.0)
+            } else {
+                // Regular tile with theme colors - targetTile is a step value
+                let tileColor = Theme.colorForStep(targetTile)
+                let textColor = Theme.textColorForStep(targetTile)
+
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(tileColor)
+                        .frame(width: tileSize, height: tileSize)
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+
+                    Text(targetTileLabel)
+                        .font(.system(size: fontSize(for: targetTileLabel, tileSize: tileSize), weight: .heavy, design: .rounded))
+                        .foregroundStyle(textColor)
+                        .minimumScaleFactor(0.5)
+                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                }
+                .opacity(isLocked ? 0.5 : 1.0)
+            }
+        } else {
+            // Fallback for missing target
+            Text("??")
+                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func fontSize(for label: String, tileSize: CGFloat) -> CGFloat {
+        let digitCount = label.count
+        if digitCount <= 2 { return tileSize * 0.40 }
+        if digitCount == 3 { return tileSize * 0.36 }
+        if digitCount == 4 { return tileSize * 0.32 }
+        return tileSize * 0.26
+    }
+
     private var isPendingUnlock: Bool {
         if case .pendingUnlock = status { return true }
         return false
@@ -182,25 +246,40 @@ private struct ChallengeCard: View {
     }
 
     /// Formats the reward for display, showing gems, power-ups, boosts, or spins
-    /// Shows a treasure box for multiple rewards
+    /// Shows a treasure box for multiple rewards (tap to view details)
     @ViewBuilder
     private var rewardLabel: some View {
         let reward = challenge.reward
         let parts = buildRewardParts(reward)
 
         if parts.count > 1 {
-            // Multiple rewards - show treasure box followed by reward list
-            HStack(spacing: 6) {
+            // Multiple rewards - show treasure box, tap to view
+            HStack(spacing: 4) {
                 Image(systemName: "shippingbox.fill")
                     .font(.caption)
-                ForEach(Array(parts.enumerated()), id: \.offset) { index, part in
-                    HStack(spacing: 3) {
-                        Image(systemName: part.icon)
-                            .font(.system(size: 9))
-                        Text(part.text)
-                            .font(.system(size: 10, weight: .semibold))
+                Text("Rewards")
+                    .font(.caption.weight(.semibold))
+            }
+            .onTapGesture {
+                showingRewards = true
+            }
+            .popover(isPresented: $showingRewards) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rewards")
+                        .font(.headline)
+                        .padding(.bottom, 4)
+                    ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
+                        HStack(spacing: 6) {
+                            Image(systemName: part.icon)
+                                .font(.body)
+                                .frame(width: 20)
+                            Text(part.text)
+                                .font(.body.weight(.medium))
+                        }
                     }
                 }
+                .padding()
+                .presentationCompactAdaptation(.popover)
             }
         } else if let part = parts.first {
             // Single reward - show specific icon
@@ -262,16 +341,14 @@ private struct ChallengeCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Text("Challenge \(challengeNumber)")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            Text(targetTileLabel)
-                .font(.system(size: 48, weight: .heavy, design: .rounded))
-                .foregroundStyle(isLocked ? .secondary : .primary)
+            targetTileView
 
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 statusText
 
                 if !isCompleted {
@@ -280,7 +357,8 @@ private struct ChallengeCard: View {
                 }
             }
         }
-        .padding(20)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
         .background(cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))

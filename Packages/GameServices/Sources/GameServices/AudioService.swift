@@ -67,6 +67,9 @@ public actor LiveAudioService: AudioServiceProtocol {
     private var sfxPlayers: [AVAudioPlayer] = []
     private var instrumentTapIndex: Int = 0
     private let storage = AudioSettingsStorage()
+    private let maxConcurrentSfx = 8  // Limit concurrent sound effects
+    private var lastHammerPlayTime: Date?  // Debounce hammer sound
+    private var lastElectricPlayTime: Date?  // Debounce electric sound
 
     /// Maps theme IDs to their audio configuration
     /// Note: Files are at bundle root level (synchronized groups flatten directory structure)
@@ -178,6 +181,25 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
+        // Handle hammer sound (axe smashing)
+        if name == "hammer" {
+            print("🪓 Playing hammer/axe smash sound")
+            await playHammerSound()
+            return
+        }
+
+        // Handle tick sound (wheel spinner)
+        if name == "tick" {
+            await playTickSound()
+            return
+        }
+
+        // Handle cheer sound (year milestones)
+        if name == "cheer" {
+            await playCheerSound()
+            return
+        }
+
         // Handle tap/select/drag sounds - play instrument-specific sounds
         if name == "tap" || name == "select" || name == "drag" {
             print("🎹 Playing instrument sound for: \(name), theme: \(currentTheme)")
@@ -222,53 +244,140 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     private func playElectricSound(theme: String) async {
-        // Normalize empty theme to piano
-        let effectiveTheme = theme.isEmpty ? "piano" : theme
+        // Debounce - don't play if played within last 0.5 seconds
+        if let lastPlay = lastElectricPlayTime, Date().timeIntervalSince(lastPlay) < 0.5 {
+            print("🔇 Electric sound debounced")
+            return
+        }
+        lastElectricPlayTime = Date()
 
-        // Get config for current theme, fall back to piano
-        let config = InstrumentConfig.configs[effectiveTheme] ?? InstrumentConfig.defaultConfig
+        // Clean up before adding new sounds
+        cleanupAndPrepareForNewSound()
 
-        // Play rapid succession of notes to simulate electric/buzzing effect
-        let soundCount = config.tapSoundCount
+        // Play the electric zap sound file
+        let url = Bundle.main.url(forResource: "electric_zap", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "electric_zap", withExtension: "wav")
 
-        for index in 1...soundCount {
-            let soundName = "\(config.filePrefix)\(index)"
+        guard let audioUrl = url else {
+            print("❌ Electric zap sound not found")
+            return
+        }
 
-            // Try instrument-specific sound first, fall back to piano
-            // All files are at bundle root (synchronized groups flatten directory structure)
-            var url = Bundle.main.url(forResource: soundName, withExtension: "mp3")
+        do {
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.volume = 0.7
+            player.play()
+            sfxPlayers.append(player)
 
-            // Fall back to piano sounds if instrument sound not found
-            if url == nil {
-                let pianoSoundName = "piano_tap_\(index)"
-                url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3") ??
-                      Bundle.main.url(forResource: pianoSoundName, withExtension: "wav")
+            Task {
+                try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                await removeSfxPlayer(player)
             }
+        } catch {
+            print("❌ Failed to play electric sound: \(error)")
+        }
+    }
 
-            guard let audioUrl = url else { continue }
+    private func playHammerSound() async {
+        // Debounce - don't play if played within last 0.5 seconds
+        if let lastPlay = lastHammerPlayTime, Date().timeIntervalSince(lastPlay) < 0.5 {
+            print("🔇 Hammer sound debounced")
+            return
+        }
+        lastHammerPlayTime = Date()
 
-            do {
-                let player = try AVAudioPlayer(contentsOf: audioUrl)
-                player.volume = 0.5  // Slightly quieter for layered effect
-                player.play()
-                sfxPlayers.append(player)
+        // Clean up before adding new sounds
+        cleanupAndPrepareForNewSound()
 
-                Task {
-                    try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                    await removeSfxPlayer(player)
-                }
-            } catch {
-                print("❌ Failed to play electric sound: \(error)")
+        // Play the axe chop sound file
+        let url = Bundle.main.url(forResource: "axe_chop", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "axe_chop", withExtension: "wav")
+
+        guard let audioUrl = url else {
+            print("❌ Axe chop sound not found")
+            return
+        }
+
+        do {
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.volume = 0.8
+            player.play()
+            sfxPlayers.append(player)
+
+            Task {
+                try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                await removeSfxPlayer(player)
             }
+        } catch {
+            print("❌ Failed to play hammer sound: \(error)")
+        }
+    }
 
-            // Small delay between notes for electric effect
-            if index < soundCount {
-                try? await Task.sleep(for: .milliseconds(80))
+    private func playTickSound() async {
+        // Clean up before adding new sound
+        cleanupAndPrepareForNewSound()
+
+        // Quick, short tick sound for wheel spinner
+        let soundName = "piano_tap_1"
+
+        let url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ??
+                  Bundle.main.url(forResource: soundName, withExtension: "wav")
+
+        guard let audioUrl = url else {
+            print("❌ Tick sound not found")
+            return
+        }
+
+        do {
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.volume = 0.3  // Quieter for tick effect
+            player.play()
+            sfxPlayers.append(player)
+
+            Task {
+                try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                await removeSfxPlayer(player)
             }
+        } catch {
+            print("❌ Failed to play tick sound: \(error)")
+        }
+    }
+
+    private func playCheerSound() async {
+        // Clean up before adding new sound
+        cleanupAndPrepareForNewSound()
+
+        // Play cheering/applause sound for year milestones
+        let url = Bundle.main.url(forResource: "cheer", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "cheer", withExtension: "wav") ??
+                  Bundle.main.url(forResource: "applause", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "applause", withExtension: "wav")
+
+        guard let audioUrl = url else {
+            print("❌ Cheer/applause sound not found")
+            return
+        }
+
+        do {
+            print("🎉 Playing cheer sound from \(audioUrl)")
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.volume = 0.8
+            player.play()
+            sfxPlayers.append(player)
+
+            Task {
+                try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                await removeSfxPlayer(player)
+            }
+        } catch {
+            print("❌ Failed to play cheer sound: \(error)")
         }
     }
 
     private func playInstrumentTapSound(theme: String) async {
+        // Clean up before adding new sound
+        cleanupAndPrepareForNewSound()
+
         // Normalize empty theme to piano
         let effectiveTheme = theme.isEmpty ? "piano" : theme
 
@@ -321,6 +430,32 @@ public actor LiveAudioService: AudioServiceProtocol {
     
     private func removeSfxPlayer(_ player: AVAudioPlayer) async {
         sfxPlayers.removeAll { $0 === player }
+    }
+
+    /// Clean up finished players and ensure we don't exceed the limit
+    private func cleanupAndPrepareForNewSound() {
+        // Remove players that have finished playing
+        sfxPlayers.removeAll { !$0.isPlaying }
+
+        // If still too many, remove oldest ones
+        while sfxPlayers.count >= maxConcurrentSfx {
+            if let oldest = sfxPlayers.first {
+                oldest.stop()
+                sfxPlayers.removeFirst()
+            }
+        }
+
+        // Ensure audio session is active
+        #if os(iOS)
+        do {
+            let session = AVAudioSession.sharedInstance()
+            if !session.isOtherAudioPlaying {
+                try session.setActive(true)
+            }
+        } catch {
+            print("⚠️ Failed to reactivate audio session: \(error)")
+        }
+        #endif
     }
 }
 

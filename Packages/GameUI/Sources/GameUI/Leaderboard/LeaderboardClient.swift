@@ -85,21 +85,24 @@ public struct LeaderboardClient: Sendable {
 // Players progress through milestones daily. The leaderboard updates at midnight.
 
 enum MockLeaderboardData {
-    // Reference date for calculating day offset
+    // Reference date for calculating day offset (progression "just started" on Jan 20, 2026)
     static let referenceDate: Date = {
         var components = DateComponents()
-        components.year = 2024
+        components.year = 2026
         components.month = 1
-        components.day = 1
+        components.day = 20
         return Calendar.current.date(from: components) ?? Date()
     }()
 
     // Calculate days since reference date for progression
+    // Leaderboard only updates at midnight - uses start of today, not current time
     static var daysSinceReference: Int {
         let calendar = Calendar.current
-        let now = Date()
-        let days = calendar.dateComponents([.day], from: referenceDate, to: now).day ?? 0
-        return days
+        // Get start of today (midnight) to ensure leaderboard only changes at midnight
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfReference = calendar.startOfDay(for: referenceDate)
+        let days = calendar.dateComponents([.day], from: startOfReference, to: startOfToday).day ?? 0
+        return max(0, days)
     }
 
     // All milestone tiers in order (lowest to highest) - generated from doubling sequence
@@ -183,12 +186,12 @@ enum MockLeaderboardData {
         "2br", "5br", "11br", "22br", "45br", "90br", "180br", "361br", "722br", "1bs",
         "2bs", "5bs", "11bs", "23bs", "46bs", "92bs", "185bs", "370bs", "740bs", "1bt",
         "2bt", "5bt", "11bt", "23bt", "47bt", "94bt", "189bt", "379bt", "758bt", "1bu",
-        "2bu", "5bu", "11bu", "23bu", "48bu", "97bu", "194bu", "388bu", "776bu", "1bv",
-        "2bv", "5bv", "12bv", "24bv", "49bv", "99bv", "198bv", "397bv", "794bv", "1bw",
+        "3bu", "6bu", "12bu", "24bu", "48bu", "97bu", "194bu", "388bu", "776bu", "1bv",
+        "3bv", "6bv", "12bv", "24bv", "49bv", "99bv", "198bv", "397bv", "794bv", "1bw",
         "3bw", "6bw", "12bw", "25bw", "50bw", "101bw", "203bw", "407bw", "814bw", "1bx",
         "3bx", "6bx", "13bx", "26bx", "52bx", "104bx", "208bx", "416bx", "833bx", "1by",
         "3by", "6by", "13by", "26by", "53by", "106by", "213by", "426by", "853by", "1bz",
-        "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "872bz", "873bz"
+        "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "873bz"
     ]
 
     // Normalize invalid milestone entries to valid ones
@@ -299,6 +302,51 @@ enum MockLeaderboardData {
         "OsakaOracle67", "KyotoKnight78", "NagoyaNinja89", "FukuokaaFury90", "SapporoStrike01",
         "MunichMaster12", "HamburgHero23", "FrankfurtFlash34", "CologneCrusher45", "DusseldorfDragon56",
         "AmsterdamAce67", "BrussellsBoss78", "ViennaViking89", "ZurichZealot90", "GenevaGhost01"
+    ]
+
+    // Real-life names for extended brackets (70% of players rank 151+ use these)
+    static let realNames = [
+        // Common English names
+        "James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel",
+        "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George",
+        "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail",
+        "Emily", "Elizabeth", "Sofia", "Avery", "Ella", "Scarlett", "Grace", "Chloe", "Victoria", "Riley",
+        // Hispanic names
+        "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael",
+        "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila",
+        // German names
+        "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich", "Dieter", "Helmut", "Werner", "Gerhard", "Manfred",
+        "Ingrid", "Helga", "Ursula", "Gisela", "Renate", "Monika", "Petra", "Sabine", "Karin", "Brigitte",
+        // French names
+        "Pierre", "Jean", "Jacques", "François", "Michel", "Philippe", "Alain", "Bernard", "Christophe", "Thierry",
+        "Marie", "Jeanne", "Françoise", "Monique", "Catherine", "Nathalie", "Isabelle", "Sylvie", "Martine", "Christine",
+        // Italian names
+        "Marco", "Giuseppe", "Giovanni", "Francesco", "Antonio", "Alessandro", "Andrea", "Luca", "Matteo", "Lorenzo",
+        "Giulia", "Francesca", "Chiara", "Sara", "Anna", "Alessia", "Valentina", "Elisa", "Martina", "Giorgia",
+        // Japanese names (romanized)
+        "Hiroshi", "Takeshi", "Kenji", "Yuki", "Haruto", "Sota", "Ren", "Kaito", "Asahi", "Minato",
+        "Yui", "Hana", "Aoi", "Sakura", "Himari", "Mei", "Rin", "Mio", "Ichika", "Akari",
+        // Korean names (romanized)
+        "Minho", "Jiwon", "Seojun", "Dohyun", "Hajun", "Junwoo", "Siwoo", "Yejun", "Jiho", "Junseo",
+        "Jiyeon", "Soyeon", "Yuna", "Minji", "Subin", "Hayeon", "Chaewon", "Seoyeon", "Yerin", "Dahyun",
+        // Chinese names (romanized)
+        "Wei", "Fang", "Lei", "Jun", "Ming", "Tao", "Hao", "Chen", "Lin", "Jian",
+        "Mei", "Ling", "Xiu", "Hong", "Yan", "Hui", "Juan", "Ping", "Li", "Na",
+        // Indian names
+        "Raj", "Amit", "Vikram", "Rahul", "Arjun", "Aditya", "Rohan", "Karan", "Nikhil", "Sanjay",
+        "Priya", "Ananya", "Kavya", "Ishita", "Riya", "Neha", "Pooja", "Shreya", "Anika", "Diya",
+        // Brazilian/Portuguese names
+        "Pedro", "Lucas", "Gabriel", "Matheus", "Guilherme", "Rafael", "Bruno", "Felipe", "Gustavo", "Leonardo",
+        "Julia", "Beatriz", "Larissa", "Leticia", "Amanda", "Mariana", "Carolina", "Fernanda", "Bruna", "Gabriela",
+        // Russian names (romanized)
+        "Ivan", "Dmitri", "Alexei", "Sergei", "Nikolai", "Viktor", "Andrei", "Pavel", "Mikhail", "Oleg",
+        "Natasha", "Olga", "Anastasia", "Tatiana", "Ekaterina", "Irina", "Svetlana", "Marina", "Yelena", "Larisa",
+        // Arabic names (romanized)
+        "Ahmed", "Mohamed", "Ali", "Omar", "Hassan", "Yusuf", "Ibrahim", "Khalid", "Tariq", "Nasser",
+        "Fatima", "Aisha", "Layla", "Mariam", "Noor", "Hana", "Sara", "Zara", "Amira", "Dalia",
+        // Scandinavian names
+        "Erik", "Lars", "Anders", "Magnus", "Olaf", "Bjorn", "Sven", "Gunnar", "Harald", "Leif",
+        "Astrid", "Ingrid", "Freya", "Sigrid", "Helga", "Liv", "Solveig", "Greta", "Karin", "Maja"
     ]
 
     static let hallOfFameNames = [
@@ -728,6 +776,100 @@ enum MockLeaderboardData {
         return avatarIDs[avatarIndex % avatarIDs.count]
     }
 
+    // Get avatar for a player with daily variation (some players change avatars over time)
+    // 85% of changes happen outside top 150, only 15% in top 150
+    static func avatarForPlayer(index: Int, countrySeed: Int, day: Int) -> String {
+        // Calculate cumulative name/avatar changes up to this day
+        var totalChanges: Double = 0
+        for d in 0...day {
+            totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+        }
+
+        // Determine which players have changed based on seeded randomness
+        let changeThreshold = seededRandom(seed: index * 199 + countrySeed * 31, index: index)
+        var playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
+
+        // Top 150 players are much less likely to change (only 15% of changes)
+        // Multiply their change day by ~5.67x to reduce probability
+        if index < 150 {
+            let top150Eligible = seededRandom(seed: index * 317 + countrySeed * 59, index: index)
+            if top150Eligible > 0.15 {
+                // This top-150 player is not in the 15% that changes
+                return avatarForPlayer(index: index, countrySeed: countrySeed)
+            }
+        }
+
+        if day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1 {
+            // This player has changed - use a different avatar
+            let newSeed = index * 131 + countrySeed * 17 + day * 7
+            let random = seededRandom(seed: newSeed, index: day)
+            let avatarIndex = Int(random * Double(avatarIDs.count))
+            return avatarIDs[avatarIndex % avatarIDs.count]
+        }
+
+        // No change - use base avatar
+        return avatarForPlayer(index: index, countrySeed: countrySeed)
+    }
+
+    // Get name for a player with daily variation (some players change names over time)
+    // Real name percentages: 15% for top 150, 70% for extended brackets (rank 151+)
+    // (Top 150: 85% gamertag, 15% realistic. Extended: 30% gamertag, 70% realistic)
+    // 85% of name changes happen outside top 150, only 15% in top 150
+    // 1/3 of players can switch between realistic and gamertag when they change
+    static func nameForPlayer(index: Int, names: [String], countrySeed: Int, day: Int) -> String {
+        // Determine initial name type (real vs gamertag) based on rank tier
+        let realNameThreshold: Double = index < 150 ? 0.15 : 0.70
+        let baseTypeRandom = seededRandom(seed: index * 401 + countrySeed * 83, index: index)
+        var useRealName = baseTypeRandom < realNameThreshold
+
+        // Calculate cumulative name/avatar changes up to this day
+        var totalChanges: Double = 0
+        for d in 0...day {
+            totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+        }
+
+        // Check if this player's name has changed
+        let changeThreshold = seededRandom(seed: index * 211 + countrySeed * 43, index: index)
+        let playerChangeDay = Int(changeThreshold * 200)
+
+        // 85% of changes happen outside top 150
+        var canChange = true
+        if index < 150 {
+            let top150Eligible = seededRandom(seed: index * 331 + countrySeed * 67, index: index)
+            canChange = top150Eligible <= 0.15
+        }
+
+        let hasChanged = canChange && day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1
+
+        if hasChanged {
+            // 1/3 of players can switch name types when they change
+            let canSwitchType = seededRandom(seed: index * 503 + countrySeed * 97 + day, index: index)
+            if canSwitchType < 0.333 {
+                // Switch name type (real <-> gamertag)
+                useRealName = !useRealName
+            }
+        }
+
+        if useRealName {
+            if hasChanged {
+                // Name has changed - use a different real name
+                let realNameIndex = (index + countrySeed + day * 3) % realNames.count
+                return realNames[realNameIndex]
+            }
+            // Base real name
+            let realNameIndex = (index + countrySeed) % realNames.count
+            return realNames[realNameIndex]
+        } else {
+            if hasChanged {
+                // Name has changed - use a different gamertag
+                let newIndex = (index + day * 3) % names.count
+                return names[newIndex]
+            }
+            // Base gamertag name
+            return names[index % names.count]
+        }
+    }
+
     // Calculate infinity count with daily progression for Hall of Fame players
     // Progression rate is tiered based on current infinity count:
     // 1-99: 0.2-0.55/day, 100-999: 1-4/day, 1000-9999: 3-7/day, 10000-99999: 6-15/day, 100000+: 10-30/day
@@ -820,6 +962,45 @@ enum MockLeaderboardData {
         ) + 1
     }
 
+    /// Get the milestone at a specific rank for a country's top 150 players
+    /// Returns nil if rank is out of bounds
+    static func milestoneAtCountryRank(rank: Int, countryCode: String) -> String? {
+        let day = daysSinceReference
+        let (milestones, _, _) = countryData(for: countryCode, day: day)
+
+        // Rank is 1-indexed, array is 0-indexed
+        let index = rank - 1
+        guard index >= 0 && index < min(150, milestones.count) else {
+            return nil
+        }
+
+        return milestones[index]
+    }
+
+    /// Get the milestone for a rank in the extended brackets (ranks 151+)
+    /// Returns the milestone tier that contains this rank
+    static func milestoneForExtendedRank(rank: Int, countryCode: String) -> String? {
+        let day = daysSinceReference
+        let (_, extendedBrackets, _) = countryData(for: countryCode, day: day)
+
+        guard rank > 150 else {
+            return nil
+        }
+
+        // Find the bracket that contains this rank
+        // Brackets are sorted by startRank ascending
+        var result: String? = nil
+        for bracket in extendedBrackets {
+            if bracket.startRank <= rank {
+                result = bracket.milestone
+            } else {
+                break
+            }
+        }
+
+        return result
+    }
+
     /// Returns country-specific milestone data
     private static func countryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int) {
         switch countryCode {
@@ -865,6 +1046,10 @@ enum MockLeaderboardData {
             return (LeaderboardClient.norwayPlayerMilestones, LeaderboardClient.norwayExtendedRankBrackets, 34_924)
         case "DK":
             return (LeaderboardClient.denmarkPlayerMilestones, LeaderboardClient.denmarkExtendedRankBrackets, 90_123)
+        case "FI":
+            return (LeaderboardClient.finlandPlayerMilestones, LeaderboardClient.finlandExtendedRankBrackets, 87_654)
+        case "PL":
+            return (LeaderboardClient.polandPlayerMilestones, LeaderboardClient.polandExtendedRankBrackets, 67_108)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -936,12 +1121,14 @@ enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.switzerlandPlayerMilestones, extendedBrackets: LeaderboardClient.switzerlandExtendedRankBrackets, totalPlayers: 20_000)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.norwayPlayerMilestones, extendedBrackets: LeaderboardClient.norwayExtendedRankBrackets, totalPlayers: 34_924)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.denmarkPlayerMilestones, extendedBrackets: LeaderboardClient.denmarkExtendedRankBrackets, totalPlayers: 90_123)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.finlandPlayerMilestones, extendedBrackets: LeaderboardClient.finlandExtendedRankBrackets, totalPlayers: 87_654)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.polandPlayerMilestones, extendedBrackets: LeaderboardClient.polandExtendedRankBrackets, totalPlayers: 67_108)
 
         return total
     }
 
     // Calculate milestone progression for regular leaderboard players
-    // Players progress through milestone tiers at different rates (0.1-0.25 milestones per day)
+    // Players progress through milestone tiers at different rates (0.25-1 milestones per day)
     // But cap total progression to prevent everyone reaching max milestone
     static func milestoneWithProgression(baseMilestone: String, playerIndex: Int, day: Int) -> String {
         guard let baseIndex = allMilestones.firstIndex(of: baseMilestone) else {
@@ -949,11 +1136,10 @@ enum MockLeaderboardData {
         }
 
         // Each player gets a consistent daily milestone progression rate
-        let dailyRate = 0.1 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 0.15  // 0.1 to 0.25 milestones per day
+        let dailyRate = 0.25 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 0.75  // 0.25 to 1 milestones per day
 
-        // Cap the effective days to prevent over-progression (max ~30 days worth of progression)
-        let effectiveDays = min(day, 30)
-        let tiersGained = Int(dailyRate * Double(effectiveDays))
+        // No cap - allow natural progression over real time (players can eventually reach infinity)
+        let tiersGained = Int(dailyRate * Double(day))
 
         // Progress through milestone tiers (capped at max tier)
         let newIndex = min(baseIndex + tiersGained, allMilestones.count - 1)
@@ -1652,7 +1838,33 @@ enum MockLeaderboardData {
         "FaxeFalcon", "StevnsStorm", "LejreLion", "OdsherredOracle", "KalundborgKnight"
     ]
 
-    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
+    static let finlandNames = [
+        "HelsinkiHero", "EspooElite", "TampereThunder", "VantaaVictor", "OuluOracle",
+        "TurkuTitan", "JyväskyläJet", "LahtiLion", "KuopioKnight", "PoriPhantom",
+        "JoensuuJuggernaut", "LappeenrantaLegend", "VaasaViking", "RovaniemiRaider", "SeinäjokiStar",
+        "MikkeliMaster", "KotkaKrusher", "SaloSword", "PorvooPhoenix", "KouvoluKing",
+        "HyvinääHawk", "KeravaKnight", "JärenpääJester", "NurmijärviNinja", "RaisiRuler",
+        "KokkolaChampion", "TuusulaThunder", "KajaaniKnight", "SipoStar", "LohjuLegend",
+        "RaumaRanger", "KangasalaKnight", "YlöjärviYeti", "ImtraIntense", "RiihimäkiRuler",
+        "NokiaNinja", "VihtiVictor", "SavonlinnaStar", "KauniainenKing", "PirkkalaPhantom",
+        "HeinoluHero", "MäntsäläMaster", "HolloluHawk", "ValkeakoskiVictor", "IisalmiIcon",
+        "VarkausiViking", "KemiKnight", "TornioThunder", "UlviluUltimate", "AkaaAce"
+    ]
+
+    static let polandNames = [
+        "WarsawWarrior", "KrakowKnight", "LodzLegend", "WroclawWolf", "PoznanPhantom",
+        "GdanskGladiator", "SzczecinStorm", "BydgoszczBeast", "LublinLion", "BialystokBlade",
+        "KatowiceKing", "GdyniaGuardian", "CzestochowaChamp", "RadomRaider", "SosnowiecStar",
+        "TorunTitan", "KielceKrusher", "GliwiceGhost", "ZabrzaZealot", "BytomBaron",
+        "OlsztynOracle", "BielskoBialaBlitz", "RzeszowRanger", "RudaSlaskaRuler", "RybnikRebel",
+        "TychyThunder", "DabrowaDemon", "PlocPlague", "ElblagElite", "OpoleOmega",
+        "GorzowGiant", "WalbrzychWarden", "ZielnaGoraZephyr", "WloclawekVictor", "TarnowTerror",
+        "ChorzowChampion", "KoszalinKnight", "LegnicaLord", "KaliszKommander", "GrunwaldGladiator",
+        "PilaProwler", "OstrowiecOracle", "OstrowOrion", "GnieznoGhost", "StargardStar",
+        "InowroclawIcon", "PruszkówProwler", "LucznickiLegend", "SlupskSlayer", "SieradzkiSword"
+    ]
+
+    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
     static func seededRandom(seed: Int, index: Int) -> Double {
@@ -1736,6 +1948,8 @@ enum MockLeaderboardData {
         case "CH": return LeaderboardClient.switzerlandExtendedRankBrackets
         case "NO": return LeaderboardClient.norwayExtendedRankBrackets
         case "DK": return LeaderboardClient.denmarkExtendedRankBrackets
+        case "FI": return LeaderboardClient.finlandExtendedRankBrackets
+        case "PL": return LeaderboardClient.polandExtendedRankBrackets
         default: return LeaderboardClient.usExtendedRankBrackets
         }
     }
@@ -1786,6 +2000,8 @@ enum MockLeaderboardData {
         case "CH": return LeaderboardClient.switzerlandPlayerMilestones
         case "NO": return LeaderboardClient.norwayPlayerMilestones
         case "DK": return LeaderboardClient.denmarkPlayerMilestones
+        case "FI": return LeaderboardClient.finlandPlayerMilestones
+        case "PL": return LeaderboardClient.polandPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -1844,59 +2060,91 @@ public extension LeaderboardClient {
                 entries = norwayEntries()
             case .countryDK:
                 entries = denmarkEntries()
+            case .countryFI:
+                entries = finlandEntries()
+            case .countryPL:
+                entries = polandEntries()
             case .global:
                 entries = globalEntries()
             }
             let day = MockLeaderboardData.daysSinceReference
+            // Dynamic player counts with joining rate and attrition
             let totalPlayers: Int
             switch filter {
             case .hallOfFame:
-                totalPlayers = 604  // Total Hall of Fame players across all countries
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 604, on: day, countrySeed: 999)
             case .country:
                 totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
             case .countryUK:
-                totalPlayers = 17_676  // UK player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 17_676, on: day, countrySeed: 100)
             case .countryCA:
-                totalPlayers = 12_847  // Canada player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 12_847, on: day, countrySeed: 101)
             case .countryAU:
-                totalPlayers = 63_213  // Australia player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 63_213, on: day, countrySeed: 102)
             case .countryDE:
-                totalPlayers = 76_767  // Germany player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 76_767, on: day, countrySeed: 103)
             case .countryFR:
-                totalPlayers = 127_676  // France player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 127_676, on: day, countrySeed: 104)
             case .countryJP:
-                totalPlayers = 894  // Japan player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 894, on: day, countrySeed: 105)
             case .countryIN:
-                totalPlayers = 1_488  // India player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_488, on: day, countrySeed: 106)
             case .countryBR:
-                totalPlayers = 10_000  // Brazil player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 10_000, on: day, countrySeed: 107)
             case .countryMX:
-                totalPlayers = 7_229  // Mexico player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 7_229, on: day, countrySeed: 108)
             case .countryAF:
-                totalPlayers = 11_111  // Afghanistan player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 11_111, on: day, countrySeed: 109)
             case .countryAL:
-                totalPlayers = 11_222  // Albania player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 11_222, on: day, countrySeed: 110)
             case .countryDZ:
-                totalPlayers = 3_333  // Algeria player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 3_333, on: day, countrySeed: 111)
             case .countryCN:
-                totalPlayers = 8_192  // China player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 8_192, on: day, countrySeed: 112)
             case .countryKR:
-                totalPlayers = 3_123  // South Korea player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 3_123, on: day, countrySeed: 113)
             case .countryIT:
-                totalPlayers = 13_856  // Italy player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 13_856, on: day, countrySeed: 114)
             case .countryES:
-                totalPlayers = 14_399  // Spain player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 14_399, on: day, countrySeed: 115)
             case .countryNL:
-                totalPlayers = 46_767  // Netherlands player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 46_767, on: day, countrySeed: 116)
             case .countryCH:
-                totalPlayers = 20_000  // Switzerland player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 20_000, on: day, countrySeed: 117)
             case .countryNO:
-                totalPlayers = 34_924  // Norway player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 34_924, on: day, countrySeed: 118)
             case .countryDK:
-                totalPlayers = 90_123  // Denmark player count
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 90_123, on: day, countrySeed: 119)
+            case .countryFI:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 87_654, on: day, countrySeed: 120)
+            case .countryPL:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 67_108, on: day, countrySeed: 121)
             case .global:
-                // Global = sum of all country players
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true) + 17_676 + 12_847 + 63_213 + 76_767 + 127_676 + 894 + 1_488 + 10_000 + 7_229 + 11_111 + 11_222 + 3_333 + 8_192 + 3_123 + 13_856 + 14_399 + 46_767 + 20_000 + 34_924 + 90_123
+                // Global = sum of all country players (dynamic)
+                let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
+                let ukPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 17_676, on: day, countrySeed: 100)
+                let caPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 12_847, on: day, countrySeed: 101)
+                let auPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 63_213, on: day, countrySeed: 102)
+                let dePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 76_767, on: day, countrySeed: 103)
+                let frPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 127_676, on: day, countrySeed: 104)
+                let jpPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 894, on: day, countrySeed: 105)
+                let inPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_488, on: day, countrySeed: 106)
+                let brPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 10_000, on: day, countrySeed: 107)
+                let mxPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 7_229, on: day, countrySeed: 108)
+                let afPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 11_111, on: day, countrySeed: 109)
+                let alPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 11_222, on: day, countrySeed: 110)
+                let dzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 3_333, on: day, countrySeed: 111)
+                let cnPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 8_192, on: day, countrySeed: 112)
+                let krPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 3_123, on: day, countrySeed: 113)
+                let itPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 13_856, on: day, countrySeed: 114)
+                let esPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 14_399, on: day, countrySeed: 115)
+                let nlPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 46_767, on: day, countrySeed: 116)
+                let chPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 20_000, on: day, countrySeed: 117)
+                let noPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 34_924, on: day, countrySeed: 118)
+                let dkPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 90_123, on: day, countrySeed: 119)
+                let fiPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 87_654, on: day, countrySeed: 120)
+                let plPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 67_108, on: day, countrySeed: 121)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers
             }
             let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
             return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
@@ -2060,19 +2308,31 @@ public extension LeaderboardClient {
             globalIndex += 1
         }
 
-        // Sort by base count (highest first) - Hall of Fame data is already current, no progression needed
-        playerData.sort { $0.baseCount > $1.baseCount }
+        // Apply daily progression to infinity counts using tiered rates:
+        // 1-99: 0.2-0.55/day, 100-999: 1-4/day, 1000-9999: 3-7/day, 10000-99999: 6-15/day, 100000+: 10-30/day
+        var progressedData: [(id: String, progressedCount: Int, country: String, nameIndex: Int, playerIndex: Int)] = []
+        for player in playerData {
+            let progressedCount = MockLeaderboardData.infinityCountWithProgression(
+                baseCount: player.baseCount,
+                playerIndex: player.playerIndex,
+                day: day
+            )
+            progressedData.append((player.id, progressedCount, player.country, player.nameIndex, player.playerIndex))
+        }
+
+        // Sort by progressed count (highest first)
+        progressedData.sort { $0.progressedCount > $1.progressedCount }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
-        for (rank, player) in playerData.enumerated() {
-            // Use unique name from hallOfFameNames based on rank position
-            let name = MockLeaderboardData.hallOfFameNames[rank % MockLeaderboardData.hallOfFameNames.count]
+        for (rank, player) in progressedData.enumerated() {
+            // Use unique name from hallOfFameNames with daily variation (HoF seed: 999999)
+            let name = MockLeaderboardData.nameForPlayer(index: rank, names: MockLeaderboardData.hallOfFameNames, countrySeed: 999999, day: day)
 
             let platform: Platform = rank % 2 == 0 ? .ios : .android
-            // Use seeded avatar selection for variety (different from names)
-            let avatar = MockLeaderboardData.avatarForPlayer(index: rank, countrySeed: 999)
-            let score = MockLeaderboardData.scoreForMilestone("\(player.baseCount)∞")
+            // Use seeded avatar selection with daily variation (HoF seed: 999999)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: rank, countrySeed: 999999, day: day)
+            let score = MockLeaderboardData.scoreForMilestone("\(player.progressedCount)∞")
 
             entries.append(LeaderboardEntry(
                 id: player.id,
@@ -2082,7 +2342,7 @@ public extension LeaderboardClient {
                 countryCode: player.country,
                 platform: platform,
                 avatarURL: avatar,
-                highestTile: "\(player.baseCount)∞"
+                highestTile: "\(player.progressedCount)∞"
             ))
         }
 
@@ -2201,7 +2461,7 @@ public extension LeaderboardClient {
     static let australiaPlayerMilestones: [String] = [
         // Ranks 1-30 (from screenshot)
         "13bz", "794bv", "2br", "657bn", "1bm", "9bk", "556bg", "278bg", "69bg", "989bb",
-        "463ay", "4a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
+        "463v", "4a", "409at", "48ar", "46ap", "88an", "676al", "1al", "10aj", "2ah",
         "2af", "69ad", "4ac", "1ab", "127z", "1z", "971x", "30x", "1x", "452u",
         // Ranks 31-60 (from screenshot)
         "113u", "14u", "883t", "27t", "431s", "3s", "210r", "52r", "3r", "411q",
@@ -2359,9 +2619,9 @@ public extension LeaderboardClient {
         "449ax", "1au", "1ar", "5ao", "84al", "1aj", "2af", "8ab", "2aa", "7z",
         "15x", "7v", "3v", "1t", "1r", "6p", "91l", "2l", "44k", "696j",
         // Ranks 31-60 (from screenshot)
-        "1j", "2i", "1i", "332h", "41h", "5h", "649g", "81g", "10g", "1g",
-        "79f", "1f", "77e", "4e", "1e", "604d", "151d", "2d", "1d", "295c",
-        "147c", "36c", "2c", "288b", "72b", "72b", "18b", "18b", "4b", "4b",
+        "1j", "2i", "1i", "332h", "41h", "5h", "649g", "81g", "10g", "10g",
+        "5g", "2g", "2g", "1g", "633f", "316f", "79f", "19f", "1f", "154e",
+        "9e", "77e", "4e", "1e", "604d", "151d", "2d", "1d", "295c", "147c",
         // Ranks 61-90 (from screenshot)
         "2b", "1b", "281a", "140a", "140a", "70a", "17a", "1a", "1a", "1a",
         "549B", "549B", "274B", "137B", "68B", "68B", "17B", "4B", "2B", "2B",
@@ -2546,7 +2806,7 @@ public extension LeaderboardClient {
     // Albania player milestones - exact values from positions 1-150
     static let albaniaPlayerMilestones: [String] = [
         // Ranks 1-30
-        "436bz", "109bz", "6bz", "1by", "3bu", "2bq", "39bl", "2bh", "7ba", "3ax",
+        "873bz", "109bz", "6bz", "1by", "3bu", "2bq", "39bl", "2bh", "7ba", "3ax",
         "418au", "3at", "47aq", "2an", "5al", "19ai", "546ac", "65aa", "497y", "7x",
         "57v", "883t", "13s", "411q", "3q", "392o", "1n", "1m", "2l", "5k",
         // Ranks 31-60
@@ -2896,6 +3156,93 @@ public extension LeaderboardClient {
         ("8", 60000), ("4", 67676), ("2", 76767), ("0", 82898)  // Score 0 = ranks 82898-90123
     ]
 
+    // Finland player milestones (ranks 1-150)
+    static let finlandPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "436bz", "94bt", "1br", "2bq", "1bm", "1bi", "570bh", "142bh", "71bh", "17bh",
+        "1bh", "556bg", "1be", "1bd", "15bb", "7ba", "3ba", "471az", "117az", "14az",
+        "1az", "3ay", "1ax", "6av", "12at", "1at", "1as", "2ar", "5aq", "11ap",
+        // Ranks 31-60
+        "2ap", "1ap", "1al", "2ak", "645aj", "322aj", "80aj", "20aj", "10aj", "2aj",
+        "630ai", "315ai", "78ai", "19ai", "2ai", "1ah", "9ag", "146af", "36af", "4af",
+        "2af", "1ad", "8ab", "32aa", "16aa", "4aa", "1aa", "509z", "127z", "63z",
+        // Ranks 61-90
+        "31z", "31z", "15z", "7z", "1z", "7y", "463v", "3u", "1u", "110t",
+        "13t", "3t", "1t", "3s", "6r", "1r", "6q", "6q", "3q", "24o",
+        "3o", "1o", "11n", "5n", "5n", "2n", "748m", "23m", "91l", "11l",
+        // Ranks 91-120
+        "1l", "89k", "11k", "2k", "696j", "10j", "2j", "85i", "10i", "664h",
+        "41h", "633f", "316f", "158f", "39f", "4f", "1f", "2e", "151d", "4d",
+        "4c", "2c", "2c", "1c", "576b", "144b", "144b", "72b", "72b", "72b",
+        // Ranks 121-150
+        "36b", "18b", "9b", "4b", "4b", "1b", "562a", "562a", "281a", "281a",
+        "70a", "70a", "70a", "70a", "17a", "8a", "8a", "4a", "4a", "4a",
+        "4a", "4a", "2a", "2a", "2a", "2a", "2a", "1a", "1a", "1a", "1a", "1a", "1a"
+    ]
+
+    static let polandPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "672bo", "1bo", "4bl", "4bi", "570bh", "3bc", "30bb", "3ay", "1aw", "1aw",
+        "1aw", "429av", "53av", "3av", "1at", "3as", "48ar", "3ar", "1ar", "2aq",
+        "11ap", "22ao", "2ao", "709an", "1aj", "300ag", "1af", "69ad", "34ac", "1ac",
+        // Ranks 31-60
+        "1ab", "4aa", "2aa", "497y", "3y", "115v", "7u", "1u", "3s", "26r",
+        "3r", "51q", "3q", "1q", "1q", "1q", "401p", "200p", "50p", "12p",
+        "12p", "1o", "1n", "93m", "11m", "5m", "5m", "2m", "2m", "1m",
+        // Ranks 61-90
+        "1m", "1m", "365l", "182l", "45l", "45l", "22l", "11l", "5l", "2l",
+        "2l", "1l", "1l", "713k", "713k", "356k", "178k", "89k", "22k", "22k",
+        "2k", "1k", "1k", "348j", "174j", "174j", "87j", "43j", "43j", "43j",
+        // Ranks 91-120
+        "21j", "21j", "10j", "5j", "5j", "2j", "1j", "340i", "42i", "10i",
+        "10i", "5i", "5i", "2i", "1i", "1i", "664h", "166h", "41h", "20h",
+        "20h", "10h", "2h", "324g", "20g", "10g", "2g", "2g", "1g", "158f",
+        // Ranks 121-150
+        "39f", "4f", "9e", "9e", "4e", "2e", "2e", "1e", "604d", "604d",
+        "604d", "302d", "302d", "151d", "75d", "37d", "18d", "18d", "9d", "9d",
+        "2d", "73c", "18c", "18c", "4c", "2c", "2c", "1c", "288b", "288b"
+    ]
+
+    // Extended Finland milestone brackets for rank calculation (ranks 151+)
+    // Total Finland players: ~87,654
+    static let finlandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // a-tier and B-tier brackets (ranks 151-392)
+        ("1a", 151), ("549B", 153), ("274B", 162), ("137B", 183), ("68B", 198), ("34B", 233),
+        ("17B", 257), ("8B", 292), ("4B", 322), ("2B", 355), ("1B", 392),
+        // M-tier brackets (ranks 428-999)
+        ("536M", 428), ("268M", 467), ("134M", 511), ("67M", 571), ("33M", 642),
+        ("16M", 725), ("8M", 785), ("4M", 843), ("2M", 908), ("1M", 999),
+        // K-tier brackets (ranks 1111-3888)
+        ("524K", 1111), ("262K", 1279), ("131K", 1667), ("65K", 2222), ("32K", 2999), ("16K", 3888),
+        // Raw number brackets (ranks 5111-87654)
+        ("8192", 5111), ("4096", 6767), ("2048", 8956), ("1024", 12345), ("512", 17890),
+        ("256", 24321), ("128", 29876), ("64", 34543), ("32", 41111), ("16", 50000),
+        ("8", 58888), ("4", 67676), ("2", 76767), ("0", 87654)  // Score 0 = end rank
+    ]
+
+    // Extended Poland milestone brackets for rank calculation (ranks 151+)
+    // Total Poland players: ~67,108
+    static let polandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // b-tier brackets (ranks 151-160)
+        ("72b", 151), ("36b", 152), ("18b", 153), ("9b", 154), ("4b", 155),
+        ("2b", 157), ("1b", 159),
+        // a-tier brackets (ranks 161-201)
+        ("562a", 161), ("281a", 162), ("140a", 164), ("70a", 167), ("35a", 171),
+        ("17a", 176), ("8a", 182), ("4a", 189), ("2a", 194), ("1a", 198),
+        // B-tier brackets (ranks 202-244)
+        ("549B", 202), ("274B", 203), ("137B", 205), ("68B", 207), ("34B", 211),
+        ("17B", 216), ("8B", 222), ("4B", 229), ("2B", 236), ("1B", 244),
+        // M-tier brackets (ranks 254-639)
+        ("536M", 254), ("268M", 266), ("134M", 281), ("67M", 300), ("33M", 328),
+        ("16M", 366), ("8M", 419), ("4M", 475), ("2M", 551), ("1M", 639),
+        // K-tier brackets (ranks 737-2222)
+        ("524K", 737), ("262K", 853), ("131K", 991), ("65K", 1200), ("32K", 1667), ("16K", 2222),
+        // Raw number brackets (ranks 3333-67108)
+        ("8192", 3333), ("4096", 4567), ("2048", 6767), ("1024", 8765), ("512", 12345),
+        ("256", 16789), ("128", 22222), ("64", 29876), ("32", 36925), ("16", 41414),
+        ("8", 50000), ("4", 54321), ("2", 56789), ("0", 60000)  // Score 0 = ranks 60000-67108
+    ]
+
     // Extended Netherlands milestone brackets for rank calculation (ranks 151+)
     // Total Netherlands players: ~46,767
     static let netherlandsExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
@@ -3094,6 +3441,22 @@ public extension LeaderboardClient {
         return map
     }()
 
+    // Helper function to get player name with daily variation
+    private static func nameForPlayer(index: Int, names: [String], countrySeed: Int, day: Int) -> String {
+        // Use seeded random to occasionally swap names for variety
+        let seed = index + countrySeed + day
+        let randomOffset = Int(MockLeaderboardData.seededRandom(seed: seed, index: 0) * 3)
+        return names[(index + randomOffset) % names.count]
+    }
+
+    // Helper function to get player avatar with daily variation
+    private static func avatarForPlayer(index: Int, countrySeed: Int, day: Int) -> String {
+        // Use seeded random to vary avatars daily
+        let seed = index + countrySeed + day * 7
+        let randomOffset = Int(MockLeaderboardData.seededRandom(seed: seed, index: 1) * 5)
+        return MockLeaderboardData.avatarIDs[(index + randomOffset) % MockLeaderboardData.avatarIDs.count]
+    }
+
     // Global leaderboard - combines all country leaderboards (US + UK + more to come)
     // Ranks are based on milestone - higher milestone = better rank
     private static func globalEntries() -> [LeaderboardEntry] {
@@ -3105,268 +3468,323 @@ public extension LeaderboardClient {
         // Add US players
         for i in 0..<min(150, usPlayerMilestones.count) {
             let baseMilestone = usPlayerMilestones[i]
-            let name = MockLeaderboardData.usNames[i % MockLeaderboardData.usNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.usNames, countrySeed: 0, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 0, day: day)
 
-            // US milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i, baseMilestone, milestoneIdx, name, "US", platform, avatar, "us_\(i)"))
+            playerData.append((i, i, progressedMilestone, milestoneIdx, name, "US", platform, avatar, "us_\(i)"))
         }
 
         // Add UK players
         for i in 0..<min(150, ukPlayerMilestones.count) {
             let baseMilestone = ukPlayerMilestones[i]
-            let name = MockLeaderboardData.ukNames[i % MockLeaderboardData.ukNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.ukNames, countrySeed: 5000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 6) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 5000, day: day)
 
-            // UK milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 5000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 5000, baseMilestone, milestoneIdx, name, "GB", platform, avatar, "uk_\(i)"))
+            playerData.append((i, i + 5000, progressedMilestone, milestoneIdx, name, "GB", platform, avatar, "uk_\(i)"))
         }
 
         // Add Canada players
         for i in 0..<min(150, canadaPlayerMilestones.count) {
             let baseMilestone = canadaPlayerMilestones[i]
-            let name = MockLeaderboardData.canadaNames[i % MockLeaderboardData.canadaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.canadaNames, countrySeed: 10000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 12) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 10000, day: day)
 
-            // Canada milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 10000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 10000, baseMilestone, milestoneIdx, name, "CA", platform, avatar, "ca_\(i)"))
+            playerData.append((i, i + 10000, progressedMilestone, milestoneIdx, name, "CA", platform, avatar, "ca_\(i)"))
         }
 
         // Add Australia players
         for i in 0..<min(150, australiaPlayerMilestones.count) {
             let baseMilestone = australiaPlayerMilestones[i]
-            let name = MockLeaderboardData.australiaNames[i % MockLeaderboardData.australiaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.australiaNames, countrySeed: 15000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 18) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 15000, day: day)
 
-            // Australia milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 15000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 15000, baseMilestone, milestoneIdx, name, "AU", platform, avatar, "au_\(i)"))
+            playerData.append((i, i + 15000, progressedMilestone, milestoneIdx, name, "AU", platform, avatar, "au_\(i)"))
         }
 
         // Add Germany players
         for i in 0..<min(150, germanyPlayerMilestones.count) {
             let baseMilestone = germanyPlayerMilestones[i]
-            let name = MockLeaderboardData.germanyNames[i % MockLeaderboardData.germanyNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.germanyNames, countrySeed: 20000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 24) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 20000, day: day)
 
-            // Germany milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 20000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 20000, baseMilestone, milestoneIdx, name, "DE", platform, avatar, "de_\(i)"))
+            playerData.append((i, i + 20000, progressedMilestone, milestoneIdx, name, "DE", platform, avatar, "de_\(i)"))
         }
 
         // Add France players
         for i in 0..<min(150, francePlayerMilestones.count) {
             let baseMilestone = francePlayerMilestones[i]
-            let name = MockLeaderboardData.franceNames[i % MockLeaderboardData.franceNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.franceNames, countrySeed: 25000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 30) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 25000, day: day)
 
-            // France milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 25000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 25000, baseMilestone, milestoneIdx, name, "FR", platform, avatar, "fr_\(i)"))
+            playerData.append((i, i + 25000, progressedMilestone, milestoneIdx, name, "FR", platform, avatar, "fr_\(i)"))
         }
 
         // Add Japan players
         for i in 0..<min(150, japanPlayerMilestones.count) {
             let baseMilestone = japanPlayerMilestones[i]
-            let name = MockLeaderboardData.japanNames[i % MockLeaderboardData.japanNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.japanNames, countrySeed: 30000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 36) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 30000, day: day)
 
-            // Japan milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 30000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 30000, baseMilestone, milestoneIdx, name, "JP", platform, avatar, "jp_\(i)"))
+            playerData.append((i, i + 30000, progressedMilestone, milestoneIdx, name, "JP", platform, avatar, "jp_\(i)"))
         }
 
         // Add India players
         for i in 0..<min(150, indiaPlayerMilestones.count) {
             let baseMilestone = indiaPlayerMilestones[i]
-            let name = MockLeaderboardData.indiaNames[i % MockLeaderboardData.indiaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.indiaNames, countrySeed: 35000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 42) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 35000, day: day)
 
-            // India milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 35000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 35000, baseMilestone, milestoneIdx, name, "IN", platform, avatar, "in_\(i)"))
+            playerData.append((i, i + 35000, progressedMilestone, milestoneIdx, name, "IN", platform, avatar, "in_\(i)"))
         }
 
         // Add Brazil players
         for i in 0..<min(150, brazilPlayerMilestones.count) {
             let baseMilestone = brazilPlayerMilestones[i]
-            let name = MockLeaderboardData.brazilNames[i % MockLeaderboardData.brazilNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.brazilNames, countrySeed: 40000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 48) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 40000, day: day)
 
-            // Brazil milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 40000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 40000, baseMilestone, milestoneIdx, name, "BR", platform, avatar, "br_\(i)"))
+            playerData.append((i, i + 40000, progressedMilestone, milestoneIdx, name, "BR", platform, avatar, "br_\(i)"))
         }
 
         // Add Mexico players
         for i in 0..<min(150, mexicoPlayerMilestones.count) {
             let baseMilestone = mexicoPlayerMilestones[i]
-            let name = MockLeaderboardData.mexicoNames[i % MockLeaderboardData.mexicoNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.mexicoNames, countrySeed: 45000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 54) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 45000, day: day)
 
-            // Mexico milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 45000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 45000, baseMilestone, milestoneIdx, name, "MX", platform, avatar, "mx_\(i)"))
+            playerData.append((i, i + 45000, progressedMilestone, milestoneIdx, name, "MX", platform, avatar, "mx_\(i)"))
         }
 
         // Add Afghanistan players
         for i in 0..<min(150, afghanistanPlayerMilestones.count) {
             let baseMilestone = afghanistanPlayerMilestones[i]
-            let name = MockLeaderboardData.afghanistanNames[i % MockLeaderboardData.afghanistanNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.afghanistanNames, countrySeed: 50000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 60) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 50000, day: day)
 
-            // Afghanistan milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 50000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 50000, baseMilestone, milestoneIdx, name, "AF", platform, avatar, "af_\(i)"))
+            playerData.append((i, i + 50000, progressedMilestone, milestoneIdx, name, "AF", platform, avatar, "af_\(i)"))
         }
 
         // Add Albania players
         for i in 0..<min(150, albaniaPlayerMilestones.count) {
             let baseMilestone = albaniaPlayerMilestones[i]
-            let name = MockLeaderboardData.albaniaNames[i % MockLeaderboardData.albaniaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.albaniaNames, countrySeed: 55000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 66) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 55000, day: day)
 
-            // Albania milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 55000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 55000, baseMilestone, milestoneIdx, name, "AL", platform, avatar, "al_\(i)"))
+            playerData.append((i, i + 55000, progressedMilestone, milestoneIdx, name, "AL", platform, avatar, "al_\(i)"))
         }
 
         // Add Algeria players
         for i in 0..<min(150, algeriaPlayerMilestones.count) {
             let baseMilestone = algeriaPlayerMilestones[i]
-            let name = MockLeaderboardData.algeriaNames[i % MockLeaderboardData.algeriaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.algeriaNames, countrySeed: 60000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 72) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 60000, day: day)
 
-            // Algeria milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 60000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 60000, baseMilestone, milestoneIdx, name, "DZ", platform, avatar, "dz_\(i)"))
+            playerData.append((i, i + 60000, progressedMilestone, milestoneIdx, name, "DZ", platform, avatar, "dz_\(i)"))
         }
 
         // Add China players
         for i in 0..<min(150, chinaPlayerMilestones.count) {
             let baseMilestone = chinaPlayerMilestones[i]
-            let name = MockLeaderboardData.chinaNames[i % MockLeaderboardData.chinaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.chinaNames, countrySeed: 65000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 78) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 65000, day: day)
 
-            // China milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 65000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 65000, baseMilestone, milestoneIdx, name, "CN", platform, avatar, "cn_\(i)"))
+            playerData.append((i, i + 65000, progressedMilestone, milestoneIdx, name, "CN", platform, avatar, "cn_\(i)"))
         }
 
         // Add South Korea players
         for i in 0..<min(150, southKoreaPlayerMilestones.count) {
             let baseMilestone = southKoreaPlayerMilestones[i]
-            let name = MockLeaderboardData.southKoreaNames[i % MockLeaderboardData.southKoreaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.southKoreaNames, countrySeed: 70000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 84) % MockLeaderboardData.avatarIDs.count]  // Offset for variety
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 70000, day: day)
 
-            // South Korea milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 70000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 70000, baseMilestone, milestoneIdx, name, "KR", platform, avatar, "kr_\(i)"))
+            playerData.append((i, i + 70000, progressedMilestone, milestoneIdx, name, "KR", platform, avatar, "kr_\(i)"))
         }
 
         // Add Italy players
         for i in 0..<min(150, italyPlayerMilestones.count) {
             let baseMilestone = italyPlayerMilestones[i]
-            let name = MockLeaderboardData.italyNames[i % MockLeaderboardData.italyNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.italyNames, countrySeed: 75000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 91) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 75000, day: day)
 
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 75000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 75000, baseMilestone, milestoneIdx, name, "IT", platform, avatar, "it_\(i)"))
+            playerData.append((i, i + 75000, progressedMilestone, milestoneIdx, name, "IT", platform, avatar, "it_\(i)"))
         }
 
         // Add Spain players
         for i in 0..<min(150, spainPlayerMilestones.count) {
             let baseMilestone = spainPlayerMilestones[i]
-            let name = MockLeaderboardData.spainNames[i % MockLeaderboardData.spainNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.spainNames, countrySeed: 80000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 120) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 80000, day: day)
 
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 80000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 80000, baseMilestone, milestoneIdx, name, "ES", platform, avatar, "es_\(i)"))
+            playerData.append((i, i + 80000, progressedMilestone, milestoneIdx, name, "ES", platform, avatar, "es_\(i)"))
         }
 
         // Add Netherlands players
         for i in 0..<min(150, netherlandsPlayerMilestones.count) {
             let baseMilestone = netherlandsPlayerMilestones[i]
-            let name = MockLeaderboardData.netherlandsNames[i % MockLeaderboardData.netherlandsNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.netherlandsNames, countrySeed: 85000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 160)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 85000, day: day)
 
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 85000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 85000, baseMilestone, milestoneIdx, name, "NL", platform, avatar, "nl_\(i)"))
+            playerData.append((i, i + 85000, progressedMilestone, milestoneIdx, name, "NL", platform, avatar, "nl_\(i)"))
         }
 
         // Add Switzerland players
         for i in 0..<min(150, switzerlandPlayerMilestones.count) {
             let baseMilestone = switzerlandPlayerMilestones[i]
-            let name = MockLeaderboardData.switzerlandNames[i % MockLeaderboardData.switzerlandNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.switzerlandNames, countrySeed: 90000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 180)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 90000, day: day)
 
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 90000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 90000, baseMilestone, milestoneIdx, name, "CH", platform, avatar, "ch_\(i)"))
+            playerData.append((i, i + 90000, progressedMilestone, milestoneIdx, name, "CH", platform, avatar, "ch_\(i)"))
         }
 
         // Add Norway players
         for i in 0..<min(150, norwayPlayerMilestones.count) {
             let baseMilestone = norwayPlayerMilestones[i]
-            let name = MockLeaderboardData.norwayNames[i % MockLeaderboardData.norwayNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.norwayNames, countrySeed: 95000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 200)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 95000, day: day)
 
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 95000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 95000, baseMilestone, milestoneIdx, name, "NO", platform, avatar, "no_\(i)"))
+            playerData.append((i, i + 95000, progressedMilestone, milestoneIdx, name, "NO", platform, avatar, "no_\(i)"))
         }
 
         // Add Denmark players
         for i in 0..<min(150, denmarkPlayerMilestones.count) {
             let baseMilestone = denmarkPlayerMilestones[i]
-            let name = MockLeaderboardData.denmarkNames[i % MockLeaderboardData.denmarkNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.denmarkNames, countrySeed: 100000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 210)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 100000, day: day)
 
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 100000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, i + 100000, baseMilestone, milestoneIdx, name, "DK", platform, avatar, "dk_\(i)"))
+            playerData.append((i, i + 100000, progressedMilestone, milestoneIdx, name, "DK", platform, avatar, "dk_\(i)"))
+        }
+
+        // Add Finland players
+        for i in 0..<min(150, finlandPlayerMilestones.count) {
+            let baseMilestone = finlandPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.finlandNames, countrySeed: 105000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 105000, day: day)
+
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 105000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+
+            playerData.append((i, i + 105000, progressedMilestone, milestoneIdx, name, "FI", platform, avatar, "fi_\(i)"))
+        }
+
+        // Add Poland players
+        for i in 0..<min(150, polandPlayerMilestones.count) {
+            let baseMilestone = polandPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.polandNames, countrySeed: 110000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 110000, day: day)
+
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 110000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+
+            playerData.append((i, i + 110000, progressedMilestone, milestoneIdx, name, "PL", platform, avatar, "pl_\(i)"))
         }
 
         // Add the user to playerData so they get sorted with everyone else
@@ -3486,15 +3904,16 @@ public extension LeaderboardClient {
 
         for i in 0..<150 {  // Only show top 150 in leaderboard
             let baseMilestone = usPlayerMilestones[i]
-            let name = MockLeaderboardData.usNames[i % MockLeaderboardData.usNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.usNames, countrySeed: 0, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
             // Use seeded avatar selection for variety (different from names)
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 1)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 0, day: day)
 
-            // US milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "us_\(i)"))
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "us_\(i)"))
         }
 
         // Add user to playerData so they get sorted with everyone else
@@ -3590,9 +4009,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, ukPlayerMilestones.count) {
             let baseMilestone = ukPlayerMilestones[i]
-            let name = MockLeaderboardData.ukNames[i % MockLeaderboardData.ukNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.ukNames, countrySeed: 5000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 5000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "uk_\(i)"))
@@ -3679,9 +4098,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, canadaPlayerMilestones.count) {
             let baseMilestone = canadaPlayerMilestones[i]
-            let name = MockLeaderboardData.canadaNames[i % MockLeaderboardData.canadaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.canadaNames, countrySeed: 10000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 10000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "ca_\(i)"))
@@ -3768,9 +4187,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, australiaPlayerMilestones.count) {
             let baseMilestone = australiaPlayerMilestones[i]
-            let name = MockLeaderboardData.australiaNames[i % MockLeaderboardData.australiaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.australiaNames, countrySeed: 15000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 15000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "au_\(i)"))
@@ -3856,9 +4275,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, germanyPlayerMilestones.count) {
             let baseMilestone = germanyPlayerMilestones[i]
-            let name = MockLeaderboardData.germanyNames[i % MockLeaderboardData.germanyNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.germanyNames, countrySeed: 20000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 20000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "de_\(i)"))
         }
@@ -3908,9 +4327,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, francePlayerMilestones.count) {
             let baseMilestone = francePlayerMilestones[i]
-            let name = MockLeaderboardData.franceNames[i % MockLeaderboardData.franceNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.franceNames, countrySeed: 25000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 25000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "fr_\(i)"))
         }
@@ -3962,14 +4381,15 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, japanPlayerMilestones.count) {
             let baseMilestone = japanPlayerMilestones[i]
-            let name = MockLeaderboardData.japanNames[i % MockLeaderboardData.japanNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.japanNames, countrySeed: 30000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 30000, day: day)
 
-            // Japan milestones are already current values - don't apply progression
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 30000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
 
-            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "jp_\(i)"))
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "jp_\(i)"))
         }
 
         // Add user to playerData so they get sorted with everyone else
@@ -4054,9 +4474,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, indiaPlayerMilestones.count) {
             let baseMilestone = indiaPlayerMilestones[i]
-            let name = MockLeaderboardData.indiaNames[i % MockLeaderboardData.indiaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.indiaNames, countrySeed: 35000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 35000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "in_\(i)"))
         }
@@ -4106,9 +4526,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, brazilPlayerMilestones.count) {
             let baseMilestone = brazilPlayerMilestones[i]
-            let name = MockLeaderboardData.brazilNames[i % MockLeaderboardData.brazilNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.brazilNames, countrySeed: 40000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[i % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 40000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "br_\(i)"))
         }
@@ -4158,9 +4578,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, mexicoPlayerMilestones.count) {
             let baseMilestone = mexicoPlayerMilestones[i]
-            let name = MockLeaderboardData.mexicoNames[i % MockLeaderboardData.mexicoNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.mexicoNames, countrySeed: 45000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 54) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 45000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "mx_\(i)"))
         }
@@ -4210,9 +4630,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, afghanistanPlayerMilestones.count) {
             let baseMilestone = afghanistanPlayerMilestones[i]
-            let name = MockLeaderboardData.afghanistanNames[i % MockLeaderboardData.afghanistanNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.afghanistanNames, countrySeed: 50000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 60) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 50000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "af_\(i)"))
         }
@@ -4263,9 +4683,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, albaniaPlayerMilestones.count) {
             let baseMilestone = albaniaPlayerMilestones[i]
-            let name = MockLeaderboardData.albaniaNames[i % MockLeaderboardData.albaniaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.albaniaNames, countrySeed: 55000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 66) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 55000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "al_\(i)"))
         }
@@ -4316,9 +4736,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, algeriaPlayerMilestones.count) {
             let baseMilestone = algeriaPlayerMilestones[i]
-            let name = MockLeaderboardData.algeriaNames[i % MockLeaderboardData.algeriaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.algeriaNames, countrySeed: 60000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 72) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 60000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "dz_\(i)"))
         }
@@ -4367,9 +4787,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, chinaPlayerMilestones.count) {
             let baseMilestone = chinaPlayerMilestones[i]
-            let name = MockLeaderboardData.chinaNames[i % MockLeaderboardData.chinaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.chinaNames, countrySeed: 65000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 78) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 65000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "cn_\(i)"))
         }
@@ -4418,9 +4838,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, southKoreaPlayerMilestones.count) {
             let baseMilestone = southKoreaPlayerMilestones[i]
-            let name = MockLeaderboardData.southKoreaNames[i % MockLeaderboardData.southKoreaNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.southKoreaNames, countrySeed: 70000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 84) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 70000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "kr_\(i)"))
         }
@@ -4471,9 +4891,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, italyPlayerMilestones.count) {
             let baseMilestone = italyPlayerMilestones[i]
-            let name = MockLeaderboardData.italyNames[i % MockLeaderboardData.italyNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.italyNames, countrySeed: 75000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 91) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 75000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "it_\(i)"))
@@ -4560,9 +4980,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, spainPlayerMilestones.count) {
             let baseMilestone = spainPlayerMilestones[i]
-            let name = MockLeaderboardData.spainNames[i % MockLeaderboardData.spainNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.spainNames, countrySeed: 80000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarIDs[(i + 120) % MockLeaderboardData.avatarIDs.count]
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 80000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "es_\(i)"))
@@ -4649,9 +5069,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, switzerlandPlayerMilestones.count) {
             let baseMilestone = switzerlandPlayerMilestones[i]
-            let name = MockLeaderboardData.switzerlandNames[i % MockLeaderboardData.switzerlandNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.switzerlandNames, countrySeed: 90000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 180)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 90000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "ch_\(i)"))
@@ -4738,9 +5158,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, netherlandsPlayerMilestones.count) {
             let baseMilestone = netherlandsPlayerMilestones[i]
-            let name = MockLeaderboardData.netherlandsNames[i % MockLeaderboardData.netherlandsNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.netherlandsNames, countrySeed: 85000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 160)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 85000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "nl_\(i)"))
@@ -4827,9 +5247,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, norwayPlayerMilestones.count) {
             let baseMilestone = norwayPlayerMilestones[i]
-            let name = MockLeaderboardData.norwayNames[i % MockLeaderboardData.norwayNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.norwayNames, countrySeed: 95000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 200)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 95000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "no_\(i)"))
@@ -4916,9 +5336,9 @@ public extension LeaderboardClient {
 
         for i in 0..<min(150, denmarkPlayerMilestones.count) {
             let baseMilestone = denmarkPlayerMilestones[i]
-            let name = MockLeaderboardData.denmarkNames[i % MockLeaderboardData.denmarkNames.count]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.denmarkNames, countrySeed: 100000, day: day)
             let platform: Platform = i % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 210)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 100000, day: day)
 
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
             playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "dk_\(i)"))
@@ -4987,6 +5407,188 @@ public extension LeaderboardClient {
                 name: UserLeaderboardData.playerName,
                 score: userScore,
                 countryCode: "DK",
+                platform: .ios,
+                isMe: true,
+                avatarURL: UserLeaderboardData.avatarID,
+                highestTile: userMilestone
+            ))
+        }
+
+        return entries
+    }
+
+    private static func finlandEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // Build player data with milestones (including user)
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, finlandPlayerMilestones.count) {
+            let baseMilestone = finlandPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.finlandNames, countrySeed: 105000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 105000, day: day)
+
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 105000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "fi_\(i)"))
+        }
+
+        // Add user to playerData so they get sorted with everyone else
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Sort by milestone index (highest first = best milestone)
+        // Tiebreaker 1: user comes first when milestones are equal
+        // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        // Build entries with ranks
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalFinlandPlayers = 87_654
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 135000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "FI",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // If user is not in top 150, add them separately with bracket-based ranking
+        if !userInTop150 {
+            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+            var finlandRank = totalFinlandPlayers
+
+            for bracket in finlandExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    finlandRank = bracket.startRank
+                    break
+                }
+            }
+
+            entries.append(LeaderboardEntry(
+                id: "me",
+                rank: finlandRank,
+                name: UserLeaderboardData.playerName,
+                score: userScore,
+                countryCode: "FI",
+                platform: .ios,
+                isMe: true,
+                avatarURL: UserLeaderboardData.avatarID,
+                highestTile: userMilestone
+            ))
+        }
+
+        return entries
+    }
+
+    private static func polandEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // Build player data with milestones (including user)
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, polandPlayerMilestones.count) {
+            let baseMilestone = polandPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.polandNames, countrySeed: 110000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 110000, day: day)
+
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 110000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "pl_\(i)"))
+        }
+
+        // Add user to playerData so they get sorted with everyone else
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Sort by milestone index (highest first = best milestone)
+        // Tiebreaker 1: user comes first when milestones are equal
+        // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        // Build entries with ranks
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalPolandPlayers = 67_108
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 140000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "PL",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // If user is not in top 150, add them separately with bracket-based ranking
+        if !userInTop150 {
+            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
+            var polandRank = totalPolandPlayers
+
+            for bracket in polandExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    polandRank = bracket.startRank
+                    break
+                }
+            }
+
+            entries.append(LeaderboardEntry(
+                id: "me",
+                rank: polandRank,
+                name: UserLeaderboardData.playerName,
+                score: userScore,
+                countryCode: "PL",
                 platform: .ios,
                 isMe: true,
                 avatarURL: UserLeaderboardData.avatarID,

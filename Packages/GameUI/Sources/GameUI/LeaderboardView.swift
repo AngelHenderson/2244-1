@@ -237,30 +237,71 @@ public struct LeaderboardView: View {
         let userRank = rankForFilter(filter, milestone: userMilestone)
         var previews: [RankPreview] = []
 
+        // For country leaderboards with top 150 players, use direct lookup
+        if let countryCode = filter.countryCode {
+            return generateCountryRankPreviews(
+                userMilestone: userMilestone,
+                userRank: userRank,
+                countryCode: countryCode
+            )
+        }
+
+        // For non-country leaderboards, we need the user's position in the milestone list
         let milestones = Self.allMilestones
         guard let userIndex = milestones.firstIndex(of: userMilestone) else {
             return []
         }
 
-        // Build milestone tier boundaries: [(milestone, startRank)]
-        // Each tier starts at its rank and continues until the next tier's rank
-        var tierBoundaries: [(milestone: String, startRank: Int)] = []
+        // Calculate the user's tier boundaries directly
+        // The tier start is where players with this milestone begin (rank returned by rankForFilter)
+        let userTierStart = rankForFilter(filter, milestone: userMilestone)
+
+        // Find the next worse milestone to get the tier end
+        let nextWorseMilestoneIndex = userIndex + 1
+        let userTierEnd: Int
+        if nextWorseMilestoneIndex < milestones.count {
+            // The next tier starts where the worse milestone begins
+            let nextTierRank = rankForFilter(filter, milestone: milestones[nextWorseMilestoneIndex])
+            // Ensure userTierEnd is at least userTierStart + 1 to include user's rank
+            userTierEnd = max(nextTierRank, userTierStart + 1)
+        } else {
+            // User has the worst milestone, tier extends to infinity
+            userTierEnd = Int.max
+        }
+
+        // Build a map of rank ranges to milestones for ranks outside user's tier
         let rangeStart = max(0, userIndex - 5)
         let rangeEnd = min(milestones.count - 1, userIndex + 5)
 
+        var rankToMilestone: [(startRank: Int, milestone: String)] = []
         for i in rangeStart...rangeEnd {
             let milestone = milestones[i]
             let rank = rankForFilter(filter, milestone: milestone)
-            tierBoundaries.append((milestone, rank))
+            rankToMilestone.append((rank, milestone))
         }
+        rankToMilestone.sort { $0.startRank < $1.startRank }
 
         // Show ranks from 3 above to 3 below user's rank
         let startRank = max(1, userRank - 3)
         let endRank = userRank + 3
 
         for rank in startRank...endRank {
-            // Find which milestone tier this rank belongs to
-            let milestone = milestoneForRank(rank, tierBoundaries: tierBoundaries, fallback: userMilestone)
+            let milestone: String
+
+            // Always show user's actual milestone for their exact rank
+            if rank == userRank {
+                milestone = userMilestone
+            } else if rank >= userTierStart && rank < userTierEnd {
+                // This rank is in the same tier as the user - show user's milestone
+                milestone = userMilestone
+            } else if rank < userTierStart {
+                // Rank is better than user's tier - find the appropriate better milestone
+                milestone = findMilestoneForBetterRank(rank, userRank: userRank, userMilestone: userMilestone, rankToMilestone: rankToMilestone)
+            } else {
+                // Rank is worse than user's tier - find the appropriate worse milestone
+                milestone = findMilestoneForWorseRank(rank, userRank: userRank, userMilestone: userMilestone, rankToMilestone: rankToMilestone)
+            }
+
             previews.append(RankPreview(
                 rank: rank,
                 milestone: milestone,
@@ -271,20 +312,119 @@ public struct LeaderboardView: View {
         return previews
     }
 
-    /// Finds the milestone for a given rank based on tier boundaries
-    /// Tier boundaries are sorted by startRank (best rank first, lowest number)
-    private func milestoneForRank(_ targetRank: Int, tierBoundaries: [(milestone: String, startRank: Int)], fallback: String) -> String {
-        // Boundaries are in milestone order (best to worst)
-        // Find the tier where targetRank >= startRank and < next tier's startRank
-        for i in 0..<tierBoundaries.count {
-            let tier = tierBoundaries[i]
-            let nextStartRank = (i + 1 < tierBoundaries.count) ? tierBoundaries[i + 1].startRank : Int.max
+    /// Generate rank previews for country leaderboards using direct player data lookup
+    private func generateCountryRankPreviews(userMilestone: String, userRank: Int, countryCode: String) -> [RankPreview] {
+        var previews: [RankPreview] = []
 
-            if targetRank >= tier.startRank && targetRank < nextStartRank {
-                return tier.milestone
+        // Show ranks from 3 above to 3 below user's rank
+        let startRank = max(1, userRank - 3)
+        let endRank = userRank + 3
+
+        for rank in startRank...endRank {
+            let milestone: String
+
+            if rank == userRank {
+                // Always show user's actual milestone for their rank
+                milestone = userMilestone
+            } else if rank < userRank {
+                // Ranks above user: look up directly (no shift needed)
+                if rank <= 150 {
+                    if let playerMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: rank, countryCode: countryCode) {
+                        milestone = playerMilestone
+                    } else {
+                        milestone = userMilestone
+                    }
+                } else {
+                    milestone = MockLeaderboardData.milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
+                }
+            } else {
+                // Ranks below user: shift down by 1 (user's insertion pushes everyone down)
+                let lookupRank = rank - 1
+                if lookupRank <= 150 {
+                    if let playerMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: lookupRank, countryCode: countryCode) {
+                        milestone = playerMilestone
+                    } else {
+                        milestone = userMilestone
+                    }
+                } else {
+                    milestone = MockLeaderboardData.milestoneForExtendedRank(rank: lookupRank, countryCode: countryCode) ?? userMilestone
+                }
+            }
+
+            previews.append(RankPreview(
+                rank: rank,
+                milestone: milestone,
+                isUserRank: rank == userRank
+            ))
+        }
+
+        return previews
+    }
+
+    /// Find milestone for a rank better than user (lower rank number = better)
+    private func findMilestoneForBetterRank(_ targetRank: Int, userRank: Int, userMilestone: String, rankToMilestone: [(startRank: Int, milestone: String)]) -> String {
+        // Find user's milestone tier start rank
+        let userTierStart = rankToMilestone.first { $0.milestone == userMilestone }?.startRank ?? userRank
+
+        // If targetRank is within user's tier (>= tier start), show user's milestone
+        if targetRank >= userTierStart {
+            return userMilestone
+        }
+
+        // Otherwise find the appropriate better milestone
+        var bestMatch = userMilestone
+        for entry in rankToMilestone {
+            if entry.startRank <= targetRank {
+                bestMatch = entry.milestone
+            }
+            if entry.startRank > targetRank {
+                break
             }
         }
-        return fallback
+
+        return bestMatch
+    }
+
+    /// Find milestone for a rank worse than user (higher rank number = worse)
+    private func findMilestoneForWorseRank(_ targetRank: Int, userRank: Int, userMilestone: String, rankToMilestone: [(startRank: Int, milestone: String)]) -> String {
+        // Find the next tier's start rank (the tier after user's milestone)
+        var nextTierStart: Int? = nil
+        var foundUserMilestone = false
+
+        for entry in rankToMilestone {
+            if foundUserMilestone && entry.milestone != userMilestone {
+                nextTierStart = entry.startRank
+                break
+            }
+            if entry.milestone == userMilestone {
+                foundUserMilestone = true
+            }
+        }
+
+        // If there's no clear next tier, or the target rank is before it starts,
+        // show user's milestone (players at adjacent ranks likely share milestone)
+        guard let nextStart = nextTierStart else {
+            return userMilestone
+        }
+
+        // Only show a different milestone if targetRank is clearly past the next tier's start
+        // Add a small buffer since adjacent ranks often share milestones
+        if targetRank < nextStart {
+            return userMilestone
+        }
+
+        // Target rank is past the next tier boundary, find appropriate milestone
+        var result = userMilestone
+        for entry in rankToMilestone {
+            if entry.startRank <= targetRank {
+                result = entry.milestone
+            }
+            if entry.startRank > targetRank {
+                break
+            }
+        }
+
+        return result
     }
 
     /// Returns the header title based on the selected filter
@@ -333,31 +473,31 @@ public struct LeaderboardView: View {
         "1ac", "533ab", "266ab", "133ab", "66ab", "33ab", "16ab", "8ab", "4ab", "2ab",
         "1ab", "521aa", "260aa", "130aa", "65aa", "32aa", "16aa", "8aa", "4aa", "2aa",
         "1aa", "509z", "254z", "127z", "63z", "31z", "15z", "7z", "3z",
-        "1z", "497y", "248y", "124y", "62y", "31y", "15y", "7y", "3y",
-        "1y", "485x", "242x", "121x", "60x", "30x", "15x", "7x", "3x",
-        "1x", "474w", "237w", "118w", "59w", "29w", "14w", "7w", "3w",
-        "1w", "463v", "231v", "115v", "57v", "28v", "14v", "7v", "3v",
-        "1v", "452u", "226u", "113u", "56u", "28u", "14u", "7u", "3u",
-        "1u", "441t", "220t", "110t", "55t", "27t", "13t", "6t", "3t",
-        "1t", "431s", "215s", "107s", "53s", "26s", "13s", "6s", "3s",
-        "1s", "421r", "210r", "105r", "52r", "26r", "13r", "6r", "3r",
-        "1r", "411q", "205q", "102q", "51q", "25q", "12q", "6q", "3q",
-        "1q", "401p", "200p", "100p", "50p", "25p", "12p", "6p", "3p",
-        "1p", "392o", "196o", "98o", "49o", "24o", "12o", "6o", "3o",
-        "1o", "383n", "191n", "95n", "47n", "23n", "11n", "5n", "2n",
-        "1n", "374m", "187m", "93m", "46m", "23m", "11m", "5m", "2m",
-        "1m", "365l", "182l", "91l", "45l", "22l", "11l", "5l", "2l",
-        "1l", "356k", "178k", "89k", "44k", "22k", "11k", "5k", "2k",
-        "1k", "348j", "174j", "87j", "43j", "21j", "10j", "5j", "2j",
-        "1j", "340i", "170i", "85i", "42i", "21i", "10i", "5i", "2i",
-        "1i", "332h", "166h", "83h", "41h", "20h", "10h", "5h", "2h",
-        "1h", "324g", "162g", "81g", "40g", "20g", "10g", "5g", "2g",
-        "1g", "316f", "158f", "79f", "39f", "19f", "9f", "4f", "2f",
-        "1f", "309e", "154e", "77e", "38e", "19e", "9e", "4e", "2e",
-        "1e", "302d", "151d", "75d", "37d", "18d", "9d", "4d", "2d",
-        "1d", "295c", "147c", "73c", "36c", "18c", "9c", "4c", "2c",
-        "1c", "288b", "144b", "72b", "36b", "18b", "9b", "4b", "2b",
-        "1b", "281a", "140a", "70a", "35a", "17a", "8a", "4a", "2a",
+        "1z", "994y", "497y", "248y", "124y", "62y", "31y", "15y", "7y", "3y",
+        "1y", "971x", "485x", "242x", "121x", "60x", "30x", "15x", "7x", "3x",
+        "1x", "948w", "474w", "237w", "118w", "59w", "29w", "14w", "7w", "3w",
+        "1w", "926v", "463v", "231v", "115v", "57v", "28v", "14v", "7v", "3v",
+        "1v", "904u", "452u", "226u", "113u", "56u", "28u", "14u", "7u", "3u",
+        "1u", "883t", "441t", "220t", "110t", "55t", "27t", "13t", "6t", "3t",
+        "1t", "862s", "431s", "215s", "107s", "53s", "26s", "13s", "6s", "3s",
+        "1s", "842r", "421r", "210r", "105r", "52r", "26r", "13r", "6r", "3r",
+        "1r", "822q", "411q", "205q", "102q", "51q", "25q", "12q", "6q", "3q",
+        "1q", "803p", "401p", "200p", "100p", "50p", "25p", "12p", "6p", "3p",
+        "1p", "784o", "392o", "196o", "98o", "49o", "24o", "12o", "6o", "3o",
+        "1o", "766n", "383n", "191n", "95n", "47n", "23n", "11n", "5n", "2n",
+        "1n", "748m", "374m", "187m", "93m", "46m", "23m", "11m", "5m", "2m",
+        "1m", "730l", "365l", "182l", "91l", "45l", "22l", "11l", "5l", "2l",
+        "1l", "713k", "356k", "178k", "89k", "44k", "22k", "11k", "5k", "2k",
+        "1k", "696j", "348j", "174j", "87j", "43j", "21j", "10j", "5j", "2j",
+        "1j", "680i", "340i", "170i", "85i", "42i", "21i", "10i", "5i", "2i",
+        "1i", "664h", "332h", "166h", "83h", "41h", "20h", "10h", "5h", "2h",
+        "1h", "649g", "324g", "162g", "81g", "40g", "20g", "10g", "5g", "2g",
+        "1g", "633f", "316f", "158f", "79f", "39f", "19f", "9f", "4f", "2f",
+        "1f", "618e", "309e", "154e", "77e", "38e", "19e", "9e", "4e", "2e",
+        "1e", "604d", "302d", "151d", "75d", "37d", "18d", "9d", "4d", "2d",
+        "1d", "590c", "295c", "147c", "73c", "36c", "18c", "9c", "4c", "2c",
+        "1c", "576b", "288b", "144b", "72b", "36b", "18b", "9b", "4b", "2b",
+        "1b", "562a", "281a", "140a", "70a", "35a", "17a", "8a", "4a", "2a",
         "1a",
         // Billions
         "549B", "274B", "137B", "68B", "34B", "17B", "8B", "4B", "2B", "1B",
@@ -603,6 +743,10 @@ public struct LeaderboardView: View {
             return Color.red  // Norway - red from the flag
         case .countryDK:
             return Color.red  // Denmark - red from the flag
+        case .countryFI:
+            return Color.blue  // Finland - blue from the flag
+        case .countryPL:
+            return Color.red   // Poland - red from the flag
         }
     }
 
