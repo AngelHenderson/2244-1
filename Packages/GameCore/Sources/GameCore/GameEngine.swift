@@ -1111,7 +1111,7 @@ public final class GameEngine {
             for col in 0..<config.boardWidth {
                 let position = Position(row: row, col: col)
                 guard let tile = state.board[position] else { continue }
-                
+
                 let directions = config.allowDiagonals ? Direction.allCases : [Direction.up, .down, .left, .right]
                 for direction in directions {
                     let neighbor = position.moved(in: direction)
@@ -1124,6 +1124,31 @@ public final class GameEngine {
             }
         }
         return false
+    }
+
+    /// Count the number of valid move pairs (adjacent identical tiles)
+    public func countValidMoves() -> Int {
+        var counted = Set<Set<Position>>()
+
+        for row in 0..<config.boardHeight {
+            for col in 0..<config.boardWidth {
+                let position = Position(row: row, col: col)
+                guard let tile = state.board[position] else { continue }
+
+                let directions = config.allowDiagonals ? Direction.allCases : [Direction.up, .down, .left, .right]
+                for direction in directions {
+                    let neighbor = position.moved(in: direction)
+                    if neighbor.isValid(for: state.board),
+                       let neighborTile = state.board[neighbor],
+                       neighborTile.value == tile.value {
+                        // Use a Set to avoid counting the same pair twice
+                        let pair: Set<Position> = [position, neighbor]
+                        counted.insert(pair)
+                    }
+                }
+            }
+        }
+        return counted.count
     }
     
     /// Generates a spawn tile with proper handling for highValue tiles (step >= 62)

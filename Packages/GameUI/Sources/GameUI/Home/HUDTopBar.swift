@@ -49,28 +49,45 @@ struct HUDTopBar: View {
             // Compact boost status button
 //            BoostStatusButton()
 
-            // Score display (only shown if provided)
+            // Score and valid moves display (only shown if scoreText provided - game context)
             if let scoreText = scoreText {
-                TimelineView(.periodic(from: .now, by: 1)) { context in
+                HStack(spacing: 8) {
+                    // Valid moves count
                     VStack(spacing: 1) {
-                        Text(playtimeText(at: context.date))
-                            .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.yellow.opacity(0.9))
+                        Text("\(gameStore.validMovesCount)")
+                            .font(.subheadline.bold().monospacedDigit())
+                            .foregroundStyle(gameStore.validMovesCount > 0 ? .green : .red)
                             .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Text("Score")
+                        Text("moves")
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.75))
                             .lineLimit(1)
-                        Text(scoreText)
-                            .font(.subheadline.bold().monospacedDigit())
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
                     }
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .modifier(GlassButtonCompat())
+
+                    // Score display
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        VStack(spacing: 1) {
+                            Text(playtimeText(at: context.date))
+                                .font(.caption2.monospacedDigit())
+                                .foregroundStyle(.yellow.opacity(0.9))
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+                            Text("Score")
+                                .font(.caption2)
+                                .foregroundStyle(.white.opacity(0.75))
+                                .lineLimit(1)
+                            Text(scoreText)
+                                .font(.subheadline.bold().monospacedDigit())
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                        }
+                    }
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .modifier(GlassButtonCompat())
                 }
-                .padding(.horizontal, 8).padding(.vertical, 4)
-                .modifier(GlassButtonCompat())
             }
 
             Button(action: { actions.openShop() }) {

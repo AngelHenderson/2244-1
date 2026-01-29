@@ -37,6 +37,12 @@ public struct HybridGameScreen: View {
     @State private var isShowingLeaderboard = false
     @State private var isShowingUnlockReward = false
 
+    // Game over flow states
+    @State private var isShowingOutOfMoves = false
+    @State private var isShowingGameOverText = false
+    @State private var isShowingPowerUpRecovery = false
+    @State private var gameOverResetTask: Task<Void, Never>? = nil
+
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState: HomeState = {
         let state = HomeState()
@@ -238,9 +244,19 @@ public struct HybridGameScreen: View {
                 tempHomeState.gems = gameStore.coins
                 tempHomeState.rank = UserLeaderboardData.globalRank
                 isShowingUnlockReward = gameStore.pendingUnlockRewardBase != nil
-                
+
                 // Initialize comprehensive session tracking
                 gameStore.initializeSessionTracking()
+
+                // Check if game is already over on appear
+                if gameStore.state.isGameOver {
+                    isShowingOutOfMoves = true
+                }
+            }
+            .onDisappear {
+                // Cancel any pending game over reset
+                gameOverResetTask?.cancel()
+                gameOverResetTask = nil
             }
             // Enhanced auto-save triggers for comprehensive session data
             .onChange(of: gameStore.state.moves) { _, _ in
@@ -267,12 +283,168 @@ public struct HybridGameScreen: View {
                     gameStore.saveProgressImmediately(newTile: nil)
                 }
             }
-        
+            .onChange(of: gameStore.state.isGameOver) { _, isGameOver in
+                if isGameOver && !isShowingOutOfMoves && !isShowingGameOverText {
+                    // Show out of moves dialog when game ends
+                    isShowingOutOfMoves = true
+                } else if !isGameOver {
+                    // Game recovered (e.g., power-up created new moves)
+                    // Cancel any pending reset and hide overlays
+                    gameOverResetTask?.cancel()
+                    gameOverResetTask = nil
+                    isShowingOutOfMoves = false
+                    isShowingGameOverText = false
+                    isShowingPowerUpRecovery = false
+                }
+            }
+
         // Wrap everything with full-screen wallpaper background
         return ZStack {
             wallpaperBackground
                 .ignoresSafeArea()
             sessionTracking
+
+            // Out of moves dialog overlay
+            if isShowingOutOfMoves {
+                outOfMovesOverlay
+            }
+
+            // Game over text overlay
+            if isShowingGameOverText {
+                gameOverTextOverlay
+            }
+
+            // Power-up recovery selection overlay
+            if isShowingPowerUpRecovery {
+                powerUpRecoveryOverlay
+            }
+        }
+    }
+
+    // MARK: - Game Over Views
+
+    private var outOfMovesOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Text("Out of moves")
+                    .font(.largeTitle.bold())
+                    .foregroundColor(.white)
+
+                Text("Do you want to continue with a power up?")
+                    .font(.title3)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+
+                HStack(spacing: 60) {
+                    Button("Yes") {
+                        isShowingOutOfMoves = false
+                        isShowingPowerUpRecovery = true
+                    }
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+
+                    Button("No") {
+                        isShowingOutOfMoves = false
+                        showGameOverAndReset()
+                    }
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+                }
+                .padding(.top, 20)
+            }
+            .padding(40)
+        }
+    }
+
+    private var gameOverTextOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.7)
+                .ignoresSafeArea()
+
+            Text("GAME OVER")
+                .font(.system(size: 48, weight: .black))
+                .foregroundColor(.white)
+        }
+    }
+
+    private var powerUpRecoveryOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                Text("Choose a power-up to continue")
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+
+                HStack(spacing: 16) {
+                    recoveryPowerUpButton(name: "Hammer", icon: "hammer.fill", action: {
+                        isShowingPowerUpRecovery = false
+                        isHammerMode = true
+                    })
+
+                    recoveryPowerUpButton(name: "Shuffle", icon: "shuffle", action: {
+                        isShowingPowerUpRecovery = false
+                        if gameStore.useShuffle() {
+                            // Shuffle successful - game continues
+                        } else {
+                            // Not enough gems - show game over
+                            showGameOverAndReset()
+                        }
+                    })
+
+                    recoveryPowerUpButton(name: "Magnet", icon: "magnet", action: {
+                        isShowingPowerUpRecovery = false
+                        isMagnetMode = true
+                    })
+                }
+
+                Button("Cancel") {
+                    isShowingPowerUpRecovery = false
+                    showGameOverAndReset()
+                }
+                .font(.headline)
+                .foregroundColor(.white.opacity(0.7))
+                .padding(.top, 10)
+            }
+            .padding(30)
+        }
+    }
+
+    private func recoveryPowerUpButton(name: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.title)
+                Text(name)
+                    .font(.caption.bold())
+            }
+            .foregroundColor(.white)
+            .frame(width: 80, height: 80)
+            .background(Color.white.opacity(0.2))
+            .cornerRadius(12)
+        }
+    }
+
+    private func showGameOverAndReset() {
+        isShowingGameOverText = true
+
+        // Cancel any existing reset task
+        gameOverResetTask?.cancel()
+
+        // Reset after 3 seconds
+        gameOverResetTask = Task {
+            try? await Task.sleep(for: .seconds(3))
+
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                isShowingGameOverText = false
+                gameStore.resetGame()
+            }
         }
     }
 

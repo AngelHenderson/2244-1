@@ -19,6 +19,9 @@ public final class GameStore {
     public private(set) var pathValidation: ChainValidation = .valid
     public var achievementEvaluator: AchievementEvaluator?
 
+    /// Count of valid move pairs (adjacent identical tiles) - stored for SwiftUI reactivity
+    public private(set) var validMovesCount: Int = 0
+
     // Track if game over has been processed for this session (reset on new game)
     private var gameOverProcessed: Bool = false
 
@@ -27,6 +30,8 @@ public final class GameStore {
 
     // Player's highest tile for power-up cost scaling (used in sandboxed/challenge mode to match main game pricing)
     public var playerHighestTile: Int?
+    // Player's highest tile step (for high-value tiles where value is Int.max)
+    public var playerHighestTileStep: Int?
 
     // Challenge target step for power-up cost scaling in challenge mode
     public var challengeTargetStep: Int?
@@ -558,10 +563,12 @@ public final class GameStore {
     ///   - config: Game configuration
     ///   - initialGems: Starting gems (typically from player's main inventory)
     ///   - playerHighestTile: Player's highest tile from main game (for consistent power-up pricing)
-    public static func sandboxed(config: GameConfig = GameConfig(), initialGems: Int = 0, playerHighestTile: Int? = nil) -> GameStore {
+    ///   - playerHighestTileStep: Player's highest tile step (for high-value tiles where value is Int.max)
+    public static func sandboxed(config: GameConfig = GameConfig(), initialGems: Int = 0, playerHighestTile: Int? = nil, playerHighestTileStep: Int? = nil) -> GameStore {
         let store = GameStore(config: config, sandboxed: true)
         store.coins = initialGems
         store.playerHighestTile = playerHighestTile
+        store.playerHighestTileStep = playerHighestTileStep
         return store
     }
 
@@ -2170,8 +2177,11 @@ public final class GameStore {
         // Use step-based calculation to support high-value tiles beyond Int.max
         // Step 8 = 512 (first milestone), each step adds +10 gems
         let step: Int
-        if let playerTile = playerHighestTile {
-            // In challenge/sandbox mode, use player's main game tile for consistent pricing
+        if let playerStep = playerHighestTileStep {
+            // In challenge/sandbox mode, use player's step directly (supports high-value tiles)
+            step = playerStep
+        } else if let playerTile = playerHighestTile {
+            // Fallback: convert player's tile value to step
             step = TileStepLabelFormatter.stepForValue(playerTile, start: 2) ?? state.highestTileStep
         } else {
             step = state.highestTileStep
@@ -2643,6 +2653,9 @@ extension GameStore {
         }
 
         print("📐 refreshDerivedState: highestTileStep = \(state.highestTileStep) (persisted was: \(persistedStep))")
+
+        // Update valid moves count for UI
+        validMovesCount = engine.countValidMoves()
     }
 
     /// Verifies that highestTileStep matches the actual tiles on the board.
