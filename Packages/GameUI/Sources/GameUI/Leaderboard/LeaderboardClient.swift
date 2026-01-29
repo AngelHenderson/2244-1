@@ -1246,11 +1246,19 @@ public enum MockLeaderboardData {
         // Each player gets a consistent daily milestone progression rate
         let dailyRate = 0.25 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 0.75  // 0.25 to 1 milestones per day
 
-        // No cap - allow natural progression over real time (players can eventually reach infinity)
+        // Calculate total tiers gained
         let tiersGained = Int(dailyRate * Double(day))
+        let newIndex = baseIndex + tiersGained
 
-        // Progress through milestone tiers (capped at max tier)
-        let newIndex = min(baseIndex + tiersGained, allMilestones.count - 1)
+        // If player has progressed beyond max milestone, transition to infinity
+        let maxMilestoneIndex = allMilestones.count - 1
+        if newIndex > maxMilestoneIndex {
+            // Calculate infinity count based on how far beyond max milestone they've gone
+            // Each tier beyond max = 1 infinity tile gained
+            let infinityCount = newIndex - maxMilestoneIndex
+            return "\(infinityCount)∞"
+        }
+
         return allMilestones[newIndex]
     }
 
