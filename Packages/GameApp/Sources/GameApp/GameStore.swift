@@ -581,8 +581,8 @@ public final class GameStore {
             let newEngine = GameEngine(config: config)
             self.engine = newEngine
             self.state = newEngine.currentState()
-            // Don't call refreshDerivedState here - we'll do a simple setup
-            // since sandboxed mode doesn't need to track derived state
+            // Initialize valid moves count for sandboxed mode
+            self.validMovesCount = newEngine.countValidMoves()
             return
         }
 
@@ -915,8 +915,10 @@ public final class GameStore {
             let newState = engine.refillBoard()
             applyStateUpdate(newState, previousBoard: previousBoard)
         }
+        // Always update valid moves count after refill
+        validMovesCount = engine.countValidMoves()
     }
-    
+
     private func performGravityDrop(columns: Set<Int>? = nil) {
         if let cols = columns, !cols.isEmpty {
             let newState = engine.collapseColumns(cols)
@@ -925,6 +927,8 @@ public final class GameStore {
             let newState = engine.applyGravityAfterChain()
             state = newState
         }
+        // Update valid moves count after gravity
+        validMovesCount = engine.countValidMoves()
     }
     
     @discardableResult
@@ -1112,6 +1116,8 @@ public final class GameStore {
         let gemsToUse = savedGems > 0 ? savedGems : state.gems
         state = newState
         state.gems = gemsToUse
+        // Update valid moves count for UI
+        validMovesCount = engine.countValidMoves()
         scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: refillProtectedPositions)
     }
     
@@ -2007,9 +2013,10 @@ public final class GameStore {
             }
             
             self.hammerAnimationState = HammerAnimationState(target: position, phase: .impact, startedAt: Date())
-            
+
             let hammeredState = self.engine.hammer(at: position, applyGravity: false)
             self.state = hammeredState
+            self.validMovesCount = self.engine.countValidMoves()
             
             do {
                 try await Task.sleep(nanoseconds: Self.hammerImpactDelay)
