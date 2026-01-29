@@ -812,13 +812,13 @@ public enum MockLeaderboardData {
     }
 
     // Get name for a player with daily variation (some players change names over time)
-    // Real name percentages: 15% for top 150, 70% for extended brackets (rank 151+)
-    // (Top 150: 85% gamertag, 15% realistic. Extended: 30% gamertag, 70% realistic)
+    // Real name percentages: 15% for top 150, 30% for extended brackets (rank 151+)
+    // (Top 150: 85% gamertag, 15% realistic. Extended: 70% gamertag, 30% realistic)
     // 85% of name changes happen outside top 150, only 15% in top 150
     // 1/3 of players can switch between realistic and gamertag when they change
     static func nameForPlayer(index: Int, names: [String], countrySeed: Int, day: Int) -> String {
         // Determine initial name type (real vs gamertag) based on rank tier
-        let realNameThreshold: Double = index < 150 ? 0.15 : 0.70
+        let realNameThreshold: Double = index < 150 ? 0.15 : 0.30
         let baseTypeRandom = seededRandom(seed: index * 401 + countrySeed * 83, index: index)
         var useRealName = baseTypeRandom < realNameThreshold
 
