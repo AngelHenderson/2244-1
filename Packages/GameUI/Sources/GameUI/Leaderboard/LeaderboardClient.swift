@@ -3922,6 +3922,18 @@ public extension LeaderboardClient {
         }
         playerData.append((-1, 999999, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, userCountry, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        // User can still view the leaderboard but won't be ranked if they have infinity
+        let userHasInfinity = userMilestone.hasSuffix("∞")
+        playerData = playerData.filter { player in
+            // Keep non-infinity players
+            if !player.progressedMilestone.hasSuffix("∞") {
+                return true
+            }
+            // Exclude infinity players (including user if they have infinity)
+            return false
+        }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank

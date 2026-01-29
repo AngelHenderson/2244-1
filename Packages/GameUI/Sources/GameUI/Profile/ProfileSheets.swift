@@ -324,20 +324,44 @@ struct MockPlayer: Identifiable {
         // Use the same name lists as MockLeaderboardData for consistency
         let gamertags = MockLeaderboardData.globalNames
         let realisticNames = MockLeaderboardData.realNames
-        let countries = ["US", "GB", "CA", "AU", "DE", "FR", "JP", "KR", "BR", "MX",
-                        "IN", "IT", "ES", "NL", "SE", "NO", "DK", "FI", "PL", "RU"]
+        // Only countries that have leaderboard data
+        // Update this list when new country leaderboards are added
+        let countries = [
+            "US", "GB", "CA", "AU",  // US, UK, Canada, Australia
+            "DE", "FR", "JP", "IN",  // Germany, France, Japan, India
+            "BR", "MX", "CN", "KR",  // Brazil, Mexico, China, South Korea
+            "IT", "ES", "NL", "CH",  // Italy, Spain, Netherlands, Switzerland
+            "NO", "DK", "FI", "PL",  // Norway, Denmark, Finland, Poland
+            "AF", "AL", "DZ"         // Afghanistan, Albania, Algeria
+        ]
 
         var players: [MockPlayer] = []
-        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        let letters = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        let digits = Array("0123456789")
 
         // Generate ~200 mock players with varied codes
+        // Codes have mixed letters/numbers in any position (e.g., A1B-2C3, 1A2-B3C)
         for i in 0..<200 {
             let seed = i * 7 + 13
-            let c1 = letters[letters.index(letters.startIndex, offsetBy: (seed) % 26)]
-            let c2 = letters[letters.index(letters.startIndex, offsetBy: (seed * 3) % 26)]
-            let c3 = letters[letters.index(letters.startIndex, offsetBy: (seed * 7) % 26)]
-            let num = String(format: "%03d", (seed * 11) % 1000)
-            let code = "\(c1)\(c2)\(c3)-\(num)"
+
+            // Generate 6 alphanumeric characters with varied letter/number positions
+            func char(at pos: Int) -> Character {
+                let charSeed = seed * (pos + 1) * 11
+                let useDigit = (charSeed % 3) == 0  // ~33% digits, ~67% letters
+                if useDigit {
+                    return digits[(charSeed / 3) % 10]
+                } else {
+                    return letters[(charSeed / 2) % 26]
+                }
+            }
+
+            let c1 = char(at: 0)
+            let c2 = char(at: 1)
+            let c3 = char(at: 2)
+            let c4 = char(at: 3)
+            let c5 = char(at: 4)
+            let c6 = char(at: 5)
+            let code = "\(c1)\(c2)\(c3)-\(c4)\(c5)\(c6)"
 
             // Name distribution based on ranking bracket
             // Top 150: 85% gamertag, 15% realistic
