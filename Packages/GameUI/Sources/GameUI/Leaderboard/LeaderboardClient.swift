@@ -84,7 +84,7 @@ public struct LeaderboardClient: Sendable {
 // MARK: - Daily Progression System
 // Players progress through milestones daily. The leaderboard updates at midnight.
 
-enum MockLeaderboardData {
+public enum MockLeaderboardData {
     // Reference date for calculating day offset (progression "just started" on Jan 20, 2026)
     static let referenceDate: Date = {
         var components = DateComponents()
@@ -787,7 +787,7 @@ enum MockLeaderboardData {
 
         // Determine which players have changed based on seeded randomness
         let changeThreshold = seededRandom(seed: index * 199 + countrySeed * 31, index: index)
-        var playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
+        let playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
 
         // Top 150 players are much less likely to change (only 15% of changes)
         // Multiply their change day by ~5.67x to reduce probability
@@ -4542,9 +4542,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based rank
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var japanRank = totalJapanPlayers
 
             for bracket in japanExtendedRankBrackets {
@@ -4555,17 +4554,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: japanRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: japanRank,
+                userMilestone: userMilestone,
                 countryCode: "JP",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 30000,
+                names: MockLeaderboardData.japanNames,
+                day: day,
+                totalPlayers: totalJapanPlayers,
+                extendedBrackets: japanExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
