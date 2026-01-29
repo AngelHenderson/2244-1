@@ -101,14 +101,17 @@ public actor LiveAudioService: AudioServiceProtocol {
     public init() {
         Task { @MainActor in
             print("🎵 Initialized LiveAudioService with theme: '\(storage.currentMusicTheme)'")
-            
+
             // Configure audio session (iOS only)
             #if os(iOS)
             do {
-                try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
-                try AVAudioSession.sharedInstance().setActive(true)
+                let session = AVAudioSession.sharedInstance()
+                // Use .playback with mixWithOthers to play sounds alongside other apps (YouTube, etc.)
+                try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+                try session.setActive(true, options: [])
+                print("🎵 Audio session configured successfully")
             } catch {
-                print("Failed to configure audio session: \(error)")
+                print("❌ Failed to configure audio session: \(error)")
             }
             #endif
         }
@@ -268,14 +271,21 @@ public actor LiveAudioService: AudioServiceProtocol {
                   Bundle.main.url(forResource: "electric_zap", withExtension: "wav")
 
         guard let audioUrl = url else {
-            print("❌ Electric zap sound not found")
+            print("❌ Electric zap sound not found in bundle")
+            // List available resources for debugging
+            if let resourcePath = Bundle.main.resourcePath {
+                print("📁 Bundle path: \(resourcePath)")
+            }
             return
         }
 
         do {
+            print("⚡ Creating player for electric sound: \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.7
-            player.play()
+            player.prepareToPlay()
+            let success = player.play()
+            print("⚡ Electric sound play result: \(success)")
             sfxPlayers.append(player)
 
             Task {
@@ -303,14 +313,21 @@ public actor LiveAudioService: AudioServiceProtocol {
                   Bundle.main.url(forResource: "axe_chop", withExtension: "wav")
 
         guard let audioUrl = url else {
-            print("❌ Axe chop sound not found")
+            print("❌ Axe chop sound not found in bundle")
+            // List available resources for debugging
+            if let resourcePath = Bundle.main.resourcePath {
+                print("📁 Bundle path: \(resourcePath)")
+            }
             return
         }
 
         do {
+            print("🪓 Creating player for hammer sound: \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.8
-            player.play()
+            player.prepareToPlay()
+            let success = player.play()
+            print("🪓 Hammer sound play result: \(success)")
             sfxPlayers.append(player)
 
             Task {
@@ -454,13 +471,13 @@ public actor LiveAudioService: AudioServiceProtocol {
             }
         }
 
-        // Ensure audio session is active
+        // Always ensure audio session is active before playing
         #if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
-            if !session.isOtherAudioPlaying {
-                try session.setActive(true)
-            }
+            // Use .playback to ensure sounds play even when other apps (YouTube) are playing
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true, options: [])
         } catch {
             print("⚠️ Failed to reactivate audio session: \(error)")
         }
