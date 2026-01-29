@@ -19,6 +19,7 @@ public struct RootGameView: View {
     @State private var showChallengeDesigner = false
     @State private var isPlayingCustomChallenge = false
     @State private var customChallengeConfig: CustomChallengeConfig?
+    @State private var capturedChallengeCreationMultiplier: Int = 1
     @State private var wheelEngine = WheelEngine()
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
