@@ -5046,9 +5046,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var italyRank = totalItalyPlayers
 
             for bracket in italyExtendedRankBrackets {
@@ -5059,17 +5058,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: italyRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: italyRank,
+                userMilestone: userMilestone,
                 countryCode: "IT",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 75000,
+                names: MockLeaderboardData.italyNames,
+                day: day,
+                totalPlayers: totalItalyPlayers,
+                extendedBrackets: italyExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -5135,9 +5134,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var spainRank = totalSpainPlayers
 
             for bracket in spainExtendedRankBrackets {
@@ -5148,17 +5146,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: spainRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: spainRank,
+                userMilestone: userMilestone,
                 countryCode: "ES",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 80000,
+                names: MockLeaderboardData.spainNames,
+                day: day,
+                totalPlayers: totalSpainPlayers,
+                extendedBrackets: spainExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -5224,9 +5222,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var switzerlandRank = totalSwitzerlandPlayers
 
             for bracket in switzerlandExtendedRankBrackets {
@@ -5237,17 +5234,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: switzerlandRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: switzerlandRank,
+                userMilestone: userMilestone,
                 countryCode: "CH",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 90000,
+                names: MockLeaderboardData.switzerlandNames,
+                day: day,
+                totalPlayers: totalSwitzerlandPlayers,
+                extendedBrackets: switzerlandExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -5313,9 +5310,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var netherlandsRank = totalNetherlandsPlayers
 
             for bracket in netherlandsExtendedRankBrackets {
@@ -5326,17 +5322,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: netherlandsRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: netherlandsRank,
+                userMilestone: userMilestone,
                 countryCode: "NL",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 85000,
+                names: MockLeaderboardData.netherlandsNames,
+                day: day,
+                totalPlayers: totalNetherlandsPlayers,
+                extendedBrackets: netherlandsExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -5402,9 +5398,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var norwayRank = totalNorwayPlayers
 
             for bracket in norwayExtendedRankBrackets {
@@ -5415,17 +5410,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: norwayRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: norwayRank,
+                userMilestone: userMilestone,
                 countryCode: "NO",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 95000,
+                names: MockLeaderboardData.norwayNames,
+                day: day,
+                totalPlayers: totalNorwayPlayers,
+                extendedBrackets: norwayExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -5491,9 +5486,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var denmarkRank = totalDenmarkPlayers
 
             for bracket in denmarkExtendedRankBrackets {
@@ -5504,17 +5498,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: denmarkRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: denmarkRank,
+                userMilestone: userMilestone,
                 countryCode: "DK",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 100000,
+                names: MockLeaderboardData.denmarkNames,
+                day: day,
+                totalPlayers: totalDenmarkPlayers,
+                extendedBrackets: denmarkExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -5582,9 +5576,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var finlandRank = totalFinlandPlayers
 
             for bracket in finlandExtendedRankBrackets {
@@ -5595,17 +5588,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: finlandRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: finlandRank,
+                userMilestone: userMilestone,
                 countryCode: "FI",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 105000,
+                names: MockLeaderboardData.finlandNames,
+                day: day,
+                totalPlayers: totalFinlandPlayers,
+                extendedBrackets: finlandExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -5673,9 +5666,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var polandRank = totalPolandPlayers
 
             for bracket in polandExtendedRankBrackets {
@@ -5686,17 +5678,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: polandRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: polandRank,
+                userMilestone: userMilestone,
                 countryCode: "PL",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 110000,
+                names: MockLeaderboardData.polandNames,
+                day: day,
+                totalPlayers: totalPolandPlayers,
+                extendedBrackets: polandExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries

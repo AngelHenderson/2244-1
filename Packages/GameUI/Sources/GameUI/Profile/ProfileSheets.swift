@@ -321,9 +321,9 @@ struct MockPlayer: Identifiable {
     }
 
     static func generateAll() -> [MockPlayer] {
-        // Use the same name lists as LeaderboardClient for consistency
-        let gamertags = LeaderboardClient.globalNames
-        let realisticNames = LeaderboardClient.realNames
+        // Use the same name lists as MockLeaderboardData for consistency
+        let gamertags = MockLeaderboardData.globalNames
+        let realisticNames = MockLeaderboardData.realNames
         let countries = ["US", "GB", "CA", "AU", "DE", "FR", "JP", "KR", "BR", "MX",
                         "IN", "IT", "ES", "NL", "SE", "NO", "DK", "FI", "PL", "RU"]
 
