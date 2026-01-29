@@ -52,7 +52,7 @@ struct HUDTopBar: View {
             // Score and valid moves display (only shown if scoreText provided - game context)
             if let scoreText = scoreText {
                 HStack(spacing: 8) {
-                    // Valid moves count
+                    // Valid moves count - from GameStore's tracked property for proper reactivity
                     VStack(spacing: 1) {
                         Text("\(gameStore.validMovesCount)")
                             .font(.subheadline.bold().monospacedDigit())
@@ -174,7 +174,7 @@ private struct GameCenterAvatarButton: View {
 
 private struct GlassButtonCompat: ViewModifier {
     @Environment(\.gameStore) private var gameStore
-    
+
     func body(content: Content) -> some View {
         if #available(iOS 26.0, macOS 26.0, *) {
             content
@@ -183,5 +183,5 @@ private struct GlassButtonCompat: ViewModifier {
             content.buttonStyle(.plain)
         }
     }
-    
+
 }

@@ -927,8 +927,7 @@ public final class GameStore {
             let newState = engine.applyGravityAfterChain()
             state = newState
         }
-        // Update valid moves count after gravity
-        validMovesCount = engine.countValidMoves()
+        // Note: validMovesCount is updated in performRefill after gravity completes
     }
     
     @discardableResult
@@ -2127,6 +2126,7 @@ public final class GameStore {
 
             let magnetResult = self.engine.magnetize(value: value, to: position)
             self.state = magnetResult
+            self.validMovesCount = self.engine.countValidMoves()
             self.processPendingRewards()
 
             let mergedTile = magnetResult.board[position]
