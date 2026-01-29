@@ -321,10 +321,9 @@ struct MockPlayer: Identifiable {
     }
 
     static func generateAll() -> [MockPlayer] {
-        let names = ["Alex", "Jordan", "Riley", "Casey", "Morgan", "Taylor", "Quinn", "Avery",
-                     "Blake", "Cameron", "Dakota", "Emerson", "Finley", "Gray", "Hayden", "Jamie",
-                     "Kai", "Logan", "Mason", "Noah", "Oliver", "Parker", "Reese", "Sage",
-                     "Tyler", "Uma", "Victor", "Wesley", "Xander", "Yuki", "Zara"]
+        // Use the same name lists as LeaderboardClient for consistency
+        let gamertags = LeaderboardClient.globalNames
+        let realisticNames = LeaderboardClient.realNames
         let countries = ["US", "GB", "CA", "AU", "DE", "FR", "JP", "KR", "BR", "MX",
                         "IN", "IT", "ES", "NL", "SE", "NO", "DK", "FI", "PL", "RU"]
 
@@ -340,9 +339,27 @@ struct MockPlayer: Identifiable {
             let num = String(format: "%03d", (seed * 11) % 1000)
             let code = "\(c1)\(c2)\(c3)-\(num)"
 
+            // Name distribution based on ranking bracket
+            // Top 150: 85% gamertag, 15% realistic
+            // Extended (150+): 30% gamertag, 70% realistic
+            let useGamertag: Bool
+            let roll = (seed * 17) % 100
+            if i < 150 {
+                useGamertag = roll < 85
+            } else {
+                useGamertag = roll < 30
+            }
+
+            let name: String
+            if useGamertag {
+                name = gamertags[(seed * 3) % gamertags.count]
+            } else {
+                name = realisticNames[(seed * 5) % realisticNames.count]
+            }
+
             let player = MockPlayer(
                 id: code,
-                name: names[seed % names.count],
+                name: name,
                 code: code,
                 countryCode: countries[seed % countries.count]
             )

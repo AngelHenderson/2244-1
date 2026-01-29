@@ -271,7 +271,7 @@ enum MockLeaderboardData {
         return invalidToValid[milestone] ?? milestone
     }
 
-    static let globalNames = [
+    public static let globalNames = [
         "DefenselessMetal49", "LopingLemming57", "DensePage91", "BrittleBelly111", "PerfectPirate2198",
         "CaramelStamp47", "Player6362", "CulturalDerision48", "KnownOwner26", "SwiftCoder99",
         "PixelMaster42", "NeonRacer77", "CloudJumper88", "StarGazer2024", "ThunderBolt55",
@@ -305,7 +305,7 @@ enum MockLeaderboardData {
     ]
 
     // Real-life names for extended brackets (70% of players rank 151+ use these)
-    static let realNames = [
+    public static let realNames = [
         // Common English names
         "James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel",
         "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George",
@@ -868,6 +868,114 @@ enum MockLeaderboardData {
             // Base gamertag name
             return names[index % names.count]
         }
+    }
+
+    // Generate extended bracket player entries around a given rank
+    // Used when user is outside top 150 to show surrounding players with names
+    static func extendedBracketEntries(
+        aroundRank userRank: Int,
+        userMilestone: String,
+        countryCode: String,
+        countrySeed: Int,
+        names: [String],
+        day: Int,
+        totalPlayers: Int,
+        extendedBrackets: [(milestone: String, startRank: Int)]
+    ) -> [LeaderboardEntry] {
+        var entries: [LeaderboardEntry] = []
+
+        // Generate 5 players above and 5 players below the user
+        let ranksToShow = 5
+
+        // Players above user (better ranks)
+        for offset in (1...ranksToShow).reversed() {
+            let rank = userRank - offset
+            guard rank > 150 else { continue }  // Don't generate if in top 150
+
+            let playerIndex = rank + countrySeed  // Unique index for this player
+            let name = nameForPlayer(index: playerIndex, names: names, countrySeed: countrySeed, day: day)
+            let avatar = avatarForPlayer(index: playerIndex, countrySeed: countrySeed, day: day)
+            let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
+
+            // Find milestone for this rank from extended brackets
+            var milestone = userMilestone
+            for bracket in extendedBrackets {
+                if rank >= bracket.startRank {
+                    milestone = bracket.milestone
+                    break
+                }
+            }
+
+            let score = scoreForMilestone(milestone)
+
+            entries.append(LeaderboardEntry(
+                id: "ext_\(countryCode.lowercased())_\(rank)",
+                rank: rank,
+                name: name,
+                score: score,
+                countryCode: countryCode,
+                platform: platform,
+                isMe: false,
+                avatarURL: avatar,
+                highestTile: milestone
+            ))
+        }
+
+        // Add user entry
+        let userScore = scoreForMilestone(userMilestone)
+        entries.append(LeaderboardEntry(
+            id: "me",
+            rank: userRank,
+            name: UserLeaderboardData.playerName,
+            score: userScore,
+            countryCode: countryCode,
+            platform: .ios,
+            isMe: true,
+            avatarURL: UserLeaderboardData.avatarID,
+            highestTile: userMilestone
+        ))
+
+        // Players below user (worse ranks)
+        for offset in 1...ranksToShow {
+            let rank = userRank + offset
+            guard rank <= totalPlayers else { continue }  // Don't exceed total players
+
+            let playerIndex = rank + countrySeed  // Unique index for this player
+            let name = nameForPlayer(index: playerIndex, names: names, countrySeed: countrySeed, day: day)
+            let avatar = avatarForPlayer(index: playerIndex, countrySeed: countrySeed, day: day)
+            let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
+
+            // Find milestone for this rank from extended brackets
+            var milestone = userMilestone
+            for bracket in extendedBrackets {
+                if rank >= bracket.startRank {
+                    milestone = bracket.milestone
+                    break
+                }
+            }
+
+            // Players below might have slightly worse milestone
+            let bracketIdx = extendedBrackets.firstIndex { rank >= $0.startRank }
+            if let idx = bracketIdx, idx + 1 < extendedBrackets.count {
+                milestone = extendedBrackets[idx + 1].milestone
+            }
+
+            let score = scoreForMilestone(milestone)
+
+            entries.append(LeaderboardEntry(
+                id: "ext_\(countryCode.lowercased())_\(rank)",
+                rank: rank,
+                name: name,
+                score: score,
+                countryCode: countryCode,
+                platform: platform,
+                isMe: false,
+                avatarURL: avatar,
+                highestTile: milestone
+            ))
+        }
+
+        return entries
     }
 
     // Calculate infinity count with daily progression for Hall of Fame players
@@ -3871,24 +3979,23 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with rank calculated using bracket system
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-
             // Calculate user rank using same bracket system as profile
             let userRank = MockLeaderboardData.calculateGlobalRank(milestone: userMilestone, totalPlayers: totalPlayers)
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: userRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            // Use global names and a global seed for extended bracket entries
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: userRank,
+                userMilestone: userMilestone,
                 countryCode: userCountry,
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 888888,  // Global seed
+                names: MockLeaderboardData.globalNames,
+                day: day,
+                totalPlayers: totalPlayers,
+                extendedBrackets: usExtendedRankBrackets  // Use US brackets as reference for global
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -3970,9 +4077,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based ranking
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var usRank = totalUSPlayers
 
             for bracket in usExtendedRankBrackets {
@@ -3983,17 +4089,18 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: usRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            // Add extended bracket entries with surrounding players
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: usRank,
+                userMilestone: userMilestone,
                 countryCode: "US",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 0,
+                names: MockLeaderboardData.usNames,
+                day: day,
+                totalPlayers: totalUSPlayers,
+                extendedBrackets: usExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -4060,9 +4167,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based rank
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var ukRank = totalUKPlayers
 
             for bracket in ukExtendedRankBrackets {
@@ -4073,17 +4179,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: ukRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: ukRank,
+                userMilestone: userMilestone,
                 countryCode: "GB",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 5000,
+                names: MockLeaderboardData.ukNames,
+                day: day,
+                totalPlayers: totalUKPlayers,
+                extendedBrackets: ukExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -4149,9 +4255,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based rank
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var canadaRank = totalCanadaPlayers
 
             for bracket in canadaExtendedRankBrackets {
@@ -4162,17 +4267,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: canadaRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: canadaRank,
+                userMilestone: userMilestone,
                 countryCode: "CA",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 10000,
+                names: MockLeaderboardData.canadaNames,
+                day: day,
+                totalPlayers: totalCanadaPlayers,
+                extendedBrackets: canadaExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
@@ -4238,9 +4343,8 @@ public extension LeaderboardClient {
             ))
         }
 
-        // If user is not in top 150, add them separately with bracket-based rank
+        // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
             var australiaRank = totalAustraliaPlayers
 
             for bracket in australiaExtendedRankBrackets {
@@ -4251,17 +4355,17 @@ public extension LeaderboardClient {
                 }
             }
 
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: australiaRank,
-                name: UserLeaderboardData.playerName,
-                score: userScore,
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: australiaRank,
+                userMilestone: userMilestone,
                 countryCode: "AU",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
+                countrySeed: 15000,
+                names: MockLeaderboardData.australiaNames,
+                day: day,
+                totalPlayers: totalAustraliaPlayers,
+                extendedBrackets: australiaExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
         }
 
         return entries
