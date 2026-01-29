@@ -109,13 +109,13 @@ public struct ChallengeDesignerView: View {
     }
     
     private var tilesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(spacing: 16) {
             // Column headers
             HStack {
                 ForEach(0..<3, id: \.self) { _ in
                     Text("Tiles")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary.opacity(0.7))
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
@@ -129,11 +129,34 @@ public struct ChallengeDesignerView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(10)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
                 }
             }
+
+            // Reward section
+            VStack(spacing: 6) {
+                Text("REWARD")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 6) {
+                    Image("gem")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
+                    Text("+\(store.predictedReward)")
+                        .font(.system(.headline, design: .rounded).weight(.bold))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color.purple.opacity(0.15)))
+            }
+            .padding(.top, 8)
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.secondary.opacity(0.15))
+        )
     }
 
     private func stepsForColumn(_ column: Int) -> [Int] {
@@ -162,32 +185,25 @@ public struct ChallengeDesignerView: View {
     }
     
     private var bottomBar: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 6) {
-                Image(systemName: "diamond.fill")
-                Text("+\(store.predictedReward)")
-            }
-            .font(.system(.headline, design: .rounded))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.blue.opacity(0.15)))
-            
-            Spacer(minLength: 0)
-            
+        HStack {
+            Spacer()
+
             Button {
                 onPlay?(store.config)
                 dismiss()
             } label: {
                 Label("Play", systemImage: "play.fill")
                     .font(.system(.headline, design: .rounded))
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 14)
                     .background(Capsule().fill(Color.green.opacity(0.9)))
                     .foregroundStyle(.white)
                     .shadow(radius: 4)
             }
             .disabled(!store.isPlayable)
             .opacity(store.isPlayable ? 1 : 0.5)
+
+            Spacer()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

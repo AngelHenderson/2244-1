@@ -8,6 +8,7 @@ public struct ChallengeModeView: View {
     @State private var scrollViewProxy: ScrollViewProxy? = nil
     @State private var currentTime = Date()  // For countdown timer updates
     @State private var selectedChallenge: Challenge? = nil
+    @State private var showIconLegend = false
 
     public var onPlay: ((Challenge) -> Void)?
 
@@ -53,8 +54,18 @@ public struct ChallengeModeView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                    HStack(spacing: 16) {
+                        Button {
+                            showIconLegend = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                        }
+                        Button("Done") { dismiss() }
+                    }
                 }
+            }
+            .sheet(isPresented: $showIconLegend) {
+                IconLegendSheet()
             }
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { time in
                 currentTime = time
@@ -67,7 +78,7 @@ public struct ChallengeModeView: View {
         let status = store.status(for: challenge)
         let isSelected = selectedChallenge?.id == challenge.id
         GeometryReader { geo in
-            let cardWidth = geo.size.width * 0.7
+            let cardWidth = geo.size.width * 0.35
             ChallengeCard(
                 challenge: challenge,
                 challengeNumber: index + 1,
@@ -508,6 +519,82 @@ private struct ChallengeCard: View {
         let minutes = (Int(remaining) % 3600) / 60
         let seconds = Int(remaining) % 60
         return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+}
+
+// MARK: - Icon Legend View
+
+private struct IconLegendSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let legendItems: [(icon: String, name: String, description: String)] = [
+        ("diamond.fill", "Gems", "Currency to spend in shop"),
+        ("hammer.fill", "Hammer", "Destroy any tile"),
+        ("arrow.left.arrow.right", "Swap", "Swap two tiles"),
+        ("dot.radiowaves.left.and.right", "MegaMerge", "Pull matching tiles together"),
+        ("arrow.trianglehead.2.clockwise.rotate.90", "Spin", "Bonus spin on reward wheel"),
+        ("2.circle.fill", "2× Boost", "Double score multiplier"),
+        ("3.circle.fill", "3× Boost", "Triple score multiplier"),
+        ("4.circle.fill", "4× Boost", "Quadruple score multiplier"),
+        ("shippingbox.fill", "Treasure Box", "Contains multiple rewards")
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(legendItems, id: \.icon) { item in
+                        HStack(spacing: 16) {
+                            Image(systemName: item.icon)
+                                .font(.title2)
+                                .foregroundStyle(iconColor(for: item.icon))
+                                .frame(width: 32)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.name)
+                                    .font(.body.weight(.medium))
+                                Text(item.description)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
+
+                        if item.icon != legendItems.last?.icon {
+                            Divider()
+                                .padding(.leading, 64)
+                        }
+                    }
+                }
+                .padding(.vertical)
+            }
+            .navigationTitle("Reward Icons")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func iconColor(for icon: String) -> Color {
+        switch icon {
+        case "diamond.fill": return .cyan
+        case "hammer.fill": return .gray
+        case "arrow.left.arrow.right": return .green
+        case "dot.radiowaves.left.and.right": return .red
+        case "arrow.trianglehead.2.clockwise.rotate.90": return .purple
+        case "2.circle.fill": return .yellow
+        case "3.circle.fill": return .pink
+        case "4.circle.fill": return .red
+        case "shippingbox.fill": return .orange
+        default: return .primary
+        }
     }
 }
 
