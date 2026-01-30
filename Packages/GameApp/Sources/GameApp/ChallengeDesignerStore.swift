@@ -45,7 +45,17 @@ public final class ChallengeDesignerStore {
     public var targetStep: Int {
         // targetPower is the power of 2 for the target
         // step = power - 1 (since step 0 = 2^1 = 2, step 1 = 2^2 = 4, etc.)
-        return targetPower - 1
+        let base = targetPower - 1
+        // For 1aa+ targets, adjust step for correct color mapping
+        // For 1bd+ targets, adjust by an additional one
+        if targetLabel.count >= 3 && targetLabel != "∞" {
+            let suffix = String(targetLabel.dropFirst())
+            if suffix >= "bd" {
+                return base - 2
+            }
+            return base - 1
+        }
+        return base
     }
     
     public var timeLimitSeconds: Int = 60
@@ -167,7 +177,17 @@ public final class ChallengeDesignerStore {
     /// The max tile power based on minTileLevel and target
     /// minTileLevel determines how many steps below the target the max tile is
     public var maxTilePower: Int {
-        targetPower - minTileLevel
+        let base = targetPower - minTileLevel
+        // For 1aa+ targets (3-char labels), push tiles by one to maintain correct gap
+        // For 1bd+ targets, push by an additional one
+        if targetLabel.count >= 3 && targetLabel != "∞" {
+            let suffix = String(targetLabel.dropFirst())
+            if suffix >= "bd" {
+                return base - 2
+            }
+            return base - 1
+        }
+        return base
     }
 
     /// The starting tile power based on max tile and levels
