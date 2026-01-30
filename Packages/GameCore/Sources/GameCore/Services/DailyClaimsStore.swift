@@ -507,40 +507,53 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(gems: 882),
         AchievementDef.Rewards(magnets: 1, boost2x: 1, boost4x: 1),
         AchievementDef.Rewards(gems: 900, hammers: 1),
-        AchievementDef.Rewards(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1)
+        AchievementDef.Rewards(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1),
+        // Week 24
+        AchievementDef.Rewards(gems: 1000, hammers: 1),
+        AchievementDef.Rewards(swaps: 1),
+        AchievementDef.Rewards(magnets: 1),
+        AchievementDef.Rewards(spins: 1, swaps: 1),
+        AchievementDef.Rewards(gems: 686, spins: 2, boost4x: 1),
+        AchievementDef.Rewards(gems: 733, swaps: 2),
+        AchievementDef.Rewards(gems: 688, hammers: 1, magnets: 1, boost2x: 1, boost3x: 1),
+        // Week 25
+        AchievementDef.Rewards(gems: 445, hammers: 2, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 399, spins: 1),
+        AchievementDef.Rewards(gems: 994, hammers: 2, swaps: 2, boost4x: 1),
+        AchievementDef.Rewards(gems: 1122),
+        AchievementDef.Rewards(spins: 1, swaps: 2),
+        AchievementDef.Rewards(spins: 1, boost2x: 1, boost3x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 1084)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {
         guard day > 0 else { return AchievementDef.Rewards() }
-        let index = (day - 1) % cycle.count
-        let week = max((day - 1) / cycle.count, 0)
-        return cycle[index].scaled(forWeek: week)
+
+        // Pattern repeats every 365 days (yearly)
+        let dayInYear = ((day - 1) % 365) + 1
+        let index = (dayInYear - 1) % cycle.count
+
+        // Calculate year for gem multiplier
+        // Year 1: 1.0x, Year 2: 1.5x, Year 3: 2.0x, Year 4: 2.5x, etc.
+        let year = ((day - 1) / 365) + 1
+        let gemMultiplier = 1.0 + (Double(year - 1) * 0.5)
+
+        return cycle[index].scaled(forYear: year, gemMultiplier: gemMultiplier)
     }
 }
 
 private extension AchievementDef.Rewards {
-    func scaled(forWeek week: Int) -> AchievementDef.Rewards {
+    func scaled(forYear year: Int, gemMultiplier: Double) -> AchievementDef.Rewards {
         AchievementDef.Rewards(
-            gems: scaleLinear(base: gems, week: week, step: 40),
-            spins: scaleFrequency(base: spins, week: week, frequency: 2),
-            hammers: scaleFrequency(base: hammers, week: week, frequency: 3),
-            magnets: scaleFrequency(base: magnets, week: week, frequency: 3),
-            swaps: scaleFrequency(base: swaps, week: week, frequency: 2),
-            boost2x: scaleFrequency(base: boost2x, week: week, frequency: 4),
-            boost3x: scaleFrequency(base: boost3x, week: week, frequency: 4),
-            boost4x: scaleFrequency(base: boost4x, week: week, frequency: 5)
+            gems: gems.map { Int(Double($0) * gemMultiplier) },
+            spins: spins,
+            hammers: hammers,
+            magnets: magnets,
+            swaps: swaps,
+            boost2x: boost2x,
+            boost3x: boost3x,
+            boost4x: boost4x
         )
-    }
-
-    private func scaleLinear(base: Int?, week: Int, step: Int) -> Int? {
-        guard let base else { return nil }
-        return base + (week * step)
-    }
-
-    private func scaleFrequency(base: Int?, week: Int, frequency: Int) -> Int? {
-        guard let base else { return nil }
-        guard frequency > 0 else { return base }
-        return base + (week / frequency)
     }
 }
 
