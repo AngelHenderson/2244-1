@@ -126,6 +126,20 @@ public struct DailyClaimsView: View {
                let claim = store.dailyClaims.first(where: { $0.day == nextDay }) {
                 let bonusCount = store.pendingStreakBonusCount(afterClaimingDay: nextDay)
 
+                // Show how many claims are available (for catch-up)
+                if store.availableClaims > 1 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .foregroundStyle(.blue)
+                        Text("\(store.availableClaims) rewards to catch up!")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.blue)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.blue.opacity(0.15), in: Capsule())
+                }
+
                 Text("Day \(claim.day) Reward Available!")
                     .font(.headline)
 

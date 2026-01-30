@@ -212,7 +212,7 @@ public final class DailyClaimsStore {
     }
     
     public func getTimeUntilNextClaim() -> TimeInterval? {
-        guard !canClaimToday else { return nil }
+        guard !canClaimToday || availableClaims == 0 else { return nil }
 
         let calendar = Calendar.current
         let now = Date()
