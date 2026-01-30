@@ -22,6 +22,9 @@ public final class GameStore {
     /// Count of valid move pairs (adjacent identical tiles) - stored for SwiftUI reactivity
     public private(set) var validMovesCount: Int = 0
 
+    /// Length of the last committed chain (for tracking merged tiles in challenge mode)
+    public private(set) var lastChainLength: Int = 0
+
     // Track if game over has been processed for this session (reset on new game)
     private var gameOverProcessed: Bool = false
 
@@ -809,7 +812,10 @@ public final class GameStore {
         guard let lastPos = positions.last else { return }
         
         print("[GameStore] Starting commitPath sequence. Positions: \(positions.count)")
-        
+
+        // Track chain length for challenge mode achievement tracking
+        lastChainLength = positions.count
+
         // Lock input to prevent interaction during animation
         isInputLocked = true
         
@@ -889,7 +895,10 @@ public final class GameStore {
                 // 4. Refill Phase
                 print("[GameStore] Phase 4: Refill")
                 self.performRefill(columns: affectedColumns)
-                
+
+                // 5. Update valid moves count once at the very end
+                self.updateValidMovesCount()
+
                 // Clear animation
                 self.mergeAnimationState = nil
                 print("[GameStore] Sequence complete")
@@ -911,13 +920,16 @@ public final class GameStore {
             let newState = engine.refillColumns(cols)
             state = newState
             markRefills(previousBoard: previousBoard, newBoard: newState.board, scopedColumns: cols)
-            // Update valid moves count for scoped refill
-            validMovesCount = engine.countValidMoves()
         } else {
             let newState = engine.refillBoard()
-            // applyStateUpdate already updates validMovesCount
-            applyStateUpdate(newState, previousBoard: previousBoard)
+            state = newState
+            scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: [])
         }
+    }
+
+    /// Update valid moves count - call once after all board changes are complete
+    private func updateValidMovesCount() {
+        validMovesCount = engine.countValidMoves()
     }
 
     private func performGravityDrop(columns: Set<Int>? = nil) {
@@ -2016,7 +2028,6 @@ public final class GameStore {
 
             let hammeredState = self.engine.hammer(at: position, applyGravity: false)
             self.state = hammeredState
-            self.validMovesCount = self.engine.countValidMoves()
             
             do {
                 try await Task.sleep(nanoseconds: Self.hammerImpactDelay)
@@ -2049,10 +2060,11 @@ public final class GameStore {
             
             let cols = self.columnsWithEmpties(in: self.state.board)
             self.performRefill(columns: cols)
+            self.updateValidMovesCount()
             self.resetHammerAnimation()
         }
     }
-    
+
     @MainActor
     private func resetHammerAnimation() {
         hammerAnimationState = nil
@@ -2127,7 +2139,6 @@ public final class GameStore {
 
             let magnetResult = self.engine.magnetize(value: value, to: position)
             self.state = magnetResult
-            self.validMovesCount = self.engine.countValidMoves()
             self.processPendingRewards()
 
             let mergedTile = magnetResult.board[position]
@@ -2161,6 +2172,7 @@ public final class GameStore {
 
             let refillCols = self.columnsWithEmpties(in: self.state.board)
             self.performRefill(columns: refillCols)
+            self.updateValidMovesCount()
             self.saveProgressImmediately(newTile: mergedValue)
         }
     }
@@ -2663,9 +2675,7 @@ extension GameStore {
         print("📐 refreshDerivedState: highestTileStep = \(state.highestTileStep) (persisted was: \(persistedStep))")
 
         // Update valid moves count for UI
-        let newCount = engine.countValidMoves()
-        print("[GameStore] refreshDerivedState updating validMovesCount: \(validMovesCount) -> \(newCount)")
-        validMovesCount = newCount
+        validMovesCount = engine.countValidMoves()
     }
 
     /// Verifies that highestTileStep matches the actual tiles on the board.
@@ -2972,8 +2982,8 @@ extension GameStore {
         achievementEvaluator?.onPowerUpUsed(type: "spin")
     }
     
-    public func registerChallengeCreationCompleted() {
-        achievementEvaluator?.onChallengeCreationCompleted()
+    public func registerChallengeCreationCompleted(withCapturedMultiplier multiplier: Int? = nil) {
+        achievementEvaluator?.onChallengeCreationCompleted(withCapturedMultiplier: multiplier)
     }
 
     public func registerLeaderboardRank(_ rank: Int) {
