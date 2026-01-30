@@ -552,11 +552,11 @@ private struct DayGridCell: View {
                 }
             }
 
-            // Streak bonus indicator
-            if bonusCount > 0 && claim.isAvailable {
+            // Streak bonus indicator - always show for available claim
+            if claim.isAvailable {
                 HStack(spacing: 4) {
                     Image(systemName: "gift.fill")
-                    Text("+\(bonusCount) Bonus")
+                    Text("+ Random Streak Bonus!")
                 }
                 .font(.caption.bold())
                 .foregroundStyle(.orange)
