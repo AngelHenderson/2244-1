@@ -1334,11 +1334,15 @@ public final class GameEngine {
         let highestStep = state.highestTileStep
         guard highestStep >= 0 else { return nil }
 
-        // Maximum spawn is 7 steps below highest
-        let maxSpawnStep = highestStep - 7
+        // After 131K+ (step 17+), make the game easier by spawning closer to highest
+        // Step 17 = 131072 (131K)
+        let stepsBelow = highestStep >= 17 ? 5 : 7
 
-        // Minimum spawn is 13 steps below highest (so 7 candidates reach maxSpawn)
-        let calculatedMinStep = highestStep - 13
+        // Maximum spawn is stepsBelow below highest
+        let maxSpawnStep = highestStep - stepsBelow
+
+        // Minimum spawn is (stepsBelow + 6) steps below highest (so 7 candidates reach maxSpawn)
+        let calculatedMinStep = highestStep - (stepsBelow + 6)
 
         // But don't go below elimination threshold step
         let eliminationThresholdStep = getEliminationThresholdStep()
