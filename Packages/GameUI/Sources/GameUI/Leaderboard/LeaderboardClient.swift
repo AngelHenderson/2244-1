@@ -182,7 +182,7 @@ public enum MockLeaderboardData {
         "2bn", "5bn", "10bn", "20bn", "41bn", "82bn", "164bn", "328bn", "657bn", "1bo",
         "2bo", "5bo", "10bo", "21bo", "42bo", "84bo", "168bo", "336bo", "673bo", "1bp",
         "2bp", "5bp", "10bp", "21bp", "43bp", "86bp", "172bp", "345bp", "689bp", "1bq",
-        "2bq", "5bq", "11bq", "22bq", "44bq", "88bq", "177bq", "354bq", "706bq", "707bq", "1br",
+        "2bq", "5bq", "11bq", "22bq", "44bq", "88bq", "177bq", "354bq", "706bq", "1br",
         "2br", "5br", "11br", "22br", "45br", "90br", "180br", "361br", "722br", "1bs",
         "2bs", "5bs", "11bs", "23bs", "46bs", "92bs", "185bs", "370bs", "740bs", "1bt",
         "2bt", "5bt", "11bt", "23bt", "47bt", "94bt", "189bt", "379bt", "758bt", "1bu",
