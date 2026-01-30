@@ -4175,7 +4175,6 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
         // User can still view the leaderboard but won't be ranked if they have infinity
-        let userHasInfinity = userMilestone.hasSuffix("∞")
         playerData = playerData.filter { player in
             // Keep non-infinity players
             if !player.progressedMilestone.hasSuffix("∞") {
