@@ -776,7 +776,7 @@ struct WheelLights: View {
     }
 
     private func dividerAngle(at index: Int) -> CGFloat {
-        guard let segments = segments else {
+        guard segments != nil else {
             return 2 * .pi * CGFloat(index) / CGFloat(max(count, 1))
         }
         var angle: CGFloat = 0
