@@ -628,8 +628,10 @@ public final class AchievementEvaluator {
         }
     }
 
-    public func onChallengeCreationCompleted() {
-        let multiplier = achievementBoostMultiplier
+    public func onChallengeCreationCompleted(withCapturedMultiplier capturedMultiplier: Int? = nil) {
+        // Use the captured multiplier if provided (for when boost was active at start but expired before completion)
+        // Otherwise fall back to current multiplier
+        let multiplier = capturedMultiplier ?? achievementBoostMultiplier
         challengeCreationTotal += multiplier
         defaults.set(challengeCreationTotal, forKey: challengeCreationTotalKey)
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal

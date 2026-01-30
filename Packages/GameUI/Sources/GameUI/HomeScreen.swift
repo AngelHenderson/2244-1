@@ -8,6 +8,7 @@ public struct HomeScreen: View {
     @State private var isShowingAllBlocks: Bool = false
     @State private var isShowingCreate: Bool = false
     @State private var isShowingChallenge: Bool = false
+    @State private var capturedChallengeCreationMultiplier: Int = 1
     @Environment(\.gameStore) private var gameStore
     @Environment(\.storage) private var storage
     @Environment(\.tileJourney) private var journey
@@ -124,6 +125,9 @@ public struct HomeScreen: View {
         }
         .sheet(isPresented: $isShowingCreate) {
             CreateChallengeSheet(onStart: { settings in
+                // Capture the achievement boost multiplier NOW, at challenge creation start
+                // This ensures the boost counts even if it expires before challenge completion
+                capturedChallengeCreationMultiplier = gameStore.achievementBoostMultiplier
                 // Map settings to a seed; later we can extend GameStore to use full config
                 let seed = settings.seed ?? GameStore.seed(from: "target:\(settings.target) time:\(settings.time) min:\(settings.minTile) lvl:\(settings.levels)")
                 gameStore.startCustomGame(seed: seed)
@@ -134,7 +138,10 @@ public struct HomeScreen: View {
         }
         .sheet(isPresented: $isShowingChallenge) {
             HybridGameScreen(isPlayingDismiss: {
-                gameStore.registerChallengeCreationCompleted()
+                // Pass the captured multiplier so the boost counts even if it expired during gameplay
+                gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
+                // Reset captured multiplier after use
+                capturedChallengeCreationMultiplier = 1
                 isShowingChallenge = false
             })
         }

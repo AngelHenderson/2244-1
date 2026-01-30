@@ -62,8 +62,11 @@ public struct RootGameView: View {
                         // Only track challenge creation completion for newly created challenges
                         // (not for playing existing challenges from the challenge list)
                         if config.challengeId == nil {
-                            gameStore.registerChallengeCreationCompleted()
+                            // Pass the captured multiplier so the boost counts even if it expired during gameplay
+                            gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
                         }
+                        // Reset captured multiplier after use
+                        capturedChallengeCreationMultiplier = 1
                         withAnimation(.easeInOut(duration: 0.3)) {
                             isPlayingCustomChallenge = false
                             customChallengeConfig = nil
@@ -138,6 +141,9 @@ public struct RootGameView: View {
                     }
                     .adaptiveSheet(isPresented: $showChallengeDesigner) {
                         ChallengeDesignerView { config in
+                            // Capture the achievement boost multiplier NOW, at challenge creation start
+                            // This ensures the boost counts even if it expires before challenge completion
+                            capturedChallengeCreationMultiplier = gameStore.achievementBoostMultiplier
                             // Start custom challenge in dedicated screen
                             print("Starting custom challenge with config: \(config)")
                             showChallengeDesigner = false
