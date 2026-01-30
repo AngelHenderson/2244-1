@@ -15,13 +15,12 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../GameCore"),
-        .package(path: "../GameApp"),
-        .package(path: "../GameServices")
+        .package(path: "../GameApp")
     ],
     targets: [
         .target(
             name: "GameUI",
-            dependencies: ["GameCore", "GameApp", "GameServices"],
+            dependencies: ["GameCore", "GameApp"],
             resources: [
                 .process("Resources")
             ],

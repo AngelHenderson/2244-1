@@ -1,5 +1,5 @@
 import SwiftUI
-import GameServices
+import GameCore
 
 struct AllTiersView: View {
     let achievementTitle: String

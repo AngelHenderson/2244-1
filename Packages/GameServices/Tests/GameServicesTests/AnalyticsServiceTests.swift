@@ -1,5 +1,5 @@
 import Testing
-@testable import GameServices
+@testable import GameCore
 
 struct AnalyticsServiceTests {
     @Test
@@ -15,5 +15,4 @@ struct AnalyticsServiceTests {
         #expect(true)
     }
 }
-
 

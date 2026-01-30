@@ -1,6 +1,6 @@
 import SwiftUI
 import GameApp
-import GameServices
+import GameCore
 
 @MainActor
 public struct DailyClaimsView: View {

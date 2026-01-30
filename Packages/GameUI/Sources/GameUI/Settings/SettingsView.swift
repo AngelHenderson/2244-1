@@ -1,6 +1,6 @@
 import SwiftUI
 import GameApp
-import GameServices
+import GameCore
 import StoreKit
 import GameKit
 
@@ -372,9 +372,19 @@ struct GameCenterView: UIViewControllerRepresentable {
     }
 }
 
+private struct PreviewAudioService: AudioServiceProtocol {
+    func setMusicEnabled(_ enabled: Bool) async {}
+    func setSfxEnabled(_ enabled: Bool) async {}
+    func playMusic(loop: Bool) async {}
+    func playMusic(named fileName: String, loop: Bool) async {}
+    func stopMusic() async {}
+    func playSfx(name: String) async {}
+    func setCurrentMusicTheme(_ theme: String) async {}
+}
+
 #Preview {
     SettingsView()
-        .environment(\.audio, DefaultAudioService())
+        .environment(\.audio, PreviewAudioService())
         .environment(\.hapticsService, HapticsService())
         .environment(\.purchaseService, PurchaseService())
 }

@@ -10,5 +10,3 @@ public struct DefaultAnalyticsService: AnalyticsServiceProtocol, Sendable {
         // no-op
     }
 }
-
-

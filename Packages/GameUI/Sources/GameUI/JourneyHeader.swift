@@ -1,6 +1,5 @@
 import SwiftUI
 import GameApp
-import GameServices
 import GameCore
 
 /// Journey Header component showing milestone progression

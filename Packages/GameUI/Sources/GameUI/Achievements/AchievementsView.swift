@@ -1,6 +1,6 @@
 import SwiftUI
-import GameServices
 import GameApp
+import GameCore
 
 public struct AchievementsView: View {
     @Environment(AchievementStore.self) private var achievements

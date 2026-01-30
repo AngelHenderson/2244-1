@@ -1,7 +1,6 @@
 import SwiftUI
 import GameApp
 import GameCore
-import GameServices
 
 /// Root view that manages the flow between Home and Game screens
 public struct RootGameView: View {
@@ -23,7 +22,6 @@ public struct RootGameView: View {
     @State private var wheelEngine = WheelEngine()
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
-    @State private var leaderboardService = LeaderboardService()
 
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
@@ -92,7 +90,6 @@ public struct RootGameView: View {
                     .environment(\.homeActions, makeHomeActions())
                     .environment(\.challengeStore, challengeStore)
                     .environment(\.challengeDesignerStore, challengeDesignerStore)
-                    .environment(\.leaderboardService, leaderboardService)
                     .transition(.move(edge: .leading).combined(with: .opacity))
                     .task {
                         // Load saved progress when Home appears

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import GameServices
+@testable import GameCore
 
 struct StorageServiceTests {
     private func makeIsolatedSuiteName() -> String {
@@ -55,5 +55,4 @@ struct StorageServiceTests {
         #expect(await service.bestScore() == 999)
     }
 }
-
 

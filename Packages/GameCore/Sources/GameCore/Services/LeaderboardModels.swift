@@ -2,8 +2,8 @@ import Foundation
 
 // MARK: - Leaderboard Models
 
-/// Represents a leaderboard entry
-public struct LeaderboardEntry: Codable, Hashable, Sendable {
+/// Represents a leaderboard entry from a remote service.
+public struct LeaderboardServiceEntry: Codable, Hashable, Sendable {
     public let uid: String
     public let displayName: String
     public let value: String // Composite score as string to avoid int64 limits

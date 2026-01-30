@@ -106,7 +106,7 @@ public struct TilesInfoView: View {
                 }
                 .padding(24)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("Tiles Info")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -236,7 +236,7 @@ private struct AbbreviationsListView: View {
             }
             .padding()
         }
-        .background(Color(.systemGroupedBackground))
+        .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Tiles Info")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -283,7 +283,7 @@ private struct TileInfoRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -324,7 +324,7 @@ private struct InfinityRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
