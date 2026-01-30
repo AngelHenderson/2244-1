@@ -1128,8 +1128,7 @@ public final class GameStore {
         let gemsToUse = savedGems > 0 ? savedGems : state.gems
         state = newState
         state.gems = gemsToUse
-        // Update valid moves count for UI
-        validMovesCount = engine.countValidMoves()
+        // Note: caller is responsible for calling updateValidMovesCount() when done
         scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: refillProtectedPositions)
     }
     
@@ -1877,10 +1876,13 @@ public final class GameStore {
 
         // Save progress for doubled tile (could be massive achievement)
         saveProgressImmediately(newTile: doubledValue)
-        
+
+        // Update valid moves count at the end
+        updateValidMovesCount()
+
         return true
     }
-    
+
     public func clearLastMagnetEvent() {
         lastMagnetEvent = nil
     }
@@ -2283,13 +2285,16 @@ public final class GameStore {
         powerUpHistory.append(.swap(a, b))
         trackPowerUpAnalytics(action: .swap(a, b))
         achievementEvaluator?.onPowerUpUsed(type: "swap")
-        
+
         // Save progress after swap power-up
         saveProgressImmediately(newTile: nil)
-        
+
+        // Update valid moves count at the end
+        updateValidMovesCount()
+
         return true
     }
-    
+
     @discardableResult
     public func useShuffle() -> Bool {
         guard isPowerUpAvailable("shuffle") else { return false }
@@ -2307,13 +2312,16 @@ public final class GameStore {
         powerUpHistory.append(.shuffle)
         trackPowerUpAnalytics(action: .shuffle)
         achievementEvaluator?.onPowerUpUsed(type: "shuffle")
-        
+
         // Save progress after shuffle power-up
         saveProgressImmediately(newTile: nil)
-        
+
+        // Update valid moves count at the end
+        updateValidMovesCount()
+
         return true
     }
-    
+
     @discardableResult
     public func useUndo() -> Bool {
         guard state.undoAvailable else { return false }
@@ -2330,10 +2338,13 @@ public final class GameStore {
         powerUpHistory.append(.undo)
         trackPowerUpAnalytics(action: .undo)
         achievementEvaluator?.onUndoUsed()
-        
+
         // Save progress after undo (could restore significant state)
         saveProgressImmediately(newTile: nil)
-        
+
+        // Update valid moves count at the end
+        updateValidMovesCount()
+
         return true
     }
     

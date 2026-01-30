@@ -113,10 +113,14 @@ public struct HybridGameScreen: View {
                     if isCompact {
                         VStack(spacing: 8) {
                             topHUD
+                            MilestoneProgressBar()
                             horizontalDock
                         }
                     } else {
-                        topHUD
+                        VStack(spacing: 8) {
+                            topHUD
+                            MilestoneProgressBar()
+                        }
                     }
                 }
             }
@@ -1064,6 +1068,128 @@ struct ModeOverlay: View {
                 .allowsHitTesting(false)
         )
         .animation(.easeInOut(duration: 0.2), value: isHammerMode || isSwapMode || isMagnetMode)
+    }
+}
+
+// MARK: - Milestone Progress Bar
+
+struct MilestoneProgressBar: View {
+    @Environment(\.gameStore) private var gameStore
+
+    // minSpawn is step 0 (tile value 2)
+    private let minSpawnStep: Int = 0
+
+    private var minSpawnLabel: String {
+        JourneyTileGenerator.formatTileAtStep(minSpawnStep)
+    }
+
+    private var highestStep: Int {
+        max(0, gameStore.state.highestTileStep)
+    }
+
+    private var currentLabel: String {
+        JourneyTileGenerator.formatTileAtStep(highestStep)
+    }
+
+    private var nextLabel: String {
+        JourneyTileGenerator.formatTileAtStep(highestStep + 1)
+    }
+
+    private var nextStep: Int {
+        highestStep + 1
+    }
+
+    // Progress from minSpawn to current (0.0 to 1.0)
+    private var progressToCurrentRatio: CGFloat {
+        guard highestStep > minSpawnStep else { return 0 }
+        // Normalize: current position relative to a reasonable max (e.g., 100 steps)
+        return min(1.0, CGFloat(highestStep - minSpawnStep) / 100.0)
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // Left: minSpawn (lowest tile)
+            MiniTileView(label: minSpawnLabel, step: minSpawnStep, isLocked: false)
+
+            // Progress line to current
+            ProgressLine(progress: 1.0)
+
+            // Middle: current highest tile with crown
+            MiniTileView(label: currentLabel, step: highestStep, isCurrent: true)
+                .overlay(alignment: .top) {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.yellow)
+                        .offset(y: -8)
+                }
+
+            // Progress line to next (empty)
+            ProgressLine(progress: 0.0)
+
+            // Right: next tile after current (locked)
+            MiniTileView(label: nextLabel, step: nextStep, isLocked: true)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
+    }
+}
+
+private struct MiniTileView: View {
+    let label: String
+    let step: Int
+    var isCurrent: Bool = false
+    var isLocked: Bool = false
+
+    private var tileColor: Color {
+        if isLocked {
+            return Color.gray.opacity(0.4)
+        }
+        return Theme.colorForStep(step)
+    }
+
+    private var textColor: Color {
+        if isLocked {
+            return .gray
+        }
+        return Theme.textColorForStep(step)
+    }
+
+    var body: some View {
+        Text(label)
+            .font(.system(size: 10, weight: .bold, design: .rounded))
+            .foregroundStyle(textColor)
+            .minimumScaleFactor(0.5)
+            .frame(width: 36, height: 36)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(tileColor)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(isCurrent ? Color.yellow : Color.white.opacity(0.2), lineWidth: isCurrent ? 2 : 1)
+            )
+    }
+}
+
+private struct ProgressLine: View {
+    let progress: CGFloat
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                // Background line
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 3)
+
+                // Progress fill
+                Rectangle()
+                    .fill(Color.green)
+                    .frame(width: geo.size.width * progress, height: 3)
+            }
+        }
+        .frame(height: 3)
+        .frame(maxWidth: .infinity)
     }
 }
 

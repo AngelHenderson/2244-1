@@ -91,24 +91,24 @@ struct UnlockedNotificationView: View {
                 .padding(.bottom, 8)
 
             // Journey progression tiles
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 // Previous tier (if exists)
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 80)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 40)
                 }
 
                 // Current unlocked tier (highlighted)
-                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 100)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 50)
                     .overlay(alignment: .top) {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(.yellow)
-                            .font(.title3)
-                            .offset(y: -15)
+                            .font(.caption)
+                            .offset(y: -10)
                     }
 
                 // Next tier (locked)
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 80, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 40, isLocked: true)
                 }
             }
             .padding(.vertical, 8)
@@ -537,8 +537,9 @@ struct JourneyTileCard: View {
 
     var body: some View {
         Text(label)
-            .font(.system(size: isPrimary ? 28 : 20, weight: isPrimary ? .bold : .semibold, design: .rounded))
+            .font(.system(size: isPrimary ? size * 0.36 : size * 0.35, weight: isPrimary ? .bold : .semibold, design: .rounded))
             .foregroundStyle(textColor)
+            .minimumScaleFactor(0.5)
             .frame(width: size, height: size)
             .background(
                 Group {
