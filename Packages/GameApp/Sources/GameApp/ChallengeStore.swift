@@ -88,6 +88,109 @@ public final class ChallengeStore: Sendable {
         saveProgress()
     }
 
+    /// Returns the reward for a challenge by its UUID
+    public func reward(for challengeId: UUID) -> ChallengeReward? {
+        guard let index = challengeOrder.firstIndex(of: challengeId) else {
+            return nil
+        }
+        return rewardForIndex(index)
+    }
+
+    /// Returns the reward for a challenge at a specific index
+    private func rewardForIndex(_ index: Int) -> ChallengeReward {
+        // Specific rewards for each challenge (0-indexed)
+        let specificRewards: [Int: ChallengeReward] = [
+            0: ChallengeReward(coins: 50),                                              // 1M: 50 Gems
+            1: ChallengeReward(coins: 75),                                              // 1B: 75 Gems
+            2: ChallengeReward(coins: 100),                                             // 1a: 100 Gems
+            3: ChallengeReward(powerUps: [.hammer: 1]),                                 // 1b: 1 Hammer
+            4: ChallengeReward(coins: 125),                                             // 1c: 125 Gems
+            5: ChallengeReward(powerUps: [.swap: 1]),                                   // 1d: 1 Swap
+            6: ChallengeReward(coins: 150),                                             // 1e: 150 Gems
+            7: ChallengeReward(powerUps: [.magnet: 1]),                                 // 1f: 1 MegaMerge
+            8: ChallengeReward(coins: 175),                                             // 1g: 175 Gems
+            9: ChallengeReward(spins: 1),                                               // 1h: 1 Spin
+            10: ChallengeReward(coins: 200),                                            // 1i: 200 Gems
+            11: ChallengeReward(scoreBoosts: [2: 1]),                                   // 1j: 1 2x Boost
+            12: ChallengeReward(coins: 225),                                            // 1k: 225 Gems
+            13: ChallengeReward(powerUps: [.hammer: 1, .swap: 1]),                      // 1l: 1 Hammer, 1 Swap
+            14: ChallengeReward(coins: 250),                                            // 1m: 250 Gems
+            15: ChallengeReward(scoreBoosts: [3: 1]),                                   // 1n: 1 3x Boost
+            16: ChallengeReward(coins: 275),                                            // 1o: 275 Gems
+            17: ChallengeReward(powerUps: [.magnet: 1], spins: 1),                      // 1p: 1 MegaMerge, 1 Spin
+            18: ChallengeReward(coins: 300),                                            // 1q: 300 Gems
+            19: ChallengeReward(scoreBoosts: [4: 1]),                                   // 1r: 1 4x Boost
+            20: ChallengeReward(coins: 325),                                            // 1s: 325 Gems
+            21: ChallengeReward(powerUps: [.hammer: 2]),                                // 1t: 2 Hammers
+            22: ChallengeReward(coins: 350),                                            // 1u: 350 Gems
+            23: ChallengeReward(powerUps: [.swap: 2]),                                  // 1v: 2 Swaps
+            24: ChallengeReward(coins: 375),                                            // 1w: 375 Gems
+            25: ChallengeReward(powerUps: [.magnet: 2]),                                // 1x: 2 MegaMerges
+            26: ChallengeReward(coins: 400),                                            // 1y: 400 Gems
+            27: ChallengeReward(spins: 2),                                              // 1z: 2 Spins
+            28: ChallengeReward(coins: 425),                                            // 1aa: 425 Gems
+            29: ChallengeReward(powerUps: [.hammer: 1, .magnet: 1]),                    // 1ab: 1 Hammer, 1 MegaMerge
+            30: ChallengeReward(coins: 450),                                            // 1ac: 450 Gems
+            31: ChallengeReward(scoreBoosts: [2: 2]),                                   // 1ad: 2 2x Boosts
+            32: ChallengeReward(coins: 475),                                            // 1ae: 475 Gems
+            33: ChallengeReward(powerUps: [.swap: 1, .magnet: 1]),                      // 1af: 1 Swap, 1 MegaMerge
+            34: ChallengeReward(coins: 500),                                            // 1ag: 500 Gems
+            35: ChallengeReward(scoreBoosts: [3: 2]),                                   // 1ah: 2 3x Boosts
+            36: ChallengeReward(coins: 525),                                            // 1ai: 525 Gems
+            37: ChallengeReward(powerUps: [.hammer: 1, .swap: 1, .magnet: 1]),          // 1aj: 1 Hammer, 1 Swap, 1 MegaMerge
+            38: ChallengeReward(coins: 550),                                            // 1ak: 550 Gems
+            39: ChallengeReward(scoreBoosts: [4: 2]),                                   // 1al: 2 4x Boosts
+            40: ChallengeReward(coins: 575),                                            // 1am: 575 Gems
+            41: ChallengeReward(powerUps: [.hammer: 2, .swap: 1]),                      // 1an: 2 Hammers, 1 Swap
+            42: ChallengeReward(coins: 600),                                            // 1ao: 600 Gems
+            43: ChallengeReward(spins: 1, scoreBoosts: [2: 1]),                         // 1ap: 1 Spin, 1 2x Boost
+            44: ChallengeReward(coins: 625),                                            // 1aq: 625 Gems
+            45: ChallengeReward(powerUps: [.hammer: 1, .swap: 2]),                      // 1ar: 1 Hammer, 2 Swaps
+            46: ChallengeReward(coins: 650),                                            // 1as: 650 Gems
+            47: ChallengeReward(spins: 1, scoreBoosts: [3: 1]),                         // 1at: 1 Spin, 1 3x Boost
+            48: ChallengeReward(coins: 675),                                            // 1au: 675 Gems
+            49: ChallengeReward(powerUps: [.magnet: 2], spins: 1),                      // 1av: 2 MegaMerges, 1 Spin
+            50: ChallengeReward(coins: 700),                                            // 1aw: 700 Gems
+            51: ChallengeReward(spins: 1, scoreBoosts: [4: 1]),                         // 1ax: 1 Spin, 1 4x Boost
+            52: ChallengeReward(coins: 725),                                            // 1ay: 725 Gems
+            53: ChallengeReward(powerUps: [.hammer: 2, .swap: 2]),                      // 1az: 2 Hammers, 2 Swaps
+            54: ChallengeReward(coins: 750),                                            // 1ba: 750 Gems
+            55: ChallengeReward(powerUps: [.hammer: 1, .magnet: 2]),                    // 1bb: 1 Hammer, 2 MegaMerges
+            56: ChallengeReward(coins: 775),                                            // 1bc: 775 Gems
+            57: ChallengeReward(spins: 2, scoreBoosts: [2: 1]),                         // 1bd: 2 Spins, 1 2x Boost
+            58: ChallengeReward(coins: 800),                                            // 1be: 800 Gems
+            59: ChallengeReward(powerUps: [.swap: 2, .magnet: 1]),                      // 1bf: 2 Swaps, 1 MegaMerge
+            60: ChallengeReward(coins: 825),                                            // 1bg: 825 Gems
+            61: ChallengeReward(spins: 2, scoreBoosts: [3: 1]),                         // 1bh: 2 Spins, 1 3x Boost
+            62: ChallengeReward(coins: 850),                                            // 1bi: 850 Gems
+            63: ChallengeReward(powerUps: [.hammer: 2, .magnet: 2]),                    // 1bj: 2 Hammers, 2 MegaMerges
+            64: ChallengeReward(coins: 875),                                            // 1bk: 875 Gems
+            65: ChallengeReward(spins: 2, scoreBoosts: [4: 1]),                         // 1bl: 2 Spins, 1 4x Boost
+            66: ChallengeReward(coins: 900),                                            // 1bm: 900 Gems
+            67: ChallengeReward(powerUps: [.hammer: 1, .swap: 2, .magnet: 1]),          // 1bn: 1 Hammer, 2 Swaps, 1 MegaMerge
+            68: ChallengeReward(coins: 925),                                            // 1bo: 925 Gems
+            69: ChallengeReward(scoreBoosts: [2: 2, 3: 1]),                             // 1bp: 2 2x Boosts, 1 3x Boost
+            70: ChallengeReward(coins: 950),                                            // 1bq: 950 Gems
+            71: ChallengeReward(powerUps: [.hammer: 2, .swap: 1, .magnet: 2]),          // 1br: 2 Hammers, 1 Swap, 2 MegaMerges
+            72: ChallengeReward(coins: 975),                                            // 1bs: 975 Gems
+            73: ChallengeReward(scoreBoosts: [3: 2, 4: 1]),                             // 1bt: 2 3x Boosts, 1 4x Boost
+            74: ChallengeReward(coins: 1000),                                           // 1bu: 1000 Gems
+            75: ChallengeReward(powerUps: [.hammer: 2, .swap: 2, .magnet: 1], spins: 1), // 1bv: 2 Hammers, 2 Swaps, 1 MegaMerge, 1 Spin
+            76: ChallengeReward(coins: 1025),                                           // 1bw: 1025 Gems (unlisted, using formula)
+            77: ChallengeReward(spins: 2, scoreBoosts: [2: 1, 3: 1, 4: 1]),             // 1bx: 2 Spins, 1 each Boost
+            78: ChallengeReward(coins: 1075),                                           // 1by: 1075 Gems (unlisted, using formula)
+            79: ChallengeReward(powerUps: [.hammer: 2, .swap: 2, .magnet: 2], spins: 2), // 1bz: 2 Hammers, 2 Swaps, 2 MegaMerges, 2 Spins
+            80: ChallengeReward(coins: 1000)                                            // Infinity: 1000 Gems
+        ]
+
+        if let specific = specificRewards[index] {
+            return specific
+        }
+        // Fallback formula for any challenges beyond defined rewards
+        let baseCoins = 50 + (index * 25)
+        return ChallengeReward(coins: baseCoins)
+    }
+
     public var currentChallengeNumber: Int {
         return completedIds.count + 1
     }

@@ -553,8 +553,14 @@ public struct CustomChallengeGameScreen: View {
         challengeWon = won
 
         if won {
-            // Award gems
-            homeState.addGems(config.predictedRewardGems)
+            // Grant the full challenge reward (gems, power-ups, spins, boosts)
+            if let challengeId = config.challengeId,
+               let reward = challengeStore.reward(for: challengeId) {
+                mainGameStore.grantChallengeReward(reward)
+            } else {
+                // Fallback to just gems if no challenge ID or reward found
+                homeState.addGems(config.predictedRewardGems)
+            }
 
             // Mark challenge as completed for milestone tracking (triggers 1hr unlock delay)
             if let challengeId = config.challengeId {

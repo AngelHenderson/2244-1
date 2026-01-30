@@ -78,7 +78,7 @@ public struct ChallengeModeView: View {
         let status = store.status(for: challenge)
         let isSelected = selectedChallenge?.id == challenge.id
         GeometryReader { geo in
-            let cardWidth = geo.size.width * 0.35
+            let cardWidth = geo.size.width * 0.5
             ChallengeCard(
                 challenge: challenge,
                 challengeNumber: index + 1,
@@ -533,9 +533,9 @@ private struct IconLegendSheet: View {
         ("arrow.left.arrow.right", "Swap", "Swap two tiles"),
         ("dot.radiowaves.left.and.right", "MegaMerge", "Pull matching tiles together"),
         ("arrow.trianglehead.2.clockwise.rotate.90", "Spin", "Bonus spin on reward wheel"),
-        ("2.circle.fill", "2× Boost", "Double score multiplier"),
-        ("3.circle.fill", "3× Boost", "Triple score multiplier"),
-        ("4.circle.fill", "4× Boost", "Quadruple score multiplier"),
+        ("2.circle.fill", "2× Boost", "Double spin multiplier"),
+        ("3.circle.fill", "3× Boost", "Triple spin multiplier"),
+        ("4.circle.fill", "4× Boost", "Quadruple spin multiplier"),
         ("shippingbox.fill", "Treasure Box", "Contains multiple rewards")
     ]
 
