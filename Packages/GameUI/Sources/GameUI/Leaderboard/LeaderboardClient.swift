@@ -226,16 +226,16 @@ public enum MockLeaderboardData {
 
         // Country configurations: (milestones, names, countrySeed, countryCode)
         let countryConfigs: [(milestones: [String], names: [String], seed: Int, code: String)] = [
-            (usPlayerMilestones, usNames, 0, "US"),
-            (ukPlayerMilestones, ukNames, 5000, "GB"),
-            (canadaPlayerMilestones, canadaNames, 10000, "CA"),
-            (australiaPlayerMilestones, australiaNames, 15000, "AU"),
-            (germanyPlayerMilestones, germanyNames, 20000, "DE"),
-            (francePlayerMilestones, franceNames, 25000, "FR"),
-            (japanPlayerMilestones, japanNames, 30000, "JP"),
-            (indiaPlayerMilestones, indiaNames, 35000, "IN"),
-            (brazilPlayerMilestones, brazilNames, 40000, "BR"),
-            (mexicoPlayerMilestones, mexicoNames, 45000, "MX")
+            (LeaderboardClient.usPlayerMilestones, usNames, 0, "US"),
+            (LeaderboardClient.ukPlayerMilestones, ukNames, 5000, "GB"),
+            (LeaderboardClient.canadaPlayerMilestones, canadaNames, 10000, "CA"),
+            (LeaderboardClient.australiaPlayerMilestones, australiaNames, 15000, "AU"),
+            (LeaderboardClient.germanyPlayerMilestones, germanyNames, 20000, "DE"),
+            (LeaderboardClient.francePlayerMilestones, franceNames, 25000, "FR"),
+            (LeaderboardClient.japanPlayerMilestones, japanNames, 30000, "JP"),
+            (LeaderboardClient.indiaPlayerMilestones, indiaNames, 35000, "IN"),
+            (LeaderboardClient.brazilPlayerMilestones, brazilNames, 40000, "BR"),
+            (LeaderboardClient.mexicoPlayerMilestones, mexicoNames, 45000, "MX")
         ]
 
         for config in countryConfigs {
