@@ -1158,6 +1158,10 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.finlandPlayerMilestones, LeaderboardClient.finlandExtendedRankBrackets, 87_654)
         case "PL":
             return (LeaderboardClient.polandPlayerMilestones, LeaderboardClient.polandExtendedRankBrackets, 67_108)
+        case "BE":
+            return (LeaderboardClient.belgiumPlayerMilestones, LeaderboardClient.belgiumExtendedRankBrackets, 8_989)
+        case "SE":
+            return (LeaderboardClient.swedenPlayerMilestones, LeaderboardClient.swedenExtendedRankBrackets, 6_288)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1231,6 +1235,8 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.denmarkPlayerMilestones, extendedBrackets: LeaderboardClient.denmarkExtendedRankBrackets, totalPlayers: 90_123)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.finlandPlayerMilestones, extendedBrackets: LeaderboardClient.finlandExtendedRankBrackets, totalPlayers: 87_654)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.polandPlayerMilestones, extendedBrackets: LeaderboardClient.polandExtendedRankBrackets, totalPlayers: 67_108)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.belgiumPlayerMilestones, extendedBrackets: LeaderboardClient.belgiumExtendedRankBrackets, totalPlayers: 8_989)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.swedenPlayerMilestones, extendedBrackets: LeaderboardClient.swedenExtendedRankBrackets, totalPlayers: 6_288)
 
         return total
     }
@@ -1980,7 +1986,33 @@ public enum MockLeaderboardData {
         "InowroclawIcon", "PruszkówProwler", "LucznickiLegend", "SlupskSlayer", "SieradzkiSword"
     ]
 
-    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
+    static let belgiumNames = [
+        "BrusselsBlitz", "AntwerpAce", "GhentGladiator", "BrugesBeacon", "LiegeLion",
+        "LeuvenLegend", "NamurNinja", "MonsMarauder", "AalstAvenger", "MechelenMaster",
+        "HasseltHawk", "SintNiklaasNova", "KortrijkKnight", "OostendeOracle", "GenkGuardian",
+        "RoeselareRaider", "MouscronMystic", "BeverenBeast", "DendermondeDevil", "TurnhoutTitan",
+        "LokerenLord", "VilvoordeVictor", "HerentalsHero", "WavreStar", "ArdennesAlpha",
+        "SpaStriker", "DinantDynamo", "YpresYeti", "ZeeBruggeZealot", "CharleroiChamp",
+        "WaterlooWarrior", "AtomiumAce", "MannekenMaster", "WaffleStar", "ChocolateChamp",
+        "DiamondDuke", "FlandersFlash", "WalloniaWolf", "AzureDragon", "BelgianBeast",
+        "TinTinTitan", "SmurfsSlayer", "BeerBaron", "FritesFury", "PralinaProdigy",
+        "MoulesMaster", "TruffleTerror", "BelgianBolt", "EuropaEagle", "AtomiumOracle"
+    ]
+
+    static let swedenNames = [
+        "StockholmStar", "GothenburgGladiator", "MalmoMaster", "UppsalaUltra", "VasterasViking",
+        "OrebroOracle", "LinkopingLegend", "HelsingborgHawk", "JonkopingJuggernaut", "NorrkopingNinja",
+        "LundLion", "UmeaUltimate", "GavleGhost", "BorasBlitz", "SodertaljeSword",
+        "EskilstunaEagle", "HalmstadHero", "VaxjoVanguard", "KarlstadKnight", "SundsvallStriker",
+        "LuleaLord", "TrollhattanTitan", "OstersundOrion", "SkellefteaStar", "KalmarKrusher",
+        "FalunFlash", "KristianstadChamp", "ViktoriaViking", "NordicNinja", "AuroraAce",
+        "MidnightSunMaster", "FjordFury", "VikingVanguard", "NorseNova", "SwedishStorm",
+        "ArcticAlpha", "BorealisBeast", "RuneRaider", "ThorThunder", "OdinOracle",
+        "FreyjaFury", "LokiLegend", "ValhallVictor", "RagnarRuler", "BjornBlade",
+        "SigurdStar", "IvarIcon", "LeifLord", "ErikElite", "GustavGuardian"
+    ]
+
+    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
     static func seededRandom(seed: Int, index: Int) -> Double {
@@ -2118,6 +2150,8 @@ public enum MockLeaderboardData {
         case "DK": return LeaderboardClient.denmarkPlayerMilestones
         case "FI": return LeaderboardClient.finlandPlayerMilestones
         case "PL": return LeaderboardClient.polandPlayerMilestones
+        case "BE": return LeaderboardClient.belgiumPlayerMilestones
+        case "SE": return LeaderboardClient.swedenPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -2180,6 +2214,10 @@ public extension LeaderboardClient {
                 entries = finlandEntries()
             case .countryPL:
                 entries = polandEntries()
+            case .countryBE:
+                entries = belgiumEntries()
+            case .countrySE:
+                entries = swedenEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -2235,6 +2273,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 87_654, on: day, countrySeed: 120)
             case .countryPL:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 67_108, on: day, countrySeed: 121)
+            case .countryBE:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 8_989, on: day, countrySeed: 122)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -2260,7 +2300,8 @@ public extension LeaderboardClient {
                 let dkPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 90_123, on: day, countrySeed: 119)
                 let fiPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 87_654, on: day, countrySeed: 120)
                 let plPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 67_108, on: day, countrySeed: 121)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers
+                let bePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 8_989, on: day, countrySeed: 122)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers
             }
             let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
             return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
@@ -3359,6 +3400,81 @@ public extension LeaderboardClient {
         ("8", 50000), ("4", 54321), ("2", 56789), ("0", 60000)  // Score 0 = ranks 60000-67108
     ]
 
+    // Belgium player milestones (ranks 1-150)
+    // Total Belgium players: ~8,989
+    static let belgiumPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "2bt", "1br", "38bk", "2bi", "1bg", "16be", "1bd", "115ay", "3av", "799as",
+        "86am", "1aj", "1af", "4ad", "16ab", "971x", "1v", "3t", "1t", "3s",
+        "6r", "411q", "1m", "5l", "178k", "44k", "22k", "5k", "696j", "174j",
+        // Ranks 31-60
+        "87j", "10j", "2j", "10i", "348j", "10j", "1j", "1j", "680i", "340i",
+        "170i", "85i", "20g", "10g", "2g", "19f", "154e", "1e", "9d", "147c",
+        "4c", "288b", "36b", "9b", "4b", "1b", "140a", "35a", "4a", "1a",
+        // Ranks 61-90
+        "274B", "34B", "17B", "8B", "8B", "4B", "4B", "2B", "2B", "2B",
+        "2B", "1B", "1B", "1B", "1B", "1B", "1B", "1B", "536M", "536M",
+        "536M", "536M", "536M", "536M", "536M", "536M", "536M", "536M", "268M", "268M",
+        // Ranks 91-120
+        "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M",
+        "268M", "268M", "268M", "268M", "134M", "134M", "134M", "134M", "134M", "134M",
+        "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M",
+        // Ranks 121-150
+        "134M", "134M", "134M", "134M", "134M", "67M", "67M", "67M", "67M", "67M",
+        "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M",
+        "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M", "67M"
+    ]
+
+    // Extended Belgium milestone brackets for rank calculation (ranks 151+)
+    // Total Belgium players: ~8,989
+    static let belgiumExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // M-tier brackets (ranks 151-666)
+        ("67M", 151), ("33M", 168), ("16M", 222), ("8M", 300), ("4M", 399),
+        ("2M", 533), ("1M", 611),
+        // K-tier brackets (ranks 667-1233)
+        ("524K", 667), ("262K", 767), ("131K", 833), ("65K", 911), ("32K", 1000), ("16K", 1111),
+        // Raw number brackets (ranks 1234-8989)
+        ("8192", 1234), ("4096", 1360), ("2048", 1555), ("1024", 1676), ("512", 2000),
+        ("256", 2578), ("128", 2840), ("64", 3333), ("32", 3888), ("16", 4444),
+        ("8", 5000), ("4", 5666), ("2", 6767), ("0", 7676)  // Score 0 = ranks 7676-8989
+    ]
+
+    // Sweden player milestones (ranks 1-150)
+    // Total Sweden players: ~6,288
+    static let swedenPlayerMilestones: [String] = [
+        // Ranks 1-30
+        "109bz", "46bs", "706bd", "313bl", "1bi", "32bd", "943az", "3az", "1ax", "49as",
+        "1am", "5ak", "38ah", "2ae", "4ac", "497y", "121x", "1w", "842r", "1q",
+        "1p", "1o", "2n", "5m", "5l", "5k", "21j", "170i", "2i", "83h",
+        // Ranks 31-60
+        "5h", "649g", "2g", "9e", "75d", "2d", "147c", "2c", "1c", "288b",
+        "36b", "9b", "9b", "4b", "2b", "2b", "1b", "281a", "35a", "2a",
+        "1a", "1a", "549B", "137B", "34B", "17B", "17B", "1B", "536M", "536M",
+        // Ranks 61-90
+        "268M", "268M", "268M", "134M", "134M", "134M", "67M", "67M", "67M", "67M",
+        "33M", "33M", "33M", "33M", "16M", "16M", "16M", "16M", "16M", "8M",
+        "8M", "8M", "8M", "8M", "8M", "4M", "4M", "4M", "4M", "4M",
+        // Ranks 91-120
+        "4M", "4M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M",
+        "2M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M",
+        "1M", "1M", "1M", "524K", "524K", "524K", "524K", "524K", "524K", "524K",
+        // Ranks 121-150
+        "524K", "524K", "524K", "524K", "524K", "524K", "524K", "262K", "262K", "262K",
+        "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K",
+        "262K", "262K", "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K"
+    ]
+
+    // Extended Sweden milestone brackets for rank calculation (ranks 151+)
+    // Total Sweden players: ~6,288
+    static let swedenExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // K-tier brackets (ranks 151-295)
+        ("131K", 151), ("65K", 168), ("32K", 200), ("16K", 244),
+        // Raw number brackets (ranks 296-6288)
+        ("8192", 296), ("4096", 366), ("2048", 452), ("1024", 555), ("512", 666),
+        ("256", 833), ("128", 1123), ("64", 1578), ("32", 2000), ("16", 2667),
+        ("8", 3333), ("4", 4000), ("2", 4676), ("0", 5412)  // Score 0 = ranks 5412-6288
+    ]
+
     // Extended Netherlands milestone brackets for rank calculation (ranks 151+)
     // Total Netherlands players: ~46,767
     static let netherlandsExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
@@ -3903,6 +4019,20 @@ public extension LeaderboardClient {
             playerData.append((i, i + 110000, progressedMilestone, milestoneIdx, name, "PL", platform, avatar, "pl_\(i)"))
         }
 
+        // Add Belgium players
+        for i in 0..<min(150, belgiumPlayerMilestones.count) {
+            let baseMilestone = belgiumPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.belgiumNames, countrySeed: 115000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 115000, day: day)
+
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 115000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+
+            playerData.append((i, i + 115000, progressedMilestone, milestoneIdx, name, "BE", platform, avatar, "be_\(i)"))
+        }
+
         // Add the user to playerData so they get sorted with everyone else
         let userMilestone = UserLeaderboardData.currentMilestone
         let userCountry = UserLeaderboardData.currentCountry
@@ -3970,7 +4100,10 @@ public extension LeaderboardClient {
         let totalSwitzerlandPlayers = 20_000
         let totalNorwayPlayers = 34_924
         let totalDenmarkPlayers = 90_123
-        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers + totalNetherlandsPlayers + totalSwitzerlandPlayers + totalNorwayPlayers + totalDenmarkPlayers
+        let totalFinlandPlayers = 87_654
+        let totalPolandPlayers = 67_108
+        let totalBelgiumPlayers = 8_989
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers + totalNetherlandsPlayers + totalSwitzerlandPlayers + totalNorwayPlayers + totalDenmarkPlayers + totalFinlandPlayers + totalPolandPlayers + totalBelgiumPlayers
 
         // Build entries with ranks based on sorted order (top 150 only)
         // User is already in playerData and sorted, so they'll appear at correct position
@@ -4057,6 +4190,12 @@ public extension LeaderboardClient {
             effectiveUserIdx = foundIdx
         }
         playerData.append((-1, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
 
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
@@ -4149,6 +4288,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
@@ -4237,6 +4379,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
@@ -4324,6 +4469,9 @@ public extension LeaderboardClient {
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
 
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
@@ -5027,6 +5175,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
@@ -5114,6 +5265,9 @@ public extension LeaderboardClient {
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
 
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
@@ -5203,6 +5357,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
@@ -5290,6 +5447,9 @@ public extension LeaderboardClient {
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
 
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
@@ -5379,6 +5539,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
@@ -5466,6 +5629,9 @@ public extension LeaderboardClient {
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
 
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
@@ -5557,6 +5723,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
@@ -5647,6 +5816,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
@@ -5707,6 +5879,99 @@ public extension LeaderboardClient {
                 day: day,
                 totalPlayers: totalPolandPlayers,
                 extendedBrackets: polandExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+
+    private static func belgiumEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // Build player data with milestones (including user)
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, belgiumPlayerMilestones.count) {
+            let baseMilestone = belgiumPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.belgiumNames, countrySeed: 115000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 115000, day: day)
+
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 115000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "be_\(i)"))
+        }
+
+        // Add user to playerData so they get sorted with everyone else
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
+        // Sort by milestone index (highest first = best milestone)
+        // Tiebreaker 1: user comes first when milestones are equal
+        // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        // Build entries with ranks
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalBelgiumPlayers = 8_989
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 115000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "BE",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        // If user is not in top 150, show them with surrounding extended bracket players
+        if !userInTop150 {
+            var belgiumRank = totalBelgiumPlayers
+
+            for bracket in belgiumExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    belgiumRank = bracket.startRank
+                    break
+                }
+            }
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: belgiumRank,
+                userMilestone: userMilestone,
+                countryCode: "BE",
+                countrySeed: 115000,
+                names: MockLeaderboardData.belgiumNames,
+                day: day,
+                totalPlayers: totalBelgiumPlayers,
+                extendedBrackets: belgiumExtendedRankBrackets
             )
             entries.append(contentsOf: extendedEntries)
         }

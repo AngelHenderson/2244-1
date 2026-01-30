@@ -140,18 +140,57 @@ struct CompareView: View {
     var myProfile: CompareProfile
     @Environment(\.dismiss) private var dismiss
     @State private var searchText: String = ""
-    @State private var selectedPlayer: MockPlayer?
+    @State private var selectedPlayers: [MockPlayer] = []
 
     private let mockPlayers: [MockPlayer] = MockPlayer.generateAll()
+    private let maxCompareCount = 5
 
     private var filteredPlayers: [MockPlayer] {
         let query = searchText.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return [] }
-        // Filter by any letters typed (contains match), sort alphabetically by code, limit to 50
+        // Filter by any letters typed (contains match), exclude already selected, limit to 50
+        let selectedIDs = Set(selectedPlayers.map { $0.id })
         return mockPlayers
-            .filter { $0.code.uppercased().contains(query) }
+            .filter { $0.code.uppercased().contains(query) && !selectedIDs.contains($0.id) }
             .prefix(50)
             .map { $0 }
+    }
+
+    /// Generates mock milestone data for a player based on their code (deterministic)
+    private func mockMilestone(for player: MockPlayer) -> String {
+        let seed = player.code.hashValue
+        let milestones = ["64", "128", "256", "512", "1K", "2K", "4K", "8K", "16K", "32K", "64K", "128K", "256K", "512K", "1M"]
+        return milestones[abs(seed) % milestones.count]
+    }
+
+    /// Sorted leaderboard entries for the mini comparison
+    private var comparisonLeaderboard: [ComparisonEntry] {
+        var entries: [ComparisonEntry] = []
+
+        // Add "You" entry
+        entries.append(ComparisonEntry(
+            id: "me",
+            name: "You",
+            code: friendCode,
+            countryFlag: myProfile.countryFlag,
+            milestone: myProfile.milestone,
+            isMe: true
+        ))
+
+        // Add selected players
+        for player in selectedPlayers {
+            entries.append(ComparisonEntry(
+                id: player.id,
+                name: player.name,
+                code: player.code,
+                countryFlag: player.countryFlag,
+                milestone: mockMilestone(for: player),
+                isMe: false
+            ))
+        }
+
+        // Sort by milestone (highest first)
+        return entries.sorted { parseMilestone($0.milestone) > parseMilestone($1.milestone) }
     }
 
     var body: some View {
@@ -169,17 +208,20 @@ struct CompareView: View {
                     }
                 }
 
-                Section("Compare With") {
-                    TextField("Search codes (e.g., A or XY)", text: $searchText)
+                Section("Add Players to Compare") {
+                    TextField("Search codes (e.g., A1 or XY)", text: $searchText)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
-                        .onChange(of: searchText) { _, _ in
-                            selectedPlayer = nil
-                        }
+
+                    if selectedPlayers.count >= maxCompareCount {
+                        Text("Maximum \(maxCompareCount) players")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
-                if !filteredPlayers.isEmpty && selectedPlayer == nil {
-                    Section("Players (\(filteredPlayers.count))") {
+                if !filteredPlayers.isEmpty && selectedPlayers.count < maxCompareCount {
+                    Section("Search Results (\(filteredPlayers.count))") {
                         ForEach(filteredPlayers) { player in
                             HStack {
                                 Text(player.countryFlag)
@@ -191,66 +233,84 @@ struct CompareView: View {
                                         .foregroundColor(.secondary)
                                 }
                                 Spacer()
-                                Button("Compare") {
-                                    selectedPlayer = player
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        // Prevent duplicates
+                                        if !selectedPlayers.contains(where: { $0.id == player.id }) {
+                                            selectedPlayers.append(player)
+                                        }
+                                        searchText = ""
+                                    }
+                                } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundColor(.accentColor)
                                 }
-                                .buttonStyle(.bordered)
-                                .controlSize(.small)
+                                .buttonStyle(.plain)
                             }
                         }
                     }
                 }
 
-                if let player = selectedPlayer {
+                // Mini Comparison Leaderboard
+                if !selectedPlayers.isEmpty {
                     Section {
-                        VStack(spacing: 16) {
-                            HStack(alignment: .top, spacing: 20) {
-                                // Your profile
-                                VStack(spacing: 8) {
-                                    Text(myProfile.countryFlag)
-                                        .font(.largeTitle)
-                                    Text("You")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Text(myProfile.milestone)
-                                        .font(.title2.bold())
-                                }
-                                .frame(maxWidth: .infinity)
+                        ForEach(Array(comparisonLeaderboard.enumerated()), id: \.element.id) { index, entry in
+                            HStack(spacing: 12) {
+                                // Rank
+                                Text("#\(index + 1)")
+                                    .font(.caption.bold())
+                                    .foregroundColor(entry.isMe ? .accentColor : .secondary)
+                                    .frame(width: 28, alignment: .leading)
 
-                                Text("vs")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                                    .padding(.top, 20)
+                                // Country flag
+                                Text(entry.countryFlag)
+                                    .font(.title3)
 
-                                // Their profile
-                                VStack(spacing: 8) {
-                                    Text(player.countryFlag)
-                                        .font(.largeTitle)
-                                    Text(player.name)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Text("—")
-                                        .font(.title2.bold())
+                                // Name and code
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(entry.name)
+                                        .font(.subheadline.weight(entry.isMe ? .bold : .medium))
+                                        .foregroundColor(entry.isMe ? .accentColor : .primary)
+                                    Text(entry.code)
+                                        .font(.caption.monospaced())
                                         .foregroundColor(.secondary)
                                 }
-                                .frame(maxWidth: .infinity)
+
+                                Spacer()
+
+                                // Milestone
+                                Text(entry.milestone)
+                                    .font(.subheadline.bold())
+                                    .foregroundColor(entry.isMe ? .accentColor : .primary)
+
+                                // Remove button (only for non-me entries)
+                                if !entry.isMe {
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedPlayers.removeAll { $0.id == entry.id }
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
                             }
-                            .padding(.vertical, 8)
-
-                            Text("Milestone data requires server connection")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
+                            .padding(.vertical, 4)
+                            .background(entry.isMe ? Color.accentColor.opacity(0.1) : Color.clear)
+                            .cornerRadius(8)
                         }
                     } header: {
                         HStack {
-                            Text("Comparing with \(player.name)")
+                            Text("Comparison Leaderboard")
                             Spacer()
-                            Button {
-                                selectedPlayer = nil
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.secondary)
+                            if selectedPlayers.count > 1 {
+                                Button("Clear All") {
+                                    withAnimation {
+                                        selectedPlayers.removeAll()
+                                    }
+                                }
+                                .font(.caption)
                             }
                         }
                     }
@@ -401,6 +461,17 @@ struct CompareProfile {
     let milestone: String
     let countryFlag: String
     let avatar: String
+}
+
+// MARK: - Comparison Entry (for mini leaderboard)
+
+struct ComparisonEntry: Identifiable {
+    let id: String
+    let name: String
+    let code: String
+    let countryFlag: String
+    let milestone: String
+    let isMe: Bool
 }
 
 // MARK: - Comparison Row (kept for potential future use)
