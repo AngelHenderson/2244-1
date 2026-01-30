@@ -93,12 +93,6 @@ public struct CustomChallengeGameScreen: View {
         .onAppear {
             startChallenge()
         }
-        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
-            guard !challengeEnded else { return }
-            if timeRemaining <= 0 {
-                endChallenge(won: checkWinCondition())
-            }
-        }
         .onChange(of: challengeGameStore.state.scoreValue) { _, _ in
             // Check if target reached
             if checkWinCondition() {
@@ -388,8 +382,8 @@ public struct CustomChallengeGameScreen: View {
 
             Spacer()
 
-            // Timer display - uses TimelineView to update continuously during merges
-            TimelineView(.periodic(from: startTime, by: 0.5)) { context in
+            // Timer display - uses TimelineView with animation schedule to never pause
+            TimelineView(.animation(minimumInterval: 0.5, paused: false)) { context in
                 let remaining = timeRemainingAt(context.date)
                 VStack(spacing: 2) {
                     Text("TIME")
@@ -398,6 +392,12 @@ public struct CustomChallengeGameScreen: View {
                     Text(formatTime(remaining))
                         .font(.system(.title3, design: .monospaced).bold())
                         .foregroundStyle(remaining <= 10 ? .red : .primary)
+                        .contentTransition(.numericText())
+                }
+                .onChange(of: remaining <= 0) { _, isExpired in
+                    if isExpired && !challengeEnded {
+                        endChallenge(won: checkWinCondition())
+                    }
                 }
             }
 

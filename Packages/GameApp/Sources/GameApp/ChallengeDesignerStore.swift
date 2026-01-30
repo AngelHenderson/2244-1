@@ -46,9 +46,13 @@ public final class ChallengeDesignerStore {
         // targetPower is the power of 2 for the target
         // step = power - 1 (since step 0 = 2^1 = 2, step 1 = 2^2 = 4, etc.)
         let base = targetPower - 1
+        // For infinity, adjust to avoid color collision with 1M (both would be bucket 19)
+        if targetLabel == "∞" {
+            return base - 1
+        }
         // For 1aa+ targets, adjust step for correct color mapping
         // For 1bd+ targets, adjust by an additional one
-        if targetLabel.count >= 3 && targetLabel != "∞" {
+        if targetLabel.count >= 3 {
             let suffix = String(targetLabel.dropFirst())
             if suffix >= "bd" {
                 return base - 2

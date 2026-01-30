@@ -153,6 +153,7 @@ public struct ChallengeDesignerView: View {
             .padding(.top, 8)
         }
         .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.secondary.opacity(0.15))
