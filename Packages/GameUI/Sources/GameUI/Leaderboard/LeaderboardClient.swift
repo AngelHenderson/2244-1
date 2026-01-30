@@ -235,7 +235,22 @@ public enum MockLeaderboardData {
             (LeaderboardClient.japanPlayerMilestones, japanNames, 30000, "JP"),
             (LeaderboardClient.indiaPlayerMilestones, indiaNames, 35000, "IN"),
             (LeaderboardClient.brazilPlayerMilestones, brazilNames, 40000, "BR"),
-            (LeaderboardClient.mexicoPlayerMilestones, mexicoNames, 45000, "MX")
+            (LeaderboardClient.mexicoPlayerMilestones, mexicoNames, 45000, "MX"),
+            (LeaderboardClient.afghanistanPlayerMilestones, afghanistanNames, 50000, "AF"),
+            (LeaderboardClient.albaniaPlayerMilestones, albaniaNames, 55000, "AL"),
+            (LeaderboardClient.algeriaPlayerMilestones, algeriaNames, 60000, "DZ"),
+            (LeaderboardClient.chinaPlayerMilestones, chinaNames, 65000, "CN"),
+            (LeaderboardClient.southKoreaPlayerMilestones, southKoreaNames, 70000, "KR"),
+            (LeaderboardClient.italyPlayerMilestones, italyNames, 75000, "IT"),
+            (LeaderboardClient.spainPlayerMilestones, spainNames, 80000, "ES"),
+            (LeaderboardClient.netherlandsPlayerMilestones, netherlandsNames, 85000, "NL"),
+            (LeaderboardClient.switzerlandPlayerMilestones, switzerlandNames, 90000, "CH"),
+            (LeaderboardClient.norwayPlayerMilestones, norwayNames, 95000, "NO"),
+            (LeaderboardClient.denmarkPlayerMilestones, denmarkNames, 100000, "DK"),
+            (LeaderboardClient.finlandPlayerMilestones, finlandNames, 105000, "FI"),
+            (LeaderboardClient.polandPlayerMilestones, polandNames, 110000, "PL"),
+            (LeaderboardClient.belgiumPlayerMilestones, belgiumNames, 115000, "BE"),
+            (LeaderboardClient.swedenPlayerMilestones, swedenNames, 120000, "SE")
         ]
 
         for config in countryConfigs {
