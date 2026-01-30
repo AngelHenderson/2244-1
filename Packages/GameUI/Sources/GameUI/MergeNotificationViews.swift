@@ -274,58 +274,15 @@ struct AddedNotificationView: View {
             }
             .padding(.vertical, 8)
 
-            VStack(spacing: 12) {
-                Text("Your Reward")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-
-                HStack(spacing: 8) {
-                    Image("gem")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 28, height: 28)
-                    Text("+\(gemReward)")
-                        .font(.title2.weight(.semibold))
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(Color.cyan.opacity(0.15))
-                .cornerRadius(12)
+            // No reward for adding tiles - just continue
+            Button("Continue") {
+                onClose()
             }
-
-            if showClaimOption {
-                MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
-                    .padding(.vertical, 8)
-
-                Button(action: {
-                    gameStore.claimJourneyReward(coins: gemReward)
-                    onClose()
-                }) {
-                    HStack {
-                        if selectedMultiplier > 1 {
-                            Image(systemName: "play.rectangle.fill")
-                            Text("Claim ×\(selectedMultiplier)")
-                        } else {
-                            Text("Continue")
-                        }
-                    }
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(selectedMultiplier > 1 ? Color.cyan : Color.blue)
-                    .cornerRadius(12)
-                }
-            } else {
-                Button("Continue") {
-                    showClaimOption = true
-                }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
-            }
+            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity)
         }
         .padding(24)
-        .presentationDetents([.height(550)])
+        .presentationDetents([.height(350)])
         .presentationDragIndicator(.visible)
     }
 }
@@ -432,58 +389,15 @@ struct ExcludedNotificationView: View {
             }
             .padding(.vertical, 8)
 
-            VStack(spacing: 12) {
-                Text("Your Reward")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-
-                HStack(spacing: 8) {
-                    Image("gem")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 28, height: 28)
-                    Text("+\(gemReward)")
-                        .font(.title2.weight(.semibold))
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(Color.cyan.opacity(0.15))
-                .cornerRadius(12)
+            // No reward for eliminating tiles - just continue
+            Button("Continue") {
+                onClose()
             }
-
-            if showClaimOption {
-                MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
-                    .padding(.vertical, 8)
-
-                Button(action: {
-                    gameStore.claimJourneyReward(coins: gemReward)
-                    onClose()
-                }) {
-                    HStack {
-                        if selectedMultiplier > 1 {
-                            Image(systemName: "play.rectangle.fill")
-                            Text("Claim ×\(selectedMultiplier)")
-                        } else {
-                            Text("Continue")
-                        }
-                    }
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(selectedMultiplier > 1 ? Color.cyan : Color.blue)
-                    .cornerRadius(12)
-                }
-            } else {
-                Button("Continue") {
-                    showClaimOption = true
-                }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
-            }
+            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity)
         }
         .padding(24)
-        .presentationDetents([.height(550)])
+        .presentationDetents([.height(350)])
         .presentationDragIndicator(.visible)
     }
 }
