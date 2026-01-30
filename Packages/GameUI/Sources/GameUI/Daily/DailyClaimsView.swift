@@ -13,6 +13,7 @@ public struct DailyClaimsView: View {
     @State private var claimedBaseRewards: AchievementDef.Rewards?
     @State private var claimedBonusCount: Int = 0
     @State private var selectedPage = 0
+    @State private var selectedYearRange = 0  // 0 = Years 1-2, 1 = Years 3-4, etc.
     @State private var showIconLegend = false
     
     public init() {}
@@ -309,6 +310,13 @@ public struct DailyClaimsView: View {
     private func syncSelectedPage() {
         let focusDay = store.getNextClaimableDay() ?? max(store.currentClaimDay, 1)
         let targetPage = pageIndex(for: focusDay)
+
+        // Sync year range based on focus day
+        let targetYearRange = (focusDay - 1) / 730
+        if selectedYearRange != targetYearRange && targetYearRange < availableYearRanges {
+            selectedYearRange = targetYearRange
+        }
+
         if selectedPage != targetPage {
             selectedPage = targetPage
         }
@@ -341,89 +349,156 @@ public struct DailyClaimsView: View {
         }
     }
 
-    private var weekNavigator: some View {
-        let maxPage = 115  // Covers 2+ years
+    /// Number of year ranges available (unlocks more as you progress)
+    private var availableYearRanges: Int {
+        // Year range 0 (Years 1-2) always available
+        // Year range 1 (Years 3-4) unlocks after day 730
+        // Year range 2 (Years 5-6) unlocks after day 1460
+        let completedRanges = store.currentClaimDay / 730
+        return completedRanges + 1
+    }
 
-        return HStack(spacing: 12) {
-            Button {
-                if selectedPage > 0 {
-                    withAnimation { selectedPage -= 1 }
-                }
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.headline)
-                    .foregroundStyle(selectedPage > 0 ? .primary : .tertiary)
-            }
-            .disabled(selectedPage == 0)
-
-            Menu {
-                // Weeks 1-52
-                ForEach(0..<52, id: \.self) { page in
-                    Button("Week \(page + 1)") {
-                        store.ensureClaimsCovering(pageIndex: page)
-                        withAnimation { selectedPage = page }
-                    }
-                }
-                // Day 365 (Year 1)
-                Button("Day 365") {
-                    store.ensureClaimsCovering(pageIndex: 52)
-                    withAnimation { selectedPage = 52 }
-                }
-                // Weeks 53-104
-                ForEach(53...104, id: \.self) { page in
-                    Button("Week \(page)") {
-                        store.ensureClaimsCovering(pageIndex: page)
-                        withAnimation { selectedPage = page }
-                    }
-                }
-                // Week 105 (Day 729)
-                Button("Week 105") {
-                    store.ensureClaimsCovering(pageIndex: 105)
-                    withAnimation { selectedPage = 105 }
-                }
-                // Day 730 (Year 2)
-                Button("Day 730") {
-                    store.ensureClaimsCovering(pageIndex: 106)
-                    withAnimation { selectedPage = 106 }
-                }
-                // Rest of Week 105 (Days 731-735)
-                Button("Week 105 (cont.)") {
-                    store.ensureClaimsCovering(pageIndex: 107)
-                    withAnimation { selectedPage = 107 }
-                }
-                // Weeks 106+ (pages 108+)
-                ForEach(108...maxPage, id: \.self) { page in
-                    let weekNum = page - 2  // Offset by 2 for the extra pages
-                    Button("Week \(weekNum)") {
-                        store.ensureClaimsCovering(pageIndex: page)
-                        withAnimation { selectedPage = page }
-                    }
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Text(pageLabel(for: selectedPage))
-                        .font(.subheadline.bold())
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption)
-                }
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(.ultraThinMaterial, in: Capsule())
-            }
-
-            Button {
-                if selectedPage < maxPage {
-                    store.ensureClaimsCovering(pageIndex: selectedPage + 1)
-                    withAnimation { selectedPage += 1 }
-                }
-            } label: {
-                Image(systemName: "chevron.right")
-                    .font(.headline)
-                    .foregroundStyle(selectedPage < maxPage ? .primary : .tertiary)
-            }
-            .disabled(selectedPage >= maxPage)
+    /// Max page for the current year range
+    private var maxPageForRange: Int {
+        switch selectedYearRange {
+        case 0: return 106   // Years 1-2 (pages 0-106, days 1-730)
+        case 1: return 213   // Years 3-4 (pages 107-213, days 731-1460)
+        case 2: return 320   // Years 5-6 (pages 214-320, days 1461-2190)
+        default: return 106 + (selectedYearRange + 1) * 107
         }
+    }
+
+    /// Min page for the current year range
+    private var minPageForRange: Int {
+        switch selectedYearRange {
+        case 0: return 0
+        default: return 107 + (selectedYearRange - 1) * 107
+        }
+    }
+
+    private var weekNavigator: some View {
+        VStack(spacing: 8) {
+            // Year range picker
+            if availableYearRanges > 1 {
+                HStack(spacing: 8) {
+                    ForEach(0..<availableYearRanges, id: \.self) { range in
+                        Button {
+                            withAnimation {
+                                selectedYearRange = range
+                                selectedPage = minPageForRange
+                            }
+                        } label: {
+                            Text("Years \(range * 2 + 1)-\(range * 2 + 2)")
+                                .font(.caption.bold())
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    selectedYearRange == range
+                                        ? Color.purple.opacity(0.3)
+                                        : Color.clear,
+                                    in: Capsule()
+                                )
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(Color.purple.opacity(0.5), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            // Week navigator within selected range
+            HStack(spacing: 12) {
+                Button {
+                    if selectedPage > minPageForRange {
+                        withAnimation { selectedPage -= 1 }
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.headline)
+                        .foregroundStyle(selectedPage > minPageForRange ? .primary : .tertiary)
+                }
+                .disabled(selectedPage <= minPageForRange)
+
+                Menu {
+                    ForEach(weekMenuItems, id: \.page) { item in
+                        Button(item.label) {
+                            store.ensureClaimsCovering(pageIndex: item.page)
+                            withAnimation { selectedPage = item.page }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(pageLabel(for: selectedPage))
+                            .font(.subheadline.bold())
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial, in: Capsule())
+                }
+
+                Button {
+                    if selectedPage < maxPageForRange {
+                        store.ensureClaimsCovering(pageIndex: selectedPage + 1)
+                        withAnimation { selectedPage += 1 }
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.headline)
+                        .foregroundStyle(selectedPage < maxPageForRange ? .primary : .tertiary)
+                }
+                .disabled(selectedPage >= maxPageForRange)
+            }
+        }
+    }
+
+    private var weekMenuItems: [(page: Int, label: String)] {
+        var items: [(page: Int, label: String)] = []
+
+        if selectedYearRange == 0 {
+            // Years 1-2
+            // Weeks 1-52
+            for page in 0..<52 {
+                items.append((page, "Week \(page + 1)"))
+            }
+            // Day 365
+            items.append((52, "Day 365"))
+            // Weeks 53-104
+            for page in 53...104 {
+                items.append((page, "Week \(page)"))
+            }
+            // Week 105
+            items.append((105, "Week 105"))
+            // Day 730
+            items.append((106, "Day 730"))
+        } else {
+            // Years 3-4, 5-6, etc.
+            let baseDay = selectedYearRange * 730
+            let basePage = 107 + (selectedYearRange - 1) * 107
+            let baseWeek = 105 + (selectedYearRange - 1) * 52
+
+            // First partial week (continuation from previous range)
+            items.append((basePage, "Week \(baseWeek) (cont.)"))
+
+            // Full weeks for this range
+            for i in 1...103 {
+                let page = basePage + i
+                let weekNum = baseWeek + i
+                items.append((page, "Week \(weekNum)"))
+            }
+
+            // Year milestone days
+            let year1Day = baseDay + 365
+            let year2Day = baseDay + 730
+            items.append((basePage + 52, "Day \(year1Day)"))
+            items.append((basePage + 106, "Day \(year2Day)"))
+        }
+
+        return items.sorted { $0.page < $1.page }
     }
 
     private func pageLabel(for page: Int) -> String {
