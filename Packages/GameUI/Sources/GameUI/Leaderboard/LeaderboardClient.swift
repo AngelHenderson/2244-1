@@ -194,6 +194,70 @@ public enum MockLeaderboardData {
         "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "873bz"
     ]
 
+    /// Searchable player data for compare view - generated from actual leaderboard data
+    public struct SearchablePlayer: Identifiable {
+        public let id: String
+        public let name: String
+        public let code: String
+        public let countryCode: String
+        public let milestone: String
+    }
+
+    /// Generate all searchable players from leaderboard data with codes
+    public static func allSearchablePlayers() -> [SearchablePlayer] {
+        let day = daysSinceReference
+        var players: [SearchablePlayer] = []
+        let letters = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        let digits = Array("0123456789")
+
+        // Helper to generate alphanumeric code from seed
+        func generateCode(seed: Int) -> String {
+            func char(at pos: Int) -> Character {
+                let charSeed = seed * (pos + 1) * 11
+                let useDigit = (charSeed % 3) == 0
+                if useDigit {
+                    return digits[(charSeed / 3) % 10]
+                } else {
+                    return letters[(charSeed / 2) % 26]
+                }
+            }
+            return "\(char(at: 0))\(char(at: 1))\(char(at: 2))-\(char(at: 3))\(char(at: 4))\(char(at: 5))"
+        }
+
+        // Country configurations: (milestones, names, countrySeed, countryCode)
+        let countryConfigs: [(milestones: [String], names: [String], seed: Int, code: String)] = [
+            (usPlayerMilestones, usNames, 0, "US"),
+            (ukPlayerMilestones, ukNames, 5000, "GB"),
+            (canadaPlayerMilestones, canadaNames, 10000, "CA"),
+            (australiaPlayerMilestones, australiaNames, 15000, "AU"),
+            (germanyPlayerMilestones, germanyNames, 20000, "DE"),
+            (francePlayerMilestones, franceNames, 25000, "FR"),
+            (japanPlayerMilestones, japanNames, 30000, "JP"),
+            (indiaPlayerMilestones, indiaNames, 35000, "IN"),
+            (brazilPlayerMilestones, brazilNames, 40000, "BR"),
+            (mexicoPlayerMilestones, mexicoNames, 45000, "MX")
+        ]
+
+        for config in countryConfigs {
+            for i in 0..<min(150, config.milestones.count) {
+                let baseMilestone = config.milestones[i]
+                let name = nameForPlayer(index: i, names: config.names, countrySeed: config.seed, day: day)
+                let progressedMilestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + config.seed, day: day)
+                let codeSeed = (i + 1) * 7 + config.seed + 13
+
+                players.append(SearchablePlayer(
+                    id: "\(config.code.lowercased())_\(i)",
+                    name: name,
+                    code: generateCode(seed: codeSeed),
+                    countryCode: config.code,
+                    milestone: progressedMilestone
+                ))
+            }
+        }
+
+        return players.sorted { $0.code < $1.code }
+    }
+
     // Normalize invalid milestone entries to valid ones
     static func normalizeMilestone(_ milestone: String) -> String {
         let invalidToValid: [String: String] = [
@@ -962,12 +1026,6 @@ public enum MockLeaderboardData {
                 }
             }
 
-            // Players below might have slightly worse milestone
-            let bracketIdx = extendedBrackets.firstIndex { rank >= $0.startRank }
-            if let idx = bracketIdx, idx + 1 < extendedBrackets.count {
-                milestone = extendedBrackets[idx + 1].milestone
-            }
-
             let score = scoreForMilestone(milestone)
 
             entries.append(LeaderboardEntry(
@@ -1067,16 +1125,28 @@ public enum MockLeaderboardData {
         let userMilestoneIdx = milestoneIndex(for: milestone)
         let day = daysSinceReference
 
-        // Get country-specific data
+        // Get country-specific data and seed
         let (milestones, extendedBrackets, totalPlayers) = countryData(for: countryCode, day: day)
+        let countrySeed = countryPlayerSeeds[countryCode] ?? 0
 
         return countBetterInCountry(
             userMilestoneIdx: userMilestoneIdx,
             milestones: milestones,
             extendedBrackets: extendedBrackets,
-            totalPlayers: totalPlayers
+            totalPlayers: totalPlayers,
+            countrySeed: countrySeed,
+            day: day
         ) + 1
     }
+
+    // Country player seeds for milestone progression (must match the seeds used in entry generation)
+    private static let countryPlayerSeeds: [String: Int] = [
+        "US": 0, "GB": 5000, "CA": 10000, "AU": 15000, "DE": 20000,
+        "FR": 25000, "JP": 30000, "IN": 35000, "BR": 40000, "MX": 45000,
+        "AF": 50000, "AL": 55000, "DZ": 60000, "CN": 65000, "KR": 70000,
+        "IT": 75000, "ES": 80000, "NL": 85000, "CH": 90000, "NO": 95000,
+        "DK": 100000, "FI": 105000, "PL": 110000, "BE": 115000, "SE": 120000
+    ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
     /// Returns nil if rank is out of bounds
@@ -1177,19 +1247,30 @@ public enum MockLeaderboardData {
     }
 
     /// Helper to count better players in a single country
+    /// When countrySeed and day are provided, applies milestone progression for accurate comparison
     private static func countBetterInCountry(
         userMilestoneIdx: Int,
         milestones: [String],
         extendedBrackets: [(milestone: String, startRank: Int)],
-        totalPlayers: Int
+        totalPlayers: Int,
+        countrySeed: Int? = nil,
+        day: Int? = nil
     ) -> Int {
         // Check if user would be in top 150 (better than first extended bracket)
         if let firstBracket = extendedBrackets.first {
             let firstBracketIdx = milestoneIndex(for: firstBracket.milestone)
             if userMilestoneIdx > firstBracketIdx {
                 // User is better than top bracket, count from milestones array
+                // Apply progression if countrySeed and day are provided
                 var count = 0
-                for m in milestones.prefix(min(150, milestones.count)) {
+                for (i, baseMilestone) in milestones.prefix(min(150, milestones.count)).enumerated() {
+                    let m: String
+                    if let seed = countrySeed, let d = day {
+                        // Apply progression to get actual milestone
+                        m = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + seed, day: d)
+                    } else {
+                        m = baseMilestone
+                    }
                     let mIdx = milestoneIndex(for: m)
                     if mIdx > userMilestoneIdx {
                         count += 1
