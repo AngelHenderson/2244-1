@@ -1,5 +1,6 @@
 import SwiftUI
 import GameApp
+import GameCore
 import GameServices
 
 public struct HomeView: View {
