@@ -24,6 +24,7 @@ public final class DailyClaimsStore {
     public private(set) var currentClaimDay: Int = 0
     public private(set) var lastClaimDate: Date?
     public private(set) var canClaimToday: Bool = false
+    public private(set) var availableClaims: Int = 0  // Number of claims available (for catching up on missed days)
     
     private let storage: UserDefaults
     private let visibleLookaheadDays = 21
@@ -107,7 +108,7 @@ public final class DailyClaimsStore {
         let calendar = Calendar.current
         let now = Date()
 
-        // Check if we can claim today
+        // Check if we can claim today and how many claims are available
         if let lastClaim = lastClaimDate {
             // IMPORTANT: Compare calendar days using startOfDay, not raw timestamps
             // This ensures claiming at 11pm and checking at 10am next day works correctly
@@ -118,35 +119,42 @@ public final class DailyClaimsStore {
             if daysSinceLastClaim == 0 {
                 // Already claimed today
                 canClaimToday = false
+                availableClaims = 0
             } else if daysSinceLastClaim == 1 {
                 // Consecutive day - continue streak
                 canClaimToday = true
+                availableClaims = 1
             } else {
-                // Streak broken - lose streak but keep reward progress
+                // Missed days - allow catching up on all missed days
+                // Streak resets but user can claim all missed rewards
                 currentStreak = 0
                 canClaimToday = true
+                availableClaims = daysSinceLastClaim  // One claim per missed calendar day
             }
         } else {
             // First time claiming
             canClaimToday = true
+            availableClaims = 1
         }
 
         // Ensure catalog has enough entries for the next visible window
         ensureClaims(upTo: visibleUpperBound())
 
         // Rebuild array with updated states to ensure @Observable properly notifies SwiftUI
+        // Multiple days can be available if user missed days
         let nextDay = currentClaimDay + 1
+        let maxAvailableDay = currentClaimDay + availableClaims
         dailyClaims = dailyClaims.map { claim in
             var updated = claim
             updated.isClaimed = claimedDays.contains(claim.day)
-            updated.isAvailable = canClaimToday && claim.day == nextDay
+            updated.isAvailable = canClaimToday && claim.day >= nextDay && claim.day <= maxAvailableDay
             return updated
         }
     }
     
     @MainActor
     public func claimDailyReward() {
-        guard canClaimToday else { return }
+        guard canClaimToday, availableClaims > 0 else { return }
 
         let nextClaimDay = currentClaimDay + 1
         guard let claimIndex = dailyClaims.firstIndex(where: { $0.day == nextClaimDay }) else { return }
@@ -158,7 +166,12 @@ public final class DailyClaimsStore {
         currentClaimDay = nextClaimDay
         currentStreak += 1
         lastClaimDate = Date()
-        canClaimToday = false
+        availableClaims -= 1
+
+        // If no more claims available, can't claim anymore today
+        if availableClaims == 0 {
+            canClaimToday = false
+        }
 
         // Add to claimed days set
         claimedDays.insert(nextClaimDay)
@@ -167,11 +180,12 @@ public final class DailyClaimsStore {
         saveProgress()
 
         // Rebuild the dailyClaims array to ensure @Observable triggers SwiftUI updates
-        // This is more reliable than modifying individual struct elements
+        let nextAvailableDay = currentClaimDay + 1
+        let maxAvailableDay = currentClaimDay + availableClaims
         dailyClaims = dailyClaims.map { claim in
             var updated = claim
             updated.isClaimed = claimedDays.contains(claim.day)
-            updated.isAvailable = false  // Nothing available after claiming today
+            updated.isAvailable = availableClaims > 0 && claim.day >= nextAvailableDay && claim.day <= maxAvailableDay
             return updated
         }
 
@@ -194,7 +208,7 @@ public final class DailyClaimsStore {
     }
     
     public func getNextClaimableDay() -> Int? {
-        return canClaimToday ? currentClaimDay + 1 : nil
+        return (canClaimToday && availableClaims > 0) ? currentClaimDay + 1 : nil
     }
     
     public func getTimeUntilNextClaim() -> TimeInterval? {
