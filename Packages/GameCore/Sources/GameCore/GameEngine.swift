@@ -1126,31 +1126,75 @@ public final class GameEngine {
         return false
     }
 
-    /// Count the number of valid move pairs (adjacent identical tiles)
+    /// Count the number of valid chains of all lengths (2+, 3+, 4+, etc.)
     public func countValidMoves() -> Int {
-        var count = 0
+        var validChains: Set<Set<Position>> = []
 
+        // Try starting from each position
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
-                let position = Position(row: row, col: col)
-                guard let tile = state.board[position] else { continue }
+                let startPos = Position(row: row, col: col)
+                guard let startTile = state.board[startPos],
+                      !startTile.isInfinity,
+                      !startTile.isLocked else { continue }
 
-                // Only check right and down to avoid counting pairs twice
-                let directionsToCheck: [Direction] = config.allowDiagonals
-                    ? [.right, .down, .downRight, .downLeft]
-                    : [.right, .down]
+                guard let startStep = TileStepMath.step(for: startTile) else { continue }
 
-                for direction in directionsToCheck {
-                    let neighbor = position.moved(in: direction)
-                    if neighbor.isValid(for: state.board),
-                       let neighborTile = state.board[neighbor],
-                       tile.matches(neighborTile) {
-                        count += 1
-                    }
-                }
+                // Find all valid chains starting from this position
+                findValidChains(
+                    from: startPos,
+                    currentChain: [startPos],
+                    currentStep: startStep,
+                    validChains: &validChains
+                )
             }
         }
-        return count
+
+        return validChains.count
+    }
+
+    /// Recursively find all valid chains using DFS
+    private func findValidChains(
+        from position: Position,
+        currentChain: [Position],
+        currentStep: Int,
+        validChains: inout Set<Set<Position>>
+    ) {
+        // Try extending to all adjacent positions
+        for direction in Direction.allCases {
+            let neighbor = position.moved(in: direction)
+            guard neighbor.isValid(for: state.board),
+                  !currentChain.contains(neighbor),
+                  let neighborTile = state.board[neighbor],
+                  !neighborTile.isInfinity,
+                  !neighborTile.isLocked,
+                  let neighborStep = TileStepMath.step(for: neighborTile) else { continue }
+
+            // Check if neighbor can extend the chain
+            let canExtend: Bool
+            if currentChain.count == 1 {
+                // First extension: must match the starting tile
+                canExtend = (neighborStep == currentStep)
+            } else {
+                // Subsequent extensions: must match or be double (step + 1)
+                canExtend = (neighborStep == currentStep || neighborStep == currentStep + 1)
+            }
+
+            guard canExtend else { continue }
+
+            let newChain = currentChain + [neighbor]
+
+            // Valid chain of 2+ tiles - add to set
+            validChains.insert(Set(newChain))
+
+            // Continue exploring for longer chains
+            findValidChains(
+                from: neighbor,
+                currentChain: newChain,
+                currentStep: neighborStep,
+                validChains: &validChains
+            )
+        }
     }
     
     /// Generates a spawn tile with proper handling for highValue tiles (step >= 62)

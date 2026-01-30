@@ -911,12 +911,13 @@ public final class GameStore {
             let newState = engine.refillColumns(cols)
             state = newState
             markRefills(previousBoard: previousBoard, newBoard: newState.board, scopedColumns: cols)
+            // Update valid moves count for scoped refill
+            validMovesCount = engine.countValidMoves()
         } else {
             let newState = engine.refillBoard()
+            // applyStateUpdate already updates validMovesCount
             applyStateUpdate(newState, previousBoard: previousBoard)
         }
-        // Always update valid moves count after refill
-        validMovesCount = engine.countValidMoves()
     }
 
     private func performGravityDrop(columns: Set<Int>? = nil) {
@@ -2662,7 +2663,9 @@ extension GameStore {
         print("📐 refreshDerivedState: highestTileStep = \(state.highestTileStep) (persisted was: \(persistedStep))")
 
         // Update valid moves count for UI
-        validMovesCount = engine.countValidMoves()
+        let newCount = engine.countValidMoves()
+        print("[GameStore] refreshDerivedState updating validMovesCount: \(validMovesCount) -> \(newCount)")
+        validMovesCount = newCount
     }
 
     /// Verifies that highestTileStep matches the actual tiles on the board.
