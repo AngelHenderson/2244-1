@@ -218,38 +218,43 @@ private struct StepperBox: View {
     let value: String
     let onDecrease: () -> Void
     let onIncrease: () -> Void
-    
+
+    private let buttonColor = Color.purple.opacity(0.7)
+    private let boxColor = Color.purple.opacity(0.25)
+
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             Text(title)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-            
-            HStack(spacing: 10) {
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary.opacity(0.8))
+
+            HStack(spacing: 8) {
                 Button(action: onDecrease) {
-                    Image(systemName: "minus")
-                        .font(.headline)
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(Color.secondary.opacity(0.2)))
+                    Text("-")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 32, height: 32)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(buttonColor))
                 }
                 .buttonStyle(.plain)
-                
+
                 Text(value)
                     .font(.system(.title3, design: .rounded).weight(.bold))
-                    .frame(minWidth: 56)
-                
+                    .frame(minWidth: 36)
+
                 Button(action: onIncrease) {
-                    Image(systemName: "plus")
-                        .font(.headline)
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(Color.secondary.opacity(0.2)))
+                    Text("+")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 32, height: 32)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(buttonColor))
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.vertical, 6)
-            .padding(.horizontal, 8)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.12)))
         }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .background(RoundedRectangle(cornerRadius: 12).fill(boxColor))
         .frame(maxWidth: .infinity)
     }
 }
