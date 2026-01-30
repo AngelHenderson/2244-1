@@ -1168,6 +1168,7 @@ public enum MockLeaderboardData {
     static func milestoneAtCountryRank(rank: Int, countryCode: String) -> String? {
         let day = daysSinceReference
         let (milestones, _, _) = countryData(for: countryCode, day: day)
+        let countrySeed = countryPlayerSeeds[countryCode] ?? 0
 
         // Rank is 1-indexed, array is 0-indexed
         let index = rank - 1
@@ -1175,7 +1176,9 @@ public enum MockLeaderboardData {
             return nil
         }
 
-        return milestones[index]
+        // Apply progression to match actual leaderboard display
+        let baseMilestone = milestones[index]
+        return milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: index + countrySeed, day: day)
     }
 
     /// Get the milestone for a rank in the extended brackets (ranks 151+)
