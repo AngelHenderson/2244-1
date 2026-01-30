@@ -401,7 +401,11 @@ private struct CountryPickerView: View {
         "DZ",  // 3,333
         "KR",  // 3,123
         "IN",  // 1,488
-        "JP"   // 894
+        "JP",  // 894
+        // Additional popular countries (no leaderboard data yet)
+        "AT", "IE", "PT", "GR", "CZ", "RO", "HU", "NZ",
+        "SG", "MY", "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
+        "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
     ]
 
     private var filteredPopularCountries: [String] {
