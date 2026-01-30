@@ -532,43 +532,15 @@ private struct AchievementRow: View {
     }
     
     private func formattedValue(_ value: Double) -> String {
-        if value < 1_000 {
+        // Use Decimal for precision with very large numbers
+        // GameCore.AlphaMag.format handles K, M, B, and alphabetic suffixes (a, b, c, ..., aa, ab, ...)
+        let decimalValue = Decimal(value)
+        do {
+            return try GameCore.AlphaMag.format(decimalValue, decimals: 2)
+        } catch {
+            // Fallback to simple formatting if AlphaMag fails
             return value.formatted(.number.precision(.fractionLength(0)))
-        } else if value < 1_000_000 {
-            let k = value / 1_000
-            return k.formatted(.number.precision(.fractionLength(0...2))) + "K"
-        } else if value < 1_000_000_000 {
-            let m = value / 1_000_000
-            return m.formatted(.number.precision(.fractionLength(0...2))) + "M"
-        } else if value < 1_000_000_000_000 {
-            let b = value / 1_000_000_000
-            return b.formatted(.number.precision(.fractionLength(0...2))) + "B"
-        } else {
-            // For trillions and beyond, use alphabetic suffixes (a, b, c, ..., z, aa, ab, ...)
-            var v = value / 1_000_000_000_000 // Start at trillions
-            var exp = 0
-            while v >= 1_000 {
-                v /= 1_000
-                exp += 1
-            }
-            // exp=0 -> "a", exp=1 -> "b", etc.
-            let suffix = alphaSuffix(forOrdinal: exp + 1)
-            return v.formatted(.number.precision(.fractionLength(0...2))) + suffix
         }
-    }
-
-    /// Generate alphabetic suffix: 1->"a", 2->"b", ..., 26->"z", 27->"aa", 28->"ab", ...
-    private func alphaSuffix(forOrdinal ord: Int) -> String {
-        guard ord >= 1 else { return "a" }
-        var n = ord
-        var scalars: [UnicodeScalar] = []
-        while n > 0 {
-            n -= 1
-            let r = n % 26
-            scalars.append(UnicodeScalar(UInt32(97 + r))!) // 'a' = 97
-            n /= 26
-        }
-        return String(String.UnicodeScalarView(scalars.reversed()))
     }
 }
 
