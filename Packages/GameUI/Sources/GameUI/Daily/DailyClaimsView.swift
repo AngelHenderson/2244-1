@@ -13,7 +13,7 @@ public struct DailyClaimsView: View {
     @State private var claimedBaseRewards: AchievementDef.Rewards?
     @State private var claimedBonusCount: Int = 0
     @State private var selectedPage = 0
-    @State private var selectedYearRange = 0  // 0 = Years 1-2, 1 = Years 3-4, etc.
+    @State private var selectedYear = 1  // Currently selected year (1, 2, 3, etc.)
     @State private var showIconLegend = false
     
     public init() {}
@@ -325,10 +325,10 @@ public struct DailyClaimsView: View {
         let focusDay = store.getNextClaimableDay() ?? max(store.currentClaimDay, 1)
         let targetPage = pageIndex(for: focusDay)
 
-        // Sync year range based on focus day
-        let targetYearRange = (focusDay - 1) / 730
-        if selectedYearRange != targetYearRange && targetYearRange < availableYearRanges {
-            selectedYearRange = targetYearRange
+        // Sync year based on focus day
+        let targetYear = ((focusDay - 1) / 365) + 1
+        if selectedYear != targetYear && targetYear <= availableYears {
+            selectedYear = targetYear
         }
 
         if selectedPage != targetPage {
@@ -363,77 +363,95 @@ public struct DailyClaimsView: View {
         }
     }
 
-    /// Number of year ranges available (unlocks more as you progress)
-    private var availableYearRanges: Int {
-        // Year range 0 (Years 1-2) always available
-        // Year range 1 (Years 3-4) unlocks after day 730
-        // Year range 2 (Years 5-6) unlocks after day 1460
-        let completedRanges = store.currentClaimDay / 730
-        return completedRanges + 1
+    /// Number of years available to view (unlocks in pairs)
+    private var availableYears: Int {
+        // Years 1-2: Always available
+        // Years 3-4: Unlock after day 730
+        // Years 5-6: Unlock after day 1460
+        // etc.
+        let completedTwoYearBlocks = store.currentClaimDay / 730
+        return (completedTwoYearBlocks + 1) * 2
     }
 
-    /// Max page for the current year range
-    private var maxPageForRange: Int {
-        switch selectedYearRange {
-        case 0: return 106   // Years 1-2 (pages 0-106, days 1-730)
-        case 1: return 213   // Years 3-4 (pages 107-213, days 731-1460)
-        case 2: return 320   // Years 5-6 (pages 214-320, days 1461-2190)
-        default: return 106 + (selectedYearRange + 1) * 107
+    /// Max page for the current year
+    private var maxPageForYear: Int {
+        switch selectedYear {
+        case 1: return 52    // Year 1 (pages 0-52, days 1-365)
+        case 2: return 106   // Year 2 (pages 53-106, days 366-730)
+        default:
+            // Years 3+: each year is ~52 pages
+            let baseOffset = 107  // After year 2
+            let yearOffset = selectedYear - 3
+            return baseOffset + (yearOffset + 1) * 52
         }
     }
 
-    /// Min page for the current year range
-    private var minPageForRange: Int {
-        switch selectedYearRange {
-        case 0: return 0
-        default: return 107 + (selectedYearRange - 1) * 107
+    /// Min page for the current year
+    private var minPageForYear: Int {
+        switch selectedYear {
+        case 1: return 0     // Year 1 starts at page 0
+        case 2: return 53    // Year 2 starts at page 53
+        default:
+            // Years 3+
+            let baseOffset = 107
+            let yearOffset = selectedYear - 3
+            return baseOffset + yearOffset * 52
         }
     }
 
     private var weekNavigator: some View {
         VStack(spacing: 8) {
-            // Year range picker
-            if availableYearRanges > 1 {
-                HStack(spacing: 8) {
-                    ForEach(0..<availableYearRanges, id: \.self) { range in
-                        Button {
-                            withAnimation {
-                                selectedYearRange = range
-                                selectedPage = minPageForRange
-                            }
-                        } label: {
-                            Text("Years \(range * 2 + 1)-\(range * 2 + 2)")
-                                .font(.caption.bold())
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(
-                                    selectedYearRange == range
-                                        ? Color.purple.opacity(0.3)
-                                        : Color.clear,
-                                    in: Capsule()
-                                )
-                                .overlay(
-                                    Capsule()
-                                        .strokeBorder(Color.purple.opacity(0.5), lineWidth: 1)
-                                )
-                        }
-                        .buttonStyle(.plain)
+            // Year picker with arrows
+            HStack(spacing: 16) {
+                Button {
+                    withAnimation {
+                        selectedYear -= 1
+                        selectedPage = minPageForYear
                     }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .frame(width: 44, height: 44)
+                        .foregroundStyle(selectedYear > 1 ? .primary : .tertiary)
                 }
+                .buttonStyle(.plain)
+                .disabled(selectedYear <= 1)
+
+                Text("Year \(selectedYear)")
+                    .font(.headline)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 8)
+                    .background(Color.purple.opacity(0.2), in: Capsule())
+
+                Button {
+                    withAnimation {
+                        selectedYear += 1
+                        selectedPage = minPageForYear
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .frame(width: 44, height: 44)
+                        .foregroundStyle(selectedYear < availableYears ? .primary : .tertiary)
+                }
+                .buttonStyle(.plain)
+                .disabled(selectedYear >= availableYears)
             }
 
-            // Week navigator within selected range
+            // Week navigator within selected year
             HStack(spacing: 12) {
                 Button {
-                    if selectedPage > minPageForRange {
+                    if selectedPage > minPageForYear {
                         withAnimation { selectedPage -= 1 }
                     }
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.headline)
-                        .foregroundStyle(selectedPage > minPageForRange ? .primary : .tertiary)
+                        .foregroundStyle(selectedPage > minPageForYear ? .primary : .tertiary)
                 }
-                .disabled(selectedPage <= minPageForRange)
+                .disabled(selectedPage <= minPageForYear)
 
                 Menu {
                     ForEach(weekMenuItems, id: \.page) { item in
@@ -456,16 +474,16 @@ public struct DailyClaimsView: View {
                 }
 
                 Button {
-                    if selectedPage < maxPageForRange {
+                    if selectedPage < maxPageForYear {
                         store.ensureClaimsCovering(pageIndex: selectedPage + 1)
                         withAnimation { selectedPage += 1 }
                     }
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.headline)
-                        .foregroundStyle(selectedPage < maxPageForRange ? .primary : .tertiary)
+                        .foregroundStyle(selectedPage < maxPageForYear ? .primary : .tertiary)
                 }
-                .disabled(selectedPage >= maxPageForRange)
+                .disabled(selectedPage >= maxPageForYear)
             }
         }
     }
@@ -473,43 +491,35 @@ public struct DailyClaimsView: View {
     private var weekMenuItems: [(page: Int, label: String)] {
         var items: [(page: Int, label: String)] = []
 
-        if selectedYearRange == 0 {
-            // Years 1-2
-            // Weeks 1-52
+        switch selectedYear {
+        case 1:
+            // Year 1: Weeks 1-52 + Day 365
             for page in 0..<52 {
                 items.append((page, "Week \(page + 1)"))
             }
-            // Day 365
             items.append((52, "Day 365"))
-            // Weeks 53-104
+        case 2:
+            // Year 2: Weeks 53-104 + Day 730
             for page in 53...104 {
                 items.append((page, "Week \(page)"))
             }
-            // Week 105
             items.append((105, "Week 105"))
-            // Day 730
             items.append((106, "Day 730"))
-        } else {
-            // Years 3-4, 5-6, etc.
-            let baseDay = selectedYearRange * 730
-            let basePage = 107 + (selectedYearRange - 1) * 107
-            let baseWeek = 105 + (selectedYearRange - 1) * 52
+        default:
+            // Years 3+
+            let yearOffset = selectedYear - 3
+            let baseWeek = 106 + yearOffset * 52
+            let basePage = 107 + yearOffset * 52
+            let yearEndDay = selectedYear * 365
 
-            // First partial week (continuation from previous range)
-            items.append((basePage, "Week \(baseWeek) (cont.)"))
-
-            // Full weeks for this range
-            for i in 1...103 {
+            // Weeks for this year
+            for i in 0..<52 {
                 let page = basePage + i
                 let weekNum = baseWeek + i
                 items.append((page, "Week \(weekNum)"))
             }
-
-            // Year milestone days
-            let year1Day = baseDay + 365
-            let year2Day = baseDay + 730
-            items.append((basePage + 52, "Day \(year1Day)"))
-            items.append((basePage + 106, "Day \(year2Day)"))
+            // Year end day
+            items.append((basePage + 52, "Day \(yearEndDay)"))
         }
 
         return items.sorted { $0.page < $1.page }
