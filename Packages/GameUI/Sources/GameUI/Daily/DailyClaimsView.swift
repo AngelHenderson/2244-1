@@ -212,6 +212,7 @@ public struct DailyClaimsView: View {
                                 highlightDay: highlightDay,
                                 nextDay: store.getNextClaimableDay(),
                                 combinedRewardForNext: store.combinedRewardForNextClaim(),
+                                bonusCountForNext: store.getNextClaimableDay().map { store.pendingStreakBonusCount(afterClaimingDay: $0) } ?? 0,
                                 onClaim: { claim in claimReward(claim.rewards) }
                             )
                             .tag(index)
@@ -321,8 +322,8 @@ public struct DailyClaimsView: View {
         claimedRewards = rewards  // Just use base rewards since bonuses are random
         showClaimAnimation = true
 
-        // Play cheering sound for year milestones (day 365, 730, etc.)
-        if nextDay == 365 || nextDay == 730 {
+        // Play cheering sound for year milestones (day 365, 730, 1095, etc.)
+        if nextDay > 0 && nextDay % 365 == 0 {
             Task {
                 await audio.playSfx(name: "cheer")
             }
@@ -450,6 +451,7 @@ private struct WeekGridView: View {
     let highlightDay: Int
     let nextDay: Int?
     let combinedRewardForNext: AchievementDef.Rewards?
+    let bonusCountForNext: Int
     let onClaim: (DailyClaimsStore.DailyClaim) -> Void
 
     var body: some View {
@@ -470,6 +472,7 @@ private struct WeekGridView: View {
                         highlightDay: highlightDay,
                         isNext: claims[leftIndex].day == nextDay,
                         combinedReward: claims[leftIndex].day == nextDay ? combinedRewardForNext : nil,
+                        bonusCount: claims[leftIndex].day == nextDay ? bonusCountForNext : 0,
                         onClaim: claims[leftIndex].isAvailable ? { onClaim(claims[leftIndex]) } : nil
                     )
                     .frame(maxHeight: .infinity)
@@ -480,6 +483,7 @@ private struct WeekGridView: View {
                         highlightDay: highlightDay,
                         isNext: claims[rightIndex].day == nextDay,
                         combinedReward: claims[rightIndex].day == nextDay ? combinedRewardForNext : nil,
+                        bonusCount: claims[rightIndex].day == nextDay ? bonusCountForNext : 0,
                         onClaim: claims[rightIndex].isAvailable ? { onClaim(claims[rightIndex]) } : nil
                     )
                     .frame(maxHeight: .infinity)
@@ -495,6 +499,7 @@ private struct WeekGridView: View {
                     highlightDay: highlightDay,
                     isNext: lastClaim.day == nextDay,
                     combinedReward: lastClaim.day == nextDay ? combinedRewardForNext : nil,
+                    bonusCount: lastClaim.day == nextDay ? bonusCountForNext : 0,
                     onClaim: lastClaim.isAvailable ? { onClaim(lastClaim) } : nil
                 )
                 .frame(maxHeight: .infinity)
@@ -512,6 +517,7 @@ private struct DayGridCell: View {
     let highlightDay: Int
     let isNext: Bool
     let combinedReward: AchievementDef.Rewards?
+    let bonusCount: Int
     let onClaim: (() -> Void)?
 
     private var displayRewards: AchievementDef.Rewards {
@@ -544,6 +550,16 @@ private struct DayGridCell: View {
                     }
                     .font(.subheadline)
                 }
+            }
+
+            // Streak bonus indicator
+            if bonusCount > 0 && claim.isAvailable {
+                HStack(spacing: 4) {
+                    Image(systemName: "gift.fill")
+                    Text("+\(bonusCount) Bonus")
+                }
+                .font(.caption.bold())
+                .foregroundStyle(.orange)
             }
 
             Spacer()
