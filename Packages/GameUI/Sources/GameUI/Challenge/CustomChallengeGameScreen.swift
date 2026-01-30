@@ -106,6 +106,18 @@ public struct CustomChallengeGameScreen: View {
                 homeState.gems = newValue
             }
         }
+        .onChange(of: challengeGameStore.state.moves) { oldMoves, newMoves in
+            // Track moves/move survival for achievements using main game store
+            if newMoves > oldMoves {
+                mainGameStore.achievementEvaluator?.onMoveSurvived()
+            }
+        }
+        .onChange(of: challengeGameStore.lastChainLength) { _, chainLength in
+            // Track merged tiles for achievements using main game store
+            if chainLength > 0 {
+                mainGameStore.achievementEvaluator?.onTilesMerged(count: chainLength)
+            }
+        }
     }
 
     // MARK: - Power-up Dock
