@@ -39,12 +39,24 @@ struct SideRailButton: View {
                             }
                         }
 
-                        if badge && !locked {
-                            Circle()
-                                .fill(.red)
-                                .frame(width: 10, height: 10)
-                                .offset(x: 6, y: -6)
-                                .accessibilityHidden(true)
+                        if !locked {
+                            if let count = badgeCount, count > 0 {
+                                // Show count badge
+                                Text("\(count)")
+                                    .font(.avenirNext(size: 10, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .frame(minWidth: 16, minHeight: 16)
+                                    .background(Circle().fill(.red))
+                                    .offset(x: 6, y: -6)
+                                    .accessibilityHidden(true)
+                            } else if badge {
+                                // Show simple dot badge
+                                Circle()
+                                    .fill(.red)
+                                    .frame(width: 10, height: 10)
+                                    .offset(x: 6, y: -6)
+                                    .accessibilityHidden(true)
+                            }
                         }
                     }
 

@@ -82,7 +82,7 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "spinthewheel",
                                 title: "FREE SPIN",
-                                badge: spinState.bonusSpins > 0,
+                                badgeCount: spinState.bonusSpins,
                                 action: { actions.openFreeSpin() }
                             )
 
