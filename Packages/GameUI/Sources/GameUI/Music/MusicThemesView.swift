@@ -51,9 +51,9 @@ struct MusicThemesView: View {
             case "guitar":
                 Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
             case "muted-nylon":
-                Task { await audioService.playMusic(named: "muted_nylon_melody", loop: true) }
+                Task { await audioService.playMusic(named: "muted_nylon_tap_1", loop: true) }
             case "drum":
-                Task { await audioService.playMusic(named: "drum_rhythm", loop: true) }
+                Task { await audioService.playMusic(named: "drum_tap_1", loop: true) }
             default:
                 // For other instruments, stop current music
                 Task { await audioService.stopMusic() }
@@ -72,9 +72,9 @@ struct MusicThemesView: View {
             case "guitar":
                 Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
             case "muted-nylon":
-                Task { await audioService.playMusic(named: "muted_nylon_melody", loop: true) }
+                Task { await audioService.playMusic(named: "muted_nylon_tap_1", loop: true) }
             case "drum":
-                Task { await audioService.playMusic(named: "drum_rhythm", loop: true) }
+                Task { await audioService.playMusic(named: "drum_tap_1", loop: true) }
             default:
                 break
             }
