@@ -111,11 +111,11 @@ public struct SpinWheelView: View {
             }
             
             Spacer()
-            
+
             Text("SPIN")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: GameFonts.title1Size, weight: .bold))
                 .foregroundStyle(.white)
-            
+
             Spacer()
             
             GemBalancePill(gems: homeState.gems)
@@ -179,26 +179,26 @@ public struct SpinWheelView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label("Next spin", systemImage: "clock.fill")
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .font(.avenirNext(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
                 Spacer()
                 Text(spinState.formattedCountdown(now: now))
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.avenirNext(size: 18, weight: .bold))
                     .foregroundStyle(slotReady ? .green : .white)
             }
-            
+
             if bonusReady {
                 Text("Bonus spins available: \(spinState.bonusSpins)")
                     .foregroundStyle(.white.opacity(0.85))
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .font(.avenirNext(size: 16, weight: .medium))
             } else if slotReady {
                 Text("Ready now - tap Spin to claim this window.")
                     .foregroundStyle(.white.opacity(0.75))
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .font(.avenirNext(size: 16, weight: .medium))
             } else {
                 Text("Windows reset every 12a / 4a / 8a / 12p / 4p / 8p.")
                     .foregroundStyle(.white.opacity(0.6))
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.avenirNext(size: 14, weight: .medium))
             }
         }
         .padding(20)
@@ -222,9 +222,9 @@ public struct SpinWheelView: View {
         } label: {
             VStack(spacing: 4) {
                 Text(title)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.avenirNext(size: 13, weight: .bold))
                 Text("\(cost) gems")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.avenirNext(size: 11, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.8))
             }
             .frame(width: 120, height: 46)
@@ -239,7 +239,7 @@ public struct SpinWheelView: View {
     private var spinButton: some View {
         Button(action: startSpin) {
             Text(canSpin ? "SPIN" : "WAIT")
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 24, weight: .bold))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .foregroundStyle(.white)
                 .glassOrMaterialBackground(cornerRadius: 20)
@@ -504,14 +504,14 @@ private struct BackgroundGradient: View {
 
 private struct GemBalancePill: View {
     let gems: Int
-    
+
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "diamond.fill")
                 .foregroundStyle(.white)
-                .font(.system(size: 16, weight: .bold))
+                .font(.avenirNext(size: 16, weight: .bold))
             Text(verbatim: String(gems))
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .font(.avenirNext(size: 16, weight: .semibold))
                 .foregroundStyle(.white)
             Image(systemName: "plus.circle.fill")
                 .foregroundStyle(.white.opacity(0.8))
@@ -533,24 +533,24 @@ private struct MultiplierInventoryCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Boost Inventory")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 16, weight: .bold))
                 .foregroundStyle(.white)
-            
+
             ForEach(SpinWheelState.MultiplierTier.allCases, id: \.self) { tier in
                 let canActivate = spinState.count(for: tier) > 0 && spinState.activeMultiplier == nil
                 let durationHours = Int(tier.duration / 3600)
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("\(tier.displayName) for \(durationHours)h")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.avenirNext(size: 14, weight: .semibold))
                             .foregroundStyle(.white)
                         Text("Stacks until you use it")
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .font(.avenirNext(size: 12, weight: .medium))
                             .foregroundStyle(.white.opacity(0.6))
                     }
                     Spacer()
                     Text("×\(spinState.count(for: tier))")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.avenirNext(size: 14, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 36, alignment: .trailing)
                     Button("Use") {
@@ -565,7 +565,7 @@ private struct MultiplierInventoryCard: View {
                             }
                         }
                     }
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.avenirNext(size: 12, weight: .bold))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .foregroundColor(.white)
@@ -574,14 +574,14 @@ private struct MultiplierInventoryCard: View {
                     .disabled(!canActivate)
                 }
             }
-            
+
             if let active = spinState.activeMultiplier {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Active: \(active.tier.displayName)")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(.avenirNext(size: 13, weight: .semibold))
                         .foregroundStyle(.white)
                     Text(spinState.formattedActiveMultiplierCountdown(now: now))
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .font(.avenirNext(size: 12, weight: .medium))
                         .foregroundStyle(.white.opacity(0.7))
                 }
                 .padding(.top, 6)
@@ -663,10 +663,10 @@ struct WheelFace: View {
                                     .frame(width: 24, height: 24)
                             } else {
                                 Text(segments[i].icon)
-                                    .font(.system(size: 18))
+                                    .font(.avenirNext(size: 18, weight: .regular))
                             }
                             Text(segments[i].title)
-                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .font(.avenirNext(size: 11, weight: .bold))
                                 .foregroundStyle(.white)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
@@ -893,10 +893,10 @@ private struct ActiveMultiplierBadge: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(active.tier.displayName)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 20, weight: .bold))
                 .foregroundStyle(.white)
             Text(countdown)
-                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .font(.avenirNext(size: 12, weight: .medium))
                 .foregroundStyle(.white.opacity(0.9))
         }
         .padding(20)

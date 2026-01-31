@@ -86,25 +86,25 @@ public struct DailyClaimsView: View {
             // Streak indicator
             VStack(spacing: 8) {
                 Image(systemName: "flame.fill")
-                    .font(.system(size: 48))
+                    .font(.avenirNext(size: 48, weight: .regular))
                     .foregroundStyle(store.currentStreak > 0 ? .orange : .gray)
                     .symbolEffect(.pulse, isActive: store.currentStreak > 0)
-                
+
                 Text("\(store.currentStreak)")
-                    .font(.system(size: 56, weight: .bold, design: .rounded))
+                    .font(.avenirNext(size: 56, weight: .bold))
                     .foregroundStyle(.primary)
-                
+
                 Text("Day Streak")
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
             .padding()
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
-            
+
             // Current progress
             HStack {
                 Label("Day \(store.currentClaimDay) Completed", systemImage: "checkmark.circle.fill")
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     .foregroundStyle(.green)
             }
         }
@@ -130,7 +130,7 @@ public struct DailyClaimsView: View {
                         Image(systemName: "arrow.up.circle.fill")
                             .foregroundStyle(.blue)
                         Text("\(store.availableClaims) rewards to catch up!")
-                            .font(.subheadline.bold())
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                             .foregroundStyle(.blue)
                     }
                     .padding(.horizontal, 12)
@@ -139,17 +139,17 @@ public struct DailyClaimsView: View {
                 }
 
                 Text("Day \(claim.day) Reward Available!")
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
 
                 RewardsDisplay(rewards: claim.rewards)
-                    .font(.title3)
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
 
                 if let bonusPreview = store.nextStreakBonusPreview() {
                     HStack(spacing: 6) {
                         Image(systemName: "gift.fill")
                             .foregroundStyle(.orange)
                         Text("+ \(bonusPreview.amount) \(bonusPreview.type.displayName)")
-                            .font(.subheadline.bold())
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                             .foregroundStyle(.orange)
                     }
                     .padding(.horizontal, 12)
@@ -158,7 +158,7 @@ public struct DailyClaimsView: View {
                 }
 
                 Text("Claim it from the timeline below.")
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     .foregroundStyle(.secondary)
             }
         }
@@ -169,12 +169,12 @@ public struct DailyClaimsView: View {
     private var nextClaimSection: some View {
         VStack(spacing: 12) {
             Text("Next Claim Available In")
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .foregroundStyle(.secondary)
-            
+
             if let timeRemaining = store.getTimeUntilNextClaim() {
                 TimerView(timeRemaining: timeRemaining)
-                    .font(.system(size: 32, weight: .bold, design: .monospaced))
+                    .font(.avenirNext(size: 32, weight: .bold))
             }
         }
         .padding()
@@ -185,14 +185,14 @@ public struct DailyClaimsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Weekly Rewards")
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 Spacer()
                 weekNavigator
             }
-            
+
             if chunkedClaims.isEmpty {
                 Text("Rewards loading...")
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 200)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
@@ -409,8 +409,7 @@ public struct DailyClaimsView: View {
                     }
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .semibold))
                         .frame(width: 44, height: 44)
                         .foregroundStyle(selectedYear > 1 ? .primary : .tertiary)
                 }
@@ -418,7 +417,7 @@ public struct DailyClaimsView: View {
                 .disabled(selectedYear <= 1)
 
                 Text("Year \(selectedYear)")
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 8)
                     .background(Color.purple.opacity(0.2), in: Capsule())
@@ -430,8 +429,7 @@ public struct DailyClaimsView: View {
                     }
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .semibold))
                         .frame(width: 44, height: 44)
                         .foregroundStyle(selectedYear < availableYears ? .primary : .tertiary)
                 }
@@ -447,7 +445,7 @@ public struct DailyClaimsView: View {
                     }
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                         .foregroundStyle(selectedPage > minPageForYear ? .primary : .tertiary)
                 }
                 .disabled(selectedPage <= minPageForYear)
@@ -462,9 +460,9 @@ public struct DailyClaimsView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text(pageLabel(for: selectedPage))
-                            .font(.subheadline.bold())
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                         Image(systemName: "chevron.up.chevron.down")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 10)
@@ -479,7 +477,7 @@ public struct DailyClaimsView: View {
                     }
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                         .foregroundStyle(selectedPage < maxPageForYear ? .primary : .tertiary)
                 }
                 .disabled(selectedPage >= maxPageForYear)
@@ -632,10 +630,10 @@ private struct DayGridCell: View {
             // Day title
             HStack {
                 Text("Day \(claim.day)")
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 if claim.day == highlightDay {
                     Text("Today")
-                        .font(.caption2)
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .medium))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(Color.blue.opacity(0.15), in: Capsule())
@@ -648,10 +646,10 @@ private struct DayGridCell: View {
             HStack(spacing: 6) {
                 ForEach(displayRewards.entries, id: \.self) { entry in
                     HStack(spacing: 3) {
-                        RewardIconView(kind: entry.kind, font: .subheadline)
+                        RewardIconView(kind: entry.kind, font: .avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                         Text("\(entry.amount)")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
             }
 
@@ -661,7 +659,7 @@ private struct DayGridCell: View {
                     Image(systemName: "gift.fill")
                     Text("+ \(bonus)")
                 }
-                .font(.caption.bold())
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                 .foregroundStyle(.orange)
             }
 
@@ -671,7 +669,7 @@ private struct DayGridCell: View {
             if let onClaim, claim.isAvailable {
                 Button(action: onClaim) {
                     Text("Claim")
-                        .font(.subheadline.bold())
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
                         .background(Color.purple.gradient, in: RoundedRectangle(cornerRadius: 10))
@@ -752,22 +750,22 @@ private struct YearlyRewardPageView: View {
             Spacer()
 
             Text("Day \(targetDay)")
-                .font(.system(size: 56, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 56, weight: .bold))
 
             if hasReachedTarget {
                 // Rewards with icons
                 HStack(spacing: 12) {
                     ForEach(claim.rewards.entries, id: \.self) { entry in
                         HStack(spacing: 6) {
-                            RewardIconView(kind: entry.kind, font: .title2)
+                            RewardIconView(kind: entry.kind, font: .avenirNext(size: GameFonts.title2Size, weight: .regular))
                             Text("\(entry.amount) \(entry.kind.displayName)")
                         }
-                        .font(.title2)
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     }
                 }
 
                 Text(yearlyRewardText)
-                    .font(.title.bold())
+                    .font(.avenirNext(size: GameFonts.title1Size, weight: .bold))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.purple)
 
@@ -775,11 +773,11 @@ private struct YearlyRewardPageView: View {
                 if claim.isClaimed {
                     Label("Claimed", systemImage: "checkmark.circle.fill")
                         .foregroundStyle(.green)
-                        .font(.title2.bold())
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 } else if let onClaim {
                     Button(action: onClaim) {
                         Text("Claim Yearly Reward")
-                            .font(.title3.bold())
+                            .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                             .padding(.horizontal, 32)
                             .padding(.vertical, 14)
                             .background(Color.purple.gradient, in: Capsule())
@@ -790,25 +788,25 @@ private struct YearlyRewardPageView: View {
                 } else {
                     VStack(spacing: 4) {
                         Image(systemName: "clock")
-                            .font(.title2)
+                            .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                         Text("Come back tomorrow!")
-                            .font(.subheadline)
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     }
                     .foregroundStyle(.secondary)
                 }
             } else {
                 // Locked state - hasn't reached target yet
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 48))
+                    .font(.avenirNext(size: 48, weight: .regular))
                     .foregroundStyle(.secondary)
 
                 Text("Complete \(requiredDay) days\nto unlock this reward!")
-                    .font(.title3)
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
 
                 Text("Day \(currentClaimDay) / \(requiredDay)")
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .foregroundStyle(.purple)
             }
 
@@ -852,23 +850,23 @@ private struct DailyRewardRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
                     Text("Day \(claim.day)")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     if claim.day == highlightDay {
                         Text("Today")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(Color.blue.opacity(0.15), in: Capsule())
                     }
                 }
-                
+
                 RewardsTiny(rewards: combinedReward)
-                    .font(.footnote)
-                
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+
                 if !bonusEntries.isEmpty {
                     HStack(spacing: 6) {
                         Text("Bonus:")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                             .foregroundStyle(.orange)
                         ForEach(bonusEntries, id: \.self) { entry in
                             RewardChip(entry: entry, style: .compact)
@@ -876,9 +874,9 @@ private struct DailyRewardRow: View {
         }
                 }
             }
-            
+
             Spacer()
-            
+
             statusControl
         }
         .padding()
@@ -891,17 +889,17 @@ private struct DailyRewardRow: View {
                 .strokeBorder(borderColor, lineWidth: 1)
         )
     }
-    
+
     @ViewBuilder
     private var statusControl: some View {
         if claim.isClaimed {
             Label("Claimed", systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
-                .font(.subheadline.bold())
+                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
         } else if let onClaim {
             Button(action: onClaim) {
                 Text("Claim")
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .padding(.horizontal, 18)
                     .padding(.vertical, 8)
                     .background(Color.purple.gradient, in: Capsule())
@@ -914,7 +912,7 @@ private struct DailyRewardRow: View {
                 Image(systemName: "clock")
                 Text(claim.day <= currentClaimDay ? "Locked" : "Upcoming")
             }
-            .font(.caption)
+            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
             .foregroundStyle(.secondary)
         }
     }
@@ -1010,16 +1008,16 @@ private struct ClaimAnimationOverlay: View {
 
             VStack(spacing: 24) {
                 Image(systemName: "gift.fill")
-                    .font(.system(size: 64))
+                    .font(.avenirNext(size: 64, weight: .regular))
                     .foregroundStyle(.yellow)
                     .symbolEffect(.bounce)
 
                 Text("Reward Claimed!")
-                    .font(.largeTitle.bold())
+                    .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                     .foregroundStyle(.white)
 
                 RewardsDisplay(rewards: rewards)
-                    .font(.title3)
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                     .padding()
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
 
@@ -1029,13 +1027,13 @@ private struct ClaimAnimationOverlay: View {
                             Image(systemName: "sparkles")
                                 .foregroundStyle(.orange)
                             Text("+ \(randomBonusCount) Random Bonus\(randomBonusCount > 1 ? "es" : "") Added!")
-                                .font(.headline)
+                                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                                 .foregroundStyle(.orange)
                             Image(systemName: "sparkles")
                                 .foregroundStyle(.orange)
                         }
                         Text("Check your inventory!")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.white.opacity(0.7))
                     }
                     .padding(.horizontal)
@@ -1106,14 +1104,14 @@ private struct RewardChip: View {
             switch style {
             case .compact:
                 Text(compactText)
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                     .foregroundStyle(entry.kind.iconColor)
             case .detailed:
                 VStack(alignment: .leading, spacing: 2) {
                     Text(detailedTitle)
-                        .font(.subheadline.bold())
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                     Text(entry.kind.subtitle)
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -1245,11 +1243,11 @@ private struct IconLegendView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(legendItems, id: \.self) { kind in
                         HStack(spacing: 16) {
-                            RewardIconView(kind: kind, font: .title2)
+                            RewardIconView(kind: kind, font: .avenirNext(size: GameFonts.title2Size, weight: .regular))
                                 .frame(width: 32)
 
                             Text(kind.displayName)
-                                .font(.body)
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
 
                             Spacer()
                         }

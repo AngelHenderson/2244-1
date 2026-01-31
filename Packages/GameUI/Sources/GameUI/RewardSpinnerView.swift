@@ -31,20 +31,20 @@ struct RewardSpinnerView: View {
     var body: some View {
         VStack(spacing: 18) {
             Text("New Tile Unlocked")
-                .font(.title.bold())
+                .font(.avenirNext(size: GameFonts.title1Size, weight: .bold))
             Text(TileValueFormatter.formatTileValue(tileValue))
-                .font(.headline.weight(.semibold))
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .foregroundStyle(.secondary)
             
             VStack(spacing: 6) {
                 Text("Base Reward")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                     .foregroundStyle(.secondary)
                 HStack(spacing: 6) {
                     Image(systemName: "diamond.fill")
                         .foregroundStyle(.mint)
                     Text("\(baseAmount)")
-                        .font(.title2.weight(.heavy))
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .heavy))
                 }
             }
             .padding(.horizontal, 20)
@@ -55,7 +55,7 @@ struct RewardSpinnerView: View {
             
             Button(action: claim) {
                     Text("Claim \(currentMultiplier)x")
-                    .font(.headline.weight(.semibold))
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                         .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -128,7 +128,7 @@ struct RewardSpinnerView: View {
             Color(hex: "E646A0")
         ]
         return Text("x\(multipliers[index])")
-            .font(.headline.weight(.heavy))
+            .font(.avenirNext(size: GameFonts.headlineSize, weight: .heavy))
             .foregroundColor(.white)
             .frame(width: slotWidth, height: 56)
             .background(colors[index])
