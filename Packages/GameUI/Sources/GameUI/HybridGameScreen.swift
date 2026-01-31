@@ -1142,33 +1142,36 @@ private struct MiniTileView: View {
     var isLocked: Bool = false
 
     private var tileColor: Color {
-        if isLocked {
-            return Color.gray.opacity(0.4)
-        }
-        return Theme.colorForStep(step)
+        Theme.colorForStep(step)
     }
 
     private var textColor: Color {
-        if isLocked {
-            return .gray
-        }
-        return Theme.textColorForStep(step)
+        Theme.textColorForStep(step)
     }
 
     var body: some View {
-        Text(label)
-            .font(.system(size: 10, weight: .bold, design: .rounded))
-            .foregroundStyle(textColor)
-            .minimumScaleFactor(0.5)
-            .frame(width: 36, height: 36)
-            .background(
+        ZStack {
+            Text(label)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .foregroundStyle(textColor)
+                .minimumScaleFactor(0.5)
+                .frame(width: 36, height: 36)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(tileColor)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(isCurrent ? Color.yellow : Color.white.opacity(0.2), lineWidth: isCurrent ? 2 : 1)
+                )
+
+            // Dim overlay for locked tiles
+            if isLocked {
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(tileColor)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .strokeBorder(isCurrent ? Color.yellow : Color.white.opacity(0.2), lineWidth: isCurrent ? 2 : 1)
-            )
+                    .fill(Color.black.opacity(0.3))
+                    .frame(width: 36, height: 36)
+            }
+        }
     }
 }
 
