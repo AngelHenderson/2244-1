@@ -1380,40 +1380,18 @@ public final class GameEngine {
         return candidates[index]
     }
 
-    /// Returns the minimum allowed spawn step
+    /// Returns the minimum spawn step based on position (6 tiles below maxSpawn)
     public func minAllowedSpawnStep() -> Int {
-        // For highValue tiles (step >= 62), use step-based elimination tracking
-        if !eliminatedMilestoneSteps.isEmpty {
-            // Find highest non-skip milestone step
-            var highestNonSkipStep: Int? = nil
-            for step in eliminatedMilestoneSteps.sorted().reversed() {
-                let position = step - 62
-                if position >= 0 && position % 3 != 2 {  // Not a skip
-                    highestNonSkipStep = step
-                    break
-                }
-            }
+        let highestStep = state.highestTileStep
 
-            if let milestoneStep = highestNonSkipStep {
-                // Minimum spawn is 13 steps below milestone (so 7 candidates reach 7 steps below)
-                // Elimination threshold is 14 steps below
-                let eliminationThresholdStep = milestoneStep - 14
-                let calculatedMinStep = milestoneStep - 13
+        // After 131K+ (step 17), spawn only 5 tiles below highest instead of 7
+        let stepsBelow = highestStep >= 17 ? 5 : 7
 
-                // Use whichever is higher to ensure we don't spawn below elimination threshold
-                return max(0, max(eliminationThresholdStep, calculatedMinStep))
-            }
-        }
+        // maxSpawn is stepsBelow below highest
+        // minSpawn is 6 tiles below maxSpawn (7 candidates total)
+        let minSpawnStep = highestStep - stepsBelow - 6
 
-        // For value-based milestones, convert to step
-        if let removed = latestEliminatedValue() {
-            // Minimum spawn step is one above the eliminated step
-            if let removedStep = TileStepLabelFormatter.stepForValue(removed, start: 2) {
-                return removedStep + 1
-            }
-        }
-
-        return 0  // Start at step 0 (value 2)
+        return max(0, minSpawnStep)
     }
 
     /// Returns the elimination threshold as a step

@@ -1075,8 +1075,10 @@ struct ModeOverlay: View {
 struct MilestoneProgressBar: View {
     @Environment(\.gameStore) private var gameStore
 
-    // minSpawn is step 0 (tile value 2)
-    private let minSpawnStep: Int = 0
+    /// Dynamic minimum spawn step based on current game state (elimination threshold)
+    private var minSpawnStep: Int {
+        gameStore.minSpawnStep
+    }
 
     private var minSpawnLabel: String {
         JourneyTileGenerator.formatTileAtStep(minSpawnStep)
