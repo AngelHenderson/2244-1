@@ -1,4 +1,5 @@
 import SwiftUI
+import GameApp
 
 public struct ThemePickerView: View {
     @Environment(\.dismiss) private var dismiss
@@ -178,15 +179,14 @@ private struct PlayButtonColorCard: View {
             VStack(spacing: 12) {
                 // Preview of play button with this color
                 Image(systemName: "play.fill")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.avenirNext(size: 24, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 56, height: 56)
                     .background(colorOption.color, in: Circle())
                     .shadow(color: colorOption.color.opacity(0.4), radius: 4, y: 2)
-                
+
                 Text(colorOption.name)
-                    .font(.caption)
-                    .fontWeight(.medium)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                     .foregroundStyle(.primary)
             }
             .padding(12)
@@ -201,7 +201,7 @@ private struct PlayButtonColorCard: View {
             .overlay(alignment: .topTrailing) {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.title3)
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                         .foregroundStyle(.white, Color.accentColor)
                         .offset(x: 6, y: -6)
                 }
@@ -240,7 +240,7 @@ private struct ThemeCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     
                     Text(descriptor.name)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                         .foregroundStyle(.primary)
                 }
                 .padding(12)
@@ -255,7 +255,7 @@ private struct ThemeCard: View {
                 .overlay(alignment: .topTrailing) {
                     if isSelected {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.title2)
+                            .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                             .foregroundStyle(.white, Color.accentColor)
                             .offset(x: 8, y: -8)
                     }
@@ -264,7 +264,7 @@ private struct ThemeCard: View {
             .buttonStyle(.plain)
         }
     }
-    
+
     private struct ThemePreviewTile: View {
         let value: Int
         let descriptor: ThemeDescriptor
@@ -283,7 +283,7 @@ private struct ThemeCard: View {
                         ))
                         .overlay {
                             Text("\(value)")
-                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .font(.avenirNext(size: 10, weight: .bold))
                                 .foregroundStyle(textColor)
                         }
                 } else {
@@ -291,7 +291,7 @@ private struct ThemeCard: View {
                         .fill(color)
                         .overlay {
                             Text("\(value)")
-                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .font(.avenirNext(size: 10, weight: .bold))
                                 .foregroundStyle(textColor)
                         }
                 }
@@ -366,7 +366,7 @@ private struct ThemeCard: View {
         var body: some View {
             VStack(alignment: .leading, spacing: 12) {
                 Label(category, systemImage: categoryIcon)
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .foregroundStyle(.primary)
                 
                 LazyVGrid(columns: columns, spacing: 12) {

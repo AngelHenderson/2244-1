@@ -17,6 +17,31 @@ import FirebaseCore
 struct game2244App: App {
     // Register AppDelegate for SwiftUI
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
+    init() {
+        configureNavigationBarAppearance()
+    }
+
+    private func configureNavigationBarAppearance() {
+        // Configure Avenir Next for navigation bar titles
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+
+        // Large title (used when .navigationBarTitleDisplayMode(.large))
+        if let largeTitleFont = UIFont(name: "AvenirNext-Bold", size: 34) {
+            appearance.largeTitleTextAttributes = [.font: largeTitleFont]
+        }
+
+        // Inline title (used when .navigationBarTitleDisplayMode(.inline))
+        if let titleFont = UIFont(name: "AvenirNext-DemiBold", size: 17) {
+            appearance.titleTextAttributes = [.font: titleFont]
+        }
+
+        // Apply to all navigation bars
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+    }
     @State private var gameStore = GameStore()
     @State private var homeState = HomeState()
     @State private var purchaseService = PurchaseService()
