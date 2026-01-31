@@ -135,22 +135,22 @@ public struct LeaderboardView: View {
             // User's current position header
             VStack(spacing: 6) {
                 Text(headerTitle)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.avenirNext(size: 12, weight: .medium))
                     .foregroundStyle(.white.opacity(0.5))
                     .textCase(.uppercase)
                     .tracking(1)
 
                 HStack(spacing: 8) {
                     Text("#\(userRank)")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .font(.avenirNext(size: 36, weight: .bold))
                         .foregroundStyle(.white)
 
                     Text("–")
-                        .font(.system(size: 28, weight: .medium))
+                        .font(.avenirNext(size: 28, weight: .medium))
                         .foregroundStyle(.white.opacity(0.4))
 
                     Text(userMilestone)
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .font(.avenirNext(size: 24, weight: .bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 6)
@@ -194,7 +194,7 @@ public struct LeaderboardView: View {
         if !previews.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Rank Preview")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.avenirNext(size: 12, weight: .medium))
                     .foregroundStyle(.white.opacity(0.5))
                     .textCase(.uppercase)
                     .tracking(1)
@@ -203,15 +203,15 @@ public struct LeaderboardView: View {
                 ForEach(previews, id: \.rank) { preview in
                     HStack {
                         Text("\(preview.rank)")
-                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .font(.avenirNext(size: 14, weight: .medium))
                             .foregroundStyle(preview.isUserRank ? .cyan : .white.opacity(0.6))
 
                         Text(preview.isUserRank ? "-" : "=")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.avenirNext(size: 14, weight: .medium))
                             .foregroundStyle(.white.opacity(0.4))
 
                         Text(preview.milestone)
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.avenirNext(size: 14, weight: .semibold))
                             .foregroundStyle(preview.isUserRank ? .cyan : .white.opacity(0.6))
 
                         Spacer()
@@ -540,7 +540,7 @@ public struct LeaderboardView: View {
             // User indicator on left
             if isUserTier {
                 Image(systemName: "arrowtriangle.right.fill")
-                    .font(.system(size: 12))
+                    .font(.avenirNext(size: 12, weight: .regular))
                     .foregroundStyle(.cyan)
                     .padding(.trailing, 8)
             } else {
@@ -549,14 +549,14 @@ public struct LeaderboardView: View {
 
             // Rank label (e.g., "73150 - 1B")
             Text(rankLabel)
-                .font(.system(size: 18, weight: isUserTier ? .bold : .medium, design: .rounded))
+                .font(.avenirNext(size: 18, weight: isUserTier ? .bold : .medium))
                 .foregroundStyle(isUserTier ? .white : .white.opacity(0.7))
 
             Spacer()
 
             // Milestone badge
             Text(milestone)
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 14, weight: .bold))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
@@ -632,13 +632,13 @@ public struct LeaderboardView: View {
                 Spacer()
                 VStack(spacing: 16) {
                     Image(systemName: "trophy.fill")
-                        .font(.system(size: 48))
+                        .font(.avenirNext(size: 48, weight: .regular))
                         .foregroundStyle(.white.opacity(0.4))
                     Text("No leaderboard data")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                         .foregroundStyle(.white)
                     Text("Be the first to set a score!")
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         .foregroundStyle(.white.opacity(0.6))
                 }
                 Spacer()
@@ -670,17 +670,17 @@ public struct LeaderboardView: View {
             HStack(spacing: 6) {
                 if filter == .global {
                     Image(systemName: "globe.americas.fill")
-                        .font(.system(size: 14))
+                        .font(.avenirNext(size: 14, weight: .regular))
                 } else if filter == .hallOfFame {
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 14))
+                        .font(.avenirNext(size: 14, weight: .regular))
                 } else if let countryCode = filter.countryCode {
                     Text(flagEmoji(countryCode))
-                        .font(.system(size: 14))
+                        .font(.avenirNext(size: 14, weight: .regular))
                 }
 
                 Text(filter.rawValue)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.avenirNext(size: 14, weight: .semibold))
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
@@ -795,7 +795,7 @@ public struct LeaderboardView: View {
         HStack(spacing: 12) {
             // Rank Number
             Text(verbatim: "\(entry.rank)")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 44)
 
@@ -820,7 +820,7 @@ public struct LeaderboardView: View {
 
                 // Platform badge
                 Image(systemName: platformIcon(for: entry.platform))
-                    .font(.system(size: 10))
+                    .font(.avenirNext(size: 10, weight: .regular))
                     .foregroundStyle(.white)
                     .padding(3)
                     .background(platformColor(for: entry.platform))
@@ -830,7 +830,7 @@ public struct LeaderboardView: View {
 
             // Player Name
             Text(entry.name)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.avenirNext(size: 16, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
 
@@ -839,13 +839,13 @@ public struct LeaderboardView: View {
             // Country Flag
             if let countryCode = entry.countryCode {
                 Text(flagEmoji(countryCode))
-                    .font(.title3)
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
             }
 
             // Milestone Badge (highest tile)
             if let highestTile = entry.highestTile {
                 Text(highestTile)
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.avenirNext(size: 12, weight: .bold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
@@ -882,7 +882,7 @@ public struct LeaderboardView: View {
                 .frame(width: 44, height: 44)
 
             Text(String(entry.name.prefix(1)).uppercased())
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .foregroundStyle(.white)
         }
     }
