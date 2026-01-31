@@ -985,13 +985,16 @@ public enum MockLeaderboardData {
             let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
 
             // Find milestone for this rank from extended brackets
-            var milestone = userMilestone
+            var baseMilestone = userMilestone
             for bracket in extendedBrackets {
                 if rank >= bracket.startRank {
-                    milestone = bracket.milestone
+                    baseMilestone = bracket.milestone
                     break
                 }
             }
+
+            // Apply progression (players below 16K milestone progress faster: 1.5-4/day)
+            let milestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: playerIndex, day: day)
 
             let score = scoreForMilestone(milestone)
 
@@ -1033,13 +1036,16 @@ public enum MockLeaderboardData {
             let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
 
             // Find milestone for this rank from extended brackets
-            var milestone = userMilestone
+            var baseMilestone = userMilestone
             for bracket in extendedBrackets {
                 if rank >= bracket.startRank {
-                    milestone = bracket.milestone
+                    baseMilestone = bracket.milestone
                     break
                 }
             }
+
+            // Apply progression (players below 16K milestone progress faster: 1.5-4/day)
+            let milestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: playerIndex, day: day)
 
             let score = scoreForMilestone(milestone)
 
@@ -1353,15 +1359,28 @@ public enum MockLeaderboardData {
     }
 
     // Calculate milestone progression for regular leaderboard players
-    // Players progress through milestone tiers at different rates (0.25-1 milestones per day)
-    // But cap total progression to prevent everyone reaching max milestone
+    // Players at/above 16K milestone: progress at 0.25-1 milestones per day
+    // Players below 16K milestone: progress at 1.5-4 milestones per day (faster to catch up)
     static func milestoneWithProgression(baseMilestone: String, playerIndex: Int, day: Int) -> String {
         guard let baseIndex = allMilestones.firstIndex(of: baseMilestone) else {
             return baseMilestone
         }
 
+        // Index of "16K" in allMilestones array
+        let milestone16KIndex = 14
+
         // Each player gets a consistent daily milestone progression rate
-        let dailyRate = 0.25 + seededRandom(seed: playerIndex * 888, index: playerIndex) * 0.75  // 0.25 to 1 milestones per day
+        // Rate depends on milestone: players below 16K progress faster to catch up
+        let dailyRate: Double
+        let randomFactor = seededRandom(seed: playerIndex * 888, index: playerIndex)
+
+        if baseIndex < milestone16KIndex {
+            // Players below 16K milestone: 1.5-4 milestones per day (faster progression)
+            dailyRate = 1.5 + randomFactor * 2.5
+        } else {
+            // Players at/above 16K milestone: 0.25-1 milestones per day
+            dailyRate = 0.25 + randomFactor * 0.75
+        }
 
         // Calculate total tiers gained
         let tiersGained = Int(dailyRate * Double(day))
