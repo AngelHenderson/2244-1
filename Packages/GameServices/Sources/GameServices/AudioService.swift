@@ -75,15 +75,22 @@ public actor LiveAudioService: AudioServiceProtocol {
     /// Note: Files are at bundle root level (synchronized groups flatten directory structure)
     private struct InstrumentConfig {
         let filePrefix: String
-        let tapSoundCount: Int
+        let tapSoundCount: Int      // Number of separate files OR notes in single file
+        let notesInSingleFile: Int  // If > 1, plays portions of one file instead of loading multiple files
+
+        init(filePrefix: String, tapSoundCount: Int, notesInSingleFile: Int = 0) {
+            self.filePrefix = filePrefix
+            self.tapSoundCount = tapSoundCount
+            self.notesInSingleFile = notesInSingleFile
+        }
 
         static let configs: [String: InstrumentConfig] = [
             "piano": InstrumentConfig(filePrefix: "piano_tap_", tapSoundCount: 3),
-            "xylophone": InstrumentConfig(filePrefix: "xylophone_tap_", tapSoundCount: 3),
-            "guitar": InstrumentConfig(filePrefix: "guitar_tap_", tapSoundCount: 3),
-            "kalimba": InstrumentConfig(filePrefix: "kalimba_tap_", tapSoundCount: 3),
-            "muted-nylon": InstrumentConfig(filePrefix: "muted_nylon_tap_", tapSoundCount: 3),
-            "drum": InstrumentConfig(filePrefix: "drum_tap_", tapSoundCount: 3)
+            "xylophone": InstrumentConfig(filePrefix: "xylophone_tap_", tapSoundCount: 2),  // Alternates 1, 2
+            "guitar": InstrumentConfig(filePrefix: "guitar_tap_", tapSoundCount: 20, notesInSingleFile: 20),  // 20 notes in one file
+            "kalimba": InstrumentConfig(filePrefix: "kalimba_tap_", tapSoundCount: 12, notesInSingleFile: 12),  // 12 notes in one file
+            "muted-nylon": InstrumentConfig(filePrefix: "muted_nylon_tap_", tapSoundCount: 1),
+            "drum": InstrumentConfig(filePrefix: "drum_tap_", tapSoundCount: 6, notesInSingleFile: 6)  // 6 notes in one file
         ]
 
         static let defaultConfig = InstrumentConfig(filePrefix: "piano_tap_", tapSoundCount: 3)
@@ -334,11 +341,9 @@ public actor LiveAudioService: AudioServiceProtocol {
         // Clean up before adding new sound
         cleanupAndPrepareForNewSound()
 
-        // Quick, short tick sound for wheel spinner
-        let soundName = "piano_tap_1"
-
-        let url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ??
-                  Bundle.main.url(forResource: soundName, withExtension: "wav")
+        // Use dedicated tick sound for wheel spinner
+        let url = Bundle.main.url(forResource: "tick", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "tick", withExtension: "wav")
 
         guard let audioUrl = url else {
             print("❌ Tick sound not found")
@@ -347,7 +352,7 @@ public actor LiveAudioService: AudioServiceProtocol {
 
         do {
             let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.3  // Quieter for tick effect
+            player.volume = 0.5
             player.play()
             sfxPlayers.append(player)
 
@@ -401,20 +406,27 @@ public actor LiveAudioService: AudioServiceProtocol {
         // Get config for current theme, fall back to piano
         let config = InstrumentConfig.configs[effectiveTheme] ?? InstrumentConfig.defaultConfig
 
-        // Cycle through available tap sounds
-        let soundIndex = (instrumentTapIndex % config.tapSoundCount) + 1
+        // Cycle through available tap sounds (0-indexed for note position calculation)
+        let noteIndex = instrumentTapIndex % config.tapSoundCount
         instrumentTapIndex = (instrumentTapIndex + 1) % config.tapSoundCount
 
+        // Handle single file with multiple notes (drum, kalimba)
+        if config.notesInSingleFile > 0 {
+            await playNoteFromSingleFile(theme: effectiveTheme, config: config, noteIndex: noteIndex)
+            return
+        }
+
+        // Multiple separate files (piano, xylophone, guitar, muted-nylon)
+        let soundIndex = noteIndex + 1  // Files are 1-indexed
         let soundName = "\(config.filePrefix)\(soundIndex)"
         print("🎹 Attempting to play \(effectiveTheme) sound: \(soundName) (index: \(soundIndex))")
 
         // All files are at bundle root (synchronized groups flatten directory structure)
-        // Try instrument-specific sound first
         var url = Bundle.main.url(forResource: soundName, withExtension: "mp3")
 
         // Fall back to piano sounds if not found
         if url == nil {
-            let pianoSoundName = "piano_tap_\(soundIndex)"
+            let pianoSoundName = "piano_tap_\((noteIndex % 3) + 1)"
             url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3") ??
                   Bundle.main.url(forResource: pianoSoundName, withExtension: "wav")
             if effectiveTheme != "piano" {
@@ -442,6 +454,42 @@ public actor LiveAudioService: AudioServiceProtocol {
             }
         } catch {
             print("❌ Failed to play \(effectiveTheme) tap sound: \(error)")
+        }
+    }
+
+    /// Play a specific note from a single audio file containing multiple notes
+    private func playNoteFromSingleFile(theme: String, config: InstrumentConfig, noteIndex: Int) async {
+        let soundName = "\(config.filePrefix)1"  // Always load file with suffix 1
+
+        let url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ??
+                  Bundle.main.url(forResource: soundName, withExtension: "wav")
+
+        guard let audioUrl = url else {
+            print("❌ Single-file sound not found for \(theme): \(soundName)")
+            return
+        }
+
+        do {
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            let noteDuration = player.duration / Double(config.notesInSingleFile)
+            let startTime = Double(noteIndex) * noteDuration
+
+            player.currentTime = startTime
+            player.volume = 0.7
+            player.play()
+
+            print("🎹 Playing \(theme) note \(noteIndex + 1)/\(config.notesInSingleFile) from \(startTime)s")
+
+            sfxPlayers.append(player)
+
+            // Stop after one note's duration
+            Task {
+                try? await Task.sleep(for: .seconds(noteDuration))
+                player.stop()
+                await removeSfxPlayer(player)
+            }
+        } catch {
+            print("❌ Failed to play \(theme) note: \(error)")
         }
     }
     
