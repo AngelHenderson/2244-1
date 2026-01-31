@@ -1,4 +1,5 @@
 import SwiftUI
+import GameApp
 
 // MARK: - Rename Sheet
 
@@ -54,7 +55,7 @@ struct AvatarCustomizeView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     Text("Choose Avatar")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 20)], spacing: 20) {
                         ForEach(AvatarCatalog.all) { option in
                             Button {
@@ -77,7 +78,7 @@ struct AvatarCustomizeView: View {
                         }
                     }
                     Text("Cosmetics are purely for fun and do not affect gameplay.")
-                        .font(.footnote)
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
@@ -191,7 +192,7 @@ struct CompareView: View {
             Form {
                 Section("Your Code") {
                     HStack {
-                        Text(friendCode).font(.body.monospaced())
+                        Text(friendCode).font(.avenirNext(size: GameFonts.bodySize, weight: .medium)).monospaced()
                         Spacer()
                         Button("Copy") {
                             #if os(iOS)
@@ -208,7 +209,7 @@ struct CompareView: View {
 
                     if selectedPlayers.count >= maxCompareCount {
                         Text("Maximum \(maxCompareCount) players")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -220,9 +221,9 @@ struct CompareView: View {
                                 Text(player.countryFlag)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(player.name)
-                                        .font(.subheadline.weight(.medium))
+                                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .medium))
                                     Text(player.code)
-                                        .font(.caption.monospaced())
+                                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular)).monospaced()
                                         .foregroundColor(.secondary)
                                 }
                                 Spacer()
@@ -251,21 +252,21 @@ struct CompareView: View {
                             HStack(spacing: 12) {
                                 // Rank
                                 Text("#\(index + 1)")
-                                    .font(.caption.bold())
+                                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                                     .foregroundColor(entry.isMe ? .accentColor : .secondary)
                                     .frame(width: 28, alignment: .leading)
 
                                 // Country flag
                                 Text(entry.countryFlag)
-                                    .font(.title3)
+                                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
 
                                 // Name and code
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(entry.name)
-                                        .font(.subheadline.weight(entry.isMe ? .bold : .medium))
+                                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: entry.isMe ? .bold : .medium))
                                         .foregroundColor(entry.isMe ? .accentColor : .primary)
                                     Text(entry.code)
-                                        .font(.caption.monospaced())
+                                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular)).monospaced()
                                         .foregroundColor(.secondary)
                                 }
 
@@ -273,7 +274,7 @@ struct CompareView: View {
 
                                 // Milestone
                                 Text(entry.milestone)
-                                    .font(.subheadline.bold())
+                                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                                     .foregroundColor(entry.isMe ? .accentColor : .primary)
 
                                 // Remove button (only for non-me entries)
@@ -303,7 +304,7 @@ struct CompareView: View {
                                         selectedPlayers.removeAll()
                                     }
                                 }
-                                .font(.caption)
+                                .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                             }
                         }
                     }
@@ -433,7 +434,7 @@ private struct ComparisonRow: View {
                 .fontWeight(highlightWinner && !isMyValueBetter && myValue != theirValue ? .bold : .regular)
                 .foregroundColor(highlightWinner && !isMyValueBetter && myValue != theirValue ? .green : .primary)
         }
-        .font(.subheadline)
+        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
     }
 
     private var isMyValueBetter: Bool {

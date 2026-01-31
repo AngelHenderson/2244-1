@@ -119,7 +119,7 @@ public struct PlayerProfileView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text(model.playerName)
-                        .font(.title3.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     Button {
@@ -141,7 +141,7 @@ public struct PlayerProfileView: View {
 
                 HStack(spacing: 8) {
                     Label(model.friendCode, systemImage: "person.badge.key.fill")
-                        .font(.callout.monospaced())
+                        .font(.avenirNext(size: GameFonts.calloutSize, weight: .medium))
                         .foregroundStyle(.secondary)
                         .contextMenu {
                             Button("Copy Code") { 
@@ -168,24 +168,24 @@ public struct PlayerProfileView: View {
                                 Text("Select Country")
                             }
                         }
-                        .font(.footnote.weight(.medium))
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
                         .padding(.horizontal, 10).padding(.vertical, 6)
                         .glassBackground(in: Capsule())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Country selection")
-                    
+
                     Spacer(minLength: 0)
-                    
+
                     // Highest Tile Display
                     if let highestTile = model.highestTile {
                         HStack(spacing: 6) {
                             Image(systemName: "crown.fill")
                                 .foregroundStyle(.yellow)
                             Text(highestTile)
-                                .font(.headline.weight(.bold))
+                                .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
                         }
-                        .font(.footnote.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .semibold))
                         .padding(.horizontal, 10).padding(.vertical, 6)
                         .glassBackground(in: Capsule())
                     }
@@ -213,12 +213,12 @@ public struct PlayerProfileView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Tier Mastery")
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 Spacer()
             }
             if model.tiers.isEmpty {
                 Text("Make higher merges to unlock mastery stats.")
-                    .font(.footnote)
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                     .foregroundStyle(.secondary)
             } else {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
@@ -277,12 +277,12 @@ public struct PlayerProfileView: View {
                         await model.load(using: client)
                     }
                 }
-                .font(.footnote.weight(.medium))
+                .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
                 .buttonStyle(.borderless)
             }
             Spacer()
         }
-        .font(.footnote)
+        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
         .padding(.top, 8)
     }
 
@@ -332,10 +332,10 @@ private struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Text(title).font(.subheadline).foregroundStyle(.secondary)
+                Text(title).font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular)).foregroundStyle(.secondary)
                 Image(systemName: "info.circle").help(info)
             }
-            Text(value).font(.title3.weight(.bold)).monospacedDigit()
+            Text(value).font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -352,12 +352,11 @@ private struct TierCard: View {
                     .fill(tier.color.opacity(0.9))
                     .frame(width: 36, height: 36)
                 Text(tier.displayKey)
-                    .font(.headline.weight(.bold))
-                    .fontDesign(tier.usesCurvedLStyling ? .rounded : .default)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
                     .foregroundStyle(.white)
             }
             Text("\(tier.value)")
-                .font(.headline.monospacedDigit())
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .fixedSize(horizontal: true, vertical: false)
             Spacer(minLength: 0)
         }
