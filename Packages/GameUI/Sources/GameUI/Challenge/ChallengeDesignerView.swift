@@ -15,13 +15,16 @@ public struct ChallengeDesignerView: View {
     
     public var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    targetSection
-                    steppersSection
-                    tilesSection
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(spacing: 24) {
+                        targetSection
+                        steppersSection
+                        tilesSection
+                            .frame(minHeight: geometry.size.height - 340)
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .navigationTitle("DESIGN YOUR OWN CHALLENGE")
             .navigationBarTitleDisplayMode(.inline)
@@ -37,22 +40,25 @@ public struct ChallengeDesignerView: View {
     }
     
     private var targetSection: some View {
-        VStack(spacing: 12) {
+        let buttonColor = Color.purple.opacity(0.7)
+
+        return VStack(spacing: 12) {
             Text("TARGET")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-            
+
             HStack(spacing: 16) {
                 Button {
                     store.prevTarget()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.headline)
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(Color.secondary.opacity(0.2)))
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(buttonColor))
                 }
                 .buttonStyle(.plain)
-                
+
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(currentTheme?.colorForStep(store.targetStep) ?? Theme.colorForStep(store.targetStep))
@@ -69,14 +75,15 @@ public struct ChallengeDesignerView: View {
                         .minimumScaleFactor(0.5)
                         .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
                 }
-                
+
                 Button {
                     store.nextTarget()
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.headline)
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(Color.secondary.opacity(0.2)))
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(buttonColor))
                 }
                 .buttonStyle(.plain)
             }
@@ -123,7 +130,7 @@ public struct ChallengeDesignerView: View {
             // Tiles distributed across 3 columns
             HStack(alignment: .top, spacing: 12) {
                 ForEach(0..<3, id: \.self) { columnIndex in
-                    VStack(spacing: 8) {
+                    VStack(spacing: 16) {
                         ForEach(stepsForColumn(columnIndex), id: \.self) { step in
                             TileChip(step: step, theme: currentTheme)
                         }
@@ -131,6 +138,8 @@ public struct ChallengeDesignerView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
+
+            Spacer()
 
             // Reward section
             VStack(spacing: 6) {
@@ -262,7 +271,7 @@ private struct StepperBox: View {
 private struct TileChip: View {
     let step: Int
     let theme: ThemeDescriptor?
-    private let tileSize: CGFloat = 52
+    private let tileSize: CGFloat = 104
 
     private var tileColor: Color {
         theme?.colorForStep(step) ?? Theme.colorForStep(step)
@@ -275,21 +284,21 @@ private struct TileChip: View {
     var body: some View {
         ZStack {
             // Tile background
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(tileColor)
                 .frame(width: tileSize, height: tileSize)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(Color.white.opacity(0.3), lineWidth: 2)
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(Color.white.opacity(0.3), lineWidth: 3)
                 )
-                .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 3)
 
             // Tile label
             Text(TileStepLabelFormatter.labelForStep(step))
-                .font(.system(size: 14, weight: .heavy, design: .rounded))
+                .font(.system(size: 28, weight: .heavy, design: .rounded))
                 .foregroundStyle(textColor)
                 .minimumScaleFactor(0.5)
-                .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 2)
         }
     }
 }
