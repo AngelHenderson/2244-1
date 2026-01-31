@@ -1,5 +1,6 @@
 import SwiftUI
 import GameCore
+import GameApp
 
 struct AllTiersView: View {
     let achievementTitle: String
@@ -91,10 +92,10 @@ private struct TierRow: View {
             // Level indicator
             VStack {
                 Image(systemName: statusIcon)
-                    .font(.title2)
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(statusColor)
                 Text("Lv \(tier.level)")
-                    .font(.caption.bold())
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                     .foregroundStyle(.secondary)
             }
             .frame(width: 50)
@@ -102,11 +103,11 @@ private struct TierRow: View {
             // Tier info
             VStack(alignment: .leading, spacing: 6) {
                 Text(tier.title)
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .foregroundStyle(tier.isCompleted || tier.isCurrent ? .primary : .secondary)
 
                 Text(tier.description)
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
 
@@ -118,7 +119,7 @@ private struct TierRow: View {
 
             // Milestone badge
             Text(tier.milestoneLabel)
-                .font(.caption.bold())
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .background(
@@ -200,7 +201,7 @@ private struct TierRewardSummary: View {
                 .frame(width: 14, height: 14)
         case .system(let name, let color):
             Image(systemName: name)
-                .font(.caption)
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                 .foregroundStyle(color)
         }
     }
@@ -215,7 +216,7 @@ private struct TierRewardSummary: View {
                     HStack(spacing: 3) {
                         iconView(for: item.icon)
                         Text("\(item.amount)")
-                            .font(.caption2.bold())
+                            .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
                     }
                     .foregroundStyle(.secondary)
                 }

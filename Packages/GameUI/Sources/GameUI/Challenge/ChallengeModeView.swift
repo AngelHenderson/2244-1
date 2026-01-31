@@ -118,7 +118,7 @@ public struct ChallengeModeView: View {
                         Image(systemName: isReplay ? "arrow.clockwise" : "play.fill")
                         Text(isReplay ? "Replay Challenge \(challengeNumber)" : "Play Challenge \(challengeNumber)")
                     }
-                    .font(.title3.weight(.semibold))
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                 }
@@ -128,10 +128,10 @@ public struct ChallengeModeView: View {
                 // Pending unlock - show countdown
                 VStack(spacing: 8) {
                     Text("Next Challenge Unlocks In")
-                        .font(.subheadline)
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                         .foregroundStyle(.secondary)
                     Text(formatTimeRemaining(until: pending.unlockDate))
-                        .font(.system(.title2, design: .monospaced).bold())
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.orange)
                 }
                 .frame(maxWidth: .infinity)
@@ -143,7 +143,7 @@ public struct ChallengeModeView: View {
             } else {
                 // All completed or no challenges
                 Text("All Challenges Completed!")
-                    .font(.title3.weight(.semibold))
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .semibold))
                     .foregroundStyle(.green)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
@@ -206,7 +206,7 @@ private struct ChallengeCard: View {
                         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
 
                     Text("∞")
-                        .font(.system(size: tileSize * 0.5, weight: .heavy, design: .rounded))
+                        .font(.avenirNext(size: tileSize * 0.5, weight: .heavy))
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                 }
@@ -223,7 +223,7 @@ private struct ChallengeCard: View {
                         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
 
                     Text(targetTileLabel)
-                        .font(.system(size: fontSize(for: targetTileLabel, tileSize: tileSize), weight: .heavy, design: .rounded))
+                        .font(.avenirNext(size: fontSize(for: targetTileLabel, tileSize: tileSize), weight: .heavy))
                         .foregroundStyle(textColor)
                         .minimumScaleFactor(0.5)
                         .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
@@ -233,7 +233,7 @@ private struct ChallengeCard: View {
         } else {
             // Fallback for missing target
             Text("??")
-                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                .font(.avenirNext(size: 48, weight: .heavy))
                 .foregroundStyle(.secondary)
         }
     }
@@ -267,9 +267,9 @@ private struct ChallengeCard: View {
             // Multiple rewards - show treasure box, tap to view
             HStack(spacing: 4) {
                 Image(systemName: "shippingbox.fill")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                 Text("Rewards")
-                    .font(.caption.weight(.semibold))
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
             }
             .onTapGesture {
                 showingRewards = true
@@ -277,15 +277,15 @@ private struct ChallengeCard: View {
             .popover(isPresented: $showingRewards) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Rewards")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                         .padding(.bottom, 4)
                     ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
                         HStack(spacing: 6) {
                             Image(systemName: part.icon)
-                                .font(.body)
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                                 .frame(width: 20)
                             Text(part.text)
-                                .font(.body.weight(.medium))
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
                         }
                     }
                 }
@@ -296,9 +296,9 @@ private struct ChallengeCard: View {
             // Single reward - show specific icon
             HStack(spacing: 4) {
                 Image(systemName: part.icon)
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                 Text(part.text)
-                    .font(.caption.weight(.semibold))
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
             }
         }
     }
@@ -354,7 +354,7 @@ private struct ChallengeCard: View {
     var body: some View {
         VStack(spacing: 6) {
             Text("Challenge \(challengeNumber)")
-                .font(.subheadline.weight(.semibold))
+                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                 .foregroundStyle(.secondary)
 
             targetTileView
@@ -424,28 +424,28 @@ private struct ChallengeCard: View {
         case .active:
             VStack(spacing: 4) {
                 Text(challenge.name)
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 Text(challenge.description)
-                    .font(.footnote.weight(.medium))
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
         case .completed:
             Text("Completed")
-                .font(.footnote.weight(.medium))
+                .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
                 .foregroundStyle(.green)
         case .pendingUnlock(let unlockDate):
             VStack(spacing: 4) {
                 Text("Unlocks in")
-                    .font(.footnote.weight(.medium))
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
                     .foregroundStyle(.secondary)
                 Text(formatTimeRemaining(until: unlockDate))
-                    .font(.system(.caption, design: .monospaced).bold())
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                     .foregroundStyle(.orange)
             }
         case .locked:
             Text("Locked")
-                .font(.footnote.weight(.medium))
+                .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
                 .foregroundStyle(.secondary)
         }
     }
@@ -546,15 +546,15 @@ private struct IconLegendSheet: View {
                     ForEach(legendItems, id: \.icon) { item in
                         HStack(spacing: 16) {
                             Image(systemName: item.icon)
-                                .font(.title2)
+                                .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                                 .foregroundStyle(iconColor(for: item.icon))
                                 .frame(width: 32)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(item.name)
-                                    .font(.body.weight(.medium))
+                                    .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
                                 Text(item.description)
-                                    .font(.caption)
+                                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                                     .foregroundStyle(.secondary)
                             }
 

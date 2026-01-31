@@ -390,12 +390,12 @@ private struct AchievementRow: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(categoryLabel)
-                        .font(.caption.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
                         .foregroundStyle(.secondary)
                         .textCase(.uppercase)
 
                     Text(displayTitle)
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -414,7 +414,7 @@ private struct AchievementRow: View {
 
             // Description
             Text(displayDescription)
-                .font(.subheadline)
+                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -423,7 +423,8 @@ private struct AchievementRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(progressValueText(for: progress))
-                            .font(.caption.monospacedDigit().bold())
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                            .monospacedDigit()
                             .foregroundStyle(.secondary)
                         Spacer()
                     }
@@ -452,9 +453,9 @@ private struct AchievementRow: View {
                     Button(action: onTapTiers) {
                         HStack(spacing: 4) {
                             Text("View All Tiers")
-                                .font(.caption2.bold())
+                                .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
                             Image(systemName: "chevron.right")
-                                .font(.caption2)
+                                .font(.avenirNext(size: GameFonts.caption2Size, weight: .regular))
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -610,7 +611,7 @@ private struct RewardSummary: View {
                 Image(systemName: "star.fill")
                     .foregroundStyle(.yellow)
                 Text("Bragging rights")
-                    .font(.footnote)
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                     .foregroundStyle(.secondary)
             }
         } else if items.count == 1 {
@@ -619,7 +620,7 @@ private struct RewardSummary: View {
             HStack(spacing: 6) {
                 iconView(for: item.icon)
                 Text(item.text)
-                    .font(.footnote)
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                     .foregroundStyle(.secondary)
             }
         } else {
@@ -630,7 +631,7 @@ private struct RewardSummary: View {
                     .scaledToFit()
                     .frame(width: 18, height: 18)
                 Text(items.map { $0.text }.joined(separator: ", "))
-                    .font(.footnote)
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                     .foregroundStyle(.secondary)
             }
         }
@@ -704,10 +705,10 @@ private struct LockupIcon: View {
 private struct StatusBadge: View {
     let text: String
     let color: Color
-    
+
     var body: some View {
         Text(text.uppercased())
-            .font(.caption2.bold())
+            .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(color.opacity(0.15), in: Capsule())
@@ -723,7 +724,7 @@ private struct ClaimButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .frame(minWidth: 96)
                 .padding(.vertical, 10)
                 .padding(.horizontal, 16)
@@ -761,9 +762,9 @@ private struct ClaimAllButton: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: "gift.fill")
-                    .font(.title3)
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 Text("Claim All (\(count))")
-                    .font(.headline.bold())
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)

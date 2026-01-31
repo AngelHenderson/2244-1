@@ -110,9 +110,9 @@ public struct WeeklyOfferSheet: View {
                     } label: {
                         VStack(spacing: 4) {
                             Text("Get This Offer")
-                                .font(.headline)
+                                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                             Text(offer.formattedPrice)
-                                .font(.title.bold())
+                                .font(.avenirNext(size: GameFonts.title1Size, weight: .bold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 18)
@@ -136,7 +136,7 @@ public struct WeeklyOfferSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
-                        .fontWeight(.semibold)
+                        .font(.avenirNext(size: GameFonts.bodySize, weight: .semibold))
                 }
             }
         }
@@ -159,12 +159,12 @@ public struct WeeklyOfferSheet: View {
     private func offerRow(icon: String, text: String, color: Color) -> some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
-                .font(.title2)
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                 .foregroundStyle(color)
                 .frame(width: 36)
 
             Text(text)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
 
             Spacer()
         }
@@ -178,7 +178,7 @@ public struct WeeklyOfferSheet: View {
                 .frame(width: 36, height: 36)
 
             Text(text)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
 
             Spacer()
         }
@@ -285,7 +285,7 @@ public struct ShopView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
-                        .fontWeight(.semibold)
+                        .font(.avenirNext(size: GameFonts.bodySize, weight: .semibold))
                 }
             }
         }
@@ -338,10 +338,10 @@ public struct ShopView: View {
             // Available journey tiles
             VStack(alignment: .leading, spacing: 16) {
                 Text("Journey Tiles")
-                    .font(.headline)
-                
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+
                 Text("Unlock tiles as you progress through milestones")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.secondary)
                 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
@@ -367,7 +367,7 @@ public struct ShopView: View {
                 ForEach(Dictionary(grouping: perks, by: { $0.item }).sorted(by: { $0.key < $1.key }), id: \.key) { item, bundles in
                     VStack(alignment: .leading, spacing: 12) {
                         Text(item.lowercased() == "magnet" ? "MegaMerges" : "\(item.capitalized)s")
-                            .font(.headline)
+                            .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
 
                         VStack(spacing: 10) {
                             ForEach(bundles.sorted(by: { $0.quantity < $1.quantity })) { perk in
@@ -417,21 +417,22 @@ struct WeeklyOfferCard: View {
                         Image(systemName: "star.fill")
                             .foregroundStyle(.yellow)
                         Text("BEST OFFER")
-                            .font(.caption.bold())
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                             .foregroundStyle(.yellow)
                     }
                     Text(offer.title)
-                        .font(.title2.bold())
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 }
 
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("Ends in")
-                        .font(.caption2)
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .regular))
                         .foregroundStyle(.secondary)
                     Text(timeRemaining)
-                        .font(.subheadline.bold().monospacedDigit())
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                        .monospacedDigit()
                         .foregroundStyle(.orange)
                 }
             }
@@ -443,14 +444,14 @@ struct WeeklyOfferCard: View {
                         NoAdsIcon()
                             .frame(width: 20, height: 20)
                         Text("No Ads Lifetime")
-                            .font(.subheadline)
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     }
                 } else if offer.noAds {
                     HStack(spacing: 8) {
                         NoAdsIcon()
                             .frame(width: 20, height: 20)
                         Text("No Ads")
-                            .font(.subheadline)
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     }
                 }
                 if let gems = offer.gems {
@@ -459,7 +460,7 @@ struct WeeklyOfferCard: View {
                     } icon: {
                         Image(systemName: "diamond.fill")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
                 if let hammers = offer.hammers {
                     Label {
@@ -467,7 +468,7 @@ struct WeeklyOfferCard: View {
                     } icon: {
                         Image(systemName: "hammer.fill")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
                 if let swaps = offer.swaps {
                     Label {
@@ -475,7 +476,7 @@ struct WeeklyOfferCard: View {
                     } icon: {
                         Image(systemName: "arrow.2.squarepath")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
                 if let magnets = offer.magnets {
                     Label {
@@ -483,7 +484,7 @@ struct WeeklyOfferCard: View {
                     } icon: {
                         Image(systemName: "dot.radiowaves.left.and.right")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
                 if let spins = offer.spins {
                     Label {
@@ -491,7 +492,7 @@ struct WeeklyOfferCard: View {
                     } icon: {
                         Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
                 if let boost2x = offer.boost2x {
                     Label {
@@ -499,7 +500,7 @@ struct WeeklyOfferCard: View {
                     } icon: {
                         Image(systemName: "2.circle.fill")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
                 if let boost3x = offer.boost3x {
                     Label {
@@ -507,7 +508,7 @@ struct WeeklyOfferCard: View {
                     } icon: {
                         Image(systemName: "3.circle.fill")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
                 if let boost4x = offer.boost4x {
                     Label {
@@ -515,7 +516,7 @@ struct WeeklyOfferCard: View {
                     } icon: {
                         Image(systemName: "4.circle.fill")
                     }
-                    .font(.subheadline)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
             }
 
@@ -524,7 +525,7 @@ struct WeeklyOfferCard: View {
                 Task { await shopStore.purchase(offer.id) }
             } label: {
                 Text(offer.formattedPrice)
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(
@@ -573,14 +574,14 @@ struct TabButton: View {
     let icon: String
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 Text(title)
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
             }
             .foregroundStyle(isSelected ? .primary : .secondary)
             .padding(.horizontal, 16)
@@ -607,7 +608,7 @@ struct BundleCard: View {
             }
             
             Text(bundle.title)
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .multilineTextAlignment(.center)
             
             // Items preview
@@ -619,7 +620,7 @@ struct BundleCard: View {
                         } icon: {
                             Image(systemName: "diamond.fill")
                         }
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                     if let hammers = items.hammers {
                         Label {
@@ -627,7 +628,7 @@ struct BundleCard: View {
                         } icon: {
                             Image(systemName: "hammer.fill")
                         }
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                     if let swaps = items.swaps {
                         Label {
@@ -635,7 +636,7 @@ struct BundleCard: View {
                         } icon: {
                             Image(systemName: "arrow.2.squarepath")
                         }
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                     if let magnets = items.magnets {
                         Label {
@@ -643,7 +644,7 @@ struct BundleCard: View {
                         } icon: {
                             Image(systemName: "dot.radiowaves.left.and.right")
                         }
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                     if let spins = items.spins {
                         Label {
@@ -651,7 +652,7 @@ struct BundleCard: View {
                         } icon: {
                             Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
                         }
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                     if let boost2x = items.boost2x {
                         Label {
@@ -659,7 +660,7 @@ struct BundleCard: View {
                         } icon: {
                             Image(systemName: "2.circle.fill")
                         }
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                     if let boost3x = items.boost3x {
                         Label {
@@ -667,7 +668,7 @@ struct BundleCard: View {
                         } icon: {
                             Image(systemName: "3.circle.fill")
                         }
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                     if let boost4x = items.boost4x {
                         Label {
@@ -675,7 +676,7 @@ struct BundleCard: View {
                         } icon: {
                             Image(systemName: "4.circle.fill")
                         }
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                 }
                 if bundle.perks?.noAds == true {
@@ -683,7 +684,7 @@ struct BundleCard: View {
                         NoAdsIcon()
                             .frame(width: 16, height: 16)
                         Text("No Ads")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                 }
             }
@@ -694,7 +695,7 @@ struct BundleCard: View {
                 Task { await shopStore.purchase(bundle.id) }
             } label: {
                 Text(shopStore.formatPrice(bundle.price))
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.avenirNext(size: 14, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(shopStore.isPurchased(bundle.id) ? Color.gray : Color.accentColor)
@@ -736,16 +737,16 @@ struct GemBundleRow: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(gem.gems.formatted()) Gems")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     if let tag = gem.tags?.first {
                         Text(tag)
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
                 }
                 Spacer()
                 Text(shopStore.formatPrice(gem.price))
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
             }
             .padding()
             .background(.regularMaterial)
@@ -788,11 +789,11 @@ struct PerkBundleRow: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(perk.quantity) \(perkDisplayName):")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 }
                 Spacer()
                 Text(shopStore.formatPrice(perk.price))
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
             }
             .padding()
             .background(.regularMaterial)
@@ -858,30 +859,30 @@ struct PerkBundleRow: View {
 
 struct JourneyProgressCard: View {
     @Environment(\.tileJourney) private var journeyStore
-    
+
     var body: some View {
         VStack(spacing: 16) {
             Text("Your Journey")
-                .font(.headline)
-            
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+
             HStack(spacing: 20) {
                 VStack {
                     Text("Highest Tile")
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         .foregroundStyle(.secondary)
                     Text(AlphaMag.formatTileValue(journeyStore.highestTile))
-                        .font(.title2.bold())
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 }
-                
+
                 Divider()
                     .frame(height: 40)
-                
+
                 VStack {
                     Text("Next Milestone")
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         .foregroundStyle(.secondary)
                     Text(AlphaMag.formatTileValue(journeyStore.nextMilestone() ?? 0))
-                        .font(.title2.bold())
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.cyan)
                 }
             }
@@ -896,11 +897,11 @@ struct JourneyProgressCard: View {
 struct JourneyTileView: View {
     let label: String
     let isUnlocked: Bool
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Text(label)
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 14, weight: .bold))
                 .foregroundStyle(isUnlocked ? .primary : .tertiary)
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
@@ -911,7 +912,7 @@ struct JourneyTileView: View {
         .overlay {
             if !isUnlocked {
                 Image(systemName: "lock.fill")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.tertiary)
             }
         }
@@ -948,7 +949,7 @@ struct TagView: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 10, weight: .semibold))
+            .font(.avenirNext(size: 10, weight: .semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(style.backgroundColor)
@@ -963,7 +964,7 @@ struct NoAdsIcon: View {
         ZStack {
             // "ADS" text
             Text("ADS")
-                .font(.system(size: 12, weight: .black, design: .rounded))
+                .font(.avenirNext(size: 12, weight: .heavy))
                 .foregroundStyle(.blue)
 
             // Prohibition circle and line overlay

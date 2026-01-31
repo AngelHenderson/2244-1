@@ -44,7 +44,7 @@ public struct ChallengeDesignerView: View {
 
         return VStack(spacing: 12) {
             Text("TARGET")
-                .font(.footnote)
+                .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 16) {
@@ -52,7 +52,7 @@ public struct ChallengeDesignerView: View {
                     store.prevTarget()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.title2.weight(.bold))
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 44, height: 44)
                         .background(RoundedRectangle(cornerRadius: 10).fill(buttonColor))
@@ -70,7 +70,7 @@ public struct ChallengeDesignerView: View {
                         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
 
                     Text(store.targetLabel)
-                        .font(.system(size: 24, weight: .heavy, design: .rounded))
+                        .font(.avenirNext(size: 24, weight: .heavy))
                         .foregroundStyle(currentTheme?.textColorForStep(store.targetStep) ?? Theme.textColorForStep(store.targetStep))
                         .minimumScaleFactor(0.5)
                         .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
@@ -80,7 +80,7 @@ public struct ChallengeDesignerView: View {
                     store.nextTarget()
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.title2.weight(.bold))
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 44, height: 44)
                         .background(RoundedRectangle(cornerRadius: 10).fill(buttonColor))
@@ -121,7 +121,7 @@ public struct ChallengeDesignerView: View {
             HStack {
                 ForEach(0..<3, id: \.self) { _ in
                     Text("Tiles")
-                        .font(.subheadline.weight(.medium))
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .medium))
                         .foregroundStyle(.primary.opacity(0.7))
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
@@ -144,7 +144,7 @@ public struct ChallengeDesignerView: View {
             // Reward section
             VStack(spacing: 6) {
                 Text("REWARD")
-                    .font(.caption.weight(.medium))
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 6) {
@@ -153,7 +153,7 @@ public struct ChallengeDesignerView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 20, height: 20)
                     Text("+\(store.predictedReward)")
-                        .font(.system(.headline, design: .rounded).weight(.bold))
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
@@ -203,7 +203,7 @@ public struct ChallengeDesignerView: View {
                 dismiss()
             } label: {
                 Label("Play", systemImage: "play.fill")
-                    .font(.system(.headline, design: .rounded))
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .padding(.horizontal, 24)
                     .padding(.vertical, 14)
                     .background(Capsule().fill(Color.green.opacity(0.9)))
@@ -234,13 +234,13 @@ private struct StepperBox: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(title)
-                .font(.subheadline.weight(.medium))
+                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .medium))
                 .foregroundStyle(.primary.opacity(0.8))
 
             HStack(spacing: 8) {
                 Button(action: onDecrease) {
                     Text("-")
-                        .font(.title2.weight(.bold))
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(RoundedRectangle(cornerRadius: 8).fill(buttonColor))
@@ -248,12 +248,12 @@ private struct StepperBox: View {
                 .buttonStyle(.plain)
 
                 Text(value)
-                    .font(.system(.title3, design: .rounded).weight(.bold))
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                     .frame(minWidth: 36)
 
                 Button(action: onIncrease) {
                     Text("+")
-                        .font(.title2.weight(.bold))
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(RoundedRectangle(cornerRadius: 8).fill(buttonColor))
@@ -295,7 +295,7 @@ private struct TileChip: View {
 
             // Tile label
             Text(TileStepLabelFormatter.labelForStep(step))
-                .font(.system(size: 28, weight: .heavy, design: .rounded))
+                .font(.avenirNext(size: 28, weight: .heavy))
                 .foregroundStyle(textColor)
                 .minimumScaleFactor(0.5)
                 .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 2)
