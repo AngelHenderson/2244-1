@@ -146,11 +146,11 @@ public struct DailyClaimsView: View {
                 RewardsDisplay(rewards: claim.rewards)
                     .font(.title3)
 
-                if bonusCount > 0 {
+                if let bonusPreview = store.nextStreakBonusPreview() {
                     HStack(spacing: 6) {
                         Image(systemName: "gift.fill")
                             .foregroundStyle(.orange)
-                        Text("+ \(bonusCount) Random Bonus\(bonusCount > 1 ? "es" : "")!")
+                        Text("+ \(bonusPreview.amount) \(bonusPreview.type.displayName)")
                             .font(.subheadline.bold())
                             .foregroundStyle(.orange)
                     }
@@ -228,6 +228,7 @@ public struct DailyClaimsView: View {
                                 nextDay: store.getNextClaimableDay(),
                                 combinedRewardForNext: store.combinedRewardForNextClaim(),
                                 bonusCountForNext: store.getNextClaimableDay().map { store.pendingStreakBonusCount(afterClaimingDay: $0) } ?? 0,
+                                bonusPreviewForNext: store.nextStreakBonusPreview().map { "\($0.amount) \($0.type.displayName)" },
                                 onClaim: { claim in claimReward(claim.rewards) }
                             )
                             .tag(index)
@@ -551,6 +552,7 @@ private struct WeekGridView: View {
     let nextDay: Int?
     let combinedRewardForNext: AchievementDef.Rewards?
     let bonusCountForNext: Int
+    let bonusPreviewForNext: String?
     let onClaim: (DailyClaimsStore.DailyClaim) -> Void
 
     var body: some View {
@@ -572,6 +574,7 @@ private struct WeekGridView: View {
                         isNext: claims[leftIndex].day == nextDay,
                         combinedReward: claims[leftIndex].day == nextDay ? combinedRewardForNext : nil,
                         bonusCount: claims[leftIndex].day == nextDay ? bonusCountForNext : 0,
+                        bonusPreview: claims[leftIndex].day == nextDay ? bonusPreviewForNext : nil,
                         onClaim: claims[leftIndex].isAvailable ? { onClaim(claims[leftIndex]) } : nil
                     )
                     .frame(maxHeight: .infinity)
@@ -583,6 +586,7 @@ private struct WeekGridView: View {
                         isNext: claims[rightIndex].day == nextDay,
                         combinedReward: claims[rightIndex].day == nextDay ? combinedRewardForNext : nil,
                         bonusCount: claims[rightIndex].day == nextDay ? bonusCountForNext : 0,
+                        bonusPreview: claims[rightIndex].day == nextDay ? bonusPreviewForNext : nil,
                         onClaim: claims[rightIndex].isAvailable ? { onClaim(claims[rightIndex]) } : nil
                     )
                     .frame(maxHeight: .infinity)
@@ -599,6 +603,7 @@ private struct WeekGridView: View {
                     isNext: lastClaim.day == nextDay,
                     combinedReward: lastClaim.day == nextDay ? combinedRewardForNext : nil,
                     bonusCount: lastClaim.day == nextDay ? bonusCountForNext : 0,
+                    bonusPreview: lastClaim.day == nextDay ? bonusPreviewForNext : nil,
                     onClaim: lastClaim.isAvailable ? { onClaim(lastClaim) } : nil
                 )
                 .frame(maxHeight: .infinity)
@@ -617,6 +622,7 @@ private struct DayGridCell: View {
     let isNext: Bool
     let combinedReward: AchievementDef.Rewards?
     let bonusCount: Int
+    let bonusPreview: String?
     let onClaim: (() -> Void)?
 
     private var displayRewards: AchievementDef.Rewards {
@@ -651,11 +657,11 @@ private struct DayGridCell: View {
                 }
             }
 
-            // Streak bonus indicator - always show for available claim
-            if claim.isAvailable {
+            // Streak bonus indicator - show actual bonus for available claim
+            if claim.isAvailable, let bonus = bonusPreview {
                 HStack(spacing: 4) {
                     Image(systemName: "gift.fill")
-                    Text("+ Random Streak Bonus!")
+                    Text("+ \(bonus)")
                 }
                 .font(.caption.bold())
                 .foregroundStyle(.orange)

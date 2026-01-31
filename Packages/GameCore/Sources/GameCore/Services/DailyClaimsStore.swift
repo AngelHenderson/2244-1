@@ -320,6 +320,18 @@ public final class DailyClaimsStore {
             .filter { !$0.isUnlocked && $0.day <= resultingStreak }
             .count
     }
+
+    /// Returns a preview of the next streak bonus (type and amount)
+    public func nextStreakBonusPreview() -> (type: BonusRewardGenerator.BonusType, amount: Int, rewards: AchievementDef.Rewards)? {
+        let resultingStreak = currentStreak + 1
+        guard let nextStreak = dailyStreaks.first(where: { !$0.isUnlocked && $0.day <= resultingStreak }) else {
+            return nil
+        }
+        let type = BonusRewardGenerator.bonusType(forStreakDay: nextStreak.day)
+        let amount = BonusRewardGenerator.bonusAmount(forStreakDay: nextStreak.day)
+        let rewards = BonusRewardGenerator.previewBonus(forStreakDay: nextStreak.day)
+        return (type, amount, rewards)
+    }
 }
 
 private enum DailyRewardSchedule {
@@ -565,38 +577,89 @@ private extension AchievementDef.Rewards {
     }
 }
 
-/// Generates random bonus rewards with equal probability for each type (12.5% each)
+/// Generates weighted random bonus rewards based on streak day (deterministic via seeded RNG)
 public enum BonusRewardGenerator {
-    public enum BonusType: CaseIterable {
+    public enum BonusType: CaseIterable, Sendable {
         case gems
-        case spins
-        case hammers
         case megaMerges
         case swaps
+        case hammers
+        case spins
         case boost2x
         case boost3x
         case boost4x
+
+        public var displayName: String {
+            switch self {
+            case .gems: return "Gems"
+            case .spins: return "Spin"
+            case .hammers: return "Hammer"
+            case .megaMerges: return "MegaMerge"
+            case .swaps: return "Swap"
+            case .boost2x: return "2X Boost"
+            case .boost3x: return "3X Boost"
+            case .boost4x: return "4X Boost"
+            }
+        }
+
+        /// Weight for weighted random selection (out of 1000 for precision)
+        var weight: Int {
+            switch self {
+            case .gems: return 500       // 50%
+            case .megaMerges: return 150 // 15%
+            case .swaps: return 100      // 10%
+            case .hammers: return 50     // 5%
+            case .spins: return 50       // 5%
+            case .boost2x: return 75     // 7.5%
+            case .boost3x: return 50     // 5%
+            case .boost4x: return 25     // 2.5%
+            }
+        }
     }
 
-    /// Generates a random bonus reward with equal probability (12.5% each type)
-    public static func generateRandomBonus(baseAmount: Int = 1) -> AchievementDef.Rewards {
-        let allTypes = BonusType.allCases
-        let randomIndex = Int.random(in: 0..<allTypes.count)
-        let selectedType = allTypes[randomIndex]
+    /// Returns the bonus type for a given streak day (deterministic via seeded random)
+    public static func bonusType(forStreakDay day: Int) -> BonusType {
+        // Use day as seed for deterministic "random" selection
+        var seededValue = day * 2654435761 // Knuth's multiplicative hash
+        seededValue = seededValue ^ (seededValue >> 16)
+        let roll = abs(seededValue) % 1000
 
-        return rewardFor(type: selectedType, amount: baseAmount)
+        var cumulative = 0
+        for type in BonusType.allCases {
+            cumulative += type.weight
+            if roll < cumulative {
+                return type
+            }
+        }
+        return .gems // Fallback
     }
 
-    /// Generates a bonus with scaled amount based on streak day
+    /// Returns the bonus amount for a given streak day
+    public static func bonusAmount(forStreakDay day: Int) -> Int {
+        let type = bonusType(forStreakDay: day)
+        return scaledAmount(for: type, streakDay: day)
+    }
+
+    /// Preview the bonus reward for a streak day (without claiming)
+    public static func previewBonus(forStreakDay day: Int) -> AchievementDef.Rewards {
+        let type = bonusType(forStreakDay: day)
+        let amount = scaledAmount(for: type, streakDay: day)
+        return rewardFor(type: type, amount: amount)
+    }
+
+    /// Generates a deterministic bonus based on streak day
+    public static func generateBonus(forStreakDay day: Int) -> AchievementDef.Rewards {
+        return previewBonus(forStreakDay: day)
+    }
+
+    /// Legacy method - now deterministic
     public static func generateRandomBonus(forStreakDay day: Int) -> AchievementDef.Rewards {
-        let allTypes = BonusType.allCases
-        let randomIndex = Int.random(in: 0..<allTypes.count)
-        let selectedType = allTypes[randomIndex]
+        return generateBonus(forStreakDay: day)
+    }
 
-        // Scale amount based on streak day (higher streak = better bonus)
-        let amount = scaledAmount(for: selectedType, streakDay: day)
-
-        return rewardFor(type: selectedType, amount: amount)
+    /// Legacy method - now deterministic based on amount as day
+    public static func generateRandomBonus(baseAmount: Int = 1) -> AchievementDef.Rewards {
+        return generateBonus(forStreakDay: baseAmount)
     }
 
     private static func rewardFor(type: BonusType, amount: Int) -> AchievementDef.Rewards {
