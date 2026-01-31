@@ -20,9 +20,9 @@ public struct TierStat: Identifiable, Hashable, Sendable {
 }
 
 public extension TierStat {
-    /// Presentation glyph; keep canonical casing for K/M/B, curve l, otherwise lowercase.
+    /// Presentation glyph; keep canonical casing for K/M/B, uppercase L to avoid confusion with 1, otherwise lowercase.
     var displayKey: String {
-        if key == "l" { return "ℓ" }
+        if key == "l" { return "L" }
         // If it's one of the uppercase standard tiers, return as is
         if ["K", "M", "B"].contains(key) { return key }
         // Otherwise return the key (which should be lowercase for alpha tiers)
@@ -30,7 +30,7 @@ public extension TierStat {
     }
     
     var usesCurvedLStyling: Bool {
-        key == "l"
+        false  // No longer using curved ℓ, now using uppercase L
     }
     
     @MainActor
