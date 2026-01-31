@@ -95,6 +95,8 @@ public final class GameStore {
     public private(set) var isInputLocked: Bool = false
     // Value of the most recently created tile from a commit (for HUD banner)
     public private(set) var lastAddedTileValue: Int? = nil
+    // Position of the most recently created tile (for immediate doubling)
+    public private(set) var lastAddedTilePosition: Position? = nil
     // Pending double offer value to apply (base value for doubling)
     public private(set) var pendingDoubleBase: Int? = nil
     // Step index for pending double (needed for tiles beyond Int.max)
@@ -225,6 +227,8 @@ public final class GameStore {
         case twoX = "achievement_boost_2x"
         case threeX = "achievement_boost_3x"
         case fiveX = "achievement_boost_5x"
+        case eightX = "achievement_boost_8x"
+        case elevenX = "achievement_boost_11x"
     }
 
     public struct AchievementBoostTier: Equatable, Sendable {
@@ -261,6 +265,20 @@ public final class GameStore {
             multiplier: 5,
             cost: 12_500,
             duration: 15 * 60  // 15 minutes
+        ),
+        .eightX: AchievementBoostTier(
+            id: .eightX,
+            label: "8× Achievement Progress",
+            multiplier: 8,
+            cost: 15_000,
+            duration: 14 * 60 + 30  // 14.5 minutes
+        ),
+        .elevenX: AchievementBoostTier(
+            id: .elevenX,
+            label: "11× Achievement Progress",
+            multiplier: 11,
+            cost: 17_500,
+            duration: 14 * 60  // 14 minutes
         )
     ]
 
@@ -1004,6 +1022,7 @@ public final class GameStore {
             return 0
         }()
         lastAddedTileValue = addedValue > 0 ? addedValue : nil
+        lastAddedTilePosition = addedValue > 0 ? lastPos : nil
 
         // IMPORTANT: Remove non-glass gift triggers. Gifts are only awarded on shattered glass.
         // (No milestone/random gift triggers here.)
@@ -1817,7 +1836,14 @@ public final class GameStore {
         pendingDoubleBase = nil
         pendingDoubleBaseStep = nil
     }
-    
+
+    /// Immediately apply the pending double to the last added tile position
+    @discardableResult
+    public func applyPendingDouble() -> Bool {
+        guard let position = lastAddedTilePosition else { return false }
+        return applyDouble(to: position)
+    }
+
     @discardableResult
     public func applyDouble(to position: Position) -> Bool {
         guard let base = pendingDoubleBase else { return false }

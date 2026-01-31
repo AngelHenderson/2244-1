@@ -203,20 +203,20 @@ public struct HybridGameScreen: View {
         let alertView = notificationSheet
             .alert("Double your tile?", isPresented: $isShowingDoublePrompt) {
                 Button("No", role: .cancel) { gameStore.clearPendingDoubleOffer() }
-                Button("Yes") { /* Dismiss and wait for user to tap a tile */ }
+                Button("Yes") { gameStore.applyPendingDouble() }
             } message: {
                 if let baseStep = gameStore.pendingDoubleBaseStep {
                     // Use step-based formatting for accurate display of high-value tiles
                     let doubledStep = baseStep + 1
                     let formattedValue = TileStepLabelFormatter.labelForStep(doubledStep)
-                    Text("Tap a target tile to set it to \(formattedValue).")
+                    Text("Double the tile to \(formattedValue)?")
                 } else if let base = gameStore.pendingDoubleBase {
                     // Fallback to value-based formatting
                     let safeDoubled = base <= (Int.max >> 1) ? base * 2 : Int.max
                     let formattedValue = TileStepLabelFormatter.formatTileValue(safeDoubled)
-                    Text("Tap a target tile to set it to \(formattedValue).")
+                    Text("Double the tile to \(formattedValue)?")
                 } else {
-                    Text("Tap a target tile.")
+                    Text("Double the tile?")
                 }
             }
         

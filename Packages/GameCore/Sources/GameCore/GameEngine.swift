@@ -1381,7 +1381,7 @@ public final class GameEngine {
     }
 
     /// Returns the minimum allowed spawn step
-    private func minAllowedSpawnStep() -> Int {
+    public func minAllowedSpawnStep() -> Int {
         // For highValue tiles (step >= 62), use step-based elimination tracking
         if !eliminatedMilestoneSteps.isEmpty {
             // Find highest non-skip milestone step
