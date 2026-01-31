@@ -356,7 +356,12 @@ public final class GameStore {
             }
         }
     }
-    
+
+    /// The minimum spawn step based on current game state (dynamic elimination threshold)
+    public var minSpawnStep: Int {
+        engine.minAllowedSpawnStep()
+    }
+
     public var isScoreBoostActive: Bool {
         guard let expiration = scoreBoostExpiresAt else { return false }
         return expiration > Date()
