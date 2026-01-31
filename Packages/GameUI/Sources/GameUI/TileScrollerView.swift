@@ -217,8 +217,7 @@ private struct TileRowItem: View {
                 isSelected: false,
                 isValid: true,
                 size: tileSize,
-                theme: theme,
-                useLegacyTypography: true   // Preserve the previous journey look
+                theme: theme
             )
             .saturation(isLocked ? 0.0 : 1.0)
             .conditionalOverlay(isCurrentHighest) {
