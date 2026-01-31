@@ -5,6 +5,7 @@ struct SideRailButton: View {
     let customImage: String?
     let title: String
     var badge: Bool = false
+    var badgeCount: Int? = nil  // If set, shows count instead of dot
     var locked: Bool = false
     var specialLabel: String? = nil
     var action: () -> Void
