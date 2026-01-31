@@ -301,14 +301,13 @@ struct ExcludedNotificationView: View {
         value >= Int.max / 2
     }
 
-    // For high-value tiles, the eliminated tile is one below minSpawn
+    // For high-value tiles, elimination threshold = milestone - 14
+    // Highest eliminated tile is at step (milestone - 15)
     private var displayStep: Int {
         if isHighValue {
             let highestStep = gameStore.state.highestTileStep
-            // After 131K+ (step 17), spawn only 5 tiles below highest instead of 7
-            let stepsBelow = highestStep >= 17 ? 5 : 7
-            // Eliminated tile is at highest - stepsBelow - 7 (one below minSpawn)
-            return max(0, highestStep - stepsBelow - 7)
+            // Threshold = milestone - 14, highest eliminated = milestone - 15
+            return max(0, highestStep - 15)
         }
         return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
     }

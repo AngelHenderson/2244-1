@@ -650,6 +650,8 @@ public final class GameStore {
                 scoreAlpha: sessionState.scoreAlpha ?? persistedScoreAlpha() ?? AlphaNumber(sessionState.score),
                 highestStep: restoredStep
             )
+            // Initialize valid moves count after restoring session
+            validMovesCount = engine.countValidMoves()
             // Use the most recent gem value - prefer UserDefaults as it's updated immediately
             let userDefaultsGems = UserDefaults.standard.integer(forKey: "coins")
             if userDefaultsGems > 0 {
@@ -694,7 +696,9 @@ public final class GameStore {
             self.engine = engine
             self.state = engine.currentState()
             refreshDerivedState(highestStep: persistedHighestTileStep())
-            
+            // Initialize valid moves count for fresh start
+            validMovesCount = engine.countValidMoves()
+
             // Load basic progress if available
             if let progress = loadedProgress {
                 // Use the most recent gem value - prefer UserDefaults as it's updated immediately
@@ -952,7 +956,17 @@ public final class GameStore {
 
     /// Update valid moves count - call once after all board changes are complete
     private func updateValidMovesCount() {
-        validMovesCount = engine.countValidMoves()
+        let oldCount = validMovesCount
+        let newCount = engine.countValidMoves()
+        validMovesCount = newCount
+
+        // Debug: Log significant changes
+        if oldCount > 0 {
+            let changePercent = abs(Double(newCount - oldCount) / Double(oldCount) * 100)
+            if changePercent > 50 {
+                print("⚠️ VALID MOVES: Large change detected: \(oldCount) → \(newCount) (\(Int(changePercent))% change)")
+            }
+        }
     }
 
     private func performGravityDrop(columns: Set<Int>? = nil) {
@@ -1950,23 +1964,29 @@ public final class GameStore {
             var pending: [MergeNotification] = []
             pending.append(.unlocked(newTileValue))
 
-            // After 131K+ (step 17), spawn only 5 tiles below highest instead of 7
-            let stepsBelow = newStepVal >= 17 ? 5 : 7
+            // Check if this is a skip milestone (every 3rd position after step 62)
+            // Skip milestones don't add or eliminate anything
+            let position = newStepVal - 62
+            let isSkipMilestone = position >= 0 && position % 3 == 2
 
-            // New spawn value is added at maxSpawn = highest - stepsBelow
-            let addedStep = newStepVal - stepsBelow
-            if addedStep >= 0 {
-                // Use Int.max as placeholder - the UI formats based on step
-                pending.append(.added(Int.max))
-            }
+            if !isSkipMilestone {
+                // After 131K+ (step 17), spawn only 5 tiles below highest instead of 7
+                let stepsBelow = newStepVal >= 17 ? 5 : 7
 
-            // Elimination happens when tiles fall below minSpawn
-            // minSpawn = highest - stepsBelow - 6
-            // So eliminated tile is at highest - stepsBelow - 7 (one below new minSpawn)
-            let eliminatedStep = newStepVal - stepsBelow - 7
-            if eliminatedStep >= 62 {
-                // Use Int.max as placeholder - the UI formats based on step
-                pending.append(.excluded(Int.max))
+                // New spawn value is added at maxSpawn = highest - stepsBelow
+                let addedStep = newStepVal - stepsBelow
+                if addedStep >= 0 {
+                    // Use Int.max as placeholder - the UI formats based on step
+                    pending.append(.added(Int.max))
+                }
+
+                // Elimination: threshold = milestone - 14, tiles below threshold are eliminated
+                // Highest eliminated tile is at step (milestone - 14 - 1) = milestone - 15
+                let eliminatedStep = newStepVal - 15
+                if eliminatedStep >= 62 {
+                    // Use Int.max as placeholder - the UI formats based on step
+                    pending.append(.excluded(Int.max))
+                }
             }
 
             enqueueNotifications(pending)
@@ -2713,9 +2733,8 @@ extension GameStore {
         }
 
         print("📐 refreshDerivedState: highestTileStep = \(state.highestTileStep) (persisted was: \(persistedStep))")
-
-        // Update valid moves count for UI
-        validMovesCount = engine.countValidMoves()
+        // Note: validMovesCount is updated separately via updateValidMovesCount()
+        // at the end of board operations (commit, hammer, swap, etc.)
     }
 
     /// Verifies that highestTileStep matches the actual tiles on the board.
