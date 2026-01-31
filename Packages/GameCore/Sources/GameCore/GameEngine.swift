@@ -1126,6 +1126,26 @@ public final class GameEngine {
         return false
     }
 
+    /// Get the step for a cell at a position (only regular tiles, not gift cells)
+    private func stepAtPosition(_ pos: Position) -> Int? {
+        let idx = BoardIndex(row: pos.row, col: pos.col)
+        guard idx.row >= 0 && idx.row < state.board.height &&
+              idx.col >= 0 && idx.col < state.board.width else { return nil }
+
+        let cell = state.board[idx]
+
+        // Skip gift cells (they're under glass and can't be merged until broken)
+        if cell.kind == .gift { return nil }
+
+        // Check for regular tile
+        if let tile = cell.tile {
+            if tile.isInfinity || tile.isLocked { return nil }
+            return TileStepMath.step(for: tile)
+        }
+
+        return nil
+    }
+
     /// Count the number of valid chains of all lengths (2+, 3+, 4+, etc.)
     public func countValidMoves() -> Int {
         var validChains: Set<Set<Position>> = []
@@ -1134,11 +1154,7 @@ public final class GameEngine {
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let startPos = Position(row: row, col: col)
-                guard let startTile = state.board[startPos],
-                      !startTile.isInfinity,
-                      !startTile.isLocked else { continue }
-
-                guard let startStep = TileStepMath.step(for: startTile) else { continue }
+                guard let startStep = stepAtPosition(startPos) else { continue }
 
                 // Find all valid chains starting from this position
                 findValidChains(
@@ -1153,22 +1169,23 @@ public final class GameEngine {
         return validChains.count
     }
 
-    /// Recursively find all valid chains using DFS
+    /// Recursively find all valid chains using DFS (max 6 tiles to prevent combinatorial explosion)
     private func findValidChains(
         from position: Position,
         currentChain: [Position],
         currentStep: Int,
         validChains: inout Set<Set<Position>>
     ) {
+        // Limit chain length to prevent combinatorial explosion
+        // 6 tiles is a reasonable max for practical gameplay
+        guard currentChain.count < 6 else { return }
+
         // Try extending to all adjacent positions
         for direction in Direction.allCases {
             let neighbor = position.moved(in: direction)
             guard neighbor.isValid(for: state.board),
                   !currentChain.contains(neighbor),
-                  let neighborTile = state.board[neighbor],
-                  !neighborTile.isInfinity,
-                  !neighborTile.isLocked,
-                  let neighborStep = TileStepMath.step(for: neighborTile) else { continue }
+                  let neighborStep = stepAtPosition(neighbor) else { continue }
 
             // Check if neighbor can extend the chain
             let canExtend: Bool
