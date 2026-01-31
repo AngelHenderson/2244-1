@@ -104,7 +104,7 @@ public struct JourneyPanel: View {
                         .frame(width: 44, height: 44)
                         .overlay {
                             Image(systemName: "chevron.up")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.avenirNext(size: 20, weight: .bold))
                                 .foregroundStyle(.white)
                         }
                 }
@@ -123,7 +123,7 @@ public struct JourneyPanel: View {
                         .frame(width: 44, height: 44)
                         .overlay {
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.avenirNext(size: 20, weight: .bold))
                                 .foregroundStyle(.white)
                         }
                 }
@@ -437,7 +437,7 @@ private struct MilestoneTileView: View {
             // Crown for current milestone
             if milestone.status == .current {
                 Image(systemName: "crown.fill")
-                    .font(.system(size: 24))
+                    .font(.avenirNext(size: 24, weight: .bold))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [.yellow, .orange],
@@ -453,9 +453,9 @@ private struct MilestoneTileView: View {
                 Button(action: onClaimReward) {
                     HStack(spacing: 4) {
                         Image(systemName: "gift.fill")
-                            .font(.caption2.bold())
+                            .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
                         Text("Claim")
-                            .font(.caption2.bold())
+                            .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -466,9 +466,9 @@ private struct MilestoneTileView: View {
             } else if milestone.isRewardClaimed {
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.caption2)
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .medium))
                     Text("Claimed")
-                        .font(.caption2)
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .medium))
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
@@ -500,7 +500,7 @@ private struct MilestoneTileView: View {
                 // Tile label
                 if milestone.status == .infinity {
                     Image(systemName: "infinity")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.avenirNext(size: 28, weight: .bold))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [.cyan, .purple],
@@ -510,7 +510,7 @@ private struct MilestoneTileView: View {
                         )
                 } else {
                     Text(milestone.label)
-                        .font(.system(size: labelFontSize, weight: .bold, design: .rounded))
+                        .font(.avenirNext(size: labelFontSize, weight: .bold))
                         .foregroundStyle(labelColor)
                         .minimumScaleFactor(0.5)
                         .lineLimit(1)
