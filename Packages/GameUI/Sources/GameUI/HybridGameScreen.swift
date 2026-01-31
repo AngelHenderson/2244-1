@@ -333,11 +333,11 @@ public struct HybridGameScreen: View {
 
             VStack(spacing: 24) {
                 Text("Out of moves")
-                    .font(.largeTitle.bold())
+                    .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                     .foregroundColor(.white)
 
                 Text("Do you want to continue with a power up?")
-                    .font(.title3)
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                     .foregroundColor(.white.opacity(0.9))
                     .multilineTextAlignment(.center)
 
@@ -346,14 +346,14 @@ public struct HybridGameScreen: View {
                         isShowingOutOfMoves = false
                         isShowingPowerUpRecovery = true
                     }
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                     .foregroundColor(.white)
 
                     Button("No") {
                         isShowingOutOfMoves = false
                         showGameOverAndReset()
                     }
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                     .foregroundColor(.white)
                 }
                 .padding(.top, 20)
@@ -368,7 +368,7 @@ public struct HybridGameScreen: View {
                 .ignoresSafeArea()
 
             Text("GAME OVER")
-                .font(.system(size: 48, weight: .black))
+                .font(.avenirNext(size: 48, weight: .heavy))
                 .foregroundColor(.white)
         }
     }
@@ -380,7 +380,7 @@ public struct HybridGameScreen: View {
 
             VStack(spacing: 20) {
                 Text("Choose a power-up to continue")
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                     .foregroundColor(.white)
 
                 HStack(spacing: 16) {
@@ -409,7 +409,7 @@ public struct HybridGameScreen: View {
                     isShowingPowerUpRecovery = false
                     showGameOverAndReset()
                 }
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .foregroundColor(.white.opacity(0.7))
                 .padding(.top, 10)
             }
@@ -421,9 +421,9 @@ public struct HybridGameScreen: View {
         Button(action: action) {
             VStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.title)
+                    .font(.avenirNext(size: GameFonts.title1Size, weight: .regular))
                 Text(name)
-                    .font(.caption.bold())
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
             }
             .foregroundColor(.white)
             .frame(width: 80, height: 80)
@@ -748,7 +748,7 @@ struct HorizontalPowerupDock: View {
         Button(action: action) {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
+                    .font(.avenirNext(size: 20, weight: .regular))
                     .frame(width: 40, height: 40)
                     .foregroundStyle(isEnabled ? .primary : .tertiary)
 
@@ -786,9 +786,9 @@ struct HorizontalPowerupDock: View {
                 } else if let price = price {
                     HStack(spacing: 1) {
                         Image(systemName: "diamond.fill")
-                            .font(.system(size: 7))
+                            .font(.avenirNext(size: 7, weight: .regular))
                         Text("\(price)")
-                            .font(.system(size: 8, weight: .bold))
+                            .font(.avenirNext(size: 8, weight: .bold))
                     }
                     .foregroundStyle(.white)
                     .padding(.horizontal, 3)
@@ -806,7 +806,7 @@ struct HorizontalPowerupDock: View {
 
     private func badgeLabel(for count: Int) -> some View {
         Text("\(count)")
-            .font(.system(size: 10, weight: .bold))
+            .font(.avenirNext(size: 10, weight: .bold))
             .monospacedDigit()
             .foregroundStyle(.white)
             .padding(.horizontal, 5)
@@ -892,7 +892,7 @@ struct SimplePowerupDock: View {
         Button(action: action) {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: icon)
-                    .font(.system(size: 22))
+                    .font(.avenirNext(size: 22, weight: .regular))
                     .frame(width: 44, height: 44)
                     .foregroundStyle(isEnabled ? .primary : .tertiary)
 
@@ -933,9 +933,9 @@ struct SimplePowerupDock: View {
                 } else if let price = price {
                     HStack(spacing: 1) {
                         Image(systemName: "diamond.fill")
-                            .font(.system(size: 8))
+                            .font(.avenirNext(size: 8, weight: .regular))
                         Text("\(price)")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.avenirNext(size: 9, weight: .bold))
                     }
                     .foregroundStyle(.white)
                     .padding(.horizontal, 4)
@@ -954,7 +954,7 @@ struct SimplePowerupDock: View {
 
     private func badgeLabel(for count: Int) -> some View {
         Text("\(count)")
-            .font(.system(size: 11, weight: .bold))
+            .font(.avenirNext(size: 11, weight: .bold))
             .monospacedDigit()
             .foregroundStyle(.white)
             .padding(.horizontal, 6)
@@ -969,16 +969,16 @@ struct SimplePowerupDock: View {
 
 struct TopMergeTileView: View {
     let value: Int
-    
+
     var body: some View {
         let currentLabel = CompactNumberFormatter.format(value)
         let nextVal = value > 0 && value <= (Int.max >> 1) ? value * 2 : value
         let nextLabel = CompactNumberFormatter.format(nextVal)
-        
+
         HStack {
             Spacer()
             Text("\(currentLabel) >> \(nextLabel)")
-                .font(.title3.weight(.black))
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .heavy))
                 //.foregroundStyle(.white)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 14)
@@ -1036,19 +1036,19 @@ struct ModeOverlay: View {
             // Mode banner at top
             HStack {
                 Text(modeText)
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     //.foregroundStyle(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(modeColor)
                     .cornerRadius(20)
-                
+
                 Spacer()
-                
+
                 Button("Cancel") {
                     onCancel()
                 }
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 //.foregroundStyle(.white)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
@@ -1056,10 +1056,10 @@ struct ModeOverlay: View {
                 .cornerRadius(20)
             }
             .padding()
-            
+
             Spacer()
         }
-        
+
         // Subtle overlay dimming
         .background(
             Color.black.opacity(0.2)
@@ -1119,7 +1119,7 @@ struct MilestoneProgressBar: View {
             MiniTileView(label: currentLabel, step: highestStep, isCurrent: true)
                 .overlay(alignment: .top) {
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 10))
+                        .font(.avenirNext(size: 10, weight: .regular))
                         .foregroundStyle(.yellow)
                         .offset(y: -8)
                 }
@@ -1152,7 +1152,7 @@ private struct MiniTileView: View {
     var body: some View {
         ZStack {
             Text(label)
-                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 10, weight: .bold))
                 .foregroundStyle(textColor)
                 .minimumScaleFactor(0.5)
                 .frame(width: 36, height: 36)

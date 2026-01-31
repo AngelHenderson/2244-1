@@ -79,7 +79,7 @@ public struct BoostsSheet: View {
             Image(systemName: icon)
                 .foregroundStyle(color)
             Text(title)
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .foregroundStyle(.white)
         }
         .padding(.bottom, 4)
@@ -215,7 +215,7 @@ public struct BoostsSheet: View {
                         .frame(width: 44, height: 44)
 
                     Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.avenirNext(size: 20, weight: .semibold))
                         .foregroundStyle(iconColor)
 
                     if isActive {
@@ -228,11 +228,12 @@ public struct BoostsSheet: View {
                 // Label and status
                 VStack(alignment: .leading, spacing: 4) {
                     Text(label)
-                        .font(.system(.body, weight: .semibold))
+                        .font(.avenirNext(size: GameFonts.bodySize, weight: .semibold))
                         .foregroundStyle(.white)
 
                     Text(statusText)
-                        .font(.caption.monospacedDigit())
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                        .monospacedDigit()
                         .foregroundStyle(statusColor)
                 }
 
@@ -246,7 +247,8 @@ public struct BoostsSheet: View {
                         .frame(width: 18, height: 18)
 
                     Text(cost.formatted(.number.grouping(.automatic)))
-                        .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
+                        .monospacedDigit()
                         .foregroundStyle(.white)
                 }
                 .padding(.horizontal, 12)
@@ -291,33 +293,34 @@ public struct BoostStatusButton: View {
                 // Show active boost icons
                 if hasActiveScoreBoost {
                     Image(systemName: "bolt.fill")
-                        .font(.caption.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
                         .foregroundStyle(.yellow)
                 }
 
                 if hasActivePowerDiscount {
                     Image(systemName: "wand.and.stars")
-                        .font(.caption.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
                         .foregroundStyle(.purple)
                 }
 
                 if hasActiveAchievementBoost {
                     Image(systemName: "trophy.fill")
-                        .font(.caption.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
                         .foregroundStyle(.orange)
                 }
 
                 // If nothing active, show general boost icon
                 if !hasActiveScoreBoost && !hasActivePowerDiscount && !hasActiveAchievementBoost {
                     Image(systemName: "bolt.circle")
-                        .font(.body.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.bodySize, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.8))
                 }
 
                 // Countdown for active boost
                 if let countdownText = activeCountdownText {
                     Text(countdownText)
-                        .font(.caption.monospacedDigit())
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                        .monospacedDigit()
                         .foregroundStyle(.green)
                 }
             }
