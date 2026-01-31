@@ -412,15 +412,14 @@ private struct ThemeCard: View {
                         .overlay(alignment: .topTrailing) {
                             if isSelected {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.title3)
+                                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                                     .foregroundStyle(.white, Color.accentColor)
                                     .offset(x: 6, y: -6)
                             }
                         }
-                    
+
                     Text(theme.name)
-                        .font(.caption)
-                        .fontWeight(.medium)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                 }
@@ -428,7 +427,7 @@ private struct ThemeCard: View {
             .buttonStyle(.plain)
         }
     }
-    
+
     private struct BackgroundPreview: View {
         let theme: BackgroundTheme
         
@@ -480,15 +479,14 @@ private struct ThemeCard: View {
                         .overlay(alignment: .topTrailing) {
                             if isSelected {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.title3)
+                                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                                     .foregroundStyle(.white, Color.accentColor)
                                     .offset(x: 6, y: -6)
                             }
                         }
-                    
+
                     Text(wallpaper.name)
-                        .font(.caption)
-                        .fontWeight(.medium)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                 }
@@ -496,7 +494,7 @@ private struct ThemeCard: View {
             .buttonStyle(.plain)
         }
     }
-    
+
     private struct WallpaperPreview: View {
         let wallpaper: WallpaperTheme
         
