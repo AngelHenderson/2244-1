@@ -22,6 +22,19 @@ struct HUDTopBar: View {
         return String(format: "⏱️ %d:%02d", minutes, seconds)
     }
 
+    private var movesCountColor: Color {
+        let count = gameStore.validMovesCount
+        if count == 0 {
+            return .red
+        } else if count < 10 {
+            return .orange
+        } else if count < 20 {
+            return .yellow
+        } else {
+            return .green
+        }
+    }
+
     var body: some View {
         HStack(spacing: 6) {
             // Rank button (left side)
@@ -54,7 +67,7 @@ struct HUDTopBar: View {
                     VStack(spacing: 1) {
                         Text("\(gameStore.validMovesCount)")
                             .font(.subheadline.bold().monospacedDigit())
-                            .foregroundStyle(gameStore.validMovesCount > 0 ? .green : .red)
+                            .foregroundStyle(movesCountColor)
                             .lineLimit(1)
                         Text("moves")
                             .font(.caption2)
