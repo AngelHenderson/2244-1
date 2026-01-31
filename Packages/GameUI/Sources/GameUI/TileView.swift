@@ -147,11 +147,11 @@ struct TileView: View {
     }
     
     private func baseFont(weight: Font.Weight, size: CGFloat) -> Font {
-        var font = Font.system(size: size, weight: weight, design: .rounded)
         if useLegacyTypography {
-            font = font.monospacedDigit()
+            return Font.system(size: size, weight: weight, design: .rounded).monospacedDigit()
         }
-        return font
+        // Use Avenir Next for modern typography
+        return Font.avenirNext(size: size, weight: weight)
     }
     
     // MARK: - Colors and sizes

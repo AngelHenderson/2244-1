@@ -43,7 +43,7 @@ struct HUDTopBar: View {
                     Text("#")
                     Text(verbatim: String(state.rank))
                 }
-                .font(.subheadline.bold())
+                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                 .lineLimit(1)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
@@ -66,11 +66,11 @@ struct HUDTopBar: View {
                     // Valid moves count - from GameStore's tracked property for proper reactivity
                     VStack(spacing: 1) {
                         Text("\(gameStore.validMovesCount)")
-                            .font(.subheadline.bold().monospacedDigit())
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                             .foregroundStyle(movesCountColor)
                             .lineLimit(1)
                         Text("moves")
-                            .font(.caption2)
+                            .font(.avenirNext(size: GameFonts.caption2Size, weight: .medium))
                             .foregroundStyle(.white.opacity(0.75))
                             .lineLimit(1)
                     }
@@ -81,16 +81,16 @@ struct HUDTopBar: View {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
                         VStack(spacing: 1) {
                             Text(playtimeText(at: context.date))
-                                .font(.caption2.monospacedDigit())
+                                .font(.avenirNext(size: GameFonts.caption2Size, weight: .medium))
                                 .foregroundStyle(.yellow.opacity(0.9))
                                 .lineLimit(1)
                                 .fixedSize(horizontal: true, vertical: false)
                             Text("Score")
-                                .font(.caption2)
+                                .font(.avenirNext(size: GameFonts.caption2Size, weight: .medium))
                                 .foregroundStyle(.white.opacity(0.75))
                                 .lineLimit(1)
                             Text(scoreText)
-                                .font(.subheadline.bold().monospacedDigit())
+                                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                                 .foregroundStyle(.white)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
@@ -108,7 +108,7 @@ struct HUDTopBar: View {
                         .scaledToFit()
                         .frame(width: 24, height: 24)
                     Text(verbatim: String(state.gems))
-                        .font(.subheadline.bold().monospacedDigit())
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                     Image(systemName: "plus.circle.fill")

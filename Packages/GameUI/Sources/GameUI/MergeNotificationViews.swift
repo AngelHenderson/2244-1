@@ -87,7 +87,7 @@ struct UnlockedNotificationView: View {
         VStack(spacing: 16) {
             // Header
             Text("EXCELLENT")
-                .font(.title2.weight(.bold))
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 .padding(.bottom, 8)
 
             // Journey progression tiles
@@ -116,7 +116,7 @@ struct UnlockedNotificationView: View {
             // Reward section
             VStack(spacing: 12) {
                 Text("Your Reward")
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 8) {
@@ -125,7 +125,7 @@ struct UnlockedNotificationView: View {
                         .scaledToFit()
                         .frame(width: 28, height: 28)
                     Text("+\(gemReward)")
-                        .font(.title2.weight(.semibold))
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .semibold))
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
@@ -151,7 +151,7 @@ struct UnlockedNotificationView: View {
                             Text("Continue")
                         }
                     }
-                    .font(.headline)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
@@ -255,7 +255,7 @@ struct AddedNotificationView: View {
     var body: some View {
         VStack(spacing: 16) {
             Text("SPAWN POOL UPDATED")
-                .font(.title2.weight(.bold))
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 .padding(.bottom, 8)
 
             HStack(spacing: 12) {
@@ -372,7 +372,7 @@ struct ExcludedNotificationView: View {
     var body: some View {
         VStack(spacing: 16) {
             Text("TILE ELIMINATED")
-                .font(.title2.weight(.bold))
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 .padding(.bottom, 8)
 
             HStack(spacing: 12) {
@@ -456,7 +456,7 @@ struct JourneyTileCard: View {
 
     var body: some View {
         Text(label)
-            .font(.system(size: isPrimary ? size * 0.36 : size * 0.35, weight: isPrimary ? .bold : .semibold, design: .rounded))
+            .font(.avenirNext(size: isPrimary ? size * 0.36 : size * 0.35, weight: isPrimary ? .bold : .semibold))
             .foregroundStyle(textColor)
             .minimumScaleFactor(0.5)
             .frame(width: size, height: size)
@@ -497,7 +497,7 @@ struct MultiplierSelectorView: View {
             HStack(spacing: 4) {
                 ForEach(Array(multipliers.enumerated()), id: \.offset) { index, mult in
                     Text("×\(mult)")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.avenirNext(size: 14, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)

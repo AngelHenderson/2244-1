@@ -56,15 +56,13 @@ struct SideRailButton: View {
             // Display title or specialLabel below the button with consistent styling
             if let specialLabel = specialLabel, !specialLabel.isEmpty {
                 Text(specialLabel)
-                    .font(.caption2)
-                    .fontWeight(.heavy)
+                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             } else if !title.isEmpty {
                 Text(title)
-                    .font(.caption2)
-                    .fontWeight(.heavy)
+                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)

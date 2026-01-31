@@ -27,18 +27,18 @@ public struct WeeklyOfferSheet: View {
                     // Countdown header
                     VStack(spacing: 8) {
                         Text("LIMITED TIME OFFER")
-                            .font(.caption.bold())
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                             .foregroundStyle(.secondary)
                             .tracking(2)
 
                         Text(offer.title)
-                            .font(.largeTitle.bold())
+                            .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
 
                         HStack(spacing: 4) {
                             Image(systemName: "clock.fill")
                                 .foregroundStyle(.orange)
                             Text("Ends in \(timeRemaining)")
-                                .font(.headline.monospacedDigit())
+                                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                                 .foregroundStyle(.orange)
                         }
                         .padding(.horizontal, 16)
@@ -51,7 +51,7 @@ public struct WeeklyOfferSheet: View {
                     // Offer contents
                     VStack(alignment: .leading, spacing: 12) {
                         Text("What's Included")
-                            .font(.headline)
+                            .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                             .padding(.horizontal)
 
                         VStack(spacing: 0) {

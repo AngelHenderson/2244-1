@@ -113,13 +113,13 @@ public struct GiftRewardView: View {
 
                     // Title - only show "You Won a Gift!" if from glass shatter
                     Text(giftReward.isFromGlassShatter ? "You Won a Gift!" : "Reward!")
-                        .font(.largeTitle.bold())
+                        .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
 
                     // Subtitle based on gift type
                     Text(giftReward.message)
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
@@ -129,15 +129,15 @@ public struct GiftRewardView: View {
                         ForEach(giftReward.items, id: \.self) { item in
                             VStack(spacing: 8) {
                                 Image(systemName: iconName(for: item))
-                                    .font(.largeTitle)
+                                    .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .semibold))
                                     .foregroundStyle(color(for: item))
 
                                 Text("\(item.amount)")
-                                    .font(.title2.bold())
+                                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                                     .foregroundStyle(.primary)
 
                                 Text(name(for: item))
-                                    .font(.caption)
+                                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                                     .foregroundStyle(.secondary)
                             }
                             .padding()
@@ -159,7 +159,7 @@ public struct GiftRewardView: View {
                     Button("Awesome!") {
                         onDismiss()
                     }
-                    .font(.headline.bold())
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)

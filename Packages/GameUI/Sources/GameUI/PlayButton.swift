@@ -17,7 +17,7 @@ struct PlayButton: View {
                     .frame(width: 72, height: 72)
                     .background(Color.green, in: Circle())
                 Text("Play")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                     .foregroundStyle(.primary)
             }
             .padding(.vertical, 8)

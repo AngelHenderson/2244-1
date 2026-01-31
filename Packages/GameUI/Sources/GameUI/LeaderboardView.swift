@@ -28,7 +28,7 @@ public struct LeaderboardView: View {
                         }
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.avenirNext(size: 18, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(width: 44, height: 44)
                             .background(Color.blue)
@@ -38,7 +38,7 @@ public struct LeaderboardView: View {
                     Spacer()
 
                     Text(showingTop150 ? "TOP 150" : "LEADERBOARD")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.avenirNext(size: 20, weight: .bold))
                         .foregroundStyle(.white)
 
                     Spacer()
@@ -50,9 +50,9 @@ public struct LeaderboardView: View {
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "crown.fill")
-                                    .font(.system(size: 12))
+                                    .font(.avenirNext(size: 12, weight: .semibold))
                                 Text("Top 150")
-                                    .font(.system(size: 12, weight: .semibold))
+                                    .font(.avenirNext(size: 12, weight: .semibold))
                             }
                             .foregroundStyle(.white)
                             .padding(.horizontal, 10)
