@@ -57,40 +57,40 @@ public struct DailyStreaksView: View {
                     ))
                     .frame(width: 180, height: 180)
                     .shadow(color: .orange.opacity(0.5), radius: 20, y: 10)
-                
+
                 VStack(spacing: 8) {
                     Image(systemName: "flame.fill")
-                        .font(.system(size: 48))
+                        .font(.avenirNext(size: 48, weight: .regular))
                         .foregroundStyle(.white)
                         .symbolEffect(.pulse)
-                    
+
                     Text("\(store.currentStreak)")
-                        .font(.system(size: 56, weight: .bold, design: .rounded))
+                        .font(.avenirNext(size: 56, weight: .bold))
                         .foregroundStyle(.white)
-                    
+
                     Text("DAYS")
-                        .font(.caption.bold())
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                         .foregroundStyle(.white.opacity(0.9))
                 }
             }
-            
+
             // Streak status
             VStack(spacing: 8) {
                 if store.currentStreak == 0 {
                     Text("Start Your Streak!")
-                        .font(.title3.bold())
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                         .foregroundStyle(.primary)
                     Text("Claim daily rewards to build your streak")
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         .foregroundStyle(.secondary)
                 } else {
                     Text("Keep it going!")
-                        .font(.title3.bold())
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                         .foregroundStyle(.primary)
-                    
+
                     if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked })?.day {
                         Text("\(nextMilestone - store.currentStreak) days until next milestone")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -103,27 +103,27 @@ public struct DailyStreaksView: View {
     private var progressSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Streak Progress")
-                .font(.headline)
-            
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+
             // Progress bar to next milestone
             if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked }) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Day \(store.currentStreak)")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
                         Spacer()
                         Text("Day \(nextMilestone.day)")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
-                    
+
                     GeometryReader { geometry in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(.gray.opacity(0.2))
                                 .frame(height: 8)
-                            
+
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(LinearGradient(
                                     colors: [.orange, .red],
@@ -137,14 +137,14 @@ public struct DailyStreaksView: View {
                         }
                     }
                     .frame(height: 8)
-                    
+
                     // Next reward preview
                     HStack {
                         Text("Next Reward:")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
                         RewardsDisplay(rewards: nextMilestone.rewards)
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                 }
                 .padding()
@@ -156,12 +156,12 @@ public struct DailyStreaksView: View {
     private var milestonesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("365 Day Milestones")
-                .font(.title2.bold())
-            
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+
             Text("Tap to view rewards")
-                .font(.caption)
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                 .foregroundStyle(.secondary)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(store.dailyStreaks.prefix(10)) { streak in
@@ -170,13 +170,13 @@ public struct DailyStreaksView: View {
                                 selectedStreak = streak
                             }
                     }
-                    
+
                     if store.dailyStreaks.count > 10 {
                         VStack {
                             Text("...")
-                                .font(.title.bold())
+                                .font(.avenirNext(size: GameFonts.title1Size, weight: .bold))
                             Text("\(store.dailyStreaks.count - 10) more")
-                                .font(.caption)
+                                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         }
                         .foregroundStyle(.secondary)
                         .frame(width: 100, height: 140)
@@ -184,10 +184,10 @@ public struct DailyStreaksView: View {
                     }
                 }
             }
-            
+
             // All milestones grid
             Text("All Milestones")
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .padding(.top)
             
             LazyVGrid(columns: [
@@ -207,33 +207,33 @@ public struct DailyStreaksView: View {
 private struct MilestoneCard: View {
     let streak: DailyClaimsStore.DailyStreak
     let currentStreak: Int
-    
+
     var body: some View {
         VStack(spacing: 12) {
             // Day number
             Text("Day")
-                .font(.caption)
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                 .foregroundStyle(.secondary)
-            
+
             Text("\(streak.day)")
-                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 32, weight: .bold))
                 .foregroundStyle(streak.isUnlocked ? .green : .primary)
-            
+
             // Status icon
             if streak.isUnlocked {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.title2)
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.green)
             } else if currentStreak >= streak.day - 3 {
                 Image(systemName: "lock.open.fill")
-                    .font(.title2)
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.orange)
             } else {
                 Image(systemName: "lock.fill")
-                    .font(.title2)
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.gray)
             }
-            
+
             // Rewards preview
             if let gems = streak.rewards.gems, gems > 0 {
                 Label {
@@ -241,7 +241,7 @@ private struct MilestoneCard: View {
                 } icon: {
                     Image(systemName: "diamond.fill")
                 }
-                .font(.caption)
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                 .foregroundStyle(.cyan)
             }
         }
@@ -277,20 +277,20 @@ private struct MilestoneCard: View {
 private struct MilestoneBadge: View {
     let streak: DailyClaimsStore.DailyStreak
     let currentStreak: Int
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Text("\(streak.day)")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 20, weight: .bold))
                 .foregroundStyle(streak.isUnlocked ? .green : .primary)
-            
+
             if streak.isUnlocked {
                 Image(systemName: "star.fill")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.yellow)
             } else {
                 Image(systemName: "star")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.gray)
             }
         }
@@ -309,44 +309,44 @@ private struct MilestoneBadge: View {
 private struct StreakDetailSheet: View {
     let streak: DailyClaimsStore.DailyStreak
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
                 // Header
                 VStack(spacing: 16) {
                     Image(systemName: "flame.circle.fill")
-                        .font(.system(size: 64))
+                        .font(.avenirNext(size: 64, weight: .regular))
                         .foregroundStyle(streak.isUnlocked ? .green : .orange)
                         .symbolEffect(.pulse)
-                    
+
                     Text("Day \(streak.day) Milestone")
-                        .font(.title2.bold())
-                    
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+
                     if streak.isUnlocked {
                         Label("Unlocked", systemImage: "checkmark.circle.fill")
-                            .font(.subheadline)
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                             .foregroundStyle(.green)
                     } else {
                         Text("Keep your streak going!")
-                            .font(.subheadline)
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
                 }
-                
+
                 // Rewards
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Rewards")
-                        .font(.headline)
-                    
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+
                     VStack(spacing: 12) {
                         ForEach(streak.rewards.entries, id: \.self) { entry in
                             HStack {
                                 Image(systemName: entry.kind.iconName)
-                                    .font(.title2)
+                                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                                     .foregroundStyle(entry.kind.iconColor)
                                 Text("\(entry.amount) \(entry.kind.displayName)")
-                                    .font(.title3)
+                                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                                 Spacer()
                             }
                         }
@@ -354,7 +354,7 @@ private struct StreakDetailSheet: View {
                     .padding()
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
                 }
-                
+
                 Spacer()
             }
             .padding()
