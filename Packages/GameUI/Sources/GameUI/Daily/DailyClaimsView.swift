@@ -124,8 +124,6 @@ public struct DailyClaimsView: View {
         VStack(spacing: 12) {
             if let nextDay = store.getNextClaimableDay(),
                let claim = store.dailyClaims.first(where: { $0.day == nextDay }) {
-                let bonusCount = store.pendingStreakBonusCount(afterClaimingDay: nextDay)
-
                 // Show how many claims are available (for catch-up)
                 if store.availableClaims > 1 {
                     HStack(spacing: 6) {
