@@ -182,9 +182,13 @@ public final class ChallengeDesignerStore {
     /// minTileLevel determines how many steps below the target the max tile is
     public var maxTilePower: Int {
         let base = targetPower - minTileLevel
+        // For infinity (above 1bd), adjust by -2
+        if targetLabel == "∞" {
+            return base - 2
+        }
         // For 1aa+ targets (3-char labels), push tiles by one to maintain correct gap
         // For 1bd+ targets, push by an additional one
-        if targetLabel.count >= 3 && targetLabel != "∞" {
+        if targetLabel.count >= 3 {
             let suffix = String(targetLabel.dropFirst())
             if suffix >= "bd" {
                 return base - 2
