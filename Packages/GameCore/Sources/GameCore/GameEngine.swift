@@ -1875,10 +1875,9 @@ public final class GameEngine {
             print("🗑️ MILESTONE ELIMINATION: Reached \(formatLargeNumber(createdValue))")
             print("   Eliminating all tiles below \(formatLargeNumber(threshold))")
 
-            eliminateAllTilesBelowThreshold(threshold: threshold)
-
-            // Mark this milestone as reached
+            // IMPORTANT: Insert milestone BEFORE elimination so that refill uses the new threshold
             eliminatedMilestones.insert(createdValue)
+            eliminateAllTilesBelowThreshold(threshold: threshold)
             return
         }
 
@@ -2060,8 +2059,9 @@ public final class GameEngine {
         print("🗑️ MILESTONE ELIMINATION: Reached step \(step) (\(label))")
         print("   Eliminating all tiles below step \(thresholdStep) (\(thresholdLabel))")
 
-        eliminateAllTilesBelowStep(thresholdStep)
+        // IMPORTANT: Insert milestone BEFORE elimination so that refill uses the new threshold
         eliminatedMilestoneSteps.insert(step)
+        eliminateAllTilesBelowStep(thresholdStep)
     }
 
     /// Eliminate all tiles with stepIndex below the threshold step
