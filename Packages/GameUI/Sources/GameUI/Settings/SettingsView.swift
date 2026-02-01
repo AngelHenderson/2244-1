@@ -365,7 +365,7 @@ public struct SettingsView: View {
                 PerksInfoView()
             }
             .sheet(isPresented: $isShowingGameCenter) {
-                GameCenterView()
+                gameCenterSheet
             }
         }
     }
@@ -394,7 +394,12 @@ public struct SettingsView: View {
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(version) (\(build))"
     }
-    
+
+    @available(iOS, deprecated: 26.0)
+    private var gameCenterSheet: some View {
+        GameCenterView()
+    }
+
     private func loadSettings() {
         sfxVolume = UserDefaults.standard.object(forKey: "sfxVolume") as? Double ?? 1.0
         musicVolume = UserDefaults.standard.object(forKey: "musicVolume") as? Double ?? 1.0
@@ -423,6 +428,7 @@ public struct SettingsView: View {
 }
 
 // MARK: - Game Center View
+@available(iOS, deprecated: 26.0, message: "GKGameCenterViewController is deprecated in iOS 26")
 struct GameCenterView: UIViewControllerRepresentable {
     @Environment(\.dismiss) private var dismiss
 
@@ -445,7 +451,6 @@ struct GameCenterView: UIViewControllerRepresentable {
             self.dismiss = dismiss
         }
 
-        @available(iOS, deprecated: 26.0)
         func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
             let dismissAction = dismiss
             Task { @MainActor in
@@ -462,6 +467,7 @@ private struct PreviewAudioService: AudioServiceProtocol {
     func playMusic(named fileName: String, loop: Bool) async {}
     func stopMusic() async {}
     func playSfx(name: String) async {}
+    func playMergeSfx(tileCount: Int) async {}
     func setCurrentMusicTheme(_ theme: String) async {}
 }
 
