@@ -1,4 +1,5 @@
 import SwiftUI
+import GameApp
 
 public struct HowToPlayView: View {
     @Environment(\.dismiss) private var dismiss
@@ -88,7 +89,7 @@ public struct HowToPlayView: View {
                 HStack {
                     Spacer()
                     Text("How to Play")
-                        .font(.headline)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                     Spacer()
                 }
                 .overlay(alignment: .trailing) {
@@ -217,23 +218,23 @@ private struct TutorialPageView: View {
 
             // Icon
             Image(systemName: page.systemImage)
-                .font(.system(size: 80))
+                .font(.avenirNext(size: 80, weight: .regular))
                 .foregroundStyle(page.imageColor)
                 .padding(.bottom, 16)
 
             // Title
             Text(page.title)
-                .font(.largeTitle.bold())
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                 .multilineTextAlignment(.center)
 
             // Subtitle
             Text(page.subtitle)
-                .font(.title3)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
             // Description
             Text(page.description)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
@@ -282,12 +283,12 @@ private struct ConnectTilesPartAPage: View {
 
             // Title
             Text(page.title)
-                .font(.largeTitle.bold())
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                 .multilineTextAlignment(.center)
 
             // Subtitle
             Text(page.subtitle)
-                .font(.title3)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
             // Interactive tiles demo
@@ -360,7 +361,7 @@ private struct ConnectTilesPartAPage: View {
                 }
 
                 Text(showMergeResult ? "They merged into 4!" : "Drag across both tiles to connect them")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.secondary)
                     .padding(.top, 8)
             }
@@ -368,7 +369,7 @@ private struct ConnectTilesPartAPage: View {
 
             // Description
             Text(page.description)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
@@ -460,12 +461,12 @@ private struct EightDirectionsPage: View {
 
             // Title
             Text(page.title)
-                .font(.largeTitle.bold())
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                 .multilineTextAlignment(.center)
 
             // Subtitle
             Text(page.subtitle)
-                .font(.title3)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
             // Grid demo - aligned to left
@@ -565,7 +566,7 @@ private struct EightDirectionsPage: View {
                     }
 
                     Text(showMergeResult ? "Merged into 1024!" : "Drag across tiles to connect them")
-                        .font(.caption)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         .foregroundStyle(.secondary)
                         .padding(.top, 8)
                 }
@@ -577,7 +578,7 @@ private struct EightDirectionsPage: View {
 
             // Description
             Text(page.description)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
@@ -674,20 +675,20 @@ private struct MergeAndScorePage: View {
 
             // Title
             Text(page.title)
-                .font(.largeTitle.bold())
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                 .multilineTextAlignment(.center)
 
             // Subtitle
             Text(page.subtitle)
-                .font(.title3)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
             // Score display
             HStack {
                 Text("Score:")
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 Text("\(score)")
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                     .foregroundStyle(.orange)
                     .contentTransition(.numericText())
                     .animation(.spring(response: 0.3), value: score)
@@ -770,7 +771,7 @@ private struct MergeAndScorePage: View {
                 }
 
                 Text(showMergeResult ? "Merged! +\(lastMergeScore) points!" : "Drag across tiles to connect and score")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.secondary)
                     .padding(.top, 4)
             }
@@ -778,7 +779,7 @@ private struct MergeAndScorePage: View {
 
             // Description
             Text(page.description)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
@@ -842,12 +843,12 @@ private struct HammerPage: View {
 
             // Title
             Text(page.title)
-                .font(.largeTitle.bold())
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                 .multilineTextAlignment(.center)
 
             // Subtitle
             Text(page.subtitle)
-                .font(.title3)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
             // Interactive demo
@@ -941,7 +942,7 @@ private struct HammerPage: View {
 
                 // Instruction text
                 Text(instructionText)
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.top, 8)
@@ -950,7 +951,7 @@ private struct HammerPage: View {
 
             // Description
             Text(page.description)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
@@ -1066,12 +1067,12 @@ private struct SwapPage: View {
 
             // Title
             Text(page.title)
-                .font(.largeTitle.bold())
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                 .multilineTextAlignment(.center)
 
             // Subtitle
             Text(page.subtitle)
-                .font(.title3)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
             // Interactive demo
@@ -1104,7 +1105,7 @@ private struct SwapPage: View {
                                     // Show swap arrows on 32 and 16 before swap
                                     !swapped && (tile.id == 5 || tile.id == 6) ?
                                     Image(systemName: tile.id == 5 ? "arrow.right" : "arrow.left")
-                                        .font(.system(size: 10, weight: .bold))
+                                        .font(.avenirNext(size: 10, weight: .bold))
                                         .foregroundStyle(.cyan)
                                         .offset(y: tileSize / 2 + 8)
                                     : nil
@@ -1158,7 +1159,7 @@ private struct SwapPage: View {
 
                 // Instruction text
                 Text(instructionText)
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.top, 4)
@@ -1167,7 +1168,7 @@ private struct SwapPage: View {
 
             // Description
             Text(page.description)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
@@ -1225,12 +1226,12 @@ private struct MegaMergePage: View {
 
             // Title
             Text(page.title)
-                .font(.largeTitle.bold())
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                 .multilineTextAlignment(.center)
 
             // Subtitle
             Text(page.subtitle)
-                .font(.title3)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
             // Interactive demo
@@ -1278,9 +1279,9 @@ private struct MegaMergePage: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "sparkles")
-                                .font(.title3)
+                                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                             Text("MegaMerge")
-                                .font(.headline)
+                                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                         }
                         .foregroundStyle(.white)
                         .padding(.horizontal, 20)
@@ -1292,7 +1293,7 @@ private struct MegaMergePage: View {
 
                 // Instruction text
                 Text(showMergeResult ? "All 2s merged into 32!" : "Tap MegaMerge to merge all matching tiles")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.top, 4)
@@ -1301,7 +1302,7 @@ private struct MegaMergePage: View {
 
             // Description
             Text(page.description)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
@@ -1379,12 +1380,12 @@ private struct ConnectTilesPartBPage: View {
 
             // Title
             Text(page.title)
-                .font(.largeTitle.bold())
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                 .multilineTextAlignment(.center)
 
             // Subtitle
             Text(page.subtitle)
-                .font(.title3)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
             // Interactive tiles demo
@@ -1458,7 +1459,7 @@ private struct ConnectTilesPartBPage: View {
                 }
 
                 Text(showMergeResult ? "Merged into 64!" : "Drag across to connect same or double values")
-                    .font(.caption)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.secondary)
                     .padding(.top, 8)
             }
@@ -1466,7 +1467,7 @@ private struct ConnectTilesPartBPage: View {
 
             // Description
             Text(page.description)
-                .font(.body)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
@@ -1489,7 +1490,7 @@ private struct TutorialTile: View {
 
     var body: some View {
         Text(value)
-            .font(.system(size: size * 0.45, weight: .bold, design: .rounded))
+            .font(.avenirNext(size: size * 0.45, weight: .bold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             .background(color, in: RoundedRectangle(cornerRadius: size * 0.17))

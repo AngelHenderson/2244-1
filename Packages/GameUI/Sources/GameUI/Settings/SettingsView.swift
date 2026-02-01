@@ -167,7 +167,7 @@ public struct SettingsView: View {
                     if let errorMessage = purchaseService.errorMessage {
                         Text(errorMessage)
                             .foregroundStyle(.red)
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                 }
 
@@ -191,7 +191,7 @@ public struct SettingsView: View {
                         }
 
                         Text("Sign in to Game Center in your device Settings, then tap Open Game Center below.")
-                            .font(.caption)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
 

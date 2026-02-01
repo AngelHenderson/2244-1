@@ -1,4 +1,5 @@
 import SwiftUI
+import GameApp
 
 public struct TilesInfoView: View {
     @Environment(\.dismiss) private var dismiss
@@ -35,10 +36,10 @@ public struct TilesInfoView: View {
                         Spacer()
                         TileBlock(value: "2", color: themedColor(forStep: 0))  // 2 = 2^1, step 0
                         Text("+")
-                            .font(.title2.bold())
+                            .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         TileBlock(value: "2", color: themedColor(forStep: 0))
                         Text("=")
-                            .font(.title2.bold())
+                            .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         TileBlock(value: "4", color: themedColor(forStep: 1))  // 4 = 2^2, step 1
                         Spacer()
                     }
@@ -51,13 +52,13 @@ public struct TilesInfoView: View {
                         Spacer()
                         TileBlock(value: "2", color: themedColor(forStep: 0))  // 2 = 2^1, step 0
                         Text("+")
-                            .font(.title3.bold())
+                            .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                         TileBlock(value: "2", color: themedColor(forStep: 0))
                         Text("+")
-                            .font(.title3.bold())
+                            .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                         TileBlock(value: "4", color: themedColor(forStep: 1))  // 4 = 2^2, step 1
                         Text("=")
-                            .font(.title3.bold())
+                            .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                         TileBlock(value: "8", color: themedColor(forStep: 2))  // 8 = 2^3, step 2
                         Spacer()
                     }
@@ -79,7 +80,7 @@ public struct TilesInfoView: View {
                                 )
                                 .frame(width: 56, height: 56)
                             Image(systemName: "infinity")
-                                .font(.system(size: 24, weight: .bold))
+                                .font(.avenirNext(size: 24, weight: .bold))
                                 .foregroundStyle(.white)
                         }
                         Spacer()
@@ -95,7 +96,7 @@ public struct TilesInfoView: View {
                             isShowingAbbreviations = true
                         } label: {
                             Text("Click Here")
-                                .font(.headline)
+                                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 32)
                                 .padding(.vertical, 12)
@@ -116,7 +117,7 @@ public struct TilesInfoView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.secondary)
-                            .font(.title2)
+                            .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     }
                 }
             }
@@ -139,7 +140,7 @@ private struct BulletPoint: View {
                 .frame(width: 8, height: 8)
                 .padding(.top, 6)
             Text(text)
-                .font(.body.weight(.medium))
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
         }
     }
 }
@@ -152,7 +153,7 @@ private struct TileBlock: View {
 
     var body: some View {
         Text(value)
-            .font(.system(size: 20, weight: .bold, design: .rounded))
+            .font(.avenirNext(size: 20, weight: .bold))
             .foregroundStyle(.white)
             .frame(width: 44, height: 44)
             .background(color, in: RoundedRectangle(cornerRadius: 8))
@@ -255,7 +256,7 @@ private struct TileInfoRow: View {
         HStack(spacing: 16) {
             // Sample tile
             Text(sample)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.avenirNext(size: 16, weight: .bold))
                 .foregroundStyle(textColor)
                 .frame(width: 56, height: 56)
                 .background(color, in: RoundedRectangle(cornerRadius: 10))
@@ -263,18 +264,18 @@ private struct TileInfoRow: View {
             // Abbreviation = exponent
             HStack(spacing: 4) {
                 Text(abbrev)
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
 
                 Text(":")
-                    .font(.title2)
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.secondary)
 
                 // 10^exponent with superscript
                 HStack(alignment: .top, spacing: 0) {
                     Text("10")
-                        .font(.title2)
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     Text("\(exponent)")
-                        .font(.caption.bold())
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                         .baselineOffset(10)
                 }
             }
@@ -294,7 +295,7 @@ private struct InfinityRow: View {
         HStack(spacing: 16) {
             // Infinity tile
             Image(systemName: "infinity")
-                .font(.system(size: 24, weight: .bold))
+                .font(.avenirNext(size: 24, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 56, height: 56)
                 .background(
@@ -309,14 +310,14 @@ private struct InfinityRow: View {
             // Infinity description
             HStack(spacing: 4) {
                 Image(systemName: "infinity")
-                    .font(.title2.bold())
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
 
                 Text(":")
-                    .font(.title2)
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.secondary)
 
                 Text("The Goal!")
-                    .font(.title3.bold())
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                     .foregroundStyle(.purple)
             }
 

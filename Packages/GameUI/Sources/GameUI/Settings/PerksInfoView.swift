@@ -1,4 +1,5 @@
 import SwiftUI
+import GameApp
 
 public struct PerksInfoView: View {
     @Environment(\.dismiss) private var dismiss
@@ -42,7 +43,7 @@ public struct PerksInfoView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
+                            .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -62,7 +63,7 @@ private struct PerkRow: View {
         HStack(spacing: 16) {
             // Icon with gradient background
             Image(systemName: icon)
-                .font(.system(size: 24, weight: .bold))
+                .font(.avenirNext(size: 24, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 56, height: 56)
                 .background(
@@ -77,7 +78,7 @@ private struct PerkRow: View {
 
             // Title
             Text(title)
-                .font(.headline)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.leading)
 
