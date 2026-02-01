@@ -5,32 +5,18 @@ import GameCore
 // MARK: - Celebration Phrases
 
 private enum CelebrationPhrases {
-    static let unlocked = [
+    static let all = [
         "Marvelous!", "Glorious!", "Excellent!", "Fantastic!",
         "Incredible!", "Brilliant!", "Outstanding!", "Superb!",
-        "Amazing!", "Spectacular!", "Phenomenal!", "Magnificent!"
-    ]
-
-    static let added = [
+        "Amazing!", "Spectacular!", "Phenomenal!", "Magnificent!",
         "Great Job!", "Well Done!", "Awesome!", "Nice Work!",
-        "Keep Going!", "Way to Go!", "Impressive!", "Stellar!"
-    ]
-
-    static let eliminated = [
+        "Keep Going!", "Way to Go!", "Impressive!", "Stellar!",
         "Good Job!", "Nice!", "Progress!", "Moving Up!",
         "Onward!", "Advancing!", "Leveling Up!", "Rising!"
     ]
 
-    static func randomUnlocked() -> String {
-        unlocked.randomElement() ?? "Excellent!"
-    }
-
-    static func randomAdded() -> String {
-        added.randomElement() ?? "Great Job!"
-    }
-
-    static func randomEliminated() -> String {
-        eliminated.randomElement() ?? "Good Job!"
+    static func random() -> String {
+        all.randomElement() ?? "Excellent!"
     }
 }
 
@@ -40,7 +26,7 @@ struct UnlockedNotificationView: View {
     @Environment(\.gameStore) private var gameStore
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
-    @State private var celebrationPhrase = CelebrationPhrases.randomUnlocked()
+    @State private var celebrationPhrase = CelebrationPhrases.random()
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -117,7 +103,7 @@ struct UnlockedNotificationView: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             // Celebration header
             Text(celebrationPhrase)
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
@@ -125,9 +111,8 @@ struct UnlockedNotificationView: View {
 
             // Title
             Text("NEW TILE UNLOCKED")
-                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                 .foregroundStyle(.secondary)
-                .padding(.bottom, 4)
 
             // Journey progression tiles
             HStack(spacing: 8) {
@@ -141,8 +126,8 @@ struct UnlockedNotificationView: View {
                     .overlay(alignment: .top) {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(.yellow)
-                            .font(.caption)
-                            .offset(y: -10)
+                            .font(.caption2)
+                            .offset(y: -8)
                     }
 
                 // Next tier (locked)
@@ -150,32 +135,30 @@ struct UnlockedNotificationView: View {
                     JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 40, isLocked: true)
                 }
             }
-            .padding(.vertical, 8)
 
             // Reward section
-            VStack(spacing: 12) {
+            VStack(spacing: 8) {
                 Text("Your Reward")
-                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Image("gem")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 28, height: 28)
+                        .frame(width: 24, height: 24)
                     Text("+\(gemReward)")
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .semibold))
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
                 .background(Color.cyan.opacity(0.15))
-                .cornerRadius(12)
+                .cornerRadius(10)
             }
 
             // Multiplier options
             if showClaimOption {
                 MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
-                    .padding(.vertical, 8)
 
                 Button(action: {
                     // Claim with multiplier (watch ad if > 1)
@@ -190,12 +173,12 @@ struct UnlockedNotificationView: View {
                             Text("Continue")
                         }
                     }
-                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                    .padding(.vertical, 12)
                     .background(selectedMultiplier > 1 ? Color.cyan : Color.blue)
-                    .cornerRadius(12)
+                    .cornerRadius(10)
                 }
             } else {
                 Button("Continue") {
@@ -205,8 +188,8 @@ struct UnlockedNotificationView: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .padding(24)
-        .presentationDetents([.height(550)])
+        .padding(20)
+        .presentationDetents([.height(360)])
         .presentationDragIndicator(.visible)
     }
 }
@@ -217,7 +200,7 @@ struct AddedNotificationView: View {
     @Environment(\.gameStore) private var gameStore
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
-    @State private var celebrationPhrase = CelebrationPhrases.randomAdded()
+    @State private var celebrationPhrase = CelebrationPhrases.random()
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -305,24 +288,23 @@ struct AddedNotificationView: View {
                 .foregroundStyle(.secondary)
                 .padding(.bottom, 4)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 80)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 44)
                 }
 
-                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 100)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 56)
                     .overlay(alignment: .top) {
                         Image(systemName: "plus.circle.fill")
                             .foregroundStyle(.green)
-                            .font(.title3)
-                            .offset(y: -15)
+                            .font(.caption)
+                            .offset(y: -10)
                     }
 
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 80, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 44, isLocked: true)
                 }
             }
-            .padding(.vertical, 8)
 
             // No reward for adding tiles - just continue
             Button("Continue") {
@@ -331,8 +313,8 @@ struct AddedNotificationView: View {
             .buttonStyle(.borderedProminent)
             .frame(maxWidth: .infinity)
         }
-        .padding(24)
-        .presentationDetents([.height(380)])
+        .padding(20)
+        .presentationDetents([.height(240)])
         .presentationDragIndicator(.visible)
     }
 }
@@ -343,7 +325,7 @@ struct ExcludedNotificationView: View {
     @Environment(\.gameStore) private var gameStore
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
-    @State private var celebrationPhrase = CelebrationPhrases.randomEliminated()
+    @State private var celebrationPhrase = CelebrationPhrases.random()
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -430,24 +412,23 @@ struct ExcludedNotificationView: View {
                 .foregroundStyle(.secondary)
                 .padding(.bottom, 4)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 80)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 44)
                 }
 
-                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 100)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 56)
                     .overlay(alignment: .topTrailing) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.red)
-                            .font(.title2)
-                            .offset(x: 8, y: -8)
+                            .font(.caption)
+                            .offset(x: 6, y: -6)
                     }
 
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 80, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 44, isLocked: true)
                 }
             }
-            .padding(.vertical, 8)
 
             // No reward for eliminating tiles - just continue
             Button("Continue") {
@@ -456,8 +437,8 @@ struct ExcludedNotificationView: View {
             .buttonStyle(.borderedProminent)
             .frame(maxWidth: .infinity)
         }
-        .padding(24)
-        .presentationDetents([.height(380)])
+        .padding(20)
+        .presentationDetents([.height(240)])
         .presentationDragIndicator(.visible)
     }
 }
