@@ -48,7 +48,11 @@ public struct DefaultAudioService: AudioServiceProtocol, Sendable {
     public func playSfx(name: String) async {
         // no-op (intentionally)
     }
-    
+
+    public func playMergeSfx(tileCount: Int) async {
+        // no-op (intentionally)
+    }
+
     public func setCurrentMusicTheme(_ theme: String) async {
         userDefaults.set(theme, forKey: "currentMusicTheme")
     }
@@ -252,7 +256,31 @@ public actor LiveAudioService: AudioServiceProtocol {
         let newTheme = await MainActor.run { storage.currentMusicTheme }
         print("🎵 Music theme set successfully: '\(newTheme)'")
     }
-    
+
+    public func playMergeSfx(tileCount: Int) async {
+        let (sfxEnabled, currentTheme) = await MainActor.run {
+            (storage.sfxEnabled, storage.currentMusicTheme)
+        }
+
+        guard sfxEnabled else {
+            print("🔇 SFX disabled, not playing merge sounds")
+            return
+        }
+
+        print("🎶 Playing \(tileCount) merge notes for instrument: \(currentTheme)")
+
+        // Play notes in sequence based on tile count
+        let notesToPlay = max(1, min(tileCount, 6))  // Cap at 6 notes
+        let delayBetweenNotes: Double = 0.08  // 80ms between notes for quick arpeggio
+
+        for i in 0..<notesToPlay {
+            await playInstrumentTapSound(theme: currentTheme)
+            if i < notesToPlay - 1 {
+                try? await Task.sleep(for: .seconds(delayBetweenNotes))
+            }
+        }
+    }
+
     private func playElectricSound(theme: String) async {
         // Debounce - don't play if played within last 0.5 seconds
         if let lastPlay = lastElectricPlayTime, Date().timeIntervalSince(lastPlay) < 0.5 {

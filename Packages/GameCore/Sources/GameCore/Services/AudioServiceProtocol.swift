@@ -9,5 +9,6 @@ public protocol AudioServiceProtocol: Sendable {
     func playMusic(named fileName: String, loop: Bool) async
     func stopMusic() async
     func playSfx(name: String) async
+    func playMergeSfx(tileCount: Int) async
     func setCurrentMusicTheme(_ theme: String) async
 }

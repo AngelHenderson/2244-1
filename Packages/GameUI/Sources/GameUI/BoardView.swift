@@ -274,9 +274,10 @@ public struct BoardView: View {
             .onEnded { _ in
                 debugLog("drag ended", extra: "valid=\(gameStore.pathValidation.isValid) pathCount=\(gameStore.currentPath.count)")
                 if gameStore.pathValidation.isValid && gameStore.currentPath.count >= 2 {
+                    let tileCount = gameStore.currentPath.count
                     gameStore.commitPath()
                     haptics.success()
-                    Task { await audioService.playSfx(name: "merge") }
+                    Task { await audioService.playMergeSfx(tileCount: tileCount) }
                 } else {
                     gameStore.cancelPath()
                     if gameStore.currentPath.count >= 2 {
@@ -384,6 +385,7 @@ public struct BoardView: View {
             gameStore.clearLastMagnetEvent()
             return
         }
+        let tileCount = event.sources.count
         magnetAnimations = contributors.map { MagnetAnimationModel(value: event.value, start: $0, target: event.target, progress: 0) }
 
         // Play electric sound when magnet starts sucking
@@ -398,8 +400,8 @@ public struct BoardView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 magnetAnimations.removeAll()
                 gameStore.clearLastMagnetEvent()
-                // Play merge sound when magnet completes
-                Task { await audioService.playSfx(name: "merge") }
+                // Play merge sounds when magnet completes based on tile count
+                Task { await audioService.playMergeSfx(tileCount: tileCount) }
             }
         }
     }
