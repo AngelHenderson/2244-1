@@ -253,7 +253,8 @@ public final class WheelEngine {
     }
 
     private func simulatePinPhysics(dt: CGFloat) {
-        let normalizedAngle = Self.wrap(angle, modulus: 2 * .pi)
+        // Use -angle to match highlightedIndex - this is the position under the pin
+        let normalizedAngle = Self.wrap(-angle, modulus: 2 * .pi)
 
         // Find which segment we're in and position within it
         var cumulative: CGFloat = 0
@@ -311,9 +312,9 @@ public final class WheelEngine {
     }
     
     private func checkDividerCrossing(from old: CGFloat, to new: CGFloat) {
-        // Find segment index for old and new angles using weighted geometry
-        let oldIdx = segmentIndex(for: old)
-        let newIdx = segmentIndex(for: new)
+        // Use -angle to find which segment is under the pin (matches highlightedIndex)
+        let oldIdx = segmentIndex(for: -old)
+        let newIdx = segmentIndex(for: -new)
 
         // Check if we crossed a divider
         guard oldIdx != newIdx else { return }
