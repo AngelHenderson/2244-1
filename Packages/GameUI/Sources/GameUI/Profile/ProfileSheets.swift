@@ -145,6 +145,19 @@ struct CompareView: View {
 
     private let mockPlayers: [MockPlayer] = MockPlayer.generateAll()
     private let maxCompareCount = 5
+    private static let selectedPlayersKey = "CompareView.selectedPlayerIDs"
+
+    private func loadSelectedPlayers() {
+        let savedIDs = UserDefaults.standard.stringArray(forKey: Self.selectedPlayersKey) ?? []
+        selectedPlayers = savedIDs.compactMap { id in
+            mockPlayers.first { $0.id == id }
+        }
+    }
+
+    private func saveSelectedPlayers() {
+        let ids = selectedPlayers.map { $0.id }
+        UserDefaults.standard.set(ids, forKey: Self.selectedPlayersKey)
+    }
 
     private var filteredPlayers: [MockPlayer] {
         let query = searchText.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -232,6 +245,7 @@ struct CompareView: View {
                                         // Prevent duplicates
                                         if !selectedPlayers.contains(where: { $0.id == player.id }) {
                                             selectedPlayers.append(player)
+                                            saveSelectedPlayers()
                                         }
                                         searchText = ""
                                     }
@@ -282,6 +296,7 @@ struct CompareView: View {
                                     Button {
                                         withAnimation(.easeInOut(duration: 0.2)) {
                                             selectedPlayers.removeAll { $0.id == entry.id }
+                                            saveSelectedPlayers()
                                         }
                                     } label: {
                                         Image(systemName: "xmark.circle.fill")
@@ -302,6 +317,7 @@ struct CompareView: View {
                                 Button("Clear All") {
                                     withAnimation {
                                         selectedPlayers.removeAll()
+                                        saveSelectedPlayers()
                                     }
                                 }
                                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
@@ -316,6 +332,9 @@ struct CompareView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
+            }
+            .onAppear {
+                loadSelectedPlayers()
             }
         }
     }

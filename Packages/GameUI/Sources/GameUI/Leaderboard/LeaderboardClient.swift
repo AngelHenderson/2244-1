@@ -4816,13 +4816,19 @@ public extension LeaderboardClient {
             let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.franceNames, countrySeed: 25000, day: day)
             let platform: Platform = i % 2 == 0 ? .ios : .android
             let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 25000, day: day)
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
-            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "fr_\(i)"))
+
+            // Apply daily progression to milestones
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 25000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "fr_\(i)"))
         }
 
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
 
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
