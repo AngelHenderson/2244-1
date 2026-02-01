@@ -59,7 +59,7 @@ public struct DefaultAudioService: AudioServiceProtocol, Sendable {
 final class AudioSettingsStorage: ObservableObject {
     @AppStorage("musicEnabled") var musicEnabled: Bool = true
     @AppStorage("sfxEnabled") var sfxEnabled: Bool = true
-    @AppStorage("currentMusicTheme") var currentMusicTheme: String = ""
+    @AppStorage("currentMusicTheme") var currentMusicTheme: String = "piano"
 }
 
 public actor LiveAudioService: AudioServiceProtocol {
@@ -460,33 +460,54 @@ public actor LiveAudioService: AudioServiceProtocol {
     /// Play a specific note from a single audio file containing multiple notes
     private func playNoteFromSingleFile(theme: String, config: InstrumentConfig, noteIndex: Int) async {
         let soundName = "\(config.filePrefix)1"  // Always load file with suffix 1
+        print("🎹 Looking for single-file sound: \(soundName).mp3 for theme: \(theme)")
 
-        let url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ??
+        var url = Bundle.main.url(forResource: soundName, withExtension: "mp3") ??
                   Bundle.main.url(forResource: soundName, withExtension: "wav")
 
+        // Fall back to piano if instrument file not found
+        let usingFallback = (url == nil)
+        if usingFallback {
+            print("⚠️ Single-file sound not found: \(soundName), falling back to piano")
+            let pianoSoundName = "piano_tap_\((noteIndex % 3) + 1)"
+            url = Bundle.main.url(forResource: pianoSoundName, withExtension: "mp3") ??
+                  Bundle.main.url(forResource: pianoSoundName, withExtension: "wav")
+        }
+
         guard let audioUrl = url else {
-            print("❌ Single-file sound not found for \(theme): \(soundName)")
+            print("❌ No sound found for \(theme) or piano fallback")
             return
         }
 
         do {
             let player = try AVAudioPlayer(contentsOf: audioUrl)
-            let noteDuration = player.duration / Double(config.notesInSingleFile)
-            let startTime = Double(noteIndex) * noteDuration
-
-            player.currentTime = startTime
             player.volume = 0.7
-            player.play()
 
-            print("🎹 Playing \(theme) note \(noteIndex + 1)/\(config.notesInSingleFile) from \(startTime)s")
+            // Only do note slicing if this is the original instrument file (not piano fallback)
+            if !usingFallback && config.notesInSingleFile > 1 {
+                let noteDuration = player.duration / Double(config.notesInSingleFile)
+                let startTime = Double(noteIndex) * noteDuration
+                player.currentTime = startTime
+                print("🎹 Playing \(theme) note \(noteIndex + 1)/\(config.notesInSingleFile) from \(startTime)s")
+                player.play()
+                sfxPlayers.append(player)
 
-            sfxPlayers.append(player)
+                // Stop after one note's duration
+                Task {
+                    try? await Task.sleep(for: .seconds(noteDuration))
+                    player.stop()
+                    await removeSfxPlayer(player)
+                }
+            } else {
+                // Piano fallback - play full sound
+                print("🎹 Playing piano fallback sound")
+                player.play()
+                sfxPlayers.append(player)
 
-            // Stop after one note's duration
-            Task {
-                try? await Task.sleep(for: .seconds(noteDuration))
-                player.stop()
-                await removeSfxPlayer(player)
+                Task {
+                    try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                    await removeSfxPlayer(player)
+                }
             }
         } catch {
             print("❌ Failed to play \(theme) note: \(error)")
