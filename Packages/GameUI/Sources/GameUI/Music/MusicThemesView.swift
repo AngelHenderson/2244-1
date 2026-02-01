@@ -24,6 +24,7 @@ struct MusicThemesView: View {
 
     // State
     @State private var selectionIndex: Int = 0
+    @AppStorage("currentMusicTheme") private var currentTheme: String = "piano"
     @Environment(\.dismiss) private var dismiss
     @Environment(\.audio) private var audioService
 
@@ -165,17 +166,22 @@ struct MusicThemesView: View {
     private var buttons: some View {
         VStack(spacing: 12) {
             let instrument = instruments.indices.contains(selectionIndex) ? instruments[selectionIndex] : instruments.first!
-            // Try Now – host will handle ad presentation later
-            primaryButton(title: "Try Now", role: .secondary) {
-                // Set the music theme when trying
-                Task { await audioService.setCurrentMusicTheme(instrument.id) }
-                onTry(instrument)
-            }
-            // Purchase button
-            primaryButton(title: instrument.priceLabel, role: .primary) {
-                // Set the music theme when purchasing
-                Task { await audioService.setCurrentMusicTheme(instrument.id) }
-                onPurchase(instrument)
+            let isSelected = instrument.id == currentTheme
+
+            if isSelected {
+                // Already selected - show "Selected" indicator
+                primaryButton(title: "Selected", role: .secondary) {
+                    // Already selected, just dismiss
+                    dismiss()
+                }
+            } else {
+                // Select button to choose the instrument
+                primaryButton(title: "Select", role: .primary) {
+                    // Set the music theme when selecting
+                    Task { await audioService.setCurrentMusicTheme(instrument.id) }
+                    onTry(instrument)
+                    dismiss()
+                }
             }
         }
     }
