@@ -2205,7 +2205,21 @@ public final class GameStore {
                 newStep: mergedStep
             )
             self.achievementEvaluator?.onTilesMerged(count: matchingPositions.count)
-            
+
+            // Set up double offer for magnet merges (same rules as regular merges)
+            // Only offer double if tile is one step below OR same as previous highest (not a new record)
+            self.lastAddedTileValue = mergedValue
+            self.lastAddedTilePosition = position
+            let isOneBelow = (previousHighestStep >= 1) && (mergedStep == previousHighestStep - 1)
+            let isSameAsHighest = (mergedStep == previousHighestStep)
+            if isOneBelow || isSameAsHighest {
+                self.pendingDoubleBase = mergedValue
+                self.pendingDoubleBaseStep = mergedStep
+            } else {
+                self.pendingDoubleBase = nil
+                self.pendingDoubleBaseStep = nil
+            }
+
             let cols = self.columnsWithEmpties(in: self.state.board)
             self.performGravityDrop(columns: cols)
             

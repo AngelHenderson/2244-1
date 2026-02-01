@@ -2,12 +2,45 @@ import SwiftUI
 import GameApp
 import GameCore
 
+// MARK: - Celebration Phrases
+
+private enum CelebrationPhrases {
+    static let unlocked = [
+        "Marvelous!", "Glorious!", "Excellent!", "Fantastic!",
+        "Incredible!", "Brilliant!", "Outstanding!", "Superb!",
+        "Amazing!", "Spectacular!", "Phenomenal!", "Magnificent!"
+    ]
+
+    static let added = [
+        "Great Job!", "Well Done!", "Awesome!", "Nice Work!",
+        "Keep Going!", "Way to Go!", "Impressive!", "Stellar!"
+    ]
+
+    static let eliminated = [
+        "Good Job!", "Nice!", "Progress!", "Moving Up!",
+        "Onward!", "Advancing!", "Leveling Up!", "Rising!"
+    ]
+
+    static func randomUnlocked() -> String {
+        unlocked.randomElement() ?? "Excellent!"
+    }
+
+    static func randomAdded() -> String {
+        added.randomElement() ?? "Great Job!"
+    }
+
+    static func randomEliminated() -> String {
+        eliminated.randomElement() ?? "Good Job!"
+    }
+}
+
 struct UnlockedNotificationView: View {
     let value: Int
     let onClose: () -> Void
     @Environment(\.gameStore) private var gameStore
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
+    @State private var celebrationPhrase = CelebrationPhrases.randomUnlocked()
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -85,10 +118,16 @@ struct UnlockedNotificationView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Header
-            Text("EXCELLENT")
+            // Celebration header
+            Text(celebrationPhrase)
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                .padding(.bottom, 8)
+                .foregroundStyle(.orange)
+
+            // Title
+            Text("NEW TILE UNLOCKED")
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 4)
 
             // Journey progression tiles
             HStack(spacing: 8) {
@@ -178,6 +217,7 @@ struct AddedNotificationView: View {
     @Environment(\.gameStore) private var gameStore
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
+    @State private var celebrationPhrase = CelebrationPhrases.randomAdded()
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -254,9 +294,16 @@ struct AddedNotificationView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("SPAWN POOL UPDATED")
+            // Celebration header
+            Text(celebrationPhrase)
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                .padding(.bottom, 8)
+                .foregroundStyle(.green)
+
+            // Title
+            Text("SPAWN POOL UPDATED")
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 4)
 
             HStack(spacing: 12) {
                 if let prev = journeyReward.previous {
@@ -285,7 +332,7 @@ struct AddedNotificationView: View {
             .frame(maxWidth: .infinity)
         }
         .padding(24)
-        .presentationDetents([.height(350)])
+        .presentationDetents([.height(380)])
         .presentationDragIndicator(.visible)
     }
 }
@@ -296,6 +343,7 @@ struct ExcludedNotificationView: View {
     @Environment(\.gameStore) private var gameStore
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
+    @State private var celebrationPhrase = CelebrationPhrases.randomEliminated()
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -371,9 +419,16 @@ struct ExcludedNotificationView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("TILE ELIMINATED")
+            // Celebration header
+            Text(celebrationPhrase)
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                .padding(.bottom, 8)
+                .foregroundStyle(.cyan)
+
+            // Title
+            Text("TILE ELIMINATED")
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 4)
 
             HStack(spacing: 12) {
                 if let prev = journeyReward.previous {
@@ -402,7 +457,7 @@ struct ExcludedNotificationView: View {
             .frame(maxWidth: .infinity)
         }
         .padding(24)
-        .presentationDetents([.height(350)])
+        .presentationDetents([.height(380)])
         .presentationDragIndicator(.visible)
     }
 }
