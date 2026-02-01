@@ -1,4 +1,5 @@
 import SwiftUI
+import GameApp
 
 @MainActor
 struct MusicThemesView: View {
@@ -91,13 +92,13 @@ struct MusicThemesView: View {
         HStack(alignment: .center) {
             Button(action: { dismiss() }) {
                 Image(systemName: "chevron.left.circle.fill")
-                    .font(.system(size: 28, weight: .semibold))
+                    .font(.avenirNext(size: 28, weight: .semibold))
             }
             .accessibilityLabel("Back")
 
             Spacer()
             Text("MUSIC THEMES")
-                .font(.title2.weight(.bold))
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 .textCase(.uppercase)
             Spacer()
 
@@ -142,11 +143,11 @@ struct MusicThemesView: View {
             Spacer(minLength: 0)
 
             Text(instrument.displayName.uppercased())
-                .font(.largeTitle.weight(.heavy))
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .heavy))
                 .foregroundStyle(.primary)
 
             Text(instrument.tagline)
-                .font(.title3.weight(.semibold))
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .semibold))
                 .foregroundStyle(.secondary)
 
             Spacer(minLength: 0)
@@ -193,7 +194,7 @@ struct MusicThemesView: View {
             if #available(iOS 26.0, *) {
                 Button(action: action) {
                     Text(title)
-                        .font(.title3.weight(.bold))
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                 }
@@ -203,7 +204,7 @@ struct MusicThemesView: View {
             } else {
                 Button(action: action) {
                     Text(title)
-                        .font(.title2.weight(.bold))
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
@@ -227,7 +228,7 @@ struct MusicThemesView: View {
     private func arrowButton(direction: ArrowDirection, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: direction == .left ? "arrow.left.circle.fill" : "arrow.right.circle.fill")
-                .font(.system(size: 36, weight: .bold))
+                .font(.avenirNext(size: 36, weight: .bold))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(.secondary)
                 .shadow(radius: 2)
