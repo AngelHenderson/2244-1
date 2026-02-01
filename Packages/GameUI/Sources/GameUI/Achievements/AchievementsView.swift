@@ -521,8 +521,9 @@ private struct AchievementRow: View {
     }
     
     private func progressValueText(for progress: AchievementStore.AchievementProgress) -> String {
-        let values = clampedProgressValue(progress)
-        return "\(formattedValue(values.current))/\(formattedValue(progress.target))"
+        // Show actual unclamped values so users can see when they've exceeded the target (e.g., "1.56K/1.5K")
+        // The progress bar itself remains clamped to not exceed 100%
+        return "\(formattedValue(progress.current))/\(formattedValue(progress.target))"
     }
     
     private func progressLabel(for progress: AchievementStore.AchievementProgress) -> String {
