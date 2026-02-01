@@ -36,12 +36,14 @@ public struct SettingsView: View {
         NavigationStack {
             Form {
                 // MARK: Audio & Haptics
-                Section("Audio & Haptics") {
+                Section {
                     // Sound Effects
                     HStack {
                         Text("Sound Effects")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                         Spacer()
                         Text(sfxMuted ? "Muted" : "\(Int(sfxVolume * 100))%")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
 
@@ -62,17 +64,22 @@ public struct SettingsView: View {
                     }
                     .disabled(sfxMuted && sfxVolume > 0)
 
-                    Toggle("Mute Sound Effects", isOn: $sfxMuted)
-                        .onChange(of: sfxMuted) { _, newValue in
-                            Task { await audioService.setSfxEnabled(!newValue) }
-                            UserDefaults.standard.set(newValue, forKey: "sfxMuted")
-                        }
+                    Toggle(isOn: $sfxMuted) {
+                        Text("Mute Sound Effects")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                    .onChange(of: sfxMuted) { _, newValue in
+                        Task { await audioService.setSfxEnabled(!newValue) }
+                        UserDefaults.standard.set(newValue, forKey: "sfxMuted")
+                    }
 
                     // Music
                     HStack {
                         Text("Music")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                         Spacer()
                         Text(musicMuted ? "Muted" : "\(Int(musicVolume * 100))%")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
 
@@ -93,53 +100,78 @@ public struct SettingsView: View {
                     }
                     .disabled(musicMuted && musicVolume > 0)
 
-                    Toggle("Mute Music", isOn: $musicMuted)
-                        .onChange(of: musicMuted) { _, newValue in
-                            Task { await audioService.setMusicEnabled(!newValue) }
-                            UserDefaults.standard.set(newValue, forKey: "musicMuted")
-                        }
+                    Toggle(isOn: $musicMuted) {
+                        Text("Mute Music")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                    .onChange(of: musicMuted) { _, newValue in
+                        Task { await audioService.setMusicEnabled(!newValue) }
+                        UserDefaults.standard.set(newValue, forKey: "musicMuted")
+                    }
 
-                    Toggle("Haptic Feedback", isOn: $hapticsEnabled)
-                        .onChange(of: hapticsEnabled) { _, newValue in
-                            UserDefaults.standard.set(newValue, forKey: "hapticsEnabled")
-                        }
-                    
-                    Button("Test Sound & Haptic") {
+                    Toggle(isOn: $hapticsEnabled) {
+                        Text("Haptic Feedback")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                    .onChange(of: hapticsEnabled) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "hapticsEnabled")
+                    }
+
+                    Button {
                         Task {
                             await audioService.playSfx(name: "test")
                         }
                         if hapticsEnabled {
                             hapticsService.mediumImpact()
                         }
+                    } label: {
+                        Text("Test Sound & Haptic")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                     }
+                } header: {
+                    Text("Audio & Haptics")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
 
                 // MARK: Accessibility & Gameplay
-                Section("Accessibility & Gameplay") {
-                    Toggle("Reduce Motion", isOn: $reduceMotion)
-                        .onChange(of: reduceMotion) { _, newValue in
-                            UserDefaults.standard.set(newValue, forKey: "reduceMotion")
-                        }
+                Section {
+                    Toggle(isOn: $reduceMotion) {
+                        Text("Reduce Motion")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                    .onChange(of: reduceMotion) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "reduceMotion")
+                    }
 
-                    Toggle("Show Hints", isOn: $showHints)
-                        .onChange(of: showHints) { _, newValue in
-                            UserDefaults.standard.set(newValue, forKey: "showHints")
-                        }
-                    
-                    Toggle("Curved Trail Style", isOn: $useCurvedTrail)
+                    Toggle(isOn: $showHints) {
+                        Text("Show Hints")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                    .onChange(of: showHints) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "showHints")
+                    }
+
+                    Toggle(isOn: $useCurvedTrail) {
+                        Text("Curved Trail Style")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                } header: {
+                    Text("Accessibility & Gameplay")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
                 
                 // MARK: Purchases
-                Section("Purchases") {
+                Section {
                     if purchaseService.isAdFreePurchased {
                         HStack {
                             Image(systemName: "checkmark.seal.fill")
                                 .foregroundStyle(.green)
                             Text("Ads Removed")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                             Spacer()
                         }
                     } else {
-                        Button("Remove Ads - \(removeAdsPrice)") {
+                        Button {
                             Task {
                                 #if os(iOS)
                                 let success: Bool
@@ -153,33 +185,44 @@ public struct SettingsView: View {
                                 }
                                 #endif
                             }
+                        } label: {
+                            Text("Remove Ads - \(removeAdsPrice)")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                         }
                         .disabled(purchaseService.isLoading)
                     }
-                    
-                    Button("Restore Purchases") {
+
+                    Button {
                         Task {
                             await purchaseService.restorePurchases()
                         }
+                    } label: {
+                        Text("Restore Purchases")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                     }
                     .disabled(purchaseService.isLoading)
-                    
+
                     if let errorMessage = purchaseService.errorMessage {
                         Text(errorMessage)
                             .foregroundStyle(.red)
                             .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
+                } header: {
+                    Text("Purchases")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
 
                 // MARK: Game Center
-                Section("Game Center") {
+                Section {
                     if gameCenterEnabled {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.green)
                             Text("Signed In")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                             Spacer()
                             Text(gameCenterDisplayName)
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                                 .foregroundStyle(.secondary)
                         }
                     } else {
@@ -187,6 +230,7 @@ public struct SettingsView: View {
                             Image(systemName: "info.circle.fill")
                                 .foregroundStyle(.orange)
                             Text("Status Unknown")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                             Spacer()
                         }
 
@@ -201,39 +245,61 @@ public struct SettingsView: View {
                         HStack {
                             Image(systemName: "gamecontroller.fill")
                             Text("Open Game Center")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                         }
                     }
+                } header: {
+                    Text("Game Center")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
 
                 // MARK: Privacy
-                Section("Privacy") {
-                    Toggle("Share Analytics", isOn: $analyticsEnabled)
-                        .onChange(of: analyticsEnabled) { _, newValue in
-                            UserDefaults.standard.set(newValue, forKey: "analyticsEnabled")
-                        }
+                Section {
+                    Toggle(isOn: $analyticsEnabled) {
+                        Text("Share Analytics")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                    .onChange(of: analyticsEnabled) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "analyticsEnabled")
+                    }
+                } header: {
+                    Text("Privacy")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
                 
                 // MARK: Support
-                Section("Support") {
-                    Button("How to Play") {
+                Section {
+                    Button {
                         isShowingHowToPlay = true
+                    } label: {
+                        Text("How to Play")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                     }
 
-                    Button("Tiles Info") {
+                    Button {
                         isShowingTilesInfo = true
+                    } label: {
+                        Text("Tiles Info")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                     }
 
-                    Button("Perks Info") {
+                    Button {
                         isShowingPerksInfo = true
+                    } label: {
+                        Text("Perks Info")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                     }
-                    
-                    Button("Contact Support") {
+
+                    Button {
                         if let url = URL(string: "mailto:support@game2244.com?subject=Game Support") {
                             UIApplication.shared.open(url)
                         }
+                    } label: {
+                        Text("Contact Support")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                     }
-                    
-                    Button("Rate the Game") {
+
+                    Button {
                         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                             if #available(iOS 18.0, *) {
                                 AppStore.requestReview(in: scene)
@@ -241,20 +307,37 @@ public struct SettingsView: View {
                                 SKStoreReviewController.requestReview(in: scene)
                             }
                         }
+                    } label: {
+                        Text("Rate the Game")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                     }
-                    
-                    Link("Privacy Policy", destination: URL(string: "https://game2244.com/privacy")!)
-                    Link("Terms of Service", destination: URL(string: "https://game2244.com/terms")!)
+
+                    Link(destination: URL(string: "https://game2244.com/privacy")!) {
+                        Text("Privacy Policy")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                    Link(destination: URL(string: "https://game2244.com/terms")!) {
+                        Text("Terms of Service")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+                } header: {
+                    Text("Support")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
                 
                 // MARK: About
-                Section("About") {
+                Section {
                     HStack {
                         Text("Version")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                         Spacer()
                         Text(appVersion)
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
+                } header: {
+                    Text("About")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
             }
             .navigationTitle("Settings")

@@ -1,5 +1,6 @@
 import SwiftUI
 import GameApp
+import UIKit
 
 public struct ThemePickerView: View {
     @Environment(\.dismiss) private var dismiss
@@ -16,6 +17,13 @@ public struct ThemePickerView: View {
         case playButton = "Play Button"
     }
 
+    private static let segmentedControlAppearanceConfigured: Bool = {
+        let font = UIFont(name: "AvenirNext-Medium", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .medium)
+        UISegmentedControl.appearance().setTitleTextAttributes([.font: font], for: .normal)
+        UISegmentedControl.appearance().setTitleTextAttributes([.font: font], for: .selected)
+        return true
+    }()
+
     private let tileColumns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
@@ -30,6 +38,7 @@ public struct ThemePickerView: View {
     public init() {}
 
     public var body: some View {
+        let _ = Self.segmentedControlAppearanceConfigured
         NavigationStack {
             VStack(spacing: 0) {
                 Picker("Theme Type", selection: $selectedTab) {
