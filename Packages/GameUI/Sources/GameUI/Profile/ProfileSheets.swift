@@ -143,7 +143,7 @@ struct CompareView: View {
     @State private var searchText: String = ""
     @State private var selectedPlayers: [MockPlayer] = []
 
-    private let mockPlayers: [MockPlayer] = MockPlayer.generateAll()
+    private var mockPlayers: [MockPlayer] { MockPlayer.generateAll() }
     private let maxCompareCount = 5
     private static let selectedPlayersKey = "CompareView.selectedPlayerIDs"
 
