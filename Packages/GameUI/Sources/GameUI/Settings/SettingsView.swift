@@ -395,9 +395,21 @@ public struct SettingsView: View {
         return "\(version) (\(build))"
     }
 
-    @available(iOS, deprecated: 26.0)
-    private var gameCenterSheet: some View {
+    @available(iOS 14.0, *)
+    @MainActor
+    private func makeGameCenterView() -> some View {
+        // Suppress deprecation warning by isolating the deprecated API usage
+        // GameCenterView uses GKGameCenterViewController which is deprecated in iOS 26
+        // TODO: Migrate to new Game Center API when available
         GameCenterView()
+    }
+
+    private var gameCenterSheet: some View {
+        if #available(iOS 14.0, *) {
+            return AnyView(makeGameCenterView())
+        } else {
+            return AnyView(EmptyView())
+        }
     }
 
     private func loadSettings() {
