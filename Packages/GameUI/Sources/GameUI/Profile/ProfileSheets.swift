@@ -334,27 +334,48 @@ struct CompareView: View {
 
     /// Parses a milestone string (e.g., "256K", "1M", "32a") into a numeric value for comparison
     private func parseMilestone(_ str: String) -> Double {
-        var s = str.uppercased()
+        let s = str.uppercased()
         var multiplier: Double = 1
 
-        // Handle letter suffixes (a, b, c, ... after B)
-        if let last = s.last, last.isLetter {
-            let suffix = String(last)
-            s = String(s.dropLast())
+        // Find where the numeric part ends and suffix begins
+        var numericEnd = s.startIndex
+        for (index, char) in s.enumerated() {
+            if char.isNumber || char == "." {
+                numericEnd = s.index(s.startIndex, offsetBy: index + 1)
+            } else {
+                break
+            }
+        }
 
+        let numericPart = String(s[..<numericEnd])
+        let suffix = String(s[numericEnd...])
+
+        if !suffix.isEmpty {
             switch suffix {
             case "K": multiplier = 1_000
             case "M": multiplier = 1_000_000
             case "B": multiplier = 1_000_000_000
             default:
-                // Extended suffixes: a = 10^12, b = 10^15, etc.
-                if let asciiVal = suffix.lowercased().first?.asciiValue {
+                // Extended suffixes: single letters (a-z) or double letters (aa-zz)
+                let lowSuffix = suffix.lowercased()
+                if lowSuffix.count == 1, let asciiVal = lowSuffix.first?.asciiValue {
+                    // Single letter: a = 10^12, b = 10^15, etc.
                     let letterIndex = Int(asciiVal) - Int(Character("a").asciiValue!)
                     multiplier = pow(10, Double(12 + letterIndex * 3))
+                } else if lowSuffix.count == 2 {
+                    // Double letter: aa-az, ba-bz (52 total)
+                    let chars = Array(lowSuffix)
+                    if let first = chars[0].asciiValue, let second = chars[1].asciiValue {
+                        let firstIndex = Int(first) - Int(Character("a").asciiValue!) // 0 for 'a', 1 for 'b'
+                        let secondIndex = Int(second) - Int(Character("a").asciiValue!)
+                        // 26 single letters (a-z) come first, then aa starts at index 26
+                        let combinedIndex = 26 + firstIndex * 26 + secondIndex
+                        multiplier = pow(10, Double(12 + combinedIndex * 3))
+                    }
                 }
             }
         }
-        return (Double(s) ?? 0) * multiplier
+        return (Double(numericPart) ?? 0) * multiplier
     }
 }
 
