@@ -491,7 +491,6 @@ public struct SimplifiedGlassBoardView: View {
             gameStore.clearLastMagnetEvent()
             return
         }
-        let tileCount = event.sources.count
         magnetAnimations = contributors.map { MagnetAnimationModel(value: event.value, start: $0, target: event.target, progress: 0) }
 
         // Play electric sound when magnet starts sucking
@@ -506,8 +505,8 @@ public struct SimplifiedGlassBoardView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 magnetAnimations.removeAll()
                 gameStore.clearLastMagnetEvent()
-                // Play merge sounds when magnet completes based on tile count
-                Task { await audioService.playMergeSfx(tileCount: tileCount) }
+                // Play single merge sound when magnet completes
+                Task { await audioService.playSfx(name: "merge") }
             }
         }
     }
