@@ -76,6 +76,7 @@ struct TileView: View {
                         Text(JourneyTileGenerator.formatTileAtStep(step))
                             .font(baseFont(weight: .heavy, size: fontSize))
                             .foregroundColor(textColor)
+                            .lineLimit(1)
                             .minimumScaleFactor(0.5)
                             .contentTransition(.numericText())
                             .kerning(kerning(for: Int.max))
@@ -207,11 +208,11 @@ struct TileView: View {
             if digitCount == 4 { return size * 0.32 }
             return size * 0.28
         } else {
-            // Improved 8192 readability
-            if digitCount <= 2 { return size * 0.40 }
-            if digitCount == 3 { return size * 0.36 }
-            if digitCount == 4 { return size * 0.34 }
-            return size * 0.28
+            // Improved readability - 5% smaller to prevent wrapping on high-value tiles
+            if digitCount <= 2 { return size * 0.38 }
+            if digitCount == 3 { return size * 0.34 }
+            if digitCount == 4 { return size * 0.32 }
+            return size * 0.27
         }
     }
     
