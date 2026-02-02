@@ -1296,11 +1296,10 @@ public final class GameEngine {
     }
 
     private func getEliminationThreshold() -> Int {
-        // Get the elimination threshold based on reached milestones
-        if let highestLargeMilestone = eliminatedMilestones.filter({ $0 >= 67_108_864 }).max() {
-            return highestLargeMilestone >> 14
-        }
-        return 2
+        // Get the elimination threshold based on current highest step
+        // Tiles at this value and below should not spawn
+        let thresholdStep = getEliminationThresholdStep()
+        return TileStepMath.value(forStep: thresholdStep)
     }
 
     private func minAllowedSpawnValue() -> Int {
@@ -1397,7 +1396,8 @@ public final class GameEngine {
         return candidates[index]
     }
 
-    /// Returns the minimum spawn step based on position (6 tiles below maxSpawn)
+    /// Returns the minimum spawn step based on position
+    /// Must not go below elimination threshold (highestStep - 12)
     public func minAllowedSpawnStep() -> Int {
         let highestStep = state.highestTileStep
 
@@ -1406,39 +1406,21 @@ public final class GameEngine {
 
         // maxSpawn is stepsBelow below highest
         // minSpawn is 6 tiles below maxSpawn (7 candidates total)
-        let minSpawnStep = highestStep - stepsBelow - 6
+        let calculatedMinStep = highestStep - stepsBelow - 6
 
-        return max(0, minSpawnStep)
+        // But never go below the elimination threshold
+        let eliminationThreshold = getEliminationThresholdStep()
+
+        return max(0, max(calculatedMinStep, eliminationThreshold + 1))
     }
 
     /// Returns the elimination threshold as a step
+    /// Tiles at or below this step should not spawn
     private func getEliminationThresholdStep() -> Int {
-        // For highValue tiles (step >= 62), use step-based elimination tracking
-        if !eliminatedMilestoneSteps.isEmpty {
-            // Find highest non-skip milestone step
-            var highestNonSkipStep: Int? = nil
-            for step in eliminatedMilestoneSteps.sorted().reversed() {
-                let position = step - 62
-                if position >= 0 && position % 3 != 2 {  // Not a skip
-                    highestNonSkipStep = step
-                    break
-                }
-            }
-
-            if let milestoneStep = highestNonSkipStep {
-                return max(0, milestoneStep - 14)  // 14 steps below milestone
-            }
-        }
-
-        // For value-based milestones
-        if let highestLargeMilestone = eliminatedMilestones.filter({ $0 >= 67_108_864 }).max() {
-            let thresholdValue = highestLargeMilestone >> 14
-            if let step = TileStepLabelFormatter.stepForValue(thresholdValue, start: 2) {
-                return step
-            }
-        }
-
-        return 0
+        // Simple calculation: 12 steps below highest
+        // This matches the observed game behavior (1m eliminates 356k)
+        let highestStep = state.highestTileStep
+        return max(0, highestStep - 12)
     }
 
     /// Returns all milestones between two values (useful for tracking what was passed)
@@ -1631,7 +1613,8 @@ public final class GameEngine {
             for row in 0..<config.boardHeight {
                 for col in 0..<config.boardWidth {
                     let pos = Position(row: row, col: col)
-                    if let tile = state.board[pos], let step = tile.stepIndex, step < thresholdStep {
+                    // Remove tiles at or below threshold (they shouldn't exist anymore)
+                    if let tile = state.board[pos], let step = tile.stepIndex, step <= thresholdStep {
                         state.board[pos] = nil
                         didRemove = true
                     }
@@ -1653,7 +1636,8 @@ public final class GameEngine {
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], tile.value < threshold {
+                // Remove tiles at or below threshold
+                if let tile = state.board[pos], tile.value <= threshold {
                     state.board[pos] = nil
                     didRemove = true
                 }

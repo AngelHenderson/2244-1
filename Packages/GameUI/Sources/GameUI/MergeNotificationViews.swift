@@ -805,8 +805,9 @@ struct JourneyTileCard: View {
 
     var body: some View {
         Text(label)
-            .font(.avenirNext(size: isPrimary ? size * 0.36 : size * 0.35, weight: isPrimary ? .bold : .semibold))
+            .font(.avenirNext(size: isPrimary ? size * 0.32 : size * 0.30, weight: isPrimary ? .bold : .semibold))
             .foregroundStyle(textColor)
+            .lineLimit(1)
             .minimumScaleFactor(0.5)
             .frame(width: size, height: size)
             .background(
