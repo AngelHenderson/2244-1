@@ -5115,6 +5115,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
