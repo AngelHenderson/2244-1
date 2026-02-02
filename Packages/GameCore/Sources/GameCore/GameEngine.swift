@@ -267,14 +267,14 @@ public final class GameEngine {
             }
 
             if let nonSkipStep = highestNonSkipStep {
-                let thresholdStep = nonSkipStep - 14
+                let thresholdStep = nonSkipStep - 12
                 if thresholdStep >= 0 {
                     for row in 0..<config.boardHeight {
                         for col in 0..<config.boardWidth {
                             let pos = Position(row: row, col: col)
-                            if let tile = state.board[pos], let step = tile.stepIndex, step < thresholdStep {
+                            if let tile = state.board[pos], let step = tile.stepIndex, step <= thresholdStep {
                                 let label = TileStepLabelFormatter.labelForStep(step)
-                                print("🗑️ RESTORE ELIMINATION: Removing stale tile step \(step) (\(label)) at \(pos)")
+                                print("🗑️ RESTORE ELIMINATION: Removing stale tile at or below step \(step) (\(label)) at \(pos)")
                                 state.board[pos] = nil
                                 didRemove = true
                                 totalRemoved += 1
@@ -1939,11 +1939,11 @@ public final class GameEngine {
         }
         print("   Current board values: \(allTileValues.sorted())")
 
-        // Remove ALL tiles below the threshold
+        // Remove ALL tiles at or below the threshold
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], tile.value < threshold {
+                if let tile = state.board[pos], tile.value <= threshold {
                     print("   🗑️ Removing tile at [\(row),\(col)] with value \(tile.value)")
                     removedValues.insert(tile.value)
                     state.board[pos] = nil
@@ -1954,7 +1954,7 @@ public final class GameEngine {
         }
 
         if didRemove {
-            print("   ✅ Eliminated \(removedCount) tiles below \(threshold)")
+            print("   ✅ Eliminated \(removedCount) tiles at or below \(threshold)")
             print("      Removed values: \(removedValues.sorted())")
             // IMMEDIATELY pull down and refill so the board stays valid
             refillAfterGravity()
@@ -2006,7 +2006,7 @@ public final class GameEngine {
 
         // STEP 3: Do ONE elimination pass using the highest non-skip milestone
         if let eliminationStep = highestNonSkipStep {
-            let thresholdStep = eliminationStep - 14
+            let thresholdStep = eliminationStep - 12
             if thresholdStep >= 0 {
                 let stepLabel = TileStepLabelFormatter.labelForStep(eliminationStep)
                 let thresholdLabel = TileStepLabelFormatter.labelForStep(thresholdStep)
@@ -2030,8 +2030,8 @@ public final class GameEngine {
             return
         }
 
-        // Threshold step is 14 steps below the milestone
-        let thresholdStep = step - 14
+        // Threshold step is 12 steps below the milestone (matches getEliminationThresholdStep)
+        let thresholdStep = step - 12
 
         if thresholdStep < 0 {
             print("   ℹ️ Threshold step would be negative, skipping elimination")
@@ -2071,11 +2071,11 @@ public final class GameEngine {
         let sortedInfo = tileInfo.sorted { $0.step < $1.step }
         print("   Current board tiles: \(sortedInfo.map { "[\($0.label) step:\($0.step)]" }.joined(separator: ", "))")
 
-        // Remove ALL tiles with step below the threshold
+        // Remove ALL tiles with step at or below the threshold
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
-                if let tile = state.board[pos], let step = tile.stepIndex, step < thresholdStep {
+                if let tile = state.board[pos], let step = tile.stepIndex, step <= thresholdStep {
                     let label = TileStepLabelFormatter.labelForStep(step)
                     print("   🗑️ Removing tile at [\(row),\(col)] with step \(step) (\(label))")
                     removedSteps.insert(step)
@@ -2087,7 +2087,7 @@ public final class GameEngine {
         }
 
         if didRemove {
-            print("   ✅ Eliminated \(removedCount) tiles below step \(thresholdStep)")
+            print("   ✅ Eliminated \(removedCount) tiles at or below step \(thresholdStep)")
             print("      Removed steps: \(removedSteps.sorted())")
             refillAfterGravity()
             print("   ✅ Board refilled with higher-value tiles only")
