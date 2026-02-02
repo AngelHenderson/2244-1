@@ -5205,6 +5205,9 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -5256,6 +5259,9 @@ public extension LeaderboardClient {
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        // Filter out infinity players (they belong in Hall of Fame only)
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
 
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
