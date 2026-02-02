@@ -62,7 +62,7 @@ public final class AchievementEvaluator {
     private let achievementBoostExpirationKey = "achievementBoost.expiresAt"
     private let defaults = UserDefaults.standard
 
-    /// Returns the current achievement boost multiplier (2, 3, or 5 if boost is active, 1 otherwise)
+    /// Returns the current achievement boost multiplier (2, 3, 5, 8, or 11 if boost is active, 1 otherwise)
     private var achievementBoostMultiplier: Int {
         guard let expiration = defaults.object(forKey: achievementBoostExpirationKey) as? Date,
               expiration > Date(),
@@ -77,6 +77,10 @@ public final class AchievementEvaluator {
             return 3
         case "achievement_boost_5x":
             return 5
+        case "achievement_boost_8x":
+            return 8
+        case "achievement_boost_11x":
+            return 11
         default:
             return 1
         }
