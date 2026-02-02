@@ -221,8 +221,14 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        // Handle tap/select/drag sounds - play instrument-specific sounds
-        if name == "tap" || name == "select" || name == "drag" {
+        // Handle select sound - play subtle tick (not instrument tap, to avoid extra notes)
+        if name == "select" {
+            await playChainTickSound()
+            return
+        }
+
+        // Handle tap/drag sounds - play instrument-specific sounds
+        if name == "tap" || name == "drag" {
             print("🎹 Playing instrument sound for: \(name), theme: \(currentTheme)")
             await playInstrumentTapSound(theme: currentTheme)
             return
