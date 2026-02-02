@@ -1343,7 +1343,7 @@ public enum MockLeaderboardData {
 
         // Additional popular countries (no leaderboard data yet)
         let additionalCountries = [
-            "PT", "GR", "CZ", "RO", "HU", "NZ",
+            "GR", "CZ", "RO", "HU", "NZ",
             "SG", "MY", "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
             "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
         ]
