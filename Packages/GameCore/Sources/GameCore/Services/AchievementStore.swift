@@ -1614,9 +1614,13 @@ public final class AchievementStore {
         let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
         // Can't go past the max tier
         let maxTier = Self.leaderboardRankTiers.count - 1
-        // Also cap at current qualifying tier - can't show/claim higher tier if rank doesn't qualify
-        let qualifyingTier = leaderboardRankTier >= 0 ? leaderboardRankTier : 0
-        return min(nextTierToClaimIndex, maxTier, qualifyingTier)
+        // Only cap at qualifying tier if we have a valid rank
+        // If no rank yet, just show next tier to claim
+        if currentLeaderboardRank > 0 {
+            let qualifyingTier = leaderboardRankTier
+            return min(nextTierToClaimIndex, maxTier, qualifyingTier)
+        }
+        return min(nextTierToClaimIndex, maxTier)
     }
 
     private var currentLeaderboardRankTier: ComboTierDefinition {

@@ -57,7 +57,7 @@ public final class AchievementEvaluator {
     private let boost5xUsesKey = "powerUses.boost5x"
     private let boost20xUsesKey = "powerUses.boost20x"
     private let wheelCollectsKey = "wheelCollects.total"
-    private let currentLeaderboardRankKey = "leaderboard.currentRank"
+    private let currentLeaderboardRankKey = "currentLeaderboardRank"
     private let achievementBoostTierKey = "achievementBoost.activeTierID"
     private let achievementBoostExpirationKey = "achievementBoost.expiresAt"
     private let defaults = UserDefaults.standard
