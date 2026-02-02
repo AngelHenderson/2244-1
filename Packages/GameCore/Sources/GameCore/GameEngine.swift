@@ -1927,18 +1927,25 @@ public final class GameEngine {
         if !positionsToEliminate.isEmpty {
             print("   ✅ Found \(removedCount) tiles of value \(value)")
 
-            if deferElimination {
-                // Store positions for later elimination by UI
-                pendingEliminationPositions.append(contentsOf: positionsToEliminate)
-                print("   ⏳ Deferred elimination - waiting for UI animation")
-            } else {
-                // Immediate elimination
-                for pos in positionsToEliminate {
-                    state.board[pos] = nil
+            // Track eliminated tiles for UI animation
+            var eliminatedInfo: [EliminatedTileInfo] = []
+            for pos in positionsToEliminate {
+                if let tile = state.board[pos] {
+                    eliminatedInfo.append(EliminatedTileInfo(
+                        position: pos,
+                        value: tile.value,
+                        step: tile.stepIndex
+                    ))
                 }
-                refillAfterGravity()
-                print("   ✅ Board refilled with higher-value tiles only")
             }
+            lastMilestoneEliminatedTiles.append(contentsOf: eliminatedInfo)
+
+            // Perform elimination
+            for pos in positionsToEliminate {
+                state.board[pos] = nil
+            }
+            refillAfterGravity()
+            print("   ✅ Board refilled with higher-value tiles only")
         }
     }
 
@@ -2148,14 +2155,7 @@ public final class GameEngine {
             print("   ✅ Board refilled with higher-value tiles only")
         } else {
             print("   ℹ️ No tiles found at or below step threshold \(thresholdStep)")
-        print("   ✅ Board refilled after deferred elimination")
-
-        return state
-    }
-
-    /// Clear pending elimination without performing it (e.g., if cancelled)
-    public func clearPendingElimination() {
-        pendingEliminationPositions = []
+        }
     }
 
     // MARK: - Auto-Cascade Merge System

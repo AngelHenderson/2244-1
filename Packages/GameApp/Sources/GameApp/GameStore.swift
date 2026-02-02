@@ -110,8 +110,8 @@ public final class GameStore {
     private var refillRevealTask: Task<Void, Never>? = nil
     private var mergeCleanupTask: Task<Void, Never>? = nil
     public private(set) var hammerAnimationState: HammerAnimationState? = nil
-    // Elimination animation state - positions that are being eliminated
-    public private(set) var eliminationAnimationPositions: Set<Position> = []
+    // Milestone elimination ghost animation - shows tiles fading out after elimination
+    public private(set) var milestoneEliminatedTiles: [GameEngine.EliminatedTileInfo] = []
     // Gift reward sheet state
     public var pendingGiftReward: GiftReward? = nil
     private let journeyAbbreviationClaimsKey = "journeyAbbreviationClaims"
@@ -904,44 +904,33 @@ public final class GameStore {
                 
                 // 3. Commit (Shatter/Fly complete, now apply logic)
                 print("[GameStore] Phase 3: Commit (Logic)")
-                var (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
+                let (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
 
-                // 3b. Check for pending elimination (milestone reached)
-                let pendingEliminations = self.engine.pendingEliminationPositions
-                if !pendingEliminations.isEmpty {
-                    print("[GameStore] Phase 3b: Elimination Animation (\(pendingEliminations.count) tiles)")
-                    // Set positions for UI to animate (tiles should fade/disappear)
-                    self.eliminationAnimationPositions = Set(pendingEliminations)
+                // 3b. Check if milestone elimination happened (show ghost animation)
+                let eliminatedTiles = self.engine.lastMilestoneEliminatedTiles
+                if !eliminatedTiles.isEmpty {
+                    print("[GameStore] Phase 3b: Milestone Elimination Animation (\(eliminatedTiles.count) tiles)")
+                    // Store eliminated tile info for ghost animation overlay
+                    self.milestoneEliminatedTiles = eliminatedTiles
 
-                    // Wait for elimination animation
+                    // Wait for ghost animation to play
                     try await Task.sleep(nanoseconds: Self.eliminationAnimationDelay)
 
                     if Task.isCancelled {
-                        print("[GameStore] Task cancelled during elimination")
-                        self.engine.clearPendingElimination()
-                        self.engine.deferElimination = false
-                        self.eliminationAnimationPositions = []
+                        print("[GameStore] Task cancelled during elimination animation")
+                        self.milestoneEliminatedTiles = []
+                        self.engine.clearLastMilestoneElimination()
                         self.isInputLocked = false
                         return
                     }
 
-                    // Perform the actual elimination (removes tiles, applies gravity, refills)
-                    print("[GameStore] Phase 3c: Perform Elimination")
-                    let newState = self.engine.performPendingElimination()
-                    self.state = newState
-
                     // Clear animation state
-                    self.eliminationAnimationPositions = []
-
-                    // Update affected columns since elimination changed the board
-                    affectedColumns = self.columnsWithEmpties(in: self.state.board)
+                    self.milestoneEliminatedTiles = []
+                    self.engine.clearLastMilestoneElimination()
                 }
 
-                // Reset deferred elimination mode
-                self.engine.deferElimination = false
-
                 if requiresGravityDrop {
-                    print("[GameStore] Phase 3d: Gravity Drop")
+                    print("[GameStore] Phase 3c: Gravity Drop")
                     self.performGravityDrop(columns: affectedColumns)
                 }
 
@@ -1025,9 +1014,6 @@ public final class GameStore {
 
         // Track newly shattered glass tiles (row 0)
         var newlyBrokenGlass: [Position] = []
-
-        // Enable deferred elimination so UI can animate it
-        engine.deferElimination = true
 
         // Check if ending on gift and use appropriate commit method
         let endsOnGift = lastPos.map { BoardIndex($0) }.map { state.board[$0].kind == .gift } ?? false

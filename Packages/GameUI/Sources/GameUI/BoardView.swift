@@ -32,6 +32,7 @@ public struct BoardView: View {
                 mergeAnimationOverlay(tileSize: tileSize, containerSize: geometry.size)
                 magnetOverlay(tileSize: tileSize, containerSize: geometry.size)
                 hammerOverlay(tileSize: tileSize, containerSize: geometry.size)
+                milestoneEliminationOverlay(tileSize: tileSize, containerSize: geometry.size)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
@@ -72,7 +73,6 @@ public struct BoardView: View {
                         let position = Position(row: row, col: col)
                         ZStack {
                             if let tile = gameStore.state.board[position] {
-                            let isEliminating = isBeingEliminated(at: position)
                             TileView(
                                     tile: tile,
                                 isSelected: gameStore.currentPath.contains(position),
@@ -81,9 +81,7 @@ public struct BoardView: View {
                                 colorBlindMode: colorBlindMode,
                                 theme: currentTheme
                             )
-                                .opacity(shouldHideTile(at: position) ? 0 : (isEliminating ? 0 : 1))
-                                .scaleEffect(isEliminating ? 0.1 : 1.0)
-                                .animation(.easeOut(duration: 0.4), value: isEliminating)
+                                .opacity(shouldHideTile(at: position) ? 0 : 1)
                                 .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                             }
                             
@@ -231,8 +229,25 @@ public struct BoardView: View {
         return false
     }
 
-    private func isBeingEliminated(at position: Position) -> Bool {
-        gameStore.eliminationAnimationPositions.contains(position)
+    @ViewBuilder
+    private func milestoneEliminationOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
+        // Show ghost tiles for eliminated tiles (they fade out after milestone elimination)
+        // These tiles have already been removed from the board, so we render them as an overlay
+        if tileSize > 0 {
+            ZStack {
+                ForEach(gameStore.milestoneEliminatedTiles, id: \.position) { info in
+                    let center = centerPoint(for: info.position, tileSize: tileSize, containerSize: containerSize)
+                    EliminationGhostTile(
+                        value: info.value,
+                        size: tileSize,
+                        colorBlindMode: colorBlindMode,
+                        theme: currentTheme
+                    )
+                    .position(center)
+                }
+            }
+            .allowsHitTesting(false)
+        }
     }
     
     private func dragGesture(tileSize: CGFloat, containerSize: CGSize) -> some Gesture {
@@ -427,6 +442,37 @@ public struct BoardView: View {
             return Angle(degrees: -35)
         case .impact:
             return Angle(degrees: 15)
+        }
+    }
+}
+
+/// Ghost tile that animates fade-out when appearing (for milestone elimination)
+private struct EliminationGhostTile: View {
+    let value: Int
+    let size: CGFloat
+    let colorBlindMode: Bool
+    let theme: ThemeDescriptor?
+
+    @State private var opacity: Double = 1.0
+    @State private var scale: Double = 1.0
+
+    var body: some View {
+        TileView(
+            tile: Tile(value: value),
+            isSelected: false,
+            isValid: true,
+            size: size,
+            colorBlindMode: colorBlindMode,
+            theme: theme
+        )
+        .opacity(opacity)
+        .scaleEffect(scale)
+        .onAppear {
+            // Start the fade-out animation when the ghost tile appears
+            withAnimation(.easeOut(duration: 0.4)) {
+                opacity = 0
+                scale = 0.3
+            }
         }
     }
 }
