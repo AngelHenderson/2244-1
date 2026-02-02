@@ -374,38 +374,10 @@ private struct CountryPickerView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
 
-    // Countries ordered by player count (popularity)
-    private let popularCountries = [
-        "FR",  // 127,676
-        "DK",  // 90,123
-        "FI",  // 87,654
-        "US",  // 84,721
-        "DE",  // 76,767
-        "PL",  // 67,108
-        "AU",  // 63,213
-        "NL",  // 46,767
-        "NO",  // 34,924
-        "CH",  // 20,000
-        "GB",  // 17,676
-        "ES",  // 14,399
-        "IT",  // 13,856
-        "CA",  // 12,847
-        "AL",  // 11,222
-        "AF",  // 11,111
-        "BR",  // 10,000
-        "BE",  // 8,989
-        "CN",  // 8,192
-        "MX",  // 7,229
-        "SE",  // 6,288
-        "DZ",  // 3,333
-        "KR",  // 3,123
-        "IN",  // 1,488
-        "JP",  // 894
-        // Additional popular countries (no leaderboard data yet)
-        "AT", "IE", "PT", "GR", "CZ", "RO", "HU", "NZ",
-        "SG", "MY", "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
-        "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
-    ]
+    // Countries with leaderboards, sorted by player count (popularity)
+    private var popularCountries: [String] {
+        MockLeaderboardData.countriesWithLeaderboardsSortedByPopularity()
+    }
 
     private var filteredPopularCountries: [String] {
         if searchText.isEmpty {

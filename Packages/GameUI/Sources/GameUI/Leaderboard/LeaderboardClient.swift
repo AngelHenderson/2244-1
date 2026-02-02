@@ -1183,9 +1183,33 @@ public enum MockLeaderboardData {
             return nil
         }
 
-        // Apply progression to match actual leaderboard display
-        let baseMilestone = milestones[index]
-        return milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: index + countrySeed, day: day)
+        // Build list of all progressed milestones with their indices
+        var progressedData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int)] = []
+        for i in 0..<min(150, milestones.count) {
+            let baseMilestone = milestones[i]
+            let progressedMilestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + countrySeed, day: day)
+
+            // Skip infinity players (they're filtered from country leaderboards)
+            if progressedMilestone.hasSuffix("∞") { continue }
+
+            let milestoneIdx = milestoneIndex(for: progressedMilestone)
+            progressedData.append((i, progressedMilestone, milestoneIdx))
+        }
+
+        // Sort by milestone index (highest first = best milestone)
+        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        progressedData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        // Return the milestone at the requested rank position
+        guard index < progressedData.count else {
+            return nil
+        }
+        return progressedData[index].progressedMilestone
     }
 
     /// Get the milestone for a rank in the extended brackets (ranks 151+)
@@ -1273,6 +1297,56 @@ public enum MockLeaderboardData {
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
         }
+    }
+
+    /// Returns all countries that have leaderboard data, sorted by player count (popularity) descending,
+    /// followed by additional popular countries without leaderboard data yet
+    public static func countriesWithLeaderboardsSortedByPopularity() -> [String] {
+        let day = daysSinceReference
+
+        // Countries with leaderboard data and their base player counts
+        let countryPlayerCounts: [(code: String, players: Int)] = [
+            ("FR", 127_676),
+            ("DK", 90_123),
+            ("FI", 87_654),
+            ("US", totalPlayers(on: day, isUS: true)),
+            ("DE", 76_767),
+            ("PL", 67_108),
+            ("AU", 63_213),
+            ("NL", 46_767),
+            ("NO", 34_924),
+            ("IE", 34_567),
+            ("CH", 20_000),
+            ("GB", 17_676),
+            ("ES", 14_399),
+            ("IT", 13_856),
+            ("CA", 12_847),
+            ("AL", 11_222),
+            ("AF", 11_111),
+            ("BR", 10_000),
+            ("BE", 8_989),
+            ("CN", 8_192),
+            ("AT", 7_543),
+            ("MX", 7_229),
+            ("SE", 6_288),
+            ("DZ", 3_333),
+            ("KR", 3_123),
+            ("IN", 1_488),
+            ("JP", 894)
+        ]
+
+        let countriesWithLeaderboards = countryPlayerCounts
+            .sorted { $0.players > $1.players }
+            .map { $0.code }
+
+        // Additional popular countries (no leaderboard data yet)
+        let additionalCountries = [
+            "PT", "GR", "CZ", "RO", "HU", "NZ",
+            "SG", "MY", "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
+            "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
+        ]
+
+        return countriesWithLeaderboards + additionalCountries
     }
 
     /// Helper to count better players in a single country
