@@ -140,6 +140,19 @@ public final class GameEngine {
     private var eliminatedMilestones: Set<Int> = []
     // Track which milestone steps have been reached (step-based for >= step 62)
     private var eliminatedMilestoneSteps: Set<Int> = []
+
+    // Track eliminated tiles for UI animation (positions and their values/steps before removal)
+    public struct EliminatedTileInfo: Equatable, Sendable {
+        public let position: Position
+        public let value: Int
+        public let step: Int?
+    }
+    public private(set) var lastMilestoneEliminatedTiles: [EliminatedTileInfo] = []
+
+    /// Clears the last eliminated tiles tracking (call after animation completes)
+    public func clearLastMilestoneElimination() {
+        lastMilestoneEliminatedTiles = []
+    }
     
     public init(config: GameConfig = GameConfig()) {
         self.config = config
@@ -1897,35 +1910,44 @@ public final class GameEngine {
     }
     
     private func eliminateAllTiles(withValue value: Int) {
-        var didRemove = false
         var removedCount = 0
+        var positionsToEliminate: [Position] = []
 
-        // IMMEDIATELY scan and remove ALL tiles with this value
+        // Scan for ALL tiles with this value
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
                 if let tile = state.board[pos], tile.value == value {
-                    state.board[pos] = nil
-                    didRemove = true
+                    positionsToEliminate.append(pos)
                     removedCount += 1
                 }
             }
         }
 
-        if didRemove {
-            print("   ✅ Eliminated \(removedCount) tiles of value \(value)")
-            // IMMEDIATELY pull down and refill so the board stays valid
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
+        if !positionsToEliminate.isEmpty {
+            print("   ✅ Found \(removedCount) tiles of value \(value)")
+
+            if deferElimination {
+                // Store positions for later elimination by UI
+                pendingEliminationPositions.append(contentsOf: positionsToEliminate)
+                print("   ⏳ Deferred elimination - waiting for UI animation")
+            } else {
+                // Immediate elimination
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            }
         }
     }
 
     private func eliminateAllTilesBelowThreshold(threshold: Int) {
-        var didRemove = false
         var removedCount = 0
         var removedValues = Set<Int>()
+        var positionsToEliminate: [Position] = []
 
-        print("🔍 ELIMINATION DEBUG: Scanning board for tiles below \(threshold)")
+        print("🔍 ELIMINATION DEBUG: Scanning board for tiles at or below \(threshold)")
 
         // Log all tiles on board before elimination
         var allTileValues: [Int] = []
@@ -1939,28 +1961,37 @@ public final class GameEngine {
         }
         print("   Current board values: \(allTileValues.sorted())")
 
-        // Remove ALL tiles at or below the threshold
+        // Find ALL tiles at or below the threshold
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
                 if let tile = state.board[pos], tile.value <= threshold {
-                    print("   🗑️ Removing tile at [\(row),\(col)] with value \(tile.value)")
+                    print("   🗑️ Marking tile for elimination at [\(row),\(col)] with value \(tile.value)")
                     removedValues.insert(tile.value)
-                    state.board[pos] = nil
-                    didRemove = true
+                    positionsToEliminate.append(pos)
                     removedCount += 1
                 }
             }
         }
 
-        if didRemove {
-            print("   ✅ Eliminated \(removedCount) tiles at or below \(threshold)")
-            print("      Removed values: \(removedValues.sorted())")
-            // IMMEDIATELY pull down and refill so the board stays valid
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
+        if !positionsToEliminate.isEmpty {
+            print("   ✅ Found \(removedCount) tiles at or below \(threshold)")
+            print("      Values to remove: \(removedValues.sorted())")
+
+            if deferElimination {
+                // Store positions for later elimination by UI
+                pendingEliminationPositions = positionsToEliminate
+                print("   ⏳ Deferred elimination - waiting for UI animation")
+            } else {
+                // Immediate elimination
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            }
         } else {
-            print("   ℹ️ No tiles found below threshold \(threshold)")
+            print("   ℹ️ No tiles found at or below threshold \(threshold)")
         }
     }
 
@@ -2050,12 +2081,12 @@ public final class GameEngine {
 
     /// Eliminate all tiles with stepIndex below the threshold step
     private func eliminateAllTilesBelowStep(_ thresholdStep: Int) {
-        var didRemove = false
         var removedCount = 0
         var removedSteps = Set<Int>()
+        var positionsToEliminate: [Position] = []
 
         let thresholdLabel = TileStepLabelFormatter.labelForStep(thresholdStep)
-        print("🔍 STEP ELIMINATION DEBUG: Scanning board for tiles below step \(thresholdStep) (\(thresholdLabel))")
+        print("🔍 STEP ELIMINATION DEBUG: Scanning board for tiles at or below step \(thresholdStep) (\(thresholdLabel))")
 
         // Log all tiles on board before elimination
         var tileInfo: [(step: Int, label: String, pos: Position)] = []
@@ -2071,29 +2102,74 @@ public final class GameEngine {
         let sortedInfo = tileInfo.sorted { $0.step < $1.step }
         print("   Current board tiles: \(sortedInfo.map { "[\($0.label) step:\($0.step)]" }.joined(separator: ", "))")
 
-        // Remove ALL tiles with step at or below the threshold
+        // Find ALL tiles with step at or below the threshold
         for row in 0..<config.boardHeight {
             for col in 0..<config.boardWidth {
                 let pos = Position(row: row, col: col)
                 if let tile = state.board[pos], let step = tile.stepIndex, step <= thresholdStep {
                     let label = TileStepLabelFormatter.labelForStep(step)
-                    print("   🗑️ Removing tile at [\(row),\(col)] with step \(step) (\(label))")
+                    print("   🗑️ Marking tile for elimination at [\(row),\(col)] with step \(step) (\(label))")
                     removedSteps.insert(step)
-                    state.board[pos] = nil
-                    didRemove = true
+                    positionsToEliminate.append(pos)
                     removedCount += 1
                 }
             }
         }
 
-        if didRemove {
-            print("   ✅ Eliminated \(removedCount) tiles at or below step \(thresholdStep)")
-            print("      Removed steps: \(removedSteps.sorted())")
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
+        if !positionsToEliminate.isEmpty {
+            print("   ✅ Found \(removedCount) tiles at or below step \(thresholdStep)")
+            print("      Steps to remove: \(removedSteps.sorted())")
+
+            if deferElimination {
+                // Store positions for later elimination by UI
+                pendingEliminationPositions = positionsToEliminate
+                print("   ⏳ Deferred elimination - waiting for UI animation")
+            } else {
+                // Immediate elimination
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            }
         } else {
-            print("   ℹ️ No tiles found below step threshold \(thresholdStep)")
+            print("   ℹ️ No tiles found at or below step threshold \(thresholdStep)")
         }
+    }
+
+    /// Perform the pending elimination after UI animation completes.
+    /// This removes the tiles, applies gravity, and refills the board.
+    /// Returns the new game state.
+    public func performPendingElimination() -> GameState {
+        guard !pendingEliminationPositions.isEmpty else {
+            print("⚠️ performPendingElimination called with no pending positions")
+            return state
+        }
+
+        print("🗑️ Performing deferred elimination of \(pendingEliminationPositions.count) tiles")
+
+        // Remove the tiles
+        for pos in pendingEliminationPositions {
+            if let tile = state.board[pos] {
+                let label = tile.stepIndex.map { TileStepLabelFormatter.labelForStep($0) } ?? "\(tile.value)"
+                print("   Removing \(label) at \(pos)")
+            }
+            state.board[pos] = nil
+        }
+
+        // Clear pending positions
+        pendingEliminationPositions = []
+
+        // Apply gravity and refill
+        refillAfterGravity()
+        print("   ✅ Board refilled after deferred elimination")
+
+        return state
+    }
+
+    /// Clear pending elimination without performing it (e.g., if cancelled)
+    public func clearPendingElimination() {
+        pendingEliminationPositions = []
     }
 
     // MARK: - Auto-Cascade Merge System

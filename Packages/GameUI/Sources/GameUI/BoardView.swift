@@ -72,6 +72,7 @@ public struct BoardView: View {
                         let position = Position(row: row, col: col)
                         ZStack {
                             if let tile = gameStore.state.board[position] {
+                            let isEliminating = isBeingEliminated(at: position)
                             TileView(
                                     tile: tile,
                                 isSelected: gameStore.currentPath.contains(position),
@@ -80,7 +81,9 @@ public struct BoardView: View {
                                 colorBlindMode: colorBlindMode,
                                 theme: currentTheme
                             )
-                                .opacity(shouldHideTile(at: position) ? 0 : 1)
+                                .opacity(shouldHideTile(at: position) ? 0 : (isEliminating ? 0 : 1))
+                                .scaleEffect(isEliminating ? 0.1 : 1.0)
+                                .animation(.easeOut(duration: 0.4), value: isEliminating)
                                 .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                             }
                             
@@ -226,6 +229,10 @@ public struct BoardView: View {
         if gameStore.pendingGiftBoxes[position] != nil { return true }
         if gameStore.pendingRefillPositions.contains(position) { return true }
         return false
+    }
+
+    private func isBeingEliminated(at position: Position) -> Bool {
+        gameStore.eliminationAnimationPositions.contains(position)
     }
     
     private func dragGesture(tileSize: CGFloat, containerSize: CGSize) -> some Gesture {

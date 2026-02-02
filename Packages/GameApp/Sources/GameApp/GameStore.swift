@@ -110,6 +110,8 @@ public final class GameStore {
     private var refillRevealTask: Task<Void, Never>? = nil
     private var mergeCleanupTask: Task<Void, Never>? = nil
     public private(set) var hammerAnimationState: HammerAnimationState? = nil
+    // Elimination animation state - positions that are being eliminated
+    public private(set) var eliminationAnimationPositions: Set<Position> = []
     // Gift reward sheet state
     public var pendingGiftReward: GiftReward? = nil
     private let journeyAbbreviationClaimsKey = "journeyAbbreviationClaims"
@@ -902,23 +904,57 @@ public final class GameStore {
                 
                 // 3. Commit (Shatter/Fly complete, now apply logic)
                 print("[GameStore] Phase 3: Commit (Logic)")
-                let (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
-                
+                var (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
+
+                // 3b. Check for pending elimination (milestone reached)
+                let pendingEliminations = self.engine.pendingEliminationPositions
+                if !pendingEliminations.isEmpty {
+                    print("[GameStore] Phase 3b: Elimination Animation (\(pendingEliminations.count) tiles)")
+                    // Set positions for UI to animate (tiles should fade/disappear)
+                    self.eliminationAnimationPositions = Set(pendingEliminations)
+
+                    // Wait for elimination animation
+                    try await Task.sleep(nanoseconds: Self.eliminationAnimationDelay)
+
+                    if Task.isCancelled {
+                        print("[GameStore] Task cancelled during elimination")
+                        self.engine.clearPendingElimination()
+                        self.engine.deferElimination = false
+                        self.eliminationAnimationPositions = []
+                        self.isInputLocked = false
+                        return
+                    }
+
+                    // Perform the actual elimination (removes tiles, applies gravity, refills)
+                    print("[GameStore] Phase 3c: Perform Elimination")
+                    let newState = self.engine.performPendingElimination()
+                    self.state = newState
+
+                    // Clear animation state
+                    self.eliminationAnimationPositions = []
+
+                    // Update affected columns since elimination changed the board
+                    affectedColumns = self.columnsWithEmpties(in: self.state.board)
+                }
+
+                // Reset deferred elimination mode
+                self.engine.deferElimination = false
+
                 if requiresGravityDrop {
-                    print("[GameStore] Phase 3b: Gravity Drop")
+                    print("[GameStore] Phase 3d: Gravity Drop")
                     self.performGravityDrop(columns: affectedColumns)
                 }
-                
+
                 // Wait for gravity animation (tiles dropping)
                 // Assuming standard spring animation duration ~0.35s
                 try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
-                
+
                 if Task.isCancelled {
                     print("[GameStore] Task cancelled after gravity")
                     self.isInputLocked = false
                     return
                 }
-                
+
                 // 4. Refill Phase
                 print("[GameStore] Phase 4: Refill")
                 self.performRefill(columns: affectedColumns)
@@ -989,10 +1025,13 @@ public final class GameStore {
 
         // Track newly shattered glass tiles (row 0)
         var newlyBrokenGlass: [Position] = []
-        
+
+        // Enable deferred elimination so UI can animate it
+        engine.deferElimination = true
+
         // Check if ending on gift and use appropriate commit method
         let endsOnGift = lastPos.map { BoardIndex($0) }.map { state.board[$0].kind == .gift } ?? false
-        
+
         let newState: GameState
         let requiresGravityDrop = true
         if endsOnGift {
@@ -1155,6 +1194,7 @@ public final class GameStore {
     private static let magnetSuckDelay: UInt64 = 400_000_000
     private static let hammerWindupDelay: UInt64 = 250_000_000
     private static let hammerImpactDelay: UInt64 = 250_000_000
+    private static let eliminationAnimationDelay: UInt64 = 500_000_000  // 0.5s for elimination fade
     
     private func applyStateUpdate(
         _ newState: GameState,
@@ -3317,7 +3357,7 @@ extension GameStore {
         UserDefaults.standard.set(true, forKey: "hasFreeSpinBadge")
         UserDefaults.standard.set(true, forKey: "hasShopBadge")
         UserDefaults.standard.set(true, forKey: "hasProfileBadge")
-        UserDefaults.standard.set(true, forKey: "hasAchievementsBadge")
+        // achievementsBadgeCount is calculated dynamically from AchievementStore.claimableCount
         
         // Save unlock states
         UserDefaults.standard.set(true, forKey: "isCreateLocked")

@@ -18,7 +18,7 @@ public final class HomeState {
     public var hasFreeSpinBadge = true
     public var hasShopBadge = true
     public var hasProfileBadge = true
-    public var hasAchievementsBadge = true
+    public var achievementsBadgeCount: Int = 0
     public var isCreateLocked = true
     public var isChallengeLocked = true
     // Unlock thresholds (power-of-two milestones)

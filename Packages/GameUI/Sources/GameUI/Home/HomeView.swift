@@ -7,6 +7,7 @@ public struct HomeView: View {
     private let managesBackground: Bool
     @Environment(HomeState.self) private var state
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
+    @Environment(AchievementStore.self) private var achievementStore
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
     @Environment(\.toastManager) private var toastManager
@@ -217,7 +218,7 @@ public struct HomeView: View {
                     dockItem(
                         system: "star.circle.fill",
                         title: "Achievements",
-                        badge: state.hasAchievementsBadge,
+                        badgeCount: state.achievementsBadgeCount,
                         action: { isShowingAchievements = true }
                     )
                     dockItem(
@@ -289,9 +290,16 @@ public struct HomeView: View {
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)
+        // Update achievements badge count
+        .onAppear {
+            state.achievementsBadgeCount = achievementStore.claimableCount
+        }
+        .onChange(of: achievementStore.claimableCount) { _, newCount in
+            state.achievementsBadgeCount = newCount
+        }
     }
 
-    private func dockItem(system: String, title: String, badge: Bool = false, action: @escaping () -> Void) -> some View {
+    private func dockItem(system: String, title: String, badge: Bool = false, badgeCount: Int = 0, action: @escaping () -> Void) -> some View {
         if #available(iOS 26.0, macOS 26.0, *) {
             return AnyView(
                 Button(action: action) {
@@ -309,6 +317,18 @@ public struct HomeView: View {
                         }
                     }
                     .padding(4)
+                    .overlay(alignment: .topTrailing) {
+                        if badgeCount > 0 {
+                            Text("\(badgeCount)")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color.red)
+                                .clipShape(Capsule())
+                                .offset(x: 6, y: -4)
+                        }
+                    }
                 }
                 .buttonStyle(.glass)
             )
@@ -328,6 +348,18 @@ public struct HomeView: View {
                         }
                     }
                     .padding(4)
+                    .overlay(alignment: .topTrailing) {
+                        if badgeCount > 0 {
+                            Text("\(badgeCount)")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color.red)
+                                .clipShape(Capsule())
+                                .offset(x: 6, y: -4)
+                        }
+                    }
                 }
             )
         }
