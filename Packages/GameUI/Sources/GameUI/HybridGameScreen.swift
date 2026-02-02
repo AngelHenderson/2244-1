@@ -103,10 +103,10 @@ public struct HybridGameScreen: View {
 
         // Break down the complex expression into smaller parts
         // iPhone (compact): horizontal dock below HUD
-        // iPad (regular): vertical dock on trailing edge
+        // iPad (regular): vertical dock on trailing edge (using HStack)
         let isCompact = horizontalSizeClass == .compact
 
-        let baseView = mainGameView
+        let gameContent = mainGameView
             .safeAreaInset(edge: .top) {
                 Group {
                     if isCompact {
@@ -123,14 +123,6 @@ public struct HybridGameScreen: View {
                     }
                 }
             }
-            .overlay(alignment: .trailing) {
-                Group {
-                    if !isCompact {
-                        verticalDock
-                            .padding(.top, 80)
-                    }
-                }
-            }
             .overlay(alignment: .top) {
                 Group {
                     if isShowingTopMergeTile, let v = topMergeTileValue {
@@ -138,7 +130,23 @@ public struct HybridGameScreen: View {
                     }
                 }
             }
-            .padding(.trailing, isCompact ? 0 : 70) // Make room for vertical dock on iPad
+
+        // iPad: Use HStack to place dock on the right without overlapping
+        let baseView: some View = Group {
+            if isCompact {
+                gameContent
+            } else {
+                HStack(spacing: 0) {
+                    gameContent
+                    VStack {
+                        Spacer()
+                            .frame(height: 120)
+                        verticalDock
+                        Spacer()
+                    }
+                }
+            }
+        }
         
         let pauseSheet = baseView
             .adaptiveSheet(isPresented: $isShowingPause) {
