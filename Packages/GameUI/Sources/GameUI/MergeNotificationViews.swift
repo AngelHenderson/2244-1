@@ -24,9 +24,21 @@ struct UnlockedNotificationView: View {
     let value: Int
     let onClose: () -> Void
     @Environment(\.gameStore) private var gameStore
-    @State private var showClaimOption = false
-    @State private var selectedMultiplier = 1
+    @Environment(\.audio) private var audioService
     @State private var celebrationPhrase = CelebrationPhrases.random()
+
+    // Physics-based spinner state
+    @State private var scrollOffset: CGFloat = 0
+    @State private var velocity: CGFloat = 0
+    @State private var isSpinning = false
+    @State private var didClaim = false
+    @State private var animationTimer: Timer?
+    @State private var lastCellIndex: Int = 0
+
+    // Spinner configuration
+    private let multipliers: [Int] = [2, 3, 4, 5, 4, 3, 2]
+    private let cellWidth: CGFloat = 50
+    private let spinSpeed: CGFloat = 400  // pixels per second
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -78,15 +90,33 @@ struct UnlockedNotificationView: View {
         return (nil, (tileLabel, step), nil)
     }
 
-    private var gemReward: Int {
+    // Current multiplier based on scroll position
+    private var currentMultiplierIndex: Int {
+        let totalWidth = cellWidth * CGFloat(multipliers.count)
+        let normalizedOffset = scrollOffset.truncatingRemainder(dividingBy: totalWidth)
+        let adjusted = normalizedOffset < 0 ? normalizedOffset + totalWidth : normalizedOffset
+        let index = Int(adjusted / cellWidth) % multipliers.count
+        return index
+    }
+
+    private var currentMultiplier: Int {
+        multipliers[currentMultiplierIndex]
+    }
+
+    private var baseReward: Int {
+        // Use pending unlock reward if available, otherwise calculate from tier
+        if let base = gameStore.pendingUnlockRewardBase {
+            return base
+        }
+
         // For high-value tiles, use step-based reward formula
         if value >= Int.max / 2 {
             let step = gameStore.state.highestTileStep
             // Formula: 50 gems for step 8 (512), then +2 per step
             if step >= 8 {
-                return (50 + (step - 8) * 2) * selectedMultiplier
+                return 50 + (step - 8) * 2
             }
-            return 50 * selectedMultiplier
+            return 50
         }
 
         // Get gem reward from the reward curve based on tier
@@ -96,10 +126,14 @@ struct UnlockedNotificationView: View {
             let base = 75 + tierInfo.order * 25
             let normalized = Double(tierInfo.order) / Double(max(1, JourneyAbbreviationTiers.tiers.count))
             let scale = 1.0 + normalized * 2.0
-            return Int(Double(base) * scale) * selectedMultiplier
+            return Int(Double(base) * scale)
         }
         // Fallback for non-tier milestones
-        return 50 * selectedMultiplier
+        return 50
+    }
+
+    private var totalReward: Int {
+        baseReward * currentMultiplier
     }
 
     var body: some View {
@@ -136,7 +170,7 @@ struct UnlockedNotificationView: View {
                 }
             }
 
-            // Reward section
+            // Reward section with spinner
             VStack(spacing: 8) {
                 Text("Your Reward")
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
@@ -147,8 +181,10 @@ struct UnlockedNotificationView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 24, height: 24)
-                    Text("+\(gemReward)")
+                    Text("+\(totalReward)")
                         .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.15), value: totalReward)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
@@ -156,41 +192,153 @@ struct UnlockedNotificationView: View {
                 .cornerRadius(10)
             }
 
-            // Multiplier options
-            if showClaimOption {
-                MultiplierSelectorView(selectedMultiplier: $selectedMultiplier)
+            // Physics-based multiplier spinner
+            spinnerView
+                .padding(.vertical, 4)
 
-                Button(action: {
-                    // Claim with multiplier (watch ad if > 1)
-                    gameStore.claimJourneyReward(coins: gemReward)
-                    onClose()
-                }) {
-                    HStack {
-                        if selectedMultiplier > 1 {
-                            Image(systemName: "play.rectangle.fill")
-                            Text("Claim ×\(selectedMultiplier)")
-                        } else {
-                            Text("Continue")
-                        }
-                    }
-                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
+            // Claim button - stops spinner immediately
+            Button(action: claimReward) {
+                Text("STOP!")
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(selectedMultiplier > 1 ? Color.cyan : Color.blue)
-                    .cornerRadius(10)
-                }
-            } else {
-                Button("Continue") {
-                    showClaimOption = true
-                }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.red)
+                    .cornerRadius(12)
             }
         }
         .padding(20)
-        .presentationDetents([.height(360)])
+        .presentationDetents([.height(420)])
         .presentationDragIndicator(.visible)
+        .onAppear {
+            didClaim = false
+            startSpinner()
+        }
+        .onDisappear {
+            stopSpinner()
+            finalizeReward()
+        }
+    }
+
+    // MARK: - Physics Spinner View
+
+    private var spinnerView: some View {
+        ZStack {
+            // Background track
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(hex: "2A1B3D"))
+                .frame(height: 56)
+
+            // Scrolling multiplier strip
+            GeometryReader { geo in
+                let viewportWidth = geo.size.width
+                let totalWidth = cellWidth * CGFloat(multipliers.count)
+
+                HStack(spacing: 0) {
+                    // Repeat multipliers for seamless wrapping
+                    ForEach(0..<(multipliers.count * 3), id: \.self) { i in
+                        let index = i % multipliers.count
+                        multiplierCell(for: index)
+                    }
+                }
+                .offset(x: -scrollOffset - totalWidth + viewportWidth / 2 - cellWidth / 2)
+            }
+            .frame(height: 56)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+            // Center indicator
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color.white, lineWidth: 3)
+                .frame(width: cellWidth + 4, height: 52)
+                .shadow(color: .white.opacity(0.5), radius: 4)
+        }
+        .frame(height: 56)
+    }
+
+    private func multiplierCell(for index: Int) -> some View {
+        let colors: [Color] = [
+            Color(hex: "E646A0"),
+            Color(hex: "F5962A"),
+            Color(hex: "F4C229"),
+            Color(hex: "61C459"),
+            Color(hex: "F4C229"),
+            Color(hex: "F5962A"),
+            Color(hex: "E646A0")
+        ]
+        return Text("x\(multipliers[index])")
+            .font(.avenirNext(size: GameFonts.headlineSize, weight: .heavy))
+            .foregroundColor(.white)
+            .frame(width: cellWidth, height: 56)
+            .background(colors[index])
+    }
+
+    // MARK: - Physics Animation
+
+    private func startSpinner() {
+        isSpinning = true
+        lastCellIndex = 0
+        velocity = spinSpeed
+
+        // Use Timer for smooth 60fps animation
+        animationTimer?.invalidate()
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { [self] _ in
+            Task { @MainActor in
+                self.physicsStep()
+            }
+        }
+    }
+
+    private func stopSpinner() {
+        animationTimer?.invalidate()
+        animationTimer = nil
+        isSpinning = false
+        velocity = 0
+    }
+
+    private func physicsStep() {
+        guard isSpinning else { return }
+
+        let dt: CGFloat = 1.0 / 60.0
+
+        // Update position at constant speed
+        scrollOffset += velocity * dt
+
+        // Play tick sound on cell boundaries
+        let totalWidth = cellWidth * CGFloat(multipliers.count)
+        let currCell = Int(scrollOffset / cellWidth)
+        if currCell != lastCellIndex {
+            lastCellIndex = currCell
+            Task { await audioService.playSfx(name: "tick") }
+        }
+
+        // Wrap offset to prevent overflow
+        if scrollOffset > totalWidth * 2 {
+            scrollOffset -= totalWidth
+        }
+    }
+
+    // MARK: - Reward Claiming
+
+    private func claimReward() {
+        // Stop immediately
+        stopSpinner()
+
+        // Snap to center of current cell
+        let cellIndex = Int(scrollOffset / cellWidth)
+        let targetOffset = CGFloat(cellIndex) * cellWidth + cellWidth / 2
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.9)) {
+            scrollOffset = targetOffset
+        }
+
+        // Finalize and close
+        finalizeReward()
+        onClose()
+    }
+
+    private func finalizeReward() {
+        guard !didClaim else { return }
+        didClaim = true
+        gameStore.claimPendingUnlockReward(multiplier: currentMultiplier)
     }
 }
 
@@ -332,12 +480,13 @@ struct ExcludedNotificationView: View {
     }
 
     // For high-value tiles, elimination threshold = milestone - 14
-    // Highest eliminated tile is at step (milestone - 15)
+    // But spawn range is 5 tiles below highest after step 17
+    // The eliminated tile shown should be the highest tile no longer spawning
     private var displayStep: Int {
         if isHighValue {
             let highestStep = gameStore.state.highestTileStep
-            // Threshold = milestone - 14, highest eliminated = milestone - 15
-            return max(0, highestStep - 15)
+            // Eliminated = milestone - 12 (matches observed game behavior)
+            return max(0, highestStep - 12)
         }
         return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
     }

@@ -246,7 +246,9 @@ public struct HybridGameScreen: View {
                 // Initialize tempHomeState with current values
                 tempHomeState.gems = gameStore.coins
                 tempHomeState.rank = UserLeaderboardData.globalRank
-                isShowingUnlockReward = gameStore.pendingUnlockRewardBase != nil
+                // Only show unlock reward if there's no notification already pending
+                let hasUnlockNotification = gameStore.currentNotification != nil
+                isShowingUnlockReward = gameStore.pendingUnlockRewardBase != nil && !hasUnlockNotification
 
                 // Initialize comprehensive session tracking
                 gameStore.initializeSessionTracking()
@@ -267,7 +269,10 @@ public struct HybridGameScreen: View {
                 gameStore.saveProgressImmediately(newTile: nil)
             }
             .onChange(of: gameStore.pendingUnlockRewardBase) { _, newValue in
-                let shouldShow = newValue != nil
+                // Only show unlock reward sheet if there's no unlock notification already showing
+                // The UnlockedNotificationView already handles the reward claiming
+                let hasUnlockNotification = gameStore.currentNotification != nil
+                let shouldShow = newValue != nil && !hasUnlockNotification
                 if shouldShow != isShowingUnlockReward {
                     isShowingUnlockReward = shouldShow
                 }
