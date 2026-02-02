@@ -1613,7 +1613,10 @@ public final class AchievementStore {
         // Next tier to claim is one after highest claimed
         let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
         // Can't go past the max tier
-        return min(nextTierToClaimIndex, Self.leaderboardRankTiers.count - 1)
+        let maxTier = Self.leaderboardRankTiers.count - 1
+        // Also cap at current qualifying tier - can't show/claim higher tier if rank doesn't qualify
+        let qualifyingTier = leaderboardRankTier >= 0 ? leaderboardRankTier : 0
+        return min(nextTierToClaimIndex, maxTier, qualifyingTier)
     }
 
     private var currentLeaderboardRankTier: ComboTierDefinition {

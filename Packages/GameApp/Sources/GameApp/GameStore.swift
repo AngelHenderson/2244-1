@@ -1093,7 +1093,7 @@ public final class GameStore {
         // For high tiles (step >= 62), use step-based comparison since values overflow to Int.max
         if addedValue > 0 {
             if let resultPosition = lastPos {
-                incrementTierMasteryCount(for: state.board[resultPosition], value: addedValue, chainLength: positions.count)
+                incrementTierMasteryCount(for: state.board[resultPosition], value: addedValue)
             }
 
             // Get the step of the added tile
