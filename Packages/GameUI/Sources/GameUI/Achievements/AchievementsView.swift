@@ -389,10 +389,18 @@ private struct AchievementRow: View {
                     .frame(width: 52, height: 52)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(categoryLabel)
-                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
+                    HStack(spacing: 4) {
+                        if tierDisplay != nil {
+                            Image("GiftBoxIcon", bundle: .module)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
+                        }
+                        Text(categoryLabel)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .textCase(.uppercase)
+                    }
 
                     Text(displayTitle)
                         .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
