@@ -1613,11 +1613,7 @@ public final class AchievementStore {
         // Next tier to claim is one after highest claimed
         let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
         // Can't go past the max tier
-        let maxTier = Self.leaderboardRankTiers.count - 1
-        // Also cap at current qualifying tier - can't show higher tier if rank has dropped
-        // If leaderboardRankTier is -1 (no rank), show the first tier (index 0)
-        let currentQualifyingCap = leaderboardRankTier >= 0 ? leaderboardRankTier : 0
-        return min(nextTierToClaimIndex, maxTier, currentQualifyingCap)
+        return min(nextTierToClaimIndex, Self.leaderboardRankTiers.count - 1)
     }
 
     private var currentLeaderboardRankTier: ComboTierDefinition {
@@ -2106,15 +2102,6 @@ public final class AchievementStore {
                 if snapshot.best_leaderboard_rank > 0 {
                     currentLeaderboardRank = snapshot.best_leaderboard_rank
                 }
-
-                // If rank has dropped below a previously claimed tier, reduce highestClaimedLeaderboardTier
-                // This ensures players must re-earn lower tiers before progressing to higher ones
-                if leaderboardRankTier >= 0 && highestClaimedLeaderboardTier > leaderboardRankTier {
-                    // Player's rank has dropped - reduce claimed tier to one below current qualifying tier
-                    // so they can re-claim from their current rank level
-                    highestClaimedLeaderboardTier = leaderboardRankTier - 1
-                }
-
                 let targetRank = currentLeaderboardRankTier.milestone
                 let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
                 // Lower rank is better; unlock if rank qualifies AND this tier hasn't been claimed
