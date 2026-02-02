@@ -188,8 +188,10 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        // Chain sounds are silent - notes only play on merge via playMergeSfx
+        // Handle chain sound - play subtle tick while building chain
+        // (instrument notes only play on merge via playMergeSfx)
         if name == "chain" {
+            await playChainTickSound()
             return
         }
 
@@ -367,6 +369,36 @@ public actor LiveAudioService: AudioServiceProtocol {
             }
         } catch {
             print("❌ Failed to play hammer sound: \(error)")
+        }
+    }
+
+    private func playChainTickSound() async {
+        // Clean up before adding new sound
+        cleanupAndPrepareForNewSound()
+
+        // Use a subtle tick sound for chain building feedback
+        let url = Bundle.main.url(forResource: "chain_tick", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "chain_tick", withExtension: "wav") ??
+                  Bundle.main.url(forResource: "tick", withExtension: "mp3") ??
+                  Bundle.main.url(forResource: "tick", withExtension: "wav")
+
+        guard let audioUrl = url else {
+            print("❌ Chain tick sound not found")
+            return
+        }
+
+        do {
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.volume = 0.3  // Subtle volume for chain feedback
+            player.play()
+            sfxPlayers.append(player)
+
+            Task {
+                try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                await removeSfxPlayer(player)
+            }
+        } catch {
+            print("❌ Failed to play chain tick sound: \(error)")
         }
     }
 
