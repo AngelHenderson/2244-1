@@ -1978,18 +1978,25 @@ public final class GameEngine {
             print("   ✅ Found \(removedCount) tiles at or below \(threshold)")
             print("      Values to remove: \(removedValues.sorted())")
 
-            if deferElimination {
-                // Store positions for later elimination by UI
-                pendingEliminationPositions = positionsToEliminate
-                print("   ⏳ Deferred elimination - waiting for UI animation")
-            } else {
-                // Immediate elimination
-                for pos in positionsToEliminate {
-                    state.board[pos] = nil
+            // Track eliminated tiles for UI animation
+            var eliminatedInfo: [EliminatedTileInfo] = []
+            for pos in positionsToEliminate {
+                if let tile = state.board[pos] {
+                    eliminatedInfo.append(EliminatedTileInfo(
+                        position: pos,
+                        value: tile.value,
+                        step: tile.stepIndex
+                    ))
                 }
-                refillAfterGravity()
-                print("   ✅ Board refilled with higher-value tiles only")
             }
+            lastMilestoneEliminatedTiles = eliminatedInfo
+
+            // Perform elimination
+            for pos in positionsToEliminate {
+                state.board[pos] = nil
+            }
+            refillAfterGravity()
+            print("   ✅ Board refilled with higher-value tiles only")
         } else {
             print("   ℹ️ No tiles found at or below threshold \(threshold)")
         }
@@ -2120,48 +2127,27 @@ public final class GameEngine {
             print("   ✅ Found \(removedCount) tiles at or below step \(thresholdStep)")
             print("      Steps to remove: \(removedSteps.sorted())")
 
-            if deferElimination {
-                // Store positions for later elimination by UI
-                pendingEliminationPositions = positionsToEliminate
-                print("   ⏳ Deferred elimination - waiting for UI animation")
-            } else {
-                // Immediate elimination
-                for pos in positionsToEliminate {
-                    state.board[pos] = nil
+            // Track eliminated tiles for UI animation
+            var eliminatedInfo: [EliminatedTileInfo] = []
+            for pos in positionsToEliminate {
+                if let tile = state.board[pos] {
+                    eliminatedInfo.append(EliminatedTileInfo(
+                        position: pos,
+                        value: tile.value,
+                        step: tile.stepIndex
+                    ))
                 }
-                refillAfterGravity()
-                print("   ✅ Board refilled with higher-value tiles only")
             }
+            lastMilestoneEliminatedTiles = eliminatedInfo
+
+            // Perform elimination
+            for pos in positionsToEliminate {
+                state.board[pos] = nil
+            }
+            refillAfterGravity()
+            print("   ✅ Board refilled with higher-value tiles only")
         } else {
             print("   ℹ️ No tiles found at or below step threshold \(thresholdStep)")
-        }
-    }
-
-    /// Perform the pending elimination after UI animation completes.
-    /// This removes the tiles, applies gravity, and refills the board.
-    /// Returns the new game state.
-    public func performPendingElimination() -> GameState {
-        guard !pendingEliminationPositions.isEmpty else {
-            print("⚠️ performPendingElimination called with no pending positions")
-            return state
-        }
-
-        print("🗑️ Performing deferred elimination of \(pendingEliminationPositions.count) tiles")
-
-        // Remove the tiles
-        for pos in pendingEliminationPositions {
-            if let tile = state.board[pos] {
-                let label = tile.stepIndex.map { TileStepLabelFormatter.labelForStep($0) } ?? "\(tile.value)"
-                print("   Removing \(label) at \(pos)")
-            }
-            state.board[pos] = nil
-        }
-
-        // Clear pending positions
-        pendingEliminationPositions = []
-
-        // Apply gravity and refill
-        refillAfterGravity()
         print("   ✅ Board refilled after deferred elimination")
 
         return state
