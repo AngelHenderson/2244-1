@@ -181,10 +181,15 @@ public actor LiveAudioService: AudioServiceProtocol {
         
         print("🔊 Playing SFX: \(name), current theme: '\(currentTheme)'")
 
-        // Handle merge and chain sounds - play instrument-specific tap sounds
-        if name == "merge" || name == "chain" {
-            print("🎶 Playing \(name) sound for instrument: \(currentTheme)")
+        // Handle merge sound - play single instrument tap sound
+        if name == "merge" {
+            print("🎶 Playing merge sound for instrument: \(currentTheme)")
             await playInstrumentTapSound(theme: currentTheme)
+            return
+        }
+
+        // Chain sounds are silent - notes only play on merge via playMergeSfx
+        if name == "chain" {
             return
         }
 
