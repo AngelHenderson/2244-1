@@ -358,6 +358,7 @@ public struct SimplifiedGlassBoardView: View {
                     if let position = position, gameStore.state.board[position] != nil {
                         gameStore.beginPath(at: position)
                         haptics.lightImpact()
+                        Task { await audioService.playSfx(name: "select") }
                         gestureLogger.info("beginPath @ row=\(position.row) col=\(position.col)")
                     } else {
                         gestureLogger.info("beginPath skipped | position nil or empty")

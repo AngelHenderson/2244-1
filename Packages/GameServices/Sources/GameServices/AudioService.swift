@@ -188,10 +188,10 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        // Handle chain sound - play subtle tick while building chain
-        // (instrument notes only play on merge via playMergeSfx)
+        // Handle chain sound - play instrument note for each tile added to chain
         if name == "chain" {
-            await playChainTickSound()
+            print("🎹 Playing chain sound for instrument: \(currentTheme)")
+            await playInstrumentTapSound(theme: currentTheme)
             return
         }
 
@@ -221,14 +221,8 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        // Handle select sound - play subtle tick (not instrument tap, to avoid extra notes)
-        if name == "select" {
-            await playChainTickSound()
-            return
-        }
-
-        // Handle tap/drag sounds - play instrument-specific sounds
-        if name == "tap" || name == "drag" {
+        // Handle tap/select/drag sounds - play instrument-specific sounds
+        if name == "tap" || name == "select" || name == "drag" {
             print("🎹 Playing instrument sound for: \(name), theme: \(currentTheme)")
             await playInstrumentTapSound(theme: currentTheme)
             return
@@ -276,22 +270,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         guard sfxEnabled else {
-            print("🔇 SFX disabled, not playing merge sounds")
+            print("🔇 SFX disabled, not playing merge sound")
             return
         }
 
-        print("🎶 Playing \(tileCount) merge notes for instrument: \(currentTheme)")
-
-        // Play notes in sequence based on tile count
-        let notesToPlay = max(1, min(tileCount, 6))  // Cap at 6 notes
-        let delayBetweenNotes: Double = 0.08  // 80ms between notes for quick arpeggio
-
-        for i in 0..<notesToPlay {
-            await playInstrumentTapSound(theme: currentTheme)
-            if i < notesToPlay - 1 {
-                try? await Task.sleep(for: .seconds(delayBetweenNotes))
-            }
-        }
+        // Play single final merge note (individual tile sounds play during chain building)
+        print("🎶 Playing final merge note for \(tileCount)-tile chain, instrument: \(currentTheme)")
+        await playInstrumentTapSound(theme: currentTheme)
     }
 
     private func playElectricSound(theme: String) async {

@@ -2111,14 +2111,23 @@ public final class AchievementStore {
                 }
                 let targetRank = currentLeaderboardRankTier.milestone
                 let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
+                let qualifyingTier = leaderboardRankTier
+
                 // Lower rank is better; unlock if rank qualifies AND this tier hasn't been claimed
                 if currentLeaderboardRank > 0 &&
                    currentLeaderboardRank <= targetRank &&
-                   nextTierToClaimIndex <= leaderboardRankTier {
+                   nextTierToClaimIndex <= qualifyingTier {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
+                } else if currentLeaderboardRank > 0 && highestClaimedLeaderboardTier >= qualifyingTier {
+                    // User has claimed all tiers they qualify for at current rank - don't lock
+                    // Keep existing unlock state or show as maxed out
+                    if unlocks[def.id] == nil {
+                        unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+                    }
+                    // Don't overwrite - preserve existing state
                 } else {
-                    // Lock if rank no longer qualifies
+                    // Lock if rank no longer qualifies for any tier
                     unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
                 }
                 continue
