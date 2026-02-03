@@ -192,8 +192,9 @@ public struct HybridGameScreen: View {
                 }
             }
 
+        // Use regular sheet (not adaptiveSheet) for notifications so they don't cover the whole screen
         let notificationSheet = unlockSheet
-            .adaptiveSheet(isPresented: notificationBinding) {
+            .sheet(isPresented: notificationBinding) {
                 if let notification = gameStore.currentNotification {
                     Group {
                         switch notification {

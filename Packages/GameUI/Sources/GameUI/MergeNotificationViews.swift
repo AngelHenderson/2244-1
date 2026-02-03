@@ -397,7 +397,15 @@ struct UnlockedNotificationView: View {
             return "One tile away from Infinity! Keep going!"
         }
 
-        // Check for specific milestone tile labels
+        // Check for case-sensitive labels (billions "1B" vs quadrillions "1b")
+        if tileLabel == "1B" {
+            return "You're in the billions! Keep going!"
+        }
+        if tileLabel == "1b" {
+            return "You're in the quadrillions! Keep going!"
+        }
+
+        // Check for specific milestone tile labels (case-insensitive)
         switch tileLabel.lowercased() {
         case "512":
             return "Good Job! First milestone unlocked!"
@@ -409,12 +417,8 @@ struct UnlockedNotificationView: View {
             return "You're in the millions! Keep going!"
         case "536m":
             return "Almost in the billions! Keep going!"
-        case "1b":
-            return "You're in the billions! Keep going!"
         case "1a":
             return "You're in the trillions! Keep going!"
-        case "1b":
-            return "You're in the quadrillions! Keep going!"
         case "288b":
             return "50th milestone unlocked! Keep going!"
         case "324g":
