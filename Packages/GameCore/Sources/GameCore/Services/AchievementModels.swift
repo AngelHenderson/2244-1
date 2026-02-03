@@ -103,6 +103,21 @@ public extension AchievementDef.Rewards {
         default: return nil
         }
     }
+
+    /// Returns the display amount for a specific bonus type by name
+    func displayAmount(forBonusType typeName: String) -> Int {
+        switch typeName {
+        case "gems": return gems ?? 0
+        case "spins": return spins ?? 0
+        case "hammers": return hammers ?? 0
+        case "megaMerges": return magnets ?? 0
+        case "swaps": return swaps ?? 0
+        case "boost2x": return boost2x ?? 0
+        case "boost3x": return boost3x ?? 0
+        case "boost4x": return boost4x ?? 0
+        default: return 0
+        }
+    }
 }
 
 public struct GameSnapshot: Sendable, Codable {

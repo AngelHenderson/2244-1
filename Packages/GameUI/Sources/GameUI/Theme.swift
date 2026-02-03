@@ -465,33 +465,25 @@ extension Color {
 /// A view modifier that presents content as a sheet on iPhone (compact)
 /// and as a full screen cover on iPad (regular size class)
 private struct AdaptiveSheetModifier<SheetContent: View>: ViewModifier {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Binding var isPresented: Bool
     let onDismiss: (() -> Void)?
     @ViewBuilder let sheetContent: () -> SheetContent
 
     func body(content: Content) -> some View {
-        if horizontalSizeClass == .regular {
-            content.fullScreenCover(isPresented: $isPresented, onDismiss: onDismiss, content: sheetContent)
-        } else {
-            content.sheet(isPresented: $isPresented, onDismiss: onDismiss, content: sheetContent)
-        }
+        // Always use sheet (not fullScreenCover) to respect presentationDetents
+        content.sheet(isPresented: $isPresented, onDismiss: onDismiss, content: sheetContent)
     }
 }
 
 /// A view modifier for item-based adaptive presentation
 private struct AdaptiveSheetItemModifier<Item: Identifiable, SheetContent: View>: ViewModifier {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Binding var item: Item?
     let onDismiss: (() -> Void)?
     @ViewBuilder let sheetContent: (Item) -> SheetContent
 
     func body(content: Content) -> some View {
-        if horizontalSizeClass == .regular {
-            content.fullScreenCover(item: $item, onDismiss: onDismiss, content: sheetContent)
-        } else {
-            content.sheet(item: $item, onDismiss: onDismiss, content: sheetContent)
-        }
+        // Always use sheet (not fullScreenCover) to respect presentationDetents
+        content.sheet(item: $item, onDismiss: onDismiss, content: sheetContent)
     }
 }
 

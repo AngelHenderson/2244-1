@@ -112,6 +112,8 @@ public final class GameStore {
     public private(set) var hammerAnimationState: HammerAnimationState? = nil
     // Milestone elimination ghost animation - shows tiles fading out after elimination
     public private(set) var milestoneEliminatedTiles: [GameEngine.EliminatedTileInfo] = []
+    // Pending elimination tiles to animate after excluded notification is dismissed
+    private var pendingEliminationTiles: [GameEngine.EliminatedTileInfo] = []
     // Gift reward sheet state
     public var pendingGiftReward: GiftReward? = nil
     private let journeyAbbreviationClaimsKey = "journeyAbbreviationClaims"
@@ -906,26 +908,12 @@ public final class GameStore {
                 print("[GameStore] Phase 3: Commit (Logic)")
                 let (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
 
-                // 3b. Check if milestone elimination happened (show ghost animation)
+                // 3b. Check if milestone elimination happened (store for animation after notification)
                 let eliminatedTiles = self.engine.lastMilestoneEliminatedTiles
                 if !eliminatedTiles.isEmpty {
-                    print("[GameStore] Phase 3b: Milestone Elimination Animation (\(eliminatedTiles.count) tiles)")
-                    // Store eliminated tile info for ghost animation overlay
-                    self.milestoneEliminatedTiles = eliminatedTiles
-
-                    // Wait for ghost animation to play
-                    try await Task.sleep(nanoseconds: Self.eliminationAnimationDelay)
-
-                    if Task.isCancelled {
-                        print("[GameStore] Task cancelled during elimination animation")
-                        self.milestoneEliminatedTiles = []
-                        self.engine.clearLastMilestoneElimination()
-                        self.isInputLocked = false
-                        return
-                    }
-
-                    // Clear animation state
-                    self.milestoneEliminatedTiles = []
+                    print("[GameStore] Phase 3b: Storing \(eliminatedTiles.count) tiles for elimination animation after notification")
+                    // Store eliminated tile info to animate after excluded notification is dismissed
+                    self.pendingEliminationTiles = eliminatedTiles
                     self.engine.clearLastMilestoneElimination()
                 }
 
@@ -1967,8 +1955,25 @@ public final class GameStore {
     }
     
     public func dismissCurrentNotification() {
+        // Check if we're dismissing an excluded notification - trigger elimination animation
+        if case .excluded = currentNotification, !pendingEliminationTiles.isEmpty {
+            triggerEliminationAnimation()
+        }
         currentNotification = nil
         showNextNotification()
+    }
+
+    /// Trigger the elimination ghost animation after excluded notification is dismissed
+    private func triggerEliminationAnimation() {
+        print("[GameStore] Triggering elimination animation for \(pendingEliminationTiles.count) tiles")
+        milestoneEliminatedTiles = pendingEliminationTiles
+        pendingEliminationTiles = []
+
+        // Clear animation after delay
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: Self.eliminationAnimationDelay)
+            self.milestoneEliminatedTiles = []
+        }
     }
     
     /// Queue milestone notifications in the order: unlocked → added → eliminated.
