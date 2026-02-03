@@ -105,6 +105,37 @@ public enum MockLeaderboardData {
         return max(0, days)
     }
 
+    // Current hour of day (0-23) for intraday score 0 attrition
+    static var currentHourOfDay: Int {
+        Calendar.current.component(.hour, from: Date())
+    }
+
+    // Calculate score 0 player count with compounding daily attrition
+    // Each day, 75% of score 0 players progress, leaving 25% at end of day
+    // This compounds: Day 1 end = 25%, Day 2 end = 6.25%, Day 3 end = 1.5625%, etc.
+    // Within each day, attrition happens linearly from start to end
+    //
+    // Example with 50,000 base score 0 players:
+    // - Day 1, 12:00 AM: 50,000
+    // - Day 1, 11:59 PM: 12,500 (25%)
+    // - Day 2, 11:59 PM: 3,125 (6.25%)
+    // - Day 3, 11:59 PM: 781 (1.5625%)
+    static func scoreZeroPlayersAtCurrentTime(baseCount: Int) -> Int {
+        let days = daysSinceReference
+        let hour = Double(currentHourOfDay)
+
+        // Calculate score 0 players at start and end of current day
+        let dailyRetention = 0.25  // 25% remain at end of each day
+        let startOfDayMultiplier = pow(dailyRetention, Double(days))
+        let endOfDayMultiplier = pow(dailyRetention, Double(days + 1))
+
+        // Linear interpolation within the day based on current hour
+        let hourProgress = hour / 24.0
+        let currentMultiplier = startOfDayMultiplier - (startOfDayMultiplier - endOfDayMultiplier) * hourProgress
+
+        return max(1, Int(Double(baseCount) * currentMultiplier))
+    }
+
     // All milestone tiers in order (lowest to highest) - generated from doubling sequence
     static let allMilestones: [String] = [
         // Score 0 and lowest milestones (2-512)
@@ -1398,8 +1429,17 @@ public enum MockLeaderboardData {
             }
         }
 
-        // User is below all brackets, almost everyone is better
-        return max(0, totalPlayers - 1)
+        // User is below all brackets (at score 0), apply time-of-day attrition
+        // Find the score 0 bracket start rank (last bracket with milestone "0")
+        let scoreZeroBracket = extendedBrackets.last { $0.milestone == "0" }
+        let scoreZeroStartRank = scoreZeroBracket?.startRank ?? totalPlayers
+
+        // Calculate score 0 players and apply retention multiplier
+        let baseScoreZeroPlayers = totalPlayers - scoreZeroStartRank + 1
+        let currentScoreZeroPlayers = scoreZeroPlayersAtCurrentTime(baseCount: baseScoreZeroPlayers)
+        let adjustedTotalPlayers = scoreZeroStartRank - 1 + currentScoreZeroPlayers
+
+        return max(0, adjustedTotalPlayers - 1)
     }
 
     /// Count players better than user's milestone across all countries

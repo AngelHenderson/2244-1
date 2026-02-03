@@ -13,60 +13,65 @@ struct PillButton: View {
     }
 
     var body: some View {
-        if #available(iOS 26.0, macOS 26.0, *) {
-            Button(action: action) {
-                HStack(spacing: 12) {
-                    if let icon = icon {
-                        Image(systemName: icon)
-                            .imageScale(.large)
+        GeometryReader { geometry in
+            if #available(iOS 26.0, macOS 26.0, *) {
+                Button(action: action) {
+                    HStack(spacing: 16) {
+                        if let icon = icon {
+                            Image(systemName: icon)
+                                .font(.system(size: 44, weight: .bold))
+                        }
+                        Text(title)
+                            .font(.system(size: 50, weight: .bold))
                     }
-                    Text(title)
-                        .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 32)
+                    .frame(width: geometry.size.width * 0.5)
+                    .background(
+                        LinearGradient(
+                            colors: [buttonColor, buttonColor.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    )
+                    .shadow(color: buttonColor.opacity(0.3), radius: 8, y: 4)
                 }
-                .foregroundStyle(.white)
-                .padding(.vertical, 16)
+                .buttonStyle(.plain)
+                .accessibilityLabel(title)
                 .frame(maxWidth: .infinity)
-                .background(
-                    LinearGradient(
-                        colors: [buttonColor, buttonColor.opacity(0.8)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                )
-                .shadow(color: buttonColor.opacity(0.3), radius: 8, y: 4)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(title)
-        } else {
-            Button(action: action) {
-                HStack(spacing: 12) {
-                    if let icon = icon {
-                        Image(systemName: icon)
-                            .imageScale(.large)
+            } else {
+                Button(action: action) {
+                    HStack(spacing: 16) {
+                        if let icon = icon {
+                            Image(systemName: icon)
+                                .font(.system(size: 44, weight: .bold))
+                        }
+                        Text(title)
+                            .font(.system(size: 50, weight: .bold))
                     }
-                    Text(title)
-                        .font(.title2.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 40)
+                    .frame(width: geometry.size.width * 0.5)
+                    .background(
+                        LinearGradient(
+                            colors: [buttonColor, buttonColor.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    )
+                    .shadow(color: buttonColor.opacity(0.3), radius: 8, y: 4)
                 }
-                .foregroundStyle(.white)
-                .padding(.vertical, 20)
-                .frame(maxWidth: .infinity)
                 .background(
-                    LinearGradient(
-                        colors: [buttonColor, buttonColor.opacity(0.8)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
+                    .regularMaterial,
                     in: RoundedRectangle(cornerRadius: 8, style: .continuous)
                 )
-                .shadow(color: buttonColor.opacity(0.3), radius: 8, y: 4)
+                .accessibilityLabel(title)
+                .frame(maxWidth: .infinity)
             }
-            .background(
-                .regularMaterial,
-                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-            )
-            .accessibilityLabel(title)
         }
+        .frame(height: 140)
     }
     
 }
