@@ -181,9 +181,13 @@ extension HomeState {
         highestTile = m.current
         milestoneBelow = m.below ?? milestoneBelow
         lockedMilestones = m.above
-        // Compute locks from thresholds
-        isCreateLocked = highestTile < createUnlockAt
-        isChallengeLocked = highestTile < challengeUnlockAt
+        // Only unlock - once unlocked, stays unlocked (persisted in UserDefaults)
+        if highestTile >= createUnlockAt {
+            isCreateLocked = false
+        }
+        if highestTile >= challengeUnlockAt {
+            isChallengeLocked = false
+        }
         
         // Update theme names based on current theme
         if let currentTheme = p.theme {

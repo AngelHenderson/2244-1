@@ -1,6 +1,9 @@
 import Foundation
 import Observation
 
+private let kCreateUnlockedKey = "com.game2244.createUnlocked"
+private let kChallengeUnlockedKey = "com.game2244.challengeUnlocked"
+
 @MainActor
 @Observable
 public final class HomeState {
@@ -19,11 +22,35 @@ public final class HomeState {
     public var hasShopBadge = true
     public var hasProfileBadge = true
     public var achievementsBadgeCount: Int = 0
-    public var isCreateLocked = true
-    public var isChallengeLocked = true
     // Unlock thresholds (power-of-two milestones)
-    public var createUnlockAt: Int = 1_048_576 // 2^20
-    public var challengeUnlockAt: Int = 1_048_576 // 2^20
+    public var createUnlockAt: Int = 1_048_576 // 2^20 (1M)
+    public var challengeUnlockAt: Int = 1_073_741_824 // 2^30 (1B)
+
+    /// Whether the Create button is locked (persisted - once unlocked, stays unlocked)
+    public var isCreateLocked: Bool {
+        get { !UserDefaults.standard.bool(forKey: kCreateUnlockedKey) }
+        set { UserDefaults.standard.set(!newValue, forKey: kCreateUnlockedKey) }
+    }
+
+    /// Whether the Challenge button is locked (persisted - once unlocked, stays unlocked)
+    public var isChallengeLocked: Bool {
+        get { !UserDefaults.standard.bool(forKey: kChallengeUnlockedKey) }
+        set { UserDefaults.standard.set(!newValue, forKey: kChallengeUnlockedKey) }
+    }
+
+    /// Check if Create should be unlocked based on highest tile achieved
+    public func checkCreateUnlock(highestTileEver: Int) {
+        if highestTileEver >= createUnlockAt && isCreateLocked {
+            isCreateLocked = false
+        }
+    }
+
+    /// Check if Challenge should be unlocked based on highest tile achieved
+    public func checkChallengeUnlock(highestTileEver: Int) {
+        if highestTileEver >= challengeUnlockAt && isChallengeLocked {
+            isChallengeLocked = false
+        }
+    }
 
     // Live-ops
     public var adReward: Int = 68
