@@ -106,7 +106,7 @@ public struct SimplifiedGlassBoardView: View {
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
                                 }
-                                
+
                                 // Glass overlay effect - only show if glass hasn't been broken
                                 // Skip glass visuals in sandboxed/challenge mode
                                 if !gameStore.sandboxed && !gameStore.brokenGlassTiles.contains(position) {
@@ -122,7 +122,7 @@ public struct SimplifiedGlassBoardView: View {
                                     .shadow(color: .black.opacity(0.3), radius: 2)
                                     .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
                                 }
-                                
+
                                 if crownPositions.contains(position) {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
@@ -139,6 +139,7 @@ public struct SimplifiedGlassBoardView: View {
                                         }
                                 }
                             }
+                            .frame(width: tileSize, height: tileSize)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 guard gameStore.pendingGiftBoxes[position] == nil else { return }
@@ -165,7 +166,7 @@ public struct SimplifiedGlassBoardView: View {
                                         .foregroundStyle(.yellow)
                                         .offset(y: -tileSize * 0.45)
                                 }
-                                
+
                                 // Skip gift box in sandboxed/challenge mode
                                 if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] != nil {
                                     GiftBoxOverlay(size: tileSize)
@@ -175,6 +176,7 @@ public struct SimplifiedGlassBoardView: View {
                                         }
                                 }
                             }
+                            .frame(width: tileSize, height: tileSize)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 guard gameStore.pendingGiftBoxes[position] == nil else { return }
