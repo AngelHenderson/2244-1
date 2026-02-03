@@ -1347,8 +1347,8 @@ public enum MockLeaderboardData {
 
         // Additional popular countries (no leaderboard data yet)
         let additionalCountries = [
-            "GR", "CZ", "RO", "HU", "NZ",
-            "SG", "MY", "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
+            "RO", "HU", "NZ",
+            "MY", "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
             "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
         ]
 
@@ -2878,10 +2878,11 @@ public extension LeaderboardClient {
         "151d", "75d", "18d", "9d", "4d", "4d", "2d", "1d", "590c", "295c",
         "147c", "36c", "576b", "576b", "144b", "72b", "36b", "18b", "18b", "9b",
         "9b", "4b", "2b", "2b", "1b", "562a", "281a", "281a", "140a", "17a",
-        // Ranks 121-150 (from screenshot)
+        // Ranks 121-151 (extra entry for infinity filtering)
         "8a", "4a", "4a", "2a", "2a", "1a", "549B", "274B", "137B", "68B",
         "68B", "34B", "17B", "8B", "2B", "1B", "1B", "536M", "536M", "268M",
-        "268M", "268M", "134M", "134M", "134M", "134M", "134M", "67M", "67M", "67M"
+        "268M", "268M", "134M", "134M", "134M", "134M", "134M", "67M", "67M", "67M",
+        "33M"
     ]
 
     // Canada player milestones from screenshots (ranks 1-150)
@@ -2902,10 +2903,11 @@ public extension LeaderboardClient {
         "20g", "10g", "5g", "5g", "1g", "316f", "316f", "158f", "79f", "9f",
         "9f", "77e", "38e", "38e", "19e", "19e", "4e", "2e", "2e", "1e",
         "1e", "604d", "604d", "302d", "151d", "75d", "37d", "18d", "18d", "2d",
-        // Ranks 121-150 (c-tier then b-tier, transitioning to extended brackets at rank 151)
+        // Ranks 121-152 (c-tier then b-tier, extra entries for infinity filtering)
         "1d", "590c", "295c", "147c", "73c", "36c", "18c", "9c", "4c", "2c",
         "1c", "576b", "288b", "144b", "72b", "36b", "18b", "9b", "4b", "2b",
-        "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b"
+        "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b", "1b",
+        "562a", "281a"
     ]
 
     // Extended Canada milestone brackets for rank calculation (ranks 151+)
@@ -2946,10 +2948,11 @@ public extension LeaderboardClient {
         "1d", "590c", "295c", "147c", "36c", "18c", "4c", "2c", "2c", "576b",
         "576b", "288b", "144b", "72b", "72b", "9b", "4b", "2b", "2b", "1b",
         "562a", "281a", "140a", "35a", "17a", "8a", "8a", "4a", "4a", "2a",
-        // Ranks 121-150 (from screenshot)
+        // Ranks 121-151 (extra entry for infinity filtering)
         "1a", "274B", "137B", "137B", "68B", "34B", "34B", "34B", "17B", "17B",
         "8B", "8B", "8B", "8B", "4B", "4B", "4B", "2B", "2B", "1B",
-        "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B"
+        "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B",
+        "536M"
     ]
 
     // Extended Australia milestone brackets for rank calculation (ranks 151+)
@@ -2984,10 +2987,11 @@ public extension LeaderboardClient {
         "151d", "75d", "75d", "75d", "75d", "37d", "37d", "37d", "37d", "18d",
         "18d", "18d", "18d", "9d", "9d", "9d", "9d", "9d", "4d", "4d",
         "4d", "4d", "4d", "2d", "2d", "2d", "2d", "2d", "1d", "1d",
-        // Ranks 121-150
+        // Ranks 121-152 (extra entries for infinity filtering)
         "1d", "1d", "1d", "1d", "590c", "590c", "590c", "590c", "590c", "590c",
         "295c", "295c", "295c", "295c", "295c", "295c", "147c", "147c", "147c", "147c",
-        "147c", "147c", "73c", "73c", "73c", "73c", "73c", "73c", "73c", "36c"
+        "147c", "147c", "73c", "73c", "73c", "73c", "73c", "73c", "73c", "36c",
+        "18c", "9c"
     ]
 
     // Extended Germany milestone brackets for rank calculation (ranks 151+)
@@ -3033,10 +3037,11 @@ public extension LeaderboardClient {
         "85i", "85i", "85i", "85i", "42i", "42i", "42i", "42i", "42i", "21i",
         "21i", "21i", "21i", "21i", "21i", "21i", "10i", "10i", "10i", "10i",
         "10i", "10i", "10i", "10i", "5i", "5i", "5i", "5i", "5i", "2i",
-        // Ranks 121-150
+        // Ranks 121-151 (extra entry for infinity filtering)
         "2i", "2i", "2i", "2i", "2i", "2i", "2i", "1i", "1i", "1i",
         "1i", "1i", "1i", "1i", "1i", "1i", "1i", "1i", "1i", "1i",
-        "1i", "664h", "664h", "664h", "664h", "664h", "664h", "664h", "664h", "664h"
+        "1i", "664h", "664h", "664h", "664h", "664h", "664h", "664h", "664h", "664h",
+        "332h"
     ]
 
     // Extended France milestone brackets for rank calculation (ranks 151+)
@@ -3101,10 +3106,11 @@ public extension LeaderboardClient {
         "268M", "268M", "134M", "134M", "134M", "134M", "67M", "67M", "67M", "67M",
         "67M", "67M", "33M", "33M", "33M", "33M", "33M", "33M", "16M", "16M",
         "16M", "16M", "16M", "16M", "8M", "8M", "8M", "8M", "8M", "8M",
-        // Ranks 121-150 (rank 121 = 4M from screenshot, then original players)
+        // Ranks 121-154 (extra entries for infinity filtering)
         "4M", "2ai", "1ad", "63z", "3v", "13r", "3q", "2m", "19f", "2c",
         "9b", "562a", "140a", "70a", "35a", "17a", "8a", "4a", "2a", "1a",
-        "549B", "274B", "137B", "68B", "34B", "17B", "8B", "4B", "2B", "1B"
+        "549B", "274B", "137B", "68B", "34B", "17B", "8B", "4B", "2B", "1B",
+        "536M", "268M", "134M", "67M"
     ]
 
     // Extended Japan milestone brackets for rank calculation (ranks 151+)
@@ -3292,10 +3298,11 @@ public extension LeaderboardClient {
         "18c", "4c", "2c", "576b", "144b", "72b", "18b", "9b", "4b", "2b",
         "1b", "1b", "562a", "281a", "140a", "70a", "35a", "35a", "17a", "17a",
         "8a", "8a", "8a", "4a", "2a", "2a", "1a", "1a", "549B", "549B",
-        // Ranks 121-150
+        // Ranks 121-153 (extra entries for infinity filtering)
         "274B", "274B", "137B", "68B", "34B", "17B", "8B", "8B", "8B", "4B",
         "4B", "4B", "2B", "2B", "2B", "2B", "2B", "1B", "1B", "1B",
-        "536M", "134M", "134M", "67M", "67M", "67M", "33M", "33M", "33M", "33M"
+        "536M", "134M", "134M", "67M", "67M", "67M", "33M", "33M", "33M", "33M",
+        "16M", "8M", "4M"
     ]
 
     // Extended Albania milestone brackets for rank calculation (ranks 151+)
@@ -3507,10 +3514,11 @@ public extension LeaderboardClient {
         "8B", "8B", "8B", "8B", "8B", "8B", "4B", "4B", "4B", "4B",
         "4B", "2B", "2B", "2B", "2B", "2B", "2B", "1B", "1B", "1B",
         "1B", "1B", "1B", "536M", "536M", "536M", "536M", "536M", "536M", "536M",
-        // Ranks 121-150
+        // Ranks 121-151 (extra entry for infinity filtering)
         "536M", "536M", "536M", "268M", "268M", "268M", "268M", "268M", "268M", "268M",
         "268M", "268M", "268M", "268M", "268M", "268M", "134M", "134M", "134M", "134M",
-        "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M"
+        "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M", "134M",
+        "67M"
     ]
 
     // Switzerland player milestones (ranks 1-150)
@@ -3529,11 +3537,12 @@ public extension LeaderboardClient {
         "1a", "549B", "549B", "274B", "274B", "274B", "137B", "137B", "137B", "137B",
         "68B", "34B", "17B", "17B", "8B", "8B", "8B", "4B", "2B", "2B",
         "1B", "1B", "536M", "536M", "536M", "536M", "536M", "268M", "268M", "268M",
-        // Ranks 111-150 (from screenshot)
+        // Ranks 111-151 (extra entry for infinity filtering)
         "268M", "134M", "134M", "134M", "134M", "134M", "67M", "67M", "67M", "67M",
         "67M", "67M", "33M", "33M", "33M", "33M", "33M", "33M", "33M", "16M",
         "16M", "16M", "16M", "16M", "16M", "16M", "16M", "16M", "8M", "8M",
-        "8M", "8M", "8M", "8M", "8M", "8M", "8M", "4M", "4M", "4M"
+        "8M", "8M", "8M", "8M", "8M", "8M", "8M", "4M", "4M", "4M",
+        "2M"
     ]
 
     // Extended Switzerland milestone brackets for rank calculation (ranks 151+)
@@ -3569,9 +3578,10 @@ public extension LeaderboardClient {
         // Ranks 111-130 (16M then 8M)
         "16M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M",
         "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M", "8M",
-        // Ranks 131-150 (8M then 4M)
+        // Ranks 131-152 (8M then 4M, extra entries for infinity filtering)
         "8M", "8M", "8M", "8M", "8M", "4M", "4M", "4M", "4M", "4M",
-        "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M"
+        "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M",
+        "2M", "1M"
     ]
 
     // Extended Norway milestone brackets for rank calculation (ranks 151+)
@@ -3605,10 +3615,11 @@ public extension LeaderboardClient {
         "2c", "2c", "1c", "72b", "18b", "9b", "2b", "1b", "281a", "140a",
         "140a", "70a", "70a", "35a", "8a", "2a", "1a", "1a", "549B", "549B",
         "549B", "274B", "68B", "68B", "34B", "34B", "34B", "17B", "17B", "17B",
-        // Ranks 121-150
+        // Ranks 121-152 (extra entries for infinity filtering)
         "17B", "17B", "17B", "8B", "8B", "8B", "8B", "8B", "8B", "8B",
         "8B", "4B", "4B", "4B", "4B", "4B", "4B", "4B", "4B", "4B",
-        "4B", "4B", "4B", "4B", "2B", "2B", "2B", "2B", "2B", "2B"
+        "4B", "4B", "4B", "4B", "2B", "2B", "2B", "2B", "2B", "2B",
+        "1B", "536M"
     ]
 
     // Extended Denmark milestone brackets for rank calculation (ranks 151+)
@@ -3772,10 +3783,11 @@ public extension LeaderboardClient {
         "4M", "4M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M",
         "2M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M",
         "1M", "1M", "1M", "524K", "524K", "524K", "524K", "524K", "524K", "524K",
-        // Ranks 121-150
+        // Ranks 121-151 (extra entry for infinity filtering)
         "524K", "524K", "524K", "524K", "524K", "524K", "524K", "262K", "262K", "262K",
         "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K",
-        "262K", "262K", "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K"
+        "262K", "262K", "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K",
+        "65K"
     ]
 
     // Extended Sweden milestone brackets for rank calculation (ranks 151+)
@@ -3842,10 +3854,11 @@ public extension LeaderboardClient {
         "215s", "53s", "13s", "3s", "6r", "822q", "51q", "1q", "25p", "784o",
         "6o", "23n", "1n", "187m", "187m", "46m", "23m", "5m", "2m", "1m",
         "730l", "182l", "91l", "91l", "45l", "45l", "45l", "22l", "11l", "5l",
-        // Ranks 121-150
+        // Ranks 121-152 (extra entries for infinity filtering)
         "2l", "713k", "89k", "44k", "44k", "11k", "5k", "1k", "5j", "1j",
         "2i", "332h", "41h", "10h", "5h", "5h", "2h", "1h", "1h", "81g",
-        "5g", "2g", "633f", "19f", "38e", "2e", "1e", "75d", "2d", "9c"
+        "5g", "2g", "633f", "19f", "38e", "2e", "1e", "75d", "2d", "9c",
+        "4c", "1c"
     ]
 
     // Extended Ireland milestone brackets for rank calculation (ranks 151+)
@@ -3880,10 +3893,11 @@ public extension LeaderboardClient {
         "17B", "17B", "8B", "8B", "8B", "8B", "8B", "8B", "4B", "4B",
         "4B", "4B", "4B", "4B", "4B", "2B", "2B", "2B", "2B", "2B",
         "2B", "2B", "2B", "2B", "1B", "1B", "1B", "1B", "1B", "1B",
-        // Ranks 121-150
+        // Ranks 121-151 (extra entry for infinity filtering)
         "1B", "1B", "1B", "536M", "536M", "536M", "536M", "536M", "536M", "536M",
         "536M", "536M", "536M", "536M", "536M", "536M", "268M", "268M", "268M", "268M",
-        "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M"
+        "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M", "268M",
+        "134M"
     ]
 
     // Greece leaderboard data - top 150 player milestones
@@ -3930,10 +3944,11 @@ public extension LeaderboardClient {
         "3r", "3r", "822q", "411q", "205q", "205q", "102q", "51q", "25q", "25q",
         "12q", "12q", "6q", "6q", "6q", "3q", "3q", "3q", "1q", "401p",
         "200p", "50p", "25p", "12p", "6p", "6p", "3p", "1p", "6o", "1o",
-        // Ranks 121-150
+        // Ranks 121-153 (extra 3 to account for top players who progress to infinity)
         "2n", "5m", "365l", "2l", "5k", "2k", "2k", "1k", "348j", "174j",
         "43j", "43j", "10j", "2j", "1j", "680i", "340i", "340i", "170i", "85i",
-        "85i", "42i", "21i", "10i", "5i", "1i", "332h", "649g", "20g", "633f"
+        "85i", "42i", "21i", "10i", "5i", "1i", "332h", "649g", "20g", "633f",
+        "316f", "158f", "79f"
     ]
 
     // Extended Portugal milestone brackets for rank calculation (ranks 151+)
