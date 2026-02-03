@@ -2136,6 +2136,16 @@ public final class AchievementStore {
                 let targetRank = currentLeaderboardRankTier.milestone
                 let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
                 let qualifyingTier = leaderboardRankTier
+                let displayTier = displayLeaderboardRankTier
+
+                // Check if the displayed tier has already been claimed (happens when rank drops)
+                // If user claimed Top 1000 (tier 15) but rank dropped to 1058, they only qualify for Top 1500 (tier 14)
+                // In this case, Top 1500 was already claimed, so show it as claimed/completed
+                if displayTier <= highestClaimedLeaderboardTier {
+                    // This tier is already claimed - show as completed
+                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: true)
+                    continue
+                }
 
                 // Lower rank is better; unlock if rank qualifies AND this tier hasn't been claimed
                 if currentLeaderboardRank > 0 &&
@@ -2788,10 +2798,17 @@ public final class AchievementStore {
             let targetValue = currentLeaderboardRankTier.milestone
             let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
             let qualifyingTier = leaderboardRankTier
-            // Only unlock if user qualifies for a tier they haven't claimed yet
-            if snapshot.best_leaderboard_rank > 0 &&
+            let displayTier = displayLeaderboardRankTier
+
+            // Check if the displayed tier has already been claimed (happens when rank drops)
+            if displayTier <= highestClaimedLeaderboardTier {
+                // This tier is already claimed - show as completed
+                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: true)
+                saveUnlocks()
+            } else if snapshot.best_leaderboard_rank > 0 &&
                snapshot.best_leaderboard_rank <= targetValue &&
                nextTierToClaimIndex <= qualifyingTier {
+                // Only unlock if user qualifies for a tier they haven't claimed yet
                 unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                 saveUnlocks()
             }
