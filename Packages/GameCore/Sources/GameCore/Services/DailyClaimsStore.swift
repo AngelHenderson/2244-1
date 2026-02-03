@@ -192,14 +192,14 @@ public final class DailyClaimsStore {
         // Distribute rewards
         onReward?(rewards)
 
-        // Check for newly unlocked streaks and give random bonus rewards
+        // Check for newly unlocked streaks and give weighted random bonus rewards
         for i in 0..<dailyStreaks.count {
             if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentStreak {
                 dailyStreaks[i].isUnlocked = true
                 unlockedStreaks.insert(dailyStreaks[i].day)
-                // Generate random bonus with equal probability (12.5% each type)
-                let randomBonus = BonusRewardGenerator.generateRandomBonus(forStreakDay: dailyStreaks[i].day)
-                onReward?(randomBonus)
+                // Generate weighted random bonus (50% gems, 15% megaMerge, etc.)
+                let bonus = BonusRewardGenerator.generateBonus(forStreakDay: dailyStreaks[i].day)
+                onReward?(bonus)
             }
         }
 
@@ -321,16 +321,17 @@ public final class DailyClaimsStore {
             .count
     }
 
-    /// Returns a preview of the next streak bonus (type and amount)
+    /// Returns a preview of the next streak bonus (type, display amount, and rewards)
     public func nextStreakBonusPreview() -> (type: BonusRewardGenerator.BonusType, amount: Int, rewards: AchievementDef.Rewards)? {
         let resultingStreak = currentStreak + 1
         guard let nextStreak = dailyStreaks.first(where: { !$0.isUnlocked && $0.day <= resultingStreak }) else {
             return nil
         }
         let type = BonusRewardGenerator.bonusType(forStreakDay: nextStreak.day)
-        let amount = BonusRewardGenerator.bonusAmount(forStreakDay: nextStreak.day)
         let rewards = BonusRewardGenerator.previewBonus(forStreakDay: nextStreak.day)
-        return (type, amount, rewards)
+        // Return actual reward amount for display (not raw multiplier)
+        let displayAmount = rewards.displayAmount(forBonusType: type.typeName)
+        return (type, displayAmount, rewards)
     }
 }
 
@@ -543,7 +544,15 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(magnets: 1, swaps: 1, boost2x: 1),
         AchievementDef.Rewards(hammers: 1),
         AchievementDef.Rewards(spins: 2),
-        AchievementDef.Rewards(gems: 791, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1)
+        AchievementDef.Rewards(gems: 791, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1),
+        // Week 27
+        AchievementDef.Rewards(gems: 865, magnets: 1),
+        AchievementDef.Rewards(hammers: 1, boost3x: 1),
+        AchievementDef.Rewards(spins: 1, boost4x: 1),
+        AchievementDef.Rewards(magnets: 1, swaps: 1, boost2x: 1),
+        AchievementDef.Rewards(gems: 922, spins: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 1172),
+        AchievementDef.Rewards(gems: 799, spins: 1, hammers: 1, magnets: 1, boost2x: 1, boost3x: 1)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {
@@ -599,6 +608,20 @@ public enum BonusRewardGenerator {
             case .boost2x: return "2X Boost"
             case .boost3x: return "3X Boost"
             case .boost4x: return "4X Boost"
+            }
+        }
+
+        /// Internal type name for reward lookup
+        var typeName: String {
+            switch self {
+            case .gems: return "gems"
+            case .spins: return "spins"
+            case .hammers: return "hammers"
+            case .megaMerges: return "megaMerges"
+            case .swaps: return "swaps"
+            case .boost2x: return "boost2x"
+            case .boost3x: return "boost3x"
+            case .boost4x: return "boost4x"
             }
         }
 
