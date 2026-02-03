@@ -2762,7 +2762,12 @@ public final class AchievementStore {
             }
         case "leaderboard_rank_progression":
             let targetValue = currentLeaderboardRankTier.milestone
-            if snapshot.best_leaderboard_rank > 0 && snapshot.best_leaderboard_rank <= targetValue {
+            let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
+            let qualifyingTier = leaderboardRankTier
+            // Only unlock if user qualifies for a tier they haven't claimed yet
+            if snapshot.best_leaderboard_rank > 0 &&
+               snapshot.best_leaderboard_rank <= targetValue &&
+               nextTierToClaimIndex <= qualifyingTier {
                 unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                 saveUnlocks()
             }
