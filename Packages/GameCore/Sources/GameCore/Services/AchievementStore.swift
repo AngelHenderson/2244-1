@@ -783,14 +783,38 @@ public final class AchievementStore {
     ]
 
     private static let wheelCollectsTiers: [ComboTierDefinition] = [
+        // Original tiers
+        .init(milestone: 1, categoryLabel: "1 collect", rewards: .init(hammers: 1)),
         .init(milestone: 3, categoryLabel: "3 collects", rewards: .init(gems: 50)),
         .init(milestone: 5, categoryLabel: "5 collects", rewards: .init(gems: 80, swaps: 1)),
         .init(milestone: 10, categoryLabel: "10 collects", rewards: .init(gems: 80, boost4x: 1)),
+        .init(milestone: 15, categoryLabel: "15 collects", rewards: .init(boost3x: 1)),
+        .init(milestone: 20, categoryLabel: "20 collects", rewards: .init(spins: 1, hammers: 1, swaps: 1)),
         .init(milestone: 25, categoryLabel: "25 collects", rewards: .init(magnets: 1, boost4x: 1)),
+        .init(milestone: 30, categoryLabel: "30 collects", rewards: .init(gems: 175, spins: 1, boost3x: 1)),
+        .init(milestone: 40, categoryLabel: "40 collects", rewards: .init(gems: 340, magnets: 1, boost2x: 1)),
         .init(milestone: 50, categoryLabel: "50 collects", rewards: .init(gems: 500)),
+        .init(milestone: 75, categoryLabel: "75 collects", rewards: .init(gems: 550, spins: 1, hammers: 1, swaps: 1, boost3x: 1)),
         .init(milestone: 100, categoryLabel: "100 collects", rewards: .init(gems: 1000)),
+        .init(milestone: 150, categoryLabel: "150 collects", rewards: .init(gems: 1110, spins: 1, magnets: 1, swaps: 1, boost4x: 1)),
+        .init(milestone: 200, categoryLabel: "200 collects", rewards: .init(gems: 1700)),
         .init(milestone: 250, categoryLabel: "250 collects", rewards: .init(gems: 1500, hammers: 1, magnets: 2)),
-        .init(milestone: 500, categoryLabel: "500 collects", rewards: .init(gems: 4500))
+        .init(milestone: 375, categoryLabel: "375 collects", rewards: .init(gems: 2200, spins: 1, magnets: 2, boost3x: 1)),
+        .init(milestone: 500, categoryLabel: "500 collects", rewards: .init(gems: 4500)),
+        // Extended tiers
+        .init(milestone: 750, categoryLabel: "750 collects", rewards: .init(gems: 4000, magnets: 1, boost4x: 1)),
+        .init(milestone: 1000, categoryLabel: "1,000 collects", rewards: .init(gems: 4680, hammers: 1, boost3x: 1)),
+        .init(milestone: 1250, categoryLabel: "1,250 collects", rewards: .init(gems: 4940, swaps: 1)),
+        .init(milestone: 1500, categoryLabel: "1,500 collects", rewards: .init(magnets: 3)),
+        .init(milestone: 1750, categoryLabel: "1,750 collects", rewards: .init(swaps: 3, boost2x: 1)),
+        .init(milestone: 2000, categoryLabel: "2,000 collects", rewards: .init(spins: 3, boost2x: 1)),
+        .init(milestone: 2250, categoryLabel: "2,250 collects", rewards: .init(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1)),
+        .init(milestone: 2500, categoryLabel: "2,500 collects", rewards: .init(swaps: 1, boost4x: 1)),
+        .init(milestone: 3000, categoryLabel: "3,000 collects", rewards: .init(hammers: 1, swaps: 1, boost4x: 1)),
+        .init(milestone: 3500, categoryLabel: "3,500 collects", rewards: .init(gems: 5785, swaps: 1, boost2x: 1)),
+        .init(milestone: 4000, categoryLabel: "4,000 collects", rewards: .init(gems: 5840, magnets: 1)),
+        .init(milestone: 4500, categoryLabel: "4,500 collects", rewards: .init(gems: 5940, spins: 1)),
+        .init(milestone: 5000, categoryLabel: "5,000 collects", rewards: .init(gems: 6000))
     ]
 
     private static let challengeCreationTiers: [ComboTierDefinition] = [
@@ -855,9 +879,9 @@ public final class AchievementStore {
         return Self.movesTiers[index]
     }
     
-    /// Check if moves progression is at max tier
+    /// Check if moves progression is at max tier (all tiers completed)
     public var isMovesProgressionMaxed: Bool {
-        movesProgressionTier >= Self.movesTiers.count - 1
+        movesProgressionTier >= Self.movesTiers.count - 1 && unlocks["moves_progression"]?.claimed == true
     }
 
     /// Display info for moves progression achievement
@@ -908,7 +932,7 @@ public final class AchievementStore {
     }
     
     public var isCombo610Maxed: Bool {
-        combo610Tier >= Self.combo610Tiers.count - 1
+        combo610Tier >= Self.combo610Tiers.count - 1 && unlocks["combo_6_10"]?.claimed == true
     }
     
     /// Combo 11-15 tier index (persisted)
@@ -937,7 +961,7 @@ public final class AchievementStore {
     }
     
     public var isCombo1115Maxed: Bool {
-        combo1115Tier >= Self.combo1115Tiers.count - 1
+        combo1115Tier >= Self.combo1115Tiers.count - 1 && unlocks["combo_11_15"]?.claimed == true
     }
     
     /// Combo 16-20 tier index (persisted)
@@ -966,7 +990,7 @@ public final class AchievementStore {
     }
     
     public var isCombo1620Maxed: Bool {
-        combo1620Tier >= Self.combo1620Tiers.count - 1
+        combo1620Tier >= Self.combo1620Tiers.count - 1 && unlocks["combo_16_20"]?.claimed == true
     }
     
     /// Combo 21-30 tier index (persisted)
@@ -995,7 +1019,7 @@ public final class AchievementStore {
     }
     
     public var isCombo2130Maxed: Bool {
-        combo2130Tier >= Self.combo2130Tiers.count - 1
+        combo2130Tier >= Self.combo2130Tiers.count - 1 && unlocks["combo_21_30"]?.claimed == true
     }
     
     /// Merge progression tier index (persisted)
@@ -1018,7 +1042,7 @@ public final class AchievementStore {
     }
     
     public var isMergeProgressionMaxed: Bool {
-        mergeProgressionTier >= Self.mergeTiers.count - 1
+        mergeProgressionTier >= Self.mergeTiers.count - 1 && unlocks["merge_progression"]?.claimed == true
     }
     
     /// Swap usage progression tier index (persisted)
@@ -1046,7 +1070,7 @@ public final class AchievementStore {
     }
     
     public var isSwapUsesProgressionMaxed: Bool {
-        swapUsesProgressionTier >= Self.swapUseTiers.count - 1
+        swapUsesProgressionTier >= Self.swapUseTiers.count - 1 && unlocks["swap_usage_progression"]?.claimed == true
     }
     
     /// Hammer usage progression tier index (persisted)
@@ -1074,7 +1098,7 @@ public final class AchievementStore {
     }
     
     public var isHammerUsesProgressionMaxed: Bool {
-        hammerUsesProgressionTier >= Self.hammerUseTiers.count - 1
+        hammerUsesProgressionTier >= Self.hammerUseTiers.count - 1 && unlocks["hammer_usage_progression"]?.claimed == true
     }
     
     /// MegaMerge (magnet) usage progression tier index (persisted)
@@ -1102,7 +1126,7 @@ public final class AchievementStore {
     }
     
     public var isMagnetUsesProgressionMaxed: Bool {
-        magnetUsesProgressionTier >= Self.magnetUseTiers.count - 1
+        magnetUsesProgressionTier >= Self.magnetUseTiers.count - 1 && unlocks["magnet_usage_progression"]?.claimed == true
     }
     
     /// Spin usage progression tier index (persisted)
@@ -1130,7 +1154,7 @@ public final class AchievementStore {
     }
     
     public var isSpinUsesProgressionMaxed: Bool {
-        spinUsesProgressionTier >= Self.spinUseTiers.count - 1
+        spinUsesProgressionTier >= Self.spinUseTiers.count - 1 && unlocks["spin_usage_progression"]?.claimed == true
     }
     
     /// Survive-moves progression tier index (persisted)
@@ -1151,7 +1175,7 @@ public final class AchievementStore {
         let tier = currentSurviveMovesTier
         let clampedIndex = min(surviveMovesProgressionTier, Self.surviveMovesTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = surviveMovesProgressionTier >= Self.surviveMovesTiers.count - 1
+        let isMaxed = isSurviveMovesProgressionMaxed
         let description = isMaxed
             ? "You've mastered surviving moves. Claim your final reward."
             : "Survive \(tier.milestone) moves across all games to unlock the next level."
@@ -1167,7 +1191,7 @@ public final class AchievementStore {
     }
     
     public var isSurviveMovesProgressionMaxed: Bool {
-        surviveMovesProgressionTier >= Self.surviveMovesTiers.count - 1
+        surviveMovesProgressionTier >= Self.surviveMovesTiers.count - 1 && unlocks["survive_moves_progression"]?.claimed == true
     }
     
     /// Playtime progression tier index (persisted)
@@ -1188,7 +1212,7 @@ public final class AchievementStore {
         let tier = currentPlaytimeTier
         let clampedIndex = min(playtimeProgressionTier, Self.playtimeTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = playtimeProgressionTier >= Self.playtimeTiers.count - 1
+        let isMaxed = isPlaytimeProgressionMaxed
         let description = isMaxed
             ? "You've mastered playtime. Claim your final reward."
             : "Accumulate \(tier.milestone) minutes of total play to reach the next tier."
@@ -1204,7 +1228,7 @@ public final class AchievementStore {
     }
     
     public var isPlaytimeProgressionMaxed: Bool {
-        playtimeProgressionTier >= Self.playtimeTiers.count - 1
+        playtimeProgressionTier >= Self.playtimeTiers.count - 1 && unlocks["playtime_progression"]?.claimed == true
     }
     
     /// Infinity creation progression tier index (persisted)
@@ -1225,7 +1249,7 @@ public final class AchievementStore {
         let tier = currentInfinityTier
         let clampedIndex = min(infinityProgressionTier, Self.infinityTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = infinityProgressionTier >= Self.infinityTiers.count - 1
+        let isMaxed = isInfinityProgressionMaxed
         let description = isMaxed
             ? "You've mastered creating infinity tiles. Claim your final reward."
             : "Create \(tier.milestone) infinity tiles to reach the next tier."
@@ -1241,7 +1265,7 @@ public final class AchievementStore {
     }
     
     public var isInfinityProgressionMaxed: Bool {
-        infinityProgressionTier >= Self.infinityTiers.count - 1
+        infinityProgressionTier >= Self.infinityTiers.count - 1 && unlocks["infinity_progression"]?.claimed == true
     }
 
     /// 2X Boost usage progression tier index (persisted)
@@ -1262,7 +1286,7 @@ public final class AchievementStore {
         let tier = currentBoost2xUsesTier
         let clampedIndex = min(boost2xUsesProgressionTier, Self.boost2xUseTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = boost2xUsesProgressionTier >= Self.boost2xUseTiers.count - 1
+        let isMaxed = isBoost2xUsesProgressionMaxed
         let description = isMaxed
             ? "You've mastered using 2X Boosts. Claim your final reward."
             : "Use 2X Boost \(tier.milestone) times to reach the next tier."
@@ -1278,7 +1302,7 @@ public final class AchievementStore {
     }
 
     public var isBoost2xUsesProgressionMaxed: Bool {
-        boost2xUsesProgressionTier >= Self.boost2xUseTiers.count - 1
+        boost2xUsesProgressionTier >= Self.boost2xUseTiers.count - 1 && unlocks["boost2x_usage_progression"]?.claimed == true
     }
 
     /// 3X Boost usage progression tier index (persisted)
@@ -1299,7 +1323,7 @@ public final class AchievementStore {
         let tier = currentBoost3xUsesTier
         let clampedIndex = min(boost3xUsesProgressionTier, Self.boost3xUseTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = boost3xUsesProgressionTier >= Self.boost3xUseTiers.count - 1
+        let isMaxed = isBoost3xUsesProgressionMaxed
         let description = isMaxed
             ? "You've mastered using 3X Boosts. Claim your final reward."
             : "Use 3X Boost \(tier.milestone) times to reach the next tier."
@@ -1315,7 +1339,7 @@ public final class AchievementStore {
     }
 
     public var isBoost3xUsesProgressionMaxed: Bool {
-        boost3xUsesProgressionTier >= Self.boost3xUseTiers.count - 1
+        boost3xUsesProgressionTier >= Self.boost3xUseTiers.count - 1 && unlocks["boost3x_usage_progression"]?.claimed == true
     }
 
     /// 4X Boost usage progression tier index (persisted)
@@ -1336,7 +1360,7 @@ public final class AchievementStore {
         let tier = currentBoost4xUsesTier
         let clampedIndex = min(boost4xUsesProgressionTier, Self.boost4xUseTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = boost4xUsesProgressionTier >= Self.boost4xUseTiers.count - 1
+        let isMaxed = isBoost4xUsesProgressionMaxed
         let description = isMaxed
             ? "You've mastered using 4X Boosts. Claim your final reward."
             : "Use 4X Boost \(tier.milestone) times to reach the next tier."
@@ -1352,7 +1376,7 @@ public final class AchievementStore {
     }
 
     public var isBoost4xUsesProgressionMaxed: Bool {
-        boost4xUsesProgressionTier >= Self.boost4xUseTiers.count - 1
+        boost4xUsesProgressionTier >= Self.boost4xUseTiers.count - 1 && unlocks["boost4x_usage_progression"]?.claimed == true
     }
 
     /// Spin purchase progression tier index (persisted)
@@ -1373,7 +1397,7 @@ public final class AchievementStore {
         let tier = currentSpinPurchasesTier
         let clampedIndex = min(spinPurchasesProgressionTier, Self.spinPurchaseTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = spinPurchasesProgressionTier >= Self.spinPurchaseTiers.count - 1
+        let isMaxed = isSpinPurchasesProgressionMaxed
         let description = isMaxed
             ? "You've mastered buying spins. Claim your final reward."
             : "Buy \(tier.milestone) spin\(tier.milestone == 1 ? "" : "s") to reach the next tier."
@@ -1389,7 +1413,7 @@ public final class AchievementStore {
     }
 
     public var isSpinPurchasesProgressionMaxed: Bool {
-        spinPurchasesProgressionTier >= Self.spinPurchaseTiers.count - 1
+        spinPurchasesProgressionTier >= Self.spinPurchaseTiers.count - 1 && unlocks["spin_purchases_progression"]?.claimed == true
     }
 
     /// Daily claims progression tier index (persisted)
@@ -1410,7 +1434,7 @@ public final class AchievementStore {
         let tier = currentDailyClaimsTier
         let clampedIndex = min(dailyClaimsProgressionTier, Self.dailyClaimsTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = dailyClaimsProgressionTier >= Self.dailyClaimsTiers.count - 1
+        let isMaxed = isDailyClaimsProgressionMaxed
         let description = isMaxed
             ? "You've claimed daily rewards for a full year! Claim your final reward."
             : "Claim daily rewards \(tier.milestone) time\(tier.milestone == 1 ? "" : "s") to reach the next tier."
@@ -1426,7 +1450,7 @@ public final class AchievementStore {
     }
 
     public var isDailyClaimsProgressionMaxed: Bool {
-        dailyClaimsProgressionTier >= Self.dailyClaimsTiers.count - 1
+        dailyClaimsProgressionTier >= Self.dailyClaimsTiers.count - 1 && unlocks["daily_claims_progression"]?.claimed == true
     }
 
     /// 5X Score boost usage progression tier index (persisted)
@@ -1447,7 +1471,7 @@ public final class AchievementStore {
         let tier = currentBoost5xUsesTier
         let clampedIndex = min(boost5xUsesProgressionTier, Self.boost5xUseTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = boost5xUsesProgressionTier >= Self.boost5xUseTiers.count - 1
+        let isMaxed = isBoost5xUsesProgressionMaxed
         let description = isMaxed
             ? "You've mastered using 5X Score Boosts. Claim your final reward."
             : "Use 5X Score Boost \(tier.milestone) time\(tier.milestone == 1 ? "" : "s") to reach the next tier."
@@ -1463,7 +1487,7 @@ public final class AchievementStore {
     }
 
     public var isBoost5xUsesProgressionMaxed: Bool {
-        boost5xUsesProgressionTier >= Self.boost5xUseTiers.count - 1
+        boost5xUsesProgressionTier >= Self.boost5xUseTiers.count - 1 && unlocks["boost5x_usage_progression"]?.claimed == true
     }
 
     /// 20X Score boost usage progression tier index (persisted)
@@ -1484,7 +1508,7 @@ public final class AchievementStore {
         let tier = currentBoost20xUsesTier
         let clampedIndex = min(boost20xUsesProgressionTier, Self.boost20xUseTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = boost20xUsesProgressionTier >= Self.boost20xUseTiers.count - 1
+        let isMaxed = isBoost20xUsesProgressionMaxed
         let description = isMaxed
             ? "You've mastered using 20X Score Boosts. Claim your final reward."
             : "Use 20X Score Boost \(tier.milestone) time\(tier.milestone == 1 ? "" : "s") to reach the next tier."
@@ -1500,7 +1524,7 @@ public final class AchievementStore {
     }
 
     public var isBoost20xUsesProgressionMaxed: Bool {
-        boost20xUsesProgressionTier >= Self.boost20xUseTiers.count - 1
+        boost20xUsesProgressionTier >= Self.boost20xUseTiers.count - 1 && unlocks["boost20x_usage_progression"]?.claimed == true
     }
 
     /// Wheel collects progression tier index (persisted)
@@ -1521,7 +1545,7 @@ public final class AchievementStore {
         let tier = currentWheelCollectsTier
         let clampedIndex = min(wheelCollectsProgressionTier, Self.wheelCollectsTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = wheelCollectsProgressionTier >= Self.wheelCollectsTiers.count - 1
+        let isMaxed = isWheelCollectsProgressionMaxed
         let description = isMaxed
             ? "You've mastered collecting from the wheel. Claim your final reward."
             : "Collect powerups from the wheel \(tier.milestone) time\(tier.milestone == 1 ? "" : "s") to reach the next tier."
@@ -1537,7 +1561,7 @@ public final class AchievementStore {
     }
 
     public var isWheelCollectsProgressionMaxed: Bool {
-        wheelCollectsProgressionTier >= Self.wheelCollectsTiers.count - 1
+        wheelCollectsProgressionTier >= Self.wheelCollectsTiers.count - 1 && unlocks["wheel_collects_progression"]?.claimed == true
     }
 
     /// Challenge creation progression tier index (persisted)
@@ -1558,7 +1582,7 @@ public final class AchievementStore {
         let tier = currentChallengeCreationTier
         let clampedIndex = min(challengeCreationTier, Self.challengeCreationTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = challengeCreationTier >= Self.challengeCreationTiers.count - 1
+        let isMaxed = isChallengeCreationMaxed
         let description = isMaxed
             ? "You've mastered creating challenges. Claim your final reward."
             : "Create and complete \(tier.milestone) custom challenges to reach the next tier."
@@ -1574,7 +1598,7 @@ public final class AchievementStore {
     }
     
     public var isChallengeCreationMaxed: Bool {
-        challengeCreationTier >= Self.challengeCreationTiers.count - 1
+        challengeCreationTier >= Self.challengeCreationTiers.count - 1 && unlocks["challenge_creation"]?.claimed == true
     }
 
     /// Current leaderboard rank from Game Center (lower is better)
@@ -1632,7 +1656,7 @@ public final class AchievementStore {
         let tier = currentLeaderboardRankTier
         let clampedIndex = min(displayLeaderboardRankTier, Self.leaderboardRankTiers.count - 1)
         let level = clampedIndex + 1
-        let isMaxed = displayLeaderboardRankTier >= Self.leaderboardRankTiers.count - 1
+        let isMaxed = isLeaderboardRankMaxed
         let qualifiesForCurrentTier = currentLeaderboardRank > 0 && currentLeaderboardRank <= tier.milestone
         let description: String
         if isMaxed && qualifiesForCurrentTier {
@@ -1654,7 +1678,7 @@ public final class AchievementStore {
     }
 
     public var isLeaderboardRankMaxed: Bool {
-        highestClaimedLeaderboardTier >= Self.leaderboardRankTiers.count - 1
+        highestClaimedLeaderboardTier >= Self.leaderboardRankTiers.count - 1 && unlocks["leaderboard_rank_progression"]?.claimed == true
     }
 
     private func makeComboDisplay(
@@ -1759,9 +1783,9 @@ public final class AchievementStore {
         return Self.tileTiers[index]
     }
     
-    /// Check if tile progression is at max tier
+    /// Check if tile progression is at max tier (all tiers completed)
     public var isTileProgressionMaxed: Bool {
-        tileProgressionTier >= Self.tileTiers.count - 1
+        tileProgressionTier >= Self.tileTiers.count - 1 && unlocks["tile_progression"]?.claimed == true
     }
     
     public var tileProgressionDisplay: ProgressTierDisplay {
