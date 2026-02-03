@@ -654,6 +654,14 @@ public final class GameStore {
                 scoreAlpha: sessionState.scoreAlpha ?? persistedScoreAlpha() ?? AlphaNumber(sessionState.score),
                 highestStep: restoredStep
             )
+            // Fill any gaps in the restored board (fixes corrupted saves)
+            let gapColumns = columnsWithEmpties(in: state.board)
+            if !gapColumns.isEmpty {
+                print("🔧 Found gaps in restored board, filling columns: \(gapColumns)")
+                let filledState = engine.refillColumns(gapColumns)
+                self.state = filledState
+            }
+
             // Initialize valid moves count after restoring session
             validMovesCount = engine.countValidMoves()
             // Use the most recent gem value - prefer UserDefaults as it's updated immediately
