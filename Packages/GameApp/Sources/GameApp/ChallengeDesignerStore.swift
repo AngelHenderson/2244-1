@@ -74,8 +74,9 @@ public final class ChallengeDesignerStore {
 
     public var config: CustomChallengeConfig {
         let steps = candidateTileSteps
+        let configTargetStep = targetLabel == "∞" ? Int.max : targetStep
         return CustomChallengeConfig(
-            target: .tileStep(targetStep),
+            target: .tileStep(configTargetStep),
             timeLimitSeconds: timeLimitSeconds,
             minTileLevel: actualMinTilePower,
             levels: levels,

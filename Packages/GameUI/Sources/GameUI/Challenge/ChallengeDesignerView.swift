@@ -42,20 +42,23 @@ public struct ChallengeDesignerView: View {
     private var targetSection: some View {
         let buttonColor = Color.purple.opacity(0.7)
 
-        return VStack(spacing: 12) {
+        return VStack(spacing: 0) {
             Text("TARGET")
                 .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
                 .foregroundStyle(.secondary)
+                .padding(.bottom, 8)
+
+            Divider()
 
             HStack(spacing: 16) {
                 Button {
                     store.prevTarget()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(.white)
-                        .frame(width: 44, height: 44)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(buttonColor))
+                        .frame(width: 56, height: 56)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
                 }
                 .buttonStyle(.plain)
 
@@ -80,13 +83,14 @@ public struct ChallengeDesignerView: View {
                     store.nextTarget()
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(.white)
-                        .frame(width: 44, height: 44)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(buttonColor))
+                        .frame(width: 56, height: 56)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
                 }
                 .buttonStyle(.plain)
             }
+            .padding(.top, 12)
         }
     }
     

@@ -28,17 +28,19 @@ public struct CustomChallengeGameScreen: View {
     @State private var isMagnetMode = false
     @State private var firstSwapPosition: Position? = nil
 
-    // Store player's highest tile for re-applying after game reset
+    // Store player's highest tile/step for re-applying after game reset
     private let playerHighestTile: Int
+    private let playerHighestTileStep: Int
 
-    public init(config: CustomChallengeConfig, playerHighestTile: Int = 0, initialGems: Int = 0, onDismiss: @escaping () -> Void) {
+    public init(config: CustomChallengeConfig, playerHighestTile: Int = 0, playerHighestTileStep: Int = 0, initialGems: Int = 0, onDismiss: @escaping () -> Void) {
         self.config = config
         self.onDismiss = onDismiss
         self.playerHighestTile = playerHighestTile
+        self.playerHighestTileStep = playerHighestTileStep
         self.totalDuration = config.timeLimitSeconds
 
-        // Use sandboxed GameStore with player's actual highest tile and gems for consistent pricing
-        self._challengeGameStore = State(initialValue: GameStore.sandboxed(initialGems: initialGems, playerHighestTile: playerHighestTile))
+        // Use sandboxed GameStore with player's actual highest tile step for consistent pricing
+        self._challengeGameStore = State(initialValue: GameStore.sandboxed(initialGems: initialGems, playerHighestTile: playerHighestTile, playerHighestTileStep: playerHighestTileStep))
     }
 
     // Computed time remaining based on start time - takes a date parameter for TimelineView
@@ -532,8 +534,9 @@ public struct CustomChallengeGameScreen: View {
         )
         challengeGameStore.resetGame(with: gameConfig)
 
-        // Restore player's highest tile for consistent power-up pricing after reset
+        // Restore player's highest tile/step for consistent power-up pricing after reset
         challengeGameStore.playerHighestTile = playerHighestTile
+        challengeGameStore.playerHighestTileStep = playerHighestTileStep
 
         // Initialize gems from player's inventory AFTER reset (since reset clears state)
         challengeGameStore.coins = homeState.gems
