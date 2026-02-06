@@ -1638,12 +1638,8 @@ public final class AchievementStore {
         let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
         // Can't go past the max tier
         let maxTier = Self.leaderboardRankTiers.count - 1
-        // Only cap at qualifying tier if we have a valid rank
-        // If no rank yet, just show next tier to claim
-        if currentLeaderboardRank > 0 {
-            let qualifyingTier = leaderboardRankTier
-            return min(nextTierToClaimIndex, maxTier, qualifyingTier)
-        }
+        // Always show at least the next unclaimed tier.
+        // Never return a tier that's already been claimed (can happen when rank drops).
         return min(nextTierToClaimIndex, maxTier)
     }
 
@@ -2136,16 +2132,6 @@ public final class AchievementStore {
                 let targetRank = currentLeaderboardRankTier.milestone
                 let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
                 let qualifyingTier = leaderboardRankTier
-                let displayTier = displayLeaderboardRankTier
-
-                // Check if the displayed tier has already been claimed (happens when rank drops)
-                // If user claimed Top 1000 (tier 15) but rank dropped to 1058, they only qualify for Top 1500 (tier 14)
-                // In this case, Top 1500 was already claimed, so show it as claimed/completed
-                if displayTier <= highestClaimedLeaderboardTier {
-                    // This tier is already claimed - show as completed
-                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: true)
-                    continue
-                }
 
                 // Lower rank is better; unlock if rank qualifies AND this tier hasn't been claimed
                 if currentLeaderboardRank > 0 &&
@@ -2153,15 +2139,8 @@ public final class AchievementStore {
                    nextTierToClaimIndex <= qualifyingTier {
                     unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                     didUnlock = true
-                } else if currentLeaderboardRank > 0 && highestClaimedLeaderboardTier >= qualifyingTier {
-                    // User has claimed all tiers they qualify for at current rank - don't lock
-                    // Keep existing unlock state or show as maxed out
-                    if unlocks[def.id] == nil {
-                        unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
-                    }
-                    // Don't overwrite - preserve existing state
                 } else {
-                    // Lock if rank no longer qualifies for any tier
+                    // Rank doesn't qualify for the next unclaimed tier yet - show as locked
                     unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
                 }
                 continue
@@ -2798,17 +2777,10 @@ public final class AchievementStore {
             let targetValue = currentLeaderboardRankTier.milestone
             let nextTierToClaimIndex = highestClaimedLeaderboardTier + 1
             let qualifyingTier = leaderboardRankTier
-            let displayTier = displayLeaderboardRankTier
-
-            // Check if the displayed tier has already been claimed (happens when rank drops)
-            if displayTier <= highestClaimedLeaderboardTier {
-                // This tier is already claimed - show as completed
-                unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: true)
-                saveUnlocks()
-            } else if snapshot.best_leaderboard_rank > 0 &&
+            // Only unlock if user qualifies for a tier they haven't claimed yet
+            if snapshot.best_leaderboard_rank > 0 &&
                snapshot.best_leaderboard_rank <= targetValue &&
                nextTierToClaimIndex <= qualifyingTier {
-                // Only unlock if user qualifies for a tier they haven't claimed yet
                 unlocks[achievementId] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
                 saveUnlocks()
             }

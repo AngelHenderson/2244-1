@@ -55,6 +55,7 @@ public struct RootGameView: View {
                 CustomChallengeGameScreen(
                     config: config,
                     playerHighestTile: gameStore.state.highestTile,
+                    playerHighestTileStep: gameStore.state.highestTileStep,
                     initialGems: homeState.gems,
                     onDismiss: {
                         // Only track challenge creation completion for newly created challenges
