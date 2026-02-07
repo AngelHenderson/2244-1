@@ -49,7 +49,7 @@ public struct LeaderboardView: View {
                             showingTop150 = true
                         } label: {
                             HStack(spacing: 4) {
-                                Image(systemName: "crown.fill")
+                                Image(systemName: "infinity")
                                     .font(.avenirNext(size: 12, weight: .semibold))
                                 Text("Top 150")
                                     .font(.avenirNext(size: 12, weight: .semibold))
@@ -669,10 +669,10 @@ public struct LeaderboardView: View {
         Button(action: action) {
             HStack(spacing: 6) {
                 if filter == .global {
-                    Image(systemName: "globe.americas.fill")
+                    Image(systemName: "globe")
                         .font(.avenirNext(size: 14, weight: .regular))
                 } else if filter == .hallOfFame {
-                    Image(systemName: "crown.fill")
+                    Image(systemName: "infinity")
                         .font(.avenirNext(size: 14, weight: .regular))
                 } else if let countryCode = filter.countryCode {
                     Text(flagEmoji(countryCode))

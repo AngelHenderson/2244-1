@@ -47,8 +47,8 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
 
     public var icon: String {
         switch self {
-        case .global: return "globe.americas.fill"
-        case .hallOfFame: return "crown.fill"
+        case .global: return "globe"
+        case .hallOfFame: return "infinity"
         case .country: return "flag.fill"
         case .countryUK: return "flag.fill"
         case .countryCA: return "flag.fill"
