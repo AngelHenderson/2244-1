@@ -490,9 +490,10 @@ public struct HybridGameScreen: View {
     private var mainGameView: some View {
         ZStack {
             // Board container with glass preview (clear background)
-            SimplifiedGlassBoardView(onTileTap: { position in
-                handleTileTap(at: position)
-            })
+            SimplifiedGlassBoardView(
+                onTileTap: { position in handleTileTap(at: position) },
+                isPowerUpActive: isHammerMode || isSwapMode || isMagnetMode
+            )
             .padding(.horizontal, ModernTheme.gutter)
             .padding(.bottom, 8)
             .accessibilityLabel("Game board with glass preview")

@@ -21,9 +21,11 @@ public struct SimplifiedGlassBoardView: View {
     private let spacing: CGFloat = 12
     private let cornerRadius: CGFloat = 12
     private let onTileTap: ((Position) -> Void)?
-    
-    public init(onTileTap: ((Position) -> Void)? = nil) {
+    private let isPowerUpActive: Bool
+
+    public init(onTileTap: ((Position) -> Void)? = nil, isPowerUpActive: Bool = false) {
         self.onTileTap = onTileTap
+        self.isPowerUpActive = isPowerUpActive
     }
     
     public var body: some View {
@@ -357,6 +359,7 @@ public struct SimplifiedGlassBoardView: View {
                 
                 if !isDragging {
                     isDragging = true
+                    guard !isPowerUpActive else { return }
                     if let position = position, gameStore.state.board[position] != nil {
                         gameStore.beginPath(at: position)
                         haptics.lightImpact()

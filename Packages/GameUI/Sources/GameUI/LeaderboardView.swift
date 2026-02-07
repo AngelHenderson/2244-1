@@ -5,6 +5,7 @@ public struct LeaderboardView: View {
     @Environment(\.leaderboardClient) private var client
     @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.currentTheme) private var currentTheme
     @State private var model: LeaderboardModel? = nil
     @State private var showError = false
     @State private var showingTop150 = false
@@ -578,16 +579,27 @@ public struct LeaderboardView: View {
     }
 
     private func milestoneColor(for milestone: String) -> Color {
-        // Color based on tier
-        if milestone.hasSuffix("B") {
-            return Color(red: 1.0, green: 0.84, blue: 0.0)  // Gold for Billions
-        } else if milestone.hasSuffix("M") {
-            return Color(red: 0.75, green: 0.75, blue: 0.78)  // Silver for Millions
-        } else if milestone.hasSuffix("K") {
-            return Color(red: 0.80, green: 0.50, blue: 0.20)  // Bronze for Thousands
-        } else {
-            return Color(red: 0.4, green: 0.3, blue: 0.5)  // Purple for raw numbers
+        tileColor(for: milestone)
+    }
+
+    /// Returns the game tile background color for a milestone string, using the current theme
+    private func tileColor(for milestone: String) -> Color {
+        let idx = MockLeaderboardData.milestoneIndex(for: milestone)
+        guard idx > 0 else { return Color(red: 0.4, green: 0.3, blue: 0.5) }
+        if let theme = currentTheme {
+            return theme.colorForStep(idx - 1)
         }
+        return Theme.colorForStep(idx - 1)
+    }
+
+    /// Returns the game tile text color for a milestone string, using the current theme
+    private func tileTextColor(for milestone: String) -> Color {
+        let idx = MockLeaderboardData.milestoneIndex(for: milestone)
+        guard idx > 0 else { return .white }
+        if let theme = currentTheme {
+            return theme.textColorForStep(idx - 1)
+        }
+        return Theme.textColorForStep(idx - 1)
     }
 
     // MARK: - Top 150 View
@@ -860,15 +872,15 @@ public struct LeaderboardView: View {
             if let highestTile = entry.highestTile {
                 Text(highestTile)
                     .font(.avenirNext(size: 12, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(tileTextColor(for: highestTile))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(milestoneBadgeColor(for: entry.rank))
+                            .fill(tileColor(for: highestTile))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .stroke(milestoneBorderColor(for: entry.rank), lineWidth: 2)
+                                    .stroke(tileColor(for: highestTile).opacity(0.7), lineWidth: 2)
                             )
                     )
                     .overlay(
