@@ -927,7 +927,9 @@ public final class GameStore {
 
                 if requiresGravityDrop {
                     print("[GameStore] Phase 3c: Gravity Drop")
-                    self.performGravityDrop(columns: affectedColumns)
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        self.performGravityDrop(columns: affectedColumns)
+                    }
                 }
 
                 // Wait for gravity animation (tiles dropping)
@@ -2128,8 +2130,10 @@ public final class GameStore {
                 return
             }
             
-            let dropState = self.engine.collapseColumns([position.col])
-            self.state = dropState
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                let dropState = self.engine.collapseColumns([position.col])
+                self.state = dropState
+            }
             
             do {
                 try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
@@ -2256,8 +2260,10 @@ public final class GameStore {
             }
 
             let cols = self.columnsWithEmpties(in: self.state.board)
-            self.performGravityDrop(columns: cols)
-            
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                self.performGravityDrop(columns: cols)
+            }
+
             do {
                 try await Task.sleep(nanoseconds: Self.gravityAnimationDelay)
             } catch {
