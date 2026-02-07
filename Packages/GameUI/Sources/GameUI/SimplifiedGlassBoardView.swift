@@ -107,6 +107,7 @@ public struct SimplifiedGlassBoardView: View {
                                 )
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
+                                    .transition(.opacity)
                                 }
 
                                 // Glass overlay effect - only show if glass hasn't been broken
@@ -161,6 +162,7 @@ public struct SimplifiedGlassBoardView: View {
                                 )
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
                                     .matchedGeometryEffect(id: tile.id, in: tileNamespace)
+                                    .transition(.opacity)
                                 }
                                 if crownPositions.contains(position) {
                                     Image(systemName: "crown.fill")

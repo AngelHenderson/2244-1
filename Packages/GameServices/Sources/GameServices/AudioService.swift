@@ -238,15 +238,17 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
         
         do {
-            print("🔊 Playing SFX: \(name) from \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.8
-            player.play()
-            print("✅ SFX started playing: \(name)")
-            
+            player.prepareToPlay()
+            if !player.play() {
+                ensureAudioSessionActive()
+                player.play()
+            }
+
             // Keep reference to prevent deallocation
             sfxPlayers.append(player)
-            
+
             // Remove completed players
             Task {
                 try? await Task.sleep(for: .seconds(player.duration + 0.1))
@@ -304,12 +306,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            print("⚡ Creating player for electric sound: \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.7
             player.prepareToPlay()
-            let success = player.play()
-            print("⚡ Electric sound play result: \(success)")
+            if !player.play() {
+                ensureAudioSessionActive()
+                player.play()
+            }
             sfxPlayers.append(player)
 
             Task {
@@ -346,12 +349,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            print("🪓 Creating player for hammer sound: \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.8
             player.prepareToPlay()
-            let success = player.play()
-            print("🪓 Hammer sound play result: \(success)")
+            if !player.play() {
+                ensureAudioSessionActive()
+                player.play()
+            }
             sfxPlayers.append(player)
 
             Task {
@@ -381,7 +385,11 @@ public actor LiveAudioService: AudioServiceProtocol {
         do {
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.3  // Subtle volume for chain feedback
-            player.play()
+            player.prepareToPlay()
+            if !player.play() {
+                ensureAudioSessionActive()
+                player.play()
+            }
             sfxPlayers.append(player)
 
             Task {
@@ -409,7 +417,11 @@ public actor LiveAudioService: AudioServiceProtocol {
         do {
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.5
-            player.play()
+            player.prepareToPlay()
+            if !player.play() {
+                ensureAudioSessionActive()
+                player.play()
+            }
             sfxPlayers.append(player)
 
             Task {
@@ -437,10 +449,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            print("🎉 Playing cheer sound from \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.8
-            player.play()
+            player.prepareToPlay()
+            if !player.play() {
+                ensureAudioSessionActive()
+                player.play()
+            }
             sfxPlayers.append(player)
 
             Task {
@@ -496,11 +511,14 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            print("🎹 Playing \(effectiveTheme) sound: \(soundName) from \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.7
-            player.play()
-            print("✅ \(effectiveTheme.capitalized) sound started playing: \(soundName)")
+            player.prepareToPlay()
+            if !player.play() {
+                // Play failed — try reactivating audio session and retry once
+                ensureAudioSessionActive()
+                player.play()
+            }
 
             sfxPlayers.append(player)
 
@@ -538,14 +556,18 @@ public actor LiveAudioService: AudioServiceProtocol {
         do {
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.volume = 0.7
+            player.prepareToPlay()
 
             // Only do note slicing if this is the original instrument file (not piano fallback)
             if !usingFallback && config.notesInSingleFile > 1 {
                 let noteDuration = player.duration / Double(config.notesInSingleFile)
                 let startTime = Double(noteIndex) * noteDuration
                 player.currentTime = startTime
-                print("🎹 Playing \(theme) note \(noteIndex + 1)/\(config.notesInSingleFile) from \(startTime)s")
-                player.play()
+                if !player.play() {
+                    ensureAudioSessionActive()
+                    player.currentTime = startTime
+                    player.play()
+                }
                 sfxPlayers.append(player)
 
                 // Stop after one note's duration
@@ -556,8 +578,10 @@ public actor LiveAudioService: AudioServiceProtocol {
                 }
             } else {
                 // Piano fallback - play full sound
-                print("🎹 Playing piano fallback sound")
-                player.play()
+                if !player.play() {
+                    ensureAudioSessionActive()
+                    player.play()
+                }
                 sfxPlayers.append(player)
 
                 Task {
@@ -586,12 +610,13 @@ public actor LiveAudioService: AudioServiceProtocol {
                 sfxPlayers.removeFirst()
             }
         }
+    }
 
-        // Always ensure audio session is active before playing
+    /// Reactivate audio session after interruption (call sparingly, not on every sound)
+    private func ensureAudioSessionActive() {
         #if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
-            // Use .playback to ensure sounds play even when other apps (YouTube) are playing
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true, options: [])
         } catch {

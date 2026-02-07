@@ -779,6 +779,8 @@ public struct LeaderboardView: View {
             return Color.blue  // Malaysia - blue from the flag
         case .countryNZ:
             return Color.blue  // New Zealand - blue from the flag
+        case .countryHU:
+            return Color.red  // Hungary - red from the flag
         }
     }
 
@@ -868,20 +870,18 @@ public struct LeaderboardView: View {
                     .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
             }
 
-            // Milestone Badge (highest tile)
+            // Milestone Badge (highest tile - styled as game tile)
             if let highestTile = entry.highestTile {
+                let tileRadius: CGFloat = currentTheme?.tileShape == .square ? 3 : 5
                 Text(highestTile)
-                    .font(.avenirNext(size: 12, weight: .bold))
+                    .font(.avenirNext(size: 10, weight: .bold))
                     .foregroundStyle(tileTextColor(for: highestTile))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .frame(width: 38, height: 38)
                     .background(
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: tileRadius)
                             .fill(tileColor(for: highestTile))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(tileColor(for: highestTile).opacity(0.7), lineWidth: 2)
-                            )
                     )
                     .overlay(
                         rankFrame(for: entry.rank)
