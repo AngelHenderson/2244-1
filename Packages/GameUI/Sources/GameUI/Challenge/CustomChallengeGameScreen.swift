@@ -67,7 +67,7 @@ public struct CustomChallengeGameScreen: View {
 
                 // Game board - uses challenge's own GameStore
                 ZStack {
-                    SimplifiedGlassBoardView(onTileTap: handleTileTap)
+                    SimplifiedGlassBoardView(onTileTap: handleTileTap, isPowerUpActive: isHammerMode || isSwapMode || isMagnetMode)
                         .environment(\.gameStore, challengeGameStore)
                         .padding(.horizontal, 8)
 
