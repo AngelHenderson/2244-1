@@ -558,7 +558,7 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(gems: 877),
         AchievementDef.Rewards(swaps: 2),
         AchievementDef.Rewards(spins: 1, boost4x: 1),
-        AchievementDef.Rewards(magnets: 1, spins: 1, boost2x: 1),
+        AchievementDef.Rewards(spins: 1, magnets: 1, boost2x: 1),
         AchievementDef.Rewards(gems: 1234, hammers: 1),
         AchievementDef.Rewards(gems: 1414)
     ]
