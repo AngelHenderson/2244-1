@@ -584,6 +584,10 @@ public struct LeaderboardView: View {
 
     /// Returns the game tile background color for a milestone string, using the current theme
     private func tileColor(for milestone: String) -> Color {
+        // Infinity tiles use light cyan/turquoise (matches the infinity tile in-game)
+        if milestone.contains("∞") {
+            return Color(red: 0.6, green: 0.9, blue: 0.9)
+        }
         let idx = MockLeaderboardData.milestoneIndex(for: milestone)
         guard idx > 0 else { return Color(red: 0.4, green: 0.3, blue: 0.5) }
         if let theme = currentTheme {
@@ -594,6 +598,10 @@ public struct LeaderboardView: View {
 
     /// Returns the game tile text color for a milestone string, using the current theme
     private func tileTextColor(for milestone: String) -> Color {
+        // Infinity tiles use dark gray/blue text on light cyan background
+        if milestone.contains("∞") {
+            return Color(red: 0.4, green: 0.5, blue: 0.5)
+        }
         let idx = MockLeaderboardData.milestoneIndex(for: milestone)
         guard idx > 0 else { return .white }
         if let theme = currentTheme {

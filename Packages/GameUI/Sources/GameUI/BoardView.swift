@@ -85,7 +85,7 @@ public struct BoardView: View {
                             )
                                 .opacity(shouldHideTile(at: position) ? 0 : 1)
                                 .matchedGeometryEffect(id: tile.id, in: tileNamespace)
-                                .transition(.opacity)
+
                             }
                             
                             if gameStore.pendingGiftBoxes[position] != nil {
@@ -117,7 +117,6 @@ public struct BoardView: View {
         }
         .padding(spacing)
         .contentShape(Rectangle())
-        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: gameStore.state.board)
         // IMPORTANT: The drag gesture is attached to this grid view, whose
         // coordinate space is the grid's local bounds (including its padding).
         // To correctly map touch locations to tiles, pass the grid's own size,
