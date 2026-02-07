@@ -85,7 +85,7 @@ public struct BoardView: View {
                             )
                                 .opacity(shouldHideTile(at: position) ? 0 : 1)
                                 .matchedGeometryEffect(id: tile.id, in: tileNamespace)
-
+                                .transition(.identity)
                             }
                             
                             if gameStore.pendingGiftBoxes[position] != nil {
