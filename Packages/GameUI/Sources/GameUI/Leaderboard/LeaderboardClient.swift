@@ -1198,7 +1198,8 @@ public enum MockLeaderboardData {
         "AF": 50000, "AL": 55000, "DZ": 60000, "CN": 65000, "KR": 70000,
         "IT": 75000, "ES": 80000, "NL": 85000, "CH": 90000, "NO": 95000,
         "DK": 100000, "FI": 105000, "PL": 110000, "BE": 115000, "SE": 120000,
-        "AT": 125000, "IE": 130000, "PT": 135000, "GR": 140000, "CZ": 145000
+        "AT": 125000, "IE": 130000, "PT": 135000, "GR": 140000, "CZ": 145000,
+        "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -1338,6 +1339,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.newZealandPlayerMilestones, LeaderboardClient.newZealandExtendedRankBrackets, 2_623)
         case "HU":
             return (LeaderboardClient.hungaryPlayerMilestones, LeaderboardClient.hungaryExtendedRankBrackets, 111_111)
+        case "TH":
+            return (LeaderboardClient.thailandPlayerMilestones, LeaderboardClient.thailandExtendedRankBrackets, 5_444)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -2398,7 +2401,18 @@ public enum MockLeaderboardData {
         "AjkaAssassin", "KomloKestrel", "OzdiOutlaw", "SalgotarjanSavage", "GyongyosGriffin"
     ]
 
-    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
+    static let thailandNames = [
+        "BangkokBoss", "ChiangMaiChamp", "PhuketPhoenix", "PattayaProwler", "KrabiKnight",
+        "SuratThaniStar", "KhonKaenKing", "HatYaiHero", "NakhonRatchasimaNinja", "UdonThaniUltimate",
+        "ChiangRaiRaider", "SamutPrakanStriker", "AyutthayaAce", "LopburiLegend", "SukhothaiSentinel",
+        "KanchanaburiKestrel", "RayongRuler", "SongkhlaSniper", "TrangTitan", "PhangNgaPhantom",
+        "NonthaburiNinja", "PathumThaniProtector", "NakhonPathomNovice", "SamutSakhonSurge", "RatchaburiRanger",
+        "PrachuapKhiriKhanPro", "ChumphonCrusader", "RanongRaider", "TakTornado", "MaeHongSonMaster",
+        "LampangLion", "LamphunLancer", "PhitsanulokPhoenix", "PhichitPioneer", "PhetchabunProwler",
+        "NakhonSawanNinja", "KamphaengPhetKnight", "UthaithaniUltimate", "ChaiNatChampion", "SingBuriStar"
+    ]
+
+    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
     static func seededRandom(seed: Int, index: Int) -> Double {
@@ -2631,6 +2645,8 @@ public extension LeaderboardClient {
                 entries = newZealandEntries()
             case .countryHU:
                 entries = hungaryEntries()
+            case .countryTH:
+                entries = thailandEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -2708,6 +2724,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_623, on: day, countrySeed: 131)
             case .countryHU:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 111_111, on: day, countrySeed: 132)
+            case .countryTH:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 5_444, on: day, countrySeed: 133)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -2744,7 +2762,8 @@ public extension LeaderboardClient {
                 let myPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 52_111, on: day, countrySeed: 130)
                 let nzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_623, on: day, countrySeed: 131)
                 let huPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 111_111, on: day, countrySeed: 132)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers
+                let thPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 5_444, on: day, countrySeed: 133)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers
             }
             let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
             return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
@@ -4256,6 +4275,47 @@ public extension LeaderboardClient {
         ("8192", 856), ("4096", 1234), ("2048", 1831), ("1024", 2500), ("512", 3199),
         ("256", 4445), ("128", 8332), ("64", 13312), ("32", 19327), ("16", 26338),
         ("8", 37332), ("4", 50000), ("2", 67676), ("0", 89898)  // Score 0 = ranks 89898-111111
+    ]
+
+    // Thailand leaderboard data - top 150 player milestones
+    // Total Thailand players: ~5,444
+    static let thailandPlayerMilestones: [String] = [
+        // Ranks 1-10
+        "54bz", "13bz", "1bz", "3by", "6bx", "198bv", "758bt", "1bs", "1bq", "657bn",
+        // Ranks 11-20
+        "74bj", "1bg", "1be", "1bc", "1ba", "3ax", "6au", "190aq", "1an", "1al",
+        // Ranks 21-30
+        "1aj", "2ah", "4ae", "124y", "31y", "1y", "55t", "766n", "2n", "1m",
+        // Ranks 31-40
+        "2l", "5k", "10j", "664h", "324g", "2g", "39f", "2f", "309e", "38e",
+        // Ranks 41-50
+        "9e", "1e", "75d", "2d", "35a", "274B", "68B", "34B", "8B", "2B",
+        // Ranks 51-60
+        "536M", "268M", "67M", "67M", "33M", "33M", "16M", "16M", "8M", "8M",
+        // Ranks 61-70
+        "8M", "4M", "4M", "4M", "2M", "2M", "2M", "2M", "1M", "1M",
+        // Ranks 71-80
+        "1M", "1M", "1M", "524K", "262K", "262K", "262K", "262K", "262K", "262K",
+        // Ranks 81-95 (interpolated)
+        "131K", "131K", "131K", "65K", "65K", "65K", "65K", "65K", "65K", "65K",
+        "65K", "65K", "65K", "65K", "65K",
+        // Ranks 96-122 (interpolated)
+        "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K",
+        "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K",
+        "32K", "32K", "32K", "32K", "32K", "32K", "32K",
+        // Ranks 123-150 (interpolated from 16K)
+        "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K",
+        "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K",
+        "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K"
+    ]
+
+    // Extended Thailand milestone brackets for rank calculation (ranks 151+)
+    // Total Thailand players: ~5,444
+    static let thailandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // Raw number brackets (ranks 177-5444)
+        ("8192", 211), ("4096", 297), ("2048", 400), ("1024", 566), ("512", 811),
+        ("256", 1086), ("128", 1297), ("64", 1552), ("32", 2111), ("16", 2792),
+        ("8", 3333), ("4", 4000), ("2", 4567), ("0", 4933)  // Score 0 = ranks 4933-5444
     ]
 
     // Extended Netherlands milestone brackets for rank calculation (ranks 151+)
@@ -7838,6 +7898,90 @@ public extension LeaderboardClient {
                 day: day,
                 totalPlayers: totalHungaryPlayers,
                 extendedBrackets: hungaryExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+
+    private static func thailandEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, thailandPlayerMilestones.count) {
+            let baseMilestone = thailandPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.thailandNames, countrySeed: 170000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 170000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 170000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "th_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalThailandPlayers = 5_444
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 170000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "TH",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            var thailandRank = totalThailandPlayers
+
+            for bracket in thailandExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    thailandRank = bracket.startRank
+                    break
+                }
+            }
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: thailandRank,
+                userMilestone: userMilestone,
+                countryCode: "TH",
+                countrySeed: 170000,
+                names: MockLeaderboardData.thailandNames,
+                day: day,
+                totalPlayers: totalThailandPlayers,
+                extendedBrackets: thailandExtendedRankBrackets
             )
             entries.append(contentsOf: extendedEntries)
         }

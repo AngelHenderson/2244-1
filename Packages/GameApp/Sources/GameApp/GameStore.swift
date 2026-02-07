@@ -1083,6 +1083,14 @@ public final class GameStore {
                 achievementEvaluator?.onInfinityCreated()
             }
             
+            // Track infinity merges for Hall of Fame leaderboard
+            if state.infinityMergeCount > 0 {
+                let previousCount = UserDefaults.standard.integer(forKey: "infinityMergeCount")
+                let newTotal = previousCount + state.infinityMergeCount
+                UserDefaults.standard.set(newTotal, forKey: "infinityMergeCount")
+                print("∞ HALL OF FAME: Infinity merge count updated to \(newTotal)")
+            }
+            
             // CRITICAL: Auto-save progress for any new tile creation
             saveProgressImmediately(newTile: addedValue)
         }
@@ -3067,6 +3075,7 @@ extension GameStore {
             journeyState: journeyState,
             sessionTracking: sessionTracking,
             hasInfinityAchievement: hasInfinity,
+            infinityMergeCount: state.infinityMergeCount + UserDefaults.standard.integer(forKey: "infinityMergeCount"),
             queuedScoreBoostTierID: queuedScoreBoostTierID?.rawValue,
             activePowerDiscount: discountState,
             queuedPowerDiscountTierID: queuedPowerDiscountTierID?.rawValue

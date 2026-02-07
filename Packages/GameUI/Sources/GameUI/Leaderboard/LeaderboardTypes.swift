@@ -43,6 +43,7 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
     case countryMY = "Malaysia"
     case countryNZ = "New Zealand"
     case countryHU = "Hungary"
+    case countryTH = "Thailand"
 
     public var id: Self { self }
 
@@ -84,6 +85,7 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
         case .countryMY: return "flag.fill"
         case .countryNZ: return "flag.fill"
         case .countryHU: return "flag.fill"
+        case .countryTH: return "flag.fill"
         }
     }
 
@@ -123,6 +125,7 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
         case .countryMY: return "MY"
         case .countryNZ: return "NZ"
         case .countryHU: return "HU"
+        case .countryTH: return "TH"
         default: return nil
         }
     }
@@ -198,6 +201,8 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
             return [.global, .hallOfFame, .countryNZ]
         case "HU":
             return [.global, .hallOfFame, .countryHU]
+        case "TH":
+            return [.global, .hallOfFame, .countryTH]
         default:
             return [.global, .hallOfFame]
         }

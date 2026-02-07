@@ -69,6 +69,8 @@ public struct GameState: Equatable, Sendable {
     public var gems: Int
     public var undoAvailable: Bool
     public var pendingRewards: [PendingReward]
+    /// Count of infinity tile merges (incremented each time infinity tiles are merged)
+    public var infinityMergeCount: Int
 
     public init(
         board: Board,
@@ -81,7 +83,8 @@ public struct GameState: Equatable, Sendable {
         level: Int = 1,
         gems: Int = 0,
         undoAvailable: Bool = false,
-        pendingRewards: [PendingReward] = []
+        pendingRewards: [PendingReward] = [],
+        infinityMergeCount: Int = 0
     ) {
         self.board = board
         self.score = score
@@ -95,6 +98,7 @@ public struct GameState: Equatable, Sendable {
         self.gems = gems
         self.undoAvailable = undoAvailable
         self.pendingRewards = pendingRewards
+        self.infinityMergeCount = infinityMergeCount
     }
 }
 
@@ -375,12 +379,22 @@ public final class GameEngine {
         
         // Check for special tiles that can't merge
         for tile in tiles {
-            if tile.isInfinity {
-                return .invalid("Infinity tiles cannot be merged")
-            }
             if tile.isLocked {
                 return .invalid("Locked tiles cannot be merged")
             }
+        }
+        
+        // Check if this is an infinity-only chain (all tiles are infinity)
+        let allInfinity = tiles.allSatisfy { $0.isInfinity }
+        if allInfinity {
+            // Infinity tiles can merge with each other - no step validation needed
+            return .valid
+        }
+        
+        // Mixed chains (infinity + non-infinity) are not allowed
+        let hasInfinity = tiles.contains { $0.isInfinity }
+        if hasInfinity {
+            return .invalid("Infinity tiles can only merge with other infinity tiles")
         }
         
         let steps = tiles.compactMap { TileStepMath.step(for: $0) }
@@ -554,6 +568,13 @@ public final class GameEngine {
         
         let tiles = positions.compactMap { state.board[$0] }
         guard tiles.count == positions.count else { return state }
+        
+        // Check if this is an infinity merge
+        let allInfinity = tiles.allSatisfy { $0.isInfinity }
+        if allInfinity {
+            return commitInfinityChain(positions, applyGravity: applyGravity)
+        }
+        
         let steps = tiles.compactMap { TileStepMath.step(for: $0) }
         guard steps.count == tiles.count else { return state }
         let mergedStep = TileStepMath.mergedStep(from: steps)
@@ -618,6 +639,50 @@ public final class GameEngine {
         if positions.count >= 10 {
             state.gems += positions.count / 5
         }
+        
+        if applyGravity {
+            applyGravityDown()
+            
+            // Check for game over only after gravity resolves
+            if !hasValidMoves() {
+                state.isGameOver = true
+            }
+        }
+        
+        return state
+    }
+    
+    /// Commits a chain of infinity tiles, merging them into a single infinity tile
+    /// and incrementing the infinity merge count for Hall of Fame tracking.
+    private func commitInfinityChain(_ positions: [Position], applyGravity: Bool) -> GameState {
+        // Remove all tiles in the chain except the last
+        for position in positions.dropLast() {
+            state.board[position] = nil
+        }
+        
+        // Place a single infinity tile at the last position
+        if let lastPosition = positions.last {
+            state.board[lastPosition] = Tile.infinity()
+        }
+        
+        // Calculate infinity merge count increment using the same doubling logic as regular tiles.
+        // Treat each infinity tile as if it were a "step 0" tile (value 2).
+        // The merged step tells us how many doublings occurred.
+        // Example: 2 tiles (2+2=4) → step 1 → +1, 3 tiles (2+2+2=8) → step 2 → +2
+        let steps = Array(repeating: 0, count: positions.count)
+        let mergedStep = TileStepMath.mergedStep(from: steps)
+        state.infinityMergeCount += mergedStep
+        
+        // Award points for infinity merge (bonus points)
+        let infinityMergeBonus = 10000 * positions.count
+        state.score += infinityMergeBonus
+        state.scoreValue.add(infinityMergeBonus)
+        state.moves += 1
+        
+        // Award gems for merging infinity tiles
+        state.gems += positions.count
+        
+        print("∞ INFINITY MERGE: Merged \(positions.count) infinity tiles. Doublings: \(mergedStep). Total infinity merges: \(state.infinityMergeCount)")
         
         if applyGravity {
             applyGravityDown()

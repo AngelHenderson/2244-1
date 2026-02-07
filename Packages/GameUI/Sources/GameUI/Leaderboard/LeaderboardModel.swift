@@ -49,6 +49,18 @@ public final class LeaderboardModel {
         }
     }
     
+    public func submitInfinityCount(_ count: Int) async {
+        do {
+            try await client.submitInfinityCount(count)
+            // Refresh to show updated position in Hall of Fame
+            if selectedFilter == .hallOfFame {
+                await refresh()
+            }
+        } catch {
+            self.error = "Failed to submit infinity count: \(error.localizedDescription)"
+        }
+    }
+    
     public func refresh() async {
         guard !isLoading else { return }
         

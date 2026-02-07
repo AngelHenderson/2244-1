@@ -48,6 +48,9 @@ public struct GameProgress: Codable, Equatable, Sendable {
     // Achievement tracking
     public var hasInfinityAchievement: Bool
     
+    // Infinity tile merge count (for Hall of Fame leaderboard)
+    public var infinityMergeCount: Int
+    
     public struct SessionState: Codable, Equatable, Sendable {
         public var board: Board
         public var score: Int
@@ -229,6 +232,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         journeyState: JourneyState = JourneyState(),
         sessionTracking: SessionTracking = SessionTracking(),
         hasInfinityAchievement: Bool = false,
+        infinityMergeCount: Int = 0,
         queuedScoreBoostTierID: String? = nil,
         activePowerDiscount: PowerDiscountState? = nil,
         queuedPowerDiscountTierID: String? = nil
@@ -255,6 +259,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         self.journeyState = journeyState
         self.sessionTracking = sessionTracking
         self.hasInfinityAchievement = hasInfinityAchievement
+        self.infinityMergeCount = infinityMergeCount
         self.queuedScoreBoostTierID = queuedScoreBoostTierID
         self.activePowerDiscount = activePowerDiscount
         self.queuedPowerDiscountTierID = queuedPowerDiscountTierID

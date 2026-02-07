@@ -36,7 +36,7 @@ public struct Tile: Equatable, Hashable, Sendable, Codable {
     
     public var canMerge: Bool {
         switch type {
-        case .normal, .highValue:
+        case .normal, .highValue, .infinity:
             return true
         default:
             return false
