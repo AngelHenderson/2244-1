@@ -1548,7 +1548,7 @@ public final class GameEngine {
 
         // But don't go below elimination threshold step
         let eliminationThresholdStep = getEliminationThresholdStep()
-        let minSpawnStep = max(calculatedMinStep, eliminationThresholdStep)
+        let minSpawnStep = max(calculatedMinStep, eliminationThresholdStep + 1)
 
         // Ensure we have at least step 0
         let effectiveMinStep = max(0, minSpawnStep)

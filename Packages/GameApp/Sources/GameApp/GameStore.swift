@@ -2013,23 +2013,17 @@ public final class GameStore {
             var pending: [MergeNotification] = []
             pending.append(.unlocked(newTileValue))
 
-            // Skip milestones are only 8192 (step 12) and 131072 (step 16)
-            // These don't add or eliminate anything
-            let isSkipMilestone = newStepVal == 12 || newStepVal == 16
+            // Skip pattern for high-value milestones:
+            // Matches milestoneExcludedValue: (step+1 - 26) % 3 == 2 → skip
+            // step+1 = log2(milestone), log67M = 26
+            let isSkipMilestone = (newStepVal + 1 - 26) % 3 == 2
 
             if !isSkipMilestone {
-                // After 131K+ (step 17), spawn only 5 tiles below highest instead of 7
-                let stepsBelow = newStepVal >= 17 ? 5 : 7
+                // Added = eliminated << 7 = milestone >> 7 (step - 7)
+                // Use Int.max as placeholder - the UI formats based on step
+                pending.append(.added(Int.max))
 
-                // New spawn value is added at maxSpawn = highest - stepsBelow
-                let addedStep = newStepVal - stepsBelow
-                if addedStep >= 0 {
-                    // Use Int.max as placeholder - the UI formats based on step
-                    pending.append(.added(Int.max))
-                }
-
-                // Elimination: threshold = milestone - 14, tiles below threshold are eliminated
-                // Always show eliminated notification for high-value milestones since elimination occurs
+                // Eliminated = milestone >> 14 (step - 14)
                 // Use Int.max as placeholder - the UI formats based on step
                 pending.append(.excluded(Int.max))
             }

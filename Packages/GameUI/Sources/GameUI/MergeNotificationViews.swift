@@ -495,10 +495,9 @@ struct AddedNotificationView: View {
     private var displayStep: Int {
         if isHighValue {
             let highestStep = gameStore.state.highestTileStep
-            // After 131K+ (step 17), spawn only 5 tiles below highest instead of 7
-            let stepsBelow = highestStep >= 17 ? 5 : 7
-            // Added tiles appear at maxSpawn = highest - stepsBelow
-            return max(0, highestStep - stepsBelow)
+            // Added = eliminated << 7, where eliminated = milestone >> 14
+            // So added step = (highestStep - 14) + 7 = highestStep - 7
+            return max(0, highestStep - 7)
         }
         return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
     }
@@ -632,14 +631,12 @@ struct ExcludedNotificationView: View {
         gameStore.state.highestTileStep > 817
     }
 
-    // For high-value tiles, elimination threshold = milestone - 14
-    // But spawn range is 5 tiles below highest after step 17
-    // The eliminated tile shown should be the highest tile no longer spawning
+    // For high-value tiles, eliminated step = milestone step - 14
+    // Matches milestoneExcludedValue: milestone >> 14
     private var displayStep: Int {
         if isHighValue {
             let highestStep = gameStore.state.highestTileStep
-            // Eliminated = milestone - 12 (matches observed game behavior)
-            return max(0, highestStep - 12)
+            return max(0, highestStep - 14)
         }
         return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
     }

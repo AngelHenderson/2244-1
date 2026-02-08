@@ -373,18 +373,29 @@ public struct CustomChallengeGameScreen: View {
 
     private var challengeHeader: some View {
         HStack {
-            // Back button
+            // Pause button (far left)
             Button {
                 onDismiss()
             } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
+                VStack(spacing: 4) {
+                    Image(systemName: "pause.fill")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.red.opacity(0.85))
+                        )
+                    Text("PAUSE")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.secondary)
+                }
             }
+            .buttonStyle(.plain)
 
             Spacer()
 
-            // Target display
+            // Target display (center)
             VStack(spacing: 2) {
                 Text("TARGET")
                     .font(.caption2)
@@ -413,7 +424,6 @@ public struct CustomChallengeGameScreen: View {
                     }
                 }
             }
-
         }
         .padding()
         .background(.ultraThinMaterial)
