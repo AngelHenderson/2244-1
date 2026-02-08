@@ -391,27 +391,59 @@ public final class GameEngine {
             return .valid
         }
         
-        // Mixed chains (infinity + non-infinity) are not allowed
-        let hasInfinity = tiles.contains { $0.isInfinity }
-        if hasInfinity {
-            return .invalid("Infinity tiles can only merge with other infinity tiles")
+        // For mixed chains with infinity, infinity tiles can appear as valid escalation
+        // endpoints (like any "next double" in the chain).
+        // We need to validate the non-infinity portion follows the rules,
+        // and infinity tiles are valid continuations.
+        
+        // Build steps array, using a sentinel value for infinity tiles
+        // Infinity is treated as "always valid next step"
+        let infinityStep = Int.max
+        var steps: [Int] = []
+        for tile in tiles {
+            if tile.isInfinity {
+                steps.append(infinityStep)
+            } else if let step = TileStepMath.step(for: tile) {
+                steps.append(step)
+            } else {
+                return .invalid("Invalid tile in chain")
+            }
         }
         
-        let steps = tiles.compactMap { TileStepMath.step(for: $0) }
-        guard steps.count == tiles.count, steps.count >= 2 else {
+        guard steps.count >= 2 else {
             return .invalid("Chain must have at least 2 tiles")
         }
         
-        // First two tiles must match to start a chain.
-        if steps[1] != steps[0] {
+        // First two tiles must match to start a chain (both must be non-infinity or both infinity)
+        let first = steps[0]
+        let second = steps[1]
+        if first == infinityStep && second == infinityStep {
+            // Both infinity - valid (handled above but just in case)
+        } else if first == infinityStep || second == infinityStep {
+            // One infinity, one not - invalid start
+            return .invalid("First two tiles must match")
+        } else if first != second {
             return .invalid("First two tiles must match")
         }
         
         // After the opening pair, each tile may either match the previous tile or double it.
+        // Infinity tiles are always valid as they represent the "ultimate" doubling.
         if steps.count > 2 {
             for index in 2..<steps.count {
                 let previous = steps[index - 1]
                 let current = steps[index]
+                
+                // If current is infinity, it's always valid (it's the highest possible)
+                if current == infinityStep {
+                    continue
+                }
+                
+                // If previous was infinity, current must also be infinity
+                if previous == infinityStep {
+                    return .invalid("Cannot have non-infinity tile after infinity tile")
+                }
+                
+                // Normal validation: current must match or be one step higher
                 if current != previous && current != previous + 1 {
                     return .invalid("Tiles must continue with equal or doubled values")
                 }
@@ -569,10 +601,16 @@ public final class GameEngine {
         let tiles = positions.compactMap { state.board[$0] }
         guard tiles.count == positions.count else { return state }
         
-        // Check if this is an infinity merge
+        // Check if this is an infinity merge (all tiles are infinity)
         let allInfinity = tiles.allSatisfy { $0.isInfinity }
         if allInfinity {
             return commitInfinityChain(positions, applyGravity: applyGravity)
+        }
+        
+        // Check if any tile is infinity (mixed chain ending in infinity)
+        let hasInfinity = tiles.contains { $0.isInfinity }
+        if hasInfinity {
+            return commitMixedInfinityChain(positions, tiles: tiles, applyGravity: applyGravity)
         }
         
         let steps = tiles.compactMap { TileStepMath.step(for: $0) }
@@ -683,6 +721,76 @@ public final class GameEngine {
         state.gems += positions.count
         
         print("∞ INFINITY MERGE: Merged \(positions.count) infinity tiles. Doublings: \(mergedStep). Total infinity merges: \(state.infinityMergeCount)")
+        
+        if applyGravity {
+            applyGravityDown()
+            
+            // Check for game over only after gravity resolves
+            if !hasValidMoves() {
+                state.isGameOver = true
+            }
+        }
+        
+        return state
+    }
+    
+    /// Commits a mixed chain that includes both regular tiles and infinity tiles.
+    /// The result is always an infinity tile, and the infinity merge count increases
+    /// based on the doublings (result step - starting step).
+    /// Each infinity tile contributes its value as the "next double" of the current max in the chain.
+    /// Example: 436bz-436bz-436bz-873bz-∞ sums to ~3718bz, which is +2 doublings from 436bz
+    private func commitMixedInfinityChain(_ positions: [Position], tiles: [Tile], applyGravity: Bool) -> GameState {
+        // Remove all tiles in the chain except the last
+        for position in positions.dropLast() {
+            state.board[position] = nil
+        }
+        
+        // Place an infinity tile at the last position (result is always infinity)
+        if let lastPosition = positions.last {
+            state.board[lastPosition] = Tile.infinity()
+        }
+        
+        // Calculate doublings for Hall of Fame:
+        // 1. Find the starting step (minimum non-infinity tile)
+        // 2. For each infinity tile, it contributes as "double of current max step"
+        // 3. Calculate merged step from all contributions
+        // 4. Doublings = merged step - starting step
+        
+        let nonInfinityTiles = tiles.filter { !$0.isInfinity }
+        let nonInfinitySteps = nonInfinityTiles.compactMap { TileStepMath.step(for: $0) }
+        
+        guard !nonInfinitySteps.isEmpty else {
+            // Shouldn't happen (would be all-infinity chain), but handle gracefully
+            return state
+        }
+        
+        // Starting step is the maximum non-infinity step (the highest tile before infinity)
+        // Doublings count how many steps we advance beyond the highest tile
+        let startingStep = nonInfinitySteps.max() ?? 0
+        
+        // First, calculate the merged step of just the non-infinity tiles
+        let nonInfinityMergedStep = TileStepMath.mergedStep(from: nonInfinitySteps)
+        
+        // Each infinity tile adds +1 to the merged step (represents one doubling)
+        let infinityCount = tiles.filter { $0.isInfinity }.count
+        let finalMergedStep = nonInfinityMergedStep + infinityCount
+        
+        // Doublings = final merged step - starting step (max non-infinity tile)
+        let doublings = finalMergedStep - startingStep
+        
+        // Increment infinity merge count by the number of doublings
+        state.infinityMergeCount += max(1, doublings)
+        
+        // Award points for the merge
+        let mergeBonus = 10000 * positions.count
+        state.score += mergeBonus
+        state.scoreValue.add(mergeBonus)
+        state.moves += 1
+        
+        // Award gems
+        state.gems += positions.count
+        
+        print("∞ MIXED INFINITY MERGE: Non-∞ merged to step \(nonInfinityMergedStep), +\(infinityCount) infinity → step \(finalMergedStep). Doublings from step \(startingStep): \(doublings). Total infinity merges: \(state.infinityMergeCount)")
         
         if applyGravity {
             applyGravityDown()

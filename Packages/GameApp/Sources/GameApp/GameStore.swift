@@ -2964,7 +2964,8 @@ extension GameStore {
             }
         }
         
-        // Create session state
+        // Create session state (cap movesHistory to last 200 to prevent save bloat)
+        let cappedMovesHistory = Array(movesHistory.suffix(200))
         let sessionState = GameProgress.SessionState(
             board: state.board,
             score: state.score,
@@ -2974,7 +2975,7 @@ extension GameStore {
             highestTileStep: state.highestTileStep,
             seed: engine.seedUsed,
             brokenGlassTiles: Array(brokenGlassTiles),
-            movesHistory: movesHistory,
+            movesHistory: cappedMovesHistory,
             lastDailyDateUTC: lastDailyDateUTC,
             scoreAlpha: state.scoreValue
         )

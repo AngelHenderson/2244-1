@@ -264,4 +264,36 @@ public struct GameProgress: Codable, Equatable, Sendable {
         self.activePowerDiscount = activePowerDiscount
         self.queuedPowerDiscountTierID = queuedPowerDiscountTierID
     }
+
+    // Custom Decodable that provides defaults for fields missing from older saves
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        version = (try? container.decode(Int.self, forKey: .version)) ?? Self.schemaVersion
+        highestTile = try container.decode(Int.self, forKey: .highestTile)
+        bestScore = try container.decode(Int.self, forKey: .bestScore)
+        bestScoreAlpha = try? container.decode(AlphaNumber.self, forKey: .bestScoreAlpha)
+        gems = try container.decode(Int.self, forKey: .gems)
+        gamesPlayed = try container.decode(Int.self, forKey: .gamesPlayed)
+        achievements = (try? container.decode(Set<String>.self, forKey: .achievements)) ?? []
+        theme = try? container.decode(String.self, forKey: .theme)
+        rank = try? container.decode(Int.self, forKey: .rank)
+        lastUpdatedAt = (try? container.decode(Date.self, forKey: .lastUpdatedAt)) ?? Date()
+        totalMerges = (try? container.decode(Int.self, forKey: .totalMerges)) ?? 0
+        totalTimePlayed = (try? container.decode(TimeInterval.self, forKey: .totalTimePlayed)) ?? 0
+        unlockedThemes = (try? container.decode(Set<String>.self, forKey: .unlockedThemes)) ?? ["beach", "aqua"]
+        completedDailyChallenges = (try? container.decode(Int.self, forKey: .completedDailyChallenges)) ?? 0
+        currentWinStreak = (try? container.decode(Int.self, forKey: .currentWinStreak)) ?? 0
+        bestWinStreak = (try? container.decode(Int.self, forKey: .bestWinStreak)) ?? 0
+        currentSessionState = try? container.decode(SessionState.self, forKey: .currentSessionState)
+        activeScoreBoost = try? container.decode(ScoreBoostState.self, forKey: .activeScoreBoost)
+        powerUpInventory = (try? container.decode([String: Int].self, forKey: .powerUpInventory)) ?? ["hammer": 3, "shuffle": 2, "swap": 2, "undo": 1]
+        tierMasteryCounts = try? container.decode([String: Int].self, forKey: .tierMasteryCounts)
+        journeyState = (try? container.decode(JourneyState.self, forKey: .journeyState)) ?? JourneyState()
+        sessionTracking = (try? container.decode(SessionTracking.self, forKey: .sessionTracking)) ?? SessionTracking()
+        hasInfinityAchievement = (try? container.decode(Bool.self, forKey: .hasInfinityAchievement)) ?? false
+        infinityMergeCount = (try? container.decode(Int.self, forKey: .infinityMergeCount)) ?? 0
+        queuedScoreBoostTierID = try? container.decode(String.self, forKey: .queuedScoreBoostTierID)
+        activePowerDiscount = try? container.decode(PowerDiscountState.self, forKey: .activePowerDiscount)
+        queuedPowerDiscountTierID = try? container.decode(String.self, forKey: .queuedPowerDiscountTierID)
+    }
 }

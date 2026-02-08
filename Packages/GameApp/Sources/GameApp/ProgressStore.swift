@@ -46,11 +46,17 @@ public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable
     // Internal implementation (not thread-safe, must be called within queue)
     private func _load() -> GameProgress? {
         // Try to load v6 format first
-        if let data = ud.data(forKey: key),
-           let decoded = try? decoder.decode(GameProgress.self, from: data) {
-            return decoded
+        if let data = ud.data(forKey: key) {
+            do {
+                let decoded = try decoder.decode(GameProgress.self, from: data)
+                return decoded
+            } catch {
+                print("❌ CRITICAL: Failed to decode v6 progress (\(data.count) bytes): \(error)")
+                // Don't fall through to legacy - the data exists but is corrupt/incompatible
+                // Try legacy formats below as fallback
+            }
         }
-        
+
         // Try to load legacy v5 payload and migrate to v6
         if let data = ud.data(forKey: legacyV5Key),
            let decoded = try? decoder.decode(GameProgress.self, from: data) {
