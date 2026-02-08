@@ -414,16 +414,6 @@ public struct CustomChallengeGameScreen: View {
                 }
             }
 
-            Spacer()
-
-            // Current score
-            VStack(spacing: 2) {
-                Text("SCORE")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text(formatScore(challengeGameStore.state.scoreValue.toInt()))
-                    .font(.system(.title3, design: .rounded).bold())
-            }
         }
         .padding()
         .background(.ultraThinMaterial)
