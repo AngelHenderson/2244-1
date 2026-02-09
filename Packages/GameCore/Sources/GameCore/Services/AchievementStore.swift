@@ -503,17 +503,38 @@ public final class AchievementStore {
     ]
     
     private static let hammerUseTiers: [ComboTierDefinition] = [
+        // Tiers 1-11 (original)
+        .init(milestone: 1, categoryLabel: "Use Hammer 1 Time", rewards: .init(swaps: 1)),
+        .init(milestone: 3, categoryLabel: "Use Hammer 3 Times", rewards: .init(gems: 35, magnets: 1, boost3x: 1)),
         .init(milestone: 5, categoryLabel: "Use Hammer 5 Times", rewards: .init(gems: 250)),
         .init(milestone: 10, categoryLabel: "Use Hammer 10 Times", rewards: .init(gems: 250, magnets: 1)),
+        .init(milestone: 15, categoryLabel: "Use Hammer 15 Times", rewards: .init(spins: 1, boost2x: 1)),
         .init(milestone: 20, categoryLabel: "Use Hammer 20 Times", rewards: .init(gems: 200, spins: 1, hammers: 1, boost4x: 1)),
-        .init(milestone: 30, categoryLabel: "Use Hammer 30 Times", rewards: .init(spins: 1, hammers: nil, magnets: 1, swaps: 1)),
+        .init(milestone: 25, categoryLabel: "Use Hammer 25 Times", rewards: .init(spins: 3)),
+        .init(milestone: 30, categoryLabel: "Use Hammer 30 Times", rewards: .init(spins: 1, magnets: 1, swaps: 1)),
+        .init(milestone: 40, categoryLabel: "Use Hammer 40 Times", rewards: .init(gems: 350, hammers: 1, swaps: 1, boost2x: 1, boost4x: 1)),
         .init(milestone: 50, categoryLabel: "Use Hammer 50 Times", rewards: .init(gems: 500, hammers: 1)),
         .init(milestone: 75, categoryLabel: "Use Hammer 75 Times", rewards: .init(gems: 500, swaps: 1)),
         .init(milestone: 100, categoryLabel: "Use Hammer 100 Times", rewards: .init(gems: 200, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 125, categoryLabel: "Use Hammer 125 Times", rewards: .init(gems: 800)),
         .init(milestone: 150, categoryLabel: "Use Hammer 150 Times", rewards: .init(gems: 500, boost4x: 1)),
+        .init(milestone: 175, categoryLabel: "Use Hammer 175 Times", rewards: .init(gems: 650, spins: 1, hammers: 1, magnets: 1, boost3x: 1)),
         .init(milestone: 200, categoryLabel: "Use Hammer 200 Times", rewards: .init(gems: 500, hammers: 1, magnets: 1, swaps: 1, boost3x: 1)),
+        .init(milestone: 225, categoryLabel: "Use Hammer 225 Times", rewards: .init(gems: 875, hammers: 1, boost4x: 1)),
         .init(milestone: 250, categoryLabel: "Use Hammer 250 Times", rewards: .init(gems: 1000, spins: 1, hammers: 1, swaps: 1)),
-        .init(milestone: 300, categoryLabel: "Use Hammer 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1))
+        .init(milestone: 275, categoryLabel: "Use Hammer 275 Times", rewards: .init(hammers: 2, magnets: 2, swaps: 2)),
+        .init(milestone: 300, categoryLabel: "Use Hammer 300 Times", rewards: .init(gems: 750, spins: 1, hammers: 2, magnets: 1, swaps: 1)),
+        // Tiers 21-30 (extended)
+        .init(milestone: 350, categoryLabel: "Use Hammer 350 Times", rewards: .init(gems: 950, swaps: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 400, categoryLabel: "Use Hammer 400 Times", rewards: .init(gems: 1100)),
+        .init(milestone: 450, categoryLabel: "Use Hammer 450 Times", rewards: .init(magnets: 2)),
+        .init(milestone: 500, categoryLabel: "Use Hammer 500 Times", rewards: .init(gems: 1200)),
+        .init(milestone: 625, categoryLabel: "Use Hammer 625 Times", rewards: .init(gems: 1400)),
+        .init(milestone: 750, categoryLabel: "Use Hammer 750 Times", rewards: .init(gems: 1500)),
+        .init(milestone: 1000, categoryLabel: "Use Hammer 1000 Times", rewards: .init(gems: 2000)),
+        .init(milestone: 1250, categoryLabel: "Use Hammer 1250 Times", rewards: .init(magnets: 1)),
+        .init(milestone: 1500, categoryLabel: "Use Hammer 1500 Times", rewards: .init(spins: 1, boost2x: 1)),
+        .init(milestone: 2000, categoryLabel: "Use Hammer 2000 Times", rewards: .init(gems: 3000))
     ]
     
     private static let magnetUseTiers: [ComboTierDefinition] = [
