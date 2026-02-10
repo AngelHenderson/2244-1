@@ -448,7 +448,7 @@ public final class ChallengeStore: Sendable {
             mode: .custom,
             difficulty: .expert,
             targetTile: Int.max,
-            reward: ChallengeReward(coins: 10000, experience: 50000),
+            reward: ChallengeReward(coins: 1000),
             maxSpawnTile: stepForTier(81) - 6,  // Same as 1bz max spawn
             minSpawnTile: stepForTier(81) - 12  // Same as 1bz min spawn
         ))

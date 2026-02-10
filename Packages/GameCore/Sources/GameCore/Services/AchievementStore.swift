@@ -839,15 +839,38 @@ public final class AchievementStore {
     ]
 
     private static let challengeCreationTiers: [ComboTierDefinition] = [
+        // Tiers 1-9 (original with new in-between)
+        .init(milestone: 1, categoryLabel: "Create & complete 1", rewards: .init(spins: 1)),
+        .init(milestone: 3, categoryLabel: "Create & complete 3", rewards: .init(swaps: 1)),
         .init(milestone: 5, categoryLabel: "Create & complete 5", rewards: .init(gems: 55)),
         .init(milestone: 10, categoryLabel: "Create & complete 10", rewards: .init(gems: 100)),
+        .init(milestone: 15, categoryLabel: "Create & complete 15", rewards: .init(gems: 40, spins: 2, hammers: 1, magnets: 1, swaps: 1, boost4x: 1)),
         .init(milestone: 20, categoryLabel: "Create & complete 20", rewards: .init(gems: 200)),
+        .init(milestone: 25, categoryLabel: "Create & complete 25", rewards: .init(gems: 235)),
+        .init(milestone: 30, categoryLabel: "Create & complete 30", rewards: .init(gems: 265, swaps: 1)),
         .init(milestone: 35, categoryLabel: "Create & complete 35", rewards: .init(gems: 300, hammers: 1)),
+        .init(milestone: 40, categoryLabel: "Create & complete 40", rewards: .init(magnets: 1, boost3x: 1)),
         .init(milestone: 50, categoryLabel: "Create & complete 50", rewards: .init(gems: 400, swaps: 1)),
         .init(milestone: 75, categoryLabel: "Create & complete 75", rewards: .init(gems: 500, magnets: 1)),
         .init(milestone: 100, categoryLabel: "Create & complete 100", rewards: .init(boost4x: 1)),
+        .init(milestone: 125, categoryLabel: "Create & complete 125", rewards: .init(gems: 500)),
         .init(milestone: 150, categoryLabel: "Create & complete 150", rewards: .init(gems: 500, magnets: 1, boost2x: 1)),
-        .init(milestone: 200, categoryLabel: "Create & complete 200", rewards: .init(gems: 700, spins: 1, magnets: 1, boost3x: 1))
+        .init(milestone: 175, categoryLabel: "Create & complete 175", rewards: .init(gems: 650)),
+        .init(milestone: 200, categoryLabel: "Create & complete 200", rewards: .init(gems: 700, spins: 1, magnets: 1, boost3x: 1)),
+        .init(milestone: 225, categoryLabel: "Create & complete 225", rewards: .init(spins: 2, hammers: 1, magnets: 2, boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 250, categoryLabel: "Create & complete 250", rewards: .init(gems: 770)),
+        // Tiers 20-29 (extended)
+        .init(milestone: 300, categoryLabel: "Create & complete 300", rewards: .init(gems: 850, swaps: 1, boost4x: 1)),
+        .init(milestone: 350, categoryLabel: "Create & complete 350", rewards: .init(gems: 1100, hammers: 1, boost2x: 1)),
+        .init(milestone: 400, categoryLabel: "Create & complete 400", rewards: .init(hammers: 3, swaps: 1, boost3x: 1)),
+        .init(milestone: 450, categoryLabel: "Create & complete 450", rewards: .init(spins: 2)),
+        .init(milestone: 500, categoryLabel: "Create & complete 500", rewards: .init(gems: 1600)),
+        .init(milestone: 625, categoryLabel: "Create & complete 625", rewards: .init(gems: 1700)),
+        .init(milestone: 750, categoryLabel: "Create & complete 750", rewards: .init(magnets: 2, boost3x: 1)),
+        .init(milestone: 1000, categoryLabel: "Create & complete 1000", rewards: .init(gems: 1800)),
+        .init(milestone: 1500, categoryLabel: "Create & complete 1500", rewards: .init(swaps: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 2000, categoryLabel: "Create & complete 2000", rewards: .init(gems: 2500)),
+        .init(milestone: 3000, categoryLabel: "Create & complete 3000", rewards: .init(gems: 3000))
     ]
 
     // Leaderboard rank tiers (lower rank is better, so milestones descend)
