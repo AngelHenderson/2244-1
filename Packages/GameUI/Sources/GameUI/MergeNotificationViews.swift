@@ -70,34 +70,17 @@ struct UnlockedNotificationView: View {
 
     private var journeyReward: (previous: (label: String, step: Int)?, current: (label: String, step: Int), next: (label: String, step: Int)?) {
         let step = displayStep
-
-        if isHighValue {
-            let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
-            let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
-            let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
-            return (
-                prevLabel.map { ($0, step - 1) },
-                (currentLabel, step),
-                (nextLabel, step + 1)
-            )
-        }
-
-        // Get journey tier labels for the progression
-        if let tile = Tile.makeFromValue(value) {
-            if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
-                let prevTier = currentTier.order > 0 ?
-                    JourneyAbbreviationTiers.tiers[safe: currentTier.order - 1] : nil
-                let nextTier = JourneyAbbreviationTiers.tiers[safe: currentTier.order + 1]
-
-                return (
-                    prevTier.map { ($0.label, step - 1) },
-                    (currentTier.label, step),
-                    nextTier.map { ($0.label, step + 1) }
-                )
-            }
-        }
-        // Default progression - use proper tile label format
-        return (nil, (tileLabel, step), nil)
+        
+        // Always use step-based tile labels for correct doubling sequence
+        let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
+        let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
+        let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
+        
+        return (
+            prevLabel.map { ($0, step - 1) },
+            (currentLabel, step),
+            (nextLabel, step + 1)
+        )
     }
 
     private var currentMultiplier: Int {
@@ -511,31 +494,17 @@ struct AddedNotificationView: View {
 
     private var journeyReward: (previous: (label: String, step: Int)?, current: (label: String, step: Int), next: (label: String, step: Int)?) {
         let step = displayStep
-
-        if isHighValue {
-            let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
-            let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
-            let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
-            return (
-                prevLabel.map { ($0, step - 1) },
-                (currentLabel, step),
-                (nextLabel, step + 1)
-            )
-        }
-
-        if let tile = Tile.makeFromValue(value) {
-            if let currentTier = JourneyAbbreviationTiers.tier(for: tile) {
-                let prevTier = currentTier.order > 0 ?
-                    JourneyAbbreviationTiers.tiers[safe: currentTier.order - 1] : nil
-                let nextTier = JourneyAbbreviationTiers.tiers[safe: currentTier.order + 1]
-                return (
-                    prevTier.map { ($0.label, step - 1) },
-                    (currentTier.label, step),
-                    nextTier.map { ($0.label, step + 1) }
-                )
-            }
-        }
-        return (nil, (tileLabel, step), nil)
+        
+        // Always use step-based tile labels for correct doubling sequence
+        let currentLabel = JourneyTileGenerator.formatTileAtStep(step)
+        let prevLabel = step > 0 ? JourneyTileGenerator.formatTileAtStep(step - 1) : nil
+        let nextLabel = JourneyTileGenerator.formatTileAtStep(step + 1)
+        
+        return (
+            prevLabel.map { ($0, step - 1) },
+            (currentLabel, step),
+            (nextLabel, step + 1)
+        )
     }
 
     private var gemReward: Int {
