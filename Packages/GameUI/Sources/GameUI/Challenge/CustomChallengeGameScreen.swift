@@ -373,32 +373,32 @@ public struct CustomChallengeGameScreen: View {
 
     private var challengeHeader: some View {
         HStack {
-            // Target display (left)
-            VStack(spacing: 2) {
-                Text("TARGET")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text(targetLabel)
-                    .font(.system(.title3, design: .rounded).bold())
-            }
-
-            Spacer()
-
-            // Timer display - uses TimelineView with animation schedule to never pause
-            TimelineView(.animation(minimumInterval: 0.5, paused: false)) { context in
-                let remaining = timeRemainingAt(context.date)
+            // Target and Timer (left, stacked)
+            VStack(spacing: 8) {
                 VStack(spacing: 2) {
-                    Text("TIME")
+                    Text("TARGET")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                    Text(formatTime(remaining))
-                        .font(.system(.title3, design: .monospaced).bold())
-                        .foregroundStyle(remaining <= 10 ? .red : .primary)
-                        .contentTransition(.numericText())
+                    Text(targetLabel)
+                        .font(.system(.title3, design: .rounded).bold())
                 }
-                .onChange(of: remaining <= 0) { _, isExpired in
-                    if isExpired && !challengeEnded {
-                        endChallenge(won: checkWinCondition())
+
+                // Timer display - uses TimelineView with animation schedule to never pause
+                TimelineView(.animation(minimumInterval: 0.5, paused: false)) { context in
+                    let remaining = timeRemainingAt(context.date)
+                    VStack(spacing: 2) {
+                        Text("TIME")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(formatTime(remaining))
+                            .font(.system(.title3, design: .monospaced).bold())
+                            .foregroundStyle(remaining <= 10 ? .red : .primary)
+                            .contentTransition(.numericText())
+                    }
+                    .onChange(of: remaining <= 0) { _, isExpired in
+                        if isExpired && !challengeEnded {
+                            endChallenge(won: checkWinCondition())
+                        }
                     }
                 }
             }
