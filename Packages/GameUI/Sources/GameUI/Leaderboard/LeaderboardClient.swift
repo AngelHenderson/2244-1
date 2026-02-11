@@ -1210,7 +1210,7 @@ public enum MockLeaderboardData {
         "IT": 75000, "ES": 80000, "NL": 85000, "CH": 90000, "NO": 95000,
         "DK": 100000, "FI": 105000, "PL": 110000, "BE": 115000, "SE": 120000,
         "AT": 125000, "IE": 130000, "PT": 135000, "GR": 140000, "CZ": 145000,
-        "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000
+        "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000, "AE": 175000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -1352,6 +1352,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.hungaryPlayerMilestones, LeaderboardClient.hungaryExtendedRankBrackets, 111_111)
         case "TH":
             return (LeaderboardClient.thailandPlayerMilestones, LeaderboardClient.thailandExtendedRankBrackets, 5_444)
+        case "AE":
+            return (LeaderboardClient.uaePlayerMilestones, LeaderboardClient.uaeExtendedRankBrackets, 19_889)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
