@@ -1397,7 +1397,9 @@ public enum MockLeaderboardData {
             ("NZ", 2_623),
             ("HU", 111_111),
             ("IN", 1_488),
-            ("JP", 894)
+            ("JP", 894),
+            ("TH", 5_444),
+            ("AE", 19_889)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -1406,7 +1408,7 @@ public enum MockLeaderboardData {
 
         // Additional popular countries (no leaderboard data yet)
         let additionalCountries = [
-            "TH", "PH", "ID", "VN", "AE", "SA", "IL", "TR",
+            "PH", "ID", "VN", "SA", "IL", "TR",
             "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
         ]
 

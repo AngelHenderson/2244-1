@@ -71,7 +71,7 @@ struct SideRailButton: View {
                                 .foregroundStyle(.cyan)
                             Text(specialLabel)
                                 .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(backgroundTheme.textColor)
                         }
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
