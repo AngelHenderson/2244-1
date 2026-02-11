@@ -15,7 +15,9 @@ public struct PlayerProfileView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     identityHero
+                    profileDetails
                     coreStats
+                    globalRankCard
                     masteryGrid
                     actions
                     syncFooter
@@ -109,104 +111,165 @@ public struct PlayerProfileView: View {
     // MARK: Sections
 
     private var identityHero: some View {
-        HStack(alignment: .center, spacing: 16) {
-            AvatarBadge(option: AvatarCatalog.option(for: model.avatarSystemName), size: 80)
-                .onTapGesture { model.showCustomize = true }
-                .accessibilityAction {
-                    model.showCustomize = true
+        GeometryReader { geometry in
+            HStack(alignment: .center, spacing: 12) {
+                // Country picker on far left
+                Button {
+                    model.showCountryPicker = true
+                } label: {
+                    HStack(spacing: 6) {
+                        if let countryCode = model.countryCode {
+                            Text(flagEmoji(countryCode))
+                                .font(.system(size: 28))
+                            Text(countryName(countryCode))
+                                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .medium))
+                        } else {
+                            Image(systemName: "globe")
+                                .font(.system(size: 24))
+                            Text("Select Country")
+                                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .medium))
+                        }
+                    }
+                    .foregroundStyle(.primary)
                 }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Country selection")
+                
+                Spacer(minLength: 0)
+                
+                // Center profile row (50% width)
+                HStack(alignment: .center, spacing: 10) {
+                    AvatarBadge(option: AvatarCatalog.option(for: model.avatarSystemName), size: 50)
+                        .onTapGesture { model.showCustomize = true }
+                        .accessibilityAction {
+                            model.showCustomize = true
+                        }
 
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text(model.playerName)
-                        .font(.avenirNext(size: GameFonts.title3Size, weight: .semibold))
+                    Text("Player Name: \(model.playerName)")
+                        .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
+                    
+                    Spacer(minLength: 0)
+                    
+                    // Edit name button
                     Button {
                         model.showRename = true
                     } label: {
                         Image(systemName: "pencil")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel("Edit name")
-                    
-                    Button {
-                        model.showCustomize = true
-                    } label: {
-                        Image(systemName: "pencil.tip.crop.circle")
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel("Customize avatar")
                 }
-
-                HStack(spacing: 8) {
-                    Label(model.friendCode, systemImage: "person.badge.key.fill")
-                        .font(.avenirNext(size: GameFonts.calloutSize, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .contextMenu {
-                            Button("Copy Code") { 
-                                #if os(iOS)
-                                UIPasteboard.general.string = model.friendCode
-                                #endif
-                            }
-                            ShareLink("Share Code", item: URL(string: "game2244://add-friend?code=\(model.friendCode)")!)
-                        }
-                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .frame(width: geometry.size.width * 0.5)
                 
-                // Country and Highest Tile Row
-                HStack(spacing: 8) {
-                    // Country Selector
-                    Button {
-                        model.showCountryPicker = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            if let countryCode = model.countryCode {
-                                Text(flagEmoji(countryCode))
-                                Text(countryName(countryCode))
-                            } else {
-                                Image(systemName: "globe")
-                                Text("Select Country")
-                            }
-                        }
-                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
-                        .padding(.horizontal, 10).padding(.vertical, 6)
-                        .glassBackground(in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Country selection")
-
-                    Spacer(minLength: 0)
-
-                    // Highest Tile Display
-                    if let highestTile = model.highestTile {
-                        HStack(spacing: 6) {
-                            Image(systemName: "crown.fill")
-                                .foregroundStyle(.yellow)
-                            Text(highestTile)
-                                .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
-                        }
-                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .semibold))
-                        .padding(.horizontal, 10).padding(.vertical, 6)
-                        .glassBackground(in: Capsule())
-                    }
+                Spacer(minLength: 0)
+                
+                // Compare button on far right
+                Button {
+                    model.showCompare = true
+                } label: {
+                    Image(systemName: "person.2")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.secondary)
                 }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Compare with friends")
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .frame(height: 66)
+    }
+    
+    private var profileDetails: some View {
+        HStack(spacing: 8) {
+            Label(model.friendCode, systemImage: "person.badge.key.fill")
+                .font(.avenirNext(size: GameFonts.calloutSize, weight: .medium))
+                .foregroundStyle(.secondary)
+                .contextMenu {
+                    Button("Copy Code") { 
+                        #if os(iOS)
+                        UIPasteboard.general.string = model.friendCode
+                        #endif
+                    }
+                    ShareLink("Share Code", item: URL(string: "game2244://add-friend?code=\(model.friendCode)")!)
+                }
+
+            Spacer(minLength: 0)
+
+            // Highest Tile Display
+            if let highestTile = model.highestTile {
+                HStack(spacing: 6) {
+                    Image(systemName: "crown.fill")
+                        .foregroundStyle(.yellow)
+                    Text(highestTile)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                }
+                .font(.avenirNext(size: GameFonts.footnoteSize, weight: .semibold))
+                .padding(.horizontal, 10).padding(.vertical, 6)
+                .glassBackground(in: Capsule())
             }
         }
     }
 
     private var coreStats: some View {
-        HStack(spacing: 12) {
-            StatCard(
-                title: "Best Score",
-                value: model.bestScoreText,
-                info: "Your highest single‑run score. Ties are broken by earliest time achieved."
-            )
-            StatCard(
-                title: "Global Rank",
-                value: "#\(String(model.globalRank))",
-                info: "Your position on the world ladder. Updates after each run."
-            )
+        GeometryReader { geometry in
+            HStack(spacing: 12) {
+                // Best Score on the left
+                VStack(alignment: .center, spacing: 6) {
+                    Text("Best Score")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                        .foregroundStyle(.secondary)
+                    Text(model.bestScoreText)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                }
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                
+                // Best Milestone on the right
+                VStack(alignment: .center, spacing: 6) {
+                    Text("Best Milestone")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                        .foregroundStyle(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "crown.fill")
+                            .foregroundStyle(.yellow)
+                            .font(.system(size: 14))
+                        Text(model.highestTile ?? "—")
+                            .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                    }
+                }
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .frame(width: geometry.size.width * 0.5)
+            .frame(maxWidth: .infinity)
         }
+        .frame(height: 65)
+    }
+    
+    private var globalRankCard: some View {
+        GeometryReader { geometry in
+            VStack(alignment: .center, spacing: 6) {
+                Text("Global Rank")
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                    .foregroundStyle(.secondary)
+                Text("#\(model.globalRank)")
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+            }
+            .padding(.vertical, 10)
+            .frame(width: geometry.size.width * 0.25)
+            .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .frame(maxWidth: .infinity)
+        }
+        .frame(height: 60)
     }
 
     private var masteryGrid: some View {
