@@ -4290,16 +4290,22 @@ public extension LeaderboardClient {
         // Ranks 96-109
         "549B", "274B", "274B", "137B", "137B", "137B", "68B", "34B", "17B", "8B",
         "4B", "2B", "1B", "1B",
-        // Ranks 110-117
-        "536M", "536M", "536M", "268M", "268M", "268M", "268M", "134M"
+        // Ranks 108-120
+        "536M", "536M", "536M", "268M", "268M", "268M", "268M", "134M",
+        "134M", "134M", "134M", "134M", "134M",
+        // Ranks 121-130
+        "67M", "67M", "67M", "67M", "67M", "33M", "33M", "33M", "33M", "33M",
+        // Ranks 131-140
+        "16M", "16M", "16M", "16M", "16M", "16M", "8M", "8M", "8M", "8M",
+        // Ranks 141-150
+        "4M", "4M", "4M", "4M", "2M", "2M", "2M", "2M", "2M", "2M"
     ]
 
-    // Extended Hungary milestone brackets for rank calculation (ranks 118+)
+    // Extended Hungary milestone brackets for rank calculation (ranks 151+)
     // Total Hungary players: ~111,111
     static let hungaryExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
-        // M-tier brackets (ranks 122-157)
-        ("67M", 122), ("33M", 127), ("16M", 133), ("8M", 139),
-        ("4M", 144), ("2M", 151), ("1M", 157),
+        // M-tier brackets (ranks 151-180)
+        ("1M", 151),
         // K-tier brackets (ranks 164-533)
         ("524K", 164), ("262K", 178), ("131K", 209), ("65K", 288), ("32K", 398), ("16K", 533),
         // Raw number brackets (ranks 856-111111)
