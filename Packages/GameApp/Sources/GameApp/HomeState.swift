@@ -54,9 +54,10 @@ public final class HomeState {
     }
 
     // Live-ops
-    /// Ad reward starts at 50 gems and increases by +3 for each milestone (step) reached
+    /// Ad reward starts at 50 gems and increases by +3 for each milestone starting from 512 (step 8)
     public var adReward: Int {
-        50 + (highestTileStep * 3)
+        let milestonesAbove512 = max(0, highestTileStep - 8)
+        return 50 + (milestonesAbove512 * 3)
     }
 
     /// Current weekly offer deadline (Saturday 11:59:59 PM)
