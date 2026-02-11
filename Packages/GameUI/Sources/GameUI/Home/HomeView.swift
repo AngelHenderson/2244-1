@@ -142,6 +142,7 @@ public struct HomeView: View {
                                 title: "",
                                 badge: true,
                                 specialLabel: "+\(state.adReward)",
+                                specialLabelInside: true,
                                 action: {
                                     Task {
                                         let reward = await actions.watchAd()

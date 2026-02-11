@@ -8,12 +8,13 @@ struct SideRailButton: View {
     var badgeCount: Int? = nil  // If set, shows count instead of dot
     var locked: Bool = false
     var specialLabel: String? = nil
+    var specialLabelInside: Bool = false  // If true, show specialLabel inside the button
     var action: () -> Void
 
     var body: some View {
         VStack{
             Button(action: { if !locked { action() } }) {
-                VStack(spacing: 6) {
+                VStack(spacing: 4) {
                     ZStack(alignment: .topTrailing) {
                         ZStack {
                             if let systemImage = systemImage {
@@ -59,6 +60,20 @@ struct SideRailButton: View {
                             }
                         }
                     }
+                    
+                    // Special label inside the button (e.g., gem reward for ad button)
+                    if specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
+                        HStack(spacing: 2) {
+                            Image(systemName: "diamond.fill")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(.cyan)
+                            Text(specialLabel)
+                                .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                                .foregroundStyle(.white)
+                        }
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    }
 
                 }
             }
@@ -67,7 +82,7 @@ struct SideRailButton: View {
             .accessibilityLabel("\(title)\(locked ? ", locked" : "")")
 
             // Display title or specialLabel below the button with consistent styling
-            if let specialLabel = specialLabel, !specialLabel.isEmpty {
+            if !specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
                 Text(specialLabel)
                     .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
                     .foregroundStyle(.white)

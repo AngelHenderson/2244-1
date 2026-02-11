@@ -556,13 +556,14 @@ public struct LeaderboardView: View {
             Spacer()
 
             // Milestone badge
+            let tileRadius: CGFloat = currentTheme?.tileShape == .square ? 3 : 6
             Text(milestone)
                 .font(.avenirNext(size: 14, weight: .bold))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: tileRadius)
                         .fill(milestoneColor(for: milestone).opacity(isUserTier ? 1.0 : 0.5))
                 )
         }
@@ -791,6 +792,8 @@ public struct LeaderboardView: View {
             return Color.red  // Hungary - red from the flag
         case .countryTH:
             return Color.blue  // Thailand - blue from the flag
+        case .countryAE:
+            return Color.green  // UAE - green from the flag
         }
     }
 
