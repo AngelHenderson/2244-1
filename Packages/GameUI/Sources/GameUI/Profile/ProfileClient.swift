@@ -211,11 +211,15 @@ public struct LiveProfileClient: ProfileClient, Sendable {
     }
 
     private func generateFriendCode() -> String {
-        // Generate a simple friend code if none exists
-        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        let randomLetters = String((0..<3).map { _ in letters.randomElement()! })
-        let randomNumbers = String(format: "%03d", Int.random(in: 0...999))
-        let code = "\(randomLetters)-\(randomNumbers)"
+        // Generate a unique friend code: XXX-YYY (6 chars + dash)
+        // Uses alphanumeric without ambiguous chars (0/O, 1/I/L)
+        // 32^6 = ~1 billion combinations - plenty for millions of players with max 5 per code
+        let alphanumeric = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        
+        let left = String((0..<3).map { _ in alphanumeric.randomElement()! })
+        let right = String((0..<3).map { _ in alphanumeric.randomElement()! })
+        let code = "\(left)-\(right)"
+        
         UserDefaults.standard.set(code, forKey: "profileFriendCode")
         return code
     }
