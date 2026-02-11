@@ -408,8 +408,7 @@ private struct ChallengeCard: View {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)
         case .locked:
-            Image(systemName: "lock.fill")
-                .foregroundStyle(.secondary)
+            EmptyView()
         case .pendingUnlock:
             Image(systemName: "clock.fill")
                 .foregroundStyle(.orange)
@@ -444,9 +443,12 @@ private struct ChallengeCard: View {
                     .foregroundStyle(.orange)
             }
         case .locked:
-            Text("Locked")
-                .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
-                .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                Image(systemName: "lock.fill")
+                Text("Locked")
+            }
+            .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
+            .foregroundStyle(.secondary)
         }
     }
 

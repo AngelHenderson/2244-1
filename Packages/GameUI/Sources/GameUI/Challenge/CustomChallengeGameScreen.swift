@@ -373,16 +373,8 @@ public struct CustomChallengeGameScreen: View {
 
     private var challengeHeader: some View {
         HStack {
-            // Target and Timer (left, stacked)
+            // Timer and Target (left, stacked)
             VStack(spacing: 8) {
-                VStack(spacing: 2) {
-                    Text("TARGET")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text(targetLabel)
-                        .font(.system(.title3, design: .rounded).bold())
-                }
-
                 // Timer display - uses TimelineView with animation schedule to never pause
                 TimelineView(.animation(minimumInterval: 0.5, paused: false)) { context in
                     let remaining = timeRemainingAt(context.date)
@@ -400,6 +392,14 @@ public struct CustomChallengeGameScreen: View {
                             endChallenge(won: checkWinCondition())
                         }
                     }
+                }
+
+                VStack(spacing: 2) {
+                    Text("TARGET")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(targetLabel)
+                        .font(.system(.title3, design: .rounded).bold())
                 }
             }
 
