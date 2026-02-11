@@ -174,9 +174,13 @@ public struct PlayerProfileView: View {
                 Button {
                     model.showCompare = true
                 } label: {
-                    Image(systemName: "person.2")
-                        .font(.system(size: 22))
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.2")
+                            .font(.system(size: 20))
+                        Text("Compare")
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .medium))
+                    }
+                    .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("Compare with friends")
