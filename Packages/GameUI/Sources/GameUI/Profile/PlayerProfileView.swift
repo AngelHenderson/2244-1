@@ -15,11 +15,9 @@ public struct PlayerProfileView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     identityHero
-                    profileDetails
                     coreStats
                     globalRankCard
                     masteryGrid
-                    actions
                     syncFooter
                 }
                 .padding(16)
@@ -190,73 +188,77 @@ public struct PlayerProfileView: View {
         .frame(height: 66)
     }
     
-    private var profileDetails: some View {
-        HStack(spacing: 8) {
-            Label(model.friendCode, systemImage: "person.badge.key.fill")
-                .font(.avenirNext(size: GameFonts.calloutSize, weight: .medium))
-                .foregroundStyle(.secondary)
-                .contextMenu {
-                    Button("Copy Code") { 
-                        #if os(iOS)
-                        UIPasteboard.general.string = model.friendCode
-                        #endif
-                    }
-                    ShareLink("Share Code", item: URL(string: "game2244://add-friend?code=\(model.friendCode)")!)
-                }
-
-            Spacer(minLength: 0)
-
-            // Highest Tile Display
-            if let highestTile = model.highestTile {
-                HStack(spacing: 6) {
-                    Image(systemName: "crown.fill")
-                        .foregroundStyle(.yellow)
-                    Text(highestTile)
-                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
-                }
-                .font(.avenirNext(size: GameFonts.footnoteSize, weight: .semibold))
-                .padding(.horizontal, 10).padding(.vertical, 6)
-                .glassBackground(in: Capsule())
-            }
-        }
-    }
-
     private var coreStats: some View {
         GeometryReader { geometry in
             HStack(spacing: 12) {
-                // Best Score on the left
-                VStack(alignment: .center, spacing: 6) {
-                    Text("Best Score")
-                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                // Left column: Code + Best Score
+                VStack(spacing: 8) {
+                    // Friend Code
+                    Label(model.friendCode, systemImage: "person.badge.key.fill")
+                        .font(.avenirNext(size: GameFonts.calloutSize, weight: .medium))
                         .foregroundStyle(.secondary)
-                    Text(model.bestScoreText)
-                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
-                }
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity)
-                .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                
-                // Best Milestone on the right
-                VStack(alignment: .center, spacing: 6) {
-                    Text("Best Milestone")
-                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
-                        .foregroundStyle(.secondary)
-                    HStack(spacing: 4) {
-                        Image(systemName: "crown.fill")
-                            .foregroundStyle(.yellow)
-                            .font(.system(size: 14))
-                        Text(model.highestTile ?? "—")
+                        .contextMenu {
+                            Button("Copy Code") { 
+                                #if os(iOS)
+                                UIPasteboard.general.string = model.friendCode
+                                #endif
+                            }
+                            ShareLink("Share Code", item: URL(string: "game2244://add-friend?code=\(model.friendCode)")!)
+                        }
+                    
+                    // Best Score card
+                    VStack(alignment: .center, spacing: 6) {
+                        Text("Best Score")
+                            .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                            .foregroundStyle(.secondary)
+                        Text(model.bestScoreText)
                             .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
                     }
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity)
+                    .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity)
-                .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                
+                // Right column: Share + Best Milestone
+                VStack(spacing: 8) {
+                    // Share button
+                    ShareLink(
+                        item: ShareableProfile(
+                            payload: payload(),
+                            deepLink: client.shareDeepLink(for: payload())
+                        ),
+                        preview: SharePreview(
+                            "\(model.playerName)'s Profile",
+                            image: Image(systemName: "person.crop.square.filled.and.at.rectangle")
+                        )
+                    ) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                            .font(.avenirNext(size: GameFonts.calloutSize, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    // Best Milestone card
+                    VStack(alignment: .center, spacing: 6) {
+                        Text("Best Milestone")
+                            .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                            .foregroundStyle(.secondary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "crown.fill")
+                                .foregroundStyle(.yellow)
+                                .font(.system(size: 14))
+                            Text(model.highestTile ?? "—")
+                                .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                        }
+                    }
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity)
+                    .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             }
             .frame(width: geometry.size.width * 0.5)
             .frame(maxWidth: .infinity)
         }
-        .frame(height: 65)
+        .frame(height: 95)
     }
     
     private var globalRankCard: some View {
@@ -297,31 +299,6 @@ public struct PlayerProfileView: View {
                 }
             }
         }
-    }
-
-    private var actions: some View {
-        HStack(spacing: 12) {
-            ShareLink(
-                "Share",
-                item: ShareableProfile(
-                    payload: payload(),
-                    deepLink: client.shareDeepLink(for: payload())
-                ),
-                preview: SharePreview(
-                    "\(model.playerName)'s Profile",
-                    image: Image(systemName: "person.crop.square.filled.and.at.rectangle")
-                )
-            )
-            .buttonStyle(.borderedProminent)
-
-            Button {
-                model.showCompare = true
-            } label: {
-                Label("Compare", systemImage: "person.2.cross")
-            }
-            .buttonStyle(.bordered)
-        }
-        .padding(.top, 4)
     }
 
     private var syncFooter: some View {
