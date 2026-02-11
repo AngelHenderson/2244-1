@@ -10,6 +10,8 @@ struct SideRailButton: View {
     var specialLabel: String? = nil
     var specialLabelInside: Bool = false  // If true, show specialLabel inside the button
     var action: () -> Void
+    
+    @Environment(\.currentBackgroundTheme) private var backgroundTheme
 
     var body: some View {
         VStack{
@@ -85,13 +87,13 @@ struct SideRailButton: View {
             if !specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
                 Text(specialLabel)
                     .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(backgroundTheme.textColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             } else if !title.isEmpty {
                 Text(title)
                     .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(backgroundTheme.textColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }

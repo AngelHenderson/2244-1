@@ -15,6 +15,7 @@ public struct BackgroundTheme: Sendable {
     public let category: String
     public let overlayOpacity: Double // For text readability
     public let scaleMode: ScaleMode
+    public let prefersLightText: Bool // True for dark backgrounds, false for light backgrounds
     
     public init(
         id: String,
@@ -22,7 +23,8 @@ public struct BackgroundTheme: Sendable {
         imageName: String,
         category: String,
         overlayOpacity: Double = 0.0,
-        scaleMode: ScaleMode = .fill
+        scaleMode: ScaleMode = .fill,
+        prefersLightText: Bool = true
     ) {
         self.id = id
         self.name = name
@@ -30,6 +32,12 @@ public struct BackgroundTheme: Sendable {
         self.category = category
         self.overlayOpacity = overlayOpacity
         self.scaleMode = scaleMode
+        self.prefersLightText = prefersLightText
+    }
+    
+    /// Returns the appropriate text color for this background
+    public var textColor: Color {
+        prefersLightText ? .white : .black
     }
 }
 
@@ -89,14 +97,16 @@ extension BackgroundThemeRegistry {
                 name: "Desert Dunes",
                 imageName: "desert_1_light",
                 category: "Desert",
-                overlayOpacity: 0.05
+                overlayOpacity: 0.05,
+                prefersLightText: false  // Bright desert background needs dark text
             ),
             BackgroundTheme(
                 id: "desert_2",
                 name: "Desert Oasis",
                 imageName: "desert_2_light",
                 category: "Desert",
-                overlayOpacity: 0.05
+                overlayOpacity: 0.05,
+                prefersLightText: false  // Bright desert background needs dark text
             ),
             BackgroundTheme(
                 id: "desert_3",
@@ -128,7 +138,8 @@ extension BackgroundThemeRegistry {
                 name: "Winter Morning",
                 imageName: "snow_1_light",
                 category: "Snow",
-                overlayOpacity: 0.0
+                overlayOpacity: 0.0,
+                prefersLightText: false  // Bright snow background needs dark text
             ),
             BackgroundTheme(
                 id: "snow_2",
