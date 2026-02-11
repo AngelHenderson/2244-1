@@ -179,6 +179,7 @@ extension HomeState {
         
         let m = planner.milestones(for: p.highestTile)
         highestTile = m.current
+        highestTileStep = p.highestTileStep
         milestoneBelow = m.below ?? milestoneBelow
         lockedMilestones = m.above
         // Only unlock - once unlocked, stays unlocked (persisted in UserDefaults)
@@ -202,6 +203,7 @@ extension HomeState {
     public func toProgress() -> GameProgress {
         GameProgress(
             highestTile: highestTile,
+            highestTileStep: highestTileStep,
             bestScore: 0, // Would need to get from GameStore
             gems: gems,
             gamesPlayed: 0, // Would need to track

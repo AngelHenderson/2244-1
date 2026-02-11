@@ -257,9 +257,11 @@ struct game2244App: App {
         
         // Load highest tile and calculate milestones
         let highest = gameStore.state.highestTile
+        let highestStep = gameStore.state.highestTileStep
         if highest > 0 {
             let milestones = planner.milestones(for: highest)
             homeState.highestTile = milestones.current
+            homeState.highestTileStep = highestStep
             homeState.milestoneBelow = milestones.below ?? 1024
             homeState.lockedMilestones = milestones.above
         }

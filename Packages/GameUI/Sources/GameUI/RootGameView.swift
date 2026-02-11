@@ -181,7 +181,7 @@ public struct RootGameView: View {
                 print("Watch Ad")
                 // Simulate ad watch
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                let reward = 68
+                let reward = homeState.adReward
                 homeState.addGems(reward)
                 saveProgress()
                 return reward
@@ -238,6 +238,7 @@ public struct RootGameView: View {
     private func updateHomeFromGameProgress() {
         // Capture values from MainActor-isolated properties
         let highestTile = gameStore.state.highestTile
+        let highestTileStep = gameStore.state.highestTileStep
         let bestScoreAlpha = gameStore.state.scoreValue
         let gems = gameStore.coins
         
@@ -249,6 +250,7 @@ public struct RootGameView: View {
                 // Update progress with game state
                 let progress = try await progressCoordinator.apply({ p in
                     p.highestTile = max(p.highestTile, highestTile)
+                    p.highestTileStep = max(p.highestTileStep, highestTileStep)
                     let currentAlpha = p.bestScoreAlpha ?? AlphaNumber(p.bestScore)
                     let updatedAlpha = bestScoreAlpha > currentAlpha ? bestScoreAlpha : currentAlpha
                     p.bestScoreAlpha = updatedAlpha

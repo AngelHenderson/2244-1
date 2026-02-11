@@ -13,6 +13,7 @@ public final class HomeState {
 
     // Progression
     public var highestTile: Int = 2048
+    public var highestTileStep: Int = 0  // Step index for milestone-based calculations
     public var milestoneBelow: Int = 1024
     public var lockedMilestones: [Int] = [4096, 8192]
 
@@ -53,7 +54,10 @@ public final class HomeState {
     }
 
     // Live-ops
-    public var adReward: Int = 68
+    /// Ad reward starts at 50 gems and increases by +3 for each milestone (step) reached
+    public var adReward: Int {
+        50 + (highestTileStep * 3)
+    }
 
     /// Current weekly offer deadline (Saturday 11:59:59 PM)
     public var bestOfferDeadline: Date? {

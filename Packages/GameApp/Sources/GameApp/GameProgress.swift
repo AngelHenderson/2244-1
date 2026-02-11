@@ -7,6 +7,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
 
     public var version: Int = schemaVersion
     public var highestTile: Int
+    public var highestTileStep: Int
     public var bestScore: Int
     public var bestScoreAlpha: AlphaNumber?
     public var gems: Int
@@ -211,6 +212,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
 
     public init(
         highestTile: Int = 0,
+        highestTileStep: Int = 0,
         bestScore: Int = 0,
         bestScoreAlpha: AlphaNumber? = nil,
         gems: Int = 305, // Starter gems
@@ -238,6 +240,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         queuedPowerDiscountTierID: String? = nil
     ) {
         self.highestTile = highestTile
+        self.highestTileStep = highestTileStep
         self.bestScore = bestScore
         self.bestScoreAlpha = bestScoreAlpha
         self.gems = gems
@@ -270,6 +273,7 @@ public struct GameProgress: Codable, Equatable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         version = (try? container.decode(Int.self, forKey: .version)) ?? Self.schemaVersion
         highestTile = try container.decode(Int.self, forKey: .highestTile)
+        highestTileStep = (try? container.decode(Int.self, forKey: .highestTileStep)) ?? 0
         bestScore = try container.decode(Int.self, forKey: .bestScore)
         bestScoreAlpha = try? container.decode(AlphaNumber.self, forKey: .bestScoreAlpha)
         gems = try container.decode(Int.self, forKey: .gems)
