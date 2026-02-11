@@ -4220,16 +4220,26 @@ public extension LeaderboardClient {
         // Ranks 61-82
         "134M", "67M", "67M", "67M", "33M", "33M", "33M", "33M", "16M", "16M",
         "16M", "16M", "16M", "8M", "8M", "8M", "8M", "8M", "8M", "8M",
-        "8M", "4M"
+        "8M", "4M",
+        // Ranks 83-95
+        "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M", "4M",
+        "4M", "4M", "2M",
+        // Ranks 96-110
+        "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M", "2M",
+        "2M", "2M", "2M", "2M", "2M",
+        // Ranks 111-130
+        "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M",
+        "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M",
+        // Ranks 131-150
+        "1M", "1M", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K",
+        "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K"
     ]
 
-    // Extended Malaysia milestone brackets for rank calculation (ranks 83+)
+    // Extended Malaysia milestone brackets for rank calculation (ranks 151+)
     // Total Malaysia players: ~52,111
     static let malaysiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
-        // M-tier brackets (ranks 95-132)
-        ("2M", 95), ("1M", 132),
-        // K-tier brackets (ranks 226-888)
-        ("524K", 226), ("262K", 400), ("131K", 524), ("65K", 632), ("32K", 754), ("16K", 888),
+        // K-tier brackets (ranks 151-888)
+        ("262K", 151), ("131K", 200), ("65K", 275), ("32K", 676), ("16K", 836),
         // Raw number brackets (ranks 1000-52111)
         ("8192", 1000), ("4096", 1111), ("2048", 1234), ("1024", 1372), ("512", 1533),
         ("256", 2222), ("128", 3062), ("64", 4321), ("32", 5678), ("16", 8127),
