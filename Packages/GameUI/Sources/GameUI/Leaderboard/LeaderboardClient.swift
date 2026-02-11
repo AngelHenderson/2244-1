@@ -293,7 +293,8 @@ public enum MockLeaderboardData {
             (LeaderboardClient.hungaryPlayerMilestones, hungaryNames, 165000, "HU"),
             (LeaderboardClient.thailandPlayerMilestones, thailandNames, 170000, "TH"),
             (LeaderboardClient.uaePlayerMilestones, uaeNames, 175000, "AE"),
-            (LeaderboardClient.philippinesPlayerMilestones, philippinesNames, 180000, "PH")
+            (LeaderboardClient.philippinesPlayerMilestones, philippinesNames, 180000, "PH"),
+            (LeaderboardClient.andorraPlayerMilestones, MockLeaderboardData.andorraNames, 185000, "AD")
         ]
 
         for config in countryConfigs {
@@ -1211,7 +1212,7 @@ public enum MockLeaderboardData {
         "IT": 75000, "ES": 80000, "NL": 85000, "CH": 90000, "NO": 95000,
         "DK": 100000, "FI": 105000, "PL": 110000, "BE": 115000, "SE": 120000,
         "AT": 125000, "IE": 130000, "PT": 135000, "GR": 140000, "CZ": 145000,
-        "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000, "AE": 175000, "PH": 180000
+        "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000, "AE": 175000, "PH": 180000, "AD": 185000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -1357,6 +1358,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.uaePlayerMilestones, LeaderboardClient.uaeExtendedRankBrackets, 19_889)
         case "PH":
             return (LeaderboardClient.philippinesPlayerMilestones, LeaderboardClient.philippinesExtendedRankBrackets, 43_210)
+        case "AD":
+            return (LeaderboardClient.andorraPlayerMilestones, LeaderboardClient.andorraExtendedRankBrackets, 1_977)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1403,7 +1406,8 @@ public enum MockLeaderboardData {
             ("JP", 894),
             ("TH", 5_444),
             ("AE", 19_889),
-            ("PH", 43_210)
+            ("PH", 43_210),
+            ("AD", 1_977)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -2453,6 +2457,17 @@ public enum MockLeaderboardData {
         "VigianViking", "LaogLightning", "SanPabloSurge", "MalolosMenace", "MeycauayanMarauder"
     ]
 
+    static let andorraNames = [
+        "AndorraAce", "PyreneesPro", "EscaldesElite", "LaVellaVictor", "EnampChamp",
+        "CanilloConqueror", "OrdoOutlaw", "PasHousePhenix", "SantJuliaStar", "MassanaMaster",
+        "AndorranAlpha", "VallnordViper", "GrandvaliraGod", "SoldeuStriker", "ArinsiArtist",
+        "CaldeaCrusher", "NaturlandNinja", "PalPeakPro", "ArcalisAvenger", "EngolastrElite",
+        "MeritxellMaven", "SisconySurge", "FontaneraForce", "RansotRaider", "InclesStar",
+        "AnyvialAce", "LlortLegend", "CortalsChamp", "GrauRoigGamer", "BordesDestrier",
+        "PeafonPower", "TosaPhenix", "ErmitaEagle", "RocDelQueRuler", "ComaMaster",
+        "SolanaSpirit", "AubinuAccess", "CampClaror", "LlumenRexLord", "VallDeMadriu"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -2692,6 +2707,8 @@ public extension LeaderboardClient {
                 entries = uaeEntries()
             case .countryPH:
                 entries = philippinesEntries()
+            case .countryAD:
+                entries = andorraEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -2775,6 +2792,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 19_889, on: day, countrySeed: 134)
             case .countryPH:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 43_210, on: day, countrySeed: 135)
+            case .countryAD:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_977, on: day, countrySeed: 136)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -2814,7 +2833,8 @@ public extension LeaderboardClient {
                 let thPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 5_444, on: day, countrySeed: 133)
                 let aePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 19_889, on: day, countrySeed: 134)
                 let phPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 43_210, on: day, countrySeed: 135)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers
+                let adPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_977, on: day, countrySeed: 136)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers
             }
             let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
             return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
@@ -8314,6 +8334,138 @@ public extension LeaderboardClient {
                 day: day,
                 totalPlayers: totalPhilippinesPlayers,
                 extendedBrackets: philippinesExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+
+    // MARK: - Andorra Leaderboard Data
+
+    // Andorra leaderboard data - top 150 player milestones
+    // Total Andorra players: 1,977
+    static let andorraPlayerMilestones: [String] = [
+        // Ranks 1-10 (from screenshot: 328bn, 4bl, 33bf, 966ba, 1aw, 381aq, 88an, 20aj, 573ae, 4aa)
+        "328bn", "4bl", "33bf", "966ba", "1aw", "381aq", "88an", "20aj", "573ae", "4aa",
+        // Ranks 11-20 (from screenshot: 7w, 3r, 6p, 11n, 22l, 87j, 1i, 81f, 19f, 19e)
+        "7w", "3r", "6p", "11n", "22l", "87j", "1i", "81f", "19f", "19e",
+        // Ranks 21-30 (from screenshot: 75d, 1d, 73c, 18c, 9c, 2c, 288b, 18b, 1b, 70a)
+        "75d", "1d", "73c", "18c", "9c", "2c", "288b", "18b", "1b", "70a",
+        // Ranks 31-42 (from screenshot: 2a, 68B, 17B, 8B, 2B, 1B, 268M, 134M, 134M, 67M, 67M, 33M)
+        "2a", "68B", "17B", "8B", "2B", "1B", "268M", "134M", "134M", "67M",
+        "67M", "33M",
+        // Ranks 43-50 (extended bracket starts at 44 with 16M, so rank 43 is 33M or 16M boundary)
+        "16M", "16M", "16M", "8M", "8M", "8M", "8M", "4M",
+        // Ranks 51-60
+        "4M", "4M", "4M", "4M", "4M", "2M", "2M", "2M", "2M", "2M",
+        // Ranks 61-70 (62 starts 2M, 69 starts 1M)
+        "2M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "524K", "524K",
+        // Ranks 71-80 (77 starts 524K)
+        "524K", "524K", "524K", "524K", "524K", "524K", "262K", "262K", "262K", "262K",
+        // Ranks 81-90 (86 starts 262K)
+        "262K", "262K", "262K", "262K", "262K", "131K", "131K", "131K", "131K", "131K",
+        // Ranks 91-100 (98 starts 131K)
+        "131K", "131K", "131K", "131K", "131K", "131K", "131K", "65K", "65K", "65K",
+        // Ranks 101-110 (113 starts 65K)
+        "65K", "65K", "65K", "65K", "65K", "65K", "65K", "65K", "65K", "65K",
+        // Ranks 111-120
+        "65K", "65K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K",
+        // Ranks 121-130 (132 starts 32K)
+        "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K",
+        // Ranks 131-140
+        "32K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K",
+        // Ranks 141-150 (151 starts 8192)
+        "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K"
+    ]
+
+    // Extended Andorra milestone brackets for rank calculation (ranks 151+)
+    // Based on screenshot: 151: 8192, 187: 4096, 233: 2048, 344: 1024, 400: 512
+    // 487: 256, 676: 128, 857: 64, 999: 32, 1167: 16, 1296: 8, 1467: 4, 1667: 2, 1799-1977: 0
+    static let andorraExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // Raw number brackets (ranks 151-1977)
+        ("8192", 151), ("4096", 187), ("2048", 233), ("1024", 344), ("512", 400),
+        ("256", 487), ("128", 676), ("64", 857), ("32", 999), ("16", 1167),
+        ("8", 1296), ("4", 1467), ("2", 1667), ("0", 1799)  // Score 0 = ranks 1799-1977
+    ]
+
+    // Generate Andorra entries with milestone progression and user insertion
+    private static func andorraEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, andorraPlayerMilestones.count) {
+            let baseMilestone = andorraPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.andorraNames, countrySeed: 185000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 185000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 185000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "ad_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalAndorraPlayers = 1_977
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 185000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "AD",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            var andorraRank = 151
+            for bracket in andorraExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    andorraRank = bracket.startRank
+                    break
+                }
+            }
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: andorraRank,
+                userMilestone: userMilestone,
+                countryCode: "AD",
+                countrySeed: 185000,
+                names: MockLeaderboardData.andorraNames,
+                day: day,
+                totalPlayers: totalAndorraPlayers,
+                extendedBrackets: andorraExtendedRankBrackets
             )
             entries.append(contentsOf: extendedEntries)
         }
