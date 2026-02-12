@@ -982,7 +982,7 @@ public enum MockLeaderboardData {
         }
 
         if useRealName {
-            // Distribution: 55% common English, 12.5% Hispanic, 5% German, 3.5% French, 3% Italian, 21% other languages
+            // Distribution: 55% English, 12.5% Hispanic, 5% German, 3.5% French, 3% Italian, 1.5% Japanese, 0.75% Chinese, 7.5% Portuguese, 11.25% other
             let nameTypeRandom = seededRandom(seed: index * 601 + countrySeed * 127, index: index)
             let commonEnglishStart = 0
             let commonEnglishCount = 40  // Indices 0-39: common English names
@@ -994,8 +994,15 @@ public enum MockLeaderboardData {
             let frenchCount = 20  // Indices 80-99: French names
             let italianStart = 100
             let italianCount = 20  // Indices 100-119: Italian names
-            let otherStart = 120  // Indices 120+: Japanese, Korean, Chinese, Indian, etc.
-            let otherCount = realNames.count - otherStart
+            let japaneseStart = 120
+            let japaneseCount = 20  // Indices 120-139: Japanese names
+            let chineseStart = 160  // Indices 160-179: Chinese names
+            let chineseCount = 20
+            let portugueseStart = 200  // Indices 200-219: Brazilian/Portuguese names
+            let portugueseCount = 20
+            let otherStart = 140  // Indices 140-159 (Korean), 180-199 (Indian), 220+ (Russian, Arabic, Scandinavian)
+            // Other includes: Korean (140-159), Indian (180-199), Russian (220-239), Arabic (240-259), Scandinavian (260-279)
+            let otherCount = 80  // 4 groups of 20 names each (excluding Chinese and Portuguese from "other")
             
             let realNameIndex: Int
             if nameTypeRandom < 0.55 {
@@ -1033,12 +1040,52 @@ public enum MockLeaderboardData {
                 } else {
                     realNameIndex = italianStart + ((index + countrySeed) % italianCount)
                 }
-            } else {
-                // 21% other languages
+            } else if nameTypeRandom < 0.805 {
+                // 1.5% Japanese (0.79 + 0.015 = 0.805)
                 if hasChanged {
-                    realNameIndex = otherStart + ((index + countrySeed + day * 3) % otherCount)
+                    realNameIndex = japaneseStart + ((index + countrySeed + day * 3) % japaneseCount)
                 } else {
-                    realNameIndex = otherStart + ((index + countrySeed) % otherCount)
+                    realNameIndex = japaneseStart + ((index + countrySeed) % japaneseCount)
+                }
+            } else if nameTypeRandom < 0.8125 {
+                // 0.75% Chinese (0.805 + 0.0075 = 0.8125)
+                if hasChanged {
+                    realNameIndex = chineseStart + ((index + countrySeed + day * 3) % chineseCount)
+                } else {
+                    realNameIndex = chineseStart + ((index + countrySeed) % chineseCount)
+                }
+            } else if nameTypeRandom < 0.8875 {
+                // 7.5% Portuguese (0.8125 + 0.075 = 0.8875)
+                if hasChanged {
+                    realNameIndex = portugueseStart + ((index + countrySeed + day * 3) % portugueseCount)
+                } else {
+                    realNameIndex = portugueseStart + ((index + countrySeed) % portugueseCount)
+                }
+            } else {
+                // 11.25% other languages (Korean, Indian, Russian, Arabic, Scandinavian)
+                if hasChanged {
+                    let otherOffset = (index + countrySeed + day * 3) % otherCount
+                    // Map to actual indices: 0-19 -> Korean (140-159), 20-39 -> Indian (180-199), 40-59 -> Russian (220-239), 60-79 -> Arabic/Scandinavian (240-279)
+                    if otherOffset < 20 {
+                        realNameIndex = 140 + otherOffset  // Korean
+                    } else if otherOffset < 40 {
+                        realNameIndex = 180 + (otherOffset - 20)  // Indian
+                    } else if otherOffset < 60 {
+                        realNameIndex = 220 + (otherOffset - 40)  // Russian
+                    } else {
+                        realNameIndex = 240 + (otherOffset - 60)  // Arabic + Scandinavian
+                    }
+                } else {
+                    let otherOffset = (index + countrySeed) % otherCount
+                    if otherOffset < 20 {
+                        realNameIndex = 140 + otherOffset  // Korean
+                    } else if otherOffset < 40 {
+                        realNameIndex = 180 + (otherOffset - 20)  // Indian
+                    } else if otherOffset < 60 {
+                        realNameIndex = 220 + (otherOffset - 40)  // Russian
+                    } else {
+                        realNameIndex = 240 + (otherOffset - 60)  // Arabic + Scandinavian
+                    }
                 }
             }
             return realNames[realNameIndex]
