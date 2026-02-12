@@ -982,7 +982,7 @@ public enum MockLeaderboardData {
         }
 
         if useRealName {
-            // Distribution: 55% common English, 12.5% Hispanic, 5% German, 3.5% French, 24% other languages
+            // Distribution: 55% common English, 12.5% Hispanic, 5% German, 3.5% French, 3% Italian, 21% other languages
             let nameTypeRandom = seededRandom(seed: index * 601 + countrySeed * 127, index: index)
             let commonEnglishStart = 0
             let commonEnglishCount = 40  // Indices 0-39: common English names
@@ -992,7 +992,9 @@ public enum MockLeaderboardData {
             let germanCount = 20  // Indices 60-79: German names
             let frenchStart = 80
             let frenchCount = 20  // Indices 80-99: French names
-            let otherStart = 100  // Indices 100+: Italian, Japanese, Korean, Chinese, Indian, etc.
+            let italianStart = 100
+            let italianCount = 20  // Indices 100-119: Italian names
+            let otherStart = 120  // Indices 120+: Japanese, Korean, Chinese, Indian, etc.
             let otherCount = realNames.count - otherStart
             
             let realNameIndex: Int
@@ -1024,8 +1026,15 @@ public enum MockLeaderboardData {
                 } else {
                     realNameIndex = frenchStart + ((index + countrySeed) % frenchCount)
                 }
+            } else if nameTypeRandom < 0.79 {
+                // 3% Italian (0.76 + 0.03 = 0.79)
+                if hasChanged {
+                    realNameIndex = italianStart + ((index + countrySeed + day * 3) % italianCount)
+                } else {
+                    realNameIndex = italianStart + ((index + countrySeed) % italianCount)
+                }
             } else {
-                // 24% other languages
+                // 21% other languages
                 if hasChanged {
                     realNameIndex = otherStart + ((index + countrySeed + day * 3) % otherCount)
                 } else {
