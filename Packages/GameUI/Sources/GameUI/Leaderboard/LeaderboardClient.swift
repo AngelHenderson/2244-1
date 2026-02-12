@@ -982,7 +982,7 @@ public enum MockLeaderboardData {
         }
 
         if useRealName {
-            // Distribution: 40% English, 12.5% Hispanic, 5% German, 3.5% French, 3% Italian, 1.5% Japanese, 0.75% Chinese, 7.5% Portuguese, 1.25% Indian, 3% Russian, 7.5% Arabic, 14.5% other
+            // Distribution: 40% English, 14.5% Hispanic, 5% German, 3.5% French, 10% Italian, 1.5% Japanese, 0.75% Chinese, 15% Portuguese, 1.25% Indian, 1% Russian, 5% Arabic, 0.5% Korean, 2% Scandinavian
             let nameTypeRandom = seededRandom(seed: index * 601 + countrySeed * 127, index: index)
             let commonEnglishStart = 0
             let commonEnglishCount = 40  // Indices 0-39: common English names
@@ -1006,8 +1006,10 @@ public enum MockLeaderboardData {
             let russianCount = 20
             let arabicStart = 240  // Indices 240-259: Arabic names
             let arabicCount = 20
-            // Other includes: Korean (140-159), Scandinavian (260-279)
-            let otherCount = 40  // 2 groups of 20 names each
+            let koreanStart = 140  // Indices 140-159: Korean names
+            let koreanCount = 20
+            let scandinavianStart = 260  // Indices 260-279: Scandinavian names
+            let scandinavianCount = 20
             
             let realNameIndex: Int
             if nameTypeRandom < 0.40 {
@@ -1017,93 +1019,89 @@ public enum MockLeaderboardData {
                 } else {
                     realNameIndex = commonEnglishStart + ((index + countrySeed) % commonEnglishCount)
                 }
-            } else if nameTypeRandom < 0.525 {
-                // 12.5% Hispanic (0.40 + 0.125 = 0.525)
+            } else if nameTypeRandom < 0.545 {
+                // 14.5% Hispanic (0.40 + 0.145 = 0.545)
                 if hasChanged {
                     realNameIndex = hispanicStart + ((index + countrySeed + day * 3) % hispanicCount)
                 } else {
                     realNameIndex = hispanicStart + ((index + countrySeed) % hispanicCount)
                 }
-            } else if nameTypeRandom < 0.575 {
-                // 5% German (0.525 + 0.05 = 0.575)
+            } else if nameTypeRandom < 0.595 {
+                // 5% German (0.545 + 0.05 = 0.595)
                 if hasChanged {
                     realNameIndex = germanStart + ((index + countrySeed + day * 3) % germanCount)
                 } else {
                     realNameIndex = germanStart + ((index + countrySeed) % germanCount)
                 }
-            } else if nameTypeRandom < 0.61 {
-                // 3.5% French (0.575 + 0.035 = 0.61)
+            } else if nameTypeRandom < 0.63 {
+                // 3.5% French (0.595 + 0.035 = 0.63)
                 if hasChanged {
                     realNameIndex = frenchStart + ((index + countrySeed + day * 3) % frenchCount)
                 } else {
                     realNameIndex = frenchStart + ((index + countrySeed) % frenchCount)
                 }
-            } else if nameTypeRandom < 0.64 {
-                // 3% Italian (0.61 + 0.03 = 0.64)
+            } else if nameTypeRandom < 0.73 {
+                // 10% Italian (0.63 + 0.10 = 0.73)
                 if hasChanged {
                     realNameIndex = italianStart + ((index + countrySeed + day * 3) % italianCount)
                 } else {
                     realNameIndex = italianStart + ((index + countrySeed) % italianCount)
                 }
-            } else if nameTypeRandom < 0.655 {
-                // 1.5% Japanese (0.64 + 0.015 = 0.655)
+            } else if nameTypeRandom < 0.745 {
+                // 1.5% Japanese (0.73 + 0.015 = 0.745)
                 if hasChanged {
                     realNameIndex = japaneseStart + ((index + countrySeed + day * 3) % japaneseCount)
                 } else {
                     realNameIndex = japaneseStart + ((index + countrySeed) % japaneseCount)
                 }
-            } else if nameTypeRandom < 0.6625 {
-                // 0.75% Chinese (0.655 + 0.0075 = 0.6625)
+            } else if nameTypeRandom < 0.7525 {
+                // 0.75% Chinese (0.745 + 0.0075 = 0.7525)
                 if hasChanged {
                     realNameIndex = chineseStart + ((index + countrySeed + day * 3) % chineseCount)
                 } else {
                     realNameIndex = chineseStart + ((index + countrySeed) % chineseCount)
                 }
-            } else if nameTypeRandom < 0.7375 {
-                // 7.5% Portuguese (0.6625 + 0.075 = 0.7375)
+            } else if nameTypeRandom < 0.9025 {
+                // 15% Portuguese (0.7525 + 0.15 = 0.9025)
                 if hasChanged {
                     realNameIndex = portugueseStart + ((index + countrySeed + day * 3) % portugueseCount)
                 } else {
                     realNameIndex = portugueseStart + ((index + countrySeed) % portugueseCount)
                 }
-            } else if nameTypeRandom < 0.75 {
-                // 1.25% Indian (0.7375 + 0.0125 = 0.75)
+            } else if nameTypeRandom < 0.915 {
+                // 1.25% Indian (0.9025 + 0.0125 = 0.915)
                 if hasChanged {
                     realNameIndex = indianStart + ((index + countrySeed + day * 3) % indianCount)
                 } else {
                     realNameIndex = indianStart + ((index + countrySeed) % indianCount)
                 }
-            } else if nameTypeRandom < 0.78 {
-                // 3% Russian (0.75 + 0.03 = 0.78)
+            } else if nameTypeRandom < 0.925 {
+                // 1% Russian (0.915 + 0.01 = 0.925)
                 if hasChanged {
                     realNameIndex = russianStart + ((index + countrySeed + day * 3) % russianCount)
                 } else {
                     realNameIndex = russianStart + ((index + countrySeed) % russianCount)
                 }
-            } else if nameTypeRandom < 0.855 {
-                // 7.5% Arabic (0.78 + 0.075 = 0.855)
+            } else if nameTypeRandom < 0.975 {
+                // 5% Arabic (0.925 + 0.05 = 0.975)
                 if hasChanged {
                     realNameIndex = arabicStart + ((index + countrySeed + day * 3) % arabicCount)
                 } else {
                     realNameIndex = arabicStart + ((index + countrySeed) % arabicCount)
                 }
-            } else {
-                // 14.5% other languages (Korean, Scandinavian)
+            } else if nameTypeRandom < 0.98 {
+                // 0.5% Korean (0.975 + 0.005 = 0.98)
                 if hasChanged {
-                    let otherOffset = (index + countrySeed + day * 3) % otherCount
-                    // Map to actual indices: 0-19 -> Korean (140-159), 20-39 -> Scandinavian (260-279)
-                    if otherOffset < 20 {
-                        realNameIndex = 140 + otherOffset  // Korean
-                    } else {
-                        realNameIndex = 260 + (otherOffset - 20)  // Scandinavian
-                    }
+                    realNameIndex = koreanStart + ((index + countrySeed + day * 3) % koreanCount)
                 } else {
-                    let otherOffset = (index + countrySeed) % otherCount
-                    if otherOffset < 20 {
-                        realNameIndex = 140 + otherOffset  // Korean
-                    } else {
-                        realNameIndex = 260 + (otherOffset - 20)  // Scandinavian
-                    }
+                    realNameIndex = koreanStart + ((index + countrySeed) % koreanCount)
+                }
+            } else {
+                // 2% Scandinavian (0.98 + 0.02 = 1.0)
+                if hasChanged {
+                    realNameIndex = scandinavianStart + ((index + countrySeed + day * 3) % scandinavianCount)
+                } else {
+                    realNameIndex = scandinavianStart + ((index + countrySeed) % scandinavianCount)
                 }
             }
             return realNames[realNameIndex]
