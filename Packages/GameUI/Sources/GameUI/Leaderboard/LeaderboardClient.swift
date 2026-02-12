@@ -982,13 +982,38 @@ public enum MockLeaderboardData {
         }
 
         if useRealName {
-            if hasChanged {
-                // Name has changed - use a different real name
-                let realNameIndex = (index + countrySeed + day * 3) % realNames.count
-                return realNames[realNameIndex]
+            // Distribution: 55% common English, 12.5% Hispanic, 32.5% other languages
+            let nameTypeRandom = seededRandom(seed: index * 601 + countrySeed * 127, index: index)
+            let commonEnglishStart = 0
+            let commonEnglishCount = 40  // Indices 0-39: common English names
+            let hispanicStart = 40
+            let hispanicCount = 20  // Indices 40-59: Hispanic names
+            let otherStart = 60  // Indices 60+: German, French, Italian, Japanese, Korean, Chinese, Indian, etc.
+            let otherCount = realNames.count - otherStart
+            
+            let realNameIndex: Int
+            if nameTypeRandom < 0.55 {
+                // 55% common English
+                if hasChanged {
+                    realNameIndex = commonEnglishStart + ((index + countrySeed + day * 3) % commonEnglishCount)
+                } else {
+                    realNameIndex = commonEnglishStart + ((index + countrySeed) % commonEnglishCount)
+                }
+            } else if nameTypeRandom < 0.675 {
+                // 12.5% Hispanic (0.55 + 0.125 = 0.675)
+                if hasChanged {
+                    realNameIndex = hispanicStart + ((index + countrySeed + day * 3) % hispanicCount)
+                } else {
+                    realNameIndex = hispanicStart + ((index + countrySeed) % hispanicCount)
+                }
+            } else {
+                // 32.5% other languages
+                if hasChanged {
+                    realNameIndex = otherStart + ((index + countrySeed + day * 3) % otherCount)
+                } else {
+                    realNameIndex = otherStart + ((index + countrySeed) % otherCount)
+                }
             }
-            // Base real name
-            let realNameIndex = (index + countrySeed) % realNames.count
             return realNames[realNameIndex]
         } else {
             if hasChanged {
