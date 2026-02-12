@@ -982,13 +982,17 @@ public enum MockLeaderboardData {
         }
 
         if useRealName {
-            // Distribution: 55% common English, 12.5% Hispanic, 32.5% other languages
+            // Distribution: 55% common English, 12.5% Hispanic, 5% German, 3.5% French, 24% other languages
             let nameTypeRandom = seededRandom(seed: index * 601 + countrySeed * 127, index: index)
             let commonEnglishStart = 0
             let commonEnglishCount = 40  // Indices 0-39: common English names
             let hispanicStart = 40
             let hispanicCount = 20  // Indices 40-59: Hispanic names
-            let otherStart = 60  // Indices 60+: German, French, Italian, Japanese, Korean, Chinese, Indian, etc.
+            let germanStart = 60
+            let germanCount = 20  // Indices 60-79: German names
+            let frenchStart = 80
+            let frenchCount = 20  // Indices 80-99: French names
+            let otherStart = 100  // Indices 100+: Italian, Japanese, Korean, Chinese, Indian, etc.
             let otherCount = realNames.count - otherStart
             
             let realNameIndex: Int
@@ -1006,8 +1010,22 @@ public enum MockLeaderboardData {
                 } else {
                     realNameIndex = hispanicStart + ((index + countrySeed) % hispanicCount)
                 }
+            } else if nameTypeRandom < 0.725 {
+                // 5% German (0.675 + 0.05 = 0.725)
+                if hasChanged {
+                    realNameIndex = germanStart + ((index + countrySeed + day * 3) % germanCount)
+                } else {
+                    realNameIndex = germanStart + ((index + countrySeed) % germanCount)
+                }
+            } else if nameTypeRandom < 0.76 {
+                // 3.5% French (0.725 + 0.035 = 0.76)
+                if hasChanged {
+                    realNameIndex = frenchStart + ((index + countrySeed + day * 3) % frenchCount)
+                } else {
+                    realNameIndex = frenchStart + ((index + countrySeed) % frenchCount)
+                }
             } else {
-                // 32.5% other languages
+                // 24% other languages
                 if hasChanged {
                     realNameIndex = otherStart + ((index + countrySeed + day * 3) % otherCount)
                 } else {
