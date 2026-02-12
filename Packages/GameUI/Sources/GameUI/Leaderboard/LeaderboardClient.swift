@@ -8349,7 +8349,7 @@ public extension LeaderboardClient {
         // Ranks 1-10 (from screenshot: 328bn, 4bl, 33bf, 966ba, 1aw, 381aq, 88an, 20aj, 573ae, 4aa)
         "328bn", "4bl", "33bf", "966ba", "1aw", "381aq", "88an", "20aj", "573ae", "4aa",
         // Ranks 11-20 (from screenshot: 7w, 3r, 6p, 11n, 22l, 87j, 1i, 81f, 19f, 19e)
-        "7w", "3r", "6p", "11n", "22l", "87j", "1i", "81f", "19f", "19e",
+        "7w", "3r", "6p", "11n", "22l", "87j", "1i", "81g", "19f", "19e",
         // Ranks 21-30 (from screenshot: 75d, 1d, 73c, 18c, 9c, 2c, 288b, 18b, 1b, 70a)
         "75d", "1d", "73c", "18c", "9c", "2c", "288b", "18b", "1b", "70a",
         // Ranks 31-42 (from screenshot: 2a, 68B, 17B, 8B, 2B, 1B, 268M, 134M, 134M, 67M, 67M, 33M)
