@@ -708,7 +708,7 @@ public final class AchievementStore {
         .init(milestone: 20, categoryLabel: "20 uses", rewards: .init(spins: 1, magnets: 2)),
         .init(milestone: 25, categoryLabel: "25 uses", rewards: .init(gems: 1000)),
         .init(milestone: 30, categoryLabel: "30 uses", rewards: .init(gems: 740, spins: 1, boost4x: 1)),
-        .init(milestone: 35, categoryLabel: "35 uses", rewards: .init(gems: 800, spins: 1, hammers: 1, magnets: nil, swaps: 1, boost2x: 1, boost3x: 1)),
+        .init(milestone: 35, categoryLabel: "35 uses", rewards: .init(gems: 800, spins: 1, hammers: 1, swaps: 1, boost2x: 1, boost3x: 1)),
         .init(milestone: 40, categoryLabel: "40 uses", rewards: .init(gems: 1500)),
         .init(milestone: 45, categoryLabel: "45 uses", rewards: .init(gems: 1100, spins: 1)),
         .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1300)),
@@ -725,6 +725,7 @@ public final class AchievementStore {
         .init(milestone: 225, categoryLabel: "225 uses", rewards: .init(gems: 2800, spins: 1, magnets: 1)),
         .init(milestone: 250, categoryLabel: "250 uses", rewards: .init(gems: 3280)),
         .init(milestone: 300, categoryLabel: "300 uses", rewards: .init(gems: 3500)),
+        .init(milestone: 350, categoryLabel: "350 uses", rewards: .init(gems: 2500, boost2x: 1)),
         .init(milestone: 400, categoryLabel: "400 uses", rewards: .init(magnets: 1, boost4x: 1)),
         .init(milestone: 500, categoryLabel: "500 uses", rewards: .init(gems: 4000))
     ]
