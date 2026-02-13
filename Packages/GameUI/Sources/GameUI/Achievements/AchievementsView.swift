@@ -593,7 +593,7 @@ private struct RewardSummary: View {
             items.append(RewardItem(icon: .asset("boost3x"), text: "\(boost3x)× 3X Boost"))
         }
         if let boost4x = rewards.boost4x, boost4x > 0 {
-            items.append(RewardItem(icon: .asset("boost4x"), text: "\(boost4x)× 4X Boost"))
+            items.append(RewardItem(icon: .system("4.circle.fill", .orange), text: "\(boost4x)× 4X Boost"))
         }
         return items
     }
