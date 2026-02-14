@@ -1151,71 +1151,8 @@ public enum MockLeaderboardData {
                 }
             }
             
-            let firstName = realNames[realNameIndex]
-            
-            // Determine the region's name count to check for potential duplicates
-            // If index position within the region could cause duplicates, add last name
-            let regionCount: Int
-            let regionStart: Int
-            if realNameIndex < 40 {
-                regionCount = commonEnglishCount
-                regionStart = commonEnglishStart
-            } else if realNameIndex < 60 {
-                regionCount = hispanicCount
-                regionStart = hispanicStart
-            } else if realNameIndex < 80 {
-                regionCount = germanCount
-                regionStart = germanStart
-            } else if realNameIndex < 100 {
-                regionCount = frenchCount
-                regionStart = frenchStart
-            } else if realNameIndex < 120 {
-                regionCount = italianCount
-                regionStart = italianStart
-            } else if realNameIndex < 140 {
-                regionCount = japaneseCount
-                regionStart = japaneseStart
-            } else if realNameIndex < 160 {
-                regionCount = koreanCount
-                regionStart = koreanStart
-            } else if realNameIndex < 180 {
-                regionCount = chineseCount
-                regionStart = chineseStart
-            } else if realNameIndex < 200 {
-                regionCount = indianCount
-                regionStart = indianStart
-            } else if realNameIndex < 220 {
-                regionCount = portugueseCount
-                regionStart = portugueseStart
-            } else if realNameIndex < 240 {
-                regionCount = russianCount
-                regionStart = russianStart
-            } else if realNameIndex < 260 {
-                regionCount = arabicCount
-                regionStart = arabicStart
-            } else {
-                regionCount = scandinavianCount
-                regionStart = scandinavianStart
-            }
-            
-            // Calculate the position within the region (0 to regionCount-1)
-            let positionInRegion = realNameIndex - regionStart
-            
-            // Use seeded random to determine if this player needs a last name
-            // Add last name if another player in this leaderboard likely has the same first name
-            // This happens when multiple players map to the same position in the region
-            let lastNameRandom = seededRandom(seed: index * 1009 + countrySeed * 211 + positionInRegion, index: index)
-            
-            // Add last name for ~50% of realistic names to differentiate potential duplicates
-            if lastNameRandom < 0.50 {
-                // Get a last name from the same region for cultural consistency
-                let lastNameOffset = Int(seededRandom(seed: index * 1103 + countrySeed * 229, index: index) * Double(regionCount))
-                let lastNameIndex = regionStart + lastNameOffset
-                let lastName = lastNames[lastNameIndex % lastNames.count]
-                return firstName + " " + lastName
-            }
-            
-            return firstName
+            // Return just the first name - last names are added by resolveRealisticNameDuplicates
+            return realNames[realNameIndex]
         } else {
             let baseName: String
             if hasChanged {
@@ -1250,6 +1187,145 @@ public enum MockLeaderboardData {
             }
             return baseName
         }
+    }
+    
+    // Check if a name is a realistic first name (not a gamertag)
+    static func isRealisticName(_ name: String) -> Bool {
+        return realNames.contains(name)
+    }
+    
+    // Get the region start index for a given first name
+    static func regionStartForFirstName(_ firstName: String) -> Int {
+        guard let index = realNames.firstIndex(of: firstName) else { return 0 }
+        if index < 40 { return 0 }        // English
+        if index < 60 { return 40 }       // Hispanic
+        if index < 80 { return 60 }       // German
+        if index < 100 { return 80 }      // French
+        if index < 120 { return 100 }     // Italian
+        if index < 140 { return 120 }     // Japanese
+        if index < 160 { return 140 }     // Korean
+        if index < 180 { return 160 }     // Chinese
+        if index < 200 { return 180 }     // Indian
+        if index < 220 { return 200 }     // Portuguese
+        if index < 240 { return 220 }     // Russian
+        if index < 260 { return 240 }     // Arabic
+        return 260                         // Scandinavian
+    }
+    
+    // Resolve duplicate first names by adding last names where needed
+    // Takes a list of (index, name) tuples and returns resolved names
+    static func resolveRealisticNameDuplicates(entries: [(index: Int, name: String)], countrySeed: Int) -> [Int: String] {
+        var result: [Int: String] = [:]
+        
+        // Group entries by first name (only for realistic names)
+        var firstNameGroups: [String: [(index: Int, name: String)]] = [:]
+        
+        for entry in entries {
+            // Check if this is a realistic name (first name only, no spaces)
+            if !entry.name.contains(" ") && isRealisticName(entry.name) {
+                firstNameGroups[entry.name, default: []].append(entry)
+            } else {
+                // Gamertag or already has last name - keep as is
+                result[entry.index] = entry.name
+            }
+        }
+        
+        // Process each group of first names
+        for (firstName, group) in firstNameGroups {
+            if group.count == 1 {
+                // No duplicate - keep just the first name
+                result[group[0].index] = firstName
+            } else {
+                // Duplicates found - add last names to all entries with this first name
+                let regionStart = regionStartForFirstName(firstName)
+                
+                for entry in group {
+                    // Generate a unique last name based on the player's index
+                    let lastNameOffset = Int(seededRandom(seed: entry.index * 1103 + countrySeed * 229, index: entry.index) * 20)
+                    let lastNameIndex = regionStart + lastNameOffset
+                    let lastName = lastNames[lastNameIndex % lastNames.count]
+                    result[entry.index] = firstName + " " + lastName
+                }
+            }
+        }
+        
+        return result
+    }
+    
+    // Generate names for a batch of players, automatically resolving duplicates
+    // Returns a dictionary mapping player index to their final name
+    static func namesForPlayers(indices: [Int], gamertagNames: [String], countrySeed: Int, day: Int) -> [Int: String] {
+        // First pass: generate all names without duplicate resolution
+        var rawNames: [(index: Int, name: String)] = []
+        for index in indices {
+            let name = nameForPlayer(index: index, names: gamertagNames, countrySeed: countrySeed, day: day)
+            rawNames.append((index, name))
+        }
+        
+        // Second pass: resolve any duplicate realistic first names
+        return resolveRealisticNameDuplicates(entries: rawNames, countrySeed: countrySeed)
+    }
+    
+    // Resolve duplicate first names in a list of LeaderboardEntry objects
+    // Returns a new array with last names added to duplicate first names
+    static func resolveEntryDuplicates(_ entries: [LeaderboardEntry], countrySeed: Int = 0) -> [LeaderboardEntry] {
+        // Group entries by name (only for realistic first names)
+        var firstNameGroups: [String: [Int]] = [:]  // firstName -> indices in entries array
+        
+        for (idx, entry) in entries.enumerated() {
+            // Skip user entries and entries that already have last names or are gamertags
+            if entry.isMe { continue }
+            
+            let name = entry.name
+            // Check if this is a realistic first name (no spaces, exists in realNames)
+            if !name.contains(" ") && isRealisticName(name) {
+                firstNameGroups[name, default: []].append(idx)
+            }
+        }
+        
+        // Build result, adding last names where needed
+        var result = entries
+        for (firstName, indices) in firstNameGroups {
+            if indices.count > 1 {
+                // Duplicates found - add last names to all entries with this first name
+                let regionStart = regionStartForFirstName(firstName)
+                
+                for idx in indices {
+                    let entry = entries[idx]
+                    
+                    // 5% chance of cross-cultural last name, 95% same culture
+                    let crossCultureRandom = seededRandom(seed: entry.rank * 1301 + countrySeed * 257, index: entry.rank)
+                    
+                    let lastNameIndex: Int
+                    if crossCultureRandom < 0.05 {
+                        // 5% - pick a last name from a different culture (random from all last names)
+                        let randomLastNameOffset = Int(seededRandom(seed: entry.rank * 1103 + countrySeed * 229, index: entry.rank) * Double(lastNames.count))
+                        lastNameIndex = randomLastNameOffset
+                    } else {
+                        // 95% - pick a last name from the same culture as the first name
+                        let lastNameOffset = Int(seededRandom(seed: entry.rank * 1103 + countrySeed * 229, index: entry.rank) * 20)
+                        lastNameIndex = regionStart + lastNameOffset
+                    }
+                    
+                    let lastName = lastNames[lastNameIndex % lastNames.count]
+                    
+                    // Create a new entry with the full name
+                    result[idx] = LeaderboardEntry(
+                        id: entry.id,
+                        rank: entry.rank,
+                        name: firstName + " " + lastName,
+                        score: entry.score,
+                        countryCode: entry.countryCode,
+                        platform: entry.platform,
+                        isMe: entry.isMe,
+                        avatarURL: entry.avatarURL,
+                        highestTile: entry.highestTile
+                    )
+                }
+            }
+        }
+        
+        return result
     }
 
     // Generate extended bracket player entries around a given rank
@@ -3160,8 +3236,10 @@ public extension LeaderboardClient {
                 let idPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
                 totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers
             }
-            let myEntry = entries.first(where: { $0.isMe }) ?? entries.last
-            return .init(entries: entries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
+            // Resolve duplicate realistic first names by adding last names
+            let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
+            let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
+            return .init(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
         },
         fetchMyRank: { _, _ in globalEntries().first(where: { $0.isMe }) ?? globalEntries().last }
     )
