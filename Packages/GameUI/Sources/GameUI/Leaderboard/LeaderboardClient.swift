@@ -472,6 +472,51 @@ public enum MockLeaderboardData {
         "Erik", "Lars", "Anders", "Magnus", "Olaf", "Bjorn", "Sven", "Gunnar", "Harald", "Leif",
         "Astrid", "Ingrid", "Freya", "Sigrid", "Helga", "Liv", "Solveig", "Greta", "Karin", "Maja"
     ]
+    
+    // Last names organized by region (same structure as realNames for matching)
+    public static let lastNames = [
+        // Common English last names (indices 0-39)
+        "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Anderson",
+        "Taylor", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Thompson", "White", "Harris", "Clark",
+        "Lewis", "Robinson", "Walker", "Hall", "Young", "King", "Wright", "Hill", "Scott", "Green",
+        "Adams", "Baker", "Nelson", "Carter", "Mitchell", "Roberts", "Turner", "Phillips", "Campbell", "Parker",
+        // Hispanic last names (indices 40-59)
+        "Garcia", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Perez", "Sanchez", "Ramirez", "Torres",
+        "Flores", "Rivera", "Gomez", "Diaz", "Reyes", "Morales", "Cruz", "Ortiz", "Gutierrez", "Chavez",
+        // German last names (indices 60-79)
+        "Mueller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann",
+        "Koch", "Bauer", "Richter", "Klein", "Wolf", "Schroeder", "Neumann", "Schwarz", "Braun", "Zimmermann",
+        // French last names (indices 80-99)
+        "Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Moreau",
+        "Simon", "Laurent", "Lefebvre", "Michel", "Garcia", "David", "Bertrand", "Roux", "Vincent", "Fournier",
+        // Italian last names (indices 100-119)
+        "Rossi", "Russo", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino", "Greco",
+        "Bruno", "Gallo", "Conti", "DeLuca", "Mancini", "Costa", "Giordano", "Rizzo", "Lombardi", "Moretti",
+        // Japanese last names (indices 120-139)
+        "Sato", "Suzuki", "Takahashi", "Tanaka", "Watanabe", "Ito", "Yamamoto", "Nakamura", "Kobayashi", "Kato",
+        "Yoshida", "Yamada", "Sasaki", "Yamaguchi", "Matsumoto", "Inoue", "Kimura", "Hayashi", "Shimizu", "Yamazaki",
+        // Korean last names (indices 140-159)
+        "Kim", "Lee", "Park", "Choi", "Jung", "Kang", "Cho", "Yoon", "Jang", "Lim",
+        "Han", "Shin", "Seo", "Kwon", "Hwang", "Ahn", "Song", "Yoo", "Hong", "Moon",
+        // Chinese last names (indices 160-179)
+        "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Wu", "Zhou",
+        "Xu", "Sun", "Ma", "Zhu", "Hu", "Guo", "He", "Lin", "Luo", "Gao",
+        // Indian last names (indices 180-199)
+        "Sharma", "Patel", "Singh", "Kumar", "Gupta", "Verma", "Reddy", "Joshi", "Rao", "Mehta",
+        "Shah", "Iyer", "Nair", "Chopra", "Kapoor", "Malhotra", "Menon", "Pillai", "Das", "Bhat",
+        // Brazilian/Portuguese last names (indices 200-219)
+        "Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes",
+        "Costa", "Ribeiro", "Martins", "Carvalho", "Almeida", "Lopes", "Soares", "Fernandes", "Vieira", "Barbosa",
+        // Russian last names (indices 220-239)
+        "Ivanov", "Smirnov", "Kuznetsov", "Popov", "Vasiliev", "Petrov", "Sokolov", "Mikhailov", "Fedorov", "Morozov",
+        "Volkov", "Alexeev", "Lebedev", "Semenov", "Egorov", "Pavlov", "Kozlov", "Stepanov", "Nikolaev", "Orlov",
+        // Arabic last names (indices 240-259)
+        "Al-Rashid", "Al-Farsi", "Al-Hassan", "Al-Mansour", "Al-Nasser", "Al-Hamad", "Al-Salem", "Al-Khalid", "Al-Zahra", "Al-Fahad",
+        "El-Amin", "El-Said", "El-Masri", "El-Sharif", "El-Hadi", "El-Bakri", "El-Rahman", "El-Karim", "El-Aziz", "El-Hakim",
+        // Scandinavian last names (indices 260-279)
+        "Andersen", "Hansen", "Johansen", "Larsen", "Olsen", "Pedersen", "Nilsen", "Kristiansen", "Jensen", "Karlsen",
+        "Eriksen", "Haugen", "Bakken", "Berg", "Dahl", "Holm", "Lund", "Strand", "Moen", "Haug"
+    ]
 
     static let hallOfFameNames = [
         // Ranks 1-30
@@ -1107,13 +1152,38 @@ public enum MockLeaderboardData {
             }
             return realNames[realNameIndex]
         } else {
+            let baseName: String
             if hasChanged {
                 // Name has changed - use a different gamertag
                 let newIndex = (index + day * 3) % names.count
-                return names[newIndex]
+                baseName = names[newIndex]
+            } else {
+                // Base gamertag name
+                baseName = names[index % names.count]
             }
-            // Base gamertag name
-            return names[index % names.count]
+            
+            // 55% of gamertag names have numbers at the end
+            let numberRandom = seededRandom(seed: index * 709 + countrySeed * 151, index: index)
+            if numberRandom < 0.55 {
+                // Generate a number suffix (1-9999, weighted toward smaller numbers)
+                let numberSeed = seededRandom(seed: index * 823 + countrySeed * 179, index: index)
+                let number: Int
+                if numberSeed < 0.40 {
+                    // 40% chance: single digit (1-9)
+                    number = 1 + Int(seededRandom(seed: index * 937 + countrySeed * 193, index: index) * 9)
+                } else if numberSeed < 0.70 {
+                    // 30% chance: two digits (10-99)
+                    number = 10 + Int(seededRandom(seed: index * 937 + countrySeed * 193, index: index) * 90)
+                } else if numberSeed < 0.90 {
+                    // 20% chance: three digits (100-999)
+                    number = 100 + Int(seededRandom(seed: index * 937 + countrySeed * 193, index: index) * 900)
+                } else {
+                    // 10% chance: four digits (1000-9999)
+                    number = 1000 + Int(seededRandom(seed: index * 937 + countrySeed * 193, index: index) * 9000)
+                }
+                return baseName + "\(number)"
+            }
+            return baseName
         }
     }
 
@@ -2533,14 +2603,41 @@ public enum MockLeaderboardData {
     ]
 
     static let hungaryNames = [
+        // 1-30: Major cities
         "BudapestBoss", "DebrecenDynamo", "SzegedStriker", "MiskolcMaster", "PecsPhoenix",
-        "GyorGladiator", "NyiregyhazaNinja", "KecskeMetKnight", "SzekesfehervarStar", "SzombathelyStorm",
+        "GyorGladiator", "NyiregyhazaNinja", "KecskeметKnight", "SzekesfehervarStar", "SzombathelyStorm",
         "EgerEagle", "TatabanyaTitan", "KaposvarKing", "ZalaegerszegZealot", "VeszpremViking",
         "BekescsabaBlaze", "SzolnokSurge", "DunaujvarosDagger", "HodmezovasarhelyHawk", "SopronSentinel",
-        "EsztergomElite", "SiofokSniper", "GodolloGuardian", "CeglediCrusader", "OroshazaOracle",
-        "HajduszoboszloHero", "KiskunfelegyHazaKnight", "MosonmagyarovarMaven", "BalmazujvarosBlade", "MezokovesDiamond",
+        "EsztergomElite", "SiofokSniper", "GodolloGuardian", "CegledCrusader", "OroshazaOracle",
+        "HajduszoboszloHero", "KiskunfelegyházaKnight", "MosonmagyarovarMaven", "BalmazujvarosBlade", "MezokovesDiamond",
+        // 31-60: More cities and regions
         "DunakesziDragon", "BudaorsBlitz", "SzentendreShield", "VacVanguard", "PapaProtector",
-        "AjkaAssassin", "KomloKestrel", "OzdiOutlaw", "SalgotarjanSavage", "GyongyosGriffin"
+        "AjkaAssassin", "KomloKestrel", "OzdOutlaw", "SalgotarjanSavage", "GyongyosGriffin",
+        "BalatonBrawler", "TokajTitan", "HevizHero", "SzarvasSniper", "KeszthelyKrusher",
+        "MohacsMarauder", "PaksPunisher", "TiszaujvarosTornado", "KazincbarcikaKing", "HatvanHawk",
+        "GyulaGladiator", "MakoMaster", "OrosházaOmen", "BajaBoss", "KalocsaKestrel",
+        "SzekszardSurge", "DombóvárDemon", "TamásiThunder", "BonyhádBlade", "PaksiPro",
+        // 61-90: Hungarian landmarks and culture
+        "DanubeDefender", "TiszaTornado", "BalatonBlitz", "MatraMarauder", "BükkBrawler",
+        "TokajTerror", "HortobagyHero", "AggtelekAce", "TihanyTitan", "GöödöGuard",
+        "ViseградVictor", "SzépasszonyValleyViper", "HősökSquareHero", "FishermansBastion", "ChainBridgeChampion",
+        "ParliamentProwler", "MatthiasKingdom", "BudaCastleBoss", "HeroesSquareHawk", "ThermalTitan",
+        "PusztaPhoenix", "GulashGladiator", "PaprikaPhenom", "TokajiTerror", "PalinkaPro",
+        "CsardasChampion", "MajarMaster", "HusarHero", "SzentIstvanStar", "ArpadAvenger",
+        // 91-120: Hungarian names
+        "AttilaAce", "BelaBoss", "CsabaChampion", "DenesDestroyer", "EmilElite",
+        "FerencFlash", "GaborGladiator", "HunorHero", "IstvanIcon", "JanosJuggernaut",
+        "KárolyKnight", "LászlóLegend", "MátyásMaster", "NándorNinja", "OttóOutlaw",
+        "PéterProwler", "RichardRaider", "SándorSurge", "TamásTitan", "VilmosViking",
+        "ZoltánZealot", "ÁkosAssassin", "BarnabásBlade", "DánielDragon", "EndreEagle",
+        "FlórianFury", "GergelyGriffin", "HenrikHawk", "ImreIronman", "KristófKestrel",
+        // 121-150: More unique names
+        "LeventeLeader", "MarcellMaverick", "NorbertNova", "OlivérOracle", "PatrikPaladin",
+        "RóbertRuler", "SzabolcsSentinel", "TiborThunder", "VinceVanguard", "AdámAvalanche",
+        "BenceBlaze", "CsanádCrusader", "DávidDefender", "ErikEclipse", "FülöpFalcon",
+        "GusztávGuardian", "HubertHurricane", "IvánImpact", "KonrádKing", "LorándLion",
+        "MiklósMenace", "NikolaszNinja", "OszkarOmen", "PálPhoenix", "RudolfRaptor",
+        "SebestyénStrike", "TivadarTornado", "UrbánUltimate", "VendélViper", "ZénóZephyr"
     ]
 
     static let thailandNames = [
@@ -2588,26 +2685,41 @@ public enum MockLeaderboardData {
     ]
 
     static let indonesiaNames = [
+        // 1-30: Major cities
         "JakartaJuggernaut", "BaliBlaster", "SurabayaStar", "BandungBoss", "MedanMaster",
         "SemarangSurge", "MakassarMaverick", "PalembangPro", "TangerangTitan", "DepokDestroyer",
         "BekasiBlitz", "YogyakartaYeti", "SoloStriker", "MalangMenace", "PadangPhenix",
         "DenpasarDemon", "BogorBeast", "BatamBomber", "PekanbaruPower", "BanjarmasinBrawler",
         "PontianakProwler", "CirebonChamp", "SamarindaSlayer", "SerangSerpent", "TasikmalayaTiger",
-        "KediriKnight", "SukabumiShadow", "PurwakartaPro", "TegalTornado", "KlateonKing",
-        "KarawangKrusher", "JambiJumper", "KupangKiller", "MatamMaestro", "LampungLegend",
-        "AmbanAce", "ManadoMachine", "JayapuraJuggernaut", "PaluPunisher", "KendariKrusher",
+        "KediriKnight", "SukabumiShadow", "PurwakartaPro", "TegalTornado", "KlatenKing",
+        // 31-60: More cities and regions
+        "KarawangKrusher", "JambiJumper", "KupangKiller", "MataramMaestro", "LampungLegend",
+        "AmbonAce", "ManadoMachine", "JayapuraJuggernaut", "PaluPunisher", "KendariKrusher",
         "GorontaloGladiator", "TernateThunder", "BauBauBerserker", "BitungBlaster", "TomohonTerror",
-        "RajaAmpetRaider", "KomodoKing", "BromoBlitzer", "PrambananPro", "BorobudurBoss",
-        "NusaDuaNinja", "UbudUltimate", "SanurStar", "KutaKing", "SeminyakSlayer",
+        "RajaAmpatRaider", "KomodoKing", "BromoBlitzer", "PrambananPro", "BorobudurBoss",
+        "NusaDuaNinja", "UbudUltimate", "SanurStar", "KutaKrusher", "SeminyakSlayer",
         "GiliGod", "LombokLegend", "FloresFlash", "SumbaStriker", "WakatobiWarrior",
-        "BunakkenBeast", "TorajaThunder", "TanaTorque", "DiengDemon", "KarimunKrusher",
-        "BelitungBlaster", "BangkaBoomer", "RiauRaider", "AcehAvenger", "NiasnNinja",
+        // 61-90: Landmarks and culture
+        "BunakenBeast", "TorajaThunder", "TanaToraja", "DiengDemon", "KarimunKrusher",
+        "BelitungBlaster", "BangkaBoomer", "RiauRaider", "AcehAvenger", "NiasNinja",
         "MentawaiMaster", "PadangProdigy", "BukittingiBoss", "PayakumbuhPower", "SolokStar",
-        "JakartaPutra", "BaliWarrior", "JavaJaguar", "SumatraStorm", "KalimantanKing",
-        "SulawesiStar", "PapuaProwler", "MoluccasMaster", "NusaTenggaraNinja", "IndonesiaIcon",
-        "GarudaGamer", "WayanWarrior", "MadesMaster", "KetutKing", "NyomanNinja",
-        "PutuPro", "KadekKrusher", "GedeLegend", "WayanWarrior2", "MadesMaverick",
-        "RizkyRaider", "BudiBlaster", "AgusAce", "DwiDestroyer", "EkoPro"
+        "JavaJaguar", "SumatraStorm", "KalimantanKing", "SulawesiStar", "PapuaProwler",
+        "MoluccasMaster", "NusaTenggaraNinja", "IndonesiaIcon", "GarudaGamer", "BatikBaron",
+        "WayanWarrior", "KetutKing", "NyomanNinja", "PutuPro", "KadekKrusher",
+        // 91-120: Indonesian names
+        "RizkyRaider", "BudiBlaster", "AgusAce", "DwiDestroyer", "EkoPro",
+        "FahriFlash", "GunturGod", "HendraHero", "IwanImpact", "JokoJuggernaut",
+        "KrisnaKnight", "LukmanLegend", "MadesMaverick", "NurdinNinja", "OscarOutlaw",
+        "PrasetyaPro", "QuinnQuake", "RahmatRuler", "SantosoStar", "TeguhTitan",
+        "UmarUltimate", "VincentVictor", "WahyuWarrior", "XavierXtreme", "YusufYeti",
+        "ZainalZenith", "ArdiAce", "BambangBoss", "CahyaChamp", "DediDemon",
+        // 121-150: More unique names
+        "EndangElite", "FerdiFlame", "GalihGladiator", "HariHawk", "IndraIcon",
+        "JayaJolt", "KurniawanKrusher", "LintangLightning", "MulyaMaster", "NugrahaNoble",
+        "OmegaOrang", "PutraPhenix", "RakaRaptor", "SuryaSerpent", "TriTornado",
+        "UtamaUltimate", "ViraViper", "WidodoWolf", "YudhiYakuza", "ZakiZephyr",
+        "AnggaAssassin", "BarunaBlaze", "CakraChampion", "DarmaDynamo", "ErlangaEagle",
+        "FajarFury", "GatotGiant", "HanomanHero", "IskandarIce", "JatayuJumper"
     ]
 
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
