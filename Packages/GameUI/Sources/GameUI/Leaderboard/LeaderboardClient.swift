@@ -1150,7 +1150,72 @@ public enum MockLeaderboardData {
                     realNameIndex = scandinavianStart + ((index + countrySeed) % scandinavianCount)
                 }
             }
-            return realNames[realNameIndex]
+            
+            let firstName = realNames[realNameIndex]
+            
+            // Determine the region's name count to check for potential duplicates
+            // If index position within the region could cause duplicates, add last name
+            let regionCount: Int
+            let regionStart: Int
+            if realNameIndex < 40 {
+                regionCount = commonEnglishCount
+                regionStart = commonEnglishStart
+            } else if realNameIndex < 60 {
+                regionCount = hispanicCount
+                regionStart = hispanicStart
+            } else if realNameIndex < 80 {
+                regionCount = germanCount
+                regionStart = germanStart
+            } else if realNameIndex < 100 {
+                regionCount = frenchCount
+                regionStart = frenchStart
+            } else if realNameIndex < 120 {
+                regionCount = italianCount
+                regionStart = italianStart
+            } else if realNameIndex < 140 {
+                regionCount = japaneseCount
+                regionStart = japaneseStart
+            } else if realNameIndex < 160 {
+                regionCount = koreanCount
+                regionStart = koreanStart
+            } else if realNameIndex < 180 {
+                regionCount = chineseCount
+                regionStart = chineseStart
+            } else if realNameIndex < 200 {
+                regionCount = indianCount
+                regionStart = indianStart
+            } else if realNameIndex < 220 {
+                regionCount = portugueseCount
+                regionStart = portugueseStart
+            } else if realNameIndex < 240 {
+                regionCount = russianCount
+                regionStart = russianStart
+            } else if realNameIndex < 260 {
+                regionCount = arabicCount
+                regionStart = arabicStart
+            } else {
+                regionCount = scandinavianCount
+                regionStart = scandinavianStart
+            }
+            
+            // Calculate the position within the region (0 to regionCount-1)
+            let positionInRegion = realNameIndex - regionStart
+            
+            // Use seeded random to determine if this player needs a last name
+            // Add last name if another player in this leaderboard likely has the same first name
+            // This happens when multiple players map to the same position in the region
+            let lastNameRandom = seededRandom(seed: index * 1009 + countrySeed * 211 + positionInRegion, index: index)
+            
+            // Add last name for ~50% of realistic names to differentiate potential duplicates
+            if lastNameRandom < 0.50 {
+                // Get a last name from the same region for cultural consistency
+                let lastNameOffset = Int(seededRandom(seed: index * 1103 + countrySeed * 229, index: index) * Double(regionCount))
+                let lastNameIndex = regionStart + lastNameOffset
+                let lastName = lastNames[lastNameIndex % lastNames.count]
+                return firstName + " " + lastName
+            }
+            
+            return firstName
         } else {
             let baseName: String
             if hasChanged {
