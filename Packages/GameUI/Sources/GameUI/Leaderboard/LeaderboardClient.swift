@@ -295,7 +295,8 @@ public enum MockLeaderboardData {
             (LeaderboardClient.uaePlayerMilestones, uaeNames, 175000, "AE"),
             (LeaderboardClient.philippinesPlayerMilestones, philippinesNames, 180000, "PH"),
             (LeaderboardClient.andorraPlayerMilestones, MockLeaderboardData.andorraNames, 185000, "AD"),
-            (LeaderboardClient.indonesiaPlayerMilestones, MockLeaderboardData.indonesiaNames, 190000, "ID")
+            (LeaderboardClient.indonesiaPlayerMilestones, MockLeaderboardData.indonesiaNames, 190000, "ID"),
+            (LeaderboardClient.southAfricaPlayerMilestones, MockLeaderboardData.southAfricaNames, 195000, "ZA")
         ]
 
         for config in countryConfigs {
@@ -2862,8 +2863,46 @@ public enum MockLeaderboardData {
         "AnggaAssassin", "BarunaBlaze", "CakraChampion", "DarmaDynamo", "ErlangaEagle",
         "FajarFury", "GatotGiant", "HanomanHero", "IskandarIce", "JatayuJumper"
     ]
+    
+    static let southAfricaNames = [
+        // 1-30: Major cities
+        "JohannesburgJuggernaut", "CapeTownChamp", "DurbanDestroyer", "PretoriaPro", "PortElizabethPhenix",
+        "BloemfonteinBoss", "EastLondonElite", "NelspruitNinja", "PietermaritzburgPower", "PolokwaneProwler",
+        "KimberleyKing", "RustenburgRaider", "WitbankWarrior", "VereenigingVictor", "WelkomWolf",
+        "MidrandMaster", "SandtonStar", "SowetoSurge", "TembisaTitan", "UmlaziBeast",
+        "ChatsworthChamp", "MitchellsPlainMaverick", "KhayelitshaKrusher", "MamelodiBrawler", "TownsshipTerror",
+        "BoksburgBlaster", "BenoniBoomer", "KemptomParkKnight", "RandburgRuler", "RoodepoortReaper",
+        // 31-60: More cities and regions
+        "CenturionCrusader", "MidvaalMenace", "UpingtonUltimate", "MusinaMaster", "TzaneenTornado",
+        "GeorgeGladiator", "MosselBayMachine", "KnysnaNinja", "HermanusHero", "StellenboschStar",
+        "PaarlPunisher", "FranschhoekFlash", "WorcesterWarrior", "BredasdorpBoss", "SwellendamSlayer",
+        "GrahamstownGod", "UitenhageUltimate", "GraaffReinetGamer", "BeaufortWestBeast", "OudtshoornOutlaw",
+        "SpringbokStar", "AlexanderBayAce", "SaldanhaSerpent", "VelddrielVictor", "LadybrandLegend",
+        "HarrissmithHawk", "BethlehemBlitzer", "QwaqwaQuake", "MafekingMaster", "VryburgViking",
+        // 61-90: Landmarks and culture
+        "KrugerKing", "TableMountainTitan", "RobbenIslandRaider", "DrakensbergDemon", "GardenRouteGod",
+        "WildCoastWarrior", "BigHoleBoss", "CradleOfHumankind", "BlydeCanyonBeast", "AugrabesFallsAce",
+        "NelsonMandelaBay", "ShakaStar", "ZuluZephyr", "XhosaXtreme", "SothoStriker",
+        "TswanaTornado", "VendaVictor", "NdebeleeNinja", "PediPhenix", "SwaziBrawler",
+        "ProteasPro", "SpringbokSlayer", "BafanaBoss", "AmaBokBeast", "StormersStrike",
+        "BullsBlaster", "LionsLegend", "SharksShredder", "ChelseaCrusher", "KaizerChiefKing",
+        // 91-120: South African names
+        "ThaboThunder", "SiphoStar", "MandlasMaverick", "BonganiBoss", "LethaboraLegend",
+        "NomvulaNinja", "ZaneleZenith", "ThandiweTitan", "SiyandaSurge", "AneleBrawler",
+        "BlessingsBlaster", "ChipoChamp", "DumisaniDestroyer", "EnoEagle", "FikileFury",
+        "GiftGladiator", "HlobiHawk", "InnocentImpact", "JabulaniJuggernaut", "KabeloKnight",
+        "LeboLightning", "MphoMaster", "NhlanhlaNinja", "OratoOutlaw", "PreciousPhenix",
+        "QuincyQuake", "ReyaanRaptor", "SamkelSerpent", "TumeloTornado", "UnamiUltimate",
+        // 121-150: More unique names
+        "VusiViking", "WandileWolf", "XolaXtreme", "YolandaYeti", "ZikhonZephyr",
+        "AgripaAce", "BudaBoomer", "ChristoCrusader", "DuduDestroyer", "EskomElite",
+        "FaniFire", "GabiGamer", "HennieHero", "IviImpact", "JanJumper",
+        "KoketsoKing", "LindiweLegend", "MashuduMaster", "NeoNinja", "OdwaProwler",
+        "PetyaPhenix", "RethabilRaider", "SizweStar", "ThamiTitan", "UbuntuUltimate",
+        "VuyaniVictor", "WilliamWolf", "XabisaXtreme", "YokoYakuza", "ZamaniZenith"
+    ]
 
-    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "US", "CN", "RU", "NG", "EG", "ZA", "AR", "CL", "CO", "PE"]
+    static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "ZA", "US", "CN", "RU", "NG", "EG", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
     static func seededRandom(seed: Int, index: Int) -> Double {
@@ -3106,6 +3145,8 @@ public extension LeaderboardClient {
                 entries = andorraEntries()
             case .countryID:
                 entries = indonesiaEntries()
+            case .countryZA:
+                entries = southAfricaEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -3193,6 +3234,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_977, on: day, countrySeed: 136)
             case .countryID:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
+            case .countryZA:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -3234,7 +3277,8 @@ public extension LeaderboardClient {
                 let phPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 43_210, on: day, countrySeed: 135)
                 let adPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_977, on: day, countrySeed: 136)
                 let idPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers
+                let zaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -8997,6 +9041,129 @@ public extension LeaderboardClient {
                 day: day,
                 totalPlayers: totalIndonesiaPlayers,
                 extendedBrackets: indonesiaExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+    
+    // South Africa player milestones (top 150)
+    static let southAfricaPlayerMilestones: [String] = [
+        // Ranks 1-10 (from screenshot)
+        "642bm", "1bl", "299bj", "583bi", "1bi", "17bh", "556bg", "34bg", "543bf", "16bf",
+        // Ranks 11-20 (from screenshot)
+        "531be", "253bc", "943az", "449ax", "3ax", "390ar", "3ar", "693am", "1am", "661ak",
+        // Ranks 21-30 (from screenshot)
+        "40aj", "2ah", "4ad", "7z", "3y", "15x", "948w", "14w", "3v", "6s",
+        // Ranks 31-40 (from screenshot)
+        "766n", "2n", "2m", "5l", "5k", "5j", "5i", "1i", "664h", "166h",
+        // Ranks 41-50 (from screenshot)
+        "20h", "5h", "324g", "81g", "20g", "10g", "1g", "79f", "1f", "590c",
+        // Ranks 51-60 (from screenshot)
+        "2c", "4b", "549B", "274B", "34B", "34B", "4B", "2B", "1B", "536M",
+        // Ranks 61-70 (from screenshot)
+        "536M", "268M", "67M", "33M", "33M", "16M", "16M", "8M", "8M", "8M",
+        // Ranks 71-80 (from screenshot)
+        "4M", "4M", "4M", "4M", "4M", "2M", "2M", "2M", "2M", "2M",
+        // Ranks 81-92 (from screenshot)
+        "2M", "2M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M",
+        "1M", "1M",
+        // Ranks 93-150 (filling in with decreasing milestones)
+        "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K",
+        "524K", "524K", "524K", "524K", "524K", "262K", "262K", "262K", "262K", "262K",
+        "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K",
+        "262K", "262K", "262K", "262K", "262K", "131K", "131K", "131K", "131K", "131K",
+        "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K",
+        "131K", "131K", "131K", "65K", "65K", "65K", "65K", "65K"
+    ]
+
+    // Extended South Africa milestone brackets for rank calculation (ranks 151+)
+    // Based on screenshot data
+    static let southAfricaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        ("65K", 146), ("32K", 169), ("16K", 201), ("8192", 239), ("4096", 285),
+        ("2048", 355), ("1024", 434), ("512", 548), ("256", 667), ("128", 767),
+        ("64", 899), ("32", 1067), ("16", 1234), ("8", 1470), ("4", 1798),
+        ("2", 2142), ("0", 2567)  // Score 0 = ranks 2567-2974
+    ]
+
+    // Generate South Africa entries with milestone progression and user insertion
+    private static func southAfricaEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, southAfricaPlayerMilestones.count) {
+            let baseMilestone = southAfricaPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.southAfricaNames, countrySeed: 195000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 195000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 195000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "za_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalSouthAfricaPlayers = 2_974
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 195000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "ZA",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            var southAfricaRank = 151
+            for bracket in southAfricaExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    southAfricaRank = bracket.startRank
+                    break
+                }
+            }
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: southAfricaRank,
+                userMilestone: userMilestone,
+                countryCode: "ZA",
+                countrySeed: 195000,
+                names: MockLeaderboardData.southAfricaNames,
+                day: day,
+                totalPlayers: totalSouthAfricaPlayers,
+                extendedBrackets: southAfricaExtendedRankBrackets
             )
             entries.append(contentsOf: extendedEntries)
         }

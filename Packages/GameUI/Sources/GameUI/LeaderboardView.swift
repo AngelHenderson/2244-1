@@ -800,6 +800,8 @@ public struct LeaderboardView: View {
             return Color.blue  // Andorra - blue from the flag
         case .countryID:
             return Color.red  // Indonesia - red from the flag
+        case .countryZA:
+            return Color.green  // South Africa - green from the flag
         }
     }
 
