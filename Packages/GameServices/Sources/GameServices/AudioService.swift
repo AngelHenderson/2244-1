@@ -66,14 +66,39 @@ final class AudioSettingsStorage: ObservableObject {
     @AppStorage("currentMusicTheme") var currentMusicTheme: String = "piano"
 }
 
+/// Delegate to handle audio player interruptions and completion
+private final class AudioPlayerDelegate: NSObject, AVAudioPlayerDelegate, Sendable {
+    private let onInterruption: @Sendable () -> Void
+    private let onFinished: @Sendable () -> Void
+    
+    init(onInterruption: @escaping @Sendable () -> Void, onFinished: @escaping @Sendable () -> Void) {
+        self.onInterruption = onInterruption
+        self.onFinished = onFinished
+        super.init()
+    }
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        onFinished()
+    }
+    
+    func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+        print("❌ Audio decode error: \(error?.localizedDescription ?? "unknown")")
+        onInterruption()
+    }
+}
+
 public actor LiveAudioService: AudioServiceProtocol {
     private var musicPlayer: AVAudioPlayer?
+    private var musicPlayerDelegate: AudioPlayerDelegate?
     private var sfxPlayers: [AVAudioPlayer] = []
     private var instrumentTapIndex: Int = 0
     private let storage = AudioSettingsStorage()
     private let maxConcurrentSfx = 8  // Limit concurrent sound effects
     private var lastHammerPlayTime: Date?  // Debounce hammer sound
     private var lastElectricPlayTime: Date?  // Debounce electric sound
+    private var currentMusicFileName: String?  // Track current music for restart
+    private var currentMusicLoop: Bool = true  // Track loop setting for restart
+    private var lastSessionCheck: Date = Date()
 
     /// Maps theme IDs to their audio configuration
     /// Note: Files are at bundle root level (synchronized groups flatten directory structure)
@@ -101,22 +126,22 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     public init() {
+        // Configure audio session synchronously first (before any async work)
+        #if os(iOS)
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true, options: [])
+            print("🎵 Audio session configured successfully in init")
+        } catch {
+            print("❌ Failed to configure audio session in init: \(error)")
+        }
+        #endif
+        
         Task { @MainActor in
             print("🎵 Initialized LiveAudioService with theme: '\(storage.currentMusicTheme)'")
-
-            // Configure audio session (iOS only)
-            #if os(iOS)
-            do {
-                let session = AVAudioSession.sharedInstance()
-                // Use .playback with mixWithOthers to play sounds alongside other apps (YouTube, etc.)
-                try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-                try session.setActive(true, options: [])
-                print("🎵 Audio session configured successfully")
-            } catch {
-                print("❌ Failed to configure audio session: \(error)")
-            }
-            #endif
         }
+        
     }
     
     public func setMusicEnabled(_ enabled: Bool) async {
@@ -142,6 +167,10 @@ public actor LiveAudioService: AudioServiceProtocol {
         guard enabled else { return }
 
         await stopMusic()
+        
+        // Track current music for restart after interruption
+        currentMusicFileName = fileName
+        currentMusicLoop = loop
 
         // Look for audio file at bundle root (synchronized groups flatten directory structure)
         let url = Bundle.main.url(forResource: fileName, withExtension: "mp3") ??
@@ -153,20 +182,65 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
+            // Ensure audio session is active before playing
+            ensureAudioSessionActive()
+            
             print("🎵 Playing music: \(fileName) from \(audioUrl)")
-            musicPlayer = try AVAudioPlayer(contentsOf: audioUrl)
-            musicPlayer?.numberOfLoops = loop ? -1 : 0
-            musicPlayer?.volume = 0.6
-            musicPlayer?.play()
+            let player = try AVAudioPlayer(contentsOf: audioUrl)
+            player.numberOfLoops = loop ? -1 : 0
+            player.volume = 0.6
+            player.prepareToPlay()
+            
+            // Set up delegate to handle interruptions
+            let delegate = AudioPlayerDelegate(
+                onInterruption: { [weak self] in
+                    guard let self = self else { return }
+                    Task {
+                        await self.handleMusicInterruption()
+                    }
+                },
+                onFinished: { [weak self] in
+                    guard let self = self else { return }
+                    Task {
+                        await self.handleMusicFinished()
+                    }
+                }
+            )
+            musicPlayerDelegate = delegate
+            player.delegate = delegate
+            
+            musicPlayer = player
+            
+            if !player.play() {
+                print("⚠️ Music play() returned false, retrying after session reactivation")
+                ensureAudioSessionActive()
+                player.play()
+            }
             print("✅ Music started playing: \(fileName)")
         } catch {
             print("❌ Failed to play music: \(error)")
         }
     }
     
+    private func handleMusicInterruption() async {
+        print("🎵 Music player reported interruption")
+        // The interruption notification handler will take care of resuming
+    }
+    
+    private func handleMusicFinished() async {
+        print("🎵 Music finished playing")
+        // If looping was enabled but music stopped, it might be an error - try to restart
+        if currentMusicLoop, let fileName = currentMusicFileName {
+            print("🎵 Looping music stopped unexpectedly, restarting...")
+            await playMusic(named: fileName, loop: true)
+        }
+    }
+    
     public func stopMusic() async {
         musicPlayer?.stop()
         musicPlayer = nil
+        musicPlayerDelegate = nil
+        currentMusicFileName = nil
     }
     
     public func playSfx(name: String) async {
@@ -178,6 +252,9 @@ public actor LiveAudioService: AudioServiceProtocol {
             print("🔇 SFX disabled, not playing: \(name)")
             return 
         }
+        
+        // Periodic health check - ensure audio session is still active
+        periodicAudioSessionCheck()
         
         print("🔊 Playing SFX: \(name), current theme: '\(currentTheme)'")
 
@@ -610,13 +687,49 @@ public actor LiveAudioService: AudioServiceProtocol {
                 sfxPlayers.removeFirst()
             }
         }
+        
     }
 
-    /// Reactivate audio session after interruption (call sparingly, not on every sound)
+    /// Lightweight periodic check - runs every few seconds during active gameplay
+    private func periodicAudioSessionCheck() {
+        let now = Date()
+        // Only check every 3 seconds to avoid overhead
+        guard now.timeIntervalSince(lastSessionCheck) > 3.0 else { return }
+        lastSessionCheck = now
+        
+        #if os(iOS)
+        let session = AVAudioSession.sharedInstance()
+        
+        // Check if session category was changed (another app took over)
+        if session.category != .playback {
+            print("⚠️ Audio session category changed, restoring...")
+            ensureAudioSessionActive()
+        }
+        
+        // Check if music should be playing but stopped
+        if let player = musicPlayer, !player.isPlaying, currentMusicFileName != nil {
+            print("⚠️ Music stopped unexpectedly, recovering...")
+            ensureAudioSessionActive()
+            player.prepareToPlay()
+            if !player.play() {
+                // Full restart needed
+                Task {
+                    if let fileName = self.currentMusicFileName {
+                        await self.playMusic(named: fileName, loop: self.currentMusicLoop)
+                    }
+                }
+            }
+        }
+        #endif
+    }
+    
+    /// Reactivate audio session after interruption
     private func ensureAudioSessionActive() {
         #if os(iOS)
+        let session = AVAudioSession.sharedInstance()
+        
         do {
-            let session = AVAudioSession.sharedInstance()
+            // Always re-set the category to ensure proper configuration
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true, options: [])
         } catch {
