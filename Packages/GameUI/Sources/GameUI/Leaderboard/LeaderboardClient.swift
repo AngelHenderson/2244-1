@@ -1582,6 +1582,7 @@ public enum MockLeaderboardData {
     static func milestoneForExtendedRank(rank: Int, countryCode: String) -> String? {
         let day = daysSinceReference
         let (_, extendedBrackets, _) = countryData(for: countryCode, day: day)
+        let countrySeed = countryPlayerSeeds[countryCode] ?? 0
 
         guard rank > 150 else {
             return nil
@@ -1589,16 +1590,19 @@ public enum MockLeaderboardData {
 
         // Find the bracket that contains this rank
         // Brackets are sorted by startRank ascending
-        var result: String? = nil
+        var baseMilestone: String? = nil
         for bracket in extendedBrackets {
             if bracket.startRank <= rank {
-                result = bracket.milestone
+                baseMilestone = bracket.milestone
             } else {
                 break
             }
         }
 
-        return result
+        // Apply daily progression so extended bracket players don't stay stuck
+        guard let base = baseMilestone else { return nil }
+        let playerIndex = rank + countrySeed
+        return milestoneWithProgression(baseMilestone: base, playerIndex: playerIndex, day: day)
     }
 
     /// Returns country-specific milestone data
