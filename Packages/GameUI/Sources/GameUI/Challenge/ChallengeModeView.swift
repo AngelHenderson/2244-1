@@ -9,10 +9,14 @@ public struct ChallengeModeView: View {
     @State private var currentTime = Date()  // For countdown timer updates
     @State private var selectedChallenge: Challenge? = nil
     @State private var showIconLegend = false
+    @State private var showLockedAlert = false
+    @State private var lockedTileLabel = ""
 
+    public var playerHighestTileStep: Int
     public var onPlay: ((Challenge) -> Void)?
 
-    public init(onPlay: ((Challenge) -> Void)? = nil) {
+    public init(playerHighestTileStep: Int = 0, onPlay: ((Challenge) -> Void)? = nil) {
+        self.playerHighestTileStep = playerHighestTileStep
         self.onPlay = onPlay
     }
 
@@ -67,6 +71,11 @@ public struct ChallengeModeView: View {
             .sheet(isPresented: $showIconLegend) {
                 IconLegendSheet()
             }
+            .alert("Locked", isPresented: $showLockedAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Sorry! You do not have a high enough tile to unlock this. You need a \(lockedTileLabel) tile.")
+            }
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { time in
                 currentTime = time
             }
@@ -85,7 +94,15 @@ public struct ChallengeModeView: View {
                 status: status,
                 currentTime: currentTime,
                 isSelected: isSelected,
-                onTap: status.isPlayable ? { selectedChallenge = challenge } : nil
+                onTap: status.isPlayable ? { selectedChallenge = challenge } : {
+                    // Show locked alert with required tile name
+                    if let targetStep = challenge.targetTile {
+                        lockedTileLabel = TileStepLabelFormatter.labelForStep(targetStep, start: 2)
+                    } else {
+                        lockedTileLabel = "higher"
+                    }
+                    showLockedAlert = true
+                }
             )
             .frame(width: cardWidth)
             .position(x: geo.size.width / 2, y: geo.size.height / 2)
@@ -398,7 +415,7 @@ private struct ChallengeCard: View {
         .onTapGesture {
             onTap?()
         }
-        .opacity(onTap != nil ? 1.0 : (isLocked ? 0.7 : 1.0))
+        .opacity(isLocked ? 0.7 : 1.0)
     }
 
     @ViewBuilder

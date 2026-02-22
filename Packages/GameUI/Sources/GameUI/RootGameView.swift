@@ -115,7 +115,7 @@ public struct RootGameView: View {
                             .environment(homeState)
                     }
                     .adaptiveSheet(isPresented: $showChallenge) {
-                        ChallengeModeView { challenge in
+                        ChallengeModeView(playerHighestTileStep: gameStore.state.highestTileStep) { challenge in
                             // Convert Challenge to CustomChallengeConfig
                             // targetTile is step-based, so use .tileStep
                             let config = CustomChallengeConfig(
