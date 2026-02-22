@@ -1168,23 +1168,10 @@ public enum MockLeaderboardData {
             // 55% of gamertag names have numbers at the end
             let numberRandom = seededRandom(seed: index * 709 + countrySeed * 151, index: index)
             if numberRandom < 0.55 {
-                // Generate a number suffix (1-9999, weighted toward smaller numbers)
+                // Generate a 6-digit number suffix (100000-999999), zero-padded
                 let numberSeed = seededRandom(seed: index * 823 + countrySeed * 179, index: index)
-                let number: Int
-                if numberSeed < 0.40 {
-                    // 40% chance: single digit (1-9)
-                    number = 1 + Int(seededRandom(seed: index * 937 + countrySeed * 193, index: index) * 9)
-                } else if numberSeed < 0.70 {
-                    // 30% chance: two digits (10-99)
-                    number = 10 + Int(seededRandom(seed: index * 937 + countrySeed * 193, index: index) * 90)
-                } else if numberSeed < 0.90 {
-                    // 20% chance: three digits (100-999)
-                    number = 100 + Int(seededRandom(seed: index * 937 + countrySeed * 193, index: index) * 900)
-                } else {
-                    // 10% chance: four digits (1000-9999)
-                    number = 1000 + Int(seededRandom(seed: index * 937 + countrySeed * 193, index: index) * 9000)
-                }
-                return baseName + "\(number)"
+                let number = 100000 + Int(numberSeed * 900000)
+                return baseName + String(format: "%06d", number)
             }
             return baseName
         }
