@@ -1155,7 +1155,7 @@ public enum MockLeaderboardData {
             // Return just the first name - last names are added by resolveRealisticNameDuplicates
             return realNames[realNameIndex]
         } else {
-            let baseName: String
+            var baseName: String
             if hasChanged {
                 // Name has changed - use a different gamertag
                 let newIndex = (index + day * 3) % names.count
@@ -1163,6 +1163,11 @@ public enum MockLeaderboardData {
             } else {
                 // Base gamertag name
                 baseName = names[index % names.count]
+            }
+            
+            // Strip any existing trailing digits from the base name
+            while let last = baseName.last, last.isNumber {
+                baseName.removeLast()
             }
             
             // 55% of gamertag names have numbers at the end
@@ -5133,10 +5138,8 @@ public extension LeaderboardClient {
 
     // Helper function to get player name with daily variation
     private static func nameForPlayer(index: Int, names: [String], countrySeed: Int, day: Int) -> String {
-        // Use seeded random to occasionally swap names for variety
-        let seed = index + countrySeed + day
-        let randomOffset = Int(MockLeaderboardData.seededRandom(seed: seed, index: 0) * 3)
-        return names[(index + randomOffset) % names.count]
+        // Delegate to MockLeaderboardData.nameForPlayer for consistent 6-digit number handling
+        return MockLeaderboardData.nameForPlayer(index: index, names: names, countrySeed: countrySeed, day: day)
     }
 
     // Helper function to get player avatar with daily variation
