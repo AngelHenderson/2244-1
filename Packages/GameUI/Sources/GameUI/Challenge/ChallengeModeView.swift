@@ -71,7 +71,7 @@ public struct ChallengeModeView: View {
             .sheet(isPresented: $showIconLegend) {
                 IconLegendSheet()
             }
-            .alert("Locked", isPresented: $showLockedAlert) {
+            .alert("Tile Too Low", isPresented: $showLockedAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("Sorry! You do not have a high enough tile to unlock this. You need a \(lockedTileLabel) tile.")
