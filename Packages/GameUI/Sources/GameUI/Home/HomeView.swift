@@ -54,6 +54,7 @@ public struct HomeView: View {
             // Background layer: Tile scroller. We pass measured header/footer insets so
             // the current tile appears visually centered upon first appear.
             JourneyPanel(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
+                .allowsHitTesting(false)
             
             // Foreground layer: Main UI
             VStack(spacing: 0) {
