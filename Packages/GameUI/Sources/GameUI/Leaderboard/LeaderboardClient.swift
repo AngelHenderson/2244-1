@@ -6,7 +6,7 @@ public enum UserLeaderboardData {
     /// The user's current highest milestone (e.g., "16M", "33M", "1B")
     /// Reads from UserDefaults "leaderboard.milestone" (set by GameStore)
     public static var currentMilestone: String {
-        UserDefaults.standard.string(forKey: "leaderboard.milestone") ?? "16M"
+        UserDefaults.standard.string(forKey: "leaderboard.milestone") ?? "2"
     }
 
     /// Calculate global rank for a specific milestone (for immediate updates)
