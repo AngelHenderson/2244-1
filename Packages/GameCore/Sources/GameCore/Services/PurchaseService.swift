@@ -81,8 +81,8 @@ public final class PurchaseService {
     public func purchase(productID: String) async -> Bool {
         #if os(iOS)
         if isSimulator {
-            // Allow simulators to simulate success for development flows
-            return true
+            // Simulators cannot process real purchases
+            return false
         }
         
         if let product = product(withID: productID) {
@@ -97,7 +97,7 @@ public final class PurchaseService {
         errorMessage = "Product unavailable"
         return false
         #else
-        return true
+        return false
         #endif
     }
     
