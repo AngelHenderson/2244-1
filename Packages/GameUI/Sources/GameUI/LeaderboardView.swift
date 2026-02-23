@@ -802,6 +802,10 @@ public struct LeaderboardView: View {
             return Color.red  // Indonesia - red from the flag
         case .countryZA:
             return Color.green  // South Africa - green from the flag
+        case .countryKE:
+            return Color.black  // Kenya - black from the flag
+        case .countryFJ:
+            return Color(red: 0.41, green: 0.69, blue: 0.83)  // Fiji - light blue from the flag
         }
     }
 

@@ -9263,6 +9263,7 @@ public extension LeaderboardClient {
         }
 
         return entries
+    }
 
     // Kenya player milestones (15,111 total players)
     // Top 150 from screenshots
@@ -9399,6 +9400,7 @@ public extension LeaderboardClient {
         }
 
         return entries
+    }
 
     // Fiji player milestones (1,214 total players)
     // Top 150 from screenshots
