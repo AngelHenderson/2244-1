@@ -296,7 +296,8 @@ public enum MockLeaderboardData {
             (LeaderboardClient.philippinesPlayerMilestones, philippinesNames, 180000, "PH"),
             (LeaderboardClient.andorraPlayerMilestones, MockLeaderboardData.andorraNames, 185000, "AD"),
             (LeaderboardClient.indonesiaPlayerMilestones, MockLeaderboardData.indonesiaNames, 190000, "ID"),
-            (LeaderboardClient.southAfricaPlayerMilestones, MockLeaderboardData.southAfricaNames, 195000, "ZA")
+            (LeaderboardClient.southAfricaPlayerMilestones, MockLeaderboardData.southAfricaNames, 195000, "ZA"),
+            (LeaderboardClient.kenyaPlayerMilestones, MockLeaderboardData.kenyaNames, 200000, "KE")
         ]
 
         for config in countryConfigs {
@@ -1348,17 +1349,8 @@ public enum MockLeaderboardData {
             let avatar = avatarForPlayer(index: playerIndex, countrySeed: countrySeed, day: day)
             let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
 
-            // Find milestone for this rank from extended brackets
-            var baseMilestone = userMilestone
-            for bracket in extendedBrackets {
-                if rank >= bracket.startRank {
-                    baseMilestone = bracket.milestone
-                    break
-                }
-            }
-
-            // Apply progression (players below 16K milestone progress faster: 1.5-4/day)
-            let milestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: playerIndex, day: day)
+            // Use milestoneForExtendedRank for slow, capped progression
+            let milestone = milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
 
             let score = scoreForMilestone(milestone)
 
@@ -1399,17 +1391,8 @@ public enum MockLeaderboardData {
             let avatar = avatarForPlayer(index: playerIndex, countrySeed: countrySeed, day: day)
             let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
 
-            // Find milestone for this rank from extended brackets
-            var baseMilestone = userMilestone
-            for bracket in extendedBrackets {
-                if rank >= bracket.startRank {
-                    baseMilestone = bracket.milestone
-                    break
-                }
-            }
-
-            // Apply progression (players below 16K milestone progress faster: 1.5-4/day)
-            let milestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: playerIndex, day: day)
+            // Use milestoneForExtendedRank for slow, capped progression
+            let milestone = milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
 
             let score = scoreForMilestone(milestone)
 
@@ -1532,7 +1515,8 @@ public enum MockLeaderboardData {
         "IT": 75000, "ES": 80000, "NL": 85000, "CH": 90000, "NO": 95000,
         "DK": 100000, "FI": 105000, "PL": 110000, "BE": 115000, "SE": 120000,
         "AT": 125000, "IE": 130000, "PT": 135000, "GR": 140000, "CZ": 145000,
-        "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000, "AE": 175000, "PH": 180000, "AD": 185000, "ID": 190000
+        "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000, "AE": 175000, "PH": 180000, "AD": 185000, "ID": 190000,
+        "ZA": 195000, "KE": 200000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -1588,21 +1572,44 @@ public enum MockLeaderboardData {
             return nil
         }
 
-        // Find the bracket that contains this rank
-        // Brackets are sorted by startRank ascending
+        // Find the bracket that contains this rank and the next higher bracket
         var baseMilestone: String? = nil
-        for bracket in extendedBrackets {
+        var nextHigherBracketMilestone: String? = nil
+        for (i, bracket) in extendedBrackets.enumerated() {
             if bracket.startRank <= rank {
                 baseMilestone = bracket.milestone
+                // The bracket before this one (lower startRank = higher milestone tier)
+                if i > 0 {
+                    nextHigherBracketMilestone = extendedBrackets[i - 1].milestone
+                }
             } else {
                 break
             }
         }
 
-        // Apply daily progression so extended bracket players don't stay stuck
-        guard let base = baseMilestone else { return nil }
+        guard let base = baseMilestone,
+              let baseIndex = allMilestones.firstIndex(of: base) else {
+            return baseMilestone
+        }
+
+        // Slow progression for extended bracket players: 0.05-0.15 milestones/day
+        // This means ~2-5 tiers gained over a month, keeping ranks realistic
         let playerIndex = rank + countrySeed
-        return milestoneWithProgression(baseMilestone: base, playerIndex: playerIndex, day: day)
+        let randomFactor = seededRandom(seed: playerIndex * 888, index: playerIndex)
+        let dailyRate = 0.05 + randomFactor * 0.10
+        let tiersGained = Int(dailyRate * Double(day))
+        var newIndex = baseIndex + tiersGained
+
+        // Cap: don't exceed the next higher bracket's milestone
+        if let capMilestone = nextHigherBracketMilestone,
+           let capIndex = allMilestones.firstIndex(of: capMilestone) {
+            newIndex = min(newIndex, capIndex)
+        }
+
+        // Also cap at the max milestone index
+        newIndex = min(newIndex, allMilestones.count - 1)
+
+        return allMilestones[newIndex]
     }
 
     /// Returns country-specific milestone data
@@ -1686,6 +1693,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.andorraPlayerMilestones, LeaderboardClient.andorraExtendedRankBrackets, 1_977)
         case "ID":
             return (LeaderboardClient.indonesiaPlayerMilestones, LeaderboardClient.indonesiaExtendedRankBrackets, 98_982)
+        case "KE":
+            return (LeaderboardClient.kenyaPlayerMilestones, LeaderboardClient.kenyaExtendedRankBrackets, 15_111)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1734,7 +1743,8 @@ public enum MockLeaderboardData {
             ("AE", 19_889),
             ("PH", 43_210),
             ("AD", 1_977),
-            ("ID", 98_982)
+            ("ID", 98_982),
+            ("KE", 15_111)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -1744,7 +1754,7 @@ public enum MockLeaderboardData {
         // Additional popular countries (no leaderboard data yet)
         let additionalCountries = [
             "ID", "VN", "SA", "IL", "TR",
-            "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
+            "ZA", "NG", "EG", "AR", "CL", "CO", "PE", "VE"
         ]
 
         return countriesWithLeaderboards + additionalCountries
@@ -2898,6 +2908,44 @@ public enum MockLeaderboardData {
         "VuyaniVictor", "WilliamWolf", "XabisaXtreme", "YokoYakuza", "ZamaniZenith"
     ]
 
+    static let kenyaNames = [
+        // 1-30: Major cities and towns
+        "NairobiNinja", "MombasaMaster", "KisumuKing", "NakuruNova", "ElDoretElite",
+        "ThikaTitan", "MalindiMaverick", "KitaleProwler", "GarissaGladiator", "NyeriNinja",
+        "MeruMaster", "LamuLegend", "NaivashaNinja", "KerichoKnight", "NanyukiNova",
+        "EmbuElite", "IsioloImpact", "VoiVictor", "WajirWarrior", "ManderaMarvel",
+        "MachakosMonarch", "KajiardoKrusher", "NavishaNavigator", "RuiruRaider", "JujaJuggernaut",
+        "AthrRiverAce", "SyokimauStar", "KongowaKnight", "MtwapaMaverick", "DianiBoss",
+        // 31-60: Landmarks and geography
+        "MountKenyaMaster", "RiftValleyRaider", "MaasaiMaraMenace", "AmboseliBoss", "TsavoTornado",
+        "LakeNakuruLegend", "LakeVictoriaViking", "NairobiParkNinja", "HellsGateHero", "GreatRiftGod",
+        "KilimanjaroKing", "MauForestFury", "AberdareBeast", "TurkanaTracker", "SamburuStar",
+        "NgoroNgoroPro", "OlPejetaOutlaw", "MeruParkMaster", "ShimbaHillsHero", "WatamuWolf",
+        "MalindiMarineMaster", "KisiteStar", "TanaRiverTitan", "GalanaGamer", "MtElgonElite",
+        "ChalbiDesertChamp", "MarsabitMaster", "LoiyangalaniLegend", "CentralIslandCrusader", "SouthIslandStar",
+        // 61-90: Wildlife and culture
+        "SimbaStrike", "CheetahChaser", "ElephantElite", "RhinoRaider", "BuffaloBoss",
+        "LeopardLegend", "GiraffaGamer", "ZebraZenith", "HippoBrawler", "CrocodileCrusher",
+        "MaasaiWarrior", "KikuyuKing", "LuoLegend", "KalenjinKnight", "KambaMaster",
+        "SwahiliStar", "MauMauMenace", "SafariSurge", "HakunaMatata", "JamboJuggernaut",
+        "PolepoleProdigy", "AsanteAce", "HarambeeHero", "UhuruUltimate", "TuskerTitan",
+        "NyamaNinja", "ChapatiChamp", "UgaliUltimate", "MandaziMaster", "SukumaWikiStar",
+        // 91-120: Kenyan names
+        "WanjiruWarrior", "KipchogeLegend", "OmondiOmega", "KamauKrusher", "NjorgeNinja",
+        "AkinyiBoss", "CheruiyotChamp", "WaweruWolf", "MuthuriMaverick", "NyamburiNova",
+        "OtienoOutlaw", "WekesaBeast", "KibakiKnight", "KiplagratKing", "TanuiTornado",
+        "ChebetChaser", "RotichRaider", "KosgeiGladiator", "JepkosgeiJumper", "SumgongStar",
+        "WanjikuWunder", "MwangiMaster", "KimaniKnight", "GathuniaGamer", "NyokobiBoss",
+        "MbugaaMaverick", "MuthoniMonarch", "KaranjaKrusher", "NjuganaNinja", "WaithakiWarrior",
+        // 121-150: More cultural references
+        "BombololuBoss", "KariobangiKing", "KiberaKnight", "MathareMarvel", "UmojaUltimate",
+        "EasternExplosion", "KamukunjiKrusher", "WestlandsWolf", "KarenKnight", "LangataMaster",
+        "KilimaniKing", "LavingtonLegend", "SpringValleyStar", "ParklandsProdigy", "MuthaigaMaster",
+        "AthiRiverAce", "MlolongoMaverick", "KitengalaKnight", "NguniNinja", "MaaiMahiuMaster",
+        "NarokNinja", "BogariaBlaster", "BaringoBoss", "NaivashaNova", "GilgilGladiator",
+        "ThomsonFallsTitan", "NyahururuNinja", "RumurutiRaider", "MaralalMaster", "LodwarLegend"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "ZA", "US", "CN", "RU", "NG", "EG", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -3143,6 +3191,8 @@ public extension LeaderboardClient {
                 entries = indonesiaEntries()
             case .countryZA:
                 entries = southAfricaEntries()
+            case .countryKE:
+                entries = kenyaEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -3232,6 +3282,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
             case .countryZA:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
+            case .countryKE:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 15_111, on: day, countrySeed: 139)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -3274,7 +3326,8 @@ public extension LeaderboardClient {
                 let adPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_977, on: day, countrySeed: 136)
                 let idPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
                 let zaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers
+                let kePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 15_111, on: day, countrySeed: 139)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -9163,8 +9216,145 @@ public extension LeaderboardClient {
         }
 
         return entries
+
+    // Kenya player milestones (15,111 total players)
+    // Top 150 from screenshots
+    static let kenyaPlayerMilestones: [String] = [
+        // Ranks 1-10 (from screenshot)
+        "109bz", "1bz", "3bw", "689bp", "2bj", "16bf", "471az", "399as", "381aq", "726ao",
+        // Ranks 11-20 (from screenshot)
+        "693am", "88an", "1al", "2aj", "315ai", "2ai", "1ah", "18ag", "587af", "36af",
+        // Ranks 21-30 (from screenshot)
+        "1af", "143ae", "2ae", "4ad", "8ac", "266ab", "16ab", "2ab", "254z", "63z",
+        // Ranks 31-40 (from screenshot)
+        "31z", "7z", "1z", "3x", "27t", "1t", "3s", "52r", "13r", "3r",
+        // Ranks 41-50 (from screenshot)
+        "1r", "205q", "51q", "3q", "1q", "3p", "1p", "392o", "98o", "49o",
+        // Ranks 51-60 (from screenshot)
+        "12o", "1o", "383n", "191n", "23n", "23n", "11n", "5n", "2n", "1n",
+        // Ranks 61-70 (from screenshot)
+        "748m", "748m", "187m", "89k", "44k", "11k", "5k", "680i", "2i", "5g",
+        // Ranks 71-80 (from screenshot)
+        "2f", "9e", "4e", "1e", "302d", "18d", "2d", "1d", "1d", "1d",
+        // Ranks 81-90 (from screenshot)
+        "590c", "590c", "590c", "295c", "147c", "147c", "36c", "9c", "2c", "1c",
+        // Ranks 91-100 (from screenshot)
+        "576b", "288b", "144b", "72b", "36b", "36b", "9b", "9b", "4b", "4b",
+        // Ranks 101-110 (from screenshot)
+        "2b", "2b", "1b", "562a", "281a", "70a", "17a", "4a", "1a", "274B",
+        // Ranks 111-120 (from screenshot)
+        "137B", "68B", "34B", "34B", "17B", "17B", "8B", "4B", "4B", "2B",
+        // Ranks 121-128 (from screenshot)
+        "2B", "1B", "1B", "1B", "536M", "536M", "536M", "268M",
+        // Ranks 129-132 (134M bracket)
+        "134M", "134M", "134M", "134M",
+        // Ranks 133-135 (67M bracket)
+        "67M", "67M", "67M",
+        // Ranks 136-140 (33M bracket)
+        "33M", "33M", "33M", "33M", "33M",
+        // Ranks 141-144 (16M bracket)
+        "16M", "16M", "16M", "16M",
+        // Ranks 145-148 (8M bracket)
+        "8M", "8M", "8M", "8M",
+        // Ranks 149-150 (4M bracket)
+        "4M", "4M"
+    ]
+
+    // Extended Kenya milestone brackets for rank calculation (ranks 151+)
+    // Based on screenshot data showing bracket boundaries
+    static let kenyaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        ("4M", 151), ("2M", 154), ("1M", 159), ("524K", 164), ("262K", 171),
+        ("131K", 180), ("65K", 193), ("32K", 206), ("16K", 229),
+        ("8192", 255), ("4096", 284), ("2048", 433), ("1024", 676), ("512", 1000),
+        ("256", 1596), ("128", 2222), ("64", 3029), ("32", 3987), ("16", 5222),
+        ("8", 6666), ("4", 8444), ("2", 10837), ("0", 12888)  // Score 0 = ranks 12888-15111
+    ]
+
+    // Generate Kenya entries with milestone progression and user insertion
+    private static func kenyaEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, kenyaPlayerMilestones.count) {
+            let baseMilestone = kenyaPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.kenyaNames, countrySeed: 200000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 200000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 200000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "ke_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalKenyaPlayers = 15_111
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 200000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "KE",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            var kenyaRank = 151
+            for bracket in kenyaExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    kenyaRank = bracket.startRank
+                    break
+                }
+            }
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: kenyaRank,
+                userMilestone: userMilestone,
+                countryCode: "KE",
+                countrySeed: 200000,
+                names: MockLeaderboardData.kenyaNames,
+                day: day,
+                totalPlayers: totalKenyaPlayers,
+                extendedBrackets: kenyaExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
     }
 }
+
 
 private struct LeaderboardClientKey: EnvironmentKey {
     static let defaultValue: LeaderboardClient = .noop
