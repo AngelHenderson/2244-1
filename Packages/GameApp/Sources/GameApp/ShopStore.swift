@@ -238,7 +238,7 @@ public final class ShopStore {
                 GemBundle(id: "gems_5000", gems: 5000, price: 2.99, tags: nil),
                 GemBundle(id: "gems_15000", gems: 15000, price: 4.99, tags: nil),
                 GemBundle(id: "gems_25000", gems: 25000, price: 7.49, tags: nil),
-                GemBundle(id: "gems_40000", gems: 40000, price: 9.99, tags: nil),
+                GemBundle(id: "gems_50000", gems: 50000, price: 9.99, tags: nil),
                 GemBundle(id: "gems_100000", gems: 100000, price: 19.99, tags: nil),
                 GemBundle(id: "gems_250000", gems: 250000, price: 49.99, tags: ["Popular"]),
                 GemBundle(id: "gems_500000", gems: 500000, price: 99.99, tags: ["Whale"])

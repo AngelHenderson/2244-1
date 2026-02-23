@@ -297,7 +297,8 @@ public enum MockLeaderboardData {
             (LeaderboardClient.andorraPlayerMilestones, MockLeaderboardData.andorraNames, 185000, "AD"),
             (LeaderboardClient.indonesiaPlayerMilestones, MockLeaderboardData.indonesiaNames, 190000, "ID"),
             (LeaderboardClient.southAfricaPlayerMilestones, MockLeaderboardData.southAfricaNames, 195000, "ZA"),
-            (LeaderboardClient.kenyaPlayerMilestones, MockLeaderboardData.kenyaNames, 200000, "KE")
+            (LeaderboardClient.kenyaPlayerMilestones, MockLeaderboardData.kenyaNames, 200000, "KE"),
+            (LeaderboardClient.fijiPlayerMilestones, MockLeaderboardData.fijiNames, 205000, "FJ")
         ]
 
         for config in countryConfigs {
@@ -1516,7 +1517,7 @@ public enum MockLeaderboardData {
         "DK": 100000, "FI": 105000, "PL": 110000, "BE": 115000, "SE": 120000,
         "AT": 125000, "IE": 130000, "PT": 135000, "GR": 140000, "CZ": 145000,
         "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000, "AE": 175000, "PH": 180000, "AD": 185000, "ID": 190000,
-        "ZA": 195000, "KE": 200000
+        "ZA": 195000, "KE": 200000, "FJ": 205000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -1695,6 +1696,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.indonesiaPlayerMilestones, LeaderboardClient.indonesiaExtendedRankBrackets, 98_982)
         case "KE":
             return (LeaderboardClient.kenyaPlayerMilestones, LeaderboardClient.kenyaExtendedRankBrackets, 15_111)
+        case "FJ":
+            return (LeaderboardClient.fijiPlayerMilestones, LeaderboardClient.fijiExtendedRankBrackets, 1_214)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1744,7 +1747,8 @@ public enum MockLeaderboardData {
             ("PH", 43_210),
             ("AD", 1_977),
             ("ID", 98_982),
-            ("KE", 15_111)
+            ("KE", 15_111),
+            ("FJ", 1_214)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -2946,6 +2950,44 @@ public enum MockLeaderboardData {
         "ThomsonFallsTitan", "NyahururuNinja", "RumurutiRaider", "MaralalMaster", "LodwarLegend"
     ]
 
+    static let fijiNames = [
+        // 1-30: Cities and towns
+        "SuvaStar", "NadiNinja", "LautokeLegend", "BaMaster", "LabasaBoss",
+        "SavusavuSurge", "SigatokaSlayer", "NausoriNova", "PacificHarbourPro", "NavuaNinja",
+        "RakirakiRaider", "TavuaTitan", "KorovoWarrior", "NasoroMaverick", "DeubaMaster",
+        "VailekaBoss", "NamakaNinja", "MartinarKnight", "WailoaloanWarrior", "SuvaPointPro",
+        "DominionBoss", "KingsRoadKing", "QueensRoadQuake", "NabouaElite", "LamiFury",
+        "CunningStarFiji", "SamoaBayStar", "VunidawaTitan", "KoroleveKnight", "NamosiBoss",
+        // 31-60: Islands and geography
+        "VitiLevuViking", "VanuaLevuVictor", "TaveuniTornado", "KadavuKrusher", "YasawaYakuza",
+        "ManamucaMaster", "BeqaBlaster", "OvalauOutlaw", "RotumaRaider", "GauGladiator",
+        "KoroKnight", "MoalaMaster", "LakenbaLegend", "VanuaBalavuVictor", "NaveeniNavy",
+        "CoralCoastCrusher", "SuncoastStar", "CloudBreakChamp", "NamukaIslander", "TobereDrifter",
+        "WayaWarrior", "NavitiNinja", "DravuniDemon", "ManaMarvel", "TreasureIslandTitan",
+        "BlueLogoonBoss", "SabetoBrawler", "NausalaCaptain", "NausoriFlatsFury", "ColomiBrawler",
+        // 61-90: Culture and nature
+        "BulaBrawler", "KavaKing", "MekeMaster", "LovoLegend", "TapaTracker",
+        "TabuaPower", "KerekereKnight", "SuluStar", "VinakaNinja", "SevensStar",
+        "RugbyRaider", "ScummyCrusher", "DrauniviNinja", "MasiMaster", "YaqonaYield",
+        "TanooaTitan", "WarriorFiji", "IslandBreezeElite", "PalmTreePro", "CoconutCrusher",
+        "ReefRider", "LagoonLegend", "TropicTitan", "SunriseSlayer", "TidalTornado",
+        "MangroveMarvel", "RainforestRuler", "WaterfallWarrior", "VolcanoVictor", "CoralReefKing",
+        // 91-120: Fijian names and rugby players
+        "TuisovaStar", "SeruSerpent", "NakarawaNinja", "VolavolaVictor", "RaukuruRaider",
+        "MatawaquMaster", "BotiaBlaster", "RadradraRocket", "NaiqamaKnight", "VunipopaBoss",
+        "KunataniBrawler", "VoceViking", "GonevaOmega", "TuisamoaStar", "NaivilawaseNinja",
+        "SawaStar", "RatuRuler", "AdiAce", "TuiTornado", "QolikoBoss",
+        "SailasiSlayer", "KiniKnight", "VilimoniVictor", "TevitaTitan", "IsakeImpact",
+        "MesakeMarvel", "EpeliBrawler", "JoelJuggernaut", "WaisaleWarrior", "ManasaMaster",
+        // 121-150: More cultural references
+        "LagiLegend", "DrekiDemon", "NatoaNinja", "MakareKnight", "WainiMaster",
+        "SigatokaStar", "NausoriBoss", "VitiViking", "VanuaVictor", "PacificProwler",
+        "FijianFirewalker", "IslandInfinite", "AlohaAce", "MoanaMarvel", "OceanOrbit",
+        "TidelineTitan", "SeastormStar", "AquariusAce", "PoseidonPro", "NeptuneBoss",
+        "LagoonLord", "BarrierBoss", "CurrentCrusher", "SurfSerpent", "WaveMaster",
+        "PearlProwler", "ShellShock", "TurtleTitan", "DolphinDynamo", "WhaleWarrior"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "ZA", "US", "CN", "RU", "NG", "EG", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -3193,6 +3235,8 @@ public extension LeaderboardClient {
                 entries = southAfricaEntries()
             case .countryKE:
                 entries = kenyaEntries()
+            case .countryFJ:
+                entries = fijiEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -3284,6 +3328,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
             case .countryKE:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 15_111, on: day, countrySeed: 139)
+            case .countryFJ:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_214, on: day, countrySeed: 140)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -3327,7 +3373,8 @@ public extension LeaderboardClient {
                 let idPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
                 let zaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
                 let kePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 15_111, on: day, countrySeed: 139)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers
+                let fjPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_214, on: day, countrySeed: 140)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -9352,8 +9399,138 @@ public extension LeaderboardClient {
         }
 
         return entries
+
+    // Fiji player milestones (1,214 total players)
+    // Top 150 from screenshots
+    static let fijiPlayerMilestones: [String] = [
+        // Ranks 1-10 (from screenshot)
+        "3bu", "1bp", "570bh", "2be", "943az", "1au", "1aq", "1ao", "2am", "645aj",
+        // Ranks 11-20 (from screenshot)
+        "1ai", "587af", "1ad", "7y", "1u", "12q", "1q", "3p", "5n", "2l",
+        // Ranks 21-30 (from screenshot)
+        "1j", "5i", "10h", "10g", "19f", "9e", "4d", "2c", "1b", "4a",
+        // Ranks 31-40 (from screenshot)
+        "137B", "17B", "4B", "2B", "536M", "268M", "67M", "33M", "16M", "16M",
+        // Ranks 41-46 (8M bracket)
+        "8M", "8M", "8M", "8M", "8M", "8M",
+        // Ranks 47-51 (4M bracket)
+        "4M", "4M", "4M", "4M", "4M",
+        // Ranks 52-58 (2M bracket)
+        "2M", "2M", "2M", "2M", "2M", "2M", "2M",
+        // Ranks 59-65 (1M bracket)
+        "1M", "1M", "1M", "1M", "1M", "1M", "1M",
+        // Ranks 66-73 (524K bracket)
+        "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K",
+        // Ranks 74-83 (262K bracket)
+        "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K",
+        // Ranks 84-93 (131K bracket)
+        "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K", "131K",
+        // Ranks 94-103 (65K bracket)
+        "65K", "65K", "65K", "65K", "65K", "65K", "65K", "65K", "65K", "65K",
+        // Ranks 104-114 (32K bracket)
+        "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K", "32K",
+        // Ranks 115-126 (16K bracket)
+        "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K", "16K",
+        // Ranks 127-143 (8192 bracket)
+        "8192", "8192", "8192", "8192", "8192", "8192", "8192", "8192", "8192",
+        "8192", "8192", "8192", "8192", "8192", "8192", "8192", "8192",
+        // Ranks 144-150 (4096 bracket)
+        "4096", "4096", "4096", "4096", "4096", "4096", "4096"
+    ]
+
+    // Extended Fiji milestone brackets for rank calculation (ranks 151+)
+    // Based on screenshot data showing bracket boundaries
+    static let fijiExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        ("4096", 151), ("2048", 161), ("1024", 177), ("512", 196), ("256", 221),
+        ("128", 247), ("64", 280), ("32", 322), ("16", 399), ("8", 487),
+        ("4", 589), ("2", 711), ("0", 844)  // Score 0 = ranks 844-1214
+    ]
+
+    // Generate Fiji entries with milestone progression and user insertion
+    private static func fijiEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, fijiPlayerMilestones.count) {
+            let baseMilestone = fijiPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.fijiNames, countrySeed: 205000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 205000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 205000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "fj_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalFijiPlayers = 1_214
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 205000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "FJ",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            var fijiRank = 151
+            for bracket in fijiExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    fijiRank = bracket.startRank
+                    break
+                }
+            }
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: fijiRank,
+                userMilestone: userMilestone,
+                countryCode: "FJ",
+                countrySeed: 205000,
+                names: MockLeaderboardData.fijiNames,
+                day: day,
+                totalPlayers: totalFijiPlayers,
+                extendedBrackets: fijiExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
     }
 }
+
 
 
 private struct LeaderboardClientKey: EnvironmentKey {
