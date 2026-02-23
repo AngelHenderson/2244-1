@@ -5074,8 +5074,8 @@
     "description": "Claim your Day 210 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "hammers": 1,
       "spins": 1,
+      "hammers": 1,
       "boost4x": 1
     },
     "hidden": false,
