@@ -50,22 +50,14 @@ public struct HomeView: View {
                     .zIndex(0)
             }
 
-            
             // Background layer: Tile scroller. We pass measured header/footer insets so
             // the current tile appears visually centered upon first appear.
             JourneyPanel(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
-                .allowsHitTesting(false)
-            
+
             // Foreground layer: Main UI
             VStack(spacing: 0) {
                 // Top HUD
                 HUDTopBar()
-//                        GeometryReader { geo in
-//                            Color.clear
-//                                .onAppear { headerHeight = geo.size.height }
-//                                .onChange(of: geo.size.height) { _, new in headerHeight = new }
-//                        }
-//                    }
 
                 // Main content with side rails and center progression
                 GeometryReader { geo in
@@ -201,13 +193,6 @@ public struct HomeView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical)
-//                .background(
-//                    GeometryReader { geo in
-//                        Color.clear
-//                            .onAppear { playButtonHeight = geo.size.height }
-//                            .onChange(of: geo.size.height) { _, new in playButtonHeight = new }
-//                    }
-//                )
 
                 // Bottom dock
                 HStack(spacing: 22) {
@@ -244,7 +229,6 @@ public struct HomeView: View {
                 )
             }
             .zIndex(1)
-            .zIndex(2)
         }
         // Leaderboard (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingLeaderboard) {
