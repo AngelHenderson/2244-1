@@ -89,10 +89,8 @@ public struct ChallengeModeView: View {
         let isSelected = selectedChallenge?.id == challenge.id
         Button {
             if status.isPlayable {
-                print("🎯 Challenge tapped: PLAYABLE - selecting challenge \(index + 1)")
                 selectedChallenge = challenge
             } else {
-                print("🔒 Challenge tapped: LOCKED - showing alert for challenge \(index + 1), status: \(status)")
                 if let targetStep = challenge.targetTile {
                     lockedTileLabel = TileStepLabelFormatter.labelForStep(targetStep, start: 2)
                 } else {

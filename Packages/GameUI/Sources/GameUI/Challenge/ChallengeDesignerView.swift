@@ -105,7 +105,7 @@ public struct ChallengeDesignerView: View {
         HStack(spacing: 12) {
             StepperBox(
                 title: "Time",
-                value: "\(store.timeLimitSeconds)s",
+                value: "\(store.timeLimitSeconds)",
                 onDecrease: { store.decTime() },
                 onIncrease: { store.incTime() }
             )
