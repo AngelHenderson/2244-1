@@ -10,7 +10,7 @@ public struct GemBalancePill: View {
 
     public var body: some View {
         HStack(spacing: 6) {
-            Image("gem", bundle: .module)
+            Image("gem")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 20, height: 20)
