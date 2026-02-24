@@ -34,6 +34,8 @@ struct UnlockedNotificationView: View {
     @State private var hasStopped = false  // Shows reward after stopping
     @State private var didClaim = false
     @State private var animationTimer: Timer?
+    @State private var spinStartTime: Date?
+    private let maxSpinDuration: TimeInterval = 10  // Auto-stop after 10 seconds
 
     // Spinner configuration - 7 cells that slide back and forth
     private let multipliers: [Int] = [2, 3, 4, 5, 4, 3, 2]
@@ -301,6 +303,7 @@ struct UnlockedNotificationView: View {
         isSpinning = true
         currentIndex = 0
         direction = 1
+        spinStartTime = Date()
 
         // Timer to move through multipliers
         animationTimer?.invalidate()
@@ -319,6 +322,12 @@ struct UnlockedNotificationView: View {
 
     private func moveToNext() {
         guard isSpinning else { return }
+
+        // Auto-stop after max duration to prevent infinite tick sound
+        if let start = spinStartTime, Date().timeIntervalSince(start) >= maxSpinDuration {
+            stopAndShowReward()
+            return
+        }
 
         // Play tick sound
         Task { await audioService.playSfx(name: "tick") }
