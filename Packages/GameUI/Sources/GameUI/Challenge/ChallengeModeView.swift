@@ -71,14 +71,14 @@ public struct ChallengeModeView: View {
             .sheet(isPresented: $showIconLegend) {
                 IconLegendSheet()
             }
-            .alert("Tile Too Low", isPresented: $showLockedAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Sorry! You do not have a high enough tile to unlock this. You need a \(lockedTileLabel) tile.")
-            }
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { time in
                 currentTime = time
             }
+        }
+        .alert("Tile Too Low", isPresented: $showLockedAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Sorry! You do not have a high enough tile to unlock this. You need a \(lockedTileLabel) tile.")
         }
     }
 
@@ -86,27 +86,34 @@ public struct ChallengeModeView: View {
     private func challengeCardView(for challenge: Challenge, index: Int) -> some View {
         let status = store.status(for: challenge)
         let isSelected = selectedChallenge?.id == challenge.id
-        GeometryReader { geo in
-            let cardWidth = geo.size.width * 0.5
-            ChallengeCard(
-                challenge: challenge,
-                challengeNumber: index + 1,
-                status: status,
-                currentTime: currentTime,
-                isSelected: isSelected,
-                onTap: status.isPlayable ? { selectedChallenge = challenge } : {
-                    // Show locked alert with required tile name
-                    if let targetStep = challenge.targetTile {
-                        lockedTileLabel = TileStepLabelFormatter.labelForStep(targetStep, start: 2)
-                    } else {
-                        lockedTileLabel = "higher"
-                    }
-                    showLockedAlert = true
+        Button {
+            if status.isPlayable {
+                print("🎯 Challenge tapped: PLAYABLE - selecting challenge \(index + 1)")
+                selectedChallenge = challenge
+            } else {
+                print("🔒 Challenge tapped: LOCKED - showing alert for challenge \(index + 1), status: \(status)")
+                if let targetStep = challenge.targetTile {
+                    lockedTileLabel = TileStepLabelFormatter.labelForStep(targetStep, start: 2)
+                } else {
+                    lockedTileLabel = "higher"
                 }
-            )
-            .frame(width: cardWidth)
-            .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                showLockedAlert = true
+            }
+        } label: {
+            GeometryReader { geo in
+                let cardWidth = geo.size.width * 0.5
+                ChallengeCard(
+                    challenge: challenge,
+                    challengeNumber: index + 1,
+                    status: status,
+                    currentTime: currentTime,
+                    isSelected: isSelected
+                )
+                .frame(width: cardWidth)
+                .position(x: geo.size.width / 2, y: geo.size.height / 2)
+            }
         }
+        .buttonStyle(.plain)
         .frame(height: 150)
         .id(challenge.id)
     }
@@ -185,7 +192,6 @@ private struct ChallengeCard: View {
     let status: ChallengeStatus
     let currentTime: Date
     var isSelected: Bool = false
-    var onTap: (() -> Void)? = nil
 
     @State private var showingRewards = false
 
@@ -410,10 +416,6 @@ private struct ChallengeCard: View {
                     .frame(width: 12, height: 12)
             }
             .offset(x: -162)
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            onTap?()
         }
         .opacity(isLocked ? 0.7 : 1.0)
     }
