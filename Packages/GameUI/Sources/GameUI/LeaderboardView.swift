@@ -323,6 +323,7 @@ public struct LeaderboardView: View {
         let startRank = max(1, userRank - 3)
         let endRank = userRank + 3
 
+
         for rank in startRank...endRank {
             let milestone: String
 
@@ -359,6 +360,43 @@ public struct LeaderboardView: View {
                 milestone: milestone,
                 isUserRank: rank == userRank
             ))
+        }
+
+        // Enforce monotonic milestone ordering:
+        // Milestones should decrease (or stay equal) as rank number increases.
+        // Find the user's position in the previews array
+        guard let userPreviewIndex = previews.firstIndex(where: { $0.isUserRank }) else {
+            return previews
+        }
+
+        // Above user (lower ranks = better): milestones must be >= user's milestone
+        // Walk upward from user, ensuring each rank has milestone >= the one below it
+        for i in stride(from: userPreviewIndex - 1, through: 0, by: -1) {
+            let currentIdx = MockLeaderboardData.milestoneIndex(for: previews[i].milestone)
+            let belowIdx = MockLeaderboardData.milestoneIndex(for: previews[i + 1].milestone)
+            if currentIdx < belowIdx {
+                // This milestone is worse than the one below - fix it
+                previews[i] = RankPreview(
+                    rank: previews[i].rank,
+                    milestone: previews[i + 1].milestone,
+                    isUserRank: false
+                )
+            }
+        }
+
+        // Below user (higher ranks = worse): milestones must be <= user's milestone
+        // Walk downward from user, ensuring each rank has milestone <= the one above it
+        for i in (userPreviewIndex + 1)..<previews.count {
+            let currentIdx = MockLeaderboardData.milestoneIndex(for: previews[i].milestone)
+            let aboveIdx = MockLeaderboardData.milestoneIndex(for: previews[i - 1].milestone)
+            if currentIdx > aboveIdx {
+                // This milestone is better than the one above - fix it
+                previews[i] = RankPreview(
+                    rank: previews[i].rank,
+                    milestone: previews[i - 1].milestone,
+                    isUserRank: false
+                )
+            }
         }
 
         return previews
