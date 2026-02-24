@@ -9,13 +9,20 @@ struct SideRailButton: View {
     var locked: Bool = false
     var specialLabel: String? = nil
     var specialLabelInside: Bool = false  // If true, show specialLabel inside the button
+    var onLockedTap: (() -> Void)? = nil
     var action: () -> Void
     
     @Environment(\.currentBackgroundTheme) private var backgroundTheme
 
     var body: some View {
         VStack{
-            Button(action: { if !locked { action() } }) {
+            Button(action: {
+                if locked {
+                    onLockedTap?()
+                } else {
+                    action()
+                }
+            }) {
                 VStack(spacing: 4) {
                     ZStack(alignment: .topTrailing) {
                         ZStack {
@@ -80,7 +87,6 @@ struct SideRailButton: View {
                 }
             }
             .modifier(GlassButtonCompat())
-            .disabled(locked)
             .accessibilityLabel("\(title)\(locked ? ", locked" : "")")
 
             // Display title or specialLabel below the button with consistent styling

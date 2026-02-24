@@ -22,6 +22,7 @@ public struct HomeView: View {
     @State private var isShowingThemePicker: Bool = false
     @State private var isShowingBoosts: Bool = false
     @State private var isShowingWeeklyOffer: Bool = false
+    @State private var showLockedChallengeAlert: Bool = false
     @State private var centeredMilestone: Int? = nil
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
@@ -149,6 +150,9 @@ public struct HomeView: View {
                                 customImage: "challenge",
                                 title: "CHALLENGE",
                                 locked: state.isChallengeLocked,
+                                onLockedTap: {
+                                    showLockedChallengeAlert = true
+                                },
                                 action: { actions.openChallenge() }
                             )
 
@@ -282,6 +286,11 @@ public struct HomeView: View {
         }
         .onChange(of: achievementStore.claimableCount) { _, newCount in
             state.achievementsBadgeCount = newCount
+        }
+        .alert("Tile Too Low", isPresented: $showLockedChallengeAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Sorry! You do not have a high enough tile to unlock this. You need a 1B tile.")
         }
     }
 
