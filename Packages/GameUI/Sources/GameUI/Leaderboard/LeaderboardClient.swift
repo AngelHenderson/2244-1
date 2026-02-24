@@ -2302,24 +2302,51 @@ public enum MockLeaderboardData {
     ]
 
     static let franceNames = [
-        "ParisPro", "MarseilleMaster", "LyonLegend", "ToulouseTitan", "NiceNinja",
-        "NantesNomad", "StrasbourgStar", "MontpellierMaverick", "BordeauxBoss", "LilleLion",
-        "RennesRaider", "ReimsRogue", "LeHavreHawk", "SaintEtienneSlayer", "ToulonTornado",
-        "GrenobleGhost", "DijonDestroyer", "AngersAce", "NimesNinja", "VilleurbannneVictor",
-        "ClermontCrusher", "LeMansLegend", "AixEnProvenceAce", "BrestBrawler", "ToursThunder",
-        "AmiensAssassin", "LimogesLion", "MetzMaster", "BesanconBolt", "PerpignanProwler",
-        "OrleansOracle", "MulhouseMaverick", "RouenRaider", "CaenCrusher", "NancyNinja",
-        "ArgenteueilAce", "SaintDenisStar", "RoubaixRogue", "TourcoingTitan", "MontreueilMaster",
-        "AvignonAvenger", "DunkerqueDestroyer", "AsnieresAce", "VersaillesVictor", "ColombesChamp",
-        "SaintPaulStar", "AubervilliersAce", "ChampignyShadow", "CourbevoieChamp", "VitryVictor",
-        "PoitiersPhantom", "CalaisCrusher", "AntibesAce", "LaRochelleLegend", "CannesChamp",
-        "StMaloMaster", "ChamberyChamp", "NiortNinja", "HyeresHero", "ColmarChamp",
-        "ValenceVictor", "CholetsChamp", "QuimperQuake", "LorientLegend", "ChartresChamp",
-        "SoissonsStar", "LavalLion", "EpinalEagle", "DraguignanDragon", "SarcellesShadow",
-        "BagneuxBoss", "BoulogneBolt", "PantinProwler", "MontreuillMaster", "ClichyChamp",
-        "NanterreNinja", "IvryImpact", "FontenayFlash", "BondyBolt", "AulnayAce",
-        "SevranStar", "LivryLion", "StOuenOracle", "GagnyGhost", "RosnyRogue",
-        "SartrouvilleStar", "MaisonsAce", "GennevilliersGhost", "CergyChamp", "EvryEagle"
+        // 1-10: Mix (3 Paris)
+        "ParisPro", "MarseilleMaster", "EiffelElite", "ToulouseTitan", "NiceNinja",
+        "MontmartreMaster", "StrasbourgStar", "MontpellierMaverick", "BordeauxBoss", "LouvreeLegend",
+        // 11-20: Mix (2 Paris)
+        "LyonLegend", "RennesRaider", "ParisienProwler", "SaintEtienneSlayer", "ToulonTornado",
+        "GrenobleGhost", "DijonDestroyer", "ChampsElyseesChamp", "NimesNinja", "LilleLion",
+        // 21-30: Mix (3 Paris)
+        "NantesNomad", "SacreCoeurStar", "AixEnProvenceAce", "BrestBrawler", "ToursThunder",
+        "ArcDeTriompheAce", "LimogesLion", "MetzMaster", "MontparnasseMaverick", "PerpignanProwler",
+        // 31-40: Mix (2 Paris)
+        "OrleansOracle", "MulhouseMaverick", "RouenRaider", "CaenCrusher", "MaraisMaster",
+        "ReimsRogue", "LeHavreHawk", "AngersAce", "StGermainStar", "VilleurbannneVictor",
+        // 41-50: Mix (3 Paris)
+        "ClermontCrusher", "LeMansLegend", "BastilleBoss", "AmiensAssassin", "BesanconBolt",
+        "TrocaderoTitan", "AvignonAvenger", "DunkerqueDestroyer", "PalaisRoyalPro", "ColombesChamp",
+        // 51-60: Mix (2 Paris)
+        "PoitiersPhantom", "CalaisCrusher", "AntibesAce", "LaRochelleLegend", "IleDeLaCiteIcon",
+        "StMaloMaster", "ChamberyChamp", "NiortNinja", "OperaOracle", "ColmarChamp",
+        // 61-70: Mix (3 Paris)
+        "ValenceVictor", "QuimperQuake", "PigalleProwler", "LorientLegend", "ChartresChamp",
+        "LavalLion", "RiveDroiteRaider", "DraguignanDragon", "SarcellesShadow", "BellevilleBlaster",
+        // 71-80: Mix (2 Paris)
+        "BagneuxBoss", "BoulogneBolt", "PantinProwler", "MontreuillMaster", "ChateletChamp",
+        "NanterreNinja", "IvryImpact", "FontenayFlash", "DefenseDynamo", "AulnayAce",
+        // 81-90: Mix (3 Paris)
+        "SevranStar", "LivryLion", "StOuenOracle", "RepubliquRaider", "RosnyRogue",
+        "SartrouvilleStar", "NationNinja", "GennevilliersGhost", "CergyChamp", "PlaceDItaliePro",
+        // 91-100: Mix (2 Paris)
+        "CannesChamp", "HyeresHero", "SaintDenisStar", "RoubaixRogue", "GareDuNordGhost",
+        "TourcoingTitan", "AsnieresAce", "VersaillesVictor", "SaintPaulStar", "AubervilliersAce",
+        // 101-110: Mix (3 Paris)
+        "ChampignyShadow", "CourbevoieChamp", "LeMaraisLegend", "EvryEagle", "MaisonsAce",
+        "SaintOuenStar", "TuileriesThunder", "BondyBolt", "VitryVictor", "PantheonProwler",
+        // 111-120: Mix (2 Paris)
+        "ClichyChamp", "EpinalEagle", "SoissonsStar", "PereLachaisePro", "GagnyGhost",
+        "LuxembourgLion", "DreuxDestroyer", "ArlesBrawler", "BatignolessBoss", "NarbonneNinja",
+        // 121-130: Mix (3 Paris)
+        "BeziersBolt", "CarcassonneCrusher", "PontNeufPro", "SeteSlayer", "AgdAce",
+        "MontorgueilMaster", "AlbiAce", "CastresChamp", "OberkampfOracle", "RodezRaider",
+        // 131-140: Mix (2 Paris)
+        "MillauMaster", "FigeacFlash", "CahorsCrusher", "AuchAce", "LaBuetteBlaster",
+        "TarbesTitan", "PauProwler", "BayonneBoss", "BertinPoireeBoss", "BiarritzBrawler",
+        // 141-150: Mix (3 Paris)
+        "DaxDestroyer", "MontDeMarsanMaster", "SentierStar", "AgenAce", "VilleneuveStar",
+        "MenilmontantMaverick", "PerigueuxPhantom", "BergeracBolt", "PorteDeClignancourt", "LiberteLegend"
     ]
 
     static let japanNames = [
