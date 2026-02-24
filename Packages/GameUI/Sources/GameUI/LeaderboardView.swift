@@ -529,9 +529,23 @@ public struct LeaderboardView: View {
         let startIndex = max(0, userIndex - 3)
         let endIndex = min(milestones.count, userIndex + 4)  // +4 because endIndex is exclusive
 
-        return milestones[startIndex..<endIndex].map { milestone in
+        // Calculate ranks for each milestone
+        var tiers: [(milestone: String, rank: Int)] = milestones[startIndex..<endIndex].map { milestone in
             let rank = rankForFilter(filter, milestone: milestone)
-            return (milestone, "\(rank) - \(milestone)")
+            return (milestone, rank)
+        }
+
+        // Enforce monotonic ordering: ranks must always increase (get worse)
+        // as we go from better milestones (top) to worse milestones (bottom).
+        // The list goes from highest milestone to lowest, so ranks should increase.
+        for i in 1..<tiers.count {
+            if tiers[i].rank <= tiers[i - 1].rank {
+                tiers[i].rank = tiers[i - 1].rank + 1
+            }
+        }
+
+        return tiers.map { tier in
+            (tier.milestone, "\(tier.rank) - \(tier.milestone)")
         }
     }
 
@@ -564,7 +578,7 @@ public struct LeaderboardView: View {
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: tileRadius)
-                        .fill(milestoneColor(for: milestone).opacity(isUserTier ? 1.0 : 0.5))
+                        .fill(milestoneColor(for: milestone).opacity(isUserTier ? 1.0 : 0.85))
                 )
         }
         .padding(.horizontal, 16)

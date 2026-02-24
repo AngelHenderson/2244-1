@@ -1351,7 +1351,13 @@ public enum MockLeaderboardData {
             let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
 
             // Use milestoneForExtendedRank for slow, capped progression
-            let milestone = milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
+            var milestone = milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
+            // Ensure above-user entries have milestones >= user's milestone
+            let aboveMilestoneIdx = milestoneIndex(for: milestone)
+            let userMilestoneIdx = milestoneIndex(for: userMilestone)
+            if aboveMilestoneIdx < userMilestoneIdx {
+                milestone = userMilestone
+            }
 
             let score = scoreForMilestone(milestone)
 
@@ -1393,7 +1399,13 @@ public enum MockLeaderboardData {
             let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
 
             // Use milestoneForExtendedRank for slow, capped progression
-            let milestone = milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
+            var milestone = milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
+            // Ensure below-user entries have milestones <= user's milestone
+            let belowMilestoneIdx = milestoneIndex(for: milestone)
+            let userMilestoneIdx = milestoneIndex(for: userMilestone)
+            if belowMilestoneIdx > userMilestoneIdx {
+                milestone = userMilestone
+            }
 
             let score = scoreForMilestone(milestone)
 
@@ -1593,19 +1605,12 @@ public enum MockLeaderboardData {
             return baseMilestone
         }
 
-        // Slow progression for extended bracket players: 0.05-0.15 milestones/day
-        // This means ~2-5 tiers gained over a month, keeping ranks realistic
+        // Progression for extended bracket players: 0.75-5 milestones/day
         let playerIndex = rank + countrySeed
         let randomFactor = seededRandom(seed: playerIndex * 888, index: playerIndex)
-        let dailyRate = 0.05 + randomFactor * 0.10
+        let dailyRate = 0.75 + randomFactor * 4.25
         let tiersGained = Int(dailyRate * Double(day))
         var newIndex = baseIndex + tiersGained
-
-        // Cap: don't exceed the next higher bracket's milestone
-        if let capMilestone = nextHigherBracketMilestone,
-           let capIndex = allMilestones.firstIndex(of: capMilestone) {
-            newIndex = min(newIndex, capIndex)
-        }
 
         // Also cap at the max milestone index
         newIndex = min(newIndex, allMilestones.count - 1)
