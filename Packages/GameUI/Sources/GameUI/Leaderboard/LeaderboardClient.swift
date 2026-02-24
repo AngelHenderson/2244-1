@@ -1690,6 +1690,10 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.andorraPlayerMilestones, LeaderboardClient.andorraExtendedRankBrackets, 1_977)
         case "ID":
             return (LeaderboardClient.indonesiaPlayerMilestones, LeaderboardClient.indonesiaExtendedRankBrackets, 98_982)
+        case "KE":
+            return (LeaderboardClient.kenyaPlayerMilestones, LeaderboardClient.kenyaExtendedRankBrackets, 15_111)
+        case "FJ":
+            return (LeaderboardClient.fijiPlayerMilestones, LeaderboardClient.fijiExtendedRankBrackets, 1_214)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1738,7 +1742,9 @@ public enum MockLeaderboardData {
             ("AE", 19_889),
             ("PH", 43_210),
             ("AD", 1_977),
-            ("ID", 98_982)
+            ("ID", 98_982),
+            ("KE", 15_111),
+            ("FJ", 1_214)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -1747,8 +1753,8 @@ public enum MockLeaderboardData {
 
         // Additional popular countries (no leaderboard data yet)
         let additionalCountries = [
-            "ID", "VN", "SA", "IL", "TR",
-            "ZA", "NG", "EG", "KE", "AR", "CL", "CO", "PE", "VE"
+            "VN", "SA", "IL", "TR",
+            "NG", "EG", "AR", "CL", "CO", "PE", "VE"
         ]
 
         return countriesWithLeaderboards + additionalCountries
@@ -1852,6 +1858,8 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.malaysiaPlayerMilestones, extendedBrackets: LeaderboardClient.malaysiaExtendedRankBrackets, totalPlayers: 52_111)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.newZealandPlayerMilestones, extendedBrackets: LeaderboardClient.newZealandExtendedRankBrackets, totalPlayers: 2_623)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.hungaryPlayerMilestones, extendedBrackets: LeaderboardClient.hungaryExtendedRankBrackets, totalPlayers: 111_111)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kenyaPlayerMilestones, extendedBrackets: LeaderboardClient.kenyaExtendedRankBrackets, totalPlayers: 15_111)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.fijiPlayerMilestones, extendedBrackets: LeaderboardClient.fijiExtendedRankBrackets, totalPlayers: 1_214)
 
         return total
     }
@@ -3149,6 +3157,10 @@ public extension LeaderboardClient {
                 entries = southAfricaEntries()
             case .global:
                 entries = globalEntries()
+            case .countryKE:
+                <#code#>
+            case .countryFJ:
+                <#code#>
             }
             let day = MockLeaderboardData.daysSinceReference
             // Dynamic player counts with joining rate and attrition
@@ -3279,6 +3291,8 @@ public extension LeaderboardClient {
                 let idPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
                 let zaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
                 totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers
+            case .countryKE:
+                <#code#>
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
