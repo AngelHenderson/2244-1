@@ -284,8 +284,11 @@ public struct ShopView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                        .font(.avenirNext(size: GameFonts.bodySize, weight: .semibold))
+                    HStack(spacing: 12) {
+                        GemBalancePill()
+                        Button("Done") { dismiss() }
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .semibold))
+                    }
                 }
             }
         }

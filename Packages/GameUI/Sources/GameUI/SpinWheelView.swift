@@ -22,6 +22,7 @@ public struct SpinWheelView: View {
     @State private var showReward = false
     @State private var rewardMessage = ""
     @State private var purchaseFeedback: String?
+    @State private var showShopFromGems = false
     @State private var now = Date()
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -96,6 +97,9 @@ public struct SpinWheelView: View {
                 Task { await audioService.playSfx(name: "tick") }
             }
         }
+        .adaptiveSheet(isPresented: $showShopFromGems) {
+            ShopView(initialTab: .gems)
+        }
     }
     
     private var header: some View {
@@ -118,7 +122,7 @@ public struct SpinWheelView: View {
 
             Spacer()
             
-            GemBalancePill(gems: homeState.gems)
+            GemBalancePill()
         }
     }
     
@@ -502,26 +506,7 @@ private struct BackgroundGradient: View {
     }
 }
 
-private struct GemBalancePill: View {
-    let gems: Int
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "diamond.fill")
-                .foregroundStyle(.white)
-                .font(.avenirNext(size: 16, weight: .bold))
-            Text(verbatim: String(gems))
-                .font(.avenirNext(size: 16, weight: .semibold))
-                .foregroundStyle(.white)
-            Image(systemName: "plus.circle.fill")
-                .foregroundStyle(.white.opacity(0.8))
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(Color(red: 0.06, green: 0.56, blue: 0.33), in: Capsule())
-        .shadow(color: .black.opacity(0.4), radius: 6, y: 4)
-    }
-}
+// GemBalancePill is now a shared public component in Components/GemBalancePill.swift
 
 // MARK: - Inventory Card
 
