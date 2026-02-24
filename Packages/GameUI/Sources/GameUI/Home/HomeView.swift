@@ -115,7 +115,7 @@ public struct HomeView: View {
                         .frame(width: 80)
                         .padding(.top, 20)
 
-                        // Center column: Spacer for tile visibility
+                        // Center column: empty space, touches pass through to JourneyPanel
                         Spacer()
                             .frame(maxWidth: .infinity)
 

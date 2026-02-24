@@ -90,9 +90,6 @@ public struct JourneyPanel: View {
                     }
                 }
             }
-            // Disable scroll touch so foreground buttons in HomeView aren't blocked.
-            // Users navigate the journey via the arrow buttons below.
-            .allowsHitTesting(false)
 
             // Navigation arrows
             VStack {

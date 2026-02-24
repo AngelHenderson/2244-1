@@ -1612,6 +1612,13 @@ public enum MockLeaderboardData {
         let tiersGained = Int(dailyRate * Double(day))
         var newIndex = baseIndex + tiersGained
 
+        // Cap: don't exceed the next higher bracket's milestone
+        // This prevents rank 151 from showing a higher milestone than rank 150
+        if let capMilestone = nextHigherBracketMilestone,
+           let capIndex = allMilestones.firstIndex(of: capMilestone) {
+            newIndex = min(newIndex, capIndex)
+        }
+
         // Also cap at the max milestone index
         newIndex = min(newIndex, allMilestones.count - 1)
 
@@ -4052,7 +4059,7 @@ public extension LeaderboardClient {
     // Total Mexico players: 7,229
     static let mexicoExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // K-tier brackets
-        ("524K", 150), ("262K", 161), ("131K", 173), ("65K", 186), ("32K", 203), ("16K", 226),
+        ("524K", 151), ("262K", 161), ("131K", 173), ("65K", 186), ("32K", 203), ("16K", 226),
         // Raw number brackets
         ("8192", 264), ("4096", 322), ("2048", 402), ("1024", 488), ("512", 574),
         ("256", 688), ("128", 822), ("64", 1000), ("32", 1175), ("16", 1558),
