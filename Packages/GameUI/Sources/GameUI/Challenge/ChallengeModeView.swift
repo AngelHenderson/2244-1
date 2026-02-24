@@ -58,7 +58,8 @@ public struct ChallengeModeView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
+                        GemBalancePill()
                         Button {
                             showIconLegend = true
                         } label: {

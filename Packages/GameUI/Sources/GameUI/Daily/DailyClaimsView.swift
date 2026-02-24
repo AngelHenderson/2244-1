@@ -44,7 +44,8 @@ public struct DailyClaimsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
+                        GemBalancePill()
                         Button {
                             showIconLegend = true
                         } label: {
@@ -103,7 +104,7 @@ public struct DailyClaimsView: View {
 
             // Current progress
             HStack {
-                Label("Day \(store.currentClaimDay) Completed", systemImage: "checkmark.circle.fill")
+                Label("\(store.currentClaimDay) Days Completed", systemImage: "checkmark.circle.fill")
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     .foregroundStyle(.green)
             }

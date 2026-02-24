@@ -102,8 +102,7 @@ struct MusicThemesView: View {
                 .textCase(.uppercase)
             Spacer()
 
-            // Spacer button to balance layout
-            Color.clear.frame(width: 28, height: 28)
+            GemBalancePill()
         }
         .foregroundStyle(.primary)
         .padding(.horizontal, 16)

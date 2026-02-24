@@ -67,8 +67,11 @@ public struct ThemePickerView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                    HStack(spacing: 12) {
+                        GemBalancePill()
+                        Button("Done") {
+                            dismiss()
+                        }
                     }
                 }
             }

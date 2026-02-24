@@ -44,6 +44,8 @@ public struct LeaderboardView: View {
 
                     Spacer()
 
+                    GemBalancePill()
+
                     // Top 150 button (only show in milestone view, not for Hall of Fame)
                     if !showingTop150 && model?.selectedFilter != .hallOfFame {
                         Button {

@@ -33,6 +33,7 @@ public struct PlayerProfileView: View {
                     Button("Close") { dismiss() }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    GemBalancePill()
                     Button("Customize") { model.showCustomize = true }
                     Button("Compare") { model.showCompare = true }
                 }

@@ -230,8 +230,11 @@ public struct AchievementsView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                    HStack(spacing: 12) {
+                        GemBalancePill()
+                        Button("Done") {
+                            dismiss()
+                        }
                     }
                 }
             }
