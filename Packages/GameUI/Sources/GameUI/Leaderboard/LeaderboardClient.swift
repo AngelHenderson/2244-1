@@ -2350,24 +2350,51 @@ public enum MockLeaderboardData {
     ]
 
     static let japanNames = [
-        "TokyoTitan", "OsakaOracle", "KyotoKnight", "YokohamYusha", "NagoyaNinja",
-        "SapporoSamurai", "KobeKenshi", "FukuokaFighter", "KawasakiKaze", "SaitamaShogun",
-        "HiroshimaHero", "SendaiSenshi", "ChibaChampion", "KitakyushuKage", "SakaiShinobi",
-        "NiigataNinja", "HamamatsuHawk", "KumamotoKing", "SagamiharaStar", "OkayamaOni",
-        "ShizuokaShadow", "KagoshimaKami", "FunabashiFury", "HachiojiHunter", "HimejiHero",
-        "MatsuyamaMaster", "NagasakiNinja", "KanazawaKenshi", "UtsunomiyaUltra", "MatsudoMage",
-        "NishinomiyaNinja", "IchikawaIkazuchi", "AmagasakiAce", "KashiwaKaze", "ToyamaThunder",
-        "NahaNoble", "NagareyamaLegend", "FujisawaFist", "ToyohashiTiger", "MinatoMaster",
-        "SuginamSensei", "ItabashiIron", "EdogawaEagle", "AdachiAce", "NerimaNoble",
-        "OtaOracle", "KatsushikaKing", "NakanoNinja", "ShinagawaShogun", "ToshimaTitan",
-        "MeguroMaster", "ShibuyaShadow", "SetagayaStar", "BunkyoBlade", "KotokuKenshi",
-        "SumidaSamurai", "ArakawAce", "TaitoTiger", "ChiyodaChamp", "ChochuChallenger",
-        "MachidaMaster", "TamaThunder", "HinoHero", "HachiojiHawk", "KodairaKing",
-        "NishitokyStar", "FuchuFighter", "AkishimaAce", "MusashinoMaster", "MitakaMarvel",
-        "KoganeiKaze", "TachikawaThunder", "OmOni", "KokubujiKnight", "HigashikurHero",
-        "TsukubaThunder", "KasukabeStar", "SokaShogun", "TokorozawaTitan", "KawagoeChampi",
-        "KoshigayaKing", "IchinomiyaIron", "OtsuOracle", "AomoriAce", "MoriokaMarvel",
-        "AkitaAssassin", "YamagataYusha", "FukushimaFury", "MitoMaster", "TsuchiuraTiger"
+        // 1-10: Mix (3 Tokyo)
+        "TokyoTitan", "OsakaOracle", "ShibuyaShadow", "KyotoKnight", "NagoyaNinja",
+        "ShinjukuShogun", "SapporoSamurai", "KobeKenshi", "AkihabarAce", "FukuokaFighter",
+        // 11-20: Mix (3 Tokyo)
+        "YokohamYusha", "HiroshimaHero", "RoppongiRonin", "SendaiSenshi", "KawasakiKaze",
+        "HarajukuHunter", "SaitamaShogun", "ChibaChampion", "IkebukuroIron", "KitakyushuKage",
+        // 21-30: Mix (3 Tokyo)
+        "SakaiShinobi", "NiigataNinja", "GinzaGhost", "HamamatsuHawk", "KumamotoKing",
+        "AsakusaAssassin", "SagamiharaStar", "OkayamaOni", "OdaibaDragon", "ShizuokaShadow",
+        // 31-40: Mix (3 Tokyo)
+        "KagoshimaKami", "FunabashiFury", "UenoUltra", "HimejiHero", "MatsuyamaMaster",
+        "ShiodomeSlayer", "NagasakiNinja", "KanazawaKenshi", "TokyoTowerTitan", "UtsunomiyaUltra",
+        // 41-50: Mix (3 Tokyo)
+        "MatsudoMage", "NishinomiyaNinja", "NakameguroNinja", "AmagasakiAce", "KashiwaKaze",
+        "ShimokitaStar", "ToyamaThunder", "NahaNoble", "YanakaYusha", "NagareyamaLegend",
+        // 51-60: Mix (3 Tokyo)
+        "FujisawaFist", "ToyohashiTiger", "KichijojKnight", "HachiojiHunter", "MachidarMaster",
+        "DaikanyamaDemon", "TamaThunder", "HinoHero", "EbisuElite", "KodairaKing",
+        // 61-70: Mix (3 Tokyo)
+        "NishitokyStar", "FuchuFighter", "AzabuAce", "AkishimaAce", "MusashinoMaster",
+        "MeguroMaster", "KoganeiKaze", "TachikawaThunder", "NihonbashiNinja", "KokubujiKnight",
+        // 71-80: Mix (3 Tokyo)
+        "HigashikurHero", "TsukubaThunder", "ShinagawaShogun", "KasukabeStar", "SokaShogun",
+        "SkytreeSlayer", "TokorozawaTitan", "KawagoeChampi", "NerimaNoble", "KoshigayaKing",
+        // 81-90: Mix (3 Tokyo)
+        "IchinomiyaIron", "OtsuOracle", "SetagayaStar", "AomoriAce", "MoriokaMarvel",
+        "KotokuKenshi", "AkitaAssassin", "YamagataYusha", "TaitoTiger", "FukushimaFury",
+        // 91-100: Mix (3 Tokyo)
+        "MitoMaster", "TsuchiuraTiger", "SumidaSamurai", "OitaOracle", "MiyazakiMaster",
+        "ChiyodaChamp", "NaraNinja", "OtaruOracle", "MinatoMaster", "AsahikawAce",
+        // 101-110: Mix (3 Tokyo)
+        "KushiroKnight", "ObihiroOracle", "SuginamiSensei", "TokamachTitan", "NagaokaLegend",
+        "BunkyoBlade", "JoetsuJinx", "SadoSamurai", "KatsushikaKing", "MurakamiMaster",
+        // 111-120: Mix (3 Tokyo)
+        "TsurugaTiger", "FukuiFighter", "AdachiAce", "KomatsuKaze", "KagaGhost",
+        "NakanoNinja", "TakaokaThunder", "ImizuImpact", "ItabashiIron", "ToyamaTornado",
+        // 121-130: Mix (3 Tokyo)
+        "GifuGladiator", "OgakiOracle", "EdogawaEagle", "TajimThunder", "SekiShadow",
+        "ArakawAce", "ShizuokaSlayer", "HamamatsuHero", "ToshimaTitan", "NumazuNinja",
+        // 131-140: Mix (3 Tokyo)
+        "FujiFlash", "MishimaMaster", "OtaOracle", "ItoImpact", "ShimonosekiStar",
+        "RyogokuRonin", "UbeUltra", "HagiHero", "YoyogiYusha", "IwakuniIron",
+        // 141-150: Mix (3 Tokyo)
+        "TokuyamaThunder", "KudamatsKnight", "TsukijiTitan", "YanaiYusha", "ShunanShogun",
+        "JimboChoJinx", "KaratsKaze", "SagaSamurai", "OchanomizuOracle", "ImariImpact"
     ]
 
     static let indiaNames = [
