@@ -245,7 +245,8 @@ public struct LeaderboardView: View {
             return generateCountryRankPreviews(
                 userMilestone: userMilestone,
                 userRank: userRank,
-                countryCode: countryCode
+                countryCode: countryCode,
+                filter: filter
             )
         }
 
@@ -315,44 +316,63 @@ public struct LeaderboardView: View {
         return previews
     }
 
-    /// Generate rank previews for country leaderboards using direct player data lookup
-    private func generateCountryRankPreviews(userMilestone: String, userRank: Int, countryCode: String) -> [RankPreview] {
-        var previews: [RankPreview] = []
+    /// Generate rank previews for country leaderboards using tier-consistent milestone lookup
+    /// Uses the same ranking boundaries as the tier view to ensure consistency
+    private func generateCountryRankPreviews(userMilestone: String, userRank: Int, countryCode: String, filter: LeaderboardFilter) -> [RankPreview] {
+        let milestones = Self.allMilestones
+
+        // Build tier boundaries from allMilestones using rankForFilter
+        // Each tier has a starting rank (from rankForFilter) and ends where the next tier starts
+        guard let userMilestoneIndex = milestones.firstIndex(of: userMilestone) else {
+            return []
+        }
+
+        // Check a wider range of milestones to find the correct tier for each rank
+        let searchStart = max(0, userMilestoneIndex - 10)
+        let searchEnd = min(milestones.count, userMilestoneIndex + 10)
+
+        var tierBoundaries: [(milestone: String, startRank: Int)] = []
+        for i in searchStart..<searchEnd {
+            let milestone = milestones[i]
+            let rank = rankForFilter(filter, milestone: milestone)
+            tierBoundaries.append((milestone, rank))
+        }
+
+        // Ensure tier boundaries are monotonically ordered (higher milestones = lower ranks)
+        // Work outward from user's position, same as tier view
+        let userBoundaryIndex = userMilestoneIndex - searchStart
+        for i in stride(from: userBoundaryIndex - 1, through: 0, by: -1) {
+            if tierBoundaries[i].startRank >= tierBoundaries[i + 1].startRank {
+                tierBoundaries[i].startRank = tierBoundaries[i + 1].startRank - 1
+            }
+        }
+        for i in (userBoundaryIndex + 1)..<tierBoundaries.count {
+            if tierBoundaries[i].startRank <= tierBoundaries[i - 1].startRank {
+                tierBoundaries[i].startRank = tierBoundaries[i - 1].startRank + 1
+            }
+        }
 
         // Show ranks from 3 above to 3 below user's rank
         let startRank = max(1, userRank - 3)
         let endRank = userRank + 3
 
-
+        var previews: [RankPreview] = []
         for rank in startRank...endRank {
             let milestone: String
 
             if rank == userRank {
-                // Always show user's actual milestone for their rank
                 milestone = userMilestone
-            } else if rank < userRank {
-                // Ranks above user: look up directly (no shift needed)
-                if rank <= 150 {
-                    if let playerMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: rank, countryCode: countryCode) {
-                        milestone = playerMilestone
-                    } else {
-                        milestone = userMilestone
-                    }
-                } else {
-                    milestone = MockLeaderboardData.milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
-                }
             } else {
-                // Ranks below user: shift down by 1 (user's insertion pushes everyone down)
-                let lookupRank = rank - 1
-                if lookupRank <= 150 {
-                    if let playerMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: lookupRank, countryCode: countryCode) {
-                        milestone = playerMilestone
+                // Find which tier this rank falls into using the boundary data
+                var foundMilestone = userMilestone
+                for boundary in tierBoundaries {
+                    if boundary.startRank <= rank {
+                        foundMilestone = boundary.milestone
                     } else {
-                        milestone = userMilestone
+                        break
                     }
-                } else {
-                    milestone = MockLeaderboardData.milestoneForExtendedRank(rank: lookupRank, countryCode: countryCode) ?? userMilestone
                 }
+                milestone = foundMilestone
             }
 
             previews.append(RankPreview(
@@ -360,43 +380,6 @@ public struct LeaderboardView: View {
                 milestone: milestone,
                 isUserRank: rank == userRank
             ))
-        }
-
-        // Enforce monotonic milestone ordering:
-        // Milestones should decrease (or stay equal) as rank number increases.
-        // Find the user's position in the previews array
-        guard let userPreviewIndex = previews.firstIndex(where: { $0.isUserRank }) else {
-            return previews
-        }
-
-        // Above user (lower ranks = better): milestones must be >= user's milestone
-        // Walk upward from user, ensuring each rank has milestone >= the one below it
-        for i in stride(from: userPreviewIndex - 1, through: 0, by: -1) {
-            let currentIdx = MockLeaderboardData.milestoneIndex(for: previews[i].milestone)
-            let belowIdx = MockLeaderboardData.milestoneIndex(for: previews[i + 1].milestone)
-            if currentIdx < belowIdx {
-                // This milestone is worse than the one below - fix it
-                previews[i] = RankPreview(
-                    rank: previews[i].rank,
-                    milestone: previews[i + 1].milestone,
-                    isUserRank: false
-                )
-            }
-        }
-
-        // Below user (higher ranks = worse): milestones must be <= user's milestone
-        // Walk downward from user, ensuring each rank has milestone <= the one above it
-        for i in (userPreviewIndex + 1)..<previews.count {
-            let currentIdx = MockLeaderboardData.milestoneIndex(for: previews[i].milestone)
-            let aboveIdx = MockLeaderboardData.milestoneIndex(for: previews[i - 1].milestone)
-            if currentIdx > aboveIdx {
-                // This milestone is better than the one above - fix it
-                previews[i] = RankPreview(
-                    rank: previews[i].rank,
-                    milestone: previews[i - 1].milestone,
-                    isUserRank: false
-                )
-            }
         }
 
         return previews
@@ -575,10 +558,19 @@ public struct LeaderboardView: View {
             return (milestone, rank)
         }
 
-        // Enforce monotonic ordering: ranks must always increase (get worse)
-        // as we go from better milestones (top) to worse milestones (bottom).
-        // The list goes from highest milestone to lowest, so ranks should increase.
-        for i in 1..<tiers.count {
+        // Find the user's tier position within the tiers array
+        let userTierIndex = userIndex - startIndex
+
+        // Enforce monotonic ordering outward from the user's position:
+        // Above user (going up): ranks must decrease (get better) or stay equal
+        for i in stride(from: userTierIndex - 1, through: 0, by: -1) {
+            if tiers[i].rank >= tiers[i + 1].rank {
+                tiers[i].rank = tiers[i + 1].rank - 1
+            }
+        }
+
+        // Below user (going down): ranks must increase (get worse) or stay equal
+        for i in (userTierIndex + 1)..<tiers.count {
             if tiers[i].rank <= tiers[i - 1].rank {
                 tiers[i].rank = tiers[i - 1].rank + 1
             }

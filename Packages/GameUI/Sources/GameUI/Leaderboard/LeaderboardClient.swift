@@ -1614,9 +1614,14 @@ public enum MockLeaderboardData {
 
         // Cap: don't exceed the next higher bracket's milestone
         // This prevents rank 151 from showing a higher milestone than rank 150
+        // For the first bracket (no higher bracket), cap at the base milestone itself
+        // since these players are at the highest extended tier already
         if let capMilestone = nextHigherBracketMilestone,
            let capIndex = allMilestones.firstIndex(of: capMilestone) {
             newIndex = min(newIndex, capIndex)
+        } else {
+            // First bracket: don't progress beyond the base milestone
+            newIndex = min(newIndex, baseIndex)
         }
 
         // Also cap at the max milestone index
@@ -1760,7 +1765,11 @@ public enum MockLeaderboardData {
             ("AD", 1_977),
             ("ID", 98_982),
             ("KE", 15_111),
-            ("FJ", 1_214)
+            ("FJ", 1_214),
+            ("CZ", 61_616),
+            ("PT", 98_989),
+            ("GR", 41_414),
+            ("ZA", 2_974)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -1769,8 +1778,8 @@ public enum MockLeaderboardData {
 
         // Additional popular countries (no leaderboard data yet)
         let additionalCountries = [
-            "ID", "VN", "SA", "IL", "TR",
-            "ZA", "NG", "EG", "AR", "CL", "CO", "PE", "VE"
+            "VN", "SA", "IL", "TR",
+            "NG", "EG", "AR", "CL", "CO", "PE", "VE"
         ]
 
         return countriesWithLeaderboards + additionalCountries
@@ -4771,11 +4780,10 @@ public extension LeaderboardClient {
         "3r", "3r", "822q", "411q", "205q", "205q", "102q", "51q", "25q", "25q",
         "12q", "12q", "6q", "6q", "6q", "3q", "3q", "3q", "1q", "401p",
         "200p", "50p", "25p", "12p", "6p", "6p", "3p", "1p", "6o", "1o",
-        // Ranks 121-153 (extra 3 to account for top players who progress to infinity)
+        // Ranks 121-150
         "2n", "5m", "365l", "2l", "5k", "2k", "2k", "1k", "348j", "174j",
         "43j", "43j", "10j", "2j", "1j", "680i", "340i", "340i", "170i", "85i",
-        "85i", "42i", "21i", "10i", "5i", "1i", "332h", "649g", "20g", "633f",
-        "316f", "158f", "79f"
+        "85i", "42i", "21i", "10i", "5i", "1i", "332h", "649g", "20g", "633f"
     ]
 
     // Extended Portugal milestone brackets for rank calculation (ranks 151+)
