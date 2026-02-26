@@ -950,6 +950,12 @@ public enum MockLeaderboardData {
     // Get a varied avatar for a player using seeded randomness
     // This ensures each player has a consistent but varied avatar
     static func avatarForPlayer(index: Int, countrySeed: Int = 0) -> String {
+        // ~15% of players haven't set an avatar yet (show letter-in-circle placeholder)
+        let noAvatarRandom = seededRandom(seed: index * 251 + countrySeed * 43, index: index + countrySeed)
+        if noAvatarRandom < 0.15 {
+            return ""  // No avatar - will show letter placeholder in UI
+        }
+
         let seed = index * 131 + countrySeed * 17
         let random = seededRandom(seed: seed, index: index)
         let avatarIndex = Int(random * Double(avatarIDs.count))
@@ -959,6 +965,21 @@ public enum MockLeaderboardData {
     // Get avatar for a player with daily variation (some players change avatars over time)
     // 85% of changes happen outside top 150, only 15% in top 150
     static func avatarForPlayer(index: Int, countrySeed: Int, day: Int) -> String {
+        // ~15% of players haven't set an avatar yet (show letter-in-circle placeholder)
+        // New players add avatars between 3 hours and 2 days after joining
+        let noAvatarRandom = seededRandom(seed: index * 251 + countrySeed * 43, index: index + countrySeed)
+        if noAvatarRandom < 0.15 {
+            // This player hasn't set an avatar - they'll add one after a seeded delay
+            // Delay ranges from ~3 hours (0.125 days) to ~2 days
+            let delayDays = 0.125 + noAvatarRandom / 0.15 * 1.875  // Maps 0-0.15 to 0.125-2.0 days
+            let playerJoinDay = Int(seededRandom(seed: index * 373 + countrySeed * 67, index: index) * Double(max(1, day)))
+            let daysSinceJoin = day - playerJoinDay
+            if Double(daysSinceJoin) < delayDays {
+                return ""  // Still hasn't set avatar
+            }
+            // Player has now set their avatar - fall through to normal avatar logic
+        }
+
         // Calculate cumulative name/avatar changes up to this day
         var totalChanges: Double = 0
         for d in 0...day {
@@ -1913,16 +1934,7 @@ public enum MockLeaderboardData {
 
         // Calculate total tiers gained
         let tiersGained = Int(dailyRate * Double(day))
-        let newIndex = baseIndex + tiersGained
-
-        // If player has progressed beyond max milestone, transition to infinity
-        let maxMilestoneIndex = allMilestones.count - 1
-        if newIndex > maxMilestoneIndex {
-            // Calculate infinity count based on how far beyond max milestone they've gone
-            // Each tier beyond max = 1 infinity tile gained
-            let infinityCount = newIndex - maxMilestoneIndex
-            return "\(infinityCount)∞"
-        }
+        let newIndex = min(baseIndex + tiersGained, allMilestones.count - 1)
 
         return allMilestones[newIndex]
     }
