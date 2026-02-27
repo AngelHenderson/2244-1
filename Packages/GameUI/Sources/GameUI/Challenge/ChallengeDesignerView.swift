@@ -61,8 +61,8 @@ public struct ChallengeDesignerView: View {
                 Button {
                     store.prevTarget()
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 28, weight: .bold))
+                    Image(systemName: "arrowtriangle.left.fill")
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 56, height: 56)
                         .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
@@ -89,8 +89,8 @@ public struct ChallengeDesignerView: View {
                 Button {
                     store.nextTarget()
                 } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 28, weight: .bold))
+                    Image(systemName: "arrowtriangle.right.fill")
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 56, height: 56)
                         .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
@@ -250,8 +250,8 @@ private struct StepperBox: View {
 
             HStack(spacing: 8) {
                 Button(action: onDecrease) {
-                    Text("-")
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                    Image(systemName: "arrowtriangle.left.fill")
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(RoundedRectangle(cornerRadius: 8).fill(buttonColor))
@@ -263,8 +263,8 @@ private struct StepperBox: View {
                     .frame(minWidth: 36)
 
                 Button(action: onIncrease) {
-                    Text("+")
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                    Image(systemName: "arrowtriangle.right.fill")
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(RoundedRectangle(cornerRadius: 8).fill(buttonColor))
