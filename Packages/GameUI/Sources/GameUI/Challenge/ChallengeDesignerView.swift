@@ -250,8 +250,8 @@ private struct StepperBox: View {
 
             HStack(spacing: 8) {
                 Button(action: onDecrease) {
-                    Image(systemName: "arrowtriangle.left.fill")
-                        .font(.system(size: 16, weight: .bold))
+                    Text("-")
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(RoundedRectangle(cornerRadius: 8).fill(buttonColor))
@@ -263,8 +263,8 @@ private struct StepperBox: View {
                     .frame(minWidth: 36)
 
                 Button(action: onIncrease) {
-                    Image(systemName: "arrowtriangle.right.fill")
-                        .font(.system(size: 16, weight: .bold))
+                    Text("+")
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(RoundedRectangle(cornerRadius: 8).fill(buttonColor))
