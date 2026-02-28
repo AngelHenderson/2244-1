@@ -790,7 +790,7 @@ public final class AchievementStore {
         .init(milestone: 90, categoryLabel: "90 days", rewards: .init(magnets: 1, boost2x: 1)),
         .init(milestone: 98, categoryLabel: "98 days", rewards: .init(boost2x: 1)),
         .init(milestone: 120, categoryLabel: "120 days", rewards: .init(boost4x: 1)),
-        .init(milestone: 150, categoryLabel: "150 days", rewards: .init(gems: 510, spins: 3)),
+        .init(milestone: 150, categoryLabel: "150 days", rewards: .init(gems: 510, spins: 2, hammers: 1)),
         .init(milestone: 180, categoryLabel: "180 days", rewards: .init(spins: 1, magnets: 4, boost2x: 1)),
         .init(milestone: 240, categoryLabel: "240 days", rewards: .init(gems: 600, magnets: 1, boost3x: 1)),
         .init(milestone: 300, categoryLabel: "300 days", rewards: .init(gems: 700, hammers: 1)),
