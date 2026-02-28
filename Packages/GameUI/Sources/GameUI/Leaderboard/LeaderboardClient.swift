@@ -1550,7 +1550,7 @@ public enum MockLeaderboardData {
         "DK": 100000, "FI": 105000, "PL": 110000, "BE": 115000, "SE": 120000,
         "AT": 125000, "IE": 130000, "PT": 135000, "GR": 140000, "CZ": 145000,
         "RO": 150000, "MY": 155000, "NZ": 160000, "HU": 165000, "TH": 170000, "AE": 175000, "PH": 180000, "AD": 185000, "ID": 190000,
-        "ZA": 195000, "KE": 200000, "FJ": 205000, "VN": 210000
+        "ZA": 195000, "KE": 200000, "FJ": 205000, "VN": 210000, "CW": 215000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -1738,6 +1738,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.fijiPlayerMilestones, LeaderboardClient.fijiExtendedRankBrackets, 1_214)
         case "VN":
             return (LeaderboardClient.vietnamPlayerMilestones, LeaderboardClient.vietnamExtendedRankBrackets, 167_676)
+        case "CW":
+            return (LeaderboardClient.curacaoPlayerMilestones, LeaderboardClient.curacaoExtendedRankBrackets, 39_999)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1793,7 +1795,8 @@ public enum MockLeaderboardData {
             ("PT", 98_989),
             ("GR", 41_414),
             ("ZA", 2_974),
-            ("VN", 167_676)
+            ("VN", 167_676),
+            ("CW", 39_999)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -3228,6 +3231,7 @@ public enum MockLeaderboardData {
         case "NZ": return LeaderboardClient.newZealandPlayerMilestones
         case "HU": return LeaderboardClient.hungaryPlayerMilestones
         case "VN": return LeaderboardClient.vietnamPlayerMilestones
+        case "CW": return LeaderboardClient.curacaoPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -3330,6 +3334,8 @@ public extension LeaderboardClient {
                 entries = fijiEntries()
             case .countryVN:
                 entries = vietnamEntries()
+            case .countryCW:
+                entries = curacaoEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -3425,6 +3431,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_214, on: day, countrySeed: 140)
             case .countryVN:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 167_676, on: day, countrySeed: 141)
+            case .countryCW:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 39_999, on: day, countrySeed: 142)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -3470,7 +3478,8 @@ public extension LeaderboardClient {
                 let kePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 15_111, on: day, countrySeed: 139)
                 let fjPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_214, on: day, countrySeed: 140)
                 let vnPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 167_676, on: day, countrySeed: 141)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers
+                let cwPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 39_999, on: day, countrySeed: 142)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -9790,6 +9799,144 @@ public extension LeaderboardClient {
                 day: day,
                 totalPlayers: totalVietnamPlayers,
                 extendedBrackets: vietnamExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+
+    // Curaçao names for leaderboard
+    static let curacaoNames = [
+        // 1-30: Major areas and landmarks
+        "WillemstadWarrior", "PundaPro", "OtrobandaOracle", "PietermaaiPhantom", "HandelskadHero",
+        "MamboBeachMaster", "KnipBayKnight", "CasAbaoCrusader", "PortoMariProwler", "SheteBokaStorm",
+        "ChristoffelChamp", "HatoCavesHunter", "RifFortRogue", "FloatingBridgeFury", "PlayaFoitiKing",
+        "BarberBlitz", "JanThielJaguar", "BlueBayBlade", "SpanseWaterSniper", "TulembaTop",
+        "WestpuntWolf", "LagunLancer", "BandaBowBoss", "SantaMartaBite", "ZuurzakZone",
+        "BullenbaaiBlast", "DaaibooiBrawler", "KleinCuracaoCrush", "GroteKnipGuard", "PlayaKenepaKick",
+        // 31-60: Culture and nature
+        "DushiDagger", "PapiamentuPower", "CarnivalCaptain", "TumbaThunder", "KasdiPalPalm",
+        "LandhouseLeader", "IgnuanaIsland", "FlamingoFrenzy", "CoralCastleCrew", "TurtleNestNinja",
+        "BocaTableBoss", "MikveIsraelMastr", "QueenEmmaBridge", "FortAmsterdam", "NationalParkPro",
+        "SeaquariumStar", "FloraFaunaFury", "DolphinAcademy", "CuracaoLiqueur", "PlasaByeuPunch",
+        "ScharloStrike", "SundialShogun", "RondeFortRider", "MontagnaSentry", "SavaneSlayer",
+        "AscensionTower", "BriefjesBrigade", "TafelbergTitan", "AquaElixir", "ChoboloBeast",
+        // 61-90: More local flavor
+        "BocaSamiBlitz", "PlayaPortoMari", "SantaCruzSnipe", "WilheminaWarden", "BreezeParadise",
+        "BientuBayBolt", "CuracaoKing", "DiviDiveDevil", "TropicTsunami", "SunsetSurfer",
+        "ArawakAce", "CaquetioChief", "WatamulaMaster", "NorthSeaNinja", "CaribCoastCrew",
+        "LeewardLegend", "WindwardWolf", "ReefRanger", "MangroveMaestro", "PelicanPoint",
+        "ParrotProwler", "IguanaImperial", "ConchConqueror", "StarfishStrike", "CoralKnight",
+        "TradewindTitan", "PassaatPuncher", "HarborHawkeye", "GulfstreamGhost", "IslandInferno"
+    ]
+
+    // Curaçao player milestones (39,999 total players)
+    // Top 56 from screenshots (smaller leaderboard)
+    static let curacaoPlayerMilestones: [String] = [
+        // Ranks 1-10
+        "706bq", "1bl", "1be", "1ba", "28ax", "1aw", "1au", "799as", "3as", "1ar",
+        // Ranks 11-20
+        "726ao", "1an", "84al", "1aj", "1ah", "4ae", "8ab", "994y", "1w", "7u",
+        // Ranks 21-30
+        "6s", "3r", "1q", "803p", "200p", "1k", "2i", "5g", "79f", "1f",
+        // Ranks 31-40
+        "19e", "604d", "18d", "590c", "18c", "576b", "18b", "1b", "70a", "4a",
+        // Ranks 41-50
+        "549B", "68B", "17B", "8B", "2B", "536M", "268M", "134M", "134M", "67M",
+        // Ranks 51-56 (continued from top list)
+        "67M", "33M", "33M", "33M", "33M", "16M"
+    ]
+
+    // Extended Curaçao milestone brackets for rank calculation (ranks 63+)
+    // Total Curaçao players: ~39,999
+    static let curacaoExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        ("8M", 63), ("4M", 71), ("2M", 82), ("1M", 97), ("524K", 122),
+        ("262K", 166), ("131K", 222), ("65K", 299), ("32K", 400),
+        ("16K", 566), ("8192", 797), ("4096", 1066), ("2048", 1499),
+        ("1024", 2111), ("512", 2788), ("256", 3555), ("128", 4559),
+        ("64", 6000), ("32", 7898), ("16", 10444), ("8", 14440),
+        ("4", 19277), ("2", 25333), ("0", 33073)  // Score 0 = ranks 33073-39999
+    ]
+
+    // Generate Curaçao entries with milestone progression and user insertion
+    private static func curacaoEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<min(150, curacaoPlayerMilestones.count) {
+            let baseMilestone = curacaoPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.curacaoNames, countrySeed: 215000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 215000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 215000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "cw_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalCuracaoPlayers = 39_999
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 215000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "CW",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            var curacaoRank = totalCuracaoPlayers
+
+            for bracket in curacaoExtendedRankBrackets {
+                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
+                   userMilestoneIdx >= bracketIndex {
+                    curacaoRank = bracket.startRank
+                    break
+                }
+            }
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: curacaoRank,
+                userMilestone: userMilestone,
+                countryCode: "CW",
+                countrySeed: 215000,
+                names: MockLeaderboardData.curacaoNames,
+                day: day,
+                totalPlayers: totalCuracaoPlayers,
+                extendedBrackets: curacaoExtendedRankBrackets
             )
             entries.append(contentsOf: extendedEntries)
         }

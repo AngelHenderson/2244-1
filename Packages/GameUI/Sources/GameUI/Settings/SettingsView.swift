@@ -482,6 +482,7 @@ private struct PreviewAudioService: AudioServiceProtocol {
     func stopMusic() async {}
     func playSfx(name: String) async {}
     func playMergeSfx(tileCount: Int) async {}
+    func stopAllSfx() async {}
     func setCurrentMusicTheme(_ theme: String) async {}
 }
 

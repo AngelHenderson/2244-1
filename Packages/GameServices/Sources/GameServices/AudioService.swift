@@ -53,6 +53,10 @@ public struct DefaultAudioService: AudioServiceProtocol, Sendable {
         // no-op (intentionally)
     }
 
+    public func stopAllSfx() async {
+        // no-op (intentionally)
+    }
+
     public func setCurrentMusicTheme(_ theme: String) async {
         userDefaults.set(theme, forKey: "currentMusicTheme")
     }
@@ -356,6 +360,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         // Play single final merge note (individual tile sounds play during chain building)
         print("🎶 Playing final merge note for \(tileCount)-tile chain, instrument: \(currentTheme)")
         await playInstrumentTapSound(theme: currentTheme)
+    }
+
+    public func stopAllSfx() async {
+        for player in sfxPlayers {
+            player.stop()
+        }
+        sfxPlayers.removeAll()
     }
 
     private func playElectricSound(theme: String) async {
