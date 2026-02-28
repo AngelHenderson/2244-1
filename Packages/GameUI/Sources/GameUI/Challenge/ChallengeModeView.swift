@@ -9,14 +9,10 @@ public struct ChallengeModeView: View {
     @State private var currentTime = Date()  // For countdown timer updates
     @State private var selectedChallenge: Challenge? = nil
     @State private var showIconLegend = false
-    @State private var showLockedAlert = false
-    @State private var lockedTileLabel = ""
 
-    public var playerHighestTileStep: Int
     public var onPlay: ((Challenge) -> Void)?
 
-    public init(playerHighestTileStep: Int = 0, onPlay: ((Challenge) -> Void)? = nil) {
-        self.playerHighestTileStep = playerHighestTileStep
+    public init(onPlay: ((Challenge) -> Void)? = nil) {
         self.onPlay = onPlay
     }
 
@@ -76,11 +72,6 @@ public struct ChallengeModeView: View {
                 currentTime = time
             }
         }
-        .alert("Tile Too Low", isPresented: $showLockedAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text("Sorry! You do not have a high enough tile to unlock this. You need a \(lockedTileLabel) tile.")
-        }
     }
 
     @ViewBuilder
@@ -90,13 +81,6 @@ public struct ChallengeModeView: View {
         Button {
             if status.isPlayable {
                 selectedChallenge = challenge
-            } else {
-                if let targetStep = challenge.targetTile {
-                    lockedTileLabel = TileStepLabelFormatter.labelForStep(targetStep, start: 2)
-                } else {
-                    lockedTileLabel = "higher"
-                }
-                showLockedAlert = true
             }
         } label: {
             GeometryReader { geo in
