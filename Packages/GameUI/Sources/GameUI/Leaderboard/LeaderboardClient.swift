@@ -3072,13 +3072,62 @@ public enum MockLeaderboardData {
         "SawaStar", "RatuRuler", "AdiAce", "TuiTornado", "QolikoBoss",
         "SailasiSlayer", "KiniKnight", "VilimoniVictor", "TevitaTitan", "IsakeImpact",
         "MesakeMarvel", "EpeliBrawler", "JoelJuggernaut", "WaisaleWarrior", "ManasaMaster",
-        // 121-150: More cultural references
         "LagiLegend", "DrekiDemon", "NatoaNinja", "MakareKnight", "WainiMaster",
         "SigatokaStar", "NausoriBoss", "VitiViking", "VanuaVictor", "PacificProwler",
         "FijianFirewalker", "IslandInfinite", "AlohaAce", "MoanaMarvel", "OceanOrbit",
         "TidelineTitan", "SeastormStar", "AquariusAce", "PoseidonPro", "NeptuneBoss",
         "LagoonLord", "BarrierBoss", "CurrentCrusher", "SurfSerpent", "WaveMaster",
         "PearlProwler", "ShellShock", "TurtleTitan", "DolphinDynamo", "WhaleWarrior"
+    ]
+
+    // Vietnam names for leaderboard
+    static let vietnamNames = [
+        // 1-30: Major cities
+        "HanoiHero", "SaigonStriker", "DaNangDynamo", "HueHawk", "HaiPhongPhoenix",
+        "CanThoCommander", "NhaTrangNinja", "DaLatDagger", "VungTauViking", "QuiNhonQuake",
+        "BienHoaBlaze", "MyThoMaster", "LongXuyenLion", "RachGiaRaptor", "PhanThietPro",
+        "HoiAnAce", "SaPaSentinel", "BacNinhBlade", "ThaiNguyenThunder", "TuyHoaTitan",
+        "PhuQuocPhantom", "VinhVanguard", "TamKyKnight", "NamDinhNova", "HaLongHunter",
+        "DongHoiDragon", "QuangNgaiGuardian", "KonTumKestrel", "BuonMaThuotBoss", "SocTrangSniper",
+        // 31-60: More cities and regions
+        "CaMauCrusader", "TraVinhTornado", "ThaiBinhTactician", "HungYenHorizon", "HaDongDestroyer",
+        "ThuDucThrasher", "GoVapGladiator", "BinhDuongBrawler", "DongNaiNemesis", "BaRiaBarrage",
+        "PhuYenProwler", "LamDongLancer", "GiaLaiGriffin", "DakLakElite", "BinhThuanBlast",
+        "NinhThuanNova", "KhanhHoaKing", "QuangNamQuest", "ThuaThienTiger", "QuangBinhBolt",
+        "HaTinhHammer", "NgheAnOracle", "ThanhHoaThrone", "HoaBinhHunter", "SonLaSurge",
+        "LaoCaiLegend", "YenBaiYeti", "PhuThoPhenom", "VinhPhucVictor", "BacGiangBullet",
+        // 61-90: Vietnamese culture and landmarks
+        "MekongMaverick", "RedRiverRogue", "DragonBayDefender", "LotusLancer", "PhoenixPagoda",
+        "JadeMountain", "SilkRoadSniper", "LanternLegion", "BambooBlitz", "TurtleTower",
+        "GoldenBridge", "MarbleMountain", "PerfumeRiverPro", "ImperialKnight", "CuChiChampion",
+        "SapaStorm", "HaGiangGhost", "FansipanFury", "CatBaCaptain", "TrangAnTitan",
+        "PhongNhaPhantom", "BaiDinhBlade", "TamCocCrusader", "NinhBinhNinja", "HoChiMinhHero",
+        "DienBienDagger", "SonDoongSurge", "CaoDaiKnight", "MuiNeMaster", "DalAtDragon"
+    ]
+
+    // Curaçao names for leaderboard
+    static let curacaoNames = [
+        // 1-30: Major areas and landmarks
+        "WillemstadWarrior", "PundaPro", "OtrobandaOracle", "PietermaaiPhantom", "HandelskadHero",
+        "MamboBeachMaster", "KnipBayKnight", "CasAbaoCrusader", "PortoMariProwler", "SheteBokaStorm",
+        "ChristoffelChamp", "HatoCavesHunter", "RifFortRogue", "FloatingBridgeFury", "PlayaFoitiKing",
+        "BarberBlitz", "JanThielJaguar", "BlueBayBlade", "SpanseWaterSniper", "TulembaTop",
+        "WestpuntWolf", "LagunLancer", "BandaBowBoss", "SantaMartaBite", "ZuurzakZone",
+        "BullenbaaiBlast", "DaaibooiBrawler", "KleinCuracaoCrush", "GroteKnipGuard", "PlayaKenepaKick",
+        // 31-60: Culture and nature
+        "DushiDagger", "PapiamentuPower", "CarnivalCaptain", "TumbaThunder", "KasdiPalPalm",
+        "LandhouseLeader", "IgnuanaIsland", "FlamingoFrenzy", "CoralCastleCrew", "TurtleNestNinja",
+        "BocaTableBoss", "MikveIsraelMastr", "QueenEmmaBridge", "FortAmsterdam", "NationalParkPro",
+        "SeaquariumStar", "FloraFaunaFury", "DolphinAcademy", "CuracaoLiqueur", "PlasaByeuPunch",
+        "ScharloStrike", "SundialShogun", "RondeFortRider", "MontagnaSentry", "SavaneSlayer",
+        "AscensionTower", "BriefjesBrigade", "TafelbergTitan", "AquaElixir", "ChoboloBeast",
+        // 61-90: More local flavor
+        "BocaSamiBlitz", "PlayaPortoMari", "SantaCruzSnipe", "WilheminaWarden", "BreezeParadise",
+        "BientuBayBolt", "CuracaoKing", "DiviDiveDevil", "TropicTsunami", "SunsetSurfer",
+        "ArawakAce", "CaquetioChief", "WatamulaMaster", "NorthSeaNinja", "CaribCoastCrew",
+        "LeewardLegend", "WindwardWolf", "ReefRanger", "MangroveMaestro", "PelicanPoint",
+        "ParrotProwler", "IguanaImperial", "ConchConqueror", "StarfishStrike", "CoralKnight",
+        "TradewindTitan", "PassaatPuncher", "HarborHawkeye", "GulfstreamGhost", "IslandInferno"
     ]
 
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "ZA", "US", "CN", "RU", "NG", "EG", "AR", "CL", "CO", "PE"]
@@ -9636,31 +9685,6 @@ public extension LeaderboardClient {
         return entries
     }
 
-    // Vietnam names for leaderboard
-    static let vietnamNames = [
-        // 1-30: Major cities
-        "HanoiHero", "SaigonStriker", "DaNangDynamo", "HueHawk", "HaiPhongPhoenix",
-        "CanThoCommander", "NhaTrangNinja", "DaLatDagger", "VungTauViking", "QuiNhonQuake",
-        "BienHoaBlaze", "MyThoMaster", "LongXuyenLion", "RachGiaRaptor", "PhanThietPro",
-        "HoiAnAce", "SaPaSentinel", "BacNinhBlade", "ThaiNguyenThunder", "TuyHoaTitan",
-        "PhuQuocPhantom", "VinhVanguard", "TamKyKnight", "NamDinhNova", "HaLongHunter",
-        "DongHoiDragon", "QuangNgaiGuardian", "KonTumKestrel", "BuonMaThuotBoss", "SocTrangSniper",
-        // 31-60: More cities and regions
-        "CaMauCrusader", "TraVinhTornado", "ThaiBinhTactician", "HungYenHorizon", "HaDongDestroyer",
-        "ThuDucThrasher", "GoVapGladiator", "BinhDuongBrawler", "DongNaiNemesis", "BaRiaBarrage",
-        "PhuYenProwler", "LamDongLancer", "GiaLaiGriffin", "DakLakElite", "BinhThuanBlast",
-        "NinhThuanNova", "KhanhHoaKing", "QuangNamQuest", "ThuaThienTiger", "QuangBinhBolt",
-        "HaTinhHammer", "NgheAnOracle", "ThanhHoaThrone", "HoaBinhHunter", "SonLaSurge",
-        "LaoCaiLegend", "YenBaiYeti", "PhuThoPhenom", "VinhPhucVictor", "BacGiangBullet",
-        // 61-90: Vietnamese culture and landmarks
-        "MekongMaverick", "RedRiverRogue", "DragonBayDefender", "LotusLancer", "PhoenixPagoda",
-        "JadeMountain", "SilkRoadSniper", "LanternLegion", "BambooBlitz", "TurtleTower",
-        "GoldenBridge", "MarbleMountain", "PerfumeRiverPro", "ImperialKnight", "CuChiChampion",
-        "SapaStorm", "HaGiangGhost", "FansipanFury", "CatBaCaptain", "TrangAnTitan",
-        "PhongNhaPhantom", "BaiDinhBlade", "TamCocCrusader", "NinhBinhNinja", "HoChiMinhHero",
-        "DienBienDagger", "SonDoongSurge", "CaoDaiKnight", "MuiNeMaster", "DalAtDragon"
-    ]
-
     // Vietnam player milestones (167,676 total players)
     // Top 206 from screenshots (extra entries beyond 150 for daily progression)
     static let vietnamPlayerMilestones: [String] = [
@@ -9805,31 +9829,6 @@ public extension LeaderboardClient {
 
         return entries
     }
-
-    // Curaçao names for leaderboard
-    static let curacaoNames = [
-        // 1-30: Major areas and landmarks
-        "WillemstadWarrior", "PundaPro", "OtrobandaOracle", "PietermaaiPhantom", "HandelskadHero",
-        "MamboBeachMaster", "KnipBayKnight", "CasAbaoCrusader", "PortoMariProwler", "SheteBokaStorm",
-        "ChristoffelChamp", "HatoCavesHunter", "RifFortRogue", "FloatingBridgeFury", "PlayaFoitiKing",
-        "BarberBlitz", "JanThielJaguar", "BlueBayBlade", "SpanseWaterSniper", "TulembaTop",
-        "WestpuntWolf", "LagunLancer", "BandaBowBoss", "SantaMartaBite", "ZuurzakZone",
-        "BullenbaaiBlast", "DaaibooiBrawler", "KleinCuracaoCrush", "GroteKnipGuard", "PlayaKenepaKick",
-        // 31-60: Culture and nature
-        "DushiDagger", "PapiamentuPower", "CarnivalCaptain", "TumbaThunder", "KasdiPalPalm",
-        "LandhouseLeader", "IgnuanaIsland", "FlamingoFrenzy", "CoralCastleCrew", "TurtleNestNinja",
-        "BocaTableBoss", "MikveIsraelMastr", "QueenEmmaBridge", "FortAmsterdam", "NationalParkPro",
-        "SeaquariumStar", "FloraFaunaFury", "DolphinAcademy", "CuracaoLiqueur", "PlasaByeuPunch",
-        "ScharloStrike", "SundialShogun", "RondeFortRider", "MontagnaSentry", "SavaneSlayer",
-        "AscensionTower", "BriefjesBrigade", "TafelbergTitan", "AquaElixir", "ChoboloBeast",
-        // 61-90: More local flavor
-        "BocaSamiBlitz", "PlayaPortoMari", "SantaCruzSnipe", "WilheminaWarden", "BreezeParadise",
-        "BientuBayBolt", "CuracaoKing", "DiviDiveDevil", "TropicTsunami", "SunsetSurfer",
-        "ArawakAce", "CaquetioChief", "WatamulaMaster", "NorthSeaNinja", "CaribCoastCrew",
-        "LeewardLegend", "WindwardWolf", "ReefRanger", "MangroveMaestro", "PelicanPoint",
-        "ParrotProwler", "IguanaImperial", "ConchConqueror", "StarfishStrike", "CoralKnight",
-        "TradewindTitan", "PassaatPuncher", "HarborHawkeye", "GulfstreamGhost", "IslandInferno"
-    ]
 
     // Curaçao player milestones (39,999 total players)
     // Top 56 from screenshots (smaller leaderboard)
