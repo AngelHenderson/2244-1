@@ -1943,8 +1943,12 @@ public enum MockLeaderboardData {
         let newIndex = baseIndex + tiersGained
 
         // If progression goes beyond the highest milestone, player reaches infinity
+        // Calculate infinity count based on how far past the max they've progressed
         if newIndex >= allMilestones.count {
-            return "∞"
+            let tiersPastMax = newIndex - allMilestones.count + 1
+            // Each tier past max represents making and merging infinity tiles
+            // Sequential: 1∞, 2∞, 3∞, 4∞, 5∞, ...
+            return "\(tiersPastMax)∞"
         }
 
         return allMilestones[newIndex]
