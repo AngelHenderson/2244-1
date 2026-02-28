@@ -316,18 +316,17 @@ public struct LeaderboardView: View {
         return previews
     }
 
-    /// Generate rank previews for country leaderboards using tier-consistent milestone lookup
-    /// Uses the same ranking boundaries as the tier view to ensure consistency
+    /// Generate rank previews for country leaderboards using consecutive ranking
+    /// Shows consecutive rank numbers with tier-based milestone assignments
+    /// (consistent with the milestone tier view above)
     private func generateCountryRankPreviews(userMilestone: String, userRank: Int, countryCode: String, filter: LeaderboardFilter) -> [RankPreview] {
         let milestones = Self.allMilestones
 
         // Build tier boundaries from allMilestones using rankForFilter
-        // Each tier has a starting rank (from rankForFilter) and ends where the next tier starts
         guard let userMilestoneIndex = milestones.firstIndex(of: userMilestone) else {
             return []
         }
 
-        // Check a wider range of milestones to find the correct tier for each rank
         let searchStart = max(0, userMilestoneIndex - 10)
         let searchEnd = min(milestones.count, userMilestoneIndex + 10)
 
@@ -338,8 +337,7 @@ public struct LeaderboardView: View {
             tierBoundaries.append((milestone, rank))
         }
 
-        // Ensure tier boundaries are monotonically ordered (higher milestones = lower ranks)
-        // Work outward from user's position, same as tier view
+        // Ensure tier boundaries are monotonically ordered outward from user
         let userBoundaryIndex = userMilestoneIndex - searchStart
         for i in stride(from: userBoundaryIndex - 1, through: 0, by: -1) {
             if tierBoundaries[i].startRank >= tierBoundaries[i + 1].startRank {
@@ -363,7 +361,8 @@ public struct LeaderboardView: View {
             if rank == userRank {
                 milestone = userMilestone
             } else {
-                // Find which tier this rank falls into using the boundary data
+                // Find which tier this rank falls into using tier boundaries
+                // tierBoundaries is ordered from best (highest milestone) to worst
                 var foundMilestone = userMilestone
                 for boundary in tierBoundaries {
                     if boundary.startRank <= rank {
