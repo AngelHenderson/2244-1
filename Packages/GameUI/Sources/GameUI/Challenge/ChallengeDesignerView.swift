@@ -52,7 +52,7 @@ public struct ChallengeDesignerView: View {
         return VStack(spacing: 0) {
             Text("TARGET")
                 .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.primary)
                 .padding(.bottom, 8)
 
             Divider()
