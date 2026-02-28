@@ -854,7 +854,7 @@ public struct LeaderboardView: View {
         case .countryVN:
             return Color.red  // Vietnam - red from the flag
         case .countryCW:
-            return Color.blue  // Curaçao - blue from the flag
+            return Color.blue  // Curacao - blue from the flag
         }
     }
 

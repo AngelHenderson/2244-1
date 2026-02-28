@@ -52,7 +52,7 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
     case countryKE = "Kenya"
     case countryFJ = "Fiji"
     case countryVN = "Vietnam"
-    case countryCW = "Curaçao"
+    case countryCW = "Curacao"
 
     public var id: Self { self }
 
