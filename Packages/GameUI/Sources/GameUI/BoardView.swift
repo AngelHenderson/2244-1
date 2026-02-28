@@ -11,7 +11,6 @@ public struct BoardView: View {
     
     @State private var dragLocation: CGPoint = .zero
     @State private var isDragging = false
-    @Namespace private var tileNamespace
     @State private var magnetAnimations: [MagnetAnimationModel] = []
     
     private let spacing: CGFloat = 8
@@ -84,8 +83,6 @@ public struct BoardView: View {
                                 theme: currentTheme
                             )
                                 .opacity(shouldHideTile(at: position) ? 0 : 1)
-                                .matchedGeometryEffect(id: tile.id, in: tileNamespace)
-                                .transition(.identity)
                             }
                             
                             if gameStore.pendingGiftBoxes[position] != nil {

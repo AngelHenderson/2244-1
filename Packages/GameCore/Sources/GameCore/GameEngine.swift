@@ -619,6 +619,11 @@ public final class GameEngine {
         let mergedValue = TileStepMath.value(forStep: mergedStep)
         let mergedTile = Tile.make(forStep: mergedStep)
         
+        // Score debug logging
+        let scoreBefore = state.scoreValue.formattedWithCommas()
+        print("💰 SCORE DEBUG: Chain steps=\(steps) → mergedStep=\(mergedStep) → tileValue=\(TileStepLabelFormatter.labelForStep(mergedStep, start: 2))")
+        print("💰 SCORE DEBUG: Score BEFORE merge: \(scoreBefore)")
+        
         // Debug logging for large chains
         if positions.count >= 10 {
             print("🔗 LARGE CHAIN DEBUG:")
@@ -671,6 +676,8 @@ public final class GameEngine {
         
         // Award points
         addScoreForStep(mergedStep)
+        let scoreAfter = state.scoreValue.formattedWithCommas()
+        print("💰 SCORE DEBUG: Score AFTER merge: \(scoreAfter) (multiplier=\(scoreMultiplier))")
         state.moves += 1
         
         // Award gems for long chains (10+ tiles)

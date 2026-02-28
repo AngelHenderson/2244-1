@@ -15,7 +15,6 @@ public struct SimplifiedGlassBoardView: View {
     @State private var isDragging = false
     @State private var glassPreviewValues: [Int] = []
     @State private var magnetAnimations: [MagnetAnimationModel] = []
-    @Namespace private var tileNamespace
     private let gestureLogger = Logger(subsystem: "com.game2244", category: "BoardGesture")
     
     private let spacing: CGFloat = 12
@@ -106,8 +105,6 @@ public struct SimplifiedGlassBoardView: View {
                                     theme: currentTheme
                                 )
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
-                                    .matchedGeometryEffect(id: tile.id, in: tileNamespace)
-                                    .transition(.identity)
                                 }
 
                                 // Glass overlay effect - only show if glass hasn't been broken
@@ -161,8 +158,6 @@ public struct SimplifiedGlassBoardView: View {
                                     theme: currentTheme
                                 )
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
-                                    .matchedGeometryEffect(id: tile.id, in: tileNamespace)
-                                    .transition(.identity)
                                 }
                                 if crownPositions.contains(position) {
                                     Image(systemName: "crown.fill")

@@ -405,15 +405,19 @@ public struct CustomChallengeGameScreen: View {
 
             Spacer()
 
-            // Exit button (right)
-            Button {
-                onDismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(.secondary)
+            // Gem balance + Exit button (right)
+            HStack(spacing: 12) {
+                GemBalancePill()
+
+                Button {
+                    onDismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .padding()
         .background(.ultraThinMaterial)
@@ -441,7 +445,7 @@ public struct CustomChallengeGameScreen: View {
                 Button {
                     onDismiss()
                 } label: {
-                    Text("Continue")
+                    Text(challengeWon ? "Continue" : "Try Again")
                         .font(.headline)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 12)
