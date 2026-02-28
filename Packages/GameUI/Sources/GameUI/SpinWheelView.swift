@@ -361,7 +361,7 @@ public struct SpinWheelView: View {
             }
 
             let combined = messages.joined(separator: ", ")
-            return ("Gift Box Jackpot! 🎁 \(combined)", totalPowerups)
+            return ("Gift Box Jackpot! \(combined)", totalPowerups)
         } else {
             // 50%: Single reward
             let reward = randomSingleGiftReward()
@@ -377,22 +377,22 @@ public struct SpinWheelView: View {
         case .gems:
             let amount = reward.amount * multiplier
             grantGems(amount)
-            return ("\(amount) Gems 💎", 0)
+            return ("\(amount) Gems", 0)
         case .hammers:
             gameStore.addPowerUp("hammer", count: reward.amount)
-            return ("\(reward.amount) Hammer\(pluralSuffix(for: reward.amount)) 🔨", reward.amount)
+            return ("\(reward.amount) Hammer\(pluralSuffix(for: reward.amount))", reward.amount)
         case .magnets:
             gameStore.addPowerUp("magnet", count: reward.amount)
-            return ("\(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount)) 🧲", reward.amount)
+            return ("\(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))", reward.amount)
         case .swap:
             gameStore.addPowerUp("swap", count: reward.amount)
-            return ("\(reward.amount) Swap\(pluralSuffix(for: reward.amount)) 🔁", reward.amount)
+            return ("\(reward.amount) Swap\(pluralSuffix(for: reward.amount))", reward.amount)
         case .spin:
             spinState.addBonusSpins(reward.amount)
-            return ("\(reward.amount) Spin\(pluralSuffix(for: reward.amount)) 🎡", reward.amount)
+            return ("\(reward.amount) Spin\(pluralSuffix(for: reward.amount))", reward.amount)
         case .multiplier(let tier):
             spinState.addMultiplier(tier)
-            return ("\(tier.displayName) Boost ⚡", 1)
+            return ("\(tier.displayName) Boost", 1)
         case .giftBox:
             return ("", 0)
         }

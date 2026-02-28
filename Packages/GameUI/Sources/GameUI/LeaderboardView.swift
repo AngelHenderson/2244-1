@@ -360,9 +360,24 @@ public struct LeaderboardView: View {
 
             if rank == userRank {
                 milestone = userMilestone
+            } else if rank <= 150 {
+                // For ranks within top 150, use actual player data
+                if let actualMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: rank, countryCode: countryCode) {
+                    milestone = actualMilestone
+                } else {
+                    // Fallback to tier boundary lookup
+                    var foundMilestone = userMilestone
+                    for boundary in tierBoundaries {
+                        if boundary.startRank <= rank {
+                            foundMilestone = boundary.milestone
+                        } else {
+                            break
+                        }
+                    }
+                    milestone = foundMilestone
+                }
             } else {
-                // Find which tier this rank falls into using tier boundaries
-                // tierBoundaries is ordered from best (highest milestone) to worst
+                // For ranks beyond 150, use tier boundary lookup
                 var foundMilestone = userMilestone
                 for boundary in tierBoundaries {
                     if boundary.startRank <= rank {
