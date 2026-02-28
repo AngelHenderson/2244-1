@@ -1940,7 +1940,30 @@ public enum MockLeaderboardData {
 
         // Calculate total tiers gained
         let tiersGained = Int(dailyRate * Double(day))
-        let newIndex = min(baseIndex + tiersGained, allMilestones.count - 1)
+
+        // Cap progression based on base milestone position to prevent top players
+        // from all converging at the maximum milestone (873bz)
+        // Higher-ranked players (higher baseIndex) get smaller caps
+        let maxProgression: Int
+        let totalMilestones = allMilestones.count
+        let positionRatio = Double(baseIndex) / Double(totalMilestones)
+
+        if positionRatio > 0.95 {
+            // Top ~5% milestones: very limited progression (2-4 tiers)
+            maxProgression = 2 + Int(randomFactor * 2)
+        } else if positionRatio > 0.85 {
+            // Top ~15%: limited progression (3-6 tiers)
+            maxProgression = 3 + Int(randomFactor * 3)
+        } else if positionRatio > 0.7 {
+            // Upper middle: moderate progression (4-8 tiers)
+            maxProgression = 4 + Int(randomFactor * 4)
+        } else {
+            // Lower milestones: more room to advance (up to 15 tiers)
+            maxProgression = 8 + Int(randomFactor * 7)
+        }
+
+        let cappedTiersGained = min(tiersGained, maxProgression)
+        let newIndex = min(baseIndex + cappedTiersGained, allMilestones.count - 1)
 
         return allMilestones[newIndex]
     }
