@@ -27,6 +27,7 @@ public extension EnvironmentValues {
 
 public struct JourneyPanel: View {
     @Environment(\.gameStore) private var gameStore
+    @Environment(\.currentTheme) private var currentTheme
 
     private let topInset: CGFloat
     private let bottomInset: CGFloat
@@ -197,7 +198,8 @@ private extension JourneyPanel {
                 status: status,
                 isUnlocked: isUnlocked,
                 isRewardAvailable: rewardAvailable,
-                isRewardClaimed: rewardClaimed
+                isRewardClaimed: rewardClaimed,
+                theme: currentTheme
             )
         }
     }
@@ -232,6 +234,7 @@ struct SerpentineMilestone: Identifiable {
     let isUnlocked: Bool
     let isRewardAvailable: Bool
     let isRewardClaimed: Bool
+    let theme: ThemeDescriptor?
 
     var tileColor: Color {
         if tile.isInfinity {
@@ -239,9 +242,9 @@ struct SerpentineMilestone: Identifiable {
         }
         // Use step-based color to handle values beyond Int.max
         if let step = tile.stepIndex {
-            return Theme.colorForStep(step)
+            return theme?.colorForStep(step) ?? Theme.colorForStep(step)
         }
-        return Theme.color(for: tile.value)
+        return theme?.color(for: tile.value) ?? Theme.color(for: tile.value)
     }
 
     var tileTextColor: Color {
@@ -250,7 +253,7 @@ struct SerpentineMilestone: Identifiable {
         }
         // Use step-based color to handle values beyond Int.max
         if let step = tile.stepIndex {
-            return Theme.textColorForStep(step)
+            return theme?.textColorForStep(step) ?? Theme.textColorForStep(step)
         }
         return Theme.textColor(for: tile.value)
     }
@@ -303,6 +306,7 @@ private struct SerpentineRoadView: View {
 
     /// Calculate positions for all tiles along the serpentine path
     /// Index 0 = lowest value (2) at bottom, higher indices = higher values going up
+    /// Each tile alternates left/right to create clean S-curve turns
     private func calculateAllPositions(count: Int, width: CGFloat) -> [CGPoint] {
         guard count > 0 else { return [] }
 
@@ -310,37 +314,18 @@ private struct SerpentineRoadView: View {
         let leftX = width * 0.25
         let rightX = width * 0.75
         let verticalSpacing: CGFloat = 100
-        let tilesPerSection = 2
 
         // Calculate total height first
         let totalHeight = CGFloat(count) * verticalSpacing + 100
 
         // Build positions from bottom (index 0 = tile "2") to top (highest values)
+        // Each tile alternates sides: even indices on right, odd on left
         for i in 0..<count {
-            let sectionIndex = i / tilesPerSection
-            let posInSection = i % tilesPerSection
-            let sectionOnRight = (sectionIndex % 2 == 0)
-
             // Y position: index 0 at bottom, increasing index goes up
             let y = totalHeight - CGFloat(i) * verticalSpacing - 50
 
-            // X position: alternating left/right sections
-            let x: CGFloat
-            if sectionOnRight {
-                // Right section
-                if posInSection == 0 {
-                    x = rightX
-                } else {
-                    x = rightX - (rightX - width * 0.5) * 0.4
-                }
-            } else {
-                // Left section
-                if posInSection == 0 {
-                    x = leftX
-                } else {
-                    x = leftX + (width * 0.5 - leftX) * 0.4
-                }
-            }
+            // X position: alternate left/right each tile for clean S-curves
+            let x: CGFloat = (i % 2 == 0) ? rightX : leftX
 
             positions.append(CGPoint(x: x, y: y))
         }

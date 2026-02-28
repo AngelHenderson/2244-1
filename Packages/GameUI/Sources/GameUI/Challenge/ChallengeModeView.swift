@@ -176,6 +176,7 @@ private struct ChallengeCard: View {
     let currentTime: Date
     var isSelected: Bool = false
 
+    @Environment(\.currentTheme) private var currentTheme
     @State private var showingRewards = false
 
     // Format tile target for display using TileStepLabelFormatter
@@ -219,8 +220,8 @@ private struct ChallengeCard: View {
                 .opacity(isLocked ? 0.5 : 1.0)
             } else {
                 // Regular tile with theme colors - targetTile is a step value
-                let tileColor = Theme.colorForStep(targetTile)
-                let textColor = Theme.textColorForStep(targetTile)
+                let tileColor = currentTheme?.colorForStep(targetTile) ?? Theme.colorForStep(targetTile)
+                let textColor = currentTheme?.textColorForStep(targetTile) ?? Theme.textColorForStep(targetTile)
 
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)

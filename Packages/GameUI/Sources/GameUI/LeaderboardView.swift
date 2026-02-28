@@ -552,62 +552,7 @@ public struct LeaderboardView: View {
     private func milestoneTiersAroundUser(userMilestone: String, filter: LeaderboardFilter) -> [(milestone: String, rankLabel: String)] {
         let milestones = Self.allMilestones
 
-        // For country filters, use actual player data for ranks near the user
-        if let countryCode = filter.countryCode {
-            let userRank = rankForFilter(filter, milestone: userMilestone)
-
-            // Scan a range of ranks around the user to find milestone boundaries
-            let scanStart = max(1, userRank - 20)
-            let scanEnd = userRank + 20
-
-            // Build list of (rank, milestone) pairs from actual data or extended brackets
-            var rankMilestones: [(rank: Int, milestone: String)] = []
-            for r in scanStart...scanEnd {
-                let milestone: String
-                if r == userRank {
-                    milestone = userMilestone
-                } else if r <= 150 {
-                    if let actual = MockLeaderboardData.milestoneAtCountryRank(rank: r, countryCode: countryCode) {
-                        milestone = actual
-                    } else if let extended = MockLeaderboardData.milestoneForExtendedRank(rank: r, countryCode: countryCode) {
-                        milestone = extended
-                    } else {
-                        continue
-                    }
-                } else {
-                    if let extended = MockLeaderboardData.milestoneForExtendedRank(rank: r, countryCode: countryCode) {
-                        milestone = extended
-                    } else {
-                        continue
-                    }
-                }
-                rankMilestones.append((r, milestone))
-            }
-
-            // Group consecutive same-milestone ranks into tiers (startRank, milestone)
-            var tiers: [(startRank: Int, milestone: String)] = []
-            for rm in rankMilestones {
-                if let last = tiers.last, last.milestone == rm.milestone {
-                    continue // Same milestone tier, skip
-                }
-                tiers.append((rm.rank, rm.milestone))
-            }
-
-            // Find user's tier and show 3 above + 3 below
-            guard let userTierIdx = tiers.firstIndex(where: { $0.milestone == userMilestone }) else {
-                // Fallback: just return the user tier
-                return [(userMilestone, "\(userRank) - \(userMilestone)")]
-            }
-
-            let tierStart = max(0, userTierIdx - 3)
-            let tierEnd = min(tiers.count, userTierIdx + 4)
-
-            return tiers[tierStart..<tierEnd].map { tier in
-                (tier.milestone, "\(tier.startRank) - \(tier.milestone)")
-            }
-        }
-
-        // Non-country filters: use allMilestones approach
+        // Find user's position in the milestone list
         guard let userIndex = milestones.firstIndex(of: userMilestone) else {
             // User milestone not found - show starting milestones with calculated ranks
             let endIndex = min(7, milestones.count)
@@ -621,28 +566,10 @@ public struct LeaderboardView: View {
         let startIndex = max(0, userIndex - 3)
         let endIndex = min(milestones.count, userIndex + 4)  // +4 because endIndex is exclusive
 
-        // Calculate ranks for each milestone
-        var tiers: [(milestone: String, rank: Int)] = milestones[startIndex..<endIndex].map { milestone in
+        // Calculate ranks for each milestone using actual leaderboard data
+        let tiers: [(milestone: String, rank: Int)] = milestones[startIndex..<endIndex].map { milestone in
             let rank = rankForFilter(filter, milestone: milestone)
             return (milestone, rank)
-        }
-
-        // Find the user's tier position within the tiers array
-        let userTierIndex = userIndex - startIndex
-
-        // Enforce monotonic ordering outward from the user's position:
-        // Above user (going up): ranks must decrease (get better) or stay equal
-        for i in stride(from: userTierIndex - 1, through: 0, by: -1) {
-            if tiers[i].rank >= tiers[i + 1].rank {
-                tiers[i].rank = tiers[i + 1].rank - 1
-            }
-        }
-
-        // Below user (going down): ranks must increase (get worse) or stay equal
-        for i in (userTierIndex + 1)..<tiers.count {
-            if tiers[i].rank <= tiers[i - 1].rank {
-                tiers[i].rank = tiers[i - 1].rank + 1
-            }
         }
 
         return tiers.map { tier in
