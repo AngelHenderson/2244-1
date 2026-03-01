@@ -307,30 +307,30 @@ public struct SpinWheelView: View {
         case .gems:
             let amount = reward.amount * multiplier
             grantGems(amount)
-            let message = isGiftBox ? "Gift Box surprise! You won \(amount) gems! 💎" : "You won \(amount) gems! 💎"
+            let message = isGiftBox ? "Gift Box surprise! You won \(amount) gems!" : "You won \(amount) gems!"
             return (message, 0) // Gems don't count as powerups
 
         case .hammers:
             gameStore.addPowerUp("hammer", count: reward.amount)
-            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
-                                    : "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))! 🔨"
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))!"
+                                    : "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))!"
             return (message, reward.amount)
 
         case .magnets:
             gameStore.addPowerUp("magnet", count: reward.amount)
-            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
-                                    : "You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))! 🧲"
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))!"
+                                    : "You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))!"
             return (message, reward.amount)
 
         case .swap:
             gameStore.addPowerUp("swap", count: reward.amount)
-            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
-                                    : "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))! 🔁"
+            let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))!"
+                                    : "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))!"
             return (message, reward.amount)
 
         case .spin:
             spinState.addBonusSpins(reward.amount)
-            let base = reward.amount == 1 ? "Bonus spin added! 🎡" : "\(reward.amount) bonus spins added! 🎡"
+            let base = reward.amount == 1 ? "Bonus spin added!" : "\(reward.amount) bonus spins added!"
             let message = isGiftBox ? "Gift Box surprise! \(base)" : base
             return (message, reward.amount) // Spins count as powerups
 
