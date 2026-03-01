@@ -395,26 +395,27 @@ private struct AchievementRow: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .multilineTextAlignment(.center)
 
-            // Row: Icon, Category, Claim button
+            // Category label centered below title
+            HStack(spacing: 4) {
+                if tierDisplay != nil {
+                    Image("GiftBoxIcon", bundle: .module)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 14, height: 14)
+                }
+                Text(categoryLabel)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+
+            // Row: Icon, Claim button
             HStack(alignment: .top, spacing: 12) {
                 LockupIcon(isUnlocked: isUnlocked, isMaxed: isMaxed)
                     .frame(width: 52, height: 52)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
-                        if tierDisplay != nil {
-                            Image("GiftBoxIcon", bundle: .module)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 14, height: 14)
-                        }
-                        Text(categoryLabel)
-                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .textCase(.uppercase)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
 
                 VStack(alignment: .trailing, spacing: 6) {
                     ClaimButton(
