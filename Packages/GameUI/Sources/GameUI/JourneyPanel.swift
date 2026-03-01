@@ -379,22 +379,21 @@ private struct RoadShape: Shape {
         roadPath.move(to: CGPoint(x: first.x, y: first.y + 80))
         roadPath.addLine(to: first)
 
-        // Draw U-turn curves between each tile
-        // Each tile is at a turn point; the road overshoots above
-        // the destination before curving down, creating a U-turn
+        // Draw S-curves between each tile (tiles alternate left/right)
+        // Control points at midpoint Y create proper S-curves where the road
+        // always arrives going UP — chained together, tiles sit at U-turn points
         for i in 1..<positions.count {
             let current = positions[i]
             let prev = positions[i - 1]
 
-            // U-turn: both control points at the same Y (above the destination)
-            // This makes the road go up past the tile, curve over, and come back down
-            let overshoot: CGFloat = 40
-            let ctrlY = current.y - overshoot  // above the destination tile
+            // S-curve: each control point at the vertical midpoint, at its tile's X
+            // Road leaves prev going UP, crosses over horizontally, arrives at current going UP
+            let midY = (prev.y + current.y) / 2
 
             roadPath.addCurve(
                 to: current,
-                control1: CGPoint(x: prev.x, y: ctrlY),
-                control2: CGPoint(x: current.x, y: ctrlY)
+                control1: CGPoint(x: prev.x, y: midY),
+                control2: CGPoint(x: current.x, y: midY)
             )
         }
 
