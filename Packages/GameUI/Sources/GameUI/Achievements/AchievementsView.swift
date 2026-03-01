@@ -386,7 +386,16 @@ private struct AchievementRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Top row: Icon, Title/Category, Claim button
+            // Title centered at top
+            Text(displayTitle)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .multilineTextAlignment(.center)
+
+            // Row: Icon, Category, Claim button
             HStack(alignment: .top, spacing: 12) {
                 LockupIcon(isUnlocked: isUnlocked, isMaxed: isMaxed)
                     .frame(width: 52, height: 52)
@@ -404,12 +413,6 @@ private struct AchievementRow: View {
                             .foregroundStyle(.secondary)
                             .textCase(.uppercase)
                     }
-
-                    Text(displayTitle)
-                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
