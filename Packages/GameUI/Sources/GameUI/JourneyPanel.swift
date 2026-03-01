@@ -306,7 +306,7 @@ private struct SerpentineRoadView: View {
 
     /// Calculate positions for all tiles along the serpentine path
     /// Index 0 = lowest value (2) at bottom, higher indices = higher values going up
-    /// Each tile alternates left/right to create clean S-curve turns
+    /// Tiles are grouped 2 per section, alternating sides for U-turn switchbacks
     private func calculateAllPositions(count: Int, width: CGFloat) -> [CGPoint] {
         guard count > 0 else { return [] }
 
@@ -314,18 +314,21 @@ private struct SerpentineRoadView: View {
         let leftX = width * 0.25
         let rightX = width * 0.75
         let verticalSpacing: CGFloat = 100
+        let tilesPerSection = 2
 
         // Calculate total height first
         let totalHeight = CGFloat(count) * verticalSpacing + 100
 
         // Build positions from bottom (index 0 = tile "2") to top (highest values)
-        // Each tile alternates sides: even indices on right, odd on left
         for i in 0..<count {
+            let sectionIndex = i / tilesPerSection
+            let sectionOnRight = (sectionIndex % 2 == 0)
+
             // Y position: index 0 at bottom, increasing index goes up
             let y = totalHeight - CGFloat(i) * verticalSpacing - 50
 
-            // X position: alternate left/right each tile for clean S-curves
-            let x: CGFloat = (i % 2 == 0) ? rightX : leftX
+            // X position: all tiles in a section share the same X
+            let x: CGFloat = sectionOnRight ? rightX : leftX
 
             positions.append(CGPoint(x: x, y: y))
         }
@@ -383,20 +386,29 @@ private struct RoadShape: Shape {
         roadPath.move(to: CGPoint(x: first.x, y: first.y + 80))
         roadPath.addLine(to: first)
 
-        // Draw smooth S-curves through all positions
         for i in 1..<positions.count {
             let current = positions[i]
             let prev = positions[i - 1]
 
-            // Calculate midpoint Y
-            let midY = (prev.y + current.y) / 2
+            let sameSide = abs(prev.x - current.x) < 10
 
-            // Create S-curve
-            roadPath.addCurve(
-                to: current,
-                control1: CGPoint(x: prev.x, y: midY),
-                control2: CGPoint(x: current.x, y: midY)
-            )
+            if sameSide {
+                // Same side: straight vertical line
+                roadPath.addLine(to: current)
+            } else {
+                // Crossing sides: smooth U-turn arc
+                // The U-turn should curve above both points (since we're going upward)
+                let midY = (prev.y + current.y) / 2
+                // Extend the curve outward for a wider, smoother U shape
+                let overshoot: CGFloat = 30
+                let ctrlY = midY - overshoot
+
+                roadPath.addCurve(
+                    to: current,
+                    control1: CGPoint(x: prev.x, y: ctrlY),
+                    control2: CGPoint(x: current.x, y: ctrlY)
+                )
+            }
         }
 
         // Extend past the last position (top of screen, highest tile value)
