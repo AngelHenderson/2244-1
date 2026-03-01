@@ -222,7 +222,7 @@ public struct AchievementsView: View {
                 }
             }
             .background(Color(UIColor.systemGroupedBackground))
-            .navigationTitle("Achievements")
+            .navigationTitle("ACHIEVEMENTS")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 // Trigger playtime update when viewing achievements
