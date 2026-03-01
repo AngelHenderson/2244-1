@@ -103,26 +103,26 @@ public struct SpinWheelView: View {
     }
     
     private var header: some View {
-        HStack(spacing: 16) {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.title2.weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .glassOrMaterialBackground(cornerRadius: 22)
-            }
-            
-            Spacer()
-
+        ZStack {
             Text("SPIN")
                 .font(.avenirNext(size: GameFonts.title1Size, weight: .bold))
                 .foregroundStyle(.white)
 
-            Spacer()
-            
-            GemBalancePill()
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .glassOrMaterialBackground(cornerRadius: 22)
+                }
+
+                Spacer()
+
+                GemBalancePill()
+            }
         }
     }
     
@@ -195,7 +195,7 @@ public struct SpinWheelView: View {
                 Text("Bonus spins available: \(spinState.bonusSpins)")
                     .foregroundStyle(.white.opacity(0.85))
                     .font(.avenirNext(size: 16, weight: .medium))
-            } else if slotReady {
+            } else if slotReady && spinState.lastConsumedSlot != nil {
                 Text("Ready now - tap Spin to claim this window.")
                     .foregroundStyle(.white.opacity(0.75))
                     .font(.avenirNext(size: 16, weight: .medium))
