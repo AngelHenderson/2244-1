@@ -43,7 +43,7 @@ public struct JourneyPanel: View {
     public var body: some View {
         let milestones = roadMilestones
         let milestoneCount = milestones.count
-        let verticalSpacing: CGFloat = 100
+        let verticalSpacing: CGFloat = 200
         let totalHeight = CGFloat(milestoneCount) * verticalSpacing + 200
 
         // Find current milestone index for initial position
@@ -306,20 +306,20 @@ private struct SerpentineRoadView: View {
 
     /// Calculate positions for all tiles along the serpentine path
     /// Each tile sits at a turning point, alternating left/right
-    /// This creates continuous U-turns that chain into S-shapes
+    /// This creates continuous S-curves that chain into a serpentine
     private func calculateAllPositions(count: Int, width: CGFloat) -> [CGPoint] {
         guard count > 0 else { return [] }
 
         var positions: [CGPoint] = []
-        let leftX = width * 0.25
-        let rightX = width * 0.75
-        let verticalSpacing: CGFloat = 100
+        let leftX = width * 0.30
+        let rightX = width * 0.70
+        let verticalSpacing: CGFloat = 200
 
         // Calculate total height first
         let totalHeight = CGFloat(count) * verticalSpacing + 100
 
         // Each tile alternates sides: even indices on right, odd on left
-        // Each tile is AT a turn point (start/end of a U-turn)
+        // Each tile is AT a turn point (start/end of an S-curve)
         for i in 0..<count {
             let y = totalHeight - CGFloat(i) * verticalSpacing - 50
             let x: CGFloat = (i % 2 == 0) ? rightX : leftX
@@ -379,21 +379,24 @@ private struct RoadShape: Shape {
         roadPath.move(to: CGPoint(x: first.x, y: first.y + 80))
         roadPath.addLine(to: first)
 
-        // Draw S-curves between each tile (tiles alternate left/right)
-        // Control points at midpoint Y create proper S-curves where the road
-        // always arrives going UP — chained together, tiles sit at U-turn points
+        // Draw smooth S-curves between each tile (tiles alternate left/right)
+        // Control points at 1/3 and 2/3 keep the road vertical longer at each
+        // tile before smoothly crossing over — creating wide, round S-curves
         for i in 1..<positions.count {
             let current = positions[i]
             let prev = positions[i - 1]
 
-            // S-curve: each control point at the vertical midpoint, at its tile's X
-            // Road leaves prev going UP, crosses over horizontally, arrives at current going UP
-            let midY = (prev.y + current.y) / 2
+            // Place control points at 1/3 and 2/3 of the vertical distance
+            // This keeps the road going straight up/down near each tile,
+            // with the horizontal crossover happening gradually in the middle
+            let dy = prev.y - current.y  // positive (prev is below current)
+            let ctrl1Y = prev.y - dy * 0.33     // 1/3 up from prev
+            let ctrl2Y = current.y + dy * 0.33  // 1/3 down from current
 
             roadPath.addCurve(
                 to: current,
-                control1: CGPoint(x: prev.x, y: midY),
-                control2: CGPoint(x: current.x, y: midY)
+                control1: CGPoint(x: prev.x, y: ctrl1Y),
+                control2: CGPoint(x: current.x, y: ctrl2Y)
             )
         }
 
