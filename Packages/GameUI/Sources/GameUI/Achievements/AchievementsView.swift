@@ -223,7 +223,7 @@ public struct AchievementsView: View {
             }
             .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Achievements")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 // Trigger playtime update when viewing achievements
                 gameStore.achievementEvaluator?.savePlaytimeProgress(state: gameStore.state)
