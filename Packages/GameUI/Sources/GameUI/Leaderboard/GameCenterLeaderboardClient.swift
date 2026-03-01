@@ -175,6 +175,7 @@ public extension LeaderboardClient {
                     case .countryFJ: return .global
                     case .countryVN: return .global
                     case .countryCW: return .global
+                    case .countryVE: return .global
                     }
                 }()
 
