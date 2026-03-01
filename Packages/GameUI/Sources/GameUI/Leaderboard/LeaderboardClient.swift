@@ -1958,6 +1958,13 @@ public enum MockLeaderboardData {
 
     // Get milestone index for sorting (higher index = better milestone)
     static func milestoneIndex(for milestone: String) -> Int {
+        // Infinity milestones always sort above all regular milestones
+        if milestone.hasSuffix("∞") {
+            let countStr = milestone.replacingOccurrences(of: "∞", with: "")
+            let count = Int(countStr) ?? 1
+            return allMilestones.count + count
+        }
+
         // Normalize the milestone first
         let normalized = normalizeMilestone(milestone)
 
@@ -2227,6 +2234,25 @@ public enum MockLeaderboardData {
         32123, 19922, 6769, 4167, 2524, 676, 111, 89, 77, 77,
         76, 75, 48, 27, 11, 7, 5, 5, 4, 3,
         3, 3, 2, 2, 2, 2, 1, 1, 1, 1,
+        1, 1, 1
+    ]
+
+    static let norwayHallOfFameInfinityCounts: [Int] = [
+        // Norway Hall of Fame (54 players)
+        7939, 6767, 5464, 3998, 3192, 2718, 2222, 1958, 1737, 1588,
+        1465, 1366, 1360, 1200, 1088, 784, 288, 222, 119, 89,
+        79, 71, 64, 57, 50, 44, 38, 32, 27, 22,
+        18, 14, 11, 8, 6, 4, 4, 3, 3, 3,
+        2, 2, 2, 2, 2, 2, 1, 1, 1, 1,
+        1, 1, 1, 1
+    ]
+
+    static let denmarkHallOfFameInfinityCounts: [Int] = [
+        // Denmark Hall of Fame (43 players)
+        22222, 5555, 1982, 1676, 1667, 676, 667, 414, 299, 267,
+        238, 211, 186, 181, 179, 177, 176, 169, 167, 166,
+        119, 72, 25, 19, 14, 10, 7, 5, 4, 4,
+        3, 3, 3, 2, 2, 2, 2, 1, 1, 1,
         1, 1, 1
     ]
 
@@ -3732,6 +3758,16 @@ public extension LeaderboardClient {
         // Add Netherlands players
         for (i, count) in MockLeaderboardData.netherlandsHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_nl_\(i)", count, "NL", globalIndex, i + 17000))
+            globalIndex += 1
+        }
+        // Add Norway players
+        for (i, count) in MockLeaderboardData.norwayHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_no_\(i)", count, "NO", globalIndex, i + 18000))
+            globalIndex += 1
+        }
+        // Add Denmark players
+        for (i, count) in MockLeaderboardData.denmarkHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_dk_\(i)", count, "DK", globalIndex, i + 19000))
             globalIndex += 1
         }
 
@@ -5964,6 +6000,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -6105,6 +6142,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -6198,6 +6236,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -6288,6 +6327,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -6378,6 +6418,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -6460,6 +6501,7 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -6517,6 +6559,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -6581,6 +6624,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -6667,6 +6711,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -6721,6 +6766,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -6775,6 +6821,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -6829,6 +6876,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -6884,6 +6932,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -6939,6 +6988,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -6992,6 +7042,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -7045,6 +7096,7 @@ public extension LeaderboardClient {
 
         // Filter out infinity players (they belong in Hall of Fame only)
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx { return $0.milestoneIdx > $1.milestoneIdx }
             if $0.id == "me" { return true }
@@ -7105,6 +7157,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7195,6 +7248,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7285,6 +7339,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7375,6 +7430,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7465,6 +7521,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7555,6 +7612,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7647,6 +7705,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7739,6 +7798,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7831,6 +7891,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -7923,6 +7984,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8015,6 +8077,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8107,6 +8170,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8199,6 +8263,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8291,6 +8356,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8383,6 +8449,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8475,6 +8542,7 @@ public extension LeaderboardClient {
         // Sort by milestone index (highest first = best milestone)
         // Tiebreaker 1: user comes first when milestones are equal
         // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8560,6 +8628,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8643,6 +8712,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8726,6 +8796,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8809,6 +8880,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8893,6 +8965,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -8977,6 +9050,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -9109,6 +9183,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -9237,6 +9312,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -9359,6 +9435,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -9495,6 +9572,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -9624,6 +9702,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -9767,6 +9846,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -9878,6 +9958,7 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
@@ -10017,6 +10098,7 @@ public extension LeaderboardClient {
         playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
 
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
