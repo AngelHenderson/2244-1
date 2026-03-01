@@ -2264,6 +2264,21 @@ public enum MockLeaderboardData {
         2, 1, 1, 1, 1
     ]
 
+    static let polandHallOfFameInfinityCounts: [Int] = [
+        // Poland Hall of Fame (103 players)
+        27766, 19999, 11111, 3333, 2996, 2673, 2300, 1987, 1689, 1436,
+        1288, 1188, 1097, 1009, 939, 888, 833, 747, 674, 365,
+        355, 353, 349, 312, 238, 166, 95, 48, 26, 25,
+        24, 24, 23, 23, 23, 22, 21, 20, 18, 16,
+        14, 12, 11, 11, 10, 9, 9, 9, 8, 8,
+        8, 7, 7, 7, 7, 6, 6, 6, 5, 5,
+        5, 5, 5, 4, 4, 4, 4, 4, 4, 3,
+        3, 3, 3, 3, 3, 3, 3, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1
+    ]
+
     static let usNames = [
         "AmericanEagle486408", "StarsAndStripes", "USAChamp879384", "LibertyGamer", "PatriotPlayer",
         "FreedomFighter", "StateStar221473", "CapitalCity096548", "RedWhiteBlue", "UncleSamPro",
@@ -3781,6 +3796,11 @@ public extension LeaderboardClient {
         // Add Finland players
         for (i, count) in MockLeaderboardData.finlandHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_fi_\(i)", count, "FI", globalIndex, i + 20000))
+            globalIndex += 1
+        }
+        // Add Poland players
+        for (i, count) in MockLeaderboardData.polandHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_pl_\(i)", count, "PL", globalIndex, i + 21000))
             globalIndex += 1
         }
 
