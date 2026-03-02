@@ -107,8 +107,6 @@ public final class GameStore {
     public private(set) var pendingGiftBoxes: [Position: GiftReward] = [:]
     // Tiles spawned during refill that should fade in after gravity settles
     public private(set) var pendingRefillPositions: Set<Position> = []
-    // Gravity drop offsets: for each position, how many rows the tile dropped from (for animation)
-    public var gravityDropRowDeltas: [Position: Int] = [:]
     private var refillRevealTask: Task<Void, Never>? = nil
     private var mergeCleanupTask: Task<Void, Never>? = nil
     public private(set) var hammerAnimationState: HammerAnimationState? = nil
@@ -929,13 +927,8 @@ public final class GameStore {
 
                 if requiresGravityDrop {
                     print("[GameStore] Phase 3c: Gravity Drop")
-                    // Apply gravity without animation — offsets handle the visual drop
-                    self.performGravityDrop(columns: affectedColumns)
-                    // Animate offsets to 0 on next tick so SwiftUI renders initial offsets first
-                    DispatchQueue.main.async {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                            self.gravityDropRowDeltas = [:]
-                        }
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        self.performGravityDrop(columns: affectedColumns)
                     }
                 }
 
@@ -1000,49 +993,14 @@ public final class GameStore {
     }
 
     private func performGravityDrop(columns: Set<Int>? = nil) {
-        let oldBoard = state.board
-        
         if let cols = columns, !cols.isEmpty {
             let newState = engine.collapseColumns(cols)
             state = newState
-            calculateGravityOffsets(oldBoard: oldBoard, newBoard: newState.board, columns: cols)
         } else {
             let newState = engine.applyGravityAfterChain()
             state = newState
-            // Calculate for all columns
-            let allCols = Set(0..<newState.board.width)
-            calculateGravityOffsets(oldBoard: oldBoard, newBoard: newState.board, columns: allCols)
         }
-    }
-    
-    /// Compare old and new boards to find where each tile moved, storing row deltas for animation
-    private func calculateGravityOffsets(oldBoard: Board, newBoard: Board, columns: Set<Int>) {
-        var deltas: [Position: Int] = [:]
-        
-        for col in columns {
-            // Build a map of tile ID → old row for this column
-            var oldRowByTileID: [UUID: Int] = [:]
-            for row in 0..<oldBoard.height {
-                let pos = Position(row: row, col: col)
-                if let tile = oldBoard[pos] {
-                    oldRowByTileID[tile.id] = row
-                }
-            }
-            
-            // For each tile in the new board, check if it moved
-            for row in 0..<newBoard.height {
-                let newPos = Position(row: row, col: col)
-                if let tile = newBoard[newPos],
-                   let oldRow = oldRowByTileID[tile.id] {
-                    let rowDelta = row - oldRow  // positive = moved down (higher row number)
-                    if rowDelta > 0 {
-                        deltas[newPos] = rowDelta
-                    }
-                }
-            }
-        }
-        
-        gravityDropRowDeltas = deltas
+        // Note: validMovesCount is updated in performRefill after gravity completes
     }
     
     @discardableResult
