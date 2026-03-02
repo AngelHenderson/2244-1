@@ -1849,11 +1849,20 @@ public enum MockLeaderboardData {
         }
 
         // User is in extended brackets range, find matching bracket
+        // Count infinity players in the milestones array (they're filtered from country leaderboards)
+        var infinityPlayerCount = 0
+        if let seed = countrySeed, let d = day {
+            for (i, baseMilestone) in milestones.enumerated() {
+                let m = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + seed, day: d)
+                if m.hasSuffix("∞") { infinityPlayerCount += 1 }
+            }
+        }
         for bracket in extendedBrackets {
             let bracketIdx = milestoneIndex(for: bracket.milestone)
             if userMilestoneIdx >= bracketIdx {
                 // startRank - 1 = number of players better than this bracket
-                return bracket.startRank - 1
+                // Subtract infinity players since they're filtered from country leaderboards
+                return max(0, bracket.startRank - 1 - infinityPlayerCount)
             }
         }
 
