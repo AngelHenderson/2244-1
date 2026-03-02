@@ -142,6 +142,26 @@ public struct HybridGameScreen: View {
                         Spacer()
                             .frame(height: 120)
                         verticalDock
+
+                        // Shop button below power-ups
+                        Button {
+                            isShowingShop = true
+                        } label: {
+                            Image(systemName: "cart.fill")
+                                .font(.avenirNext(size: 22, weight: .regular))
+                                .frame(width: 44, height: 44)
+                                .foregroundStyle(.primary)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.ultraThinMaterial)
+                                .shadow(radius: 4)
+                        )
+                        .padding(.trailing, 8)
+
                         Spacer()
                     }
                 }

@@ -58,7 +58,7 @@ public struct HomeView: View {
             // Foreground layer: Main UI
             VStack(spacing: 0) {
                 // Top HUD
-                HUDTopBar()
+                HUDTopBar(onLeaderboardTap: { isShowingLeaderboard = true })
 
                 // Main content with side rails and center progression
                 GeometryReader { geo in

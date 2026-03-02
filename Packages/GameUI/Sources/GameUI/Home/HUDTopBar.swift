@@ -11,6 +11,7 @@ struct HUDTopBar: View {
     @Environment(\.homeActions) private var actions
     @Environment(\.gameStore) private var gameStore
     var scoreText: String? = nil  // Optional score for game context
+    var onLeaderboardTap: (() -> Void)? = nil  // Override leaderboard tap for home screen
 
     private func playtimeText(at date: Date) -> String {
         let savedSeconds = UserDefaults.standard.integer(forKey: "playtime.totalSeconds")
@@ -38,7 +39,7 @@ struct HUDTopBar: View {
     var body: some View {
         HStack(spacing: 6) {
             // Rank button (left side)
-            Button(action: { actions.openLeaderboard() }) {
+            Button(action: { (onLeaderboardTap ?? { actions.openLeaderboard() })() }) {
                 HStack(spacing: 3) {
                     Text("#")
                     Text(verbatim: String(state.rank))

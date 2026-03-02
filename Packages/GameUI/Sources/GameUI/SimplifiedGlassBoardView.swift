@@ -105,10 +105,7 @@ public struct SimplifiedGlassBoardView: View {
                                     theme: currentTheme
                                 )
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: .top),
-                                        removal: .identity
-                                    ))
+                                    .offset(y: -CGFloat(gameStore.gravityDropRowDeltas[position] ?? 0) * (tileSize + spacing))
                                 }
 
                                 // Glass overlay effect - only show if glass hasn't been broken
@@ -162,10 +159,7 @@ public struct SimplifiedGlassBoardView: View {
                                     theme: currentTheme
                                 )
                                     .opacity(shouldHideTile(at: position) ? 0 : 1)
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: .top),
-                                        removal: .identity
-                                    ))
+                                    .offset(y: -CGFloat(gameStore.gravityDropRowDeltas[position] ?? 0) * (tileSize + spacing))
                                 }
                                 if crownPositions.contains(position) {
                                     Image(systemName: "crown.fill")

@@ -83,10 +83,7 @@ public struct BoardView: View {
                                 theme: currentTheme
                             )
                                 .opacity(shouldHideTile(at: position) ? 0 : 1)
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .top),
-                                    removal: .identity
-                                ))
+                                .offset(y: -CGFloat(gameStore.gravityDropRowDeltas[position] ?? 0) * (tileSize + spacing))
                             }
                             
                             if gameStore.pendingGiftBoxes[position] != nil {
