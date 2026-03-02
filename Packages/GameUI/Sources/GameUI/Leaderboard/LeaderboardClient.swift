@@ -2287,6 +2287,22 @@ public enum MockLeaderboardData {
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     ]
 
+    static let fijiHallOfFameInfinityCounts: [Int] = [
+        // Fiji Hall of Fame (16 players)
+        666, 222, 77, 57, 42, 32, 27, 19, 12, 7,
+        4, 2, 2, 1, 1, 1
+    ]
+
+    static let switzerlandHallOfFameInfinityCounts: [Int] = [
+        // Switzerland Hall of Fame (54 players)
+        36667, 6767, 2847, 999, 684, 389, 125, 70, 29, 17,
+        8, 8, 7, 7, 7, 6, 6, 6, 5, 5,
+        5, 5, 4, 4, 4, 4, 4, 3, 3, 3,
+        3, 3, 3, 3, 2, 2, 2, 2, 2, 2,
+        2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1
+    ]
+
     static let usNames = [
         "AmericanEagle486408", "StarsAndStripes", "USAChamp879384", "LibertyGamer", "PatriotPlayer",
         "FreedomFighter", "StateStar221473", "CapitalCity096548", "RedWhiteBlue", "UncleSamPro",
@@ -3814,6 +3830,16 @@ public extension LeaderboardClient {
         // Add Belgium players
         for (i, count) in MockLeaderboardData.belgiumHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_be_\(i)", count, "BE", globalIndex, i + 22000))
+            globalIndex += 1
+        }
+        // Add Fiji players
+        for (i, count) in MockLeaderboardData.fijiHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_fj_\(i)", count, "FJ", globalIndex, i + 23000))
+            globalIndex += 1
+        }
+        // Add Switzerland players
+        for (i, count) in MockLeaderboardData.switzerlandHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_ch_\(i)", count, "CH", globalIndex, i + 24000))
             globalIndex += 1
         }
 
