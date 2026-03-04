@@ -3,6 +3,13 @@ import GameCore
 import GameApp
 import OSLog
 
+/// Pairs a tile with its board position for the ZStack tile layer
+private struct TilePositionItem: Identifiable {
+    let id: UUID
+    let tile: Tile
+    let position: Position
+}
+
 // MARK: - Simplified Glass Board View (Visual Only)
 public struct SimplifiedGlassBoardView: View {
     @Environment(\.gameStore) private var gameStore
@@ -53,74 +60,66 @@ public struct SimplifiedGlassBoardView: View {
 
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
-        VStack(spacing: spacing) {
-            // Crown appears on ALL tiles with the highest value currently on the board
-            // Uses stepIndex for accurate comparison of high-value tiles
-            let crownPositions: Set<Position> = {
-                var maxStep = -1
-                var positions: Set<Position> = []
-                // First pass: find the max step
-                for r in 0..<gameStore.state.board.height {
-                    for c in 0..<gameStore.state.board.width {
-                        let p = Position(row: r, col: c)
-                        if let t = gameStore.state.board[p] {
-                            let step = t.stepIndex ?? 0
-                            if step > maxStep {
-                                maxStep = step
-                            }
+        // Crown appears on ALL tiles with the highest value currently on the board
+        // Uses stepIndex for accurate comparison of high-value tiles
+        let crownPositions: Set<Position> = {
+            var maxStep = -1
+            var positions: Set<Position> = []
+            // First pass: find the max step
+            for r in 0..<gameStore.state.board.height {
+                for c in 0..<gameStore.state.board.width {
+                    let p = Position(row: r, col: c)
+                    if let t = gameStore.state.board[p] {
+                        let step = t.stepIndex ?? 0
+                        if step > maxStep {
+                            maxStep = step
                         }
                     }
                 }
-                // Second pass: collect all positions with max step
-                for r in 0..<gameStore.state.board.height {
-                    for c in 0..<gameStore.state.board.width {
-                        let p = Position(row: r, col: c)
-                        if let t = gameStore.state.board[p] {
-                            let step = t.stepIndex ?? 0
-                            if step == maxStep {
-                                positions.insert(p)
-                            }
+            }
+            // Second pass: collect all positions with max step
+            for r in 0..<gameStore.state.board.height {
+                for c in 0..<gameStore.state.board.width {
+                    let p = Position(row: r, col: c)
+                    if let t = gameStore.state.board[p] {
+                        let step = t.stepIndex ?? 0
+                        if step == maxStep {
+                            positions.insert(p)
                         }
                     }
                 }
-                return positions
-            }()
-            
-            // All board rows including glass preview row as first row
-            ForEach(0..<gameStore.state.board.height, id: \.self) { row in
-                HStack(spacing: spacing) {
-                    ForEach(0..<gameStore.state.board.width, id: \.self) { col in
-                        let position = Position(row: row, col: col)
-                        
-                        if row == 0 {
-                            // First row with glass effect
+            }
+            return positions
+        }()
+
+        ZStack {
+            // Layer 1: Cell backgrounds, tap handlers, glass overlays, gift boxes, crowns
+            // (VStack/HStack grid, but WITHOUT TileViews)
+            VStack(spacing: spacing) {
+                ForEach(0..<gameStore.state.board.height, id: \.self) { row in
+                    HStack(spacing: spacing) {
+                        ForEach(0..<gameStore.state.board.width, id: \.self) { col in
+                            let position = Position(row: row, col: col)
+
                             ZStack {
-                                if let tile = gameStore.state.board[position] {
-                                TileView(
-                                        tile: tile,
-                                    isSelected: gameStore.currentPath.contains(position),
-                                    isValid: gameStore.pathValidation.isValid,
-                                    size: tileSize,
-                                    colorBlindMode: colorBlindMode,
-                                    theme: currentTheme
-                                )
-                                    .opacity(shouldHideTile(at: position) ? 0 : 1)
-                                }
+                                // Empty cell background
+                                RoundedRectangle(cornerRadius: cornerRadius)
+                                    .fill(Color.white.opacity(0.08))
 
-                                // Glass overlay effect - only show if glass hasn't been broken
-                                // Skip glass visuals in sandboxed/challenge mode
-                                if !gameStore.sandboxed && !gameStore.brokenGlassTiles.contains(position) {
-                                    glassOverlay(for: tileSize)
-                                }
+                                if row == 0 {
+                                    // Glass overlay effect (row 0 only)
+                                    if !gameStore.sandboxed && !gameStore.brokenGlassTiles.contains(position) {
+                                        glassOverlay(for: tileSize)
+                                    }
 
-                                // Gift indicator (only while glass intact)
-                                // Skip gift visuals in sandboxed/challenge mode
-                                if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] == nil {
-                                Image(systemName: "gift.fill")
-                                    .font(.system(size: tileSize * 0.2))
-                                    .foregroundColor(.yellow)
-                                    .shadow(color: .black.opacity(0.3), radius: 2)
-                                    .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
+                                    // Gift indicator (only while glass intact)
+                                    if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] == nil {
+                                        Image(systemName: "gift.fill")
+                                            .font(.system(size: tileSize * 0.2))
+                                            .foregroundColor(.yellow)
+                                            .shadow(color: .black.opacity(0.3), radius: 2)
+                                            .offset(x: tileSize * 0.3, y: -tileSize * 0.3)
+                                    }
                                 }
 
                                 if crownPositions.contains(position) {
@@ -130,43 +129,7 @@ public struct SimplifiedGlassBoardView: View {
                                         .offset(y: -tileSize * 0.45)
                                 }
 
-                                // Skip gift box in sandboxed/challenge mode
-                                if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] != nil {
-                                    GiftBoxOverlay(size: tileSize)
-                                        .onTapGesture {
-                                            haptics.success()
-                                            gameStore.tapGiftBox(at: position)
-                                        }
-                                }
-                            }
-                            .frame(width: tileSize, height: tileSize)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                guard gameStore.pendingGiftBoxes[position] == nil else { return }
-                                onTileTap?(position)
-                            }
-                        } else {
-                            // Regular tiles for other rows
-                            ZStack {
-                                if let tile = gameStore.state.board[position] {
-                                TileView(
-                                        tile: tile,
-                                    isSelected: gameStore.currentPath.contains(position),
-                                    isValid: gameStore.pathValidation.isValid,
-                                    size: tileSize,
-                                    colorBlindMode: colorBlindMode,
-                                    theme: currentTheme
-                                )
-                                    .opacity(shouldHideTile(at: position) ? 0 : 1)
-                                }
-                                if crownPositions.contains(position) {
-                                    Image(systemName: "crown.fill")
-                                        .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
-                                        .foregroundStyle(.yellow)
-                                        .offset(y: -tileSize * 0.45)
-                                }
-
-                                // Skip gift box in sandboxed/challenge mode
+                                // Gift box overlay (all rows)
                                 if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] != nil {
                                     GiftBoxOverlay(size: tileSize)
                                         .onTapGesture {
@@ -185,8 +148,25 @@ public struct SimplifiedGlassBoardView: View {
                     }
                 }
             }
+            .padding(spacing)
+
+            // Layer 2: Tiles in a ZStack, identified by tile UUID
+            // When gravity changes a tile's position, SwiftUI animates .position() smoothly
+            ForEach(allTilesWithPositions, id: \.id) { item in
+                TileView(
+                    tile: item.tile,
+                    isSelected: gameStore.currentPath.contains(item.position),
+                    isValid: gameStore.pathValidation.isValid,
+                    size: tileSize,
+                    colorBlindMode: colorBlindMode,
+                    theme: currentTheme
+                )
+                .frame(width: tileSize, height: tileSize)
+                .opacity(shouldHideTile(at: item.position) ? 0 : 1)
+                .position(centerPoint(for: item.position, tileSize: tileSize, containerSize: containerSize))
+                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: item.position)
+            }
         }
-        .padding(spacing)
         .contentShape(Rectangle())
         .simultaneousGesture(
             dragGesture(
@@ -194,6 +174,20 @@ public struct SimplifiedGlassBoardView: View {
                 containerSize: gridFrameSize(for: tileSize)
             )
         )
+    }
+
+    /// All tiles currently on the board with their positions, for the ZStack tile layer
+    private var allTilesWithPositions: [TilePositionItem] {
+        var items: [TilePositionItem] = []
+        for row in 0..<gameStore.state.board.height {
+            for col in 0..<gameStore.state.board.width {
+                let pos = Position(row: row, col: col)
+                if let tile = gameStore.state.board[pos] {
+                    items.append(TilePositionItem(id: tile.id, tile: tile, position: pos))
+                }
+            }
+        }
+        return items
     }
     
     @ViewBuilder

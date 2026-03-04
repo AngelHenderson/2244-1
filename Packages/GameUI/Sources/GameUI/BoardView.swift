@@ -2,6 +2,13 @@ import SwiftUI
 import GameCore
 import GameApp
 
+/// Pairs a tile with its board position for the ZStack tile layer
+private struct BoardTileItem: Identifiable {
+    let id: UUID
+    let tile: Tile
+    let position: Position
+}
+
 public struct BoardView: View {
     @Environment(\.gameStore) private var gameStore
     @Environment(\.hapticsService) private var haptics
@@ -67,52 +74,63 @@ public struct BoardView: View {
     @ViewBuilder
     private func boardGrid(tileSize: CGFloat, containerSize: CGSize) -> some View {
         let maxStep = currentMaxStep  // Capture for use in view builder
-        VStack(spacing: spacing) {
-            ForEach(0..<gameStore.state.board.height, id: \.self) { row in
-                HStack(spacing: spacing) {
-                    ForEach(0..<gameStore.state.board.width, id: \.self) { col in
-                        let position = Position(row: row, col: col)
-                        ZStack {
-                            if let tile = gameStore.state.board[position] {
-                            TileView(
-                                    tile: tile,
-                                isSelected: gameStore.currentPath.contains(position),
-                                isValid: gameStore.pathValidation.isValid,
-                                size: tileSize,
-                                colorBlindMode: colorBlindMode,
-                                theme: currentTheme
-                            )
-                                .opacity(shouldHideTile(at: position) ? 0 : 1)
+        ZStack {
+            // Layer 1: Cell backgrounds, tap handlers, crowns, gift boxes
+            VStack(spacing: spacing) {
+                ForEach(0..<gameStore.state.board.height, id: \.self) { row in
+                    HStack(spacing: spacing) {
+                        ForEach(0..<gameStore.state.board.width, id: \.self) { col in
+                            let position = Position(row: row, col: col)
+                            ZStack {
+                                // Empty cell background
+                                RoundedRectangle(cornerRadius: cornerRadius)
+                                    .fill(Color.white.opacity(0.08))
+
+                                if gameStore.pendingGiftBoxes[position] != nil {
+                                    GiftBoxOverlay(size: tileSize)
+                                        .onTapGesture {
+                                            haptics.success()
+                                            gameStore.tapGiftBox(at: position)
+                                        }
+                                }
+
+                                if let t = gameStore.state.board[position], t.stepIndex == maxStep {
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
+                                        .foregroundStyle(.yellow)
+                                        .offset(y: -tileSize * 0.45)
+                                }
                             }
-                            
-                            if gameStore.pendingGiftBoxes[position] != nil {
-                                GiftBoxOverlay(size: tileSize)
-                                    .onTapGesture {
-                                        haptics.success()
-                                        gameStore.tapGiftBox(at: position)
-                                    }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                guard gameStore.pendingGiftBoxes[position] == nil else { return }
+                                if !isPowerUpActive {
+                                    Task { await audioService.playSfx(name: "tap") }
+                                }
+                                onTileTap?(position)
                             }
-                            
-                            if let t = gameStore.state.board[position], t.stepIndex == maxStep {
-                                Image(systemName: "crown.fill")
-                                    .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
-                                    .foregroundStyle(.yellow)
-                                    .offset(y: -tileSize * 0.45)
-                            }
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            guard gameStore.pendingGiftBoxes[position] == nil else { return }
-                            if !isPowerUpActive {
-                                Task { await audioService.playSfx(name: "tap") }
-                            }
-                            onTileTap?(position)
                         }
                     }
                 }
             }
+            .padding(spacing)
+
+            // Layer 2: Tiles in a ZStack, identified by tile UUID
+            ForEach(allTilesWithPositions, id: \.id) { item in
+                TileView(
+                    tile: item.tile,
+                    isSelected: gameStore.currentPath.contains(item.position),
+                    isValid: gameStore.pathValidation.isValid,
+                    size: tileSize,
+                    colorBlindMode: colorBlindMode,
+                    theme: currentTheme
+                )
+                .frame(width: tileSize, height: tileSize)
+                .opacity(shouldHideTile(at: item.position) ? 0 : 1)
+                .position(centerPoint(for: item.position, tileSize: tileSize, containerSize: containerSize))
+                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: item.position)
+            }
         }
-        .padding(spacing)
         .contentShape(Rectangle())
         // IMPORTANT: The drag gesture is attached to this grid view, whose
         // coordinate space is the grid's local bounds (including its padding).
@@ -124,6 +142,20 @@ public struct BoardView: View {
                 containerSize: gridFrameSize(for: tileSize)
             )
         )
+    }
+
+    /// All tiles currently on the board with their positions, for the ZStack tile layer
+    private var allTilesWithPositions: [BoardTileItem] {
+        var items: [BoardTileItem] = []
+        for row in 0..<gameStore.state.board.height {
+            for col in 0..<gameStore.state.board.width {
+                let pos = Position(row: row, col: col)
+                if let tile = gameStore.state.board[pos] {
+                    items.append(BoardTileItem(id: tile.id, tile: tile, position: pos))
+                }
+            }
+        }
+        return items
     }
     
     @ViewBuilder
