@@ -128,6 +128,7 @@ public struct BoardView: View {
                 .frame(width: tileSize, height: tileSize)
                 .opacity(shouldHideTile(at: item.position) ? 0 : 1)
                 .position(centerPoint(for: item.position, tileSize: tileSize, containerSize: containerSize))
+                .transition(.identity)
                 .animation(.spring(response: 0.35, dampingFraction: 0.8), value: item.position)
             }
         }
