@@ -166,6 +166,7 @@ public struct SimplifiedGlassBoardView: View {
                 .position(centerPoint(for: item.position, tileSize: tileSize, containerSize: containerSize))
                 .transition(.identity)
                 .animation(.spring(response: 0.35, dampingFraction: 0.8), value: item.position)
+                .allowsHitTesting(false)
             }
         }
         .contentShape(Rectangle())
