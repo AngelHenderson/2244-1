@@ -23,7 +23,6 @@ public struct RootGameView: View {
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
     @State private var dailyQuestStore = DailyQuestStore()
-    @State private var showDailyQuests = false
 
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
@@ -171,10 +170,6 @@ public struct RootGameView: View {
                         }
                         .environment(\.challengeDesignerStore, challengeDesignerStore)
                     }
-                    .adaptiveSheet(isPresented: $showDailyQuests) {
-                        DailyQuestsView()
-                            .environment(dailyQuestStore)
-                    }
             }
         }
     }
@@ -254,9 +249,6 @@ public struct RootGameView: View {
             openSaleOffer: {
                 print("Open Sale Offer")
                 // TODO: Implement sale offer
-            },
-            openDailyQuests: {
-                showDailyQuests = true
             }
         )
     }

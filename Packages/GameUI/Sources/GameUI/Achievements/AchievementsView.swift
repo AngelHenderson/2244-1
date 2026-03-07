@@ -6,6 +6,7 @@ public struct AchievementsView: View {
     @Environment(AchievementStore.self) private var achievements
     @Environment(HomeState.self) private var homeState
     @Environment(\.gameStore) private var gameStore
+    @Environment(DailyQuestStore.self) private var questStore
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedAchievementForTiers: AchievementDef?
@@ -193,6 +194,11 @@ public struct AchievementsView: View {
                 }
 
                 ScrollView {
+                    // Daily Quests section
+                    DailyQuestsSection(questStore: questStore, homeState: homeState)
+                        .padding(.horizontal)
+                        .padding(.top, 4)
+
                     LazyVStack(spacing: 12) {
                         ForEach(sortedAchievements) { def in
                             AchievementRow(
@@ -802,5 +808,206 @@ private struct ClaimAllButton: View {
             .shadow(color: .green.opacity(0.4), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Daily Quests Section
+
+struct DailyQuestsSection: View {
+    let questStore: DailyQuestStore
+    let homeState: HomeState
+
+    @State private var countdown: String = ""
+    @State private var timer: Timer?
+    @State private var isExpanded: Bool = true
+
+    var body: some View {
+        VStack(spacing: 10) {
+            // Header
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Text("DAILY QUESTS")
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                        .foregroundStyle(.primary)
+
+                    if questStore.claimableCount > 0 {
+                        Text("\(questStore.claimableCount)")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.green, in: Capsule())
+                    }
+
+                    Spacer()
+
+                    // Countdown
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.caption2)
+                        Text(countdown)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(.secondary)
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                ForEach(questStore.quests) { quest in
+                    DailyQuestRow(quest: quest) {
+                        questStore.claim(questId: quest.id)
+                        // Sync gems immediately
+                        let updatedGems = UserDefaults.standard.integer(forKey: "coins")
+                        homeState.gems = updatedGems
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+        .onAppear {
+            updateCountdown()
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+                Task { @MainActor in updateCountdown() }
+            }
+        }
+        .onDisappear {
+            timer?.invalidate()
+            timer = nil
+        }
+    }
+
+    private func updateCountdown() {
+        let remaining = questStore.timeUntilReset()
+        let hours = Int(remaining) / 3600
+        let minutes = (Int(remaining) % 3600) / 60
+        let seconds = Int(remaining) % 60
+        countdown = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+}
+
+// MARK: - Daily Quest Row
+
+private struct DailyQuestRow: View {
+    let quest: DailyQuestStore.Quest
+    let onClaim: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Title + claim
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(quest.title)
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Text(quest.description)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Button(action: onClaim) {
+                    Text(quest.claimed ? "Done" : "Claim")
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(quest.isClaimable ? Color.green : Color(UIColor.systemGray4))
+                        )
+                        .foregroundStyle(quest.isClaimable ? .white : .secondary)
+                }
+                .disabled(!quest.isClaimable)
+                .buttonStyle(.plain)
+            }
+
+            // Progress bar
+            HStack(spacing: 8) {
+                ProgressView(value: Double(min(quest.current, quest.target)), total: Double(quest.target))
+                    .progressViewStyle(.linear)
+                    .tint(quest.isComplete ? .green : .blue)
+
+                Text("\(min(quest.current, quest.target))/\(quest.target)")
+                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .frame(minWidth: 50, alignment: .trailing)
+            }
+
+            // Reward icons row
+            DailyQuestRewardRow(rewards: quest.rewards)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(UIColor.tertiarySystemGroupedBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(quest.isClaimable ? Color.green.opacity(0.5) : Color.clear, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Daily Quest Reward Row
+
+private struct DailyQuestRewardRow: View {
+    let rewards: AchievementDef.Rewards
+
+    private struct Item: Identifiable {
+        let id = UUID()
+        let text: String
+        let assetName: String?
+        let systemName: String?
+        let color: Color
+    }
+
+    private var items: [Item] {
+        var list: [Item] = []
+        if let g = rewards.gems, g > 0 { list.append(Item(text: "\(g)", assetName: "gem", systemName: nil, color: .clear)) }
+        if let h = rewards.hammers, h > 0 { list.append(Item(text: "\(h)", assetName: "hammer", systemName: nil, color: .clear)) }
+        if let m = rewards.magnets, m > 0 { list.append(Item(text: "\(m)", assetName: "magnet", systemName: nil, color: .clear)) }
+        if let s = rewards.swaps, s > 0 { list.append(Item(text: "\(s)", assetName: "swap", systemName: nil, color: .clear)) }
+        if let sp = rewards.spins, sp > 0 { list.append(Item(text: "\(sp)", assetName: "spinthewheel", systemName: nil, color: .clear)) }
+        if let b2 = rewards.boost2x, b2 > 0 { list.append(Item(text: "\(b2)×", assetName: "boost2x", systemName: nil, color: .clear)) }
+        if let b3 = rewards.boost3x, b3 > 0 { list.append(Item(text: "\(b3)×", assetName: "boost3x", systemName: nil, color: .clear)) }
+        if let b4 = rewards.boost4x, b4 > 0 { list.append(Item(text: "\(b4)×", assetName: nil, systemName: "4.circle.fill", color: .orange)) }
+        return list
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ForEach(items) { item in
+                HStack(spacing: 3) {
+                    if let asset = item.assetName {
+                        Image(asset)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                    } else if let sys = item.systemName {
+                        Image(systemName: sys)
+                            .foregroundStyle(item.color)
+                            .font(.system(size: 12))
+                    }
+                    Text(item.text)
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 }
