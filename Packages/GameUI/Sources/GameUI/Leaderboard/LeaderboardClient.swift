@@ -1572,6 +1572,8 @@ public enum MockLeaderboardData {
             let baseMilestone = milestones[i]
             let progressedMilestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + countrySeed, day: day)
 
+            // Skip infinity players (they're filtered from country leaderboards)
+            if progressedMilestone.hasSuffix("∞") { continue }
 
             let milestoneIdx = milestoneIndex(for: progressedMilestone)
             progressedData.append((i, progressedMilestone, milestoneIdx))
@@ -1796,7 +1798,8 @@ public enum MockLeaderboardData {
             ("GR", 41_414),
             ("ZA", 2_974),
             ("VN", 167_676),
-            ("CW", 39_999)
+            ("CW", 39_999),
+            ("VE", 71_837)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -1806,7 +1809,7 @@ public enum MockLeaderboardData {
         // Additional popular countries (no leaderboard data yet)
         let additionalCountries = [
             "SA", "IL", "TR",
-            "NG", "EG", "AR", "CL", "CO", "PE", "VE"
+            "NG", "EG", "AR", "CL", "CO", "PE"
         ]
 
         return countriesWithLeaderboards + additionalCountries
