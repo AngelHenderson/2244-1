@@ -55,9 +55,9 @@ public final class DailyQuestStore {
         [
             Quest(
                 id: "daily_merge_tiles",
-                title: "Merge 1,750 Tiles",
-                description: "Merge a total of 1,750 tiles today.",
-                target: 1750,
+                title: "Merge 2,000 Tiles",
+                description: "Merge a total of 2,000 tiles today.",
+                target: 2000,
                 current: 0,
                 rewards: AchievementDef.Rewards(
                     gems: 500, spins: 1, hammers: 1, swaps: 1, boost3x: 1
