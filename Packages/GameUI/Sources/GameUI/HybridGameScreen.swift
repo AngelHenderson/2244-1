@@ -366,11 +366,11 @@ public struct HybridGameScreen: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
-                Text("Out of moves")
+                Text("Out Of Moves")
                     .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
                     .foregroundColor(.white)
 
-                Text("Do you want to continue with a power up?")
+                Text("You have no moves. Want to use a powerup to revive?")
                     .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                     .foregroundColor(.white.opacity(0.9))
                     .multilineTextAlignment(.center)
