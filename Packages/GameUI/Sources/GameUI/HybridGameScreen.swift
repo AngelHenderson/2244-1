@@ -42,7 +42,7 @@ public struct HybridGameScreen: View {
     @State private var isShowingPowerUpRecovery = false
     @State private var gameOverResetTask: Task<Void, Never>? = nil
     @State private var isShowingLowOnMoves = false
-    @State private var hasShownLowMovesWarning = false
+    @State private var lowMovesWarningArmed = true
 
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState: HomeState = {
@@ -337,9 +337,12 @@ public struct HybridGameScreen: View {
                 }
             }
             .onChange(of: gameStore.validMovesCount) { _, newCount in
-                // Show low-on-moves warning once when moves drop to 5 or below
-                if newCount > 0 && newCount <= 5 && !hasShownLowMovesWarning && !gameStore.state.isGameOver && !isShowingOutOfMoves {
-                    hasShownLowMovesWarning = true
+                // Show low-on-moves warning when moves drop to 5 or below
+                // Re-arms when moves go back above 5 (e.g., after using a powerup)
+                if newCount > 5 {
+                    lowMovesWarningArmed = true
+                } else if newCount > 0 && newCount <= 5 && lowMovesWarningArmed && !gameStore.state.isGameOver && !isShowingOutOfMoves {
+                    lowMovesWarningArmed = false
                     isShowingLowOnMoves = true
                 }
             }
