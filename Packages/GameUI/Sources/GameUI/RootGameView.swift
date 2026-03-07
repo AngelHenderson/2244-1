@@ -22,6 +22,8 @@ public struct RootGameView: View {
     @State private var wheelEngine = WheelEngine()
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
+    @State private var dailyQuestStore = DailyQuestStore()
+    @State private var showDailyQuests = false
 
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
@@ -64,6 +66,14 @@ public struct RootGameView: View {
                             // Pass the captured multiplier so the boost counts even if it expired during gameplay
                             gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
                         }
+                        // Track challenge completion for daily quests
+                        if config.challengeId != nil {
+                            // Pre-made challenge completed
+                            dailyQuestStore.recordChallengeCompleted()
+                        } else {
+                            // Custom challenge created and completed
+                            dailyQuestStore.recordChallengeCreated()
+                        }
                         // Reset captured multiplier after use
                         capturedChallengeCreationMultiplier = 1
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -91,12 +101,21 @@ public struct RootGameView: View {
                     .environment(\.homeActions, makeHomeActions())
                     .environment(\.challengeStore, challengeStore)
                     .environment(\.challengeDesignerStore, challengeDesignerStore)
+                    .environment(dailyQuestStore)
                     .transition(.move(edge: .leading).combined(with: .opacity))
                     .task {
                         // Load saved progress when Home appears
                         await loadProgressWithCoordinator()
                         // Update daily claims availability
                         dailyClaimsStore.updateAvailability()
+                        // Wire daily quest store into achievement evaluator
+                        gameStore.achievementEvaluator?.dailyQuestStore = dailyQuestStore
+                        // Set tile quest target based on current highest tile step
+                        dailyQuestStore.setHighestTileStep(gameStore.state.highestTileStep)
+                        // Wire reward callback
+                        dailyQuestStore.onReward = { rewards in
+                            homeState.addGems(0) // trigger UI refresh
+                        }
                     }
                     .adaptiveSheet(isPresented: $showShop) {
                         ShopView(initialTab: .gems)
@@ -151,6 +170,10 @@ public struct RootGameView: View {
                             }
                         }
                         .environment(\.challengeDesignerStore, challengeDesignerStore)
+                    }
+                    .adaptiveSheet(isPresented: $showDailyQuests) {
+                        DailyQuestsView()
+                            .environment(dailyQuestStore)
                     }
             }
         }
@@ -231,6 +254,9 @@ public struct RootGameView: View {
             openSaleOffer: {
                 print("Open Sale Offer")
                 // TODO: Implement sale offer
+            },
+            openDailyQuests: {
+                showDailyQuests = true
             }
         )
     }

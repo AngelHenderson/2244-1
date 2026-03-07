@@ -927,9 +927,9 @@ public final class GameStore {
 
                 if requiresGravityDrop {
                     print("[GameStore] Phase 3c: Gravity Drop")
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                        self.performGravityDrop(columns: affectedColumns)
-                    }
+                    // No withAnimation — tile views have per-tile .animation(.spring, value: position)
+                    // which handles the slide. withAnimation would cause unwanted fade on ForEach changes.
+                    self.performGravityDrop(columns: affectedColumns)
                 }
 
                 // Wait for gravity animation (tiles dropping)

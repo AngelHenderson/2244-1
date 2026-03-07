@@ -17,6 +17,7 @@ public struct HomeActions: Sendable {
     public var openThemeLeft: @Sendable @MainActor () -> Void = {}
     public var openThemeRight: @Sendable @MainActor () -> Void = {}
     public var openSaleOffer: @Sendable @MainActor () -> Void = {}
+    public var openDailyQuests: @Sendable @MainActor () -> Void = {}
     
     public init(
         play: @escaping @Sendable @MainActor () -> Void = {},
@@ -34,7 +35,8 @@ public struct HomeActions: Sendable {
         openSettings: @escaping @Sendable @MainActor () -> Void = {},
         openThemeLeft: @escaping @Sendable @MainActor () -> Void = {},
         openThemeRight: @escaping @Sendable @MainActor () -> Void = {},
-        openSaleOffer: @escaping @Sendable @MainActor () -> Void = {}
+        openSaleOffer: @escaping @Sendable @MainActor () -> Void = {},
+        openDailyQuests: @escaping @Sendable @MainActor () -> Void = {}
     ) {
         self.play = play
         self.openShop = openShop
@@ -52,6 +54,7 @@ public struct HomeActions: Sendable {
         self.openThemeLeft = openThemeLeft
         self.openThemeRight = openThemeRight
         self.openSaleOffer = openSaleOffer
+        self.openDailyQuests = openDailyQuests
     }
 }
 

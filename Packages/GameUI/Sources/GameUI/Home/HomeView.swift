@@ -7,6 +7,7 @@ public struct HomeView: View {
     private let managesBackground: Bool
     @Environment(HomeState.self) private var state
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
+    @Environment(DailyQuestStore.self) private var questStore
     @Environment(AchievementStore.self) private var achievementStore
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
@@ -71,6 +72,14 @@ public struct HomeView: View {
                                 title: "DAILY",
                                 badge: dailyClaimsStore.canClaimToday,
                                 action: { actions.openDaily() }
+                            )
+
+                            SideRailButton(
+                                systemImage: "scroll.fill",
+                                customImage: nil,
+                                title: "QUESTS",
+                                badge: questStore.claimableCount > 0,
+                                action: { actions.openDailyQuests() }
                             )
 
                             SideRailButton(
@@ -494,6 +503,7 @@ public extension View {
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
         .environment(\.toastManager, toastManager)
+        .environment(DailyQuestStore())
 }
 
 #Preview("Home - Best Offer") {
@@ -548,4 +558,5 @@ public extension View {
         .environment(\.tileJourney, gameStore.journey)
         .environment(\.leaderboardClient, .noop)
         .environment(\.toastManager, toastManager)
+        .environment(DailyQuestStore())
 }

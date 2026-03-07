@@ -4,6 +4,7 @@ import GameCore
 @MainActor
 public final class AchievementEvaluator {
     private let achievementStore: AchievementStore
+    public var dailyQuestStore: DailyQuestStore?
     private var currentGameSnapshot = GameSnapshot()
     public private(set) var sessionStartTime = Date()
     private var totalGamesPlayed: Int = 0
@@ -264,6 +265,9 @@ public final class AchievementEvaluator {
             maxChainThisGame = max(maxChainThisGame, chain.count)
             updateComboProgress(for: chain.count)
             recordMergedTiles(chain.count)
+
+            // Forward merge count to daily quests
+            dailyQuestStore?.recordMerges(chain.count)
             
             if mergesThisTurn > 0 {
                 consecutiveMergeTurns += 1
@@ -329,6 +333,9 @@ public final class AchievementEvaluator {
         if state.highestTile >= 2244 {
             snapshot.reached_core_target = true
         }
+
+        // Forward tile step to daily quests
+        dailyQuestStore?.recordTileReached(step: state.highestTileStep)
 
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
@@ -406,6 +413,9 @@ public final class AchievementEvaluator {
     public func onPowerUpUsed(type: String) {
         recordPowerUpUse(type: type)
         currentGameSnapshot.powerups_used += 1
+
+        // Forward to daily quests
+        dailyQuestStore?.recordPowerUpUse()
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
@@ -638,6 +648,9 @@ public final class AchievementEvaluator {
         challengeCreationTotal += multiplier
         defaults.set(challengeCreationTotal, forKey: challengeCreationTotalKey)
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal
+
+        // Forward to daily quests
+        dailyQuestStore?.recordChallengeCreated()
         var snapshot = currentGameSnapshot
         snapshot.challenge_creations_total = challengeCreationTotal
         Task {
