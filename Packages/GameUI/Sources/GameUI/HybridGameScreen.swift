@@ -41,6 +41,8 @@ public struct HybridGameScreen: View {
     @State private var isShowingGameOverText = false
     @State private var isShowingPowerUpRecovery = false
     @State private var gameOverResetTask: Task<Void, Never>? = nil
+    @State private var isShowingLowOnMoves = false
+    @State private var hasShownLowMovesWarning = false
 
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState: HomeState = {
@@ -334,12 +336,24 @@ public struct HybridGameScreen: View {
                     isShowingPowerUpRecovery = false
                 }
             }
+            .onChange(of: gameStore.validMovesCount) { _, newCount in
+                // Show low-on-moves warning once when moves drop to 5 or below
+                if newCount > 0 && newCount <= 5 && !hasShownLowMovesWarning && !gameStore.state.isGameOver && !isShowingOutOfMoves {
+                    hasShownLowMovesWarning = true
+                    isShowingLowOnMoves = true
+                }
+            }
 
         // Wrap everything with full-screen wallpaper background
         return ZStack {
             wallpaperBackground
                 .ignoresSafeArea()
             sessionTracking
+
+            // Low on moves warning overlay
+            if isShowingLowOnMoves {
+                lowOnMovesOverlay
+            }
 
             // Out of moves dialog overlay
             if isShowingOutOfMoves {
@@ -359,6 +373,41 @@ public struct HybridGameScreen: View {
     }
 
     // MARK: - Game Over Views
+
+    private var lowOnMovesOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Text("Low On Moves")
+                    .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("You are low on moves. Want to use a powerup to free up moves?")
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+
+                HStack(spacing: 60) {
+                    Button("Yes") {
+                        isShowingLowOnMoves = false
+                        isShowingPowerUpRecovery = true
+                    }
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                    .foregroundColor(.white)
+
+                    Button("No") {
+                        isShowingLowOnMoves = false
+                    }
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                    .foregroundColor(.white)
+                }
+                .padding(.top, 20)
+            }
+            .padding(40)
+        }
+    }
 
     private var outOfMovesOverlay: some View {
         ZStack {
