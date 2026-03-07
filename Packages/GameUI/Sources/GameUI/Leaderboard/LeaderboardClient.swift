@@ -3267,6 +3267,54 @@ public enum MockLeaderboardData {
         "TrujilloTrident", "TáchiraTiara", "ZuliaZapper", "YaracuyYak", "CojédesCharge"
     ]
 
+    static let azerbaijanNames = [
+        // 1-30: Geographic and city-based
+        "BakuBlaster", "GanjaMaster", "SumgaitStar", "MingachevirMaverick", "ShirvanShot",
+        "NakhchivanNinja", "ShekiStriker", "LankaranLegend", "YevlakhYell", "ShamakhiSniper",
+        "BardaBlade", "QubaCrusher", "ZagatalaZealot", "GoychayGhost", "KhachmazKnight",
+        "SalyanSurge", "AgdashAce", "JalilabadJudge", "BilasuvarBolt", "TovuzTitan",
+        "GobustanGuard", "IsmayilliInferno", "GabalaGlory", "ShamkirShark", "AghdamArcher",
+        "ShushaShadow", "KurdamirKing", "HajiqabulHawk", "MasalliMighty", "SabirabadStorm",
+        // 31-60: Nature and culture
+        "CaspianCrush", "FlameTowerFury", "YanardagYell", "MudVolcanoMaster", "CaucasusCobra",
+        "MughamMaestro", "AshiqAssault", "KarabakhKnight", "NovruzNinja", "ButaBlade",
+        "SazStrike", "TarThunder", "KamancheKing", "ZurnaSurge", "BalabanBeast",
+        "PlovPower", "DolmaDestroyer", "KebabKrusher", "TandirTitan", "LavashLord",
+        "BaklavaBoss", "PakhlavaPro", "GutabGhost", "ShekerburaShot", "PitiProwler",
+        "SamaniSlayer", "QovormaQuake", "LulaKebabLion", "SajStrike", "DushbaraDestroyer",
+        // 61-90: More local flavor
+        "AbsheronAce", "KuraCrusher", "ArazArcher", "GoyGolGuard", "MaralGolMaster",
+        "ShahDagShark", "BazarduzuBolt", "TufanDagTitan", "LenkKnight", "AteshgahAlpha",
+        "BibiHeybatBlast", "QizQalasQuake", "NizamiNinja", "FuzuliFlash", "NasimiNova",
+        "KhirdaKing", "IcheriBeast", "GulustanGlory", "SamurSniper", "LahijLegend",
+        "BalakhanBolt", "OghuzOmega", "QutqashenQuake", "IsmayilliIce", "ShekiSilk",
+        "GobustanGlyph", "XanlarXpress", "DasguzDagger", "TerterThrust", "AghsuArrow"
+    ]
+
+    static let kazakhstanNames = [
+        // 1-30: Geographic and city-based
+        "AlmatyAce", "AstanaStar", "ShymkentShot", "KaragandaKing", "AktobeCrush",
+        "TarazTitan", "PavlodarPro", "SemeySniper", "OskemenOmega", "KostanayKnight",
+        "KyzylordaKobra", "AtyrauArcher", "AktauAlpha", "UralskUltra", "PetropavlPower",
+        "TurkestanThunder", "KokshetauKing", "TaldykoryanTank", "EkibastuzElite", "RudnyRanger",
+        "ZhezkazganZealot", "BalkhashBlade", "KentauKrusher", "SatpayevStrike", "ZhanatasJudge",
+        "ArkalykArrow", "LisaLegend", "SaranSurge", "ShakhtinShadow", "StepnogorskStorm",
+        // 31-60: Nature and culture
+        "SteppeStrike", "CaspianCrush", "AralAlpha", "BalkhashBeast", "AltaiArcher",
+        "TianShanThunder", "CharynCanyon", "BayanaulBolt", "KolsayCrush", "BurabayBlade",
+        "DombyraDynamo", "KobysMaster", "KumissKing", "BeshbarMaxx", "BaursakBoss",
+        "MantyMaster", "PlovPower", "KazyKnight", "ShubatStrike", "KurtCrusher",
+        "NovruzNinja", "NauryzNova", "AitysAce", "KokparKing", "TogazThunder",
+        "YurtYell", "GoldenEagle", "SnowLeopard", "SaigaStrike", "TulparThunder",
+        // 61-90: More local flavor
+        "IrtyshIce", "SyrDaryaSurge", "IshimInferno", "TobolTitan", "UralUltra",
+        "BetpakDalaBolt", "MuyunKumMaster", "KyzylKumKing", "MangystauMighty", "UstyurtUltra",
+        "MedeoMaster", "ShymbulakShot", "BaiKonurBolt", "AkkolAce", "ZailiyskZealot",
+        "AlmaArasan", "KokTobeCrush", "AsanbaiArcher", "SaryarkaStar", "EsiLegend",
+        "TalgarTank", "KapchagaiKing", "OtrarOracle", "ChimkentChamp", "SauranStrike",
+        "AksuArrow", "JanatasJudge", "KaratauKnight", "MerkeMarvel", "LengerLion"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "ZA", "US", "CN", "RU", "NG", "EG", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -10279,30 +10327,6 @@ public extension LeaderboardClient {
         return entries
     }
 
-    static let azerbaijanNames = [
-        // 1-30: Geographic and city-based
-        "BakuBlaster", "GanjaMaster", "SumgaitStar", "MingachevirMaverick", "ShirvanShot",
-        "NakhchivanNinja", "ShekiStriker", "LankaranLegend", "YevlakhYell", "ShamakhiSniper",
-        "BardaBlade", "QubaCrusher", "ZagatalaZealot", "GoychayGhost", "KhachmazKnight",
-        "SalyanSurge", "AgdashAce", "JalilabadJudge", "BilasuvarBolt", "TovuzTitan",
-        "GobustanGuard", "IsmayilliInferno", "GabalaGlory", "ShamkirShark", "AghdamArcher",
-        "ShushaShadow", "KurdamirKing", "HajiqabulHawk", "MasalliMighty", "SabirabadStorm",
-        // 31-60: Nature and culture
-        "CaspianCrush", "FlameTowerFury", "YanardagYell", "MudVolcanoMaster", "CaucasusCobra",
-        "MughamMaestro", "AshiqAssault", "KarabakhKnight", "NovruzNinja", "ButaBlade",
-        "SazStrike", "TarThunder", "KamancheKing", "ZurnaSurge", "BalabanBeast",
-        "PlovPower", "DolmaDestroyer", "KebabKrusher", "TandirTitan", "LavashLord",
-        "BaklavaBoss", "PakhlavaPro", "GutabGhost", "ShekerburaShot", "PitiProwler",
-        "SamaniSlayer", "QovormaQuake", "LulaKebabLion", "SajStrike", "DushbaraDestroyer",
-        // 61-90: More local flavor
-        "AbsheronAce", "KuraCrusher", "ArazArcher", "GoyGolGuard", "MaralGolMaster",
-        "ShahDagShark", "BazarduzuBolt", "TufanDagTitan", "LenkKnight", "AteshgahAlpha",
-        "BibiHeybatBlast", "QizQalasQuake", "NizamiNinja", "FuzuliFlash", "NasimiNova",
-        "KhirdaKing", "IcheriBeast", "GulustanGlory", "SamurSniper", "LahijLegend",
-        "BalakhanBolt", "OghuzOmega", "QutqashenQuake", "IsmayilliIce", "ShekiSilk",
-        "GobustanGlyph", "XanlarXpress", "DasguzDagger", "TerterThrust", "AghsuArrow"
-    ]
-
     // Azerbaijan player milestones (543,296 total players)
     // Top 219 from screenshots
     static let azerbaijanPlayerMilestones: [String] = [
@@ -10450,30 +10474,6 @@ public extension LeaderboardClient {
 
         return entries
     }
-
-    static let kazakhstanNames = [
-        // 1-30: Geographic and city-based
-        "AlmatyAce", "AstanaStar", "ShymkentShot", "KaragandaKing", "AktobeCrush",
-        "TarazTitan", "PavlodarPro", "SemeySniper", "OskemenOmega", "KostanayKnight",
-        "KyzylordaKobra", "AtyrauArcher", "AktauAlpha", "UralskUltra", "PetropavlPower",
-        "TurkestanThunder", "KokshetauKing", "TaldykoryanTank", "EkibastuzElite", "RudnyRanger",
-        "ZhezkazganZealot", "BalkhashBlade", "KentauKrusher", "SatpayevStrike", "ZhanatasJudge",
-        "ArkalykArrow", "LisaLegend", "SaranSurge", "ShakhtinShadow", "StepnogorskStorm",
-        // 31-60: Nature and culture
-        "SteppeStrike", "CaspianCrush", "AralAlpha", "BalkhashBeast", "AltaiArcher",
-        "TianShanThunder", "CharynCanyon", "BayanaulBolt", "KolsayCrush", "BurabayBlade",
-        "DombyraDynamo", "KobysMaster", "KumissKing", "BeshbarMaxx", "BaursakBoss",
-        "MantyMaster", "PlovPower", "KazyKnight", "ShubatStrike", "KurtCrusher",
-        "NovruzNinja", "NauryzNova", "AitysAce", "KokparKing", "TogazThunder",
-        "YurtYell", "GoldenEagle", "SnowLeopard", "SaigaStrike", "TulparThunder",
-        // 61-90: More local flavor
-        "IrtyshIce", "SyrDaryaSurge", "IshimInferno", "TobolTitan", "UralUltra",
-        "BetpakDalaBolt", "MuyunKumMaster", "KyzylKumKing", "MangystauMighty", "UstyurtUltra",
-        "MedeoMaster", "ShymbulakShot", "BaiKonurBolt", "AkkolAce", "ZailiyskZealot",
-        "AlmaArasan", "KokTobeCrush", "AsanbaiArcher", "SaryarkaStar", "EsiLegend",
-        "TalgarTank", "KapchagaiKing", "OtrarOracle", "ChimkentChamp", "SauranStrike",
-        "AksuArrow", "JanatasJudge", "KaratauKnight", "MerkeMarvel", "LengerLion"
-    ]
 
     // Kazakhstan player milestones (62,211 total players)
     // Top 74 from screenshots
