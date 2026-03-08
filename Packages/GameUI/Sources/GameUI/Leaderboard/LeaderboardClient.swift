@@ -5111,8 +5111,12 @@ public extension LeaderboardClient {
     // Extended Portugal milestone brackets for rank calculation (ranks 151+)
     // Total Portugal players: ~98,989
     static let portugalExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
-        // M-tier brackets (ranks 151-1615)
-        ("134M", 153), ("67M", 182), ("33M", 293), ("16M", 433), ("8M", 600),
+        // a-tier and B-tier brackets (ranks 151-175)
+        ("2a", 151), ("1a", 153), ("549B", 155), ("274B", 157), ("137B", 159),
+        ("68B", 161), ("34B", 163), ("17B", 165), ("8B", 168), ("4B", 171),
+        ("2B", 174), ("1B", 177),
+        // M-tier brackets (ranks 180-1615)
+        ("536M", 180), ("268M", 185), ("134M", 195), ("67M", 220), ("33M", 293), ("16M", 433), ("8M", 600),
         ("4M", 845), ("2M", 1234), ("1M", 1616),
         // K-tier brackets (ranks 2425-7676)
         ("524K", 2425), ("262K", 3333), ("131K", 4444), ("65K", 5656), ("32K", 6767), ("16K", 7676),
@@ -7673,8 +7677,9 @@ public extension LeaderboardClient {
             let platform: Platform = i % 3 == 0 ? .ios : .android
             let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 95000, day: day)
 
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: baseMilestone)
-            playerData.append((i, baseMilestone, milestoneIdx, name, platform, avatar, "no_\(i)"))
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 95000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "no_\(i)"))
         }
 
         // Add user to playerData so they get sorted with everyone else
