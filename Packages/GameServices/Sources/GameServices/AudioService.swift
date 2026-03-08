@@ -53,7 +53,7 @@ public struct DefaultAudioService: AudioServiceProtocol, Sendable {
         // no-op (intentionally)
     }
 
-    public func stopAllSfx() async {
+    public func stopTickSound() async {
         // no-op (intentionally)
     }
 
@@ -95,6 +95,7 @@ public actor LiveAudioService: AudioServiceProtocol {
     private var musicPlayer: AVAudioPlayer?
     private var musicPlayerDelegate: AudioPlayerDelegate?
     private var sfxPlayers: [AVAudioPlayer] = []
+    private var tickPlayers: [AVAudioPlayer] = []
     private var instrumentTapIndex: Int = 0
     private let storage = AudioSettingsStorage()
     private let maxConcurrentSfx = 8  // Limit concurrent sound effects
@@ -362,11 +363,11 @@ public actor LiveAudioService: AudioServiceProtocol {
         await playInstrumentTapSound(theme: currentTheme)
     }
 
-    public func stopAllSfx() async {
-        for player in sfxPlayers {
+    public func stopTickSound() async {
+        for player in tickPlayers {
             player.stop()
         }
-        sfxPlayers.removeAll()
+        tickPlayers.removeAll()
     }
 
     private func playElectricSound(theme: String) async {
@@ -511,10 +512,12 @@ public actor LiveAudioService: AudioServiceProtocol {
                 player.play()
             }
             sfxPlayers.append(player)
+            tickPlayers.append(player)
 
             Task {
                 try? await Task.sleep(for: .seconds(player.duration + 0.1))
                 await removeSfxPlayer(player)
+                await removeTickPlayer(player)
             }
         } catch {
             print("❌ Failed to play tick sound: \(error)")
@@ -684,6 +687,10 @@ public actor LiveAudioService: AudioServiceProtocol {
     
     private func removeSfxPlayer(_ player: AVAudioPlayer) async {
         sfxPlayers.removeAll { $0 === player }
+    }
+
+    private func removeTickPlayer(_ player: AVAudioPlayer) async {
+        tickPlayers.removeAll { $0 === player }
     }
 
     /// Clean up finished players and ensure we don't exceed the limit

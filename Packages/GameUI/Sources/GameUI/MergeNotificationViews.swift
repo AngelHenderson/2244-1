@@ -318,7 +318,7 @@ struct UnlockedNotificationView: View {
         animationTimer?.invalidate()
         animationTimer = nil
         isSpinning = false
-        Task { await audioService.stopAllSfx() }
+        Task { await audioService.stopTickSound() }
     }
 
     private func moveToNext() {
