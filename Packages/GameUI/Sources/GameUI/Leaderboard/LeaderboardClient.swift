@@ -1939,6 +1939,7 @@ public enum MockLeaderboardData {
     }
 
     // Calculate milestone progression for regular leaderboard players
+    // Players at/above 1bx milestone: progress at 2.75x normal rate (elite push to infinity)
     // Players at/above 16K milestone: progress at 0.25-1 milestones per day
     // Players below 16K milestone: progress at 1.5-4 milestones per day (faster to catch up)
     static func milestoneWithProgression(baseMilestone: String, playerIndex: Int, day: Int) -> String {
@@ -1949,16 +1950,22 @@ public enum MockLeaderboardData {
         // Index of "16K" in allMilestones array
         let milestone16KIndex = 14
 
+        // Index of "1bx" in allMilestones array (elite threshold)
+        let milestone1bxIndex = allMilestones.firstIndex(of: "1bx") ?? 820
+
         // Each player gets a consistent daily milestone progression rate
-        // Rate depends on milestone: players below 16K progress faster to catch up
+        // Rate depends on milestone tier
         let dailyRate: Double
         let randomFactor = seededRandom(seed: playerIndex * 888, index: playerIndex)
 
         if baseIndex < milestone16KIndex {
             // Players below 16K milestone: 1.5-4 milestones per day (faster progression)
             dailyRate = 1.5 + randomFactor * 2.5
+        } else if baseIndex >= milestone1bxIndex {
+            // Players at/above 1bx milestone: 2.75x normal rate (elite push to infinity)
+            dailyRate = (0.25 + randomFactor * 0.75) * 2.75
         } else {
-            // Players at/above 16K milestone: 0.25-1 milestones per day
+            // Players at/above 16K but below 1bx: 0.25-1 milestones per day
             dailyRate = 0.25 + randomFactor * 0.75
         }
 
@@ -9458,7 +9465,12 @@ public extension LeaderboardClient {
     // Extended Indonesia milestone brackets for rank calculation (ranks 151+)
     // Based on screenshot data
     static let indonesiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
-        ("67M", 153), ("33M", 231), ("16M", 369), ("8M", 633), ("4M", 844),
+        // a-tier and B-tier brackets (ranks 151-177)
+        ("2a", 151), ("1a", 153), ("549B", 155), ("274B", 157), ("137B", 159),
+        ("68B", 161), ("34B", 163), ("17B", 165), ("8B", 168), ("4B", 171),
+        ("2B", 174), ("1B", 177),
+        // M-tier brackets (ranks 180+)
+        ("536M", 180), ("268M", 185), ("134M", 195), ("67M", 220), ("33M", 280), ("16M", 400), ("8M", 633), ("4M", 844),
         ("2M", 1111), ("1M", 1593), ("524K", 2222), ("262K", 2855), ("131K", 3388),
         ("65K", 4222), ("32K", 5302), ("16K", 6488), ("8192", 7777), ("4096", 9332),
         ("2048", 11234), ("1024", 12345), ("512", 14459), ("256", 18199), ("128", 22222),
