@@ -64,6 +64,21 @@ public struct HybridGameScreen: View {
     private var currentWallpaper: WallpaperTheme {
         WallpaperThemeRegistry.Default.wallpaper(for: selectedWallpaperId)
     }
+
+    private var shopIcon: Image {
+        #if canImport(UIKit)
+        if let path = Bundle.module.path(forResource: "ShopIcon", ofType: "png"),
+           let uiImage = UIImage(contentsOfFile: path) {
+            return Image(uiImage: uiImage)
+        }
+        #elseif canImport(AppKit)
+        if let path = Bundle.module.path(forResource: "ShopIcon", ofType: "png"),
+           let nsImage = NSImage(contentsOfFile: path) {
+            return Image(nsImage: nsImage)
+        }
+        #endif
+        return Image(systemName: "cart.fill")
+    }
     
     // Closure injected by parent to dismiss gameplay (return to Home)
     public var isPlayingDismiss: (() -> Void)? = nil
@@ -149,10 +164,11 @@ public struct HybridGameScreen: View {
                         Button {
                             isShowingShop = true
                         } label: {
-                            Image(systemName: "cart.fill")
-                                .font(.avenirNext(size: 22, weight: .regular))
+                            shopIcon
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
                                 .frame(width: 44, height: 44)
-                                .foregroundStyle(.primary)
                         }
                         .buttonStyle(.plain)
                         .padding(.vertical, 12)
