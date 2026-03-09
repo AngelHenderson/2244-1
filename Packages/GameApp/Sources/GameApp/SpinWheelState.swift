@@ -72,7 +72,13 @@ public final class SpinWheelState {
         } else {
             lastConsumedSlot = nil
         }
-        bonusSpins = defaults.integer(forKey: DefaultsKeys.bonusSpins)
+        if defaults.object(forKey: DefaultsKeys.bonusSpins) == nil {
+            // First install: seed 1 bonus spin
+            bonusSpins = 1
+            defaults.set(1, forKey: DefaultsKeys.bonusSpins)
+        } else {
+            bonusSpins = defaults.integer(forKey: DefaultsKeys.bonusSpins)
+        }
         if let data = defaults.data(forKey: DefaultsKeys.inventory),
            let decoded = try? JSONDecoder().decode([String: Int].self, from: data) {
             var temp: [MultiplierTier: Int] = [:]
@@ -207,8 +213,13 @@ public final class SpinWheelState {
     // MARK: - Countdown
     
     public func formattedCountdown(now date: Date = Date()) -> String {
-        if slotAvailable(on: date) {
+        if bonusSpins > 0 {
+            return "\(bonusSpins) bonus spin\(bonusSpins == 1 ? "" : "s")"
+        }
+        if slotAvailable(on: date) && lastConsumedSlot != nil {
             return "Ready now"
+        } else if slotAvailable(on: date) {
+            return "Available"
         }
         let next = nextSlotStart(after: date)
         let remaining = max(0, next.timeIntervalSince(date))
