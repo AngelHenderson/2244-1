@@ -177,61 +177,78 @@ public struct AchievementsView: View {
         }
     }
     
+    @State private var selectedTab: Tab = .achievements
+
+    private enum Tab: String, CaseIterable {
+        case achievements = "Achievements"
+        case dailyQuests = "Daily Quests"
+    }
+
     public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Show "Claim All" button at top when there are multiple claimable achievements
-                if achievements.claimableCount >= 2 {
-                    ClaimAllButton(count: achievements.claimableCount) {
-                        _ = achievements.claimAll()
-                        // Sync gems from UserDefaults to HomeState
-                        let updatedGems = UserDefaults.standard.integer(forKey: "coins")
-                        homeState.gems = updatedGems
+                // Tab picker
+                Picker("", selection: $selectedTab) {
+                    ForEach(Tab.allCases, id: \.self) { tab in
+                        Text(tab.rawValue).tag(tab)
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
-                    .background(Color(UIColor.systemGroupedBackground))
                 }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
 
-                ScrollView {
-                    // Daily Quests section
-                    DailyQuestsSection(questStore: questStore, homeState: homeState)
-                        .padding(.horizontal)
-                        .padding(.top, 4)
-
-                    LazyVStack(spacing: 12) {
-                        ForEach(sortedAchievements) { def in
-                            AchievementRow(
-                                definition: def,
-                                state: achievements.unlocks[def.id],
-                                tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
-                                movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
-                                tierDisplay: tierDisplay(for: def.id),
-                                progress: achievements.progress(for: def),
-                                isMaxed: isMaxed(for: def.id),
-                                hasMultipleTiers: achievements.hasMultipleTiers(for: def.id),
-                                onClaim: {
-                                    // Claim the achievement
-                                    achievements.claim(definition: def)
-                                    // Immediately sync gems from UserDefaults to HomeState
-                                    let updatedGems = UserDefaults.standard.integer(forKey: "coins")
-                                    homeState.gems = updatedGems
-                                },
-                                onTapTiers: {
-                                    selectedAchievementForTiers = def
-                                }
-                            )
+                switch selectedTab {
+                case .achievements:
+                    // Show "Claim All" button at top when there are multiple claimable achievements
+                    if achievements.claimableCount >= 2 {
+                        ClaimAllButton(count: achievements.claimableCount) {
+                            _ = achievements.claimAll()
+                            let updatedGems = UserDefaults.standard.integer(forKey: "coins")
+                            homeState.gems = updatedGems
                         }
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
+                        .background(Color(UIColor.systemGroupedBackground))
                     }
-                    .padding()
-                    .animation(.easeInOut(duration: 0.3), value: achievements.unlocks)
+
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(sortedAchievements) { def in
+                                AchievementRow(
+                                    definition: def,
+                                    state: achievements.unlocks[def.id],
+                                    tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
+                                    movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
+                                    tierDisplay: tierDisplay(for: def.id),
+                                    progress: achievements.progress(for: def),
+                                    isMaxed: isMaxed(for: def.id),
+                                    hasMultipleTiers: achievements.hasMultipleTiers(for: def.id),
+                                    onClaim: {
+                                        achievements.claim(definition: def)
+                                        let updatedGems = UserDefaults.standard.integer(forKey: "coins")
+                                        homeState.gems = updatedGems
+                                    },
+                                    onTapTiers: {
+                                        selectedAchievementForTiers = def
+                                    }
+                                )
+                            }
+                        }
+                        .padding()
+                        .animation(.easeInOut(duration: 0.3), value: achievements.unlocks)
+                    }
+
+                case .dailyQuests:
+                    ScrollView {
+                        DailyQuestsSection(questStore: questStore, homeState: homeState)
+                            .padding()
+                    }
                 }
             }
             .background(Color(UIColor.systemGroupedBackground))
-            .navigationTitle("ACHIEVEMENTS")
+            .navigationTitle(selectedTab == .achievements ? "ACHIEVEMENTS" : "DAILY QUESTS")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                // Trigger playtime update when viewing achievements
                 gameStore.achievementEvaluator?.savePlaytimeProgress(state: gameStore.state)
             }
             .toolbar {
