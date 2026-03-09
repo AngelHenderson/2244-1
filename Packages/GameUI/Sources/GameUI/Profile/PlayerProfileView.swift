@@ -32,10 +32,8 @@ public struct PlayerProfileView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
-                ToolbarItemGroup(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     GemBalancePill()
-                    Button("Customize") { model.showCustomize = true }
-                    Button("Compare") { model.showCompare = true }
                 }
             }
             .task {
