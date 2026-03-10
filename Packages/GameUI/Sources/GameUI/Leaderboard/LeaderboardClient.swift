@@ -6379,15 +6379,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var usRank = totalUSPlayers
-
-            for bracket in usExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   effectiveUserIdx >= bracketIndex {
-                    usRank = bracket.startRank
-                    break
-                }
-            }
+            let usRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "US")
 
             // Add extended bracket entries with surrounding players
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
@@ -6473,15 +6465,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var ukRank = totalUKPlayers
-
-            for bracket in ukExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    ukRank = bracket.startRank
-                    break
-                }
-            }
+            let ukRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "GB")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: ukRank,
@@ -6565,15 +6549,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var canadaRank = totalCanadaPlayers
-
-            for bracket in canadaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    canadaRank = bracket.startRank
-                    break
-                }
-            }
+            let canadaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "CA")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: canadaRank,
@@ -6657,15 +6633,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var australiaRank = totalAustraliaPlayers
-
-            for bracket in australiaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    australiaRank = bracket.startRank
-                    break
-                }
-            }
+            let australiaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "AU")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: australiaRank,
@@ -6725,13 +6693,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var germanyRank = totalGermanyPlayers
-            for bracket in germanyExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    germanyRank = bracket.startRank
-                    break
-                }
-            }
+            let germanyRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "DE")
             entries.append(LeaderboardEntry(id: "me", rank: germanyRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "DE", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -6783,13 +6745,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var franceRank = totalFrancePlayers
-            for bracket in franceExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    franceRank = bracket.startRank
-                    break
-                }
-            }
+            let franceRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "FR")
             entries.append(LeaderboardEntry(id: "me", rank: franceRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "FR", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -6867,15 +6823,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var japanRank = totalJapanPlayers
-
-            for bracket in japanExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    japanRank = bracket.startRank
-                    break
-                }
-            }
+            let japanRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "JP")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: japanRank,
@@ -6936,13 +6884,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var indiaRank = totalIndiaPlayers
-            for bracket in indiaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    indiaRank = bracket.startRank
-                    break
-                }
-            }
+            let indiaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "IN")
             entries.append(LeaderboardEntry(id: "me", rank: indiaRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "IN", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -6992,13 +6934,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var brazilRank = totalBrazilPlayers
-            for bracket in brazilExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    brazilRank = bracket.startRank
-                    break
-                }
-            }
+            let brazilRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "BR")
             entries.append(LeaderboardEntry(id: "me", rank: brazilRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "BR", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -7048,13 +6984,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var mexicoRank = totalMexicoPlayers
-            for bracket in mexicoExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    mexicoRank = bracket.startRank
-                    break
-                }
-            }
+            let mexicoRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "MX")
             entries.append(LeaderboardEntry(id: "me", rank: mexicoRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "MX", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -7104,13 +7034,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var afghanistanRank = totalAfghanistanPlayers
-            for bracket in afghanistanExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    afghanistanRank = bracket.startRank
-                    break
-                }
-            }
+            let afghanistanRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "AF")
             entries.append(LeaderboardEntry(id: "me", rank: afghanistanRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "AF", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -7161,13 +7085,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var albaniaRank = totalAlbaniaPlayers
-            for bracket in albaniaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    albaniaRank = bracket.startRank
-                    break
-                }
-            }
+            let albaniaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "AL")
             entries.append(LeaderboardEntry(id: "me", rank: albaniaRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "AL", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -7218,13 +7136,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var algeriaRank = totalAlgeriaPlayers
-            for bracket in algeriaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    algeriaRank = bracket.startRank
-                    break
-                }
-            }
+            let algeriaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "DZ")
             entries.append(LeaderboardEntry(id: "me", rank: algeriaRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "DZ", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -7273,13 +7185,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var chinaRank = totalChinaPlayers
-            for bracket in chinaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    chinaRank = bracket.startRank
-                    break
-                }
-            }
+            let chinaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "CN")
             entries.append(LeaderboardEntry(id: "me", rank: chinaRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "CN", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -7328,13 +7234,7 @@ public extension LeaderboardClient {
 
         if !userInTop150 {
             let userScore = MockLeaderboardData.scoreForMilestone(userMilestone)
-            var southKoreaRank = totalSouthKoreaPlayers
-            for bracket in southKoreaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone), userMilestoneIdx >= bracketIndex {
-                    southKoreaRank = bracket.startRank
-                    break
-                }
-            }
+            let southKoreaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "KR")
             entries.append(LeaderboardEntry(id: "me", rank: southKoreaRank, name: UserLeaderboardData.playerName, score: userScore, countryCode: "KR", platform: .ios, isMe: true, avatarURL: UserLeaderboardData.avatarID, highestTile: userMilestone))
         }
 
@@ -7407,15 +7307,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var italyRank = totalItalyPlayers
-
-            for bracket in italyExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    italyRank = bracket.startRank
-                    break
-                }
-            }
+            let italyRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "IT")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: italyRank,
@@ -7499,15 +7391,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var spainRank = totalSpainPlayers
-
-            for bracket in spainExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    spainRank = bracket.startRank
-                    break
-                }
-            }
+            let spainRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "ES")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: spainRank,
@@ -7591,15 +7475,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var switzerlandRank = totalSwitzerlandPlayers
-
-            for bracket in switzerlandExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    switzerlandRank = bracket.startRank
-                    break
-                }
-            }
+            let switzerlandRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "CH")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: switzerlandRank,
@@ -7683,15 +7559,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var netherlandsRank = totalNetherlandsPlayers
-
-            for bracket in netherlandsExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    netherlandsRank = bracket.startRank
-                    break
-                }
-            }
+            let netherlandsRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "NL")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: netherlandsRank,
@@ -7775,15 +7643,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var norwayRank = totalNorwayPlayers
-
-            for bracket in norwayExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    norwayRank = bracket.startRank
-                    break
-                }
-            }
+            let norwayRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "NO")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: norwayRank,
@@ -7867,15 +7727,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var denmarkRank = totalDenmarkPlayers
-
-            for bracket in denmarkExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    denmarkRank = bracket.startRank
-                    break
-                }
-            }
+            let denmarkRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "DK")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: denmarkRank,
@@ -7960,15 +7812,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var finlandRank = totalFinlandPlayers
-
-            for bracket in finlandExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    finlandRank = bracket.startRank
-                    break
-                }
-            }
+            let finlandRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "FI")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: finlandRank,
@@ -8053,15 +7897,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var polandRank = totalPolandPlayers
-
-            for bracket in polandExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    polandRank = bracket.startRank
-                    break
-                }
-            }
+            let polandRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "PL")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: polandRank,
@@ -8146,15 +7982,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var belgiumRank = totalBelgiumPlayers
-
-            for bracket in belgiumExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    belgiumRank = bracket.startRank
-                    break
-                }
-            }
+            let belgiumRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "BE")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: belgiumRank,
@@ -8239,15 +8067,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var swedenRank = totalSwedenPlayers
-
-            for bracket in swedenExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    swedenRank = bracket.startRank
-                    break
-                }
-            }
+            let swedenRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "SE")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: swedenRank,
@@ -8332,15 +8152,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var austriaRank = totalAustriaPlayers
-
-            for bracket in austriaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    austriaRank = bracket.startRank
-                    break
-                }
-            }
+            let austriaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "AT")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: austriaRank,
@@ -8425,15 +8237,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var irelandRank = totalIrelandPlayers
-
-            for bracket in irelandExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    irelandRank = bracket.startRank
-                    break
-                }
-            }
+            let irelandRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "IE")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: irelandRank,
@@ -8518,15 +8322,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var portugalRank = totalPortugalPlayers
-
-            for bracket in portugalExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    portugalRank = bracket.startRank
-                    break
-                }
-            }
+            let portugalRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "PT")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: portugalRank,
@@ -8611,15 +8407,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var greeceRank = totalGreecePlayers
-
-            for bracket in greeceExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    greeceRank = bracket.startRank
-                    break
-                }
-            }
+            let greeceRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "GR")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: greeceRank,
@@ -8704,15 +8492,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var czechiaRank = totalCzechiaPlayers
-
-            for bracket in czechiaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    czechiaRank = bracket.startRank
-                    break
-                }
-            }
+            let czechiaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "CZ")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: czechiaRank,
@@ -8797,15 +8577,7 @@ public extension LeaderboardClient {
 
         // If user is not in top 150, show them with surrounding extended bracket players
         if !userInTop150 {
-            var romaniaRank = totalRomaniaPlayers
-
-            for bracket in romaniaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    romaniaRank = bracket.startRank
-                    break
-                }
-            }
+            let romaniaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "RO")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: romaniaRank,
@@ -8881,15 +8653,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var malaysiaRank = totalMalaysiaPlayers
-
-            for bracket in malaysiaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    malaysiaRank = bracket.startRank
-                    break
-                }
-            }
+            let malaysiaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "MY")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: malaysiaRank,
@@ -8965,15 +8729,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var newZealandRank = totalNewZealandPlayers
-
-            for bracket in newZealandExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    newZealandRank = bracket.startRank
-                    break
-                }
-            }
+            let newZealandRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "NZ")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: newZealandRank,
@@ -9049,15 +8805,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var hungaryRank = totalHungaryPlayers
-
-            for bracket in hungaryExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    hungaryRank = bracket.startRank
-                    break
-                }
-            }
+            let hungaryRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "HU")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: hungaryRank,
@@ -9133,15 +8881,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var thailandRank = totalThailandPlayers
-
-            for bracket in thailandExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    thailandRank = bracket.startRank
-                    break
-                }
-            }
+            let thailandRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "TH")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: thailandRank,
@@ -9218,15 +8958,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var uaeRank = totalUAEPlayers
-
-            for bracket in uaeExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    uaeRank = bracket.startRank
-                    break
-                }
-            }
+            let uaeRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "AE")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: uaeRank,
@@ -9303,15 +9035,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var philippinesRank = totalPhilippinesPlayers
-
-            for bracket in philippinesExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    philippinesRank = bracket.startRank
-                    break
-                }
-            }
+            let philippinesRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "PH")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: philippinesRank,
@@ -9436,14 +9160,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var andorraRank = 151
-            for bracket in andorraExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    andorraRank = bracket.startRank
-                    break
-                }
-            }
+            let andorraRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "AD")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: andorraRank,
@@ -9570,14 +9287,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var indonesiaRank = 151
-            for bracket in indonesiaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    indonesiaRank = bracket.startRank
-                    break
-                }
-            }
+            let indonesiaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "ID")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: indonesiaRank,
@@ -9693,14 +9403,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var southAfricaRank = 151
-            for bracket in southAfricaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    southAfricaRank = bracket.startRank
-                    break
-                }
-            }
+            let southAfricaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "ZA")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: southAfricaRank,
@@ -9830,14 +9533,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var kenyaRank = 151
-            for bracket in kenyaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    kenyaRank = bracket.startRank
-                    break
-                }
-            }
+            let kenyaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "KE")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: kenyaRank,
@@ -9960,14 +9656,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var fijiRank = 151
-            for bracket in fijiExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    fijiRank = bracket.startRank
-                    break
-                }
-            }
+            let fijiRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "FJ")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: fijiRank,
@@ -10104,15 +9793,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var vietnamRank = totalVietnamPlayers
-
-            for bracket in vietnamExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    vietnamRank = bracket.startRank
-                    break
-                }
-            }
+            let vietnamRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "VN")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: vietnamRank,
@@ -10216,15 +9897,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var curacaoRank = totalCuracaoPlayers
-
-            for bracket in curacaoExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    curacaoRank = bracket.startRank
-                    break
-                }
-            }
+            let curacaoRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "CW")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: curacaoRank,
@@ -10356,15 +10029,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var venezuelaRank = totalVenezuelaPlayers
-
-            for bracket in venezuelaExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    venezuelaRank = bracket.startRank
-                    break
-                }
-            }
+            let venezuelaRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "VE")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: venezuelaRank,
@@ -10504,15 +10169,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var azerbaijanRank = totalAzerbaijanPlayers
-
-            for bracket in azerbaijanExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    azerbaijanRank = bracket.startRank
-                    break
-                }
-            }
+            let azerbaijanRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "AZ")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: azerbaijanRank,
@@ -10646,15 +10303,7 @@ public extension LeaderboardClient {
         }
 
         if !userInTop150 {
-            var kazakhstanRank = totalKazakhstanPlayers
-
-            for bracket in kazakhstanExtendedRankBrackets {
-                if let bracketIndex = MockLeaderboardData.allMilestones.firstIndex(of: bracket.milestone),
-                   userMilestoneIdx >= bracketIndex {
-                    kazakhstanRank = bracket.startRank
-                    break
-                }
-            }
+            let kazakhstanRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "KZ")
 
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: kazakhstanRank,
