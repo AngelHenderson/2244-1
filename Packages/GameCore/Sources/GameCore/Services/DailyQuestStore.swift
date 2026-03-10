@@ -205,11 +205,11 @@ public final class DailyQuestStore {
             defaults.set(tileQuestTargetStep, forKey: Self.tileTargetStepKey)
             // Update the quest description with the actual target
             if let idx = quests.firstIndex(where: { $0.id == "daily_tile_reach" }) {
-                let targetValue = tileValueFromStep(tileQuestTargetStep)
+                let label = formatTileStep(tileQuestTargetStep)
                 quests[idx] = Quest(
                     id: quests[idx].id,
-                    title: "Reach the \(formatTileValue(targetValue)) Tile",
-                    description: "Create a tile worth \(formatTileValue(targetValue)) or higher.",
+                    title: "Reach the \(label) Tile",
+                    description: "Create a tile worth \(label) or higher.",
                     target: 1,
                     current: quests[idx].current,
                     rewards: quests[idx].rewards,
@@ -264,11 +264,11 @@ public final class DailyQuestStore {
         // Update tile quest description if target was set
         if tileQuestTargetStep > 0,
            let idx = quests.firstIndex(where: { $0.id == "daily_tile_reach" }) {
-            let targetValue = tileValueFromStep(tileQuestTargetStep)
+            let label = formatTileStep(tileQuestTargetStep)
             quests[idx] = Quest(
                 id: quests[idx].id,
-                title: "Reach the \(formatTileValue(targetValue)) Tile",
-                description: "Create a tile worth \(formatTileValue(targetValue)) or higher.",
+                title: "Reach the \(label) Tile",
+                description: "Create a tile worth \(label) or higher.",
                 target: 1,
                 current: quests[idx].current,
                 rewards: quests[idx].rewards,
@@ -281,30 +281,8 @@ public final class DailyQuestStore {
         defaults.set(quest.current, forKey: Self.questProgressPrefix + quest.id)
     }
 
-    /// Convert tile step to Double value: step n = 2^(n+1)
-    private func tileValueFromStep(_ step: Int) -> Double {
-        pow(2.0, Double(step + 1))
-    }
-
-    private func formatTileValue(_ value: Double) -> String {
-        if value >= 1_000_000_000_000 {
-            let t = value / 1_000_000_000_000
-            return t.truncatingRemainder(dividingBy: 1) == 0
-                ? "\(Int(t))T" : String(format: "%.1fT", t)
-        } else if value >= 1_000_000_000 {
-            let b = value / 1_000_000_000
-            return b.truncatingRemainder(dividingBy: 1) == 0
-                ? "\(Int(b))B" : String(format: "%.1fB", b)
-        } else if value >= 1_000_000 {
-            let m = value / 1_000_000
-            return m.truncatingRemainder(dividingBy: 1) == 0
-                ? "\(Int(m))M" : String(format: "%.1fM", m)
-        } else if value >= 1_000 {
-            let k = value / 1_000
-            return k.truncatingRemainder(dividingBy: 1) == 0
-                ? "\(Int(k))K" : String(format: "%.1fK", k)
-        } else {
-            return "\(Int(value))"
-        }
+    /// Format tile step using the game's standard label system (K/M/B/a/b/c...)
+    private func formatTileStep(_ step: Int) -> String {
+        TileStepLabelFormatter.labelForStep(step, start: 2)
     }
 }
