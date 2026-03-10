@@ -188,7 +188,7 @@ public struct SpinWheelView: View {
                 Spacer()
                 Text(spinState.formattedCountdown(now: now))
                     .font(.avenirNext(size: 18, weight: .bold))
-                    .foregroundStyle(slotReady ? .green : .white)
+                    .foregroundStyle(slotReady && !bonusReady && spinState.lastConsumedSlot != nil ? .green : .white)
             }
 
             if bonusReady {
