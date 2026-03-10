@@ -215,6 +215,7 @@ public struct WeeklyOfferSheet: View {
 public struct ShopView: View {
     @Environment(\.shopStore) private var shopStore
     @Environment(\.tileJourney) private var journeyStore
+    @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedTab = ShopTab.bundles
@@ -386,10 +387,9 @@ public struct ShopView: View {
     // MARK: - Helper Methods
     
     private func journeyWindow() -> [(step: Int, currentStep: Int)] {
-        let highest = max(2, journeyStore.highestTile)
-        // Derive the step index (step 0 == 2). Fallback to log2 for safety.
-        let currentStep = Tile.makeFromValue(highest)?.stepIndex
-            ?? max(0, Int(log2(Double(highest))) - 1)
+        // Use step-based tracking directly so tiles past Int.max (step > 62) work correctly.
+        // gameStore.state.highestTileStep is tracked independently and doesn't overflow.
+        let currentStep = max(0, gameStore.state.highestTileStep)
         let start = max(0, currentStep - 20)
         let end = currentStep + 20
         return Array(start...end).map { (step: $0, currentStep: currentStep) }
