@@ -1833,10 +1833,22 @@ public enum MockLeaderboardData {
         countrySeed: Int? = nil,
         day: Int? = nil
     ) -> Int {
-        // Check if user would be in top 150 (better than first extended bracket)
-        if let firstBracket = extendedBrackets.first {
+        // Check if user would be in top range (better than first extended bracket)
+        // OR if we have progression data (countrySeed + day), always count from milestones
+        // to ensure consistency with the entries function (bracket-based is inaccurate when
+        // many players progress to infinity and get filtered)
+        let shouldCountFromMilestones: Bool
+        if countrySeed != nil && day != nil {
+            // Country-specific rank: always count from milestones for accuracy
+            shouldCountFromMilestones = true
+        } else if let firstBracket = extendedBrackets.first {
             let firstBracketIdx = milestoneIndex(for: firstBracket.milestone)
-            if userMilestoneIdx > firstBracketIdx {
+            shouldCountFromMilestones = userMilestoneIdx > firstBracketIdx
+        } else {
+            shouldCountFromMilestones = true
+        }
+
+        if shouldCountFromMilestones {
                 // User is better than top bracket, count from milestones array
                 // Apply progression if countrySeed and day are provided
                 var count = 0
@@ -1856,7 +1868,6 @@ public enum MockLeaderboardData {
                     }
                 }
                 return count
-            }
         }
 
         // User is in extended brackets range, find matching bracket
