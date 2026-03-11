@@ -6685,7 +6685,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalGermanyPlayers = 76_767
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -6737,7 +6736,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalFrancePlayers = 127_676
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -6876,7 +6874,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalIndiaPlayers = 1_488
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -6926,7 +6923,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalBrazilPlayers = 10_000
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -6976,7 +6972,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalMexicoPlayers = 7_229
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -7026,7 +7021,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalAfghanistanPlayers = 11_111
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -7077,7 +7071,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalAlbaniaPlayers = 11_222
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -7128,7 +7121,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalAlgeriaPlayers = 3_333
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -7177,7 +7169,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalChinaPlayers = 8_192
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
@@ -7226,7 +7217,6 @@ public extension LeaderboardClient {
             return $0.originalIndex < $1.originalIndex
         }
 
-        let totalSouthKoreaPlayers = 3_123
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
 
