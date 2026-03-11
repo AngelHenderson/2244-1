@@ -930,7 +930,7 @@ public final class GameStore {
                     // Yield to let SwiftUI render pre-gravity positions first.
                     // The per-tile .animation(.spring, value: position) needs to see
                     // the "before" position to animate to the "after" position.
-                    try await Task.sleep(nanoseconds: 16_000_000) // ~1 frame
+                    try? await Task.sleep(nanoseconds: 16_000_000) // ~1 frame
                     self.performGravityDrop(columns: affectedColumns)
                 }
 
