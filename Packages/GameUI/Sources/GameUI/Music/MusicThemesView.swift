@@ -91,10 +91,10 @@ struct MusicThemesView: View {
     private var header: some View {
         HStack(alignment: .center) {
             Button(action: { dismiss() }) {
-                Image(systemName: "chevron.left.circle.fill")
+                Image(systemName: "xmark.circle.fill")
                     .font(.avenirNext(size: 28, weight: .semibold))
             }
-            .accessibilityLabel("Back")
+            .accessibilityLabel("Close")
 
             Spacer()
             Text("MUSIC THEMES")
