@@ -1796,7 +1796,7 @@ public final class GameEngine {
     }
 
     /// Remove any tiles that shouldn't exist based on current milestone progress
-    private func cleanupTilesBelowThreshold() {
+    public func cleanupTilesBelowThreshold() {
         // For highValue tiles (step >= 62), use step-based comparison
         if state.highestTileStep >= 62 {
             let thresholdStep = getEliminationThresholdStep()

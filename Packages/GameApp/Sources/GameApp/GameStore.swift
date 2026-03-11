@@ -977,6 +977,10 @@ public final class GameStore {
             state = newState
             scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: [])
         }
+        // Force cleanup of any tiles below the elimination threshold
+        // Handles edge cases: saved state with stale tiles, cancelled tasks that skipped cleanup
+        engine.cleanupTilesBelowThreshold()
+        state = engine.state
     }
 
     /// Update valid moves count - call once after all board changes are complete
