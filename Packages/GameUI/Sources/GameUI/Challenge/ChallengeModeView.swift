@@ -61,7 +61,11 @@ public struct ChallengeModeView: View {
                         } label: {
                             Image(systemName: "info.circle")
                         }
-                        Button("Done") { dismiss() }
+                        Button { dismiss() } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
