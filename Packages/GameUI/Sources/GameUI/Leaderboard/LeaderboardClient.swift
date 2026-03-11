@@ -9965,6 +9965,9 @@ public extension LeaderboardClient {
     // Extended Venezuela milestone brackets for rank calculation (ranks 182+)
     // Total Venezuela players: ~71,837
     static let venezuelaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // a-tier brackets (ranks 176-181)
+        ("17a", 176), ("8a", 177), ("4a", 178), ("2a", 179), ("1a", 180), ("549B", 181),
+        // B-tier brackets (ranks 182+)
         ("274B", 182), ("137B", 186), ("68B", 189), ("34B", 193), ("17B", 194),
         ("8B", 196), ("4B", 201), ("2B", 208), ("1B", 216),
         ("536M", 224), ("268M", 233), ("134M", 243), ("67M", 254), ("33M", 266),
