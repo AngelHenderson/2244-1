@@ -979,8 +979,8 @@ public final class GameStore {
         }
         // Force cleanup of any tiles below the elimination threshold
         // Handles edge cases: saved state with stale tiles, cancelled tasks that skipped cleanup
-        engine.cleanupTilesBelowThreshold()
-        state = engine.state
+        let cleanedState = engine.cleanupTilesBelowThreshold()
+        state = cleanedState
     }
 
     /// Update valid moves count - call once after all board changes are complete

@@ -1796,11 +1796,12 @@ public final class GameEngine {
     }
 
     /// Remove any tiles that shouldn't exist based on current milestone progress
-    public func cleanupTilesBelowThreshold() {
+    @discardableResult
+    public func cleanupTilesBelowThreshold() -> GameState {
         // For highValue tiles (step >= 62), use step-based comparison
         if state.highestTileStep >= 62 {
             let thresholdStep = getEliminationThresholdStep()
-            guard thresholdStep > 0 else { return }
+            guard thresholdStep > 0 else { return state }
 
             var didRemove = false
             for row in 0..<config.boardHeight {
@@ -1818,12 +1819,12 @@ public final class GameEngine {
                 applyGravityDown()
                 fillEmptyCellsWithValidTiles()
             }
-            return
+            return state
         }
 
         // For normal tiles, use value-based comparison
         let threshold = getEliminationThreshold()
-        guard threshold > 2 else { return }  // No elimination needed
+        guard threshold > 2 else { return state }  // No elimination needed
 
         var didRemove = false
         for row in 0..<config.boardHeight {
@@ -1843,6 +1844,7 @@ public final class GameEngine {
             applyGravityDown()
             fillEmptyCellsWithValidTiles()
         }
+        return state
     }
 
     /// Fill empty cells with tiles that are above the elimination threshold
