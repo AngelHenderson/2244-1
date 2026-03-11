@@ -134,35 +134,41 @@ public struct PlayerProfileView: View {
                 
                 Spacer(minLength: 0)
                 
-                // Center profile row (50% width)
-                HStack(alignment: .center, spacing: 10) {
-                    AvatarBadge(option: AvatarCatalog.option(for: model.avatarSystemName), size: 50)
-                        .onTapGesture { model.showCustomize = true }
-                        .accessibilityAction {
-                            model.showCustomize = true
-                        }
+                // Center profile column (50% width)
+                VStack(spacing: 4) {
+                    Text("Player Name")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                        .foregroundStyle(.secondary)
+                    
+                    HStack(alignment: .center, spacing: 10) {
+                        AvatarBadge(option: AvatarCatalog.option(for: model.avatarSystemName), size: 50)
+                            .onTapGesture { model.showCustomize = true }
+                            .accessibilityAction {
+                                model.showCustomize = true
+                            }
 
-                    Text("Player Name: \(model.playerName)")
-                        .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                    
-                    Spacer(minLength: 0)
-                    
-                    // Edit name button
-                    Button {
-                        model.showRename = true
-                    } label: {
-                        Image(systemName: "pencil")
-                            .font(.system(size: 18))
-                            .foregroundStyle(.secondary)
+                        Text(model.playerName)
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        
+                        Spacer(minLength: 0)
+                        
+                        // Edit name button
+                        Button {
+                            model.showRename = true
+                        } label: {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 18))
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Edit name")
                     }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel("Edit name")
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .frame(width: geometry.size.width * 0.5)
                 
                 Spacer(minLength: 0)
