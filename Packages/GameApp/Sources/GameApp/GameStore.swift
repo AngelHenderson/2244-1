@@ -927,8 +927,10 @@ public final class GameStore {
 
                 if requiresGravityDrop {
                     print("[GameStore] Phase 3c: Gravity Drop")
-                    // No withAnimation — tile views have per-tile .animation(.spring, value: position)
-                    // which handles the slide. withAnimation would cause unwanted fade on ForEach changes.
+                    // Yield to let SwiftUI render pre-gravity positions first.
+                    // The per-tile .animation(.spring, value: position) needs to see
+                    // the "before" position to animate to the "after" position.
+                    try await Task.sleep(nanoseconds: 16_000_000) // ~1 frame
                     self.performGravityDrop(columns: affectedColumns)
                 }
 
