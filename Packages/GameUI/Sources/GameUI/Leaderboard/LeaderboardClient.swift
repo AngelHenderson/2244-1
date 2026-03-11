@@ -1834,12 +1834,11 @@ public enum MockLeaderboardData {
         day: Int? = nil
     ) -> Int {
         // Check if user would be in top range (better than first extended bracket)
-        // OR if we have progression data (countrySeed + day), always count from milestones
-        // to ensure consistency with the entries function (bracket-based is inaccurate when
-        // many players progress to infinity and get filtered)
+        // OR if we have progression data (countrySeed + day), count from milestones
+        // to ensure consistency with the entries function
         let shouldCountFromMilestones: Bool
         if countrySeed != nil && day != nil {
-            // Country-specific rank: always count from milestones for accuracy
+            // Country-specific rank: count from milestones for accuracy
             shouldCountFromMilestones = true
         } else if let firstBracket = extendedBrackets.first {
             let firstBracketIdx = milestoneIndex(for: firstBracket.milestone)
@@ -1849,13 +1848,12 @@ public enum MockLeaderboardData {
         }
 
         if shouldCountFromMilestones {
-                // User is better than top bracket, count from milestones array
-                // Apply progression if countrySeed and day are provided
+                // Count from milestones array with progression
                 var count = 0
+                var lowestProgressedIdx = Int.max  // Track lowest non-infinity progressed milestone
                 for (i, baseMilestone) in milestones.enumerated() {
                     let m: String
                     if let seed = countrySeed, let d = day {
-                        // Apply progression to get actual milestone
                         m = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + seed, day: d)
                     } else {
                         m = baseMilestone
@@ -1863,11 +1861,19 @@ public enum MockLeaderboardData {
                     // Skip infinity players (they're filtered from country leaderboards)
                     if m.hasSuffix("∞") { continue }
                     let mIdx = milestoneIndex(for: m)
+                    lowestProgressedIdx = min(lowestProgressedIdx, mIdx)
                     if mIdx > userMilestoneIdx {
                         count += 1
                     }
                 }
-                return count
+                // If user's milestone is AT or ABOVE the lowest progressed player,
+                // the count is accurate and we return it
+                if userMilestoneIdx >= lowestProgressedIdx {
+                    return count
+                }
+                // User's milestone is BELOW all progressed players —
+                // fall through to bracket interpolation for differentiated ranking
+                // (counting gives the same value for all milestones in this gap)
         }
 
         // User is in extended brackets range, find matching bracket
