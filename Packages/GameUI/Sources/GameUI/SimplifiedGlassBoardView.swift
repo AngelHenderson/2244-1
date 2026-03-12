@@ -122,12 +122,6 @@ public struct SimplifiedGlassBoardView: View {
                                     }
                                 }
 
-                                if crownPositions.contains(position) {
-                                    Image(systemName: "crown.fill")
-                                        .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
-                                        .foregroundStyle(.yellow)
-                                        .offset(y: -tileSize * 0.45)
-                                }
 
                                 // Gift box overlay (all rows)
                                 if !gameStore.sandboxed && gameStore.pendingGiftBoxes[position] != nil {
@@ -167,6 +161,18 @@ public struct SimplifiedGlassBoardView: View {
                 .transition(.identity)
                 .animation(.spring(response: 0.35, dampingFraction: 0.8), value: item.position)
                 .allowsHitTesting(false)
+            }
+
+            // Layer 3: Crown indicators (above tiles)
+            ForEach(crownPositions, id: \.self) { position in
+                Image(systemName: "crown.fill")
+                    .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
+                    .foregroundStyle(.yellow)
+                    .position(
+                        x: centerPoint(for: position, tileSize: tileSize, containerSize: containerSize).x,
+                        y: centerPoint(for: position, tileSize: tileSize, containerSize: containerSize).y - tileSize * 0.45
+                    )
+                    .allowsHitTesting(false)
             }
         }
         .contentShape(Rectangle())

@@ -94,12 +94,7 @@ public struct BoardView: View {
                                         }
                                 }
 
-                                if let t = gameStore.state.board[position], t.stepIndex == maxStep {
-                                    Image(systemName: "crown.fill")
-                                        .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
-                                        .foregroundStyle(.yellow)
-                                        .offset(y: -tileSize * 0.45)
-                                }
+
                             }
                             .contentShape(Rectangle())
                             .onTapGesture {
@@ -131,6 +126,23 @@ public struct BoardView: View {
                 .transition(.identity)
                 .animation(.spring(response: 0.35, dampingFraction: 0.8), value: item.position)
                 .allowsHitTesting(false)
+            }
+
+            // Layer 3: Crown indicators (above tiles)
+            ForEach(0..<gameStore.state.board.height, id: \.self) { row in
+                ForEach(0..<gameStore.state.board.width, id: \.self) { col in
+                    let position = Position(row: row, col: col)
+                    if let t = gameStore.state.board[position], t.stepIndex == maxStep {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
+                            .foregroundStyle(.yellow)
+                            .position(
+                                x: centerPoint(for: position, tileSize: tileSize, containerSize: containerSize).x,
+                                y: centerPoint(for: position, tileSize: tileSize, containerSize: containerSize).y - tileSize * 0.45
+                            )
+                            .allowsHitTesting(false)
+                    }
+                }
             }
         }
         .contentShape(Rectangle())
