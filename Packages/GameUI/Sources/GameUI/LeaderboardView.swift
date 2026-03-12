@@ -860,6 +860,8 @@ public struct LeaderboardView: View {
             return Color.blue  // Kazakhstan - blue from the flag
         case .countryTJ:
             return Color.red  // Tajikistan - red from the flag
+        case .countryNU:
+            return Color.yellow  // Niue - gold from the flag
         }
     }
 

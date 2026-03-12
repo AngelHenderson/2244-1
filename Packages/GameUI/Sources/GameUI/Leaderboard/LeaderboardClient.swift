@@ -299,7 +299,8 @@ public enum MockLeaderboardData {
             (LeaderboardClient.southAfricaPlayerMilestones, MockLeaderboardData.southAfricaNames, 195000, "ZA"),
             (LeaderboardClient.kenyaPlayerMilestones, MockLeaderboardData.kenyaNames, 200000, "KE"),
             (LeaderboardClient.fijiPlayerMilestones, MockLeaderboardData.fijiNames, 205000, "FJ"),
-            (LeaderboardClient.tajikistanPlayerMilestones, MockLeaderboardData.tajikistanNames, 235000, "TJ")
+            (LeaderboardClient.tajikistanPlayerMilestones, MockLeaderboardData.tajikistanNames, 235000, "TJ"),
+            (LeaderboardClient.niuePlayerMilestones, MockLeaderboardData.niueNames, 240000, "NU")
         ]
 
         for config in countryConfigs {
@@ -1554,7 +1555,8 @@ public enum MockLeaderboardData {
         "ZA": 195000, "KE": 200000, "FJ": 205000, "VN": 210000, "CW": 215000, "VE": 220000,
         "AZ": 225000,
         "KZ": 230000,
-        "TJ": 235000
+        "TJ": 235000,
+        "NU": 240000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -1752,6 +1754,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.kazakhstanPlayerMilestones, LeaderboardClient.kazakhstanExtendedRankBrackets, 62_211)
         case "TJ":
             return (LeaderboardClient.tajikistanPlayerMilestones, LeaderboardClient.tajikistanExtendedRankBrackets, 193_773)
+        case "NU":
+            return (LeaderboardClient.niuePlayerMilestones, LeaderboardClient.niueExtendedRankBrackets, 947)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1812,7 +1816,8 @@ public enum MockLeaderboardData {
             ("VE", 71_837),
             ("AZ", 543_296),
             ("KZ", 62_211),
-            ("TJ", 193_773)
+            ("TJ", 193_773),
+            ("NU", 947)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -1957,6 +1962,7 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.azerbaijanPlayerMilestones, extendedBrackets: LeaderboardClient.azerbaijanExtendedRankBrackets, totalPlayers: 543_296)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kazakhstanPlayerMilestones, extendedBrackets: LeaderboardClient.kazakhstanExtendedRankBrackets, totalPlayers: 62_211)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.tajikistanPlayerMilestones, extendedBrackets: LeaderboardClient.tajikistanExtendedRankBrackets, totalPlayers: 193_773)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.niuePlayerMilestones, extendedBrackets: LeaderboardClient.niueExtendedRankBrackets, totalPlayers: 947)
 
         return total
     }
@@ -3500,6 +3506,7 @@ public enum MockLeaderboardData {
         case "AZ": return LeaderboardClient.azerbaijanPlayerMilestones
         case "KZ": return LeaderboardClient.kazakhstanPlayerMilestones
         case "TJ": return LeaderboardClient.tajikistanPlayerMilestones
+        case "NU": return LeaderboardClient.niuePlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -3612,6 +3619,8 @@ public extension LeaderboardClient {
                 entries = kazakhstanEntries()
             case .countryTJ:
                 entries = tajikistanEntries()
+            case .countryNU:
+                entries = niueEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -10461,6 +10470,130 @@ public extension LeaderboardClient {
                 day: day,
                 totalPlayers: 193_773,
                 extendedBrackets: tajikistanExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+
+    // MARK: - Niue Leaderboard Data
+
+    static let niueNames = [
+        // 1-30: Village and geography-based
+        "AlofiAce", "MutalauMaster", "LikuLegend", "AvateleArcher", "TamoiTitan",
+        "HakupuHero", "VaieiViper", "TuapaBolt", "MakefuMighty", "NamukuNinja",
+        "TofPointTank", "HioPower", "AnaAnataStar", "PalahaCrush", "LageLion",
+        "UveuUltra", "TalagiBoss", "KaituKnight", "MatavaiFire", "OpahlOptic",
+        "FonuaheStar", "PukoStrike", "FatumiBlaze", "HalagigiHawk", "VaiohoBolt",
+        "TaioGamer", "FataKingdom", "MaheGuard", "VitiVenom", "TepaTopaz",
+        // 31-60: Nature and cultural
+        "CoralCrush", "ReefRider", "CoconutKing", "PalmPower", "TropicThunder",
+        "LagoonLord", "WaveMaster", "IslandInferno", "MarineMight", "TidalTitan",
+        "HiaikaHero", "TafuaStar", "PolyPower", "ManaStrike", "TikiBoss",
+        "KavaCrush", "TaroThunder", "UmuUltra", "LaplapsLord", "TurmericTitan",
+        "FaleForce", "PaddleKing", "OutriggerOmega", "VakaVoyager", "StarNavStar",
+        "MoanaMaster", "AtollAce", "PacificPro", "LagunaLion", "NiuePride",
+        // 61-90: More gamertags
+        "HuluHunter", "MakaMaster", "OnePlanet", "FenuaFlash", "TaulasiTank",
+        "MafutaMax", "PeauPower", "MataliKnight", "HeliakiHero", "TupuTitan",
+        "FakahokoBoss", "LagiLegend", "PuleStar", "FekaiBolt", "TitiViper",
+        "MataCrush", "FitiFlame", "KeleMaster", "SoloStrike", "PuleNinja",
+        "RockOfPoly", "SavageSouth", "NiueNova", "SmallIslandBig", "CoralKid",
+        "IsiIsland", "MakiMighty", "TafitiFire", "ManuBird", "TaneForest"
+    ]
+
+    static let niuePlayerMilestones: [String] = [
+        // Ranks 1-10
+        "598bj", "1ba", "676al", "2ai", "4af", "509z", "3x", "7v", "6t", "421r",
+        // Ranks 11-20
+        "51q", "3p", "5n", "11m", "22l", "2l", "1l", "178k", "11k", "2k",
+        // Ranks 21-30
+        "174j", "10j", "2j", "1j", "170i", "10i", "2i", "1i", "332h", "166h",
+        // Ranks 31-40
+        "83h", "41h", "20h", "10h", "2f", "9c", "549B", "68B", "2B", "1B",
+        // Ranks 41-50
+        "536M", "536M", "134M", "33M", "16M", "4M", "2M", "524K", "524K", "262K",
+        // Ranks 51-59
+        "262K", "131K", "32K", "32K", "32K", "16K", "16K", "16K", "16K"
+    ]
+
+    // Extended Niue milestone brackets for rank calculation (ranks 60+)
+    // Total Niue players: ~947
+    static let niueExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        ("8192", 60), ("4096", 65), ("2048", 71), ("1024", 81), ("512", 94),
+        ("256", 108), ("128", 132), ("64", 177), ("32", 233), ("16", 327),
+        ("8", 459), ("4", 577), ("2", 722), ("0", 839)  // Score 0 = ranks 839-947
+    ]
+
+    // Generate Niue entries with milestone progression and user insertion
+    private static func niueEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<niuePlayerMilestones.count {
+            let baseMilestone = niuePlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.niueNames, countrySeed: 240000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 240000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 240000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "nu_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 240000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "NU",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            let niueRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "NU")
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: niueRank,
+                userMilestone: userMilestone,
+                countryCode: "NU",
+                countrySeed: 240000,
+                names: MockLeaderboardData.niueNames,
+                day: day,
+                totalPlayers: 947,
+                extendedBrackets: niueExtendedRankBrackets
             )
             entries.append(contentsOf: extendedEntries)
         }
