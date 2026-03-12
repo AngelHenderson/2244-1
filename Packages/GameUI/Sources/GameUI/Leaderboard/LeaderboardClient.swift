@@ -3351,6 +3351,54 @@ public enum MockLeaderboardData {
         "AksuArrow", "JanatasJudge", "KaratauKnight", "MerkeMarvel", "LengerLion"
     ]
 
+    static let tajikistanNames = [
+        // 1-30: City-based gamertags
+        "DushanbeDevil", "KhujandKing", "KulobCrush", "IstaravStar", "TursunzadeThunder",
+        "PanjakentPro", "KhorogHero", "IsfareInferno", "BokhtarBlade", "VahDatVictor",
+        "LevaKantLion", "KanibadamKnight", "PenjikentPower", "HissorHawk", "GafurovGhost",
+        "FarkhorFlame", "NurekNinja", "YovonYeti", "DangharaDevil", "GisserGuard",
+        "RogConRocket", "NovobadNova", "VarzobViper", "TabosShield", "MurghabMaster",
+        "ShahritusStar", "KulyabKrusher", "KabodianKnight", "JilikuIJudge", "FayzabadFlash",
+        // 31-60: Nature and culture
+        "PamirPower", "FanMountainForce", "IskanderkuIce", "VarzobValley", "SyrDaryaStrike",
+        "ZarafshonZeal", "MurghabMighty", "BartangBolt", "ObiGarmOracle", "KayrakumKing",
+        "OshiCrush", "NaVruzNinja", "SumaLakStrike", "ChakKanCrush", "PilaVPower",
+        "AtlasBolt", "SuzaniStar", "TubeteykaMaster", "ChapanaChaser", "CaravanKing",
+        "SilkRoadRider", "ZidaneLegend", "SarazMaster", "AncientAce", "OxusOracle",
+        "SomoniBoss", "RudakiRanger", "AvicennAce", "TajikTitan", "KokandKrush",
+        // 61-90: More local flavor
+        "DarvazDemon", "KhatolonHero", "SughudSword", "RashIdRogue", "AyniAce",
+        "GanjinaBolt", "HulbukHash", "SariosiyaStar", "NuobodNinja", "BadakshonBlade",
+        "JirgitalGenius", "TigrovBoss", "ShurObodShot", "JalolBadJudge", "BaljuvanBolt",
+        "TemurmaLikTank", "VoseViper", "MuminobadMaster", "ShurabStrike", "NeftobodNova",
+        "PenjPower", "AbduRahmon", "TakhtiSangin", "KurganTube", "QurghonTeppa",
+        "ZarAfshonZero", "RashtRanger", "TojikMaster", "DevashtichDawn", "IsmoiliStar"
+    ]
+
+    static let niueNames = [
+        // 1-30: Village and geography-based
+        "AlofiAce", "MutalauMaster", "LikuLegend", "AvateleArcher", "TamoiTitan",
+        "HakupuHero", "VaieiViper", "TuapaBolt", "MakefuMighty", "NamukuNinja",
+        "TofPointTank", "HioPower", "AnaAnataStar", "PalahaCrush", "LageLion",
+        "UveuUltra", "TalagiBoss", "KaituKnight", "MatavaiFire", "OpahlOptic",
+        "FonuaheStar", "PukoStrike", "FatumiBlaze", "HalagigiHawk", "VaiohoBolt",
+        "TaioGamer", "FataKingdom", "MaheGuard", "VitiVenom", "TepaTopaz",
+        // 31-60: Nature and cultural
+        "CoralCrush", "ReefRider", "CoconutKing", "PalmPower", "TropicThunder",
+        "LagoonLord", "WaveMaster", "IslandInferno", "MarineMight", "TidalTitan",
+        "HiaikaHero", "TafuaStar", "PolyPower", "ManaStrike", "TikiBoss",
+        "KavaCrush", "TaroThunder", "UmuUltra", "LaplapsLord", "TurmericTitan",
+        "FaleForce", "PaddleKing", "OutriggerOmega", "VakaVoyager", "StarNavStar",
+        "MoanaMaster", "AtollAce", "PacificPro", "LagunaLion", "NiuePride",
+        // 61-90: More gamertags
+        "HuluHunter", "MakaMaster", "OnePlanet", "FenuaFlash", "TaulasiTank",
+        "MafutaMax", "PeauPower", "MataliKnight", "HeliakiHero", "TupuTitan",
+        "FakahokoBoss", "LagiLegend", "PuleStar", "FekaiBolt", "TitiViper",
+        "MataCrush", "FitiFlame", "KeleMaster", "SoloStrike", "PuleNinja",
+        "RockOfPoly", "SavageSouth", "NiueNova", "SmallIslandBig", "CoralKid",
+        "IsiIsland", "MakiMighty", "TafitiFire", "ManuBird", "TaneForest"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "ZA", "US", "CN", "RU", "NG", "EG", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -3724,6 +3772,10 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 543_296, on: day, countrySeed: 144)
             case .countryKZ:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 62_211, on: day, countrySeed: 145)
+            case .countryTJ:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 193_773, on: day, countrySeed: 146)
+            case .countryNU:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 947, on: day, countrySeed: 147)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -3773,7 +3825,9 @@ public extension LeaderboardClient {
                 let vePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 71_837, on: day, countrySeed: 143)
                 let azPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 543_296, on: day, countrySeed: 144)
                 let kzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 62_211, on: day, countrySeed: 145)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers
+                let tjPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 193_773, on: day, countrySeed: 146)
+                let nuPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 947, on: day, countrySeed: 147)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -10340,31 +10394,9 @@ public extension LeaderboardClient {
         return entries
     }
 
+
     // MARK: - Tajikistan Leaderboard Data
 
-    static let tajikistanNames = [
-        // 1-30: City-based gamertags
-        "DushanbeDevil", "KhujandKing", "KulobCrush", "IstaravStar", "TursunzadeThunder",
-        "PanjakentPro", "KhorogHero", "IsfareInferno", "BokhtarBlade", "VahDatVictor",
-        "LevaKantLion", "KanibadamKnight", "PenjikentPower", "HissorHawk", "GafurovGhost",
-        "FarkhorFlame", "NurekNinja", "YovonYeti", "DangharaDevil", "GisserGuard",
-        "RogConRocket", "NovobadNova", "VarzobViper", "TabosShield", "MurghabMaster",
-        "ShahritusStar", "KulyabKrusher", "KabodianKnight", "JilikuIJudge", "FayzabadFlash",
-        // 31-60: Nature and culture
-        "PamirPower", "FanMountainForce", "IskanderkuIce", "VarzobValley", "SyrDaryaStrike",
-        "ZarafshonZeal", "MurghabMighty", "BartangBolt", "ObiGarmOracle", "KayrakumKing",
-        "OshiCrush", "NaVruzNinja", "SumaLakStrike", "ChakKanCrush", "PilaVPower",
-        "AtlasBolt", "SuzaniStar", "TubeteykaMaster", "ChapanaChaser", "CaravanKing",
-        "SilkRoadRider", "ZidaneLegend", "SarazMaster", "AncientAce", "OxusOracle",
-        "SomoniBoss", "RudakiRanger", "AvicennAce", "TajikTitan", "KokandKrush",
-        // 61-90: More local flavor
-        "DarvazDemon", "KhatolonHero", "SughudSword", "RashIdRogue", "AyniAce",
-        "GanjinaBolt", "HulbukHash", "SariosiyaStar", "NuobodNinja", "BadakshonBlade",
-        "JirgitalGenius", "TigrovBoss", "ShurObodShot", "JalolBadJudge", "BaljuvanBolt",
-        "TemurmaLikTank", "VoseViper", "MuminobadMaster", "ShurabStrike", "NeftobodNova",
-        "PenjPower", "AbduRahmon", "TakhtiSangin", "KurganTube", "QurghonTeppa",
-        "ZarAfshonZero", "RashtRanger", "TojikMaster", "DevashtichDawn", "IsmoiliStar"
-    ]
 
     static let tajikistanPlayerMilestones: [String] = [
         // Ranks 1-10
@@ -10477,31 +10509,9 @@ public extension LeaderboardClient {
         return entries
     }
 
+
     // MARK: - Niue Leaderboard Data
 
-    static let niueNames = [
-        // 1-30: Village and geography-based
-        "AlofiAce", "MutalauMaster", "LikuLegend", "AvateleArcher", "TamoiTitan",
-        "HakupuHero", "VaieiViper", "TuapaBolt", "MakefuMighty", "NamukuNinja",
-        "TofPointTank", "HioPower", "AnaAnataStar", "PalahaCrush", "LageLion",
-        "UveuUltra", "TalagiBoss", "KaituKnight", "MatavaiFire", "OpahlOptic",
-        "FonuaheStar", "PukoStrike", "FatumiBlaze", "HalagigiHawk", "VaiohoBolt",
-        "TaioGamer", "FataKingdom", "MaheGuard", "VitiVenom", "TepaTopaz",
-        // 31-60: Nature and cultural
-        "CoralCrush", "ReefRider", "CoconutKing", "PalmPower", "TropicThunder",
-        "LagoonLord", "WaveMaster", "IslandInferno", "MarineMight", "TidalTitan",
-        "HiaikaHero", "TafuaStar", "PolyPower", "ManaStrike", "TikiBoss",
-        "KavaCrush", "TaroThunder", "UmuUltra", "LaplapsLord", "TurmericTitan",
-        "FaleForce", "PaddleKing", "OutriggerOmega", "VakaVoyager", "StarNavStar",
-        "MoanaMaster", "AtollAce", "PacificPro", "LagunaLion", "NiuePride",
-        // 61-90: More gamertags
-        "HuluHunter", "MakaMaster", "OnePlanet", "FenuaFlash", "TaulasiTank",
-        "MafutaMax", "PeauPower", "MataliKnight", "HeliakiHero", "TupuTitan",
-        "FakahokoBoss", "LagiLegend", "PuleStar", "FekaiBolt", "TitiViper",
-        "MataCrush", "FitiFlame", "KeleMaster", "SoloStrike", "PuleNinja",
-        "RockOfPoly", "SavageSouth", "NiueNova", "SmallIslandBig", "CoralKid",
-        "IsiIsland", "MakiMighty", "TafitiFire", "ManuBird", "TaneForest"
-    ]
 
     static let niuePlayerMilestones: [String] = [
         // Ranks 1-10
