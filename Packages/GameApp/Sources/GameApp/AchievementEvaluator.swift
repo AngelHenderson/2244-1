@@ -687,6 +687,9 @@ public final class AchievementEvaluator {
     public func onMagnetUsed(mergeCount: Int) {
         let multiplier = achievementBoostMultiplier
 
+        // Track magnet usage for daily quests
+        dailyQuestStore?.recordPowerUpUse()
+
         // Track magnet usage
         magnetUsesTotal += multiplier
         defaults.set(magnetUsesTotal, forKey: magnetUsesKey)
