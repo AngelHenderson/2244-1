@@ -715,7 +715,7 @@ public enum BonusRewardGenerator {
     public static func previewBonus(forStreakDay day: Int) -> AchievementDef.Rewards {
         let type = bonusType(forStreakDay: day)
         let amount = scaledAmount(for: type, streakDay: day)
-        return rewardFor(type: type, amount: amount)
+        return rewardFor(type: type, amount: amount, streakDay: day)
     }
 
     /// Generates a deterministic bonus based on streak day
@@ -733,10 +733,13 @@ public enum BonusRewardGenerator {
         return generateBonus(forStreakDay: baseAmount)
     }
 
-    private static func rewardFor(type: BonusType, amount: Int) -> AchievementDef.Rewards {
+    private static func rewardFor(type: BonusType, amount: Int, streakDay: Int = 1) -> AchievementDef.Rewards {
         switch type {
         case .gems:
-            return AchievementDef.Rewards(gems: min(amount * 50, 500))
+            // Cap increases by 500 for each year (year 1: 500, year 2: 1000, etc.)
+            let year = max(1, (streakDay - 1) / 365 + 1)
+            let gemCap = year * 500
+            return AchievementDef.Rewards(gems: min(amount * 50, gemCap))
         case .spins:
             return AchievementDef.Rewards(spins: amount)
         case .hammers:
