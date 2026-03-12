@@ -729,17 +729,17 @@ public enum MockLeaderboardData {
     static let baseUSPlayers = 84_721
     static let baseGlobalPlayers = 885_676
 
-    // Calculate new players joining on a given day (0.5-4 per day per country)
+    // Calculate new players joining on a given day (10-40 per day per country)
     static func newPlayersJoining(on day: Int, isUS: Bool) -> Double {
         let seed = isUS ? 12345 : 67890
         let random = seededRandom(seed: seed, index: day)
-        return 0.5 + random * 3.5  // 0.5 to 4 new players per day
+        return 10.0 + random * 30.0  // 10 to 40 new players per day
     }
 
-    // Calculate country-specific new players joining per day (0.5-4 per day)
+    // Calculate country-specific new players joining per day (10-40 per day)
     static func countryNewPlayersJoining(on day: Int, countrySeed: Int) -> Double {
         let random = seededRandom(seed: countrySeed, index: day)
-        return 0.5 + random * 3.5  // 0.5 to 4 new players per day
+        return 10.0 + random * 30.0  // 10 to 40 new players per day
     }
 
     // Reasons why a player might leave the leaderboard
