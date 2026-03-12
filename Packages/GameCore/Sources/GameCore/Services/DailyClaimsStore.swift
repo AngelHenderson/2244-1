@@ -736,7 +736,7 @@ public enum BonusRewardGenerator {
     private static func rewardFor(type: BonusType, amount: Int) -> AchievementDef.Rewards {
         switch type {
         case .gems:
-            return AchievementDef.Rewards(gems: amount * 50)
+            return AchievementDef.Rewards(gems: min(amount * 50, 500))
         case .spins:
             return AchievementDef.Rewards(spins: amount)
         case .hammers:
