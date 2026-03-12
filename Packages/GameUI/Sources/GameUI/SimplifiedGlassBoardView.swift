@@ -164,7 +164,7 @@ public struct SimplifiedGlassBoardView: View {
             }
 
             // Layer 3: Crown indicators (above tiles)
-            ForEach(crownPositions, id: \.self) { position in
+            ForEach(Array(crownPositions), id: \.self) { position in
                 Image(systemName: "crown.fill")
                     .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
                     .foregroundStyle(.yellow)
