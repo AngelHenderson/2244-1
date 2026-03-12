@@ -1177,6 +1177,7 @@ struct ModeOverlay: View {
 
 struct MilestoneProgressBar: View {
     @Environment(\.gameStore) private var gameStore
+    @Environment(\.currentTheme) private var currentTheme
 
     /// Dynamic minimum spawn step based on current game state (elimination threshold)
     private var minSpawnStep: Int {
@@ -1213,13 +1214,13 @@ struct MilestoneProgressBar: View {
     var body: some View {
         HStack(spacing: 0) {
             // Left: minSpawn (lowest tile)
-            MiniTileView(label: minSpawnLabel, step: minSpawnStep, isLocked: false)
+            MiniTileView(label: minSpawnLabel, step: minSpawnStep, isLocked: false, theme: currentTheme)
 
             // Progress line to current
-            ProgressLine(progress: 1.0)
+            ProgressLine(progress: 1.0, accentColor: currentTheme?.colorForStep(highestStep) ?? .green)
 
             // Middle: current highest tile with crown
-            MiniTileView(label: currentLabel, step: highestStep, isCurrent: true)
+            MiniTileView(label: currentLabel, step: highestStep, isCurrent: true, theme: currentTheme)
                 .overlay(alignment: .top) {
                     Image(systemName: "crown.fill")
                         .font(.avenirNext(size: 10, weight: .regular))
@@ -1228,10 +1229,10 @@ struct MilestoneProgressBar: View {
                 }
 
             // Progress line to next (empty)
-            ProgressLine(progress: 0.0)
+            ProgressLine(progress: 0.0, accentColor: currentTheme?.colorForStep(highestStep) ?? .green)
 
             // Right: next tile after current (locked)
-            MiniTileView(label: nextLabel, step: nextStep, isLocked: true)
+            MiniTileView(label: nextLabel, step: nextStep, isLocked: true, theme: currentTheme)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
@@ -1243,13 +1244,16 @@ private struct MiniTileView: View {
     let step: Int
     var isCurrent: Bool = false
     var isLocked: Bool = false
+    var theme: ThemeDescriptor? = nil
 
     private var tileColor: Color {
-        Theme.colorForStep(step)
+        if let theme { return theme.colorForStep(step) }
+        return Theme.colorForStep(step)
     }
 
     private var textColor: Color {
-        Theme.textColorForStep(step)
+        if let theme { return theme.textColorForStep(step) }
+        return Theme.textColorForStep(step)
     }
 
     var body: some View {
@@ -1280,6 +1284,7 @@ private struct MiniTileView: View {
 
 private struct ProgressLine: View {
     let progress: CGFloat
+    var accentColor: Color = .green
 
     var body: some View {
         GeometryReader { geo in
@@ -1291,7 +1296,7 @@ private struct ProgressLine: View {
 
                 // Progress fill
                 Rectangle()
-                    .fill(Color.green)
+                    .fill(accentColor)
                     .frame(width: geo.size.width * progress, height: 3)
             }
         }
