@@ -5118,8 +5118,14 @@ public extension LeaderboardClient {
     // Extended Ireland milestone brackets for rank calculation (ranks 151+)
     // Total Ireland players: ~34,567
     static let irelandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
-        // Low tier brackets (ranks 151-220)
-        ("144b", 153), ("4M", 193), ("2M", 203), ("1M", 221),
+        // a-tier brackets (transitioning from milestones to extended)
+        ("576b", 153), ("288b", 156), ("144b", 159), ("72b", 162), ("36b", 165),
+        ("18b", 168), ("9b", 171), ("4b", 174), ("2b", 177), ("1b", 180),
+        // B-tier brackets
+        ("549B", 183), ("274B", 186), ("137B", 189), ("68B", 191),
+        // M-tier brackets
+        ("536M", 193), ("268M", 196), ("134M", 199), ("67M", 201), ("33M", 203),
+        ("16M", 206), ("8M", 210), ("4M", 215), ("2M", 221), ("1M", 228),
         // K-tier brackets (ranks 247-547)
         ("524K", 247), ("262K", 284), ("131K", 341), ("65K", 425), ("32K", 486), ("16K", 547),
         // Raw number brackets (ranks 611-34567)
