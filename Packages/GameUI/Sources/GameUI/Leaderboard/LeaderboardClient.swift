@@ -5108,11 +5108,13 @@ public extension LeaderboardClient {
         "215s", "53s", "13s", "3s", "6r", "822q", "51q", "1q", "25p", "784o",
         "6o", "23n", "1n", "187m", "187m", "46m", "23m", "5m", "2m", "1m",
         "730l", "182l", "91l", "91l", "45l", "45l", "45l", "22l", "11l", "5l",
-        // Ranks 121-152 (extra entries for infinity filtering)
+        // Ranks 121-172 (extra entries for infinity filtering)
         "2l", "713k", "89k", "44k", "44k", "11k", "5k", "1k", "5j", "1j",
         "2i", "332h", "41h", "10h", "5h", "5h", "2h", "1h", "1h", "81g",
-        "5g", "2g", "633f", "19f", "38e", "2e", "1e", "75d", "2d", "9c",
-        "4c", "1c"
+        "5g", "2g", "633f", "19f", "38e", "2e", "1e", "75d", "2d",
+        "590c", "295c", "147c", "73c", "36c", "18c", "9c", "4c", "2c", "1c",
+        "576b", "576b", "288b", "144b", "72b", "36b", "18b", "9b", "4b", "2b",
+        "1b", "1b"
     ]
 
     // Extended Ireland milestone brackets for rank calculation (ranks 151+)
