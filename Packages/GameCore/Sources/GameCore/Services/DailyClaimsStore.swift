@@ -742,26 +742,28 @@ public enum BonusRewardGenerator {
     }
 
     private static func rewardFor(type: BonusType, amount: Int, streakDay: Int = 1) -> AchievementDef.Rewards {
+        // Year-based scaling: year 1 = days 1-365, year 2 = days 366-730, etc.
+        let year = max(1, (streakDay - 1) / 365 + 1)
+
         switch type {
         case .gems:
             // Cap increases by 500 for each year (year 1: 500, year 2: 1000, etc.)
-            let year = max(1, (streakDay - 1) / 365 + 1)
             let gemCap = year * 500
             return AchievementDef.Rewards(gems: min(amount * 50, gemCap))
         case .spins:
-            return AchievementDef.Rewards(spins: amount)
+            return AchievementDef.Rewards(spins: min(amount, year))
         case .hammers:
-            return AchievementDef.Rewards(hammers: amount)
+            return AchievementDef.Rewards(hammers: min(amount, year))
         case .megaMerges:
-            return AchievementDef.Rewards(magnets: amount)
+            return AchievementDef.Rewards(magnets: min(amount, year))
         case .swaps:
-            return AchievementDef.Rewards(swaps: amount)
+            return AchievementDef.Rewards(swaps: min(amount, year))
         case .boost2x:
-            return AchievementDef.Rewards(boost2x: amount)
+            return AchievementDef.Rewards(boost2x: min(amount, year))
         case .boost3x:
-            return AchievementDef.Rewards(boost3x: amount)
+            return AchievementDef.Rewards(boost3x: min(amount, year))
         case .boost4x:
-            return AchievementDef.Rewards(boost4x: amount)
+            return AchievementDef.Rewards(boost4x: min(amount, year))
         }
     }
 
