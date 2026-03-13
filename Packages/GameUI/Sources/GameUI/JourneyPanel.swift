@@ -501,6 +501,14 @@ private struct MilestoneTileView: View {
                         .minimumScaleFactor(0.5)
                         .lineLimit(1)
                 }
+
+                // Lock icon for locked tiles
+                if milestone.status == .locked {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: size * 0.25, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.6))
+                        .offset(x: size * 0.28, y: size * 0.28)
+                }
             }
         }
         .onAppear {
