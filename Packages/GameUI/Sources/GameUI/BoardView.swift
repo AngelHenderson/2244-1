@@ -135,7 +135,13 @@ public struct BoardView: View {
                     if let t = gameStore.state.board[position], t.stepIndex == maxStep {
                         Image(systemName: "crown.fill")
                             .font(.system(size: max(10, tileSize * 0.28), weight: .bold))
-                            .foregroundStyle(.yellow)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color(white: 0.85), Color(white: 0.55)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
                             .position(
                                 x: centerPoint(for: position, tileSize: tileSize, containerSize: containerSize).x,
                                 y: centerPoint(for: position, tileSize: tileSize, containerSize: containerSize).y - tileSize * 0.45
