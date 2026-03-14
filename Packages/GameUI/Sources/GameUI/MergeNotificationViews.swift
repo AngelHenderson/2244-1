@@ -25,6 +25,7 @@ struct UnlockedNotificationView: View {
     let onClose: () -> Void
     @Environment(\.gameStore) private var gameStore
     @Environment(\.audio) private var audioService
+    @Environment(\.currentTheme) private var currentTheme
     @State private var celebrationPhrase = ""
 
     // Bouncing spinner state
@@ -138,11 +139,11 @@ struct UnlockedNotificationView: View {
             HStack(spacing: 8) {
                 // Previous tier (if exists)
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 40)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 40, theme: currentTheme)
                 }
 
                 // Current unlocked tier (highlighted)
-                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 50)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 50, theme: currentTheme)
                     .overlay(alignment: .top) {
                         Image(systemName: "crown.fill")
                             .foregroundStyle(.yellow)
@@ -152,7 +153,7 @@ struct UnlockedNotificationView: View {
 
                 // Next tier (locked)
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 40, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 40, isLocked: true, theme: currentTheme)
                 }
             }
 
@@ -476,6 +477,7 @@ struct AddedNotificationView: View {
     let value: Int
     let onClose: () -> Void
     @Environment(\.gameStore) private var gameStore
+    @Environment(\.currentTheme) private var currentTheme
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
     @State private var celebrationPhrase = ""
@@ -553,10 +555,10 @@ struct AddedNotificationView: View {
 
             HStack(spacing: 8) {
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 44)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 44, theme: currentTheme)
                 }
 
-                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 56)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 56, theme: currentTheme)
                     .overlay(alignment: .top) {
                         Image(systemName: "plus.circle.fill")
                             .foregroundStyle(.green)
@@ -565,7 +567,7 @@ struct AddedNotificationView: View {
                     }
 
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 44, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 44, isLocked: true, theme: currentTheme)
                 }
             }
 
@@ -597,6 +599,7 @@ struct ExcludedNotificationView: View {
     let value: Int
     let onClose: () -> Void
     @Environment(\.gameStore) private var gameStore
+    @Environment(\.currentTheme) private var currentTheme
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
     @State private var celebrationPhrase = ""
@@ -692,10 +695,10 @@ struct ExcludedNotificationView: View {
 
             HStack(spacing: 8) {
                 if let prev = journeyReward.previous {
-                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 44)
+                    JourneyTileCard(label: prev.label, step: prev.step, isPrimary: false, size: 44, theme: currentTheme)
                 }
 
-                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 56)
+                JourneyTileCard(label: journeyReward.current.label, step: journeyReward.current.step, isPrimary: true, size: 56, theme: currentTheme)
                     .overlay(alignment: .topTrailing) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.red)
@@ -704,7 +707,7 @@ struct ExcludedNotificationView: View {
                     }
 
                 if let next = journeyReward.next {
-                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 44, isLocked: true)
+                    JourneyTileCard(label: next.label, step: next.step, isPrimary: false, size: 44, isLocked: true, theme: currentTheme)
                 }
             }
 
@@ -746,10 +749,12 @@ struct JourneyTileCard: View {
     var size: CGFloat = 100
     var accentColor: Color = .orange  // Fallback if value not provided
     var isLocked: Bool = false
+    var theme: ThemeDescriptor? = nil
 
     private var tileColor: Color {
         // Use step-based color for high-value tiles
         if let step = step {
+            if let theme { return theme.colorForStep(step) }
             return Theme.colorForStep(step)
         }
         if let value = value {
@@ -758,6 +763,7 @@ struct JourneyTileCard: View {
                 // Can't determine step from Int.max, use accent color
                 return accentColor
             }
+            if let theme { return theme.color(for: value) }
             return Theme.color(for: value)
         }
         return accentColor
@@ -770,6 +776,7 @@ struct JourneyTileCard: View {
         if isPrimary {
             // Use step-based text color for high-value tiles
             if let step = step {
+                if let theme { return theme.textColorForStep(step) }
                 return Theme.textColorForStep(step)
             }
             if let value = value {
