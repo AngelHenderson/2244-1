@@ -5296,6 +5296,22 @@ public extension LeaderboardClient {
     // Extended Romania milestone brackets for rank calculation (ranks 86+)
     // Total Romania players: ~5,966
     static let romaniaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // f-tier brackets
+        ("633f", 43), ("316f", 44), ("158f", 45), ("79f", 47), ("39f", 48),
+        ("19f", 49), ("9f", 50), ("4f", 51), ("2f", 52), ("1f", 53),
+        // e-tier brackets
+        ("618e", 54), ("309e", 55), ("154e", 56), ("77e", 57), ("38e", 58),
+        ("19e", 59), ("9e", 60), ("4e", 61), ("2e", 62), ("1e", 63),
+        // d-tier brackets
+        ("604d", 64), ("302d", 65), ("151d", 66), ("75d", 67), ("37d", 68),
+        ("18d", 69), ("9d", 70), ("4d", 71), ("2d", 72), ("1d", 73),
+        // c-tier brackets
+        ("590c", 74), ("295c", 75), ("147c", 76), ("73c", 77), ("36c", 78),
+        ("18c", 79), ("9c", 80), ("4c", 81), ("2c", 82), ("1c", 83),
+        // b/a/B/M tier brackets
+        ("576b", 84), ("288b", 85), ("144b", 86), ("72b", 87), ("36b", 88),
+        ("18b", 89), ("9b", 90), ("4b", 91), ("2b", 92), ("1b", 93),
+        ("562a", 94), ("281a", 95), ("140a", 96), ("70a", 97),
         // K-tier brackets (ranks 98-377)
         ("524K", 98), ("262K", 124), ("131K", 167), ("65K", 233), ("32K", 300), ("16K", 377),
         // Raw number brackets (ranks 466-5966)
@@ -10187,8 +10203,10 @@ public extension LeaderboardClient {
         "140a", "70a", "70a", "35a", "35a", "35a", "17a", "17a", "17a", "8a",
         // Ranks 201-210
         "8a", "8a", "8a", "4a", "4a", "4a", "4a", "2a", "2a", "2a",
-        // Ranks 211-219
-        "2a", "2a", "1a", "1a", "1a", "1a", "1a", "1a", "549B"
+        // Ranks 211-240 (low-tier entries that survive infinity filtering)
+        "2a", "2a", "1a", "1a", "1a", "1a", "1a", "1a", "549B", "549B",
+        "268M", "268M", "134M", "134M", "67M", "67M", "33M", "33M", "16M", "16M",
+        "8M", "8M", "4M", "4M", "2M", "2M", "1M", "1M", "524K", "524K"
     ]
 
     // Extended Azerbaijan milestone brackets for rank calculation (ranks 220+)
