@@ -880,7 +880,9 @@ public struct LeaderboardView: View {
         }
 
         // If user's rank is within or just after the displayed range, insert them
-        if myEntry.rank <= lastEntry.rank {
+        // Also include user if they're within Top 150 even if last displayed entry
+        // has a lower rank number (can happen when some entries are filtered)
+        if myEntry.rank <= lastEntry.rank || myEntry.rank <= 150 {
             // Find the correct position based on rank
             if let insertIndex = result.firstIndex(where: { $0.rank > myEntry.rank }) {
                 result.insert(myEntry, at: insertIndex)
