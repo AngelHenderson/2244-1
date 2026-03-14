@@ -689,6 +689,7 @@ public final class AchievementEvaluator {
 
         // Track magnet usage for daily quests
         dailyQuestStore?.recordPowerUpUse()
+        dailyQuestStore?.recordMerges(mergeCount)
 
         // Track magnet usage
         magnetUsesTotal += multiplier
