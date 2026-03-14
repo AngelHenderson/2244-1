@@ -102,6 +102,12 @@ public extension LeaderboardClient {
             },
             
             fetchPage: { period, filter, cursor, pageSize in
+                // Country filters use mock data since Game Center doesn't have
+                // country-specific leaderboards
+                if filter != .global && filter != .hallOfFame {
+                    return try await LeaderboardClient.noop.fetchPage(period, filter, cursor, pageSize)
+                }
+
                 guard GKLocalPlayer.local.isAuthenticated else {
                     return LeaderboardPage(entries: [], myEntry: nil, nextCursor: nil)
                 }
@@ -224,6 +230,11 @@ public extension LeaderboardClient {
             },
             
             fetchMyRank: { period, filter in
+                // Country filters use mock data
+                if filter != .global && filter != .hallOfFame {
+                    return try await LeaderboardClient.noop.fetchMyRank(period, filter)
+                }
+
                 guard GKLocalPlayer.local.isAuthenticated else { return nil }
 
                 // Get the appropriate leaderboard ID for this filter
