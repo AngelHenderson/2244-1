@@ -61,8 +61,8 @@ public struct ChallengeDesignerView: View {
                 Button {
                     store.prevTarget()
                 } label: {
-                    Image(systemName: "arrowtriangle.left.fill")
-                        .font(.system(size: 24, weight: .bold))
+                    Text("◄")
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 56, height: 56)
                         .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
@@ -89,8 +89,8 @@ public struct ChallengeDesignerView: View {
                 Button {
                     store.nextTarget()
                 } label: {
-                    Image(systemName: "arrowtriangle.right.fill")
-                        .font(.system(size: 24, weight: .bold))
+                    Text("►")
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 56, height: 56)
                         .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
