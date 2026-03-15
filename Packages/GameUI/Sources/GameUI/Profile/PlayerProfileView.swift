@@ -372,6 +372,7 @@ public struct PlayerProfileView: View {
 
     private func countryName(_ countryCode: String) -> String {
         if countryCode.uppercased() == "US" { return "US" }
+        if countryCode.uppercased() == "GB" { return "UK" }
         let locale = Locale.current
         return locale.localizedString(forRegionCode: countryCode) ?? countryCode
     }
@@ -573,6 +574,7 @@ private struct CountryPickerView: View {
 
     private func countryName(_ countryCode: String) -> String {
         if countryCode.uppercased() == "US" { return "US" }
+        if countryCode.uppercased() == "GB" { return "UK" }
         let locale = Locale.current
         return locale.localizedString(forRegionCode: countryCode) ?? countryCode
     }

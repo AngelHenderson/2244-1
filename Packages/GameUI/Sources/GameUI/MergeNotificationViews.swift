@@ -613,12 +613,12 @@ struct ExcludedNotificationView: View {
         gameStore.state.highestTileStep > 817
     }
 
-    // For high-value tiles, eliminated step = milestone step - 14
-    // Matches milestoneExcludedValue: milestone >> 14
+    // For high-value tiles, eliminated step = milestone step - 12
+    // Matches applyMilestoneEliminationForStep: thresholdStep = step - 12
     private var displayStep: Int {
         if isHighValue {
             let highestStep = gameStore.state.highestTileStep
-            return max(0, highestStep - 14)
+            return max(0, highestStep - 12)
         }
         return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
     }
