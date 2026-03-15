@@ -38,12 +38,6 @@ public struct LeaderboardView: View {
 
                     Spacer()
 
-                    Text(showingTop150 ? "TOP 150" : "LEADERBOARD")
-                        .font(.avenirNext(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
-
-                    Spacer()
-
                     GemBalancePill()
 
                     // Top 150 button (only show in milestone view, not for Hall of Fame)
@@ -68,6 +62,11 @@ public struct LeaderboardView: View {
                         Color.clear
                             .frame(width: 44, height: 44)
                     }
+                }
+                .overlay {
+                    Text(showingTop150 ? "TOP 150" : "LEADERBOARD")
+                        .font(.avenirNext(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -95,6 +94,15 @@ public struct LeaderboardView: View {
             Button("OK") { }
         } message: {
             Text(model?.error ?? "An error occurred")
+        }
+        .onChange(of: showingTop150) { _, isTop150 in
+            // When switching to Top 150 view, force a refresh so the entries
+            // match the currently selected filter (e.g., Malaysia instead of Global).
+            // The milestone view uses static rank data, not m.entries, so the
+            // entries may not have been updated when the user switched filters there.
+            if isTop150, let m = model, !m.isLoading {
+                Task { await m.refresh() }
+            }
         }
     }
     
@@ -567,9 +575,26 @@ public struct LeaderboardView: View {
         let endIndex = min(milestones.count, userIndex + 4)  // +4 because endIndex is exclusive
 
         // Calculate ranks for each milestone using actual leaderboard data
-        let tiers: [(milestone: String, rank: Int)] = milestones[startIndex..<endIndex].map { milestone in
+        var tiers: [(milestone: String, rank: Int)] = milestones[startIndex..<endIndex].map { milestone in
             let rank = rankForFilter(filter, milestone: milestone)
             return (milestone, rank)
+        }
+
+        // Enforce monotonicity: better milestones (lower index) must have lower ranks.
+        // When calculateCountryRank returns the same rank for adjacent milestones
+        // (no mock players between them), push the better one to rank - 1.
+        let userTierIndex = userIndex - startIndex
+        // Going upward (better milestones should have lower ranks)
+        for i in stride(from: userTierIndex - 1, through: 0, by: -1) {
+            if tiers[i].rank >= tiers[i + 1].rank {
+                tiers[i].rank = tiers[i + 1].rank - 1
+            }
+        }
+        // Going downward (worse milestones should have higher ranks)
+        for i in (userTierIndex + 1)..<tiers.count {
+            if tiers[i].rank <= tiers[i - 1].rank {
+                tiers[i].rank = tiers[i - 1].rank + 1
+            }
         }
 
         return tiers.map { tier in

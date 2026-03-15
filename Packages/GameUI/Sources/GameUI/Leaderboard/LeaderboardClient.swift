@@ -1568,12 +1568,12 @@ public enum MockLeaderboardData {
 
         // Rank is 1-indexed, array is 0-indexed
         let index = rank - 1
-        guard index >= 0 && index < min(150, milestones.count) else {
+        guard index >= 0 && index < min(150, milestones.count + 1) else {
             return nil
         }
 
         // Build list of all progressed milestones with their indices
-        var progressedData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int)] = []
+        var progressedData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, isUser: Bool)] = []
         for i in 0..<milestones.count {
             let baseMilestone = milestones[i]
             let progressedMilestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + countrySeed, day: day)
@@ -1582,15 +1582,23 @@ public enum MockLeaderboardData {
             if progressedMilestone.hasSuffix("∞") { continue }
 
             let milestoneIdx = milestoneIndex(for: progressedMilestone)
-            progressedData.append((i, progressedMilestone, milestoneIdx))
+            progressedData.append((i, progressedMilestone, milestoneIdx, false))
         }
 
+        // Include the user entry so ranks match the Top 150 view
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = milestoneIndex(for: userMilestone)
+        progressedData.append((-1, userMilestone, userMilestoneIdx, true))
+
         // Sort by milestone index (highest first = best milestone)
-        // Tiebreaker: lower originalIndex = reached milestone first = better rank
+        // Tiebreaker 1: user comes first when milestones are equal
+        // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
         progressedData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
             }
+            if $0.isUser { return true }
+            if $1.isUser { return false }
             return $0.originalIndex < $1.originalIndex
         }
 
