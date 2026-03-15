@@ -23,6 +23,7 @@ public struct SpinWheelView: View {
     @State private var rewardMessage = ""
     @State private var purchaseFeedback: String?
     @State private var showShopFromGems = false
+    @State private var showOutOfSpins = false
     @State private var now = Date()
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -99,6 +100,11 @@ public struct SpinWheelView: View {
         }
         .adaptiveSheet(isPresented: $showShopFromGems) {
             ShopView(initialTab: .gems)
+        }
+        .alert("Out Of Spins", isPresented: $showOutOfSpins) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Sorry! You are out of bonus spins. Try earning a spin or waiting.")
         }
     }
     
@@ -186,9 +192,11 @@ public struct SpinWheelView: View {
                     .font(.avenirNext(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
                 Spacer()
-                Text(spinState.formattedCountdown(now: now))
-                    .font(.avenirNext(size: 18, weight: .bold))
-                    .foregroundStyle(slotReady && !bonusReady && spinState.lastConsumedSlot != nil ? .green : .white)
+                if !bonusReady {
+                    Text(spinState.formattedCountdown(now: now))
+                        .font(.avenirNext(size: 18, weight: .bold))
+                        .foregroundStyle(slotReady && spinState.lastConsumedSlot != nil ? .green : .white)
+                }
             }
 
             if bonusReady {
@@ -241,7 +249,7 @@ public struct SpinWheelView: View {
     }
     
     private var spinButton: some View {
-        Button(action: startSpin) {
+        Button(action: handleSpinTap) {
             Text(canSpin ? "SPIN" : "WAIT")
                 .font(.avenirNext(size: 24, weight: .bold))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -262,7 +270,14 @@ public struct SpinWheelView: View {
         }
         .frame(height: 100)
         .opacity(canSpin ? 1.0 : 0.6)
-        .disabled(!canSpin)
+    }
+    
+    private func handleSpinTap() {
+        if canSpin {
+            startSpin()
+        } else {
+            showOutOfSpins = true
+        }
     }
     
     private func startSpin() {
