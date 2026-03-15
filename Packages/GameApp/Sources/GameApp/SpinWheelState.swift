@@ -213,15 +213,15 @@ public final class SpinWheelState {
     // MARK: - Countdown
     
     public func formattedCountdown(now date: Date = Date()) -> String {
-        if !slotAvailable(on: date) || bonusSpins > 0 {
-            let next = nextSlotStart(after: date)
-            let remaining = max(0, next.timeIntervalSince(date))
-            return Self.formattedDuration(remaining)
+        if bonusSpins > 0 || slotAvailable(on: date) {
+            if bonusSpins == 0 && lastConsumedSlot != nil {
+                return "Ready now"
+            }
+            return "Available"
         }
-        if lastConsumedSlot != nil {
-            return "Ready now"
-        }
-        return "Available"
+        let next = nextSlotStart(after: date)
+        let remaining = max(0, next.timeIntervalSince(date))
+        return Self.formattedDuration(remaining)
     }
     
     private static func formattedDuration(_ interval: TimeInterval) -> String {
