@@ -605,15 +605,6 @@ public struct LeaderboardView: View {
     @ViewBuilder
     private func milestoneRow(milestone: String, rankLabel: String, isUserTier: Bool) -> some View {
         HStack(spacing: 0) {
-            // User indicator on left
-            if isUserTier {
-                Image(systemName: "arrowtriangle.right.fill")
-                    .font(.avenirNext(size: 12, weight: .regular))
-                    .foregroundStyle(.cyan)
-                    .padding(.trailing, 8)
-            } else {
-                Color.clear.frame(width: 20)
-            }
 
             // Rank label (e.g., "73150 - 1B")
             Text(rankLabel)
@@ -994,6 +985,12 @@ public struct LeaderboardView: View {
                     .overlay(
                         rankFrame(for: entry.rank)
                     )
+                    .overlay(alignment: .top) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.yellow)
+                            .offset(y: -6)
+                    }
             }
         }
         .padding(.horizontal, 16)
