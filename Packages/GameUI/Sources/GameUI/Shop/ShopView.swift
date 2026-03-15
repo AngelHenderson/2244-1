@@ -861,9 +861,11 @@ struct PerkBundleRow: View {
 }
 
 struct JourneyProgressCard: View {
-    @Environment(\.tileJourney) private var journeyStore
+    @Environment(\.gameStore) private var gameStore
 
     var body: some View {
+        let currentStep = max(0, gameStore.state.highestTileStep)
+
         VStack(spacing: 16) {
             Text("Your Journey")
                 .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
@@ -873,7 +875,7 @@ struct JourneyProgressCard: View {
                     Text("Highest Tile")
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         .foregroundStyle(.secondary)
-                    Text(AlphaMag.formatTileValue(journeyStore.highestTile))
+                    Text(JourneyTileGenerator.formatTileAtStep(currentStep))
                         .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 }
 
@@ -884,7 +886,7 @@ struct JourneyProgressCard: View {
                     Text("Next Milestone")
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                         .foregroundStyle(.secondary)
-                    Text(AlphaMag.formatTileValue(journeyStore.nextMilestone() ?? 0))
+                    Text(JourneyTileGenerator.formatTileAtStep(currentStep + 1))
                         .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                         .foregroundStyle(.cyan)
                 }
