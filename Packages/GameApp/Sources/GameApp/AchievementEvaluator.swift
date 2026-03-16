@@ -266,8 +266,8 @@ public final class AchievementEvaluator {
             updateComboProgress(for: chain.count)
             recordMergedTiles(chain.count)
 
-            // Forward merge count to daily quests
-            dailyQuestStore?.recordMerges(chain.count)
+            // Forward merge count to daily quests (with boost multiplier)
+            dailyQuestStore?.recordMerges(chain.count * achievementBoostMultiplier)
             
             if mergesThisTurn > 0 {
                 consecutiveMergeTurns += 1
@@ -414,8 +414,8 @@ public final class AchievementEvaluator {
         recordPowerUpUse(type: type)
         currentGameSnapshot.powerups_used += 1
 
-        // Forward to daily quests
-        dailyQuestStore?.recordPowerUpUse()
+        // Forward to daily quests (with boost multiplier)
+        dailyQuestStore?.recordPowerUpUse(count: achievementBoostMultiplier)
         currentGameSnapshot.combo610Total = combo610Total
         currentGameSnapshot.combo1115Total = combo1115Total
         currentGameSnapshot.combo1620Total = combo1620Total
@@ -649,8 +649,8 @@ public final class AchievementEvaluator {
         defaults.set(challengeCreationTotal, forKey: challengeCreationTotalKey)
         currentGameSnapshot.challenge_creations_total = challengeCreationTotal
 
-        // Forward to daily quests
-        dailyQuestStore?.recordChallengeCreated()
+        // Forward to daily quests (with boost multiplier)
+        dailyQuestStore?.recordChallengeCreated(count: multiplier)
         var snapshot = currentGameSnapshot
         snapshot.challenge_creations_total = challengeCreationTotal
         Task {
@@ -687,9 +687,9 @@ public final class AchievementEvaluator {
     public func onMagnetUsed(mergeCount: Int) {
         let multiplier = achievementBoostMultiplier
 
-        // Track magnet usage for daily quests
-        dailyQuestStore?.recordPowerUpUse()
-        dailyQuestStore?.recordMerges(mergeCount)
+        // Track magnet usage for daily quests (with boost multiplier)
+        dailyQuestStore?.recordPowerUpUse(count: multiplier)
+        dailyQuestStore?.recordMerges(mergeCount * multiplier)
 
         // Track magnet usage
         magnetUsesTotal += multiplier

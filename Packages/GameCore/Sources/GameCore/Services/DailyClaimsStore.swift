@@ -759,11 +759,15 @@ public enum BonusRewardGenerator {
         case .swaps:
             return AchievementDef.Rewards(swaps: min(amount, year))
         case .boost2x:
-            return AchievementDef.Rewards(boost2x: min(amount, year))
+            // Boosts cap increases by 1 every two years (years 1-2: 1, years 3-4: 2, etc.)
+            let boostCap = max(1, (year + 1) / 2)
+            return AchievementDef.Rewards(boost2x: min(amount, boostCap))
         case .boost3x:
-            return AchievementDef.Rewards(boost3x: min(amount, year))
+            let boostCap = max(1, (year + 1) / 2)
+            return AchievementDef.Rewards(boost3x: min(amount, boostCap))
         case .boost4x:
-            return AchievementDef.Rewards(boost4x: min(amount, year))
+            let boostCap = max(1, (year + 1) / 2)
+            return AchievementDef.Rewards(boost4x: min(amount, boostCap))
         }
     }
 

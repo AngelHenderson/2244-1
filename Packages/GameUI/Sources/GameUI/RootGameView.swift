@@ -65,13 +65,13 @@ public struct RootGameView: View {
                             // Pass the captured multiplier so the boost counts even if it expired during gameplay
                             gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
                         }
-                        // Track challenge completion for daily quests
+                        // Track challenge completion for daily quests (with boost multiplier)
                         if config.challengeId != nil {
                             // Pre-made challenge completed
-                            dailyQuestStore.recordChallengeCompleted()
+                            dailyQuestStore.recordChallengeCompleted(count: capturedChallengeCreationMultiplier)
                         } else {
                             // Custom challenge created and completed
-                            dailyQuestStore.recordChallengeCreated()
+                            dailyQuestStore.recordChallengeCreated(count: capturedChallengeCreationMultiplier)
                         }
                         // Reset captured multiplier after use
                         capturedChallengeCreationMultiplier = 1
@@ -109,11 +109,17 @@ public struct RootGameView: View {
                         dailyClaimsStore.updateAvailability()
                         // Wire daily quest store into achievement evaluator
                         gameStore.achievementEvaluator?.dailyQuestStore = dailyQuestStore
-                        // Set tile quest target based on current highest tile step
                         dailyQuestStore.setHighestTileStep(gameStore.state.highestTileStep)
-                        // Wire reward callback
                         dailyQuestStore.onReward = { rewards in
-                            homeState.addGems(0) // trigger UI refresh
+                            homeState.addGems(0)
+                        }
+                    }
+                    .onAppear {
+                        // Re-wire every time Home appears to handle race with app init
+                        gameStore.achievementEvaluator?.dailyQuestStore = dailyQuestStore
+                        dailyQuestStore.setHighestTileStep(gameStore.state.highestTileStep)
+                        dailyQuestStore.onReward = { rewards in
+                            homeState.addGems(0)
                         }
                     }
                     .adaptiveSheet(isPresented: $showShop) {
@@ -174,6 +180,8 @@ public struct RootGameView: View {
         }
     }
     
+
+
     @MainActor
     private func makeHomeActions() -> HomeActions {
         HomeActions(

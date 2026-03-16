@@ -107,6 +107,17 @@ public final class DailyQuestStore {
                     gems: 780, magnets: 1, boost2x: 1, boost3x: 1
                 ),
                 claimed: false
+            ),
+            Quest(
+                id: "daily_complete_all",
+                title: "Complete All Quests",
+                description: "Complete all 5 daily quests.",
+                target: 5,
+                current: 0,
+                rewards: AchievementDef.Rewards(
+                    gems: 5000, spins: 1, hammers: 1, swaps: 1, magnets: 1, boost2x: 1, boost3x: 1, boost4x: 1
+                ),
+                claimed: false
             )
         ]
     }
@@ -118,13 +129,15 @@ public final class DailyQuestStore {
         guard let idx = quests.firstIndex(where: { $0.id == "daily_merge_tiles" }) else { return }
         quests[idx].current += count
         saveProgress(for: quests[idx])
+        updateMetaQuest()
     }
 
-    public func recordPowerUpUse() {
+    public func recordPowerUpUse(count: Int = 1) {
         resetIfNewDay()
         guard let idx = quests.firstIndex(where: { $0.id == "daily_use_powerups" }) else { return }
-        quests[idx].current += 1
+        quests[idx].current += count
         saveProgress(for: quests[idx])
+        updateMetaQuest()
     }
 
     public func recordTileReached(step: Int) {
@@ -134,20 +147,31 @@ public final class DailyQuestStore {
         if step >= tileQuestTargetStep {
             quests[idx].current = 1
             saveProgress(for: quests[idx])
+            updateMetaQuest()
         }
     }
 
-    public func recordChallengeCreated() {
+    public func recordChallengeCreated(count: Int = 1) {
         resetIfNewDay()
         guard let idx = quests.firstIndex(where: { $0.id == "daily_create_challenge" }) else { return }
-        quests[idx].current += 1
+        quests[idx].current += count
         saveProgress(for: quests[idx])
+        updateMetaQuest()
     }
 
-    public func recordChallengeCompleted() {
+    public func recordChallengeCompleted(count: Int = 1) {
         resetIfNewDay()
         guard let idx = quests.firstIndex(where: { $0.id == "daily_complete_challenge" }) else { return }
-        quests[idx].current += 1
+        quests[idx].current += count
+        saveProgress(for: quests[idx])
+        updateMetaQuest()
+    }
+
+    /// Updates the meta "Complete All Quests" quest based on how many other quests are complete
+    private func updateMetaQuest() {
+        guard let idx = quests.firstIndex(where: { $0.id == "daily_complete_all" }) else { return }
+        let completedCount = quests.filter { $0.id != "daily_complete_all" && $0.isComplete }.count
+        quests[idx].current = completedCount
         saveProgress(for: quests[idx])
     }
 
