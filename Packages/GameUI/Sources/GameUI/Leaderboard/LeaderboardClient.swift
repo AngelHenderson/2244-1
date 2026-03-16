@@ -2010,11 +2010,8 @@ public enum MockLeaderboardData {
         if baseIndex < milestone16KIndex {
             // Players below 16K milestone: 1.5-4 milestones per day (faster progression)
             dailyRate = 1.5 + randomFactor * 2.5
-        } else if baseIndex >= milestone1bxIndex {
-            // Players at/above 1bx milestone: 2.75x normal rate (elite push to infinity)
-            dailyRate = (0.25 + randomFactor * 0.75) * 2.75
         } else {
-            // Players at/above 16K but below 1bx: 0.25-1 milestones per day
+            // Players at/above 16K: 0.25-1 milestones per day
             dailyRate = 0.25 + randomFactor * 0.75
         }
 
