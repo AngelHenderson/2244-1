@@ -28,6 +28,8 @@ struct MusicThemesView: View {
     @AppStorage("currentMusicTheme") private var currentTheme: String = "piano"
     @Environment(\.dismiss) private var dismiss
     @Environment(\.audio) private var audioService
+    @State private var previewTimer: Timer?
+    @State private var previewTapIndex: Int = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -41,48 +43,14 @@ struct MusicThemesView: View {
         .onChange(of: selectionIndex) {
             let instrument = instruments[selectionIndex]
             print("[MusicThemesView] Selected instrument: \(instrument.id) – start preview sound here")
-            
-            // Play specific background music for each instrument
-            switch instrument.id {
-            case "piano":
-                Task { await audioService.playMusic(named: "piano_background", loop: true) }
-            case "xylophone":
-                Task { await audioService.playMusic(named: "xylophone_melody", loop: true) }
-            case "kalimba":
-                Task { await audioService.playMusic(named: "kalimba_melody", loop: true) }
-            case "guitar":
-                Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
-            case "muted-nylon":
-                Task { await audioService.playMusic(named: "muted_nylon_tap_1", loop: true) }
-            case "drum":
-                Task { await audioService.playMusic(named: "drum_tap_1", loop: true) }
-            default:
-                // For other instruments, stop current music
-                Task { await audioService.stopMusic() }
-            }
+            startPreview(for: instrument.id)
         }
         .onAppear {
-            // Start appropriate background music for the initially selected instrument
             let currentInstrument = instruments[selectionIndex]
-            switch currentInstrument.id {
-            case "piano":
-                Task { await audioService.playMusic(named: "piano_background", loop: true) }
-            case "xylophone":
-                Task { await audioService.playMusic(named: "xylophone_melody", loop: true) }
-            case "kalimba":
-                Task { await audioService.playMusic(named: "kalimba_melody", loop: true) }
-            case "guitar":
-                Task { await audioService.playMusic(named: "acoustic_guitar_background", loop: true) }
-            case "muted-nylon":
-                Task { await audioService.playMusic(named: "muted_nylon_tap_1", loop: true) }
-            case "drum":
-                Task { await audioService.playMusic(named: "drum_tap_1", loop: true) }
-            default:
-                break
-            }
+            startPreview(for: currentInstrument.id)
         }
         .onDisappear {
-            // Stop music when leaving the view
+            stopSequencedPreview()
             Task { await audioService.stopMusic() }
         }
         .accessibilityElement(children: .contain)
@@ -235,6 +203,53 @@ struct MusicThemesView: View {
         }
         .padding(6)
     }
+
+    // MARK: - Preview Playback
+
+    /// Sequenced tap file lists for instruments with multiple tap sounds
+    private static let sequencedTaps: [String: [String]] = [
+        "xylophone": ["xylophone_tap_1", "xylophone_tap_2"],
+    ]
+
+    private func startPreview(for instrumentId: String) {
+        stopSequencedPreview()
+
+        if let taps = Self.sequencedTaps[instrumentId] {
+            // Sequenced preview: alternate between tap files
+            Task { await audioService.stopMusic() }
+            previewTapIndex = 0
+            // Play the first tap immediately
+            Task { await audioService.playMusic(named: taps[0], loop: false) }
+            // Timer to cycle through taps
+            previewTimer = Timer.scheduledTimer(withTimeInterval: 0.9, repeats: true) { [self] _ in
+                Task { @MainActor in
+                    previewTapIndex = (previewTapIndex + 1) % taps.count
+                    await audioService.playMusic(named: taps[previewTapIndex], loop: false)
+                }
+            }
+        } else {
+            // Single-file loop preview
+            let soundName: String
+            switch instrumentId {
+            case "piano": soundName = "piano_tap_1"
+            case "kalimba": soundName = "kalimba_tap_1"
+            case "guitar": soundName = "guitar_tap_1"
+            case "muted-nylon": soundName = "muted_nylon_tap_1"
+            case "drum": soundName = "drum_tap_1"
+            default:
+                Task { await audioService.stopMusic() }
+                return
+            }
+            Task { await audioService.playMusic(named: soundName, loop: true) }
+        }
+    }
+
+    private func stopSequencedPreview() {
+        previewTimer?.invalidate()
+        previewTimer = nil
+    }
+
+    // MARK: - Navigation
 
     private func moveLeft() {
         guard !instruments.isEmpty else { return }
