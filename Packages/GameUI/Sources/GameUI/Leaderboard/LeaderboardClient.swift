@@ -10949,6 +10949,28 @@ public extension LeaderboardClient {
             playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "is_\(i)"))
         }
 
+        // Iceland has only 34 milestone entries — pad to 150 using extended brackets
+        let baseCount = icelandPlayerMilestones.count
+        for rank in (baseCount + 1)...150 {
+            // Find the milestone for this rank from extended brackets
+            var milestone = "1024"  // default to last milestone value
+            for (bracketIdx, bracket) in icelandExtendedRankBrackets.enumerated() {
+                if rank < bracket.startRank {
+                    if bracketIdx > 0 {
+                        milestone = icelandExtendedRankBrackets[bracketIdx - 1].milestone
+                    }
+                    break
+                }
+                milestone = bracket.milestone
+            }
+            let name = MockLeaderboardData.nameForPlayer(index: rank + 100, names: MockLeaderboardData.icelandNames, countrySeed: 250000, day: day)
+            let platform: Platform = rank % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: rank + 100, countrySeed: 250000, day: day)
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: milestone, playerIndex: rank + 250000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((rank, progressedMilestone, milestoneIdx, name, platform, avatar, "is_ext_\(rank)"))
+        }
+
         // Add user entry
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
