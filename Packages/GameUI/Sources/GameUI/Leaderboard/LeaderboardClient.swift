@@ -10944,23 +10944,7 @@ public extension LeaderboardClient {
             let platform: Platform = i % 3 == 0 ? .ios : .android
             let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 250000, day: day)
 
-            // Custom progression for Iceland base milestones: normal rate only (0.25-1/day)
-            // No elite boost — these high milestones (14ax, 1bc, etc.) should advance 15-60 tiers in 60 days
-            let progressedMilestone: String
-            if let baseIndex = MockLeaderboardData.allMilestones.firstIndex(of: baseMilestone) {
-                let randomFactor = MockLeaderboardData.seededRandom(seed: (i + 250000) * 888, index: i + 250000)
-                let dailyRate = 0.25 + randomFactor * 0.75  // 0.25-1 milestones/day
-                let tiersGained = Int(dailyRate * Double(day))
-                let newIndex = baseIndex + tiersGained
-                if newIndex >= MockLeaderboardData.allMilestones.count {
-                    let tiersPastMax = newIndex - MockLeaderboardData.allMilestones.count + 1
-                    progressedMilestone = "\(tiersPastMax)∞"
-                } else {
-                    progressedMilestone = MockLeaderboardData.allMilestones[newIndex]
-                }
-            } else {
-                progressedMilestone = baseMilestone
-            }
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 250000, day: day)
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
             playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "is_\(i)"))
         }
