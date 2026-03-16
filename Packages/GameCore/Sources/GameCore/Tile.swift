@@ -55,6 +55,10 @@ public extension Tile {
     }
 
     static func make(forStep step: Int) -> Tile {
+        // Step 817+ is infinity (beyond 873bz, the last finite tile)
+        if step >= 817 {
+            return Tile.infinity()
+        }
         let shift = step + 1
         // Use shift < 63 to avoid the sign bit (1 << 63 is negative in signed Int)
         if shift > 0 && shift < 63 {

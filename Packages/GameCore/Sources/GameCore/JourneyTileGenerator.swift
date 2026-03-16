@@ -32,7 +32,7 @@ public struct JourneyTileGenerator {
     /// This handles values beyond Int.max by computing the label directly
     /// Step is 0-based: step 0 = 2^1, step 1 = 2^2, etc.
     public static func formatTileAtStep(_ step: Int) -> String {
-        if step < 0 { return "∞" }
+        if step < 0 || step >= 817 { return "∞" }
 
         // Convert 0-based step to exponent
         let exponent = step + 1
@@ -63,11 +63,6 @@ public struct JourneyTileGenerator {
         // Adjust mantissa for the tier
         let tierBase = 12 + (suffixOrdinal - 1) * 3
         let adjustedMantissa = mantissa * pow(10.0, Double(intPower - tierBase))
-        
-        // Special case: check if this is step 817 (873bz)
-        if step == 817 {
-            return "873bz"
-        }
         
         return "\(Int(adjustedMantissa))\(suffix)"
     }

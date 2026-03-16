@@ -13,6 +13,8 @@ public enum TileStepLabelFormatter {
     /// Step 0 -> `start`, Step 1 -> `start*2`, etc.
     public static func labelForStep(_ step: Int, start: UInt64 = 2) -> String {
         precondition(step >= 0, "step must be >= 0")
+        // Step 817+ is infinity (beyond the last finite tile in the journey)
+        if step >= 817 { return "∞" }
         var chunks = splitBase1000(start)
         if step > 0 {
             doubleTimes(&chunks, step)
