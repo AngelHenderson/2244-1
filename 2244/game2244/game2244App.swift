@@ -63,6 +63,7 @@ struct game2244App: App {
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
     @State private var spinWheelState = SpinWheelState()
+    @State private var dailyQuestStore = DailyQuestStore()
 
     // First-launch tutorial tracking
     @AppStorage("hasCompletedTutorial") private var hasCompletedTutorial: Bool = false
@@ -105,6 +106,7 @@ struct game2244App: App {
                 .environment(homeState)
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
+                .environment(dailyQuestStore)
                 .environment(
                     \.shopStore,
                     shopStore ?? ShopStore(
@@ -208,6 +210,13 @@ struct game2244App: App {
 
                     let evaluator = AchievementEvaluator(achievementStore: achievementStore)
                     gameStore.achievementEvaluator = evaluator
+
+                    // Wire daily quest store into evaluator (same task = guaranteed order)
+                    evaluator.dailyQuestStore = dailyQuestStore
+                    dailyQuestStore.setHighestTileStep(gameStore.state.highestTileStep)
+                    dailyQuestStore.onReward = { rewards in
+                        homeState.addGems(0) // trigger UI refresh
+                    }
 
                     // Start tracking playtime for the initial session
                     evaluator.onGameStart(state: gameStore.state)

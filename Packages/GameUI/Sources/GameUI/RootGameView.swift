@@ -22,9 +22,9 @@ public struct RootGameView: View {
     @State private var wheelEngine = WheelEngine()
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
-    @State private var dailyQuestStore = DailyQuestStore()
 
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
+    @Environment(DailyQuestStore.self) private var dailyQuestStore
     @Environment(\.backgroundThemeRegistry) private var backgroundThemeRegistry
     @Environment(\.currentBackgroundTheme) private var currentBackgroundTheme
     
@@ -100,27 +100,14 @@ public struct RootGameView: View {
                     .environment(\.homeActions, makeHomeActions())
                     .environment(\.challengeStore, challengeStore)
                     .environment(\.challengeDesignerStore, challengeDesignerStore)
-                    .environment(dailyQuestStore)
                     .transition(.move(edge: .leading).combined(with: .opacity))
                     .task {
                         // Load saved progress when Home appears
                         await loadProgressWithCoordinator()
                         // Update daily claims availability
                         dailyClaimsStore.updateAvailability()
-                        // Wire daily quest store into achievement evaluator
-                        gameStore.achievementEvaluator?.dailyQuestStore = dailyQuestStore
+                        // Refresh tile quest target (evaluator wiring happens at app level)
                         dailyQuestStore.setHighestTileStep(gameStore.state.highestTileStep)
-                        dailyQuestStore.onReward = { rewards in
-                            homeState.addGems(0)
-                        }
-                    }
-                    .onAppear {
-                        // Re-wire every time Home appears to handle race with app init
-                        gameStore.achievementEvaluator?.dailyQuestStore = dailyQuestStore
-                        dailyQuestStore.setHighestTileStep(gameStore.state.highestTileStep)
-                        dailyQuestStore.onReward = { rewards in
-                            homeState.addGems(0)
-                        }
                     }
                     .adaptiveSheet(isPresented: $showShop) {
                         ShopView(initialTab: .gems)
