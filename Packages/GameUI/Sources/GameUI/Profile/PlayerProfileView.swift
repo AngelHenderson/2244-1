@@ -470,6 +470,7 @@ private struct CountryPickerView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
                     TextField("Search countries", text: $searchText)
+                        .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                         .textFieldStyle(.plain)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
@@ -498,7 +499,9 @@ private struct CountryPickerView: View {
                             HStack {
                                 Image(systemName: "globe")
                                     .foregroundStyle(.secondary)
+                                    .font(.system(size: 20))
                                 Text("No Country")
+                                    .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
                                 Spacer()
                                 if selectedCountry == nil {
                                     Image(systemName: "checkmark")
@@ -547,7 +550,9 @@ private struct CountryPickerView: View {
         } label: {
             HStack {
                 Text(flagEmoji(countryCode))
+                    .font(.system(size: 20))
                 Text(countryName(countryCode))
+                    .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
                 Spacer()
                 if selectedCountry == countryCode {
                     Image(systemName: "checkmark")
