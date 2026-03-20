@@ -101,10 +101,11 @@ public struct CustomChallengeGameScreen: View {
             }
         }
         .onChange(of: challengeGameStore.coins) { oldValue, newValue in
-            // Only sync gem spending (decreases) back to player's inventory
-            // Don't sync gems earned during challenge - those don't count
+            // Only sync actual power-up spending back to player's inventory
+            // Ignore gems earned during the challenge (chain bonuses, gifts, etc.)
             if newValue < oldValue {
-                homeState.gems = newValue
+                let spent = oldValue - newValue
+                homeState.gems -= spent
             }
         }
         .onChange(of: challengeGameStore.state.moves) { oldMoves, newMoves in
