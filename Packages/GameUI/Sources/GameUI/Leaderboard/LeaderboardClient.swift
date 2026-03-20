@@ -1572,12 +1572,14 @@ public enum MockLeaderboardData {
 
         // Rank is 1-indexed, array is 0-indexed
         let index = rank - 1
-        guard index >= 0 && index < min(150, milestones.count + 1) else {
+        guard index >= 0 && index < min(150, milestones.count) else {
             return nil
         }
 
-        // Build list of all progressed milestones with their indices
-        var progressedData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, isUser: Bool)] = []
+        // Build list of progressed milestones, filtering infinity
+        // DO NOT include the user — calculateCountryRank doesn't include
+        // the user either, so both functions must operate on the same data
+        var progressedData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int)] = []
         for i in 0..<milestones.count {
             let baseMilestone = milestones[i]
             let progressedMilestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + countrySeed, day: day)
@@ -1586,23 +1588,14 @@ public enum MockLeaderboardData {
             if progressedMilestone.hasSuffix("∞") { continue }
 
             let milestoneIdx = milestoneIndex(for: progressedMilestone)
-            progressedData.append((i, progressedMilestone, milestoneIdx, false))
+            progressedData.append((i, progressedMilestone, milestoneIdx))
         }
 
-        // Include the user entry so ranks match the Top 150 view
-        let userMilestone = UserLeaderboardData.currentMilestone
-        let userMilestoneIdx = milestoneIndex(for: userMilestone)
-        progressedData.append((-1, userMilestone, userMilestoneIdx, true))
-
-        // Sort by milestone index (highest first = best milestone)
-        // Tiebreaker 1: user comes first when milestones are equal
-        // Tiebreaker 2: lower originalIndex = reached milestone first = better rank
+        // Sort by milestone index descending (best first)
         progressedData.sort {
             if $0.milestoneIdx != $1.milestoneIdx {
                 return $0.milestoneIdx > $1.milestoneIdx
             }
-            if $0.isUser { return true }
-            if $1.isUser { return false }
             return $0.originalIndex < $1.originalIndex
         }
 
@@ -1988,7 +1981,6 @@ public enum MockLeaderboardData {
     }
 
     // Calculate milestone progression for regular leaderboard players
-    // Players at/above 1bx milestone: progress at 2.75x normal rate (elite push to infinity)
     // Players at/above 16K milestone: progress at 0.25-1 milestones per day
     // Players below 16K milestone: progress at 1.5-4 milestones per day (faster to catch up)
     static func milestoneWithProgression(baseMilestone: String, playerIndex: Int, day: Int) -> String {
@@ -2383,6 +2375,29 @@ public enum MockLeaderboardData {
         1997, 784, 399, 233, 166, 100, 73, 48, 25, 9,
         7, 5, 4, 4, 3, 3, 3, 2, 2, 2,
         2, 2, 1, 1, 1, 1, 1, 1, 1, 1
+    ]
+
+    static let kyrgyzstanHallOfFameInfinityCounts: [Int] = [
+        // Kyrgyzstan Hall of Fame (35 players)
+        4888, 1222, 577, 322, 199, 134, 88, 55, 39, 27,
+        18, 12, 9, 7, 6, 5, 4, 4, 3, 3,
+        3, 2, 2, 2, 2, 2, 1, 1, 1, 1,
+        1, 1, 1, 1, 1
+    ]
+
+    static let icelandHallOfFameInfinityCounts: [Int] = [
+        // Iceland Hall of Fame (8 players)
+        122, 44, 17, 9, 4, 2, 1, 1
+    ]
+
+    static let malaysiaHallOfFameInfinityCounts: [Int] = [
+        // Malaysia Hall of Fame (56 players)
+        4571, 666, 74, 18, 14, 12, 10, 9, 9, 8,
+        8, 8, 7, 7, 7, 7, 7, 6, 6, 6,
+        6, 6, 6, 5, 5, 5, 5, 5, 4, 4,
+        4, 4, 4, 4, 4, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 2, 2, 2, 2, 2, 1,
+        1, 1, 1, 1, 1, 1
     ]
 
     static let usNames = [
@@ -4107,6 +4122,21 @@ public extension LeaderboardClient {
         // Add UAE players
         for (i, count) in MockLeaderboardData.uaeHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_ae_\(i)", count, "AE", globalIndex, i + 25000))
+            globalIndex += 1
+        }
+        // Add Kyrgyzstan players
+        for (i, count) in MockLeaderboardData.kyrgyzstanHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_kg_\(i)", count, "KG", globalIndex, i + 26000))
+            globalIndex += 1
+        }
+        // Add Iceland players
+        for (i, count) in MockLeaderboardData.icelandHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_is_\(i)", count, "IS", globalIndex, i + 27000))
+            globalIndex += 1
+        }
+        // Add Malaysia players
+        for (i, count) in MockLeaderboardData.malaysiaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_my_\(i)", count, "MY", globalIndex, i + 28000))
             globalIndex += 1
         }
 
@@ -10842,7 +10872,8 @@ public extension LeaderboardClient {
     private static func kyrgyzstanEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
 
-        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+        // Build entries in original rank order, filtering out infinity players
+        var nonInfinityEntries: [(progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
 
         for i in 0..<kyrgyzstanPlayerMilestones.count {
             let baseMilestone = kyrgyzstanPlayerMilestones[i]
@@ -10851,46 +10882,66 @@ public extension LeaderboardClient {
             let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 245000, day: day)
 
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 245000, day: day)
+            // Filter out infinity players (they belong in Hall of Fame)
+            if progressedMilestone.hasSuffix("∞") { continue }
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
-            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "kg_\(i)"))
+            nonInfinityEntries.append((progressedMilestone, milestoneIdx, name, platform, avatar, "kg_\(i)"))
         }
 
-        // Add user entry
+        // Sort progressed players by milestone index to maintain correct order
+        nonInfinityEntries.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx // Higher index = better milestone
+            }
+            // Tiebreaker: stable sort based on id
+            return $0.id < $1.id
+        }
+
+        // Insert user at their calculated rank
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
-        playerData.append((-1, userMilestone, userMilestoneIdx, "You", .ios, "", "me"))
-
-        // Sort by milestone index descending, then by original index ascending
-        playerData.sort { a, b in
-            if a.milestoneIdx != b.milestoneIdx {
-                return a.milestoneIdx > b.milestoneIdx
-            }
-            if a.id == "me" { return true }
-            if b.id == "me" { return false }
-            return a.originalIndex < b.originalIndex
-        }
+        let kgRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "KG")
 
         var entries: [LeaderboardEntry] = []
-        var userInTop150 = false
+        var userInserted = false
+        var currentRank = 1
 
-        for (rank, player) in playerData.prefix(150).enumerated() {
-            if player.id == "me" { userInTop150 = true }
+        for player in nonInfinityEntries {
+            if !userInserted && currentRank >= kgRank {
+                // Insert user at their calculated rank
+                entries.append(LeaderboardEntry(
+                    id: "me",
+                    rank: currentRank,
+                    name: "You",
+                    score: userMilestoneIdx * 100,
+                    countryCode: "KG",
+                    platform: .ios,
+                    isMe: true,
+                    avatarURL: "",
+                    highestTile: userMilestone
+                ))
+                userInserted = true
+                currentRank += 1
+                if entries.count >= 150 { break }
+            }
+
             entries.append(LeaderboardEntry(
                 id: player.id,
-                rank: rank + 1,
+                rank: currentRank,
                 name: player.name,
                 score: player.milestoneIdx * 100,
                 countryCode: "KG",
                 platform: player.platform,
-                isMe: player.id == "me",
+                isMe: false,
                 avatarURL: player.avatar,
                 highestTile: player.progressedMilestone
             ))
+            currentRank += 1
+            if entries.count >= 150 { break }
         }
 
-        if !userInTop150 {
-            let kgRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "KG")
-
+        // If user wasn't inserted yet (rank is beyond the milestone entries)
+        if !userInserted {
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: kgRank,
                 userMilestone: userMilestone,
@@ -10933,7 +10984,8 @@ public extension LeaderboardClient {
     private static func icelandEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
 
-        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+        // Build entries in original rank order, filtering out infinity players
+        var nonInfinityEntries: [(progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
 
         for i in 0..<icelandPlayerMilestones.count {
             let baseMilestone = icelandPlayerMilestones[i]
@@ -10942,68 +10994,89 @@ public extension LeaderboardClient {
             let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 250000, day: day)
 
             let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 250000, day: day)
+            // Filter out infinity players (they belong in Hall of Fame)
+            if progressedMilestone.hasSuffix("∞") { continue }
             let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
-            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "is_\(i)"))
+            nonInfinityEntries.append((progressedMilestone, milestoneIdx, name, platform, avatar, "is_\(i)"))
         }
 
         // Iceland has only 34 milestone entries — pad to 150 using extended brackets
-        let baseCount = icelandPlayerMilestones.count
-        for rank in (baseCount + 1)...150 {
-            // Find the milestone for this rank from extended brackets
-            var milestone = "1024"  // default to last milestone value
-            for (bracketIdx, bracket) in icelandExtendedRankBrackets.enumerated() {
-                if rank < bracket.startRank {
-                    if bracketIdx > 0 {
-                        milestone = icelandExtendedRankBrackets[bracketIdx - 1].milestone
+        let baseCount = nonInfinityEntries.count
+        if baseCount < 150 {
+            for rank in (baseCount + 1)...150 {
+                var milestone = "1024"
+                for (bracketIdx, bracket) in icelandExtendedRankBrackets.enumerated() {
+                    if rank < bracket.startRank {
+                        if bracketIdx > 0 {
+                            milestone = icelandExtendedRankBrackets[bracketIdx - 1].milestone
+                        }
+                        break
                     }
-                    break
+                    milestone = bracket.milestone
                 }
-                milestone = bracket.milestone
+                let name = MockLeaderboardData.nameForPlayer(index: rank + 100, names: MockLeaderboardData.icelandNames, countrySeed: 250000, day: day)
+                let platform: Platform = rank % 3 == 0 ? .ios : .android
+                let avatar = MockLeaderboardData.avatarForPlayer(index: rank + 100, countrySeed: 250000, day: day)
+                let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: milestone, playerIndex: rank + 250000, day: day)
+                if progressedMilestone.hasSuffix("∞") { continue }
+                let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+                nonInfinityEntries.append((progressedMilestone, milestoneIdx, name, platform, avatar, "is_ext_\(rank)"))
             }
-            let name = MockLeaderboardData.nameForPlayer(index: rank + 100, names: MockLeaderboardData.icelandNames, countrySeed: 250000, day: day)
-            let platform: Platform = rank % 3 == 0 ? .ios : .android
-            let avatar = MockLeaderboardData.avatarForPlayer(index: rank + 100, countrySeed: 250000, day: day)
-            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: milestone, playerIndex: rank + 250000, day: day)
-            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
-            playerData.append((rank, progressedMilestone, milestoneIdx, name, platform, avatar, "is_ext_\(rank)"))
         }
 
-        // Add user entry
+        // Sort progressed players by milestone index to maintain correct order
+        nonInfinityEntries.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx // Higher index = better milestone
+            }
+            // Tiebreaker: stable sort based on id
+            return $0.id < $1.id
+        }
+
+        // Insert user at their calculated rank
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
-        playerData.append((-1, userMilestone, userMilestoneIdx, "You", .ios, "", "me"))
-
-        // Sort by milestone index descending, then by original index ascending
-        playerData.sort { a, b in
-            if a.milestoneIdx != b.milestoneIdx {
-                return a.milestoneIdx > b.milestoneIdx
-            }
-            if a.id == "me" { return true }
-            if b.id == "me" { return false }
-            return a.originalIndex < b.originalIndex
-        }
+        let isRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "IS")
 
         var entries: [LeaderboardEntry] = []
-        var userInTop150 = false
+        var userInserted = false
+        var currentRank = 1
 
-        for (rank, player) in playerData.prefix(150).enumerated() {
-            if player.id == "me" { userInTop150 = true }
+        for player in nonInfinityEntries {
+            if !userInserted && currentRank >= isRank {
+                entries.append(LeaderboardEntry(
+                    id: "me",
+                    rank: currentRank,
+                    name: "You",
+                    score: userMilestoneIdx * 100,
+                    countryCode: "IS",
+                    platform: .ios,
+                    isMe: true,
+                    avatarURL: "",
+                    highestTile: userMilestone
+                ))
+                userInserted = true
+                currentRank += 1
+                if entries.count >= 150 { break }
+            }
+
             entries.append(LeaderboardEntry(
                 id: player.id,
-                rank: rank + 1,
+                rank: currentRank,
                 name: player.name,
                 score: player.milestoneIdx * 100,
                 countryCode: "IS",
                 platform: player.platform,
-                isMe: player.id == "me",
+                isMe: false,
                 avatarURL: player.avatar,
                 highestTile: player.progressedMilestone
             ))
+            currentRank += 1
+            if entries.count >= 150 { break }
         }
 
-        if !userInTop150 {
-            let isRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "IS")
-
+        // If user wasn't inserted yet (rank is beyond the entries)
+        if !userInserted {
             let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                 aroundRank: isRank,
                 userMilestone: userMilestone,

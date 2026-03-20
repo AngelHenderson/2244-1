@@ -179,7 +179,7 @@ public struct LeaderboardView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     LazyVStack(spacing: 8) {
-                        ForEach(milestoneTiersAroundUser(userMilestone: userMilestone, filter: m.selectedFilter), id: \.milestone) { tier in
+                        ForEach(milestoneTiersAroundUser(userMilestone: userMilestone, filter: m.selectedFilter, entries: m.entries), id: \.milestone) { tier in
                             milestoneRow(
                                 milestone: tier.milestone,
                                 rankLabel: tier.rankLabel,
@@ -191,7 +191,7 @@ public struct LeaderboardView: View {
                     .padding(.vertical, 16)
 
                     // Rank preview section - shows individual ranks for nearby milestones
-                    rankPreviewSection(userMilestone: userMilestone, filter: m.selectedFilter)
+                    rankPreviewSection(userMilestone: userMilestone, filter: m.selectedFilter, entries: m.entries)
                 }
             }
         }
@@ -199,8 +199,8 @@ public struct LeaderboardView: View {
 
     /// Shows individual rank examples for milestones around the user's position
     @ViewBuilder
-    private func rankPreviewSection(userMilestone: String, filter: LeaderboardFilter) -> some View {
-        let previews = generateRankPreviews(userMilestone: userMilestone, filter: filter)
+    private func rankPreviewSection(userMilestone: String, filter: LeaderboardFilter, entries: [LeaderboardEntry]) -> some View {
+        let previews = generateRankPreviews(userMilestone: userMilestone, filter: filter, entries: entries)
 
         if !previews.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
@@ -244,17 +244,17 @@ public struct LeaderboardView: View {
 
     /// Generates rank preview entries around the user's current rank
     /// Shows consecutive individual ranks (-3 to +3) with their corresponding milestones
-    private func generateRankPreviews(userMilestone: String, filter: LeaderboardFilter) -> [RankPreview] {
+    private func generateRankPreviews(userMilestone: String, filter: LeaderboardFilter, entries: [LeaderboardEntry]) -> [RankPreview] {
         let userRank = rankForFilter(filter, milestone: userMilestone)
         var previews: [RankPreview] = []
 
-        // For country leaderboards with top 150 players, use direct lookup
-        if let countryCode = filter.countryCode {
+        // For country leaderboards, use actual entries data
+        if filter.countryCode != nil {
             return generateCountryRankPreviews(
                 userMilestone: userMilestone,
                 userRank: userRank,
-                countryCode: countryCode,
-                filter: filter
+                filter: filter,
+                entries: entries
             )
         }
 
@@ -327,17 +327,52 @@ public struct LeaderboardView: View {
     /// Generate rank previews for country leaderboards using consecutive ranking
     /// Shows consecutive rank numbers with tier-based milestone assignments
     /// (consistent with the milestone tier view above)
-    private func generateCountryRankPreviews(userMilestone: String, userRank: Int, countryCode: String, filter: LeaderboardFilter) -> [RankPreview] {
-        let milestones = Self.allMilestones
+    private func generateCountryRankPreviews(userMilestone: String, userRank: Int, filter: LeaderboardFilter, entries: [LeaderboardEntry]) -> [RankPreview] {
+        // Show ranks from 3 above to 3 below user's rank
+        let startRank = max(1, userRank - 3)
+        let endRank = userRank + 3
 
-        // Build tier boundaries from allMilestones using rankForFilter
-        guard let userMilestoneIndex = milestones.firstIndex(of: userMilestone) else {
-            return []
+        // Check if user is within Top 150 entries (use entries data)
+        let userInTop150 = entries.first(where: { $0.isMe && $0.rank <= 150 }) != nil
+
+        var previews: [RankPreview] = []
+        for rank in startRank...endRank {
+            let milestone: String
+
+            if rank == userRank {
+                milestone = userMilestone
+            } else if userInTop150, let entry = entries.first(where: { $0.rank == rank }) {
+                // Use actual entry milestone from loaded data (matches Top 150)
+                milestone = entry.highestTile ?? userMilestone
+            } else if !userInTop150, rank <= 150, let entry = entries.first(where: { $0.rank == rank }) {
+                // User outside Top 150 but looking at a Top 150 rank
+                milestone = entry.highestTile ?? userMilestone
+            } else {
+                // Fall back to tier boundary lookup
+                milestone = tierMilestoneForRank(rank, userMilestone: userMilestone, filter: filter)
+            }
+
+            previews.append(RankPreview(
+                rank: rank,
+                milestone: milestone,
+                isUserRank: rank == userRank
+            ))
         }
 
-        let searchStart = max(0, userMilestoneIndex - 10)
-        let searchEnd = min(milestones.count, userMilestoneIndex + 10)
+        return previews
+    }
 
+    /// Look up the milestone tier boundary for a given rank using rankForFilter
+    private func tierMilestoneForRank(_ targetRank: Int, userMilestone: String, filter: LeaderboardFilter) -> String {
+        let milestones = Self.allMilestones
+        guard let userIndex = milestones.firstIndex(of: userMilestone) else {
+            return userMilestone
+        }
+
+        let searchStart = max(0, userIndex - 10)
+        let searchEnd = min(milestones.count, userIndex + 10)
+
+        // Build tier boundaries
         var tierBoundaries: [(milestone: String, startRank: Int)] = []
         for i in searchStart..<searchEnd {
             let milestone = milestones[i]
@@ -345,8 +380,8 @@ public struct LeaderboardView: View {
             tierBoundaries.append((milestone, rank))
         }
 
-        // Ensure tier boundaries are monotonically ordered outward from user
-        let userBoundaryIndex = userMilestoneIndex - searchStart
+        // Enforce monotonicity
+        let userBoundaryIndex = userIndex - searchStart
         for i in stride(from: userBoundaryIndex - 1, through: 0, by: -1) {
             if tierBoundaries[i].startRank >= tierBoundaries[i + 1].startRank {
                 tierBoundaries[i].startRank = tierBoundaries[i + 1].startRank - 1
@@ -358,53 +393,16 @@ public struct LeaderboardView: View {
             }
         }
 
-        // Show ranks from 3 above to 3 below user's rank
-        let startRank = max(1, userRank - 3)
-        let endRank = userRank + 3
-
-        var previews: [RankPreview] = []
-        for rank in startRank...endRank {
-            let milestone: String
-
-            if rank == userRank {
-                milestone = userMilestone
-            } else if rank <= 150 {
-                // For ranks within top 150, use actual player data
-                if let actualMilestone = MockLeaderboardData.milestoneAtCountryRank(rank: rank, countryCode: countryCode) {
-                    milestone = actualMilestone
-                } else {
-                    // Fallback to tier boundary lookup
-                    var foundMilestone = userMilestone
-                    for boundary in tierBoundaries {
-                        if boundary.startRank <= rank {
-                            foundMilestone = boundary.milestone
-                        } else {
-                            break
-                        }
-                    }
-                    milestone = foundMilestone
-                }
+        // Find matching tier
+        var foundMilestone = userMilestone
+        for boundary in tierBoundaries {
+            if boundary.startRank <= targetRank {
+                foundMilestone = boundary.milestone
             } else {
-                // For ranks beyond 150, use tier boundary lookup
-                var foundMilestone = userMilestone
-                for boundary in tierBoundaries {
-                    if boundary.startRank <= rank {
-                        foundMilestone = boundary.milestone
-                    } else {
-                        break
-                    }
-                }
-                milestone = foundMilestone
+                break
             }
-
-            previews.append(RankPreview(
-                rank: rank,
-                milestone: milestone,
-                isUserRank: rank == userRank
-            ))
         }
-
-        return previews
+        return foundMilestone
     }
 
     /// Find milestone for a rank better than user (lower rank number = better)
@@ -557,7 +555,15 @@ public struct LeaderboardView: View {
 
     /// Returns milestones around the user's current milestone (3 above, user, 3 below)
     /// Each entry includes the rank number for that milestone tier based on selected filter
-    private func milestoneTiersAroundUser(userMilestone: String, filter: LeaderboardFilter) -> [(milestone: String, rankLabel: String)] {
+    private func milestoneTiersAroundUser(userMilestone: String, filter: LeaderboardFilter, entries: [LeaderboardEntry]) -> [(milestone: String, rankLabel: String)] {
+        // For country leaderboards when user is in Top 150, use actual entries data to match Top 150
+        if filter.countryCode != nil && !entries.isEmpty {
+            let userInTop150 = entries.first(where: { $0.isMe && $0.rank <= 150 }) != nil
+            if userInTop150 {
+                return milestoneTiersFromEntries(userMilestone: userMilestone, entries: entries)
+            }
+        }
+
         let milestones = Self.allMilestones
 
         // Find user's position in the milestone list
@@ -600,6 +606,59 @@ public struct LeaderboardView: View {
         return tiers.map { tier in
             (tier.milestone, "\(tier.rank) - \(tier.milestone)")
         }
+    }
+
+    /// Build milestone tiers from actual entries data (for country leaderboards)
+    /// Shows unique milestones around the user's position, matching the Top 150 exactly
+    private func milestoneTiersFromEntries(userMilestone: String, entries: [LeaderboardEntry]) -> [(milestone: String, rankLabel: String)] {
+        // Find user entry in entries
+        guard let userEntry = entries.first(where: { $0.isMe }) else {
+            // User not in entries, fall back to showing entries around the middle
+            let nearby = Array(entries.prefix(7))
+            return nearby.map { entry in
+                (entry.highestTile ?? "", "\(entry.rank) - \(entry.highestTile ?? "")")
+            }
+        }
+
+        let userRank = userEntry.rank
+
+        // Get entries sorted by rank
+        let sorted = entries.sorted { $0.rank < $1.rank }
+
+        // Find entries around the user (3 above + user + 3 below)
+        // First, collect unique milestones with their first appearing rank
+        var result: [(milestone: String, rankLabel: String)] = []
+        var seenMilestones = Set<String>()
+
+        // Entries above user (3 unique milestones)
+        let aboveEntries = sorted.filter { $0.rank < userRank && !$0.isMe }
+            .suffix(6) // Take last 6 entries above user to find 3 unique milestones
+        var aboveTiers: [(milestone: String, rank: Int)] = []
+        for entry in aboveEntries.reversed() {
+            if let tile = entry.highestTile, !seenMilestones.contains(tile) {
+                seenMilestones.insert(tile)
+                aboveTiers.insert((tile, entry.rank), at: 0)
+                if aboveTiers.count >= 3 { break }
+            }
+        }
+        result.append(contentsOf: aboveTiers.map { ("\($0.milestone)", "\($0.rank) - \($0.milestone)") })
+
+        // User's entry
+        result.append((userMilestone, "\(userRank) - \(userMilestone)"))
+        seenMilestones.insert(userMilestone)
+
+        // Entries below user (3 unique milestones)
+        let belowEntries = sorted.filter { $0.rank > userRank && !$0.isMe }
+            .prefix(6) // Take first 6 entries below user to find 3 unique milestones
+        for entry in belowEntries {
+            if let tile = entry.highestTile, !seenMilestones.contains(tile) {
+                seenMilestones.insert(tile)
+                result.append((tile, "\(entry.rank) - \(tile)"))
+                if result.count >= 7 { break }
+            }
+        }
+
+        return result
     }
 
     @ViewBuilder
