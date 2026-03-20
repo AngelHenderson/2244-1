@@ -1525,10 +1525,9 @@ public final class GameEngine {
         let effectiveMin = max(0, minStep)
         let effectiveMax = max(effectiveMin, maxStep)
 
-        // Generate candidates (up to 7 steps)
         var candidates: [Int] = []
         var currentStep = effectiveMin
-        while currentStep <= effectiveMax && candidates.count < 7 {
+        while currentStep <= effectiveMax {
             candidates.append(currentStep)
             currentStep += 1
         }
