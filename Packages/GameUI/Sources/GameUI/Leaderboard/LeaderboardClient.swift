@@ -2400,6 +2400,21 @@ public enum MockLeaderboardData {
         1, 1, 1, 1, 1, 1
     ]
 
+    static let azerbaijanHallOfFameInfinityCounts: [Int] = [
+        // Azerbaijan Hall of Fame (102 players)
+        74778, 38958, 17398, 3957, 2847, 2000, 1376, 957, 682, 499,
+        399, 310, 239, 195, 158, 127, 104, 82, 67, 57,
+        52, 45, 39, 37, 36, 35, 34, 33, 33, 32,
+        29, 27, 26, 26, 24, 23, 22, 22, 20, 19,
+        19, 18, 16, 16, 15, 13, 13, 12, 12, 11,
+        11, 11, 10, 10, 10, 9, 9, 9, 8, 8,
+        8, 7, 7, 7, 6, 6, 6, 6, 5, 5,
+        5, 4, 4, 4, 4, 4, 3, 3, 3, 3,
+        3, 3, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1
+    ]
+
     static let usNames = [
         "AmericanEagle486408", "StarsAndStripes", "USAChamp879384", "LibertyGamer", "PatriotPlayer",
         "FreedomFighter", "StateStar221473", "CapitalCity096548", "RedWhiteBlue", "UncleSamPro",
@@ -4137,6 +4152,11 @@ public extension LeaderboardClient {
         // Add Malaysia players
         for (i, count) in MockLeaderboardData.malaysiaHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_my_\(i)", count, "MY", globalIndex, i + 28000))
+            globalIndex += 1
+        }
+        // Add Azerbaijan players
+        for (i, count) in MockLeaderboardData.azerbaijanHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_az_\(i)", count, "AZ", globalIndex, i + 29000))
             globalIndex += 1
         }
 
