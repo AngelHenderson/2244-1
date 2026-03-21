@@ -224,10 +224,10 @@ private struct QuestRewardSummary: View {
             items.append(RewardItem(icon: .asset("spinthewheel"), text: "\(spins)"))
         }
         if let boost2x = rewards.boost2x, boost2x > 0 {
-            items.append(RewardItem(icon: .asset("boost2x"), text: "\(boost2x)×"))
+            items.append(RewardItem(icon: .system("2.circle.fill", .yellow), text: "\(boost2x)×"))
         }
         if let boost3x = rewards.boost3x, boost3x > 0 {
-            items.append(RewardItem(icon: .asset("boost3x"), text: "\(boost3x)×"))
+            items.append(RewardItem(icon: .system("3.circle.fill", .pink), text: "\(boost3x)×"))
         }
         if let boost4x = rewards.boost4x, boost4x > 0 {
             items.append(RewardItem(icon: .system("4.circle.fill", .orange), text: "\(boost4x)×"))

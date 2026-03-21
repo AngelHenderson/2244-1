@@ -471,6 +471,8 @@ public final class AchievementEvaluator {
     }
     public func onTilesMerged(count: Int) {
         recordMergedTiles(count)
+        // Forward merge count to daily quests (with boost multiplier)
+        dailyQuestStore?.recordMerges(count * achievementBoostMultiplier)
     }
     
     private func updateComboProgress(for chainCount: Int) {
