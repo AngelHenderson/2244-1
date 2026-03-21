@@ -2415,6 +2415,28 @@ public enum MockLeaderboardData {
         1, 1
     ]
 
+    static let tajikistanHallOfFameInfinityCounts: [Int] = [
+        // Tajikistan Hall of Fame (36 players)
+        54322, 8965, 3539, 988, 587, 299, 176, 100, 56, 38,
+        29, 21, 14, 8, 6, 5, 5, 4, 4, 4,
+        3, 3, 3, 3, 2, 2, 2, 2, 2, 1,
+        1, 1, 1, 1, 1, 1
+    ]
+
+    static let niueHallOfFameInfinityCounts: [Int] = [
+        // Niue Hall of Fame (20 players)
+        498, 209, 94, 46, 23, 19, 13, 9, 6, 4,
+        3, 3, 2, 2, 2, 1, 1, 1, 1, 1
+    ]
+
+    static let austriaHallOfFameInfinityCounts: [Int] = [
+        // Austria Hall of Fame (34 players)
+        4887, 3999, 3111, 2222, 1333, 496, 397, 300, 209, 119,
+        67, 25, 13, 9, 7, 6, 5, 5, 4, 4,
+        4, 3, 3, 3, 3, 2, 2, 2, 2, 1,
+        1, 1, 1, 1
+    ]
+
     static let usNames = [
         "AmericanEagle486408", "StarsAndStripes", "USAChamp879384", "LibertyGamer", "PatriotPlayer",
         "FreedomFighter", "StateStar221473", "CapitalCity096548", "RedWhiteBlue", "UncleSamPro",
@@ -4157,6 +4179,21 @@ public extension LeaderboardClient {
         // Add Azerbaijan players
         for (i, count) in MockLeaderboardData.azerbaijanHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_az_\(i)", count, "AZ", globalIndex, i + 29000))
+            globalIndex += 1
+        }
+        // Add Tajikistan players
+        for (i, count) in MockLeaderboardData.tajikistanHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_tj_\(i)", count, "TJ", globalIndex, i + 30000))
+            globalIndex += 1
+        }
+        // Add Niue players
+        for (i, count) in MockLeaderboardData.niueHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_nu_\(i)", count, "NU", globalIndex, i + 31000))
+            globalIndex += 1
+        }
+        // Add Austria players
+        for (i, count) in MockLeaderboardData.austriaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_at_\(i)", count, "AT", globalIndex, i + 32000))
             globalIndex += 1
         }
 
