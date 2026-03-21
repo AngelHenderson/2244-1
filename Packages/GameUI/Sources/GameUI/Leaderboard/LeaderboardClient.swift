@@ -2437,6 +2437,15 @@ public enum MockLeaderboardData {
         1, 1, 1, 1
     ]
 
+    static let hungaryHallOfFameInfinityCounts: [Int] = [
+        // Hungary Hall of Fame (49 players)
+        9478, 8785, 7888, 1976, 1000, 198, 105, 38, 18, 9,
+        6, 5, 5, 5, 4, 4, 4, 4, 3, 3,
+        3, 3, 3, 3, 3, 2, 2, 2, 2, 2,
+        2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1
+    ]
+
     static let usNames = [
         "AmericanEagle486408", "StarsAndStripes", "USAChamp879384", "LibertyGamer", "PatriotPlayer",
         "FreedomFighter", "StateStar221473", "CapitalCity096548", "RedWhiteBlue", "UncleSamPro",
@@ -4194,6 +4203,11 @@ public extension LeaderboardClient {
         // Add Austria players
         for (i, count) in MockLeaderboardData.austriaHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_at_\(i)", count, "AT", globalIndex, i + 32000))
+            globalIndex += 1
+        }
+        // Add Hungary players
+        for (i, count) in MockLeaderboardData.hungaryHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_hu_\(i)", count, "HU", globalIndex, i + 33000))
             globalIndex += 1
         }
 
