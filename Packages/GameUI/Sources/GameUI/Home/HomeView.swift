@@ -12,6 +12,7 @@ public struct HomeView: View {
     @Environment(\.tileJourney) private var journey
     @Environment(\.toastManager) private var toastManager
     @Environment(\.spinWheelState) private var spinState
+    @Environment(\.leaderboardClient) private var leaderboardClient
     @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
     @State private var isShowingAchievements: Bool = false
@@ -236,7 +237,7 @@ public struct HomeView: View {
         }
         // Leaderboard (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingLeaderboard) {
-            LeaderboardView()
+            LeaderboardView(client: leaderboardClient)
         }
         // Achievements (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingAchievements) {

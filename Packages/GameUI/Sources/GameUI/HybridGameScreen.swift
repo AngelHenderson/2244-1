@@ -27,6 +27,7 @@ public struct HybridGameScreen: View {
     @Environment(\.gameCenter) private var gameCenter
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.leaderboardClient) private var leaderboardClient
 
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
@@ -204,7 +205,7 @@ public struct HybridGameScreen: View {
 
         let leaderboardSheet = shopSheet
             .adaptiveSheet(isPresented: $isShowingLeaderboard) {
-                LeaderboardView()
+                LeaderboardView(client: leaderboardClient)
             }
 
         let giftSheet = leaderboardSheet

@@ -2,17 +2,18 @@ import SwiftUI
 import GameApp
 
 public struct LeaderboardView: View {
-    @Environment(\.leaderboardClient) private var client
     @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.currentTheme) private var currentTheme
-    @State private var model: LeaderboardModel? = nil
+    @State private var model: LeaderboardModel
     @State private var showError = false
     @State private var showingTop150 = false
 
     private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
 
-    public init() {}
+    public init(client: LeaderboardClient) {
+        _model = State(initialValue: LeaderboardModel(client: client))
+    }
 
     public var body: some View {
         ZStack {
@@ -41,7 +42,7 @@ public struct LeaderboardView: View {
                     GemBalancePill()
 
                     // Top 150 button (only show in milestone view, not for Hall of Fame)
-                    if !showingTop150 && model?.selectedFilter != .hallOfFame {
+                    if !showingTop150 && model.selectedFilter != .hallOfFame {
                         Button {
                             showingTop150 = true
                         } label: {
@@ -71,27 +72,19 @@ public struct LeaderboardView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
 
-                if let model {
-                    if showingTop150 || model.selectedFilter == .hallOfFame {
-                        top150Content(model)
-                    } else {
-                        milestoneContent(model)
-                    }
+                if showingTop150 || model.selectedFilter == .hallOfFame {
+                    top150Content(model)
                 } else {
-                    // Brief invisible placeholder before model is created (no spinner)
-                    Spacer()
+                    milestoneContent(model)
                 }
             }
             .task {
-                guard model == nil else { return }
-                let m = LeaderboardModel(client: client)
-                self.model = m
-                await m.authenticate()
-                await m.refresh()
-                if let myEntry = m.myEntry, gameStore.state.score > myEntry.score {
-                    await m.submitScore(gameStore.state.score)
+                await model.authenticate()
+                await model.refresh()
+                if let myEntry = model.myEntry, gameStore.state.score > myEntry.score {
+                    await model.submitScore(gameStore.state.score)
                 }
-                if m.selectedFilter == .global, let myEntry = m.myEntry {
+                if model.selectedFilter == .global, let myEntry = model.myEntry {
                     gameStore.registerLeaderboardRank(myEntry.rank)
                 }
             }
@@ -99,15 +92,15 @@ public struct LeaderboardView: View {
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
         } message: {
-            Text(model?.error ?? "An error occurred")
+            Text(model.error ?? "An error occurred")
         }
         .onChange(of: showingTop150) { _, isTop150 in
             // When switching to Top 150 view, force a refresh so the entries
             // match the currently selected filter (e.g., Malaysia instead of Global).
             // The milestone view uses static rank data, not m.entries, so the
             // entries may not have been updated when the user switched filters there.
-            if isTop150, let m = model, !m.isLoading {
-                Task { await m.refresh() }
+            if isTop150, !model.isLoading {
+                Task { await model.refresh() }
             }
         }
     }
@@ -1221,8 +1214,7 @@ public struct LeaderboardView: View {
 }
 
 #Preview("Leaderboard") {
-    LeaderboardView()
-        .environment(\.leaderboardClient, .preview)
+    LeaderboardView(client: .preview)
 }
 
 public extension LeaderboardClient {
