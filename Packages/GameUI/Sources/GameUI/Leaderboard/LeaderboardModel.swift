@@ -18,7 +18,15 @@ public final class LeaderboardModel {
         didSet { if oldValue != selectedPeriod { Task { await refresh() } } }
     }
     public var selectedFilter: LeaderboardFilter = .global {
-        didSet { if oldValue != selectedFilter { Task { await refresh() } } }
+        didSet {
+            if oldValue != selectedFilter {
+                // Clear stale data immediately so old filter's entries don't leak through
+                entries.removeAll()
+                myEntry = nil
+                totalPlayers = nil
+                Task { await refresh() }
+            }
+        }
     }
     
     // Pagination
@@ -65,16 +73,10 @@ public final class LeaderboardModel {
     public func refresh() async {
         guard !isRefreshing else { return }
         isRefreshing = true
-        
-        // Only show loading spinner if we have no existing data (first load)
-        let isFirstLoad = entries.isEmpty
-        if isFirstLoad {
-            isLoading = true
-        }
         error = nil
         
         do {
-            // Fetch new data while keeping old data visible
+            // Fetch new data while keeping old data visible (no spinner)
             let page = try await client.fetchPage(
                 selectedPeriod,
                 selectedFilter,
@@ -96,7 +98,6 @@ public final class LeaderboardModel {
             self.error = "Failed to load leaderboard: \(error.localizedDescription)"
         }
         
-        isLoading = false
         isRefreshing = false
     }
     
