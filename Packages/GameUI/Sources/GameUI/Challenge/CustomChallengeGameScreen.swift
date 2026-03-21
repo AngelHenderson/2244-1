@@ -407,6 +407,19 @@ public struct CustomChallengeGameScreen: View {
 
             Spacer()
 
+            // Valid moves count (center)
+            VStack(spacing: 2) {
+                Text("\(challengeGameStore.validMovesCount)")
+                    .font(.system(.title3, design: .rounded).bold())
+                    .foregroundStyle(validMovesColor)
+                    .contentTransition(.numericText())
+                Text("moves")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
             // Gem balance + Exit button (right)
             HStack(spacing: 12) {
                 GemBalancePill()
@@ -457,6 +470,14 @@ public struct CustomChallengeGameScreen: View {
             }
             .padding(32)
         }
+    }
+
+    private var validMovesColor: Color {
+        let count = challengeGameStore.validMovesCount
+        if count == 0 { return .red }
+        else if count < 10 { return .orange }
+        else if count < 20 { return .yellow }
+        else { return .green }
     }
 
     private var targetLabel: String {

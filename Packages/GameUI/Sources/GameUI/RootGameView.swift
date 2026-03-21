@@ -59,12 +59,9 @@ public struct RootGameView: View {
                     playerHighestTileStep: gameStore.state.highestTileStep,
                     initialGems: homeState.gems,
                     onDismiss: {
-                        // Only track challenge creation completion for newly created challenges
-                        // (not for playing existing challenges from the challenge list)
-                        if config.challengeId == nil {
-                            // Pass the captured multiplier so the boost counts even if it expired during gameplay
-                            gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
-                        }
+                        // Track challenge completion for achievement progress
+                        // (both custom-created and pre-made challenge mode challenges count)
+                        gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
                         // Track challenge completion for daily quests (with boost multiplier)
                         if config.challengeId != nil {
                             // Pre-made challenge completed

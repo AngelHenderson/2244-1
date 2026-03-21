@@ -1209,9 +1209,15 @@ public final class GameStore {
         previousBoard: Board,
         refillProtectedPositions: Set<Position> = []
     ) {
-        // ALWAYS preserve gems from UserDefaults - this is the source of truth for spending
-        let savedGems = UserDefaults.standard.integer(forKey: "coins")
-        let gemsToUse = savedGems > 0 ? savedGems : state.gems
+        // Preserve gems: in sandboxed mode use challenge's own state,
+        // in main game use UserDefaults as source of truth for spending
+        let gemsToUse: Int
+        if sandboxed {
+            gemsToUse = state.gems
+        } else {
+            let savedGems = UserDefaults.standard.integer(forKey: "coins")
+            gemsToUse = savedGems > 0 ? savedGems : state.gems
+        }
         state = newState
         state.gems = gemsToUse
         // Note: caller is responsible for calling updateValidMovesCount() when done
