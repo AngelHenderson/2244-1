@@ -1302,7 +1302,7 @@ public final class GameStore {
         engine = GameEngine(config: config)
 
         state = engine.currentState()
-        refreshDerivedState(highestStep: persistedHighestTileStep())
+        refreshDerivedState(highestStep: sandboxed ? nil : persistedHighestTileStep())
         syncEngineScoreBoost()
         cancelRefillRevealTask()
         cancelMergeCleanupTask()
@@ -2775,7 +2775,7 @@ extension GameStore {
         // CRITICAL FIX: Always use the persisted highestTileStep as the source of truth
         // This fixes the bug where tiles with step >= 62 lose their .highValue(step:) type
         // during save/restore, causing them to be recalculated as step 62 (from Int.max)
-        let persistedStep = persistedHighestTileStep() ?? 0
+        let persistedStep = sandboxed ? 0 : (persistedHighestTileStep() ?? 0)
 
         if let highestStep {
             // Use the maximum of provided step and persisted step

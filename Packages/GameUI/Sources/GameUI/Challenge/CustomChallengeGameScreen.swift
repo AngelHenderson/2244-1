@@ -17,6 +17,7 @@ public struct CustomChallengeGameScreen: View {
     @State private var showResult = false
     @State private var challengeWon = false
     @State private var challengeEnded = false
+    @State private var frozenTimeRemaining: Int?
 
     // Use start time + duration for reliable timer that doesn't stop during merges
     @State private var startTime: Date = Date()
@@ -45,7 +46,7 @@ public struct CustomChallengeGameScreen: View {
 
     // Computed time remaining based on start time - takes a date parameter for TimelineView
     private func timeRemainingAt(_ date: Date) -> Int {
-        guard !challengeEnded else { return 0 }
+        if let frozen = frozenTimeRemaining { return frozen }
         let elapsed = Int(date.timeIntervalSince(startTime))
         return max(0, totalDuration - elapsed)
     }
@@ -558,6 +559,7 @@ public struct CustomChallengeGameScreen: View {
 
     private func endChallenge(won: Bool) {
         guard !challengeEnded else { return } // Prevent multiple calls
+        frozenTimeRemaining = timeRemaining
         challengeEnded = true
         challengeWon = won
 
