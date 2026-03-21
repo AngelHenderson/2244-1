@@ -162,7 +162,7 @@ public struct LeaderboardView: View {
 
                     Text(userMilestone)
                         .font(.avenirNext(size: 24, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(tileTextColor(for: userMilestone))
                         .padding(.horizontal, 14)
                         .padding(.vertical, 6)
                         .background(
@@ -676,7 +676,7 @@ public struct LeaderboardView: View {
             let tileRadius: CGFloat = currentTheme?.tileShape == .square ? 3 : 6
             Text(milestone)
                 .font(.avenirNext(size: 14, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(tileTextColor(for: milestone))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
