@@ -302,7 +302,8 @@ public enum MockLeaderboardData {
             (LeaderboardClient.tajikistanPlayerMilestones, MockLeaderboardData.tajikistanNames, 235000, "TJ"),
             (LeaderboardClient.niuePlayerMilestones, MockLeaderboardData.niueNames, 240000, "NU"),
             (LeaderboardClient.kyrgyzstanPlayerMilestones, MockLeaderboardData.kyrgyzstanNames, 245000, "KG"),
-            (LeaderboardClient.icelandPlayerMilestones, MockLeaderboardData.icelandNames, 250000, "IS")
+            (LeaderboardClient.icelandPlayerMilestones, MockLeaderboardData.icelandNames, 250000, "IS"),
+            (LeaderboardClient.slovakiaPlayerMilestones, MockLeaderboardData.slovakiaNames, 255000, "SK")
         ]
 
         for config in countryConfigs {
@@ -1765,6 +1766,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.kyrgyzstanPlayerMilestones, LeaderboardClient.kyrgyzstanExtendedRankBrackets, 1_097_478)
         case "IS":
             return (LeaderboardClient.icelandPlayerMilestones, LeaderboardClient.icelandExtendedRankBrackets, 2_846)
+        case "SK":
+            return (LeaderboardClient.slovakiaPlayerMilestones, LeaderboardClient.slovakiaExtendedRankBrackets, 2_093_776)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1828,7 +1831,8 @@ public enum MockLeaderboardData {
             ("TJ", 193_773),
             ("NU", 947),
             ("KG", 1_097_478),
-            ("IS", 2_846)
+            ("IS", 2_846),
+            ("SK", 2_093_776)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -1976,6 +1980,7 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.niuePlayerMilestones, extendedBrackets: LeaderboardClient.niueExtendedRankBrackets, totalPlayers: 947)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kyrgyzstanPlayerMilestones, extendedBrackets: LeaderboardClient.kyrgyzstanExtendedRankBrackets, totalPlayers: 1_097_478)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.icelandPlayerMilestones, extendedBrackets: LeaderboardClient.icelandExtendedRankBrackets, totalPlayers: 2_846)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.slovakiaPlayerMilestones, extendedBrackets: LeaderboardClient.slovakiaExtendedRankBrackets, totalPlayers: 2_093_776)
 
         return total
     }
@@ -3690,6 +3695,7 @@ public enum MockLeaderboardData {
         case "NU": return LeaderboardClient.niuePlayerMilestones
         case "KG": return LeaderboardClient.kyrgyzstanPlayerMilestones
         case "IS": return LeaderboardClient.icelandPlayerMilestones
+        case "SK": return LeaderboardClient.slovakiaPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -3808,6 +3814,8 @@ public extension LeaderboardClient {
                 entries = kyrgyzstanEntries()
             case .countryIS:
                 entries = icelandEntries()
+            case .countrySK:
+                entries = slovakiaEntries()
             case .global:
                 entries = globalEntries()
             }
