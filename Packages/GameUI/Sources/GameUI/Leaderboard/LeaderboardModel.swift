@@ -20,6 +20,12 @@ public final class LeaderboardModel {
     public var selectedFilter: LeaderboardFilter = .global {
         didSet {
             if oldValue != selectedFilter {
+                // Populate data synchronously for instant switching (no loading spinner)
+                if let page = client.initialDataForFilter?(selectedFilter) {
+                    entries = page.entries
+                    myEntry = page.myEntry
+                    if let tp = page.totalPlayers { totalPlayers = tp }
+                }
                 Task { await refresh() }
             }
         }
@@ -34,6 +40,13 @@ public final class LeaderboardModel {
     
     public init(client: LeaderboardClient) {
         self.client = client
+        // Pre-populate data synchronously so the first frame renders instantly
+        if let page = client.initialData?() {
+            self.entries = page.entries
+            self.myEntry = page.myEntry
+            self.totalPlayers = page.totalPlayers
+            self.nextCursor = page.nextCursor
+        }
     }
     
     public func authenticate() async {

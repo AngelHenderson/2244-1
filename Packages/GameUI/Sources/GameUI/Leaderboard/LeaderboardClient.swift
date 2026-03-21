@@ -65,19 +65,27 @@ public struct LeaderboardClient: Sendable {
         _ period: LeaderboardPeriod,
         _ filter: LeaderboardFilter
     ) async throws -> LeaderboardEntry?
+    /// Optional synchronous data provider for instant first-frame rendering
+    public var initialData: (@Sendable () -> LeaderboardPage)?
+    /// Optional synchronous data provider for switching filters without async delay
+    public var initialDataForFilter: (@Sendable (_ filter: LeaderboardFilter) -> LeaderboardPage)?
 
     public init(
         authenticate: @escaping @Sendable () async throws -> Bool,
         submitScore: @escaping @Sendable (Int) async throws -> Void,
         submitInfinityCount: @escaping @Sendable (Int) async throws -> Void = { _ in },
         fetchPage: @escaping @Sendable (LeaderboardPeriod, LeaderboardFilter, String?, Int) async throws -> LeaderboardPage,
-        fetchMyRank: @escaping @Sendable (LeaderboardPeriod, LeaderboardFilter) async throws -> LeaderboardEntry?
+        fetchMyRank: @escaping @Sendable (LeaderboardPeriod, LeaderboardFilter) async throws -> LeaderboardEntry?,
+        initialData: (@Sendable () -> LeaderboardPage)? = nil,
+        initialDataForFilter: (@Sendable (_ filter: LeaderboardFilter) -> LeaderboardPage)? = nil
     ) {
         self.authenticate = authenticate
         self.submitScore = submitScore
         self.submitInfinityCount = submitInfinityCount
         self.fetchPage = fetchPage
         self.fetchMyRank = fetchMyRank
+        self.initialData = initialData
+        self.initialDataForFilter = initialDataForFilter
     }
 }
 
@@ -4098,7 +4106,134 @@ public extension LeaderboardClient {
             let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
             return .init(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
         },
-        fetchMyRank: { _, _ in globalEntries().first(where: { $0.isMe }) ?? globalEntries().last }
+        fetchMyRank: { _, _ in globalEntries().first(where: { $0.isMe }) ?? globalEntries().last },
+        initialData: {
+            let entries = globalEntries()
+            let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
+            let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
+            let day = MockLeaderboardData.daysSinceReference
+            let totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
+            return .init(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
+        },
+        initialDataForFilter: { filter in
+            let entries: [LeaderboardEntry]
+            switch filter {
+            case .hallOfFame:
+                let allHofEntries = hallOfFameEntries()
+                entries = Array(allHofEntries.prefix(150))
+            case .country:
+                entries = countryEntries()
+            case .countryUK:
+                entries = ukEntries()
+            case .countryCA:
+                entries = canadaEntries()
+            case .countryAU:
+                entries = australiaEntries()
+            case .countryDE:
+                entries = germanyEntries()
+            case .countryFR:
+                entries = franceEntries()
+            case .countryJP:
+                entries = japanEntries()
+            case .countryIN:
+                entries = indiaEntries()
+            case .countryBR:
+                entries = brazilEntries()
+            case .countryMX:
+                entries = mexicoEntries()
+            case .countryAF:
+                entries = afghanistanEntries()
+            case .countryAL:
+                entries = albaniaEntries()
+            case .countryDZ:
+                entries = algeriaEntries()
+            case .countryCN:
+                entries = chinaEntries()
+            case .countryKR:
+                entries = southKoreaEntries()
+            case .countryIT:
+                entries = italyEntries()
+            case .countryES:
+                entries = spainEntries()
+            case .countryNL:
+                entries = netherlandsEntries()
+            case .countryCH:
+                entries = switzerlandEntries()
+            case .countryNO:
+                entries = norwayEntries()
+            case .countryDK:
+                entries = denmarkEntries()
+            case .countryFI:
+                entries = finlandEntries()
+            case .countryPL:
+                entries = polandEntries()
+            case .countryBE:
+                entries = belgiumEntries()
+            case .countrySE:
+                entries = swedenEntries()
+            case .countryAT:
+                entries = austriaEntries()
+            case .countryIE:
+                entries = irelandEntries()
+            case .countryPT:
+                entries = portugalEntries()
+            case .countryGR:
+                entries = greeceEntries()
+            case .countryCZ:
+                entries = czechiaEntries()
+            case .countryRO:
+                entries = romaniaEntries()
+            case .countryMY:
+                entries = malaysiaEntries()
+            case .countryNZ:
+                entries = newZealandEntries()
+            case .countryHU:
+                entries = hungaryEntries()
+            case .countryTH:
+                entries = thailandEntries()
+            case .countryAE:
+                entries = uaeEntries()
+            case .countryPH:
+                entries = philippinesEntries()
+            case .countryAD:
+                entries = andorraEntries()
+            case .countryID:
+                entries = indonesiaEntries()
+            case .countryZA:
+                entries = southAfricaEntries()
+            case .countryKE:
+                entries = kenyaEntries()
+            case .countryFJ:
+                entries = fijiEntries()
+            case .countryVN:
+                entries = vietnamEntries()
+            case .countryCW:
+                entries = curacaoEntries()
+            case .countryVE:
+                entries = venezuelaEntries()
+            case .countryAZ:
+                entries = azerbaijanEntries()
+            case .countryKZ:
+                entries = kazakhstanEntries()
+            case .countryTJ:
+                entries = tajikistanEntries()
+            case .countryNU:
+                entries = niueEntries()
+            case .countryKG:
+                entries = kyrgyzstanEntries()
+            case .countryIS:
+                entries = icelandEntries()
+            case .countrySK:
+                entries = slovakiaEntries()
+            case .countryUZ:
+                entries = uzbekistanEntries()
+            case .global:
+                entries = globalEntries()
+            }
+            let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
+            let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
+            return .init(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: nil)
+        }
     )
 
     // Hall of Fame player sources: which leaderboard they came from (US index, Global index, or Hall of Fame only)
