@@ -526,7 +526,8 @@ public struct CustomChallengeGameScreen: View {
         // Reset challenge game state with spawn limits from config
         let gameConfig = GameConfig(
             minSpawnStep: config.minSpawnStep,
-            maxSpawnStep: config.maxSpawnStep
+            maxSpawnStep: config.maxSpawnStep,
+            disableElimination: true
         )
         challengeGameStore.resetGame(with: gameConfig)
 

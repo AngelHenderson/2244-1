@@ -979,8 +979,11 @@ public final class GameStore {
         }
         // Force cleanup of any tiles below the elimination threshold
         // Handles edge cases: saved state with stale tiles, cancelled tasks that skipped cleanup
-        let cleanedState = engine.cleanupTilesBelowThreshold()
-        state = cleanedState
+        // Skip in sandboxed/challenge mode where elimination is disabled
+        if !sandboxed {
+            let cleanedState = engine.cleanupTilesBelowThreshold()
+            state = cleanedState
+        }
     }
 
     /// Update valid moves count - call once after all board changes are complete
@@ -1035,11 +1038,18 @@ public final class GameStore {
         // Update state but DO NOT schedule refill reveal yet, as refill hasn't happened
         // Track gems earned from this action (gifts, etc.)
         let previousGems = state.gems
-        let savedGems = UserDefaults.standard.integer(forKey: "coins")
-        let baseGems = savedGems > 0 ? savedGems : previousGems
         let gemsEarned = newState.gems - state.gems  // Gems awarded by engine
         state = newState
-        state.gems = baseGems + max(0, gemsEarned)  // Add any earned gems to saved total
+        if sandboxed {
+            // Sandboxed/challenge mode: use the challenge's own gem state
+            // Do NOT read from UserDefaults (that's the main game's balance)
+            state.gems = previousGems + max(0, gemsEarned)
+        } else {
+            // Main game: use UserDefaults as source of truth to prevent race conditions
+            let savedGems = UserDefaults.standard.integer(forKey: "coins")
+            let baseGems = savedGems > 0 ? savedGems : previousGems
+            state.gems = baseGems + max(0, gemsEarned)
+        }
 
         // Process pending rewards (power-ups, spins from gift boxes)
         processPendingRewards()

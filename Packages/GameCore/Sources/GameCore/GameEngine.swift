@@ -17,6 +17,10 @@ public struct GameConfig: Sendable {
     public let minSpawnStep: Int?
     public let maxSpawnStep: Int?
 
+    // When true, milestone eliminations and threshold cleanup are disabled
+    // Used in challenge mode where tiles should never be removed by milestones
+    public let disableElimination: Bool
+
     public init(
         boardWidth: Int = 5,
         boardHeight: Int = 8,
@@ -30,7 +34,8 @@ public struct GameConfig: Sendable {
         allowDiagonals: Bool = true,
         fillMode: FillMode = .alwaysFull,
         minSpawnStep: Int? = nil,
-        maxSpawnStep: Int? = nil
+        maxSpawnStep: Int? = nil,
+        disableElimination: Bool = false
     ) {
         self.boardWidth = boardWidth
         self.boardHeight = boardHeight
@@ -41,6 +46,7 @@ public struct GameConfig: Sendable {
         self.fillMode = fillMode
         self.minSpawnStep = minSpawnStep
         self.maxSpawnStep = maxSpawnStep
+        self.disableElimination = disableElimination
     }
 }
 
@@ -660,17 +666,21 @@ public final class GameEngine {
             checkMilestoneRewards(mergedValue)
 
             // Apply eliminations - use step-based for highValue tiles (step >= 62)
-            if mergedStep >= 62 || previousHighestStep >= 62 {
-                applyAllMilestonesBetweenSteps(previousHighestStep, and: mergedStep)
-            } else {
-                applyAllMilestonesBetween(previousHighest, and: mergedValue)
+            if !config.disableElimination {
+                if mergedStep >= 62 || previousHighestStep >= 62 {
+                    applyAllMilestonesBetweenSteps(previousHighestStep, and: mergedStep)
+                } else {
+                    applyAllMilestonesBetween(previousHighest, and: mergedValue)
+                }
             }
         } else {
             // Even if not a new highest, check if this specific value triggers elimination
-            if mergedStep >= 62 {
-                applyMilestoneEliminationForStep(mergedStep)
-            } else {
-                applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+            if !config.disableElimination {
+                if mergedStep >= 62 {
+                    applyMilestoneEliminationForStep(mergedStep)
+                } else {
+                    applyMilestoneEliminationIfNeeded(createdValue: mergedValue)
+                }
             }
         }
         
@@ -1791,7 +1801,9 @@ public final class GameEngine {
 
         // After refill, clean up any tiles that are below the elimination threshold
         // This handles edge cases where low tiles might still exist
-        cleanupTilesBelowThreshold()
+        if !config.disableElimination {
+            cleanupTilesBelowThreshold()
+        }
     }
 
     /// Remove any tiles that shouldn't exist based on current milestone progress
