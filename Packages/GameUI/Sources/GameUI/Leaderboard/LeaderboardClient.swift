@@ -303,7 +303,8 @@ public enum MockLeaderboardData {
             (LeaderboardClient.niuePlayerMilestones, MockLeaderboardData.niueNames, 240000, "NU"),
             (LeaderboardClient.kyrgyzstanPlayerMilestones, MockLeaderboardData.kyrgyzstanNames, 245000, "KG"),
             (LeaderboardClient.icelandPlayerMilestones, MockLeaderboardData.icelandNames, 250000, "IS"),
-            (LeaderboardClient.slovakiaPlayerMilestones, MockLeaderboardData.slovakiaNames, 255000, "SK")
+            (LeaderboardClient.slovakiaPlayerMilestones, MockLeaderboardData.slovakiaNames, 255000, "SK"),
+            (LeaderboardClient.uzbekistanPlayerMilestones, MockLeaderboardData.uzbekistanNames, 260000, "UZ")
         ]
 
         for config in countryConfigs {
@@ -1768,6 +1769,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.icelandPlayerMilestones, LeaderboardClient.icelandExtendedRankBrackets, 2_846)
         case "SK":
             return (LeaderboardClient.slovakiaPlayerMilestones, LeaderboardClient.slovakiaExtendedRankBrackets, 2_093_776)
+        case "UZ":
+            return (LeaderboardClient.uzbekistanPlayerMilestones, LeaderboardClient.uzbekistanExtendedRankBrackets, 28_473_673)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -1832,7 +1835,8 @@ public enum MockLeaderboardData {
             ("NU", 947),
             ("KG", 1_097_478),
             ("IS", 2_846),
-            ("SK", 2_093_776)
+            ("SK", 2_093_776),
+            ("UZ", 28_473_673)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -1981,6 +1985,7 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kyrgyzstanPlayerMilestones, extendedBrackets: LeaderboardClient.kyrgyzstanExtendedRankBrackets, totalPlayers: 1_097_478)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.icelandPlayerMilestones, extendedBrackets: LeaderboardClient.icelandExtendedRankBrackets, totalPlayers: 2_846)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.slovakiaPlayerMilestones, extendedBrackets: LeaderboardClient.slovakiaExtendedRankBrackets, totalPlayers: 2_093_776)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.uzbekistanPlayerMilestones, extendedBrackets: LeaderboardClient.uzbekistanExtendedRankBrackets, totalPlayers: 28_473_673)
 
         return total
     }
@@ -2393,6 +2398,55 @@ public enum MockLeaderboardData {
     static let icelandHallOfFameInfinityCounts: [Int] = [
         // Iceland Hall of Fame (8 players)
         122, 44, 17, 9, 4, 2, 1, 1
+    ]
+
+    static let slovakiaHallOfFameInfinityCounts: [Int] = [
+        // Slovakia Hall of Fame (168 players - large country with 2M+ players)
+        89123, 42567, 21890, 11456, 7823, 5912, 4567, 3890, 3456, 3012,
+        2876, 2567, 2345, 2123, 1987, 1876, 1765, 1654, 1543, 1432,
+        1321, 1210, 1109, 1008, 977, 946, 915, 884, 853, 822,
+        791, 760, 729, 698, 667, 636, 605, 574, 543, 512,
+        481, 450, 419, 388, 357, 326, 295, 264, 233, 202,
+        189, 176, 163, 150, 137, 124, 111, 98, 85, 72,
+        67, 62, 57, 52, 47, 42, 37, 32, 29, 26,
+        23, 20, 18, 16, 14, 13, 12, 11, 10, 9,
+        9, 8, 8, 7, 7, 7, 6, 6, 6, 5,
+        5, 5, 5, 4, 4, 4, 4, 4, 3, 3,
+        3, 3, 3, 3, 3, 3, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1
+    ]
+
+    static let uzbekistanHallOfFameInfinityCounts: [Int] = [
+        // Uzbekistan Hall of Fame (250 players - very large country with 28M+ players)
+        523456, 287654, 156789, 98765, 67890, 45678, 34567, 28901, 24567, 21345,
+        18976, 17654, 16543, 15432, 14321, 13456, 12789, 12345, 11890, 11234,
+        10876, 10234, 9876, 9345, 8976, 8654, 8234, 7890, 7567, 7234,
+        6987, 6754, 6543, 6321, 6109, 5897, 5685, 5473, 5261, 5049,
+        4892, 4735, 4578, 4421, 4264, 4107, 3950, 3793, 3636, 3479,
+        3367, 3255, 3143, 3031, 2919, 2807, 2695, 2583, 2471, 2359,
+        2289, 2219, 2149, 2079, 2009, 1939, 1869, 1799, 1729, 1659,
+        1609, 1559, 1509, 1459, 1409, 1359, 1309, 1259, 1209, 1159,
+        1119, 1079, 1039, 999, 959, 919, 879, 839, 799, 759,
+        729, 699, 669, 639, 609, 579, 549, 519, 489, 459,
+        439, 419, 399, 379, 359, 339, 319, 299, 279, 259,
+        249, 239, 229, 219, 209, 199, 189, 179, 169, 159,
+        152, 145, 138, 131, 124, 117, 110, 103, 96, 89,
+        85, 81, 77, 73, 69, 65, 61, 57, 53, 49,
+        47, 45, 43, 41, 39, 37, 35, 33, 31, 29,
+        28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+        18, 17, 16, 15, 14, 13, 12, 11, 10, 10,
+        9, 9, 8, 8, 7, 7, 7, 6, 6, 6,
+        5, 5, 5, 5, 4, 4, 4, 4, 4, 3,
+        3, 3, 3, 3, 3, 3, 3, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     ]
 
     static let malaysiaHallOfFameInfinityCounts: [Int] = [
@@ -3537,6 +3591,54 @@ public enum MockLeaderboardData {
         "GrimsvotnGamer", "AskjaAce", "KraflaKing", "EldfellElite", "SurtseyStorm"
     ]
 
+    static let slovakiaNames = [
+        // 1-30: City and geography-based
+        "BratislavaBlitz", "KosiceKnight", "PresovPower", "ZilinaZealot", "NitraNinja",
+        "BanskaBystricaBoss", "TrnavaThunder", "MartinMaster", "TrencinTitan", "PopradProwler",
+        "PieštanyPhantom", "ZvolenZapper", "PrievidzaPrime", "KomárnoKing", "LeviceLion",
+        "MichalovceMax", "SpišskáStar", "HumennéHawk", "SnínaSerpent", "RožňavaRaider",
+        "DunajskáDagger", "LučenecLegend", "RimavskáRanger", "GalantaGhost", "ŠaľaStar",
+        "HlohovecHero", "SereďStrike", "PartizánskePhoenix", "HandlováHammer", "NovoZámkyNinja",
+        // 31-60: Nature and cultural
+        "TátrasTitan", "VysokéTátryV", "NízkeTátryNinja", "DunajDragon", "VáhViking",
+        "HronHero", "IpelIce", "MoravaMaster", "SlovakParadise", "SlovenskýRaj",
+        "DemänovskáDragon", "OravskýOmega", "SpišskýStar", "BojnickýBolt", "DevínDefender",
+        "BratislavaCastle", "TrenčínFortress", "OravaCastleKing", "ČachtickýChampion", "KremnicaKnight",
+        "BanskáŠtiavnica", "VlkolínecViking", "ŽdiarZealot", "CicmanyChamp", "TerchováTitan",
+        "JánošíkJet", "BernolákBoss", "ŠtúrStrike", "DubčekDragon", "ŠtefánikStar",
+        // 61-90: More gamertags
+        "SlovakStar", "CarpathianCrusher", "DanubeDominion", "TátraThunder", "BryndzaBoss",
+        "HaluškyHero", "KolibaPower", "FujáraMaster", "ValaškaViking", "ČičmanyChamp",
+        "ĽudováLegend", "KrpceKnight", "ValaškaNinja", "JaskyňaJet", "DobšinskáDragon",
+        "HerľanyHero", "AquaCityAce", "TátranskáTitan", "ChopokChampion", "JasníkJet",
+        "LomnickýLion", "KrivánKing", "GerlachGamer", "RysyRanger", "MalýDunaj",
+        "OravaPride", "LiptovLion", "SpišStar", "ZemplínZapper", "GemerskýGhost"
+    ]
+
+    static let uzbekistanNames = [
+        // 1-30: City and geography-based
+        "TashkentTitan", "SamarkandStar", "BukharaBlitz", "KhivaKnight", "NukusNinja",
+        "AndijanAce", "NamanganNova", "FerganaForce", "KarshiKing", "NavoiNexus",
+        "JizzakhJet", "TermezThunder", "UrgenchUltra", "GulistonGhost", "ZarafshonZealot",
+        "KokandKnight", "MargilanMaster", "AndijonArrow", "ChirchikChampion", "AlmalykAlpha",
+        "BekabadBolt", "DenaуDagger", "ShahrisabzStar", "KitabKing", "MuynoqMystic",
+        "NurafshonNinja", "QarshiQuake", "RishtanRaider", "ShakhrihanStar", "YangiyulYeti",
+        // 31-60: Nature and cultural - Silk Road themed
+        "SilkRoadStar", "RegistanRaider", "AralAce", "KyzylkumKnight", "TianShanTitan",
+        "ChatkalChampion", "SyrDaryaDragon", "AmuDaryaAlpha", "FerganaFalcon", "CharvakChampion",
+        "ChimganChaser", "BeldersayBoss", "UgamUltra", "PaltauProwler", "NuratauNinja",
+        "KitabKnight", "HissorHawk", "BaysunBolt", "ShurchiStar", "DzhizakDragon",
+        "MinoretMaster", "MadrasaMaverick", "CalligraphyKing", "CeramicsCrusher", "SuzaniStar",
+        "PlovPower", "SamosaStrike", "ChaiChampion", "NaanNinja", "LagmanLegend",
+        // 61-90: More gamertags
+        "UzbekUltra", "CottonKing", "DoubleLockedDoor", "BibiKhanymBoss", "KalyanMinaret",
+        "ArkFortress", "LyabiHauzLion", "ChorMinorChamp", "IsmaelSamaniStar", "TamerlaneTitan",
+        "AlisherNavoi", "UlughBegStar", "AviKingBoss", "BaburBlitz", "ZahhokZealot",
+        "KhwarezmKnight", "SogdianStar", "BactrianBolt", "GoldenHordeGhost", "MaverounnehrMaster",
+        "DesertEagle", "OasisOmega", "SteppeStorm", "CaravanKing", "BazaarBoss",
+        "MinoretMarvel", "DomeDestroyer", "TileArtTitan", "MosaicMaster", "PatternProwler"
+    ]
+
     static let countries = ["JP", "BR", "PK", "DE", "UZ", "IN", "FR", "GB", "LB", "CA", "AU", "KR", "MX", "IT", "ES", "NL", "CH", "NO", "DK", "FI", "PL", "BE", "SE", "AT", "IE", "PT", "GR", "CZ", "RO", "MY", "NZ", "HU", "TH", "AE", "PH", "ID", "ZA", "US", "CN", "RU", "NG", "EG", "AR", "CL", "CO", "PE"]
 
     // Seeded random for consistent daily results
@@ -3696,6 +3798,7 @@ public enum MockLeaderboardData {
         case "KG": return LeaderboardClient.kyrgyzstanPlayerMilestones
         case "IS": return LeaderboardClient.icelandPlayerMilestones
         case "SK": return LeaderboardClient.slovakiaPlayerMilestones
+        case "UZ": return LeaderboardClient.uzbekistanPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -3816,6 +3919,8 @@ public extension LeaderboardClient {
                 entries = icelandEntries()
             case .countrySK:
                 entries = slovakiaEntries()
+            case .countryUZ:
+                entries = uzbekistanEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -3927,6 +4032,10 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_097_478, on: day, countrySeed: 148)
             case .countryIS:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_846, on: day, countrySeed: 149)
+            case .countrySK:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_093_776, on: day, countrySeed: 150)
+            case .countryUZ:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 28_473_673, on: day, countrySeed: 151)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -3980,7 +4089,9 @@ public extension LeaderboardClient {
                 let nuPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 947, on: day, countrySeed: 147)
                 let kgPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_097_478, on: day, countrySeed: 148)
                 let isPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_846, on: day, countrySeed: 149)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers + kgPlayers + isPlayers
+                let skPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_093_776, on: day, countrySeed: 150)
+                let uzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 28_473_673, on: day, countrySeed: 151)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers + kgPlayers + isPlayers + skPlayers + uzPlayers
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -4228,6 +4339,16 @@ public extension LeaderboardClient {
         // Add New Zealand players
         for (i, count) in MockLeaderboardData.newZealandHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_nz_\(i)", count, "NZ", globalIndex, i + 34000))
+            globalIndex += 1
+        }
+        // Add Slovakia players
+        for (i, count) in MockLeaderboardData.slovakiaHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_sk_\(i)", count, "SK", globalIndex, i + 35000))
+            globalIndex += 1
+        }
+        // Add Uzbekistan players
+        for (i, count) in MockLeaderboardData.uzbekistanHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_uz_\(i)", count, "UZ", globalIndex, i + 36000))
             globalIndex += 1
         }
 
@@ -6477,6 +6598,32 @@ public extension LeaderboardClient {
             playerData.append((i, i + 165000, progressedMilestone, milestoneIdx, name, "HU", platform, avatar, "hu_\(i)"))
         }
 
+        // Add Slovakia players
+        for i in 0..<slovakiaPlayerMilestones.count {
+            let baseMilestone = slovakiaPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.slovakiaNames, countrySeed: 255000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 255000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 255000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+
+            playerData.append((i, i + 255000, progressedMilestone, milestoneIdx, name, "SK", platform, avatar, "sk_\(i)"))
+        }
+
+        // Add Uzbekistan players
+        for i in 0..<uzbekistanPlayerMilestones.count {
+            let baseMilestone = uzbekistanPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.uzbekistanNames, countrySeed: 260000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 260000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 260000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+
+            playerData.append((i, i + 260000, progressedMilestone, milestoneIdx, name, "UZ", platform, avatar, "uz_\(i)"))
+        }
+
         // Add the user to playerData so they get sorted with everyone else
         let userMilestone = UserLeaderboardData.currentMilestone
         let userCountry = UserLeaderboardData.currentCountry
@@ -6547,7 +6694,9 @@ public extension LeaderboardClient {
         let totalMalaysiaPlayers = 52_111
         let totalNewZealandPlayers = 2_623
         let totalHungaryPlayers = 111_111
-        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers + totalNetherlandsPlayers + totalSwitzerlandPlayers + totalNorwayPlayers + totalDenmarkPlayers + totalFinlandPlayers + totalPolandPlayers + totalBelgiumPlayers + totalSwedenPlayers + totalAustriaPlayers + totalIrelandPlayers + totalPortugalPlayers + totalGreecePlayers + totalCzechiaPlayers + totalRomaniaPlayers + totalMalaysiaPlayers + totalNewZealandPlayers + totalHungaryPlayers
+        let totalSlovakiaPlayers = 2_093_776
+        let totalUzbekistanPlayers = 28_473_673
+        let totalPlayers = totalUSPlayers + totalUKPlayers + totalCanadaPlayers + totalAustraliaPlayers + totalGermanyPlayers + totalFrancePlayers + totalJapanPlayers + totalIndiaPlayers + totalBrazilPlayers + totalMexicoPlayers + totalAfghanistanPlayers + totalAlbaniaPlayers + totalAlgeriaPlayers + totalChinaPlayers + totalSouthKoreaPlayers + totalItalyPlayers + totalSpainPlayers + totalNetherlandsPlayers + totalSwitzerlandPlayers + totalNorwayPlayers + totalDenmarkPlayers + totalFinlandPlayers + totalPolandPlayers + totalBelgiumPlayers + totalSwedenPlayers + totalAustriaPlayers + totalIrelandPlayers + totalPortugalPlayers + totalGreecePlayers + totalCzechiaPlayers + totalRomaniaPlayers + totalMalaysiaPlayers + totalNewZealandPlayers + totalHungaryPlayers + totalSlovakiaPlayers + totalUzbekistanPlayers
 
         // Build entries with ranks based on sorted order (top 150 only)
         // User is already in playerData and sorted, so they'll appear at correct position
@@ -11178,6 +11327,320 @@ public extension LeaderboardClient {
                 day: day,
                 totalPlayers: 2_846,
                 extendedBrackets: icelandExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+
+    // MARK: - Slovakia Leaderboard Data
+
+
+    static let slovakiaPlayerMilestones: [String] = [
+        // Ranks 1-10 (from user's Slovakia screenshot)
+        "873bz", "106by", "1bw", "758bt", "1br",
+        "164bn", "1bl", "1bj", "570bh", "69bg",
+        // Ranks 11-20
+        "271bf", "531be", "1be", "253bc", "966ba",
+        "1az", "28ax", "878aw", "3aw", "214av",
+        // Ranks 21-30
+        "818at", "49as", "1ar", "709an", "88an",
+        "11an", "2an", "676al", "161aj", "630ai",
+        // Ranks 31-40
+        "19ai", "1ai", "587af", "71ae", "2ae",
+        "546ac", "266ab", "16ab", "1ab", "248y",
+        // Ranks 41-50
+        "948w", "57v", "110t", "3s", "6q",
+        "784o", "3o", "191n", "11n", "93m",
+        // Ranks 51-60
+        "11m", "2m", "730l", "365l", "365l",
+        "91l", "91l", "45l", "45l", "22l",
+        // Ranks 61-70
+        "22l", "11l", "2l", "1l", "356k",
+        "178k", "89k", "22k", "22k", "11k",
+        // Ranks 71-80
+        "11k", "11k", "1k", "348j", "174j",
+        "87j", "87j", "21j", "21j", "10j",
+        // Ranks 81-90
+        "5j", "1j", "5i", "1i", "332h",
+        "166h", "2h", "81g", "20g", "20g",
+        // Ranks 91-100
+        "10g", "5g", "5g", "2g", "2g",
+        "1g", "1g", "633f", "316f", "79f",
+        // Ranks 101-110
+        "19f", "4f", "4f", "2f", "2f",
+        "1f", "309e", "154e", "77e", "77e",
+        // Ranks 111-120
+        "38e", "38e", "19e", "9e", "4e",
+        "4e", "2e", "2e", "2e", "604d",
+        // Ranks 121-130
+        "302d", "151d", "75d", "37d", "37d",
+        "18d", "18d", "9d", "4d", "2d",
+        // Ranks 131-140
+        "1d", "295c", "147c", "18c", "4c",
+        "2c", "2c", "288b", "72b", "72b",
+        // Ranks 141-150
+        "18b", "1b", "562a", "281a", "140a",
+        "140a", "35a", "17a", "4a", "4a"
+    ]
+
+    // Extended Slovakia milestone brackets for rank calculation (ranks 151+)
+    // Total Slovakia players: ~2,093,776
+    static let slovakiaExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        ("1a", 156), ("549B", 170), ("274B", 182), ("137B", 196),
+        ("68B", 213), ("17B", 234), ("8B", 260), ("4B", 300),
+        ("2B", 329), ("1B", 366), ("536M", 412), ("268M", 481),
+        ("134M", 609), ("67M", 862), ("33M", 1329), ("16M", 1994),
+        ("8M", 2800), ("4M", 3958), ("2M", 6189), ("1M", 8586),
+        ("524K", 12184), ("262K", 19589), ("131K", 34876), ("65K", 68467),
+        ("32K", 128576), ("16K", 286757), ("8192", 521038), ("4096", 896778),
+        ("2048", 1100000), ("1024", 1250000), ("512", 1350000), ("256", 1400000),
+        ("128", 1430000), ("64", 1450000), ("32", 1470000), ("16", 1490000),
+        ("8", 1520000), ("4", 1580000), ("2", 1700000),
+        ("0", 1382707)  // Score 0 = ranks 1382707-2093776
+    ]
+
+    // Generate Slovakia entries with milestone progression and user insertion
+    private static func slovakiaEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // Build entries in original rank order, filtering out infinity players
+        var nonInfinityEntries: [(progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<slovakiaPlayerMilestones.count {
+            let baseMilestone = slovakiaPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.slovakiaNames, countrySeed: 255000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 255000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 255000, day: day)
+            // Filter out infinity players (they belong in Hall of Fame)
+            if progressedMilestone.hasSuffix("∞") { continue }
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            nonInfinityEntries.append((progressedMilestone, milestoneIdx, name, platform, avatar, "sk_\(i)"))
+        }
+
+        // Slovakia has 150 milestone entries — no need to pad
+        // Sort progressed players by milestone index to maintain correct order
+        nonInfinityEntries.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx // Higher index = better milestone
+            }
+            // Tiebreaker: stable sort based on id
+            return $0.id < $1.id
+        }
+
+        // Insert user at their calculated rank
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let skRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "SK")
+
+        var entries: [LeaderboardEntry] = []
+        var userInserted = false
+        var currentRank = 1
+
+        for player in nonInfinityEntries {
+            if !userInserted && currentRank >= skRank {
+                entries.append(LeaderboardEntry(
+                    id: "me",
+                    rank: currentRank,
+                    name: "You",
+                    score: userMilestoneIdx * 100,
+                    countryCode: "SK",
+                    platform: .ios,
+                    isMe: true,
+                    avatarURL: "",
+                    highestTile: userMilestone
+                ))
+                userInserted = true
+                currentRank += 1
+                if entries.count >= 150 { break }
+            }
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: currentRank,
+                name: player.name,
+                score: player.milestoneIdx * 100,
+                countryCode: "SK",
+                platform: player.platform,
+                isMe: false,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+            currentRank += 1
+            if entries.count >= 150 { break }
+        }
+
+        // If user wasn't inserted yet (rank is beyond the entries)
+        if !userInserted {
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: skRank,
+                userMilestone: userMilestone,
+                countryCode: "SK",
+                countrySeed: 255000,
+                names: MockLeaderboardData.slovakiaNames,
+                day: day,
+                totalPlayers: 2_093_776,
+                extendedBrackets: slovakiaExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+
+    // MARK: - Uzbekistan Leaderboard Data
+
+
+    static let uzbekistanPlayerMilestones: [String] = [
+        // Ranks 1-10 (from user's Uzbekistan screenshot)
+        "2bt", "1bp", "1bn", "16bf", "2bd",
+        "989bb", "1az", "439aw", "214av", "3av",
+        // Ranks 11-20
+        "1au", "49as", "1as", "1aq", "693am",
+        "84al", "645aj", "1aj", "587af", "1ad",
+        // Ranks 21-30
+        "509z", "1x", "7v", "1t", "803p",
+        "1p", "6o", "748m", "91l", "1l",
+        // Ranks 31-40
+        "178k", "5k", "348j", "1j", "2i",
+        "649g", "10g", "1g", "316f", "79f",
+        // Ranks 41-50
+        "9f", "2f", "1f", "154e", "9e",
+        "2e", "302d", "19d", "1d", "73c",
+        // Ranks 51-60
+        "4c", "2c", "2c", "1c", "288b",
+        "144b", "36b", "18b", "18b", "4b",
+        // Ranks 61-73
+        "2b", "1b", "562a", "281a", "281a",
+        "70a", "35a", "8a", "8a", "4a",
+        "2a", "2a", "2a"
+    ]
+
+    // Extended Uzbekistan milestone brackets for rank calculation (ranks 74+)
+    // Total Uzbekistan players: ~28,473,673
+    static let uzbekistanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        ("549B", 74), ("274B", 77), ("137B", 81), ("68B", 86),
+        ("34B", 91), ("17B", 97), ("8B", 102), ("4B", 110),
+        ("2B", 120), ("1B", 136), ("536M", 160), ("268M", 197),
+        ("134M", 240), ("67M", 297), ("33M", 350), ("16M", 420),
+        ("8M", 528), ("4M", 687), ("2M", 876), ("1M", 1123),
+        ("524K", 1465), ("262K", 1906), ("131K", 3972), ("65K", 7694),
+        ("32K", 16455), ("16K", 31874), ("8192", 58378), ("4096", 96775),
+        ("2048", 157468), ("1024", 294877), ("512", 500000), ("256", 857654),
+        ("128", 1473542), ("64", 2197387), ("32", 3333333), ("16", 5123456),
+        ("8", 7292827), ("4", 9766766), ("2", 13456789),
+        ("0", 19376367)  // Score 0 = ranks 19376367-28473673
+    ]
+
+    // Generate Uzbekistan entries with milestone progression and user insertion
+    private static func uzbekistanEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        // Build entries in original rank order, filtering out infinity players
+        var nonInfinityEntries: [(progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<uzbekistanPlayerMilestones.count {
+            let baseMilestone = uzbekistanPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.uzbekistanNames, countrySeed: 260000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 260000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 260000, day: day)
+            // Filter out infinity players (they belong in Hall of Fame)
+            if progressedMilestone.hasSuffix("∞") { continue }
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            nonInfinityEntries.append((progressedMilestone, milestoneIdx, name, platform, avatar, "uz_\(i)"))
+        }
+
+        // Uzbekistan has 73 milestone entries — pad to 150 using extended brackets
+        let baseCount = nonInfinityEntries.count
+        if baseCount < 150 {
+            for rank in (baseCount + 1)...150 {
+                var milestone = "2a"
+                for (bracketIdx, bracket) in uzbekistanExtendedRankBrackets.enumerated() {
+                    if rank < bracket.startRank {
+                        if bracketIdx > 0 {
+                            milestone = uzbekistanExtendedRankBrackets[bracketIdx - 1].milestone
+                        }
+                        break
+                    }
+                    milestone = bracket.milestone
+                }
+                let name = MockLeaderboardData.nameForPlayer(index: rank + 100, names: MockLeaderboardData.uzbekistanNames, countrySeed: 260000, day: day)
+                let platform: Platform = rank % 3 == 0 ? .ios : .android
+                let avatar = MockLeaderboardData.avatarForPlayer(index: rank + 100, countrySeed: 260000, day: day)
+                let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: milestone, playerIndex: rank + 260000, day: day)
+                if progressedMilestone.hasSuffix("∞") { continue }
+                let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+                nonInfinityEntries.append((progressedMilestone, milestoneIdx, name, platform, avatar, "uz_ext_\(rank)"))
+            }
+        }
+
+        // Sort progressed players by milestone index to maintain correct order
+        nonInfinityEntries.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx // Higher index = better milestone
+            }
+            // Tiebreaker: stable sort based on id
+            return $0.id < $1.id
+        }
+
+        // Insert user at their calculated rank
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        let uzRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "UZ")
+
+        var entries: [LeaderboardEntry] = []
+        var userInserted = false
+        var currentRank = 1
+
+        for player in nonInfinityEntries {
+            if !userInserted && currentRank >= uzRank {
+                entries.append(LeaderboardEntry(
+                    id: "me",
+                    rank: currentRank,
+                    name: "You",
+                    score: userMilestoneIdx * 100,
+                    countryCode: "UZ",
+                    platform: .ios,
+                    isMe: true,
+                    avatarURL: "",
+                    highestTile: userMilestone
+                ))
+                userInserted = true
+                currentRank += 1
+                if entries.count >= 150 { break }
+            }
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: currentRank,
+                name: player.name,
+                score: player.milestoneIdx * 100,
+                countryCode: "UZ",
+                platform: player.platform,
+                isMe: false,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+            currentRank += 1
+            if entries.count >= 150 { break }
+        }
+
+        // If user wasn't inserted yet (rank is beyond the entries)
+        if !userInserted {
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: uzRank,
+                userMilestone: userMilestone,
+                countryCode: "UZ",
+                countrySeed: 260000,
+                names: MockLeaderboardData.uzbekistanNames,
+                day: day,
+                totalPlayers: 28_473_673,
+                extendedBrackets: uzbekistanExtendedRankBrackets
             )
             entries.append(contentsOf: extendedEntries)
         }

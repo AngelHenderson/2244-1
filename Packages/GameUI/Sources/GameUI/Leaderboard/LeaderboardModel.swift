@@ -20,10 +20,6 @@ public final class LeaderboardModel {
     public var selectedFilter: LeaderboardFilter = .global {
         didSet {
             if oldValue != selectedFilter {
-                // Clear stale data immediately so old filter's entries don't leak through
-                entries.removeAll()
-                myEntry = nil
-                totalPlayers = nil
                 Task { await refresh() }
             }
         }

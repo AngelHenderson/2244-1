@@ -923,6 +923,10 @@ public struct LeaderboardView: View {
             return Color.red  // Kyrgyzstan - red from the flag
         case .countryIS:
             return Color.blue  // Iceland - blue from the flag
+        case .countrySK:
+            return Color.blue  // Slovakia - blue from the flag
+        case .countryUZ:
+            return Color.blue  // Uzbekistan - blue from the flag
         }
     }
 

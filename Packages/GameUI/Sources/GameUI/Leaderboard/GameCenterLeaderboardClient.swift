@@ -188,6 +188,8 @@ public extension LeaderboardClient {
                     case .countryNU: return .global
                     case .countryKG: return .global
                     case .countryIS: return .global
+                    case .countrySK: return .global
+                    case .countryUZ: return .global
                     }
                 }()
 
