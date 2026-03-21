@@ -73,20 +73,26 @@ public struct LeaderboardView: View {
 
                 if let model {
                     if showingTop150 || model.selectedFilter == .hallOfFame {
-                        // Show Top 150 view for Hall of Fame (requires infinity to rank)
-                        // or when user explicitly requests Top 150
                         top150Content(model)
                     } else {
-                        // Show milestone-based view for Global and Country leaderboards
                         milestoneContent(model)
                     }
                 } else {
+                    // Brief invisible placeholder before model is created (no spinner)
                     Spacer()
-                    ProgressView("Loading leaderboard...")
-                        .tint(.white)
-                        .foregroundStyle(.white)
-                        .task { await setup() }
-                    Spacer()
+                }
+            }
+            .task {
+                guard model == nil else { return }
+                let m = LeaderboardModel(client: client)
+                self.model = m
+                await m.authenticate()
+                await m.refresh()
+                if let myEntry = m.myEntry, gameStore.state.score > myEntry.score {
+                    await m.submitScore(gameStore.state.score)
+                }
+                if m.selectedFilter == .global, let myEntry = m.myEntry {
+                    gameStore.registerLeaderboardRank(myEntry.rank)
                 }
             }
         }
@@ -103,23 +109,6 @@ public struct LeaderboardView: View {
             if isTop150, let m = model, !m.isLoading {
                 Task { await m.refresh() }
             }
-        }
-    }
-    
-    private func setup() async {
-        let m = LeaderboardModel(client: client)
-        self.model = m
-        await m.authenticate()
-        await m.refresh()
-
-        // Auto-submit current score if it's better than what's on the leaderboard
-        if let myEntry = m.myEntry, gameStore.state.score > myEntry.score {
-            await m.submitScore(gameStore.state.score)
-        }
-
-        // Track global leaderboard rank for achievements
-        if m.selectedFilter == .global, let myEntry = m.myEntry {
-            gameStore.registerLeaderboardRank(myEntry.rank)
         }
     }
     
