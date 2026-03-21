@@ -221,6 +221,40 @@ public final class DailyClaimsStore {
 
         return max(0, startOfTomorrow.timeIntervalSince(now))
     }
+
+    /// Returns the total combined rewards across all available catch-up days, or nil when there are 0-1 claims.
+    public func totalCatchUpRewards() -> AchievementDef.Rewards? {
+        guard availableClaims > 1 else { return nil }
+
+        let startDay = currentClaimDay + 1
+        let endDay = currentClaimDay + availableClaims
+
+        // Make sure claim entries exist for the full catch-up range
+        ensureClaims(upTo: endDay)
+
+        var total = AchievementDef.Rewards()
+        for day in startDay...endDay {
+            if let claim = dailyClaims.first(where: { $0.day == day }) {
+                total = total.merged(with: claim.rewards)
+            }
+        }
+        return total
+    }
+
+    /// Claims all available catch-up rewards in sequence, calling onReward for each.
+    @MainActor
+    public func claimAllDailyRewards() {
+        // Make sure claim entries exist for the full catch-up range
+        let endDay = currentClaimDay + availableClaims
+        ensureClaims(upTo: endDay)
+
+        while availableClaims > 0 && canClaimToday {
+            let before = currentClaimDay
+            claimDailyReward()
+            // Safety: break if claim didn't advance (missing entry)
+            if currentClaimDay == before { break }
+        }
+    }
     
     public func combinedRewardForNextClaim() -> AchievementDef.Rewards? {
         guard let nextDay = getNextClaimableDay(),

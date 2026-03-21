@@ -5455,29 +5455,30 @@ public extension LeaderboardClient {
         ("8", 28989), ("4", 34567), ("2", 41414), ("0", 50000)  // Score 0 = ranks 50000-61616
     ]
 
-    // Romania leaderboard data - top 85 player milestones
+    // Romania leaderboard data - top 95 player milestones
     // Total Romania players: ~5,966
     static let romaniaPlayerMilestones: [String] = [
         // Ranks 1-30
         "657bn", "2bm", "299bj", "17bh", "265be", "506bc", "3bb", "471az", "1ay", "1aw",
         "1av", "744ap", "1an", "10aj", "1ag", "4ad", "1ac", "2ab", "8aa", "1aa",
         "509z", "127z", "7z", "463v", "3u", "6s", "421r", "13r", "205q", "6q",
-        // Ranks 31-60
-        "3p", "6o", "5n", "2n", "2n", "748m", "93m", "11m", "365l", "5j",
+        // Ranks 31-70
+        "3p", "6o", "5n", "2n", "2n", "748m", "93m", "11m", "1m", "182l",
+        "22l", "5l", "2l", "713k", "89k", "22k", "5k", "696j", "348j", "5j",
         "10h", "79f", "1e", "73c", "36b", "562a", "17a", "2a", "1a", "137B",
         "34B", "17B", "17B", "8B", "4B", "2B", "2B", "1B", "1B", "1B",
-        // Ranks 61-85
+        // Ranks 71-95
         "536M", "268M", "67M", "67M", "33M", "33M", "33M", "16M", "8M", "8M",
         "4M", "4M", "4M", "4M", "4M", "2M", "2M", "2M", "2M", "2M",
         "2M", "2M", "2M", "2M", "1M",
-        // Ranks 86-97 (1M bracket)
+        // Ranks 96-107 (1M bracket)
         "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M", "1M",
         "1M", "1M",
-        // Ranks 98-123 (524K bracket)
+        // Ranks 108-133 (524K bracket)
         "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K",
         "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K", "524K",
         "524K", "524K", "524K", "524K", "524K", "524K",
-        // Ranks 124-150 (262K bracket)
+        // Ranks 134-160 (262K bracket)
         "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K",
         "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K",
         "262K", "262K", "262K", "262K", "262K", "262K", "262K", "262K"

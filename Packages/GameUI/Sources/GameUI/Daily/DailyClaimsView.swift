@@ -137,6 +137,39 @@ public struct DailyClaimsView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.blue.opacity(0.15), in: Capsule())
+
+                    // Claim All section: total rewards + button
+                    if let totalRewards = store.totalCatchUpRewards() {
+                        VStack(spacing: 10) {
+                            HStack(spacing: 8) {
+                                Text("Total:")
+                                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                                    .foregroundStyle(.secondary)
+                                ForEach(totalRewards.entries, id: \.self) { entry in
+                                    HStack(spacing: 3) {
+                                        RewardIconView(kind: entry.kind, font: .avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
+                                        Text("\(entry.amount)")
+                                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
+                                    }
+                                }
+                            }
+
+                            Button(action: claimAllRewards) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "sparkles")
+                                    Text("Claim All (\(store.availableClaims))")
+                                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                                    Image(systemName: "sparkles")
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.purple.gradient, in: RoundedRectangle(cornerRadius: 14))
+                                .foregroundStyle(.white)
+                            }
+                            .buttonStyle(.plain)
+                            .shadow(color: .purple.opacity(0.3), radius: 8, y: 4)
+                        }
+                    }
                 }
 
                 Text("Day \(claim.day) Reward Available!")
@@ -353,6 +386,30 @@ public struct DailyClaimsView: View {
 
         store.claimDailyReward()
         gameStore.achievementEvaluator?.onDailyClaimed()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                showClaimAnimation = false
+                claimedRewards = nil
+                claimedBonusCount = 0
+            }
+        }
+    }
+
+    private func claimAllRewards() {
+        guard let totalRewards = store.totalCatchUpRewards() else { return }
+        let claimCount = store.availableClaims
+
+        claimedBonusCount = 0
+        claimedBaseRewards = totalRewards
+        claimedRewards = totalRewards
+        showClaimAnimation = true
+
+        // Claim all at once — each call inside handles reward distribution & streaks
+        store.claimAllDailyRewards()
+        for _ in 0..<claimCount {
+            gameStore.achievementEvaluator?.onDailyClaimed()
+        }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation {

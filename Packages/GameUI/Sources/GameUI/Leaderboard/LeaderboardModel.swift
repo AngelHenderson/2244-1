@@ -11,6 +11,7 @@ public final class LeaderboardModel {
     public private(set) var myEntry: LeaderboardEntry?
     public private(set) var totalPlayers: Int?
     public private(set) var error: String?
+    private var isRefreshing = false
     
     // Filters
     public var selectedPeriod: LeaderboardPeriod = .week {
@@ -62,20 +63,18 @@ public final class LeaderboardModel {
     }
     
     public func refresh() async {
-        guard !isLoading else { return }
+        guard !isRefreshing else { return }
+        isRefreshing = true
         
-        isLoading = true
+        // Only show loading spinner if we have no existing data (first load)
+        let isFirstLoad = entries.isEmpty
+        if isFirstLoad {
+            isLoading = true
+        }
         error = nil
-        defer { isLoading = false }
-        
-        // Clear existing data
-        nextCursor = nil
-        entries.removeAll()
-        myEntry = nil
-        totalPlayers = nil
         
         do {
-            // Fetch first page
+            // Fetch new data while keeping old data visible
             let page = try await client.fetchPage(
                 selectedPeriod,
                 selectedFilter,
@@ -83,6 +82,7 @@ public final class LeaderboardModel {
                 pageSize
             )
             
+            // Swap in new data atomically
             entries = page.entries
             myEntry = page.myEntry
             nextCursor = page.nextCursor
@@ -95,6 +95,9 @@ public final class LeaderboardModel {
         } catch {
             self.error = "Failed to load leaderboard: \(error.localizedDescription)"
         }
+        
+        isLoading = false
+        isRefreshing = false
     }
     
     public func loadMore() async {
