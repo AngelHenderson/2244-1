@@ -57,8 +57,6 @@ public final class HomeState {
         (180, "6 months"),
         (365, "1 year"),
         (730, "2 years"),
-        (1095, "3 years"),
-        (1460, "4 years"),
         (1825, "5 years"),
         (Int.max, "permanently")
     ]

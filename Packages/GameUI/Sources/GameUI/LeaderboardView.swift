@@ -9,6 +9,14 @@ public struct LeaderboardView: View {
     @State private var showError = false
     @State private var showingTop150 = false
 
+    // Report system state
+    @State private var reportCounts: [String: Int] = [:]  // player id -> report count
+    @State private var bannedPlayerIds: Set<String> = []   // banned player ids
+    @State private var showReportConfirmation = false
+    @State private var showPlayerBanned = false
+    @State private var lastReportedName: String = ""
+    @State private var lastReportedCount: Int = 0
+
     private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
 
     public init(client: LeaderboardClient) {
@@ -93,6 +101,17 @@ public struct LeaderboardView: View {
             Button("OK") { }
         } message: {
             Text(model.error ?? "An error occurred")
+        }
+        .alert("Report Received", isPresented: $showReportConfirmation) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            let remaining = 3 - lastReportedCount
+            Text("Your report for \(lastReportedName) has been received. \(remaining) more report\(remaining == 1 ? "" : "s") and this player will be banned.")
+        }
+        .alert("Player Banned", isPresented: $showPlayerBanned) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("\(lastReportedName) has been banned and removed from the leaderboard due to multiple reports.")
         }
         .onChange(of: showingTop150) { _, isTop150 in
             // When switching to Top 150 view, force a refresh so the entries
@@ -936,8 +955,8 @@ public struct LeaderboardView: View {
             return m.entries
         }
 
-        // Filter out any existing user entry to avoid duplicates
-        var result = m.entries.filter { !$0.isMe }
+        // Filter out banned players
+        var result = m.entries.filter { !$0.isMe && !bannedPlayerIds.contains($0.id) }
 
         // Check if user should be in the displayed range
         guard let lastEntry = result.last else {
@@ -1052,6 +1071,15 @@ public struct LeaderboardView: View {
         )
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
+        .contextMenu {
+            if !entry.isMe {
+                Button(role: .destructive) {
+                    reportPlayer(entry)
+                } label: {
+                    Label("Report Player", systemImage: "exclamationmark.triangle.fill")
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -1214,6 +1242,24 @@ public struct LeaderboardView: View {
             }
         }
         return emoji
+    }
+
+    // MARK: - Report System
+
+    /// Report a player. After 3 reports, the player is banned and removed from the leaderboard.
+    private func reportPlayer(_ entry: LeaderboardEntry) {
+        let currentCount = (reportCounts[entry.id] ?? 0) + 1
+        reportCounts[entry.id] = currentCount
+        lastReportedName = entry.name
+        lastReportedCount = currentCount
+
+        if currentCount >= 3 {
+            // Ban threshold reached
+            bannedPlayerIds.insert(entry.id)
+            showPlayerBanned = true
+        } else {
+            showReportConfirmation = true
+        }
     }
 }
 

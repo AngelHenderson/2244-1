@@ -136,11 +136,15 @@ public enum MockLeaderboardData {
     //   - Backend marks the account as suspended or banned
     //   - Next login or server request checks that status
     //   - Player is blocked from playing, syncing, leaderboards, events, or rewards
+    //   - Player's milestone and score stay UNCHANGED (no reset)
+    //   - Player is REMOVED from the leaderboard for the ban duration
+    //   - When unbanned, their rank is naturally lower because other players
+    //     progressed while they were gone
     //
     // Punishment types (no-chat game):
-    //   - Leaderboard removal
+    //   - Leaderboard removal (for the ban duration, not score reset)
     //   - Event lockout
-    //   - Temporary suspension
+    //   - Temporary suspension (all gameplay disabled)
     //   - Permanent account ban
     //   - Loss of rewards gained unfairly
 
@@ -179,10 +183,8 @@ public enum MockLeaderboardData {
         (9, 180, "6 months"),
         (10, 365, "1 year"),
         (11, 730, "2 years"),
-        (12, 1095, "3 years"),
-        (13, 1460, "4 years"),
-        (14, 1825, "5 years"),
-        (15, Int.max, "permanent")
+        (12, 1825, "5 years"),
+        (13, Int.max, "permanent")
     ]
 
     /// Fraction of deleted-app players who return at Score 0

@@ -300,6 +300,39 @@ public struct SettingsView: View {
                     }
 
                     Button {
+                        let subject = "Player Report"
+                        let body = """
+                        I would like to report a player for the following reason:
+
+                        Player name: [enter player name]
+                        Reason (select one):
+                        • Cheating or memory editing
+                        • Fake currency/gem generation
+                        • Impossible scores or impossible progression
+                        • Speed hacks or timer manipulation
+                        • Bots, macros, or auto-play
+                        • Exploiting bugs repeatedly for unfair gain
+                        • Refund or payment abuse
+                        • Account selling, sharing, or ban evasion
+
+                        Additional details:
+                        [describe what you observed]
+                        """
+                        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
+                        let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? body
+                        if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                            Text("Report a Player")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                        }
+                    }
+
+                    Button {
                         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                             if #available(iOS 18.0, *) {
                                 AppStore.requestReview(in: scene)
