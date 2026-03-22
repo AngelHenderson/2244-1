@@ -34,6 +34,11 @@ public final class HomeState {
     public var banDurationText: String = ""
     /// Controls visibility of the ban alert popup
     public var showBanAlert: Bool = false
+    /// Exact timestamp when the ban started (used for precise unban timing)
+    public var banStartDate: Date? = nil
+    /// Exact timestamp when the ban ends (nil = permanent)
+    /// Ban/unban uses exact time — banned at 8:34 AM means unbanned at exactly 8:34 AM.
+    public var banEndDate: Date? = nil
 
     // Pre-ban warning system (first offense only — 3 chances before first ban)
     /// Warnings remaining before the first ban (starts at 3)
@@ -44,7 +49,7 @@ public final class HomeState {
     public var offenseCount: Int = 0
 
     // Ban escalation ladder: each subsequent ban gets longer
-    // 1d → 2d → 3d → 1wk → 2wk → 3wk → 1mo → 2mo → 6mo → 1yr → 2yr → 3yr → 4yr → 5yr → permanent
+    // 1d → 2d → 3d → 1wk → 2wk → 3wk → 1mo → 2mo → 6mo → 1yr → 2yr → 5yr → permanent
     private static let escalationLadder: [(days: Int, label: String)] = [
         (1, "1 day"),
         (2, "2 days"),
@@ -61,29 +66,70 @@ public final class HomeState {
         (Int.max, "permanently")
     ]
 
-    /// Look up the ban duration for the given offense number (1-based).
-    private static func banDuration(forOffense offense: Int) -> String {
+    /// Look up the ban tier for the given offense number (1-based).
+    private static func banTier(forOffense offense: Int) -> (days: Int, label: String) {
         let index = min(offense - 1, escalationLadder.count - 1)
-        let tier = escalationLadder[max(0, index)]
-        if tier.days == Int.max {
-            return "Your account has been permanently banned."
+        return escalationLadder[max(0, index)]
+    }
+
+    /// Check if the ban has expired at the exact timestamp. Call this on app launch / timer.
+    /// If the ban end time has passed, automatically unban the player.
+    public func checkBanExpiry() {
+        guard isBanned, let endDate = banEndDate else { return }
+        if Date() >= endDate {
+            isBanned = false
+            banReasonText = ""
+            banDurationText = ""
+            banStartDate = nil
+            banEndDate = nil
         }
-        return "Your account has been suspended for \(tier.label)."
+    }
+
+    /// Human-readable remaining ban time (e.g. "2 days, 3 hours remaining")
+    public var banTimeRemainingText: String? {
+        guard isBanned, let endDate = banEndDate else {
+            if isBanned && banEndDate == nil { return "Permanent" }
+            return nil
+        }
+        let remaining = endDate.timeIntervalSince(Date())
+        guard remaining > 0 else { return "Expiring..." }
+        let days = Int(remaining) / 86400
+        let hours = (Int(remaining) % 86400) / 3600
+        if days > 0 {
+            return "\(days)d \(hours)h remaining"
+        } else {
+            let minutes = (Int(remaining) % 3600) / 60
+            return "\(hours)h \(minutes)m remaining"
+        }
     }
 
     /// Issue a warning. Players get 3 chances before their first ban.
-    /// After warnings are exhausted, a ban is applied using the escalation ladder.
+    /// After warnings are exhausted, a ban is applied using the escalation ladder
+    /// with exact timestamps — banned at 8:34 AM means unbanned at exactly 8:34 AM.
     public func issueWarning(reason: String) {
         if warningsRemaining > 1 {
             warningsRemaining -= 1
             showWarningAlert = true
         } else {
-            // Out of chances — activate the ban
+            // Out of chances — activate the ban with exact timestamp
             warningsRemaining = 0
             offenseCount += 1
+            let tier = HomeState.banTier(forOffense: offenseCount)
+            let now = Date()
+
             isBanned = true
             banReasonText = reason
-            banDurationText = HomeState.banDuration(forOffense: offenseCount)
+            banStartDate = now
+
+            if tier.days == Int.max {
+                // Permanent ban — no end date
+                banEndDate = nil
+                banDurationText = "Your account has been permanently banned."
+            } else {
+                // Calculate exact unban time: now + tier.days (same time of day)
+                banEndDate = Calendar.current.date(byAdding: .day, value: tier.days, to: now)
+                banDurationText = "Your account has been suspended for \(tier.label)."
+            }
             showBanAlert = true
         }
     }

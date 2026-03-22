@@ -2474,6 +2474,27 @@ public enum MockLeaderboardData {
         4, 2, 2, 1, 1, 1
     ]
 
+    static let vietnamHallOfFameInfinityCounts: [Int] = [
+        // Vietnam Hall of Fame (58 players)
+        // Values 33, 29, 25, 23, 21, 20 inserted between 37 and 19 to smooth the curve
+        3835, 978, 674, 399, 256, 198, 153, 120, 96, 76,
+        66, 59, 54, 52, 51, 50, 47, 43, 37, 33,
+        29, 25, 23, 21, 20, 19, 19, 17, 16, 14,
+        12, 10, 8, 7, 6, 6, 5, 4, 4, 4,
+        3, 3, 3, 2, 2, 2, 2, 2, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1
+    ]
+
+    static let kazakhstanHallOfFameInfinityCounts: [Int] = [
+        // Kazakhstan Hall of Fame (54 players)
+        9576, 5789, 4966, 4236, 3654, 2957, 2375, 1947, 1637, 1398,
+        1186, 1000, 867, 699, 548, 438, 299, 218, 164, 129,
+        103, 89, 80, 74, 65, 58, 50, 44, 37, 29,
+        25, 22, 20, 18, 17, 16, 14, 11, 9, 8,
+        6, 5, 5, 4, 3, 3, 2, 2, 2, 1,
+        1, 1, 1, 1
+    ]
+
     static let switzerlandHallOfFameInfinityCounts: [Int] = [
         // Switzerland Hall of Fame (54 players)
         36667, 6767, 2847, 999, 684, 389, 125, 70, 29, 17,
@@ -4580,6 +4601,11 @@ public extension LeaderboardClient {
         // Add Uzbekistan players
         for (i, count) in MockLeaderboardData.uzbekistanHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_uz_\(i)", count, "UZ", globalIndex, i + 36000))
+            globalIndex += 1
+        }
+        // Add Vietnam players
+        for (i, count) in MockLeaderboardData.vietnamHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_vn_\(i)", count, "VN", globalIndex, i + 37000))
             globalIndex += 1
         }
 

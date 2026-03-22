@@ -222,7 +222,6 @@ struct CompareView: View {
                     TextField("Search by name or code", text: $searchText)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                        .disabled(selectedPlayers.count >= maxCompareCount)
 
                     if selectedPlayers.count >= maxCompareCount {
                         Text("Maximum \(maxCompareCount) players")
