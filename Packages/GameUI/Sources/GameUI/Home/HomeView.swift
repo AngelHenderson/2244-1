@@ -350,6 +350,11 @@ public struct HomeView: View {
         } message: {
             Text("You are banned due to \(state.banReasonText). \(state.banDurationText)")
         }
+        .alert("\(state.warningsRemaining) Chances Left!", isPresented: Bindable(state).showWarningAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You have \(state.warningsRemaining) chances left! After that, you are banned!")
+        }
     }
 
     private func dockItem(system: String, title: String, badge: Bool = false, badgeCount: Int = 0, banned: Bool = false, action: @escaping () -> Void) -> some View {

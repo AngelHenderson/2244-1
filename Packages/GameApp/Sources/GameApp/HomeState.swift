@@ -26,6 +26,7 @@ public final class HomeState {
 
     // Ban state
     /// Whether the player is currently banned. When true, all app functionality is disabled.
+    /// This would be set by a backend check on login, not hardcoded.
     public var isBanned: Bool = false
     /// The reason for the ban (shown in the alert)
     public var banReasonText: String = ""
@@ -33,6 +34,61 @@ public final class HomeState {
     public var banDurationText: String = ""
     /// Controls visibility of the ban alert popup
     public var showBanAlert: Bool = false
+
+    // Pre-ban warning system (first offense only — 3 chances before first ban)
+    /// Warnings remaining before the first ban (starts at 3)
+    public var warningsRemaining: Int = 3
+    /// Controls visibility of the warning alert popup
+    public var showWarningAlert: Bool = false
+    /// How many times this player has been banned (determines escalation)
+    public var offenseCount: Int = 0
+
+    // Ban escalation ladder: each subsequent ban gets longer
+    // 1d → 2d → 3d → 1wk → 2wk → 3wk → 1mo → 2mo → 6mo → 1yr → 2yr → 3yr → 4yr → 5yr → permanent
+    private static let escalationLadder: [(days: Int, label: String)] = [
+        (1, "1 day"),
+        (2, "2 days"),
+        (3, "3 days"),
+        (7, "1 week"),
+        (14, "2 weeks"),
+        (21, "3 weeks"),
+        (30, "1 month"),
+        (60, "2 months"),
+        (180, "6 months"),
+        (365, "1 year"),
+        (730, "2 years"),
+        (1095, "3 years"),
+        (1460, "4 years"),
+        (1825, "5 years"),
+        (Int.max, "permanently")
+    ]
+
+    /// Look up the ban duration for the given offense number (1-based).
+    private static func banDuration(forOffense offense: Int) -> String {
+        let index = min(offense - 1, escalationLadder.count - 1)
+        let tier = escalationLadder[max(0, index)]
+        if tier.days == Int.max {
+            return "Your account has been permanently banned."
+        }
+        return "Your account has been suspended for \(tier.label)."
+    }
+
+    /// Issue a warning. Players get 3 chances before their first ban.
+    /// After warnings are exhausted, a ban is applied using the escalation ladder.
+    public func issueWarning(reason: String) {
+        if warningsRemaining > 1 {
+            warningsRemaining -= 1
+            showWarningAlert = true
+        } else {
+            // Out of chances — activate the ban
+            warningsRemaining = 0
+            offenseCount += 1
+            isBanned = true
+            banReasonText = reason
+            banDurationText = HomeState.banDuration(forOffense: offenseCount)
+            showBanAlert = true
+        }
+    }
     // Unlock thresholds (power-of-two milestones)
     public var createUnlockAt: Int = 1_048_576 // 2^20 (1M)
     public var challengeUnlockAt: Int = 1_073_741_824 // 2^30 (1B)
