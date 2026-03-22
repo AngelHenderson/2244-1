@@ -93,6 +93,100 @@ public struct LeaderboardClient: Sendable {
 // Players progress through milestones daily. The leaderboard updates at midnight.
 
 public enum MockLeaderboardData {
+
+    // MARK: - Player Lifecycle
+    //
+    // Players can leave the game in two ways:
+    //   1. Banned - player is restricted for a period or permanently
+    //   2. Deleted app - player loses all progress, returns at Score 0
+    //
+    // Players who run out of moves or restart reset to milestone "2" (starting tile).
+    // Players who delete the app and return start at Score 0.
+    //
+    // Score 0 bracket composition:
+    //   - Deleted-app returnees: 70% of all players who deleted the app come back at Score 0
+    //   - Banned players: appear at Score 0 while serving their ban
+    //
+    // The "2" bracket covers active players who restarted or ran out of moves.
+    //
+    // MARK: Moderation System
+    //
+    // This is a no-chat game — bans are for what the ACCOUNT DID, not what was said.
+    //
+    // Bannable offenses:
+    //   - Cheating or memory editing
+    //   - Fake currency/gem generation
+    //   - Impossible scores or impossible progression
+    //   - Speed hacks or timer manipulation
+    //   - Bots, macros, or auto-play
+    //   - Exploiting bugs repeatedly for unfair gain
+    //   - Refund or payment abuse
+    //   - Account selling, sharing, or ban evasion
+    //
+    // Detection methods:
+    //   - Impossible stats (e.g., finishing levels faster than physically possible)
+    //   - Suspicious economy changes (e.g., sudden huge premium currency gains)
+    //   - Server seeing actions in patterns that look automated
+    //   - Leaderboard results that don't match expected gameplay
+    //   - Too many actions per second
+    //   - Modified client/app signatures
+    //   - Repeated use of known exploit paths
+    //
+    // How bans work:
+    //   - Backend marks the account as suspended or banned
+    //   - Next login or server request checks that status
+    //   - Player is blocked from playing, syncing, leaderboards, events, or rewards
+    //
+    // Punishment types (no-chat game):
+    //   - Leaderboard removal
+    //   - Event lockout
+    //   - Temporary suspension
+    //   - Permanent account ban
+    //   - Loss of rewards gained unfairly
+
+    // MARK: Ban Duration Distribution
+    // Breakdown of ban durations among all banned players:
+    //   45% - 1 day to 1 week  (short-term, minor violations)
+    //   10% - 2 weeks
+    //   10% - 3 weeks
+    //   10% - 1 month
+    //   10% - 2 months to 1 year (escalating repeated offenses)
+    //   15% - permanent ban
+
+    /// First-ban duration distribution: how long a player's FIRST ban lasts.
+    /// Repeat offenders follow the escalation ladder below instead.
+    static let banDurationDistribution: [(percentage: Double, minDays: Int, maxDays: Int, label: String)] = [
+        (0.45, 1, 7, "1 day to 1 week"),
+        (0.10, 14, 14, "2 weeks"),
+        (0.10, 21, 21, "3 weeks"),
+        (0.10, 30, 30, "1 month"),
+        (0.10, 60, 365, "2 months to 1 year"),
+        (0.15, Int.max, Int.max, "permanent")
+    ]
+
+    /// Ban escalation ladder for repeat offenders.
+    /// Each subsequent ban for the same player moves to the next tier.
+    /// Duration is in days (Int.max = permanent).
+    static let banEscalationLadder: [(offense: Int, days: Int, label: String)] = [
+        (1, 1, "1 day"),
+        (2, 2, "2 days"),
+        (3, 3, "3 days"),
+        (4, 7, "1 week"),
+        (5, 14, "2 weeks"),
+        (6, 21, "3 weeks"),
+        (7, 30, "1 month"),
+        (8, 60, "2 months"),
+        (9, 180, "6 months"),
+        (10, 365, "1 year"),
+        (11, 730, "2 years"),
+        (12, 1095, "3 years"),
+        (13, 1460, "4 years"),
+        (14, 1825, "5 years"),
+        (15, Int.max, "permanent")
+    ]
+
+    /// Fraction of deleted-app players who return at Score 0
+    static let deletedAppReturnRate: Double = 0.70
     // Reference date for calculating day offset (progression "just started" on Jan 20, 2026)
     static let referenceDate: Date = {
         var components = DateComponents()
@@ -4635,7 +4729,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 1886-12847)
         ("8192", 1886), ("4096", 2234), ("2048", 2877), ("1024", 3581),
         ("512", 4456), ("256", 5676), ("128", 6767), ("64", 8067), ("32", 8745),
-        ("16", 9341), ("8", 9867), ("4", 10211), ("2", 10657), ("0", 10899)
+        ("16", 9341), ("8", 9867), ("4", 10211), ("2", 10657), ("0", 10920)  // Score 0 = deleted app, came back (70% of churned players)
     ]
 
     // Australia player milestones from screenshots (ranks 1-150)
@@ -4674,7 +4768,7 @@ public extension LeaderboardClient {
         // Raw number brackets
         ("8192", 3513), ("4096", 4225), ("2048", 5533), ("1024", 6767), ("512", 8499),
         ("256", 11988), ("128", 14676), ("64", 16767), ("32", 21116), ("16", 26002),
-        ("8", 31288), ("4", 35526), ("2", 40000), ("0", 59333)
+        ("8", 31288), ("4", 35526), ("2", 40000), ("0", 53731)  // Score 0 = deleted app, came back (70% of churned)
     ]
 
     // Germany player milestones (ranks 1-150)
@@ -4724,7 +4818,7 @@ public extension LeaderboardClient {
         // Raw number brackets
         ("8192", 6767), ("4096", 9366), ("2048", 12577), ("1024", 16735), ("512", 20676),
         ("256", 25416), ("128", 30674), ("64", 36234), ("32", 42333), ("16", 46655),
-        ("8", 53566), ("4", 60676), ("2", 67676), ("0", 73666)
+        ("8", 53566), ("4", 60676), ("2", 67676), ("0", 72000)  // Score 0 = deleted app, came back
     ]
 
     // France player milestones (ranks 1-150)
@@ -4793,7 +4887,7 @@ public extension LeaderboardClient {
         // Raw number brackets
         ("8192", 98877), ("4096", 99244), ("2048", 100000), ("1024", 100959), ("512", 101234),
         ("256", 101470), ("128", 102345), ("64", 106767), ("32", 109876), ("16", 111111),
-        ("8", 114114), ("4", 117117), ("2", 121121), ("0", 125521)
+        ("8", 114114), ("4", 117117), ("2", 121121), ("0", 122500)  // Score 0 = deleted app, came back
     ]
 
     // Japan player milestones (ranks 1-150)
@@ -4834,7 +4928,7 @@ public extension LeaderboardClient {
         ("256", 522), ("128", 566), ("64", 611), ("32", 666), ("16", 719),
         ("8", 767), ("4", 811), ("2", 852),
         // Score 0 bracket (ranks 852-894)
-        ("0", 852)
+        ("0", 860)  // Score 0 = deleted app, came back
     ]
 
     // India player milestones (ranks 1-150)
@@ -4869,7 +4963,7 @@ public extension LeaderboardClient {
         ("256", 222), ("128", 258), ("64", 300), ("32", 377), ("16", 512),
         ("8", 666), ("4", 835), ("2", 1033),
         // Score 0 bracket (ranks 1211-1488)
-        ("0", 1211)
+        ("0", 1265)  // Score 0 = deleted app, came back
     ]
 
     // Brazil player milestones (ranks 1-150)
@@ -4909,7 +5003,7 @@ public extension LeaderboardClient {
         ("256", 2811), ("128", 3414), ("64", 4000), ("32", 4736), ("16", 5467),
         ("8", 6088), ("4", 6767), ("2", 8297),
         // Score 0 bracket (ranks 9297-10000)
-        ("0", 9297)
+        ("0", 8500)  // Score 0 = deleted app, came back
     ]
 
     // Mexico player milestones - exact values from positions 1-150
@@ -4946,7 +5040,7 @@ public extension LeaderboardClient {
         ("256", 688), ("128", 822), ("64", 1000), ("32", 1175), ("16", 1558),
         ("8", 2222), ("4", 3377), ("2", 4444),
         // Score 0 bracket (ranks 5783-7229)
-        ("0", 5783)
+        ("0", 6145)  // Score 0 = deleted app, came back
     ]
 
     // Afghanistan player milestones - exact values from positions 1-150
@@ -4985,7 +5079,7 @@ public extension LeaderboardClient {
         ("256", 1097), ("128", 1300), ("64", 1677), ("32", 2111), ("16", 2798),
         ("8", 3766), ("4", 5000), ("2", 6767),
         // Score 0 bracket (ranks 8987-11111)
-        ("0", 8987)
+        ("0", 9444)  // Score 0 = deleted app, came back
     ]
 
     // Albania player milestones - exact values from positions 1-150
@@ -5025,7 +5119,7 @@ public extension LeaderboardClient {
         ("256", 1377), ("128", 1722), ("64", 2222), ("32", 2877), ("16", 4000),
         ("8", 5555), ("4", 6767), ("2", 8222),
         // Score 0 bracket (ranks 9777-11222)
-        ("0", 9777)
+        ("0", 9539)  // Score 0 = deleted app, came back
     ]
 
     // Algeria player milestones - exact values from positions 1-150
@@ -5061,7 +5155,7 @@ public extension LeaderboardClient {
         ("256", 388), ("128", 488), ("64", 611), ("32", 763), ("16", 955),
         ("8", 1234), ("4", 1676), ("2", 2222),
         // Score 0 bracket (ranks 2777-3333)
-        ("0", 2777)
+        ("0", 2833)  // Score 0 = deleted app, came back
     ]
 
     static let chinaPlayerMilestones: [String] = [
@@ -5098,7 +5192,7 @@ public extension LeaderboardClient {
         // Raw number brackets
         ("8", 2222), ("4", 3111), ("2", 4666),
         // Score 0 bracket
-        ("0", 6767)
+        ("0", 7027)  // Score 0 = deleted app, came back
     ]
 
     static let southKoreaPlayerMilestones: [String] = [
@@ -5132,7 +5226,7 @@ public extension LeaderboardClient {
         ("512", 333), ("256", 400), ("128", 485), ("64", 581), ("32", 676),
         ("16", 833), ("8", 1111), ("4", 1676), ("2", 2161),
         // Score 0 bracket (ranks 2676-3123)
-        ("0", 2676)
+        ("0", 2655)  // Score 0 = deleted app, came back
     ]
 
     static let italyPlayerMilestones: [String] = [
@@ -5168,7 +5262,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 1222-13856)
         ("8192", 1222), ("4096", 1676), ("2048", 2222), ("1024", 2777), ("512", 3333),
         ("256", 4000), ("128", 4666), ("64", 5333), ("32", 6000), ("16", 6767),
-        ("8", 7777), ("4", 8888), ("2", 10284), ("0", 12000)  // Score 0 = ranks 12000-13856
+        ("8", 7777), ("4", 8888), ("2", 10284), ("0", 11778)  // Score 0 = deleted app, came back
     ]
 
     static let spainPlayerMilestones: [String] = [
@@ -5202,7 +5296,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 229-14399)
         ("8192", 229), ("4096", 287), ("2048", 400), ("1024", 539), ("512", 711),
         ("256", 950), ("128", 1234), ("64", 1711), ("32", 2444), ("16", 3333),
-        ("8", 4444), ("4", 6221), ("2", 8456), ("0", 11147)  // Score 0 = ranks 11147-14399
+        ("8", 4444), ("4", 6221), ("2", 8456), ("0", 12239)  // Score 0 = deleted app, came back
     ]
 
     static let netherlandsPlayerMilestones: [String] = [
@@ -5263,7 +5357,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 1000-20000) from screenshot
         ("8192", 1000), ("4096", 1532), ("2048", 1975), ("1024", 2659), ("512", 3872),
         ("256", 5444), ("128", 6767), ("64", 8000), ("32", 9277), ("16", 11111),
-        ("8", 12345), ("4", 14321), ("2", 16000), ("0", 18000)  // Score 0 = ranks 18000-20000
+        ("8", 12345), ("4", 14321), ("2", 16000), ("0", 17000)  // Score 0 = deleted app, came back
     ]
 
     // Norway player milestones (ranks 1-150)
@@ -5302,7 +5396,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 1465-34924)
         ("8192", 1465), ("4096", 1888), ("2048", 2222), ("1024", 2777), ("512", 3444),
         ("256", 4313), ("128", 5555), ("64", 6767), ("32", 8355), ("16", 10000),
-        ("8", 12934), ("4", 16666), ("2", 21111), ("0", 27131)  // Score 0 = ranks 27131-34924
+        ("8", 12934), ("4", 16666), ("2", 21111), ("0", 29685)  // Score 0 = deleted app, came back
     ]
 
     // Denmark player milestones (ranks 1-150)
@@ -5343,7 +5437,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 12345-90123)
         ("8192", 12345), ("4096", 16767), ("2048", 20000), ("1024", 24315), ("512", 26767),
         ("256", 31234), ("128", 36767), ("64", 43322), ("32", 48765), ("16", 54321),
-        ("8", 60000), ("4", 67676), ("2", 76767), ("0", 82898)  // Score 0 = ranks 82898-90123
+        ("8", 60000), ("4", 67676), ("2", 76767), ("0", 76605)  // Score 0 = deleted app, came back
     ]
 
     // Finland player milestones (ranks 1-150)
@@ -5407,7 +5501,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 5111-87654)
         ("8192", 5111), ("4096", 6767), ("2048", 8956), ("1024", 12345), ("512", 17890),
         ("256", 24321), ("128", 29876), ("64", 34543), ("32", 41111), ("16", 50000),
-        ("8", 58888), ("4", 67676), ("2", 76767), ("0", 87654)  // Score 0 = end rank
+        ("8", 58888), ("4", 67676), ("2", 76767), ("0", 82888)  // Score 0 = deleted app, came back
     ]
 
     // Extended Poland milestone brackets for rank calculation (ranks 151+)
@@ -5430,7 +5524,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 3333-67108)
         ("8192", 3333), ("4096", 4567), ("2048", 6767), ("1024", 8765), ("512", 12345),
         ("256", 16789), ("128", 22222), ("64", 29876), ("32", 36925), ("16", 41414),
-        ("8", 50000), ("4", 54321), ("2", 56789), ("0", 60000)  // Score 0 = ranks 60000-67108
+        ("8", 50000), ("4", 54321), ("2", 56789), ("0", 57042)  // Score 0 = deleted app, came back
     ]
 
     // Belgium player milestones (ranks 1-150)
@@ -5469,7 +5563,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 1234-8989)
         ("8192", 1234), ("4096", 1360), ("2048", 1555), ("1024", 1676), ("512", 2000),
         ("256", 2578), ("128", 2840), ("64", 3333), ("32", 3888), ("16", 4444),
-        ("8", 5000), ("4", 5666), ("2", 6767), ("0", 7676)  // Score 0 = ranks 7676-8989
+        ("8", 5000), ("4", 5666), ("2", 6767), ("0", 7640)  // Score 0 = deleted app, came back
     ]
 
     // Sweden player milestones (ranks 1-150)
@@ -5506,7 +5600,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 296-6288)
         ("8192", 296), ("4096", 366), ("2048", 452), ("1024", 555), ("512", 666),
         ("256", 833), ("128", 1123), ("64", 1578), ("32", 2000), ("16", 2667),
-        ("8", 3333), ("4", 4000), ("2", 4676), ("0", 5412)  // Score 0 = ranks 5412-6288
+        ("8", 3333), ("4", 4000), ("2", 4676), ("0", 5345)  // Score 0 = deleted app, came back
     ]
 
     // Austria player milestones (ranks 1-150)
@@ -5540,7 +5634,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 151-7543)
         ("8192", 151), ("4096", 169), ("2048", 194), ("1024", 231), ("512", 283),
         ("256", 347), ("128", 422), ("64", 511), ("32", 782), ("16", 1296),
-        ("8", 1922), ("4", 2837), ("2", 4111), ("0", 5784)  // Score 0 = ranks 5784-7543
+        ("8", 1922), ("4", 2837), ("2", 4111), ("0", 6411)  // Score 0 = deleted app, came back
     ]
 
     // Ireland leaderboard data - top 150 player milestones
@@ -5586,7 +5680,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 611-34567)
         ("8192", 611), ("4096", 676), ("2048", 745), ("1024", 867), ("512", 1111),
         ("256", 1593), ("128", 2222), ("64", 3000), ("32", 4312), ("16", 6767),
-        ("8", 9234), ("4", 12345), ("2", 18989), ("0", 26048)  // Score 0 = ranks 26048-34567
+        ("8", 9234), ("4", 12345), ("2", 18989), ("0", 29382)  // Score 0 = deleted app, came back
     ]
 
     // Portugal leaderboard data - top 150 player milestones
@@ -5682,7 +5776,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 9000-98989)
         ("8192", 9000), ("4096", 10646), ("2048", 12345), ("1024", 15000), ("512", 18888),
         ("256", 22222), ("128", 27777), ("64", 33333), ("32", 40000), ("16", 46767),
-        ("8", 55555), ("4", 67676), ("2", 76767), ("0", 89898)  // Score 0 = ranks 89898-98989
+        ("8", 55555), ("4", 67676), ("2", 76767), ("0", 84141)  // Score 0 = deleted app, came back
     ]
 
     // Extended Greece milestone brackets for rank calculation (ranks 151+)
@@ -5693,7 +5787,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 456-41414)
         ("8192", 456), ("4096", 723), ("2048", 1234), ("1024", 1938), ("512", 2847),
         ("256", 4000), ("128", 5555), ("64", 7345), ("32", 12345), ("16", 16767),
-        ("8", 22222), ("4", 26918), ("2", 31676), ("0", 35252)  // Score 0 = ranks 35252-41414
+        ("8", 22222), ("4", 26918), ("2", 31676), ("0", 35202)  // Score 0 = deleted app, came back
     ]
 
     // Extended Czechia milestone brackets for rank calculation (ranks 151+)
@@ -5716,7 +5810,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 7676-61616)
         ("8192", 7676), ("4096", 8989), ("2048", 9898), ("1024", 11111), ("512", 12345),
         ("256", 14000), ("128", 15676), ("64", 17922), ("32", 20000), ("16", 23456),
-        ("8", 28989), ("4", 34567), ("2", 41414), ("0", 50000)  // Score 0 = ranks 50000-61616
+        ("8", 28989), ("4", 34567), ("2", 41414), ("0", 52373)  // Score 0 = deleted app, came back
     ]
 
     // Romania leaderboard data - top 95 player milestones
@@ -5772,7 +5866,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 466-5966)
         ("8192", 466), ("4096", 557), ("2048", 655), ("1024", 801), ("512", 979),
         ("256", 1134), ("128", 1400), ("64", 1746), ("32", 2111), ("16", 2683),
-        ("8", 3333), ("4", 4096), ("2", 4667), ("0", 5333)  // Score 0 = ranks 5333-5966
+        ("8", 3333), ("4", 4096), ("2", 4667), ("0", 5071)  // Score 0 = deleted app, came back
     ]
 
     // Malaysia leaderboard data - top 82 player milestones
@@ -5812,7 +5906,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 1000-52111)
         ("8192", 1000), ("4096", 1111), ("2048", 1234), ("1024", 1372), ("512", 1533),
         ("256", 2222), ("128", 3062), ("64", 4321), ("32", 5678), ("16", 8127),
-        ("8", 11111), ("4", 18266), ("2", 26767), ("0", 36666)  // Score 0 = ranks 36666-52111
+        ("8", 11111), ("4", 18266), ("2", 26767), ("0", 44294)  // Score 0 = deleted app, came back
     ]
 
     // New Zealand leaderboard data - top 83 player milestones
@@ -5840,7 +5934,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 183-2623)
         ("8192", 183), ("4096", 219), ("2048", 262), ("1024", 307), ("512", 362),
         ("256", 433), ("128", 500), ("64", 585), ("32", 676), ("16", 833),
-        ("8", 1076), ("4", 1400), ("2", 1739), ("0", 2111)  // Score 0 = ranks 2111-2623
+        ("8", 1076), ("4", 1400), ("2", 1739), ("0", 2230)  // Score 0 = deleted app, came back
     ]
 
     // Hungary leaderboard data - top 117 player milestones
@@ -5895,7 +5989,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 2800-111111)
         ("8192", 2800), ("4096", 3600), ("2048", 4800), ("1024", 6500), ("512", 9000),
         ("256", 12000), ("128", 18000), ("64", 25000), ("32", 33000), ("16", 42000),
-        ("8", 53000), ("4", 65000), ("2", 78000), ("0", 89898)  // Score 0 = ranks 89898-111111
+        ("8", 53000), ("4", 65000), ("2", 78000), ("0", 94444)  // Score 0 = deleted app, came back
     ]
 
     // Thailand leaderboard data - top 150 player milestones
@@ -5936,7 +6030,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 177-5444)
         ("8192", 211), ("4096", 297), ("2048", 400), ("1024", 566), ("512", 811),
         ("256", 1086), ("128", 1297), ("64", 1552), ("32", 2111), ("16", 2792),
-        ("8", 3333), ("4", 4000), ("2", 4567), ("0", 4933)  // Score 0 = ranks 4933-5444
+        ("8", 3333), ("4", 4000), ("2", 4567), ("0", 4627)  // Score 0 = deleted app, came back
     ]
 
     // UAE player milestones for top 150 players
@@ -5982,7 +6076,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 199-19889)
         ("8192", 199), ("4096", 251), ("2048", 322), ("1024", 676), ("512", 1067),
         ("256", 1666), ("128", 2500), ("64", 3333), ("32", 4444), ("16", 6767),
-        ("8", 8998), ("4", 12345), ("2", 15432), ("0", 16767)  // Score 0 = ranks 16767-19889
+        ("8", 8998), ("4", 12345), ("2", 15432), ("0", 16906)  // Score 0 = deleted app, came back
     ]
 
     // Philippines leaderboard data - top 150 player milestones
@@ -6036,7 +6130,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 1111-43210)
         ("8192", 1111), ("4096", 1676), ("2048", 2222), ("1024", 2667), ("512", 3676),
         ("256", 5222), ("128", 6767), ("64", 7144), ("32", 10000), ("16", 12345),
-        ("8", 16767), ("4", 22210), ("2", 32109), ("0", 36767)  // Score 0 = ranks 36767-43210
+        ("8", 16767), ("4", 22210), ("2", 32109), ("0", 36728)  // Score 0 = deleted app, came back
     ]
 
     // Extended Netherlands milestone brackets for rank calculation (ranks 151+)
@@ -6050,7 +6144,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 5111-46767)
         ("8192", 5111), ("4096", 6767), ("2048", 8276), ("1024", 10000), ("512", 11839),
         ("256", 14000), ("128", 16000), ("64", 18312), ("32", 22222), ("16", 24399),
-        ("8", 28736), ("4", 32323), ("2", 36666), ("0", 41111)  // Score 0 = ranks 41111-46767
+        ("8", 28736), ("4", 32323), ("2", 36666), ("0", 39752)  // Score 0 = deleted app, came back
     ]
 
     // Shared function to get US player milestone data (ensures consistency between Global and US tabs)
@@ -6084,7 +6178,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 11111-84721)
         ("8192", 11111), ("4096", 17775), ("2048", 22222), ("1024", 31234), ("512", 37665),
         ("256", 52260), ("128", 67676), ("64", 74456), ("32", 79657), ("16", 81246),
-        ("8", 83256), ("4", 83765), ("2", 84065), ("0", 84323)  // Score 0 = new players
+        ("8", 83256), ("4", 83765), ("2", 84065), ("0", 84165)  // Score 0 = deleted app, came back
     ]
 
     // Extended UK milestone brackets for rank calculation (ranks 151+)
@@ -6097,7 +6191,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 298-17676)
         ("8192", 298), ("4096", 388), ("2048", 518), ("1024", 688), ("512", 896),
         ("256", 1234), ("128", 2598), ("64", 6330), ("32", 9358), ("16", 12482),
-        ("8", 14677), ("4", 16086), ("2", 16842), ("0", 17365)  // Score 0 = ranks 17365-17676
+        ("8", 14677), ("4", 16086), ("2", 16842), ("0", 17025)  // Score 0 = deleted app, came back
     ]
 
     // Extended Global milestone brackets for rank calculation (ranks 151+)
@@ -6199,7 +6293,7 @@ public extension LeaderboardClient {
         ("8192", 76767), ("4096", 112486), ("2048", 157780), ("1024", 248624),
         ("512", 402486), ("256", 577398), ("128", 676767), ("64", 733337),
         ("32", 789012), ("16", 822228), ("8", 847790), ("4", 863074), ("2", 877890),
-        ("0", 882349)  // Score 0 = new players (ranks 882349-885676)
+        ("0", 852817)  // Score 0 = deleted app, came back (70% of churned)
     ]
 
     // Exact Global player milestones from screenshots (ranks 1-150)
@@ -9674,7 +9768,7 @@ public extension LeaderboardClient {
         // Raw number brackets (ranks 151-1977)
         ("8192", 151), ("4096", 187), ("2048", 233), ("1024", 344), ("512", 400),
         ("256", 487), ("128", 676), ("64", 857), ("32", 999), ("16", 1167),
-        ("8", 1296), ("4", 1467), ("2", 1667), ("0", 1799)  // Score 0 = ranks 1799-1977
+        ("8", 1296), ("4", 1467), ("2", 1667), ("0", 1680)  // Score 0 = deleted app, came back
     ]
 
     // Generate Andorra entries with milestone progression and user insertion
@@ -9801,7 +9895,7 @@ public extension LeaderboardClient {
         ("65K", 4222), ("32K", 5302), ("16K", 6488), ("8192", 7777), ("4096", 9332),
         ("2048", 11234), ("1024", 12345), ("512", 14459), ("256", 18199), ("128", 22222),
         ("64", 28339), ("32", 35339), ("16", 42223), ("8", 51111), ("4", 60292),
-        ("2", 72192), ("0", 83298)  // Score 0 = ranks 83298-98982
+        ("2", 72192), ("0", 84134)  // Score 0 = deleted app, came back
     ]
 
     // Generate Indonesia entries with milestone progression and user insertion
@@ -9917,7 +10011,7 @@ public extension LeaderboardClient {
         ("65K", 146), ("32K", 169), ("16K", 201), ("8192", 239), ("4096", 285),
         ("2048", 355), ("1024", 434), ("512", 548), ("256", 667), ("128", 767),
         ("64", 899), ("32", 1067), ("16", 1234), ("8", 1470), ("4", 1798),
-        ("2", 2142), ("0", 2567)  // Score 0 = ranks 2567-2974
+        ("2", 2142), ("0", 2528)  // Score 0 = deleted app, came back
     ]
 
     // Generate South Africa entries with milestone progression and user insertion
@@ -10047,7 +10141,7 @@ public extension LeaderboardClient {
         ("131K", 180), ("65K", 193), ("32K", 206), ("16K", 229),
         ("8192", 255), ("4096", 284), ("2048", 433), ("1024", 676), ("512", 1000),
         ("256", 1596), ("128", 2222), ("64", 3029), ("32", 3987), ("16", 5222),
-        ("8", 6666), ("4", 8444), ("2", 10837), ("0", 12888)  // Score 0 = ranks 12888-15111
+        ("8", 6666), ("4", 8444), ("2", 10837), ("0", 12844)  // Score 0 = deleted app, came back
     ]
 
     // Generate Kenya entries with milestone progression and user insertion
@@ -10170,7 +10264,7 @@ public extension LeaderboardClient {
     static let fijiExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         ("4096", 151), ("2048", 161), ("1024", 177), ("512", 196), ("256", 221),
         ("128", 247), ("64", 280), ("32", 322), ("16", 399), ("8", 487),
-        ("4", 589), ("2", 711), ("0", 844)  // Score 0 = ranks 844-1214
+        ("4", 589), ("2", 711), ("0", 1032)  // Score 0 = deleted app, came back
     ]
 
     // Generate Fiji entries with milestone progression and user insertion
@@ -10307,7 +10401,7 @@ public extension LeaderboardClient {
         ("65K", 959), ("32K", 1111), ("16K", 1254), ("8192", 1456), ("4096", 1888),
         ("2048", 2667), ("1024", 4222), ("512", 8484), ("256", 10987), ("128", 16767),
         ("64", 23938), ("32", 32222), ("16", 46767), ("8", 67676), ("4", 89898),
-        ("2", 112345), ("0", 139426)  // Score 0 = ranks 139426-167676
+        ("2", 112345), ("0", 142524)  // Score 0 = deleted app, came back
     ]
 
     // Generate Vietnam entries with milestone progression and user insertion
@@ -10412,7 +10506,7 @@ public extension LeaderboardClient {
         ("16K", 566), ("8192", 797), ("4096", 1066), ("2048", 1499),
         ("1024", 2111), ("512", 2788), ("256", 3555), ("128", 4559),
         ("64", 6000), ("32", 7898), ("16", 10444), ("8", 14440),
-        ("4", 19277), ("2", 25333), ("0", 33073)  // Score 0 = ranks 33073-39999
+        ("4", 19277), ("2", 25333), ("0", 33999)  // Score 0 = deleted app, came back
     ]
 
     // Generate Curaçao entries with milestone progression and user insertion
@@ -10561,7 +10655,7 @@ public extension LeaderboardClient {
         ("16K", 722), ("8192", 822), ("4096", 1000), ("2048", 1273),
         ("1024", 1600), ("512", 2191), ("256", 2888), ("128", 3734),
         ("64", 5111), ("32", 6767), ("16", 11199), ("8", 18838),
-        ("4", 27111), ("2", 49188), ("0", 71837)  // Score 0 = ranks 71837+
+        ("4", 27111), ("2", 49188), ("0", 74687)  // Score 0 = deleted app, came back
     ]
 
     // Generate Venezuela entries with milestone progression and user insertion
@@ -10712,7 +10806,7 @@ public extension LeaderboardClient {
         ("16K", 5118), ("8192", 6411), ("4096", 8088), ("2048", 10311),
         ("1024", 12919), ("512", 17288), ("256", 25178), ("128", 34111),
         ("64", 46222), ("32", 60000), ("16", 79767), ("8", 112874),
-        ("4", 167648), ("2", 259287), ("0", 388270)  // Score 0 = ranks 388270-543296
+        ("4", 167648), ("2", 259287), ("0", 461802)  // Score 0 = deleted app, came back
     ]
 
     // Generate Azerbaijan entries with milestone progression and user insertion
@@ -10846,7 +10940,7 @@ public extension LeaderboardClient {
         ("16K", 1300), ("8192", 1550), ("4096", 1900), ("2048", 2400),
         ("1024", 3100), ("512", 4000), ("256", 5200), ("128", 6800),
         ("64", 8800), ("32", 11500), ("16", 15000), ("8", 20000),
-        ("4", 27000), ("2", 36000), ("0", 48000)  // Score 0 = ranks 48000-62211
+        ("4", 27000), ("2", 36000), ("0", 52879)  // Score 0 = deleted app, came back
     ]
 
     // Generate Kazakhstan entries with milestone progression and user insertion
@@ -10983,7 +11077,7 @@ public extension LeaderboardClient {
         ("8192", 2812), ("4096", 3499), ("2048", 4416),
         ("1024", 5653), ("512", 7123), ("256", 8944), ("128", 12222),
         ("64", 15556), ("32", 19388), ("16", 24488), ("8", 38881),
-        ("4", 56637), ("2", 82222), ("0", 120839)  // Score 0 = ranks 120839-193773
+        ("4", 56637), ("2", 82222), ("0", 164707)  // Score 0 = deleted app, came back
     ]
 
     // Generate Tajikistan entries with milestone progression and user insertion
@@ -11107,7 +11201,7 @@ public extension LeaderboardClient {
     static let niueExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         ("8192", 60), ("4096", 65), ("2048", 71), ("1024", 81), ("512", 94),
         ("256", 108), ("128", 132), ("64", 177), ("32", 233), ("16", 327),
-        ("8", 459), ("4", 577), ("2", 722), ("0", 839)  // Score 0 = ranks 839-947
+        ("8", 459), ("4", 577), ("2", 722), ("0", 805)  // Score 0 = deleted app, came back
     ]
 
     // Generate Niue entries with milestone progression and user insertion
@@ -11241,7 +11335,7 @@ public extension LeaderboardClient {
         ("16K", 34858), ("8192", 42838), ("4096", 51299), ("2048", 59937), ("1024", 72222),
         ("512", 84958), ("256", 100388), ("128", 138470), ("64", 182983), ("32", 237465),
         ("16", 293885), ("8", 374666), ("4", 495779), ("2", 657779),
-        ("0", 839387)  // Score 0 = ranks 839387-1097478
+        ("0", 932856)  // Score 0 = deleted app, came back
     ]
 
     // Generate Kyrgyzstan entries with milestone progression and user insertion
@@ -11353,7 +11447,7 @@ public extension LeaderboardClient {
     static let icelandExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         ("512", 41), ("256", 53), ("128", 67), ("64", 83), ("32", 107),
         ("16", 142), ("8", 276), ("4", 538), ("2", 937),
-        ("0", 1648)  // Score 0 = ranks 1648-2846
+        ("0", 2419)  // Score 0 = deleted app, came back
     ]
 
     // Generate Iceland entries with milestone progression and user insertion
@@ -11533,7 +11627,7 @@ public extension LeaderboardClient {
         ("2048", 1100000), ("1024", 1250000), ("512", 1350000), ("256", 1400000),
         ("128", 1430000), ("64", 1450000), ("32", 1470000), ("16", 1490000),
         ("8", 1520000), ("4", 1580000), ("2", 1700000),
-        ("0", 2030000)  // Score 0 = only banned/deleted players (ranks 2030000-2093776)
+        ("0", 1779708)  // Score 0 = deleted app, came back (70% of churned)
     ]
 
     // Generate Slovakia entries with milestone progression and user insertion
@@ -11667,7 +11761,7 @@ public extension LeaderboardClient {
         ("2048", 157468), ("1024", 294877), ("512", 500000), ("256", 857654),
         ("128", 1473542), ("64", 2197387), ("32", 3333333), ("16", 5123456),
         ("8", 7292827), ("4", 9766766), ("2", 13456789),
-        ("0", 27600000)  // Score 0 = only banned/deleted players (ranks 27600000-28473673)
+        ("0", 24202622)  // Score 0 = deleted app, came back (70% of churned)
     ]
 
     // Generate Uzbekistan entries with milestone progression and user insertion

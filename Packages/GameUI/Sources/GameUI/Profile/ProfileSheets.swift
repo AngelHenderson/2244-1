@@ -162,10 +162,13 @@ struct CompareView: View {
     private var filteredPlayers: [MockPlayer] {
         let query = searchText.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return [] }
-        // Filter by any letters typed (contains match), exclude already selected, limit to 50
+        // Filter by name or code (contains match), exclude already selected, limit to 50
         let selectedIDs = Set(selectedPlayers.map { $0.id })
         return mockPlayers
-            .filter { $0.code.uppercased().contains(query) && !selectedIDs.contains($0.id) }
+            .filter {
+                !selectedIDs.contains($0.id) &&
+                ($0.code.uppercased().contains(query) || $0.name.uppercased().contains(query))
+            }
             .prefix(50)
             .map { $0 }
     }
@@ -216,9 +219,10 @@ struct CompareView: View {
                 }
 
                 Section("Add Players to Compare") {
-                    TextField("Search codes (e.g., A1 or XY)", text: $searchText)
-                        .textInputAutocapitalization(.characters)
+                    TextField("Search by name or code", text: $searchText)
+                        .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        .disabled(selectedPlayers.count >= maxCompareCount)
 
                     if selectedPlayers.count >= maxCompareCount {
                         Text("Maximum \(maxCompareCount) players")
