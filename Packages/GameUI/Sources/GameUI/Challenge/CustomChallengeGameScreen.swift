@@ -29,6 +29,12 @@ public struct CustomChallengeGameScreen: View {
     @State private var isMagnetMode = false
     @State private var firstSwapPosition: Position? = nil
 
+    // Move alert states
+    @State private var isShowingOutOfMoves = false
+    @State private var isShowingLowOnMoves = false
+    @State private var isShowingPowerUpRecovery = false
+    @State private var lowMovesWarningArmed = true
+
     // Store player's highest tile/step for re-applying after game reset
     private let playerHighestTile: Int
     private let playerHighestTileStep: Int
@@ -91,6 +97,21 @@ public struct CustomChallengeGameScreen: View {
             if showResult {
                 resultOverlay
             }
+
+            // Low on moves warning overlay
+            if isShowingLowOnMoves {
+                lowOnMovesOverlay
+            }
+
+            // Out of moves dialog overlay
+            if isShowingOutOfMoves {
+                outOfMovesOverlay
+            }
+
+            // Power-up recovery selection overlay
+            if isShowingPowerUpRecovery {
+                powerUpRecoveryOverlay
+            }
         }
         .onAppear {
             startChallenge()
@@ -119,6 +140,25 @@ public struct CustomChallengeGameScreen: View {
             // Track merged tiles for achievements using main game store
             if chainLength > 0 {
                 mainGameStore.achievementEvaluator?.onTilesMerged(count: chainLength)
+            }
+        }
+        .onChange(of: challengeGameStore.state.isGameOver) { _, isGameOver in
+            if isGameOver && !isShowingOutOfMoves && !challengeEnded {
+                isShowingOutOfMoves = true
+            } else if !isGameOver {
+                // Game recovered (e.g., power-up created new moves)
+                isShowingOutOfMoves = false
+                isShowingPowerUpRecovery = false
+            }
+        }
+        .onChange(of: challengeGameStore.validMovesCount) { _, newCount in
+            // Show low-on-moves warning when moves drop to 5 or below
+            // Re-arms when moves go back above 5 (e.g., after using a powerup)
+            if newCount > 5 {
+                lowMovesWarningArmed = true
+            } else if newCount > 0 && newCount <= 5 && lowMovesWarningArmed && !challengeGameStore.state.isGameOver && !isShowingOutOfMoves && !challengeEnded {
+                lowMovesWarningArmed = false
+                isShowingLowOnMoves = true
             }
         }
     }
@@ -449,11 +489,59 @@ public struct CustomChallengeGameScreen: View {
                     .foregroundStyle(challengeWon ? .green : .red)
 
                 if challengeWon {
-                    HStack(spacing: 8) {
-                        Image(systemName: "diamond.fill")
-                            .foregroundStyle(.mint)
-                        Text("+\(config.predictedRewardGems)")
-                            .font(.system(.title, design: .rounded).bold())
+                    // Look up the full reward to display all components
+                    let fullReward: ChallengeReward? = {
+                        if let challengeId = config.challengeId {
+                            return challengeStore.reward(for: challengeId)
+                        }
+                        return nil
+                    }()
+
+                    VStack(spacing: 12) {
+                        // Gems
+                        let gemAmount = fullReward?.coins ?? config.predictedRewardGems
+                        if gemAmount > 0 {
+                            HStack(spacing: 8) {
+                                Image(systemName: "diamond.fill")
+                                    .foregroundStyle(.mint)
+                                Text("+\(gemAmount) Gems")
+                                    .font(.system(.title3, design: .rounded).bold())
+                            }
+                        }
+
+                        // Power-ups
+                        if let powerUps = fullReward?.powerUps, !powerUps.isEmpty {
+                            ForEach(Array(powerUps.sorted(by: { $0.key.rawValue < $1.key.rawValue })), id: \.key) { type, count in
+                                HStack(spacing: 8) {
+                                    Image(systemName: powerUpIcon(for: type))
+                                        .foregroundStyle(.yellow)
+                                    Text("+\(count) \(powerUpName(for: type))")
+                                        .font(.system(.title3, design: .rounded).bold())
+                                }
+                            }
+                        }
+
+                        // Spins
+                        if let spins = fullReward?.spins, spins > 0 {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.trianglehead.2.counterclockwise.rotate.90")
+                                    .foregroundStyle(.purple)
+                                Text("+\(spins) \(spins == 1 ? "Spin" : "Spins")")
+                                    .font(.system(.title3, design: .rounded).bold())
+                            }
+                        }
+
+                        // Score boosts
+                        if let boosts = fullReward?.scoreBoosts, !boosts.isEmpty {
+                            ForEach(Array(boosts.sorted(by: { $0.key < $1.key })), id: \.key) { multiplier, count in
+                                HStack(spacing: 8) {
+                                    Image(systemName: "bolt.fill")
+                                        .foregroundStyle(.orange)
+                                    Text("+\(count) \(multiplier)X Boost")
+                                        .font(.system(.title3, design: .rounded).bold())
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -472,12 +560,164 @@ public struct CustomChallengeGameScreen: View {
         }
     }
 
+    private func powerUpIcon(for type: PowerUpType) -> String {
+        switch type {
+        case .hammer: return "hammer.fill"
+        case .swap: return "arrow.left.arrow.right"
+        case .magnet: return "arrow.triangle.merge"
+        case .undo: return "arrow.uturn.backward"
+        default: return "star.fill"
+        }
+    }
+
+    private func powerUpName(for type: PowerUpType) -> String {
+        switch type {
+        case .hammer: return "Hammer"
+        case .swap: return "Swap"
+        case .magnet: return "MegaMerge"
+        case .undo: return "Undo"
+        default: return type.rawValue.capitalized
+        }
+    }
+
     private var validMovesColor: Color {
         let count = challengeGameStore.validMovesCount
         if count == 0 { return .red }
         else if count < 10 { return .orange }
         else if count < 20 { return .yellow }
         else { return .green }
+    }
+
+    // MARK: - Move Alert Overlays
+
+    private var lowOnMovesOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Text("Low On Moves")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+
+                Text("You are low on moves. Want to use a powerup to free up moves?")
+                    .font(.system(size: 17, weight: .regular, design: .rounded))
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+
+                HStack(spacing: 60) {
+                    Button("Yes") {
+                        isShowingLowOnMoves = false
+                        isShowingPowerUpRecovery = true
+                    }
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+
+                    Button("No") {
+                        isShowingLowOnMoves = false
+                    }
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                }
+                .padding(.top, 20)
+            }
+            .padding(40)
+        }
+    }
+
+    private var outOfMovesOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Text("Out Of Moves")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+
+                Text("You have no moves. Want to use a powerup to revive?")
+                    .font(.system(size: 17, weight: .regular, design: .rounded))
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+
+                HStack(spacing: 60) {
+                    Button("Yes") {
+                        isShowingOutOfMoves = false
+                        isShowingPowerUpRecovery = true
+                    }
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+
+                    Button("No") {
+                        isShowingOutOfMoves = false
+                        endChallenge(won: false)
+                    }
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                }
+                .padding(.top, 20)
+            }
+            .padding(40)
+        }
+    }
+
+    private var powerUpRecoveryOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                Text("Choose a power-up to continue")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+
+                HStack(spacing: 16) {
+                    recoveryPowerUpButton(name: "Hammer", icon: "hammer.fill") {
+                        isShowingPowerUpRecovery = false
+                        isHammerMode = true
+                    }
+
+                    recoveryPowerUpButton(name: "Shuffle", icon: "shuffle") {
+                        isShowingPowerUpRecovery = false
+                        if challengeGameStore.useShuffle() {
+                            // Shuffle successful - game continues
+                        } else {
+                            // Not enough gems - end challenge
+                            endChallenge(won: false)
+                        }
+                    }
+
+                    recoveryPowerUpButton(name: "Magnet", icon: "magnet") {
+                        isShowingPowerUpRecovery = false
+                        isMagnetMode = true
+                    }
+                }
+
+                Button("Cancel") {
+                    isShowingPowerUpRecovery = false
+                    endChallenge(won: false)
+                }
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundColor(.white.opacity(0.7))
+                .padding(.top, 10)
+            }
+            .padding(30)
+        }
+    }
+
+    private func recoveryPowerUpButton(name: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                Text(name)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+            }
+            .foregroundColor(.white)
+            .frame(width: 80, height: 80)
+            .background(Color.white.opacity(0.2))
+            .cornerRadius(12)
+        }
     }
 
     private var targetLabel: String {

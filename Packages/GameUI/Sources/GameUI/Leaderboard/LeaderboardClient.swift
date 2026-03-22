@@ -4409,8 +4409,17 @@ public extension LeaderboardClient {
     // Hall of Fame - players who reached ∞ from ALL countries
     // Ranks are based on infinity count - higher infinity = better rank
     // Includes daily progression and player churn
+    // Cached per day to avoid recomputing on every filter switch
+    private static var cachedHofDay: Int = -1
+    private static var cachedHofEntries: [LeaderboardEntry] = []
+
     private static func hallOfFameEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
+
+        // Return cached result if already computed for today
+        if day == cachedHofDay && !cachedHofEntries.isEmpty {
+            return cachedHofEntries
+        }
 
         // Combine all country Hall of Fame data
         var playerData: [(id: String, baseCount: Int, country: String, nameIndex: Int, playerIndex: Int)] = []
@@ -4664,6 +4673,10 @@ public extension LeaderboardClient {
                 highestTile: "\(player.progressedCount)∞"
             ))
         }
+
+        // Cache the result for this day
+        cachedHofDay = day
+        cachedHofEntries = entries
 
         return entries
     }

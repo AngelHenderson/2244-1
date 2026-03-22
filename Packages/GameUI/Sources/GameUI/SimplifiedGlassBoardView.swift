@@ -429,35 +429,26 @@ public struct SimplifiedGlassBoardView: View {
     }
     
     private func gridPosition(from location: CGPoint, tileSize: CGFloat, containerSize: CGSize) -> Position? {
+        // Snap to the nearest tile center instead of rejecting touches in spacing gaps.
+        // This makes diagonal connections as easy as orthogonal ones.
         let origin = gridOrigin(in: containerSize, tileSize: tileSize)
-        let localX = location.x - origin.x
-        let localY = location.y - origin.y
-        
-        var foundCol: Int? = nil
-        var foundRow: Int? = nil
-        
-        for col in 0..<gameStore.state.board.width {
-            let tileStartX = spacing + CGFloat(col) * (tileSize + spacing)
-            let tileEndX = tileStartX + tileSize
-            
-            if localX >= tileStartX && localX <= tileEndX {
-                foundCol = col
-                break
-            }
+        let localX = location.x - origin.x - spacing
+        let localY = location.y - origin.y - spacing
+
+        guard localX >= -spacing / 2, localY >= -spacing / 2 else { return nil }
+
+        let blockWidth = tileSize + spacing
+        let blockHeight = tileSize + spacing
+
+        // Round to the nearest tile index (snap to closest tile center).
+        let col = Int(round((localX - tileSize / 2) / blockWidth))
+        let row = Int(round((localY - tileSize / 2) / blockHeight))
+
+        guard col >= 0, col < gameStore.state.board.width,
+              row >= 0, row < gameStore.state.board.height else {
+            return nil
         }
-        
-        for row in 0..<gameStore.state.board.height {
-            let tileStartY = spacing + CGFloat(row) * (tileSize + spacing)
-            let tileEndY = tileStartY + tileSize
-            
-            if localY >= tileStartY && localY <= tileEndY {
-                foundRow = row
-                break
-            }
-        }
-        
-        guard let col = foundCol, let row = foundRow else { return nil }
-        
+
         let position = Position(row: row, col: col)
         return position.isValid(for: gameStore.state.board) ? position : nil
     }

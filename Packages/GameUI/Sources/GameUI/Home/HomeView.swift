@@ -374,6 +374,7 @@ public struct HomeView: View {
                                 .font(.system(size: 24))
                         }
                     }
+                    .frame(width: 56, height: 56)
                     .padding(4)
                     .overlay(alignment: .topTrailing) {
                         if banned {
@@ -410,6 +411,7 @@ public struct HomeView: View {
                                 .font(.system(size: 24))
                         }
                     }
+                    .frame(width: 56, height: 56)
                     .padding(4)
                     .overlay(alignment: .topTrailing) {
                         if banned {
