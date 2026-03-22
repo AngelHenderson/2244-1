@@ -23,6 +23,16 @@ public final class HomeState {
     public var hasShopBadge = true
     public var hasProfileBadge = true
     public var achievementsBadgeCount: Int = 0
+
+    // Ban state
+    /// Whether the player is currently banned. When true, all app functionality is disabled.
+    public var isBanned: Bool = false
+    /// The reason for the ban (shown in the alert)
+    public var banReasonText: String = ""
+    /// The ban duration text (shown in the alert)
+    public var banDurationText: String = ""
+    /// Controls visibility of the ban alert popup
+    public var showBanAlert: Bool = false
     // Unlock thresholds (power-of-two milestones)
     public var createUnlockAt: Int = 1_048_576 // 2^20 (1M)
     public var challengeUnlockAt: Int = 1_073_741_824 // 2^30 (1B)

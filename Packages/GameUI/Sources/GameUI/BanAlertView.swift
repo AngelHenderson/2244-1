@@ -13,8 +13,7 @@ public enum BanReason: String, CaseIterable, Sendable {
     case accountViolation = "account selling, sharing, or ban evasion"
 }
 
-/// Duration of a ban. Temporary bans show remaining time; permanent bans
-/// show a fixed message.
+/// Duration of a ban.
 public enum BanDuration: Sendable {
     case temporary(days: Int)
     case permanent
@@ -42,173 +41,59 @@ public enum BanDuration: Sendable {
     }
 }
 
-/// A full-screen ban alert overlay. Displays the ban reason, duration,
-/// and an acknowledgement button. Designed to block all interaction
-/// until the player acknowledges the ban.
-public struct BanAlertView: View {
+/// Builds the ban alert message string for use in a standard `.alert()`.
+public enum BanAlert {
+    /// Generates the subtitle message for a ban alert.
+    public static func message(reason: BanReason, duration: BanDuration) -> String {
+        switch duration {
+        case .temporary:
+            return "You are banned due to \(reason.rawValue). Your account has been suspended for \(duration.displayText)."
+        case .permanent:
+            return "You are banned due to \(reason.rawValue). Your account has been permanently banned."
+        }
+    }
+}
+
+// MARK: - View Modifier
+
+/// A view modifier that attaches a ban alert to any view.
+/// Usage: `.banAlert(isPresented: $showBan, reason: .cheating, duration: .temporary(days: 7))`
+public struct BanAlertModifier: ViewModifier {
+    @Binding var isPresented: Bool
     let reason: BanReason
     let duration: BanDuration
-    let offenseNumber: Int
-    let onDismiss: () -> Void
 
-    private let darkBg = Color(red: 0.06, green: 0.06, blue: 0.10)
-    private let dangerRed = Color(red: 0.85, green: 0.15, blue: 0.15)
-
-    public init(
-        reason: BanReason,
-        duration: BanDuration,
-        offenseNumber: Int = 1,
-        onDismiss: @escaping () -> Void
-    ) {
-        self.reason = reason
-        self.duration = duration
-        self.offenseNumber = offenseNumber
-        self.onDismiss = onDismiss
-    }
-
-    public var body: some View {
-        ZStack {
-            darkBg.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                Spacer()
-
-                // Ban icon
-                ZStack {
-                    Circle()
-                        .fill(dangerRed.opacity(0.15))
-                        .frame(width: 100, height: 100)
-
-                    Circle()
-                        .fill(dangerRed.opacity(0.25))
-                        .frame(width: 76, height: 76)
-
-                    Image(systemName: "exclamationmark.octagon.fill")
-                        .font(.system(size: 44))
-                        .foregroundStyle(dangerRed)
-                }
-                .padding(.bottom, 24)
-
-                // Title
-                Text("Banned")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.bottom, 8)
-
-                // Subtitle - ban reason and duration
-                VStack(spacing: 6) {
-                    Text("You are banned due to \(reason.rawValue).")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.85))
-                        .multilineTextAlignment(.center)
-
-                    Text(durationMessage)
-                        .font(.system(size: 15, weight: .regular))
-                        .foregroundStyle(.white.opacity(0.6))
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 24)
-
-                // Info card
-                VStack(alignment: .leading, spacing: 12) {
-                    infoRow(icon: "clock.fill", label: "Duration", value: duration.displayText)
-                    infoRow(icon: "number", label: "Offense", value: offenseLabel)
-                    infoRow(icon: "shield.slash.fill", label: "Reason", value: reason.rawValue.capitalized)
-                }
-                .padding(20)
-                .background(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.white.opacity(0.06))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .strokeBorder(dangerRed.opacity(0.3), lineWidth: 1)
-                        )
-                )
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)
-
-                // Restriction notice
-                Text("While banned, you cannot play, sync progress, access leaderboards, participate in events, or earn rewards.")
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.4))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 32)
-
-                Spacer()
-
-                // Dismiss button
-                Button(action: onDismiss) {
-                    Text("I Understand")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(dangerRed)
-                        )
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
+    public func body(content: Content) -> some View {
+        content
+            .alert("Banned", isPresented: $isPresented) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(BanAlert.message(reason: reason, duration: duration))
             }
-        }
     }
+}
 
-    private var durationMessage: String {
-        switch duration {
-        case .temporary(let days):
-            return "Your account has been suspended for \(duration.displayText)."
-        case .permanent:
-            return "Your account has been permanently banned."
-        }
-    }
-
-    private var offenseLabel: String {
-        switch offenseNumber {
-        case 1: return "1st offense"
-        case 2: return "2nd offense"
-        case 3: return "3rd offense"
-        default: return "\(offenseNumber)th offense"
-        }
-    }
-
-    private func infoRow(icon: String, label: String, value: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundStyle(dangerRed.opacity(0.8))
-                .frame(width: 24)
-
-            Text(label)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white.opacity(0.5))
-
-            Spacer()
-
-            Text(value)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.9))
-                .multilineTextAlignment(.trailing)
-        }
+public extension View {
+    /// Presents a system ban alert with the given reason and duration.
+    func banAlert(isPresented: Binding<Bool>, reason: BanReason, duration: BanDuration) -> some View {
+        modifier(BanAlertModifier(isPresented: isPresented, reason: reason, duration: duration))
     }
 }
 
 #Preview("Ban Alert - Temporary") {
-    BanAlertView(
-        reason: .cheating,
-        duration: .temporary(days: 7),
-        offenseNumber: 1,
-        onDismiss: {}
-    )
+    Color.clear
+        .banAlert(
+            isPresented: .constant(true),
+            reason: .cheating,
+            duration: .temporary(days: 7)
+        )
 }
 
 #Preview("Ban Alert - Permanent") {
-    BanAlertView(
-        reason: .accountViolation,
-        duration: .permanent,
-        offenseNumber: 15,
-        onDismiss: {}
-    )
+    Color.clear
+        .banAlert(
+            isPresented: .constant(true),
+            reason: .accountViolation,
+            duration: .permanent
+        )
 }

@@ -71,6 +71,8 @@ public struct HomeView: View {
                                 customImage: "dailypic",
                                 title: "DAILY",
                                 badge: dailyClaimsStore.canClaimToday,
+                                banned: state.isBanned,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { actions.openDaily() }
                             )
 
@@ -79,6 +81,8 @@ public struct HomeView: View {
                                 customImage: "spinthewheel",
                                 title: "FREE SPIN",
                                 badgeCount: spinState.bonusSpins,
+                                banned: state.isBanned,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { actions.openFreeSpin() }
                             )
 
@@ -87,6 +91,8 @@ public struct HomeView: View {
                                 customImage: "mysterybox",
                                 title: "SHOP",
                                 badge: state.hasShopBadge,
+                                banned: state.isBanned,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { isShowingShop = true }
                             )
 
@@ -94,6 +100,8 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "soundeffect",
                                 title: "MUSIC",
+                                banned: state.isBanned,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { isShowingMusic = true }
                             )
 
@@ -102,6 +110,8 @@ public struct HomeView: View {
                                 customImage: "salesoffer",
                                 title: "SALE OFFER",
                                 badge: true,
+                                banned: state.isBanned,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { actions.openSaleOffer() }
                             )
 
@@ -109,6 +119,8 @@ public struct HomeView: View {
                                 systemImage: "bolt.fill",
                                 customImage: nil,
                                 title: "BOOSTS",
+                                banned: state.isBanned,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { isShowingBoosts = true }
                             )
 
@@ -128,6 +140,8 @@ public struct HomeView: View {
                                 customImage: "createagame",
                                 title: "CREATE",
                                 locked: state.isCreateLocked,
+                                banned: state.isBanned,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { actions.openCreate() }
                             )
                             
@@ -136,8 +150,10 @@ public struct HomeView: View {
                                 customImage: "ads",
                                 title: "",
                                 badge: true,
+                                banned: state.isBanned,
                                 specialLabel: "+\(state.adReward)",
                                 specialLabelInside: true,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: {
                                     Task {
                                         let reward = await actions.watchAd()
@@ -151,9 +167,11 @@ public struct HomeView: View {
                                 customImage: "challenge",
                                 title: "CHALLENGE",
                                 locked: state.isChallengeLocked,
+                                banned: state.isBanned,
                                 onLockedTap: {
                                     showLockedChallengeAlert = true
                                 },
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { actions.openChallenge() }
                             )
 
@@ -164,6 +182,8 @@ public struct HomeView: View {
                                         systemImage: nil,
                                         customImage: "gift",
                                         title: "BEST OFFER",
+                                        banned: state.isBanned,
+                                        onBannedTap: { state.showBanAlert = true },
                                         action: { isShowingWeeklyOffer = true }
                                     )
                                     CountdownView(deadline: deadline)
@@ -173,6 +193,8 @@ public struct HomeView: View {
                                     systemImage: nil,
                                     customImage: "gift",
                                     title: "BEST OFFER",
+                                    banned: state.isBanned,
+                                    onBannedTap: { state.showBanAlert = true },
                                     action: { isShowingWeeklyOffer = true }
                                 )
                             }
@@ -181,6 +203,8 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "themedefault",
                                 title: "THEME",
+                                banned: state.isBanned,
+                                onBannedTap: { state.showBanAlert = true },
                                 action: { isShowingThemePicker = true }
                             )
 
@@ -194,7 +218,19 @@ public struct HomeView: View {
 
                 // Play button
                 PillButton(title: "Play", icon: "play.fill") {
-                    actions.play()
+                    if state.isBanned {
+                        state.showBanAlert = true
+                    } else {
+                        actions.play()
+                    }
+                }
+                .overlay(alignment: .topTrailing) {
+                    if state.isBanned {
+                        Image(systemName: "exclamationmark.octagon.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
+                            .offset(x: -8, y: -4)
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.vertical)
@@ -205,23 +241,39 @@ public struct HomeView: View {
                         system: "person.circle.fill",
                         title: "Profile",
                         badge: state.hasProfileBadge,
-                        action: { isShowingProfile = true }
+                        banned: state.isBanned,
+                        action: {
+                            if state.isBanned { state.showBanAlert = true }
+                            else { isShowingProfile = true }
+                        }
                     )
                     dockItem(
                         system: "star.circle.fill",
                         title: "Achievements",
                         badgeCount: state.achievementsBadgeCount,
-                        action: { isShowingAchievements = true }
+                        banned: state.isBanned,
+                        action: {
+                            if state.isBanned { state.showBanAlert = true }
+                            else { isShowingAchievements = true }
+                        }
                     )
                     dockItem(
                         system: "trophy.circle.fill",
                         title: "Leaderboard",
-                        action: { isShowingLeaderboard = true }
+                        banned: state.isBanned,
+                        action: {
+                            if state.isBanned { state.showBanAlert = true }
+                            else { isShowingLeaderboard = true }
+                        }
                     )
                     dockItem(
                         system: "gearshape.fill",
                         title: "Settings",
-                        action: { isShowingSettings = true }
+                        banned: state.isBanned,
+                        action: {
+                            if state.isBanned { state.showBanAlert = true }
+                            else { isShowingSettings = true }
+                        }
                     )
                 }
                 .padding(.bottom, 16)
@@ -293,9 +345,14 @@ public struct HomeView: View {
         } message: {
             Text("Sorry! You do not have a high enough tile to unlock this. You need a 1B tile.")
         }
+        .alert("Banned", isPresented: Bindable(state).showBanAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You are banned due to \(state.banReasonText). \(state.banDurationText)")
+        }
     }
 
-    private func dockItem(system: String, title: String, badge: Bool = false, badgeCount: Int = 0, action: @escaping () -> Void) -> some View {
+    private func dockItem(system: String, title: String, badge: Bool = false, badgeCount: Int = 0, banned: Bool = false, action: @escaping () -> Void) -> some View {
         if #available(iOS 26.0, macOS 26.0, *) {
             return AnyView(
                 Button(action: action) {
@@ -314,7 +371,12 @@ public struct HomeView: View {
                     }
                     .padding(4)
                     .overlay(alignment: .topTrailing) {
-                        if badgeCount > 0 {
+                        if banned {
+                            Image(systemName: "exclamationmark.octagon.fill")
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
+                                .offset(x: 6, y: -4)
+                        } else if badgeCount > 0 {
                             Text("\(badgeCount)")
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundColor(.white)
@@ -345,7 +407,12 @@ public struct HomeView: View {
                     }
                     .padding(4)
                     .overlay(alignment: .topTrailing) {
-                        if badgeCount > 0 {
+                        if banned {
+                            Image(systemName: "exclamationmark.octagon.fill")
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
+                                .offset(x: 6, y: -4)
+                        } else if badgeCount > 0 {
                             Text("\(badgeCount)")
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundColor(.white)

@@ -7,9 +7,11 @@ struct SideRailButton: View {
     var badge: Bool = false
     var badgeCount: Int? = nil  // If set, shows count instead of dot
     var locked: Bool = false
+    var banned: Bool = false
     var specialLabel: String? = nil
     var specialLabelInside: Bool = false  // If true, show specialLabel inside the button
     var onLockedTap: (() -> Void)? = nil
+    var onBannedTap: (() -> Void)? = nil
     var action: () -> Void
     
     @Environment(\.currentBackgroundTheme) private var backgroundTheme
@@ -17,7 +19,9 @@ struct SideRailButton: View {
     var body: some View {
         VStack{
             Button(action: {
-                if locked {
+                if banned {
+                    onBannedTap?()
+                } else if locked {
                     onLockedTap?()
                 } else {
                     action()
@@ -40,7 +44,15 @@ struct SideRailButton: View {
                         }
                         .frame(width: 56, height: 56)
                         .overlay {
-                            if locked {
+                            if banned {
+                                ZStack {
+                                    Color.black.opacity(0.4)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    Image(systemName: "exclamationmark.octagon.fill")
+                                        .font(.system(size: 22))
+                                        .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
+                                }
+                            } else if locked {
                                 ZStack {
                                     Image("lockpic")
                                         .resizable()
