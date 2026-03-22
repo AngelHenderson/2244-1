@@ -2495,6 +2495,14 @@ public enum MockLeaderboardData {
         1, 1, 1, 1
     ]
 
+    static let irelandHallOfFameInfinityCounts: [Int] = [
+        // Ireland Hall of Fame (40 players)
+        11234, 5978, 3837, 2436, 1968, 1496, 1036, 678, 456, 400,
+        297, 234, 176, 123, 79, 67, 60, 54, 49, 45,
+        42, 39, 35, 28, 20, 16, 14, 9, 5, 4,
+        4, 3, 2, 2, 2, 1, 1, 1, 1, 1
+    ]
+
     static let switzerlandHallOfFameInfinityCounts: [Int] = [
         // Switzerland Hall of Fame (54 players)
         36667, 6767, 2847, 999, 684, 389, 125, 70, 29, 17,
@@ -4606,6 +4614,16 @@ public extension LeaderboardClient {
         // Add Vietnam players
         for (i, count) in MockLeaderboardData.vietnamHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_vn_\(i)", count, "VN", globalIndex, i + 37000))
+            globalIndex += 1
+        }
+        // Add Kazakhstan players
+        for (i, count) in MockLeaderboardData.kazakhstanHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_kz_\(i)", count, "KZ", globalIndex, i + 38000))
+            globalIndex += 1
+        }
+        // Add Ireland players
+        for (i, count) in MockLeaderboardData.irelandHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_ie_\(i)", count, "IE", globalIndex, i + 39000))
             globalIndex += 1
         }
 
