@@ -11533,7 +11533,7 @@ public extension LeaderboardClient {
         ("2048", 1100000), ("1024", 1250000), ("512", 1350000), ("256", 1400000),
         ("128", 1430000), ("64", 1450000), ("32", 1470000), ("16", 1490000),
         ("8", 1520000), ("4", 1580000), ("2", 1700000),
-        ("0", 1382707)  // Score 0 = ranks 1382707-2093776
+        ("0", 2030000)  // Score 0 = only banned/deleted players (ranks 2030000-2093776)
     ]
 
     // Generate Slovakia entries with milestone progression and user insertion
@@ -11667,7 +11667,7 @@ public extension LeaderboardClient {
         ("2048", 157468), ("1024", 294877), ("512", 500000), ("256", 857654),
         ("128", 1473542), ("64", 2197387), ("32", 3333333), ("16", 5123456),
         ("8", 7292827), ("4", 9766766), ("2", 13456789),
-        ("0", 19376367)  // Score 0 = ranks 19376367-28473673
+        ("0", 27600000)  // Score 0 = only banned/deleted players (ranks 27600000-28473673)
     ]
 
     // Generate Uzbekistan entries with milestone progression and user insertion
