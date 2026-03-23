@@ -17,6 +17,22 @@ public struct LeaderboardView: View {
     @State private var lastReportedName: String = ""
     @State private var lastReportedCount: Int = 0
 
+    // Report abuse protection
+    /// How many unique players the local user has reported
+    @State private var totalUniqueReports: Int = 0
+    /// Player IDs that were banned because of THIS user's reports
+    @State private var playersBannedByMe: Set<String> = []
+    /// Alert for when the user is caught abusing reports
+    @State private var showReportAbuseAlert = false
+    /// Threshold: if user reports more than this many unique players, they are abusing reports
+    private let reportAbuseThreshold = 5
+
+    // "Are you sure?" confirmation before reporting
+    @State private var pendingReportEntry: LeaderboardEntry?
+    @State private var showReportAreYouSure = false
+    @State private var showReportTrueOrFalse = false
+    @State private var showFalseReportWarning = false
+
     private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
 
     public init(client: LeaderboardClient) {
@@ -112,6 +128,45 @@ public struct LeaderboardView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("\(lastReportedName) has been banned and removed from the leaderboard due to multiple reports.")
+        }
+        .alert("Report Abuse Detected", isPresented: $showReportAbuseAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You have been flagged for abusing the report system. All players you reported have been unbanned. Continued abuse will result in your account being suspended.")
+        }
+        .alert("Are you sure?", isPresented: $showReportAreYouSure) {
+            Button("Yes", role: .destructive) {
+                // Move to True or False step
+                showReportTrueOrFalse = true
+            }
+            Button("Cancel", role: .cancel) {
+                pendingReportEntry = nil
+            }
+        } message: {
+            Text("Are you sure \(pendingReportEntry?.name ?? "this player") did something that violates the rules? False reports will count against you.")
+        }
+        .alert("True or False?", isPresented: $showReportTrueOrFalse) {
+            Button("True") {
+                // Legitimate report — player gets a warning toward ban
+                if let entry = pendingReportEntry {
+                    reportPlayer(entry)
+                    pendingReportEntry = nil
+                }
+            }
+            Button("False", role: .destructive) {
+                // False report — reporter gets 1-2 abuse points
+                let abusePoints = Int.random(in: 1...2)
+                totalUniqueReports += abusePoints
+                pendingReportEntry = nil
+                showFalseReportWarning = true
+            }
+        } message: {
+            Text("Did \(pendingReportEntry?.name ?? "this player") actually do something wrong?")
+        }
+        .alert("False Report!", isPresented: $showFalseReportWarning) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Your false report has been recorded. False reports count against you and may result in your account being suspended.")
         }
         .onChange(of: showingTop150) { _, isTop150 in
             // When switching to Top 150 view, force a refresh so the entries
@@ -1074,7 +1129,8 @@ public struct LeaderboardView: View {
         .contextMenu {
             if !entry.isMe {
                 Button(role: .destructive) {
-                    reportPlayer(entry)
+                    pendingReportEntry = entry
+                    showReportAreYouSure = true
                 } label: {
                     Label("Report Player", systemImage: "exclamationmark.triangle.fill")
                 }
@@ -1247,18 +1303,55 @@ public struct LeaderboardView: View {
     // MARK: - Report System
 
     /// Report a player. After 3 reports, the player is banned and removed from the leaderboard.
+    /// If the local user reports too many unique players (abuse threshold), they get banned
+    /// and all victims are unbanned.
     private func reportPlayer(_ entry: LeaderboardEntry) {
+        let isFirstReport = reportCounts[entry.id] == nil
         let currentCount = (reportCounts[entry.id] ?? 0) + 1
         reportCounts[entry.id] = currentCount
         lastReportedName = entry.name
         lastReportedCount = currentCount
 
+        // Track unique reports for abuse detection
+        if isFirstReport {
+            // Reporting a player ranked HIGHER than you (who overtook you)
+            // counts double towards abuse — likely jealousy, not a legit report
+            let myRank = model.myEntry?.rank ?? Int.max
+            if entry.rank < myRank {
+                totalUniqueReports += 2  // counts as 2 abuse points
+            } else {
+                totalUniqueReports += 1
+            }
+        }
+
         if currentCount >= 3 {
-            // Ban threshold reached
+            // Ban threshold reached for this player
             bannedPlayerIds.insert(entry.id)
-            showPlayerBanned = true
+            playersBannedByMe.insert(entry.id)
+
+            // Check for report abuse AFTER banning
+            if totalUniqueReports > reportAbuseThreshold {
+                // Abusing reports — unban all victims and ban the reporter
+                for victimId in playersBannedByMe {
+                    bannedPlayerIds.remove(victimId)
+                }
+                playersBannedByMe.removeAll()
+                showReportAbuseAlert = true
+            } else {
+                showPlayerBanned = true
+            }
         } else {
-            showReportConfirmation = true
+            // Check for abuse even before any single player hits 3
+            if totalUniqueReports > reportAbuseThreshold {
+                // Unban all victims and flag the reporter
+                for victimId in playersBannedByMe {
+                    bannedPlayerIds.remove(victimId)
+                }
+                playersBannedByMe.removeAll()
+                showReportAbuseAlert = true
+            } else {
+                showReportConfirmation = true
+            }
         }
     }
 }
