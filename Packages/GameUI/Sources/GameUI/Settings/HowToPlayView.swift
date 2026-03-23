@@ -1491,6 +1491,8 @@ private struct TutorialTile: View {
     var body: some View {
         Text(value)
             .font(.avenirNext(size: size * 0.45, weight: .bold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             .background(color, in: RoundedRectangle(cornerRadius: size * 0.17))
