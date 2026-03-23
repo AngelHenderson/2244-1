@@ -4410,8 +4410,8 @@ public extension LeaderboardClient {
     // Ranks are based on infinity count - higher infinity = better rank
     // Includes daily progression and player churn
     // Cached per day to avoid recomputing on every filter switch
-    private static var cachedHofDay: Int = -1
-    private static var cachedHofEntries: [LeaderboardEntry] = []
+    nonisolated(unsafe) private static var cachedHofDay: Int = -1
+    nonisolated(unsafe) private static var cachedHofEntries: [LeaderboardEntry] = []
 
     private static func hallOfFameEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
