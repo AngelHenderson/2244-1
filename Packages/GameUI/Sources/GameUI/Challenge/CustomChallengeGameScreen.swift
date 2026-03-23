@@ -98,15 +98,7 @@ public struct CustomChallengeGameScreen: View {
                 resultOverlay
             }
 
-            // Low on moves warning overlay
-            if isShowingLowOnMoves {
-                lowOnMovesOverlay
-            }
 
-            // Out of moves dialog overlay
-            if isShowingOutOfMoves {
-                outOfMovesOverlay
-            }
 
             // Power-up recovery selection overlay
             if isShowingPowerUpRecovery {
@@ -160,6 +152,24 @@ public struct CustomChallengeGameScreen: View {
                 lowMovesWarningArmed = false
                 isShowingLowOnMoves = true
             }
+        }
+        .alert("Low On Moves", isPresented: $isShowingLowOnMoves) {
+            Button("Use Powerup") {
+                isShowingPowerUpRecovery = true
+            }
+            Button("Continue", role: .cancel) { }
+        } message: {
+            Text("You are low on moves. Want to use a powerup to free up moves?")
+        }
+        .alert("Out Of Moves", isPresented: $isShowingOutOfMoves) {
+            Button("Use Powerup") {
+                isShowingPowerUpRecovery = true
+            }
+            Button("End Challenge", role: .destructive) {
+                endChallenge(won: false)
+            }
+        } message: {
+            Text("You have no moves. Want to use a powerup to revive?")
         }
     }
 
@@ -590,76 +600,7 @@ public struct CustomChallengeGameScreen: View {
 
     // MARK: - Move Alert Overlays
 
-    private var lowOnMovesOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                Text("Low On Moves")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-
-                Text("You are low on moves. Want to use a powerup to free up moves?")
-                    .font(.system(size: 17, weight: .regular, design: .rounded))
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-
-                HStack(spacing: 60) {
-                    Button("Yes") {
-                        isShowingLowOnMoves = false
-                        isShowingPowerUpRecovery = true
-                    }
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-
-                    Button("No") {
-                        isShowingLowOnMoves = false
-                    }
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                }
-                .padding(.top, 20)
-            }
-            .padding(40)
-        }
-    }
-
-    private var outOfMovesOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
-
-            VStack(spacing: 24) {
-                Text("Out Of Moves")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-
-                Text("You have no moves. Want to use a powerup to revive?")
-                    .font(.system(size: 17, weight: .regular, design: .rounded))
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-
-                HStack(spacing: 60) {
-                    Button("Yes") {
-                        isShowingOutOfMoves = false
-                        isShowingPowerUpRecovery = true
-                    }
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-
-                    Button("No") {
-                        isShowingOutOfMoves = false
-                        endChallenge(won: false)
-                    }
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                }
-                .padding(.top, 20)
-            }
-            .padding(40)
-        }
-    }
 
     private var powerUpRecoveryOverlay: some View {
         ZStack {

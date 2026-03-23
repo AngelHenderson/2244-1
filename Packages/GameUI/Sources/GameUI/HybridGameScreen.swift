@@ -267,6 +267,24 @@ public struct HybridGameScreen: View {
                     Text("Double the tile?")
                 }
             }
+            .alert("Low On Moves", isPresented: $isShowingLowOnMoves) {
+                Button("Use Powerup") {
+                    isShowingPowerUpRecovery = true
+                }
+                Button("Continue", role: .cancel) { }
+            } message: {
+                Text("You are low on moves. Want to use a powerup to free up moves?")
+            }
+            .alert("Out Of Moves", isPresented: $isShowingOutOfMoves) {
+                Button("Use Powerup") {
+                    isShowingPowerUpRecovery = true
+                }
+                Button("End Game", role: .destructive) {
+                    showGameOverAndReset()
+                }
+            } message: {
+                Text("You have no moves. Want to use a powerup to revive?")
+            }
         
         let changeHandlers = alertView
             .onChange(of: gameStore.lastAddedTileValue) { _, newValue in
@@ -370,15 +388,7 @@ public struct HybridGameScreen: View {
                 .ignoresSafeArea()
             sessionTracking
 
-            // Low on moves warning overlay
-            if isShowingLowOnMoves {
-                lowOnMovesOverlay
-            }
 
-            // Out of moves dialog overlay
-            if isShowingOutOfMoves {
-                outOfMovesOverlay
-            }
 
             // Game over text overlay
             if isShowingGameOverText {
@@ -394,76 +404,7 @@ public struct HybridGameScreen: View {
 
     // MARK: - Game Over Views
 
-    private var lowOnMovesOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                Text("Low On Moves")
-                    .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
-                    .foregroundColor(.white)
-
-                Text("You are low on moves. Want to use a powerup to free up moves?")
-                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-
-                HStack(spacing: 60) {
-                    Button("Yes") {
-                        isShowingLowOnMoves = false
-                        isShowingPowerUpRecovery = true
-                    }
-                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                    .foregroundColor(.white)
-
-                    Button("No") {
-                        isShowingLowOnMoves = false
-                    }
-                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                    .foregroundColor(.white)
-                }
-                .padding(.top, 20)
-            }
-            .padding(40)
-        }
-    }
-
-    private var outOfMovesOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
-
-            VStack(spacing: 24) {
-                Text("Out Of Moves")
-                    .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
-                    .foregroundColor(.white)
-
-                Text("You have no moves. Want to use a powerup to revive?")
-                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-
-                HStack(spacing: 60) {
-                    Button("Yes") {
-                        isShowingOutOfMoves = false
-                        isShowingPowerUpRecovery = true
-                    }
-                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                    .foregroundColor(.white)
-
-                    Button("No") {
-                        isShowingOutOfMoves = false
-                        showGameOverAndReset()
-                    }
-                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                    .foregroundColor(.white)
-                }
-                .padding(.top, 20)
-            }
-            .padding(40)
-        }
-    }
 
     private var gameOverTextOverlay: some View {
         ZStack {
