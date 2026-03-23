@@ -128,7 +128,7 @@ public struct GiftRewardView: View {
                     HStack(spacing: 16) {
                         ForEach(giftReward.items, id: \.self) { item in
                             VStack(spacing: 8) {
-                                Image(systemName: iconName(for: item))
+                                rewardIcon(for: item)
                                     .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .semibold))
                                     .foregroundStyle(color(for: item))
 
@@ -192,6 +192,24 @@ public struct GiftRewardView: View {
         .onAppear {
             showContent = true
             petBounce = true
+        }
+    }
+
+    @ViewBuilder
+    private func rewardIcon(for item: GiftRewardItem) -> some View {
+        switch item.type {
+        case .hammer:
+            Image("hammer", bundle: .module)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 36, height: 36)
+        case .magnet:
+            Image("MegaMergeIcon", bundle: .module)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 36, height: 36)
+        default:
+            Image(systemName: iconName(for: item))
         }
     }
 
