@@ -80,10 +80,17 @@ struct PlayerHistoryView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    // MARK: - Event Generation
+    // Cache events so timestamps don't shift on re-render
+    nonisolated(unsafe) private static var cachedDay: Int = -1
+    nonisolated(unsafe) private static var cachedEvents: [HistoryEvent] = []
 
     private var events: [HistoryEvent] {
-        Self.generateEvents()
+        let today = MockLeaderboardData.daysSinceReference
+        if Self.cachedDay != today || Self.cachedEvents.isEmpty {
+            Self.cachedEvents = Self.generateEvents()
+            Self.cachedDay = today
+        }
+        return Self.cachedEvents
     }
 
     private static func generateEvents() -> [HistoryEvent] {
@@ -194,13 +201,23 @@ struct PlayerHistoryView: View {
                     )
 
                 } else if random < 0.60 {
-                    // False report (6%)
-                    event = HistoryEvent(
-                        type: .falseReport,
-                        message: "\(playerName) made a false report.",
-                        daysAgo: daysAgo,
-                        seed: seed
-                    )
+                    // False report (6%) — split into regular and leaderboard overtake
+                    let isOvertake = MockLeaderboardData.seededRandom(seed: seed + 13, index: eventDay) < 0.4
+                    if isOvertake {
+                        event = HistoryEvent(
+                            type: .falseReport,
+                            message: "\(playerName) made a false report due to reporting someone ahead of him in the leaderboard.",
+                            daysAgo: daysAgo,
+                            seed: seed
+                        )
+                    } else {
+                        event = HistoryEvent(
+                            type: .falseReport,
+                            message: "\(playerName) made a false report.",
+                            daysAgo: daysAgo,
+                            seed: seed
+                        )
+                    }
 
                 } else if random < 0.65 {
                     // Made infinity (7%)
@@ -211,8 +228,8 @@ struct PlayerHistoryView: View {
                         seed: seed
                     )
 
-                } else if random < 0.80 {
-                    // Out of moves (10%) — split between regular and infinity players
+                } else if random < 0.85 {
+                    // Out of moves (15%) — split between regular and infinity players
                     let isInfinityPlayer = MockLeaderboardData.seededRandom(seed: seed + 7, index: eventDay) < 0.4
                     if isInfinityPlayer {
                         let infinityCount = 1 + Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * 150.0)
@@ -241,14 +258,16 @@ struct PlayerHistoryView: View {
                         )
                     }
 
-                } else if random < 0.85 {
-                    // Move recovery (5%)
-                    event = HistoryEvent(
-                        type: .moveRecovery,
-                        message: "\(playerName) recovered their moves and is back in the game!",
-                        daysAgo: daysAgo,
-                        seed: seed
-                    )
+                    // ~40% of game over players recover their moves (same player, same time)
+                    if MockLeaderboardData.seededRandom(seed: seed + 12, index: eventDay) < 0.4 {
+                        let recovery = HistoryEvent(
+                            type: .moveRecovery,
+                            message: "\(playerName) recovered their moves and is back in the game!",
+                            daysAgo: daysAgo,
+                            seed: seed  // same seed = same timestamp
+                        )
+                        result.append(recovery)
+                    }
 
                 } else if random < 0.92 {
                     // Joined (12%)

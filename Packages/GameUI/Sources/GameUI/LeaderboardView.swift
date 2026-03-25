@@ -175,9 +175,12 @@ public struct LeaderboardView: View {
                 }
             }
             Button("False", role: .destructive) {
-                // False report — reporter gets 1-2 abuse points
-                let abusePoints = Int.random(in: 1...2)
-                totalUniqueReports += abusePoints
+                // False report — 2 abuse points if reporting someone ahead (overtake), 1 otherwise
+                if let entry = pendingReportEntry {
+                    let myRank = model.myEntry?.rank ?? Int.max
+                    let abusePoints = entry.rank < myRank ? 2 : 1
+                    totalUniqueReports += abusePoints
+                }
                 pendingReportEntry = nil
                 showFalseReportWarning = true
             }
@@ -1334,15 +1337,9 @@ public struct LeaderboardView: View {
         lastReportedCount = currentCount
 
         // Track unique reports for abuse detection
+        // True reports always cost 1 abuse point
         if isFirstReport {
-            // Reporting a player ranked HIGHER than you (who overtook you)
-            // counts double towards abuse — likely jealousy, not a legit report
-            let myRank = model.myEntry?.rank ?? Int.max
-            if entry.rank < myRank {
-                totalUniqueReports += 2  // counts as 2 abuse points
-            } else {
-                totalUniqueReports += 1
-            }
+            totalUniqueReports += 1
         }
 
         if currentCount >= 3 {
