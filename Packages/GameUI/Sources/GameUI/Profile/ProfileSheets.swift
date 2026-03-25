@@ -144,7 +144,6 @@ struct CompareView: View {
     @State private var selectedPlayers: [MockPlayer] = []
 
     private var mockPlayers: [MockPlayer] { MockPlayer.generateAll() }
-    private let maxCompareCount = 5
     private static let selectedPlayersKey = "CompareView.selectedPlayerIDs"
 
     private func loadSelectedPlayers() {
@@ -222,15 +221,9 @@ struct CompareView: View {
                     TextField("Search by name or code", text: $searchText)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-
-                    if selectedPlayers.count >= maxCompareCount {
-                        Text("Maximum \(maxCompareCount) players")
-                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                            .foregroundColor(.secondary)
-                    }
                 }
 
-                if !filteredPlayers.isEmpty && selectedPlayers.count < maxCompareCount {
+                if !filteredPlayers.isEmpty {
                     Section("Search Results (\(filteredPlayers.count))") {
                         ForEach(filteredPlayers) { player in
                             HStack {
