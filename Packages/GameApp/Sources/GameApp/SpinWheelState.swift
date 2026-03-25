@@ -134,6 +134,12 @@ public final class SpinWheelState {
         if bonusSpins > 0 {
             bonusSpins -= 1
             saveBonusSpins()
+            // Stamp the current slot as consumed so the player
+            // doesn't get a free slot spin after exhausting bonus spins
+            if lastConsumedSlot == nil {
+                lastConsumedSlot = slotStart(for: date)
+                saveLastSlot()
+            }
             return .bonus
         } else if slotAvailable(on: date) {
             // Only use the 4-hour slot when no bonus spins remain
