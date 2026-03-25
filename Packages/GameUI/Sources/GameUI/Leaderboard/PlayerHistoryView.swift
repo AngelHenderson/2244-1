@@ -401,19 +401,21 @@ struct HistoryEvent: Identifiable {
     }
 
     var timeAgo: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        let time = formatter.string(from: eventDate)
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+        let time = timeFormatter.string(from: eventDate)
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM d, yyyy"
+        let date = dateFormatter.string(from: eventDate)
 
         let calendar = Calendar.current
         if calendar.isDateInToday(eventDate) {
-            return "\(time) today"
+            return "\(time) today · \(date)"
         } else if calendar.isDateInYesterday(eventDate) {
-            return "\(time) yesterday"
+            return "\(time) yesterday · \(date)"
         } else {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "MMMM d, yyyy"
-            return "\(time) at \(dateFormatter.string(from: eventDate))"
+            return "\(time) at \(date)"
         }
     }
 }
