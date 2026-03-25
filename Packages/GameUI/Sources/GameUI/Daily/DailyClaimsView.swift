@@ -6,6 +6,7 @@ import GameCore
 public struct DailyClaimsView: View {
     @Environment(DailyClaimsStore.self) private var store
     @Environment(\.gameStore) private var gameStore
+    @Environment(HomeState.self) private var homeState
     @Environment(\.audio) private var audio
     @Environment(\.dismiss) private var dismiss
     @State private var showClaimAnimation = false
@@ -61,7 +62,7 @@ public struct DailyClaimsView: View {
             }
         }
         .onAppear {
-            store.updateAvailability()
+            store.updateAvailability(banStartDate: homeState.banStartDate, banEndDate: homeState.banEndDate)
             syncSelectedPage()
         }
         .onChange(of: store.currentClaimDay) { _, _ in
@@ -113,12 +114,39 @@ public struct DailyClaimsView: View {
     
     private var availabilitySection: some View {
         Group {
-            if store.canClaimToday {
+            if homeState.isBanned {
+                bannedSection
+            } else if store.canClaimToday {
                 claimTodaySection
             } else {
                 nextClaimSection
             }
         }
+    }
+
+    private var bannedSection: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "lock.fill")
+                .font(.avenirNext(size: 40, weight: .regular))
+                .foregroundStyle(.red)
+
+            Text("Daily Rewards Locked")
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+                .foregroundStyle(.red)
+
+            Text("You are currently banned. Daily rewards, catch-up claims, and streak bonuses are disabled until your ban is lifted.")
+                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            if let remaining = homeState.banTimeRemaining {
+                Text("Time remaining: \(remaining)")
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
+                    .foregroundStyle(.orange)
+            }
+        }
+        .padding()
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
     }
     
     private var claimTodaySection: some View {
@@ -370,6 +398,7 @@ public struct DailyClaimsView: View {
     }
     
     private func claimReward(_ rewards: AchievementDef.Rewards) {
+        guard !homeState.isBanned else { return }
         // Get bonus count BEFORE claiming (since it will change after)
         let nextDay = store.getNextClaimableDay() ?? (store.currentClaimDay + 1)
         claimedBonusCount = store.pendingStreakBonusCount(afterClaimingDay: nextDay)
@@ -397,6 +426,7 @@ public struct DailyClaimsView: View {
     }
 
     private func claimAllRewards() {
+        guard !homeState.isBanned else { return }
         guard let totalRewards = store.totalCatchUpRewards() else { return }
         let claimCount = store.availableClaims
 

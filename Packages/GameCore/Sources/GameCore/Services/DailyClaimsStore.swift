@@ -104,7 +104,7 @@ public final class DailyClaimsStore {
     }
     
     @MainActor
-    public func updateAvailability() {
+    public func updateAvailability(banStartDate: Date? = nil, banEndDate: Date? = nil) {
         let calendar = Calendar.current
         let now = Date()
 
@@ -125,11 +125,42 @@ public final class DailyClaimsStore {
                 canClaimToday = true
                 availableClaims = 1
             } else {
-                // Missed days - allow catching up on all missed days
-                // Streak resets but user can claim all missed rewards
+                // Missed days - check how many fell during a ban
+                // Days during ban are forfeited, not available for catch-up
+                var bannedDays = 0
+                if let banStart = banStartDate {
+                    let banStartDay = calendar.startOfDay(for: banStart)
+                    // banEnd is either the end date or now (still banned)
+                    let banEndDay = calendar.startOfDay(for: banEndDate ?? now)
+
+                    // Count forfeited days: days between lastClaim and today that were during ban
+                    for offset in 1..<daysSinceLastClaim {
+                        if let checkDay = calendar.date(byAdding: .day, value: offset, to: lastClaimDay) {
+                            let checkStart = calendar.startOfDay(for: checkDay)
+                            if checkStart >= banStartDay && checkStart <= banEndDay {
+                                bannedDays += 1
+                            }
+                        }
+                    }
+                }
+
+                // Streak resets but user can only claim non-banned days
                 currentStreak = 0
-                canClaimToday = true
-                availableClaims = daysSinceLastClaim  // One claim per missed calendar day
+                let claimable = max(0, daysSinceLastClaim - bannedDays)
+
+                // Advance currentClaimDay past forfeited days
+                if bannedDays > 0 {
+                    currentClaimDay += bannedDays
+                    // Mark forfeited days as claimed so they don't appear as available
+                    for offset in 1...bannedDays {
+                        let forfeitDay = currentClaimDay - bannedDays + offset
+                        claimedDays.insert(forfeitDay)
+                    }
+                    saveProgress()
+                }
+
+                canClaimToday = claimable > 0
+                availableClaims = claimable
             }
         } else {
             // First time claiming
