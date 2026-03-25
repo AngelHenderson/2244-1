@@ -5,6 +5,7 @@ public struct LeaderboardView: View {
     @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.currentTheme) private var currentTheme
+    @Environment(HomeState.self) private var homeState
     @State private var model: LeaderboardModel
     @State private var showError = false
     @State private var showingTop150 = false
@@ -32,6 +33,7 @@ public struct LeaderboardView: View {
     @State private var showReportAreYouSure = false
     @State private var showReportTrueOrFalse = false
     @State private var showFalseReportWarning = false
+    @State private var showPlayerHistory = false
 
     private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
 
@@ -62,6 +64,18 @@ public struct LeaderboardView: View {
                     }
 
                     Spacer()
+
+                    // Player History button
+                    Button {
+                        showPlayerHistory = true
+                    } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.avenirNext(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color(red: 0.2, green: 0.2, blue: 0.35))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
 
                     GemBalancePill()
 
@@ -113,6 +127,9 @@ public struct LeaderboardView: View {
                 }
             }
         }
+        .fullScreenCover(isPresented: $showPlayerHistory) {
+            PlayerHistoryView()
+        }
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
         } message: {
@@ -130,7 +147,11 @@ public struct LeaderboardView: View {
             Text("\(lastReportedName) has been banned and removed from the leaderboard due to multiple reports.")
         }
         .alert("Report Abuse Detected", isPresented: $showReportAbuseAlert) {
-            Button("OK", role: .cancel) { }
+            Button("OK", role: .cancel) {
+                // Trigger the ban system — issues a warning (or ban if out of chances)
+                homeState.issueWarning(reason: "Abusing the report system")
+                dismiss()
+            }
         } message: {
             Text("You have been flagged for abusing the report system. All players you reported have been unbanned. Continued abuse will result in your account being suspended.")
         }

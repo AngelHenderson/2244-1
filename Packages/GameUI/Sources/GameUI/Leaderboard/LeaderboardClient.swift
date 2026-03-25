@@ -854,21 +854,28 @@ public enum MockLeaderboardData {
 
     // Reasons why a player might leave the leaderboard
     enum PlayerLeavingReason: String, CaseIterable {
-        case gameOver = "Game Over"      // 25% - ran out of moves
-        case banned = "Banned"           // 25% - violated terms
-        case deleted = "Deleted"         // 25% - deleted the game
-        case restart = "Restart"         // 25% - chose to restart progress
+        case gameOver = "Game Over"      // 45% - ran out of moves
+        case banned = "Banned"           // 45% - violated terms
+        case deleted = "Deleted"         // 5% - deleted the game
+        case restart = "Restart"         // 5% - chose to restart progress
     }
 
-    // Determine why a specific player left (equal 25% for each reason)
+    // Determine why a specific player left (weighted: 45% gameOver, 45% banned, 5% deleted, 5% restart)
     static func leavingReason(for playerIndex: Int, on day: Int, seed: Int) -> PlayerLeavingReason {
         let random = seededRandom(seed: seed + playerIndex * 7, index: day)
-        let reasonIndex = Int(random * 4.0) // 0, 1, 2, or 3
-        return PlayerLeavingReason.allCases[min(reasonIndex, 3)]
+        if random < 0.45 {
+            return .gameOver    // 45%
+        } else if random < 0.90 {
+            return .banned      // 45%
+        } else if random < 0.95 {
+            return .deleted     // 5%
+        } else {
+            return .restart     // 5%
+        }
     }
 
     // Calculate players leaving per day (0.1-0.5 per day)
-    // Reasons distributed equally (25% each): game over, banned, deleted, restart
+    // Reasons: game over 45%, banned 45%, deleted 5%, restart 5%
     // 95% of leaving players are from ranks 151+, only 5% from top 150
     static func playersLeaving(on day: Int, isUS: Bool) -> Double {
         let seed = isUS ? 11111 : 22222
@@ -876,9 +883,15 @@ public enum MockLeaderboardData {
         return 0.1 + random * 0.4  // 0.1 to 0.5 players per day
     }
 
-    // Calculate players leaving for a specific reason (25% of total leaving)
+    // Calculate players leaving for a specific reason (weighted distribution)
+    // banned: 45%, gameOver: 45%, deleted: 5%, restart: 5%
     static func playersLeavingFor(reason: PlayerLeavingReason, on day: Int, isUS: Bool) -> Double {
-        return playersLeaving(on: day, isUS: isUS) * 0.25
+        let weight: Double
+        switch reason {
+        case .banned, .gameOver: weight = 0.45
+        case .deleted, .restart: weight = 0.05
+        }
+        return playersLeaving(on: day, isUS: isUS) * weight
     }
 
     // Calculate players leaving from outside top 150 (95% of total leaving)
@@ -893,16 +906,22 @@ public enum MockLeaderboardData {
 
     // Calculate country-specific players leaving per day (0.1-0.5 per day)
     // Each country has a unique seed for varied attrition patterns
-    // Reasons distributed equally (25% each): game over, banned, deleted, restart
+    // Reasons: game over 45%, banned 45%, deleted 5%, restart 5%
     // 95% are from outside top 150, only 5% from top 150
     static func countryPlayersLeaving(on day: Int, countrySeed: Int) -> Double {
         let random = seededRandom(seed: countrySeed, index: day)
         return 0.1 + random * 0.4  // 0.1 to 0.5 players per day
     }
 
-    // Country-specific players leaving for a specific reason (25% of total leaving)
+    // Country-specific players leaving for a specific reason (weighted distribution)
+    // banned: 45%, gameOver: 45%, deleted: 5%, restart: 5%
     static func countryPlayersLeavingFor(reason: PlayerLeavingReason, on day: Int, countrySeed: Int) -> Double {
-        return countryPlayersLeaving(on: day, countrySeed: countrySeed) * 0.25
+        let weight: Double
+        switch reason {
+        case .banned, .gameOver: weight = 0.45
+        case .deleted, .restart: weight = 0.05
+        }
+        return countryPlayersLeaving(on: day, countrySeed: countrySeed) * weight
     }
 
     // Country-specific players leaving from outside top 150 (95%)
