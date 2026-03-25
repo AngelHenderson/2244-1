@@ -139,7 +139,7 @@ public struct DailyClaimsView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
-            if let remaining = homeState.banTimeRemaining {
+            if let remaining = homeState.banTimeRemainingText {
                 Text("Time remaining: \(remaining)")
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                     .foregroundStyle(.orange)
