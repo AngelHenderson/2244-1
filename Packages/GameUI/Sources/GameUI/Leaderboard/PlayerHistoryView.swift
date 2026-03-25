@@ -129,28 +129,29 @@ struct PlayerHistoryView: View {
 
                 if random < 0.28 {
                     // Banned event (28%)
-                    let reasons = [
-                        "cheating", "using third-party tools", "exploiting game bugs",
-                        "inappropriate behavior", "account sharing", "score manipulation",
-                        "false reports"
+                    // Each reason maps to a severity tier with appropriate duration ranges
+                    // Minor: 1 day – 1 week  |  Medium: 2 weeks – 2 months  |  Severe: 6 months – permanent
+                    let reasonsWithDurations: [(reason: String, durations: [String])] = [
+                        ("inappropriate behavior", ["one day", "two days", "three days", "one week"]),
+                        ("false reports", ["one day", "two days", "three days", "one week"]),
+                        ("account sharing", ["two weeks", "three weeks", "one month", "two months"]),
+                        ("score manipulation", ["two weeks", "three weeks", "one month", "two months"]),
+                        ("cheating", ["six months", "one year", "two years", "five years"]),
+                        ("using third-party tools", ["six months", "one year", "two years", "five years"]),
+                        ("exploiting game bugs", ["one year", "two years", "five years"]),
                     ]
-                    let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(reasons.count))
-                    let reason = reasons[min(reasonIdx, reasons.count - 1)]
+                    let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(reasonsWithDurations.count))
+                    let entry = reasonsWithDurations[min(reasonIdx, reasonsWithDurations.count - 1)]
+                    let reason = entry.reason
 
-                    // Pick a ban duration from the escalation ladder
-                    let durations = [
-                        "one day", "two days", "three days", "one week", "two weeks",
-                        "three weeks", "one month", "two months", "six months",
-                        "one year", "two years", "five years"
-                    ]
-                    // Use eventIndex * prime + daysAgo to spread across all durations
-                    let durationIdx = abs(eventIndex * 37 + daysAgo * 13 + seed) % (durations.count + 1)
+                    // Pick duration within this reason's allowed range
+                    let durationIdx = abs(eventIndex * 37 + daysAgo * 13 + seed) % (entry.durations.count + 1)
 
                     let message: String
-                    if durationIdx >= durations.count {
+                    if durationIdx >= entry.durations.count {
                         message = "\(playerName) got permanently banned due to \(reason)."
                     } else {
-                        let duration = durations[min(durationIdx, durations.count - 1)]
+                        let duration = entry.durations[min(durationIdx, entry.durations.count - 1)]
                         message = "\(playerName) got banned for \(duration) due to \(reason)."
                     }
 
@@ -183,7 +184,7 @@ struct PlayerHistoryView: View {
                     )
 
                 } else if random < 0.54 {
-                    // Chance taken away (7%)
+                    // Chance taken away (7%) — chances count set in post-processing
                     let reporterNameIndex = Int(MockLeaderboardData.seededRandom(seed: seed + 10, index: eventDay) * 200.0)
                     let reporterName = MockLeaderboardData.nameForPlayer(
                         index: reporterNameIndex,
@@ -191,11 +192,12 @@ struct PlayerHistoryView: View {
                         countrySeed: seed + 200,
                         day: eventDay
                     )
-                    let chancesLeft = MockLeaderboardData.seededRandom(seed: seed + 11, index: eventDay) < 0.5 ? 1 : 2
 
                     event = HistoryEvent(
                         type: .chanceTaken,
-                        message: "\(playerName) got a chance taken away due to a report from \(reporterName). (\(chancesLeft) chance\(chancesLeft == 1 ? "" : "s") remaining)",
+                        playerName: playerName,
+                        reporterName: reporterName,
+                        message: "",  // set in post-processing
                         daysAgo: daysAgo,
                         seed: seed
                     )
@@ -303,7 +305,56 @@ struct PlayerHistoryView: View {
         // Sort by date, newest first
         result.sort { $0.eventDate > $1.eventDate }
 
-        return result
+        // Post-process: escalate chanceTaken events per player
+        // Process oldest-first so 1st report = 2 chances, 2nd = 1 chance, 3rd = banned
+        var reportCounts: [String: Int] = [:]
+        var processed: [HistoryEvent] = []
+
+        for event in result.reversed() {
+            if event.type == .chanceTaken, let name = event.playerName {
+                let count = (reportCounts[name] ?? 0) + 1
+                reportCounts[name] = count
+
+                if count == 1 {
+                    // First report: 2 chances remaining
+                    let reporter = event.reporterName ?? "another player"
+                    processed.append(HistoryEvent(
+                        type: .chanceTaken,
+                        message: "\(name) got a chance taken away due to a report from \(reporter). (2 chances remaining)",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                } else if count == 2 {
+                    // Second report: 1 chance remaining
+                    let reporter = event.reporterName ?? "another player"
+                    processed.append(HistoryEvent(
+                        type: .chanceTaken,
+                        message: "\(name) got a chance taken away due to a report from \(reporter). (1 chance remaining)",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                } else if count == 3 {
+                    // Third report: banned
+                    processed.append(HistoryEvent(
+                        type: .banned,
+                        message: "\(name) got banned due to receiving too many reports.",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                }
+                // 4th+ reports for the same player are dropped
+            } else {
+                processed.append(event)
+            }
+        }
+
+        // Reverse back to newest-first
+        processed.reverse()
+
+        return processed
     }
 
     private static func countryDisplayName(for code: String) -> String {
@@ -354,11 +405,21 @@ struct HistoryEvent: Identifiable {
     let type: EventType
     let message: String
     let eventDate: Date
+    let playerName: String?
+    let reporterName: String?
 
-    init(type: EventType, message: String, daysAgo: Int, seed: Int) {
-        self.id = "\(seed)_\(daysAgo)_\(type)"
+    init(type: EventType, playerName: String? = nil, reporterName: String? = nil, message: String, daysAgo: Int, seed: Int, overrideDate: Date? = nil) {
+        self.id = "\(seed)_\(daysAgo)_\(type)_\(message.hashValue)"
         self.type = type
         self.message = message
+        self.playerName = playerName
+        self.reporterName = reporterName
+
+        // If an override date is provided (post-processing), use it directly
+        if let override = overrideDate {
+            self.eventDate = override
+            return
+        }
 
         // Build an actual date from daysAgo + seeded time
         let calendar = Calendar.current
