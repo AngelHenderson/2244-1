@@ -272,16 +272,7 @@ struct PlayerHistoryView: View {
                     }
 
                 } else if random < 0.92 {
-                    // Joined (12%)
-                    event = HistoryEvent(
-                        type: .joined,
-                        message: "\(playerName) joined the \(countryName) leaderboard.",
-                        daysAgo: daysAgo,
-                        seed: seed
-                    )
-
-                } else if random < 0.96 {
-                    // Deleted (4%)
+                    // Deleted (8%)
                     event = HistoryEvent(
                         type: .deleted,
                         message: "\(playerName) deleted the game.",
@@ -290,7 +281,7 @@ struct PlayerHistoryView: View {
                     )
 
                 } else {
-                    // Restart (4%)
+                    // Restart (8%)
                     event = HistoryEvent(
                         type: .restart,
                         message: "\(playerName) chose to restart their progress.",
@@ -300,6 +291,42 @@ struct PlayerHistoryView: View {
                 }
 
                 result.append(event)
+            }
+
+            // Generate join events separately using actual joining rates
+            let countries = ["US", "BR", "GB", "DE", "JP", "IN", "FR", "MX", "AU", "CA",
+                             "KR", "IT", "ES", "NL", "SE", "NO", "CH", "AT", "NZ", "IE",
+                             "VN", "KZ", "CW", "AZ", "TJ", "KE", "ZA", "FJ", "PH", "TH"]
+
+            // Pick 2-3 countries that had joins visible in the feed today
+            let visibleCountryCount = 2 + Int(MockLeaderboardData.seededRandom(seed: 77777, index: eventDay) * 2.0)
+            for countryIdx in 0..<visibleCountryCount {
+                let cSeed = eventDay * 50 + countryIdx
+                let cIndex = Int(MockLeaderboardData.seededRandom(seed: cSeed, index: eventDay) * Double(countries.count))
+                let country = countries[min(cIndex, countries.count - 1)]
+                let countryName = Self.countryDisplayName(for: country)
+
+                // Use actual joining rate to determine how many joins to show for this country
+                let joiningRate = MockLeaderboardData.countryNewPlayersJoining(on: eventDay, countrySeed: cSeed)
+                // Show 1-3 of the day's joins in the feed (not all 10-40, just a sample)
+                let visibleJoins = max(1, min(3, Int(joiningRate / 10.0)))
+
+                for joinIdx in 0..<visibleJoins {
+                    let joinSeed = eventDay * 300 + countryIdx * 10 + joinIdx
+                    let nameIdx = Int(MockLeaderboardData.seededRandom(seed: joinSeed + 2, index: eventDay) * 200.0)
+                    let joinPlayerName = MockLeaderboardData.nameForPlayer(
+                        index: nameIdx,
+                        names: MockLeaderboardData.hallOfFameNames,
+                        countrySeed: joinSeed,
+                        day: eventDay
+                    )
+                    result.append(HistoryEvent(
+                        type: .joined,
+                        message: "\(joinPlayerName) joined the \(countryName) leaderboard.",
+                        daysAgo: daysAgo,
+                        seed: joinSeed
+                    ))
+                }
             }
         }
         // Sort by date, newest first
@@ -351,10 +378,10 @@ struct PlayerHistoryView: View {
             }
         }
 
-        // Reverse back to newest-first
+        // Reverse back to newest-first and drop events older than 30 days
         processed.reverse()
-
-        return processed
+        let cutoff = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        return processed.filter { $0.eventDate >= cutoff }
     }
 
     private static func countryDisplayName(for code: String) -> String {
