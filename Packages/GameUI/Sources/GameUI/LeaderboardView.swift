@@ -119,11 +119,14 @@ public struct LeaderboardView: View {
             .task {
                 await model.authenticate()
                 await model.refresh()
-                if let myEntry = model.myEntry, gameStore.state.score > myEntry.score {
-                    await model.submitScore(gameStore.state.score)
-                }
-                if model.selectedFilter == .global, let myEntry = model.myEntry {
-                    gameStore.registerLeaderboardRank(myEntry.rank)
+                // Ban gate: do not submit scores or register rank progression while banned
+                if !homeState.isBanned {
+                    if let myEntry = model.myEntry, gameStore.state.score > myEntry.score {
+                        await model.submitScore(gameStore.state.score)
+                    }
+                    if model.selectedFilter == .global, let myEntry = model.myEntry {
+                        gameStore.registerLeaderboardRank(myEntry.rank)
+                    }
                 }
             }
         }

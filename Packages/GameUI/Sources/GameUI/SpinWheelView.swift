@@ -30,7 +30,7 @@ public struct SpinWheelView: View {
     
     private var slotReady: Bool { spinState.slotAvailable(on: now) }
     private var bonusReady: Bool { spinState.bonusSpins > 0 }
-    private var canSpin: Bool { (slotReady || bonusReady) && !engine.isSpinning }
+    private var canSpin: Bool { (slotReady || bonusReady) && !engine.isSpinning && !homeState.isBanned }
     
     public init() {}
     
@@ -105,6 +105,11 @@ public struct SpinWheelView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Sorry! You are out of bonus spins. Try earning a spin or waiting.")
+        }
+        .alert("Banned", isPresented: Bindable(homeState).showBanAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You are banned due to \(homeState.banReasonText). \(homeState.banDurationText)")
         }
     }
     
@@ -187,30 +192,44 @@ public struct SpinWheelView: View {
     
     private var availabilityCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Next spin", systemImage: "clock.fill")
-                    .font(.avenirNext(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                Spacer()
-                if !bonusReady {
-                    Text(spinState.formattedCountdown(now: now))
-                        .font(.avenirNext(size: 18, weight: .bold))
-                        .foregroundStyle(slotReady && spinState.lastConsumedSlot != nil ? .green : .white)
+            if homeState.isBanned {
+                HStack {
+                    Label("Spins Disabled", systemImage: "xmark.shield.fill")
+                        .font(.avenirNext(size: 18, weight: .semibold))
+                        .foregroundStyle(.red)
+                    Spacer()
                 }
-            }
-
-            if bonusReady {
-                Text("Bonus spins available: \(spinState.bonusSpins)")
-                    .foregroundStyle(.white.opacity(0.85))
-                    .font(.avenirNext(size: 16, weight: .medium))
-            } else if slotReady && spinState.lastConsumedSlot != nil {
-                Text("Ready now - tap Spin to claim this window.")
-                    .foregroundStyle(.white.opacity(0.75))
-                    .font(.avenirNext(size: 16, weight: .medium))
+                if let banText = homeState.banTimeRemainingText {
+                    Text("Banned for \(banText) — spins are disabled during a ban.")
+                        .foregroundStyle(.white.opacity(0.6))
+                        .font(.avenirNext(size: 14, weight: .medium))
+                }
             } else {
-                Text("Windows reset every 12a / 4a / 8a / 12p / 4p / 8p.")
-                    .foregroundStyle(.white.opacity(0.6))
-                    .font(.avenirNext(size: 14, weight: .medium))
+                HStack {
+                    Label("Next spin", systemImage: "clock.fill")
+                        .font(.avenirNext(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    if !bonusReady {
+                        Text(spinState.formattedCountdown(now: now))
+                            .font(.avenirNext(size: 18, weight: .bold))
+                            .foregroundStyle(slotReady && spinState.lastConsumedSlot != nil ? .green : .white)
+                    }
+                }
+
+                if bonusReady {
+                    Text("Bonus spins available: \(spinState.bonusSpins)")
+                        .foregroundStyle(.white.opacity(0.85))
+                        .font(.avenirNext(size: 16, weight: .medium))
+                } else if slotReady && spinState.lastConsumedSlot != nil {
+                    Text("Ready now - tap Spin to claim this window.")
+                        .foregroundStyle(.white.opacity(0.75))
+                        .font(.avenirNext(size: 16, weight: .medium))
+                } else {
+                    Text("Windows reset every 12a / 4a / 8a / 12p / 4p / 8p.")
+                        .foregroundStyle(.white.opacity(0.6))
+                        .font(.avenirNext(size: 14, weight: .medium))
+                }
             }
         }
         .padding(20)
@@ -242,15 +261,18 @@ public struct SpinWheelView: View {
             .frame(width: 120, height: 46)
             .foregroundStyle(.white)
             .glassOrMaterialBackground(cornerRadius: 20)
-            .opacity(homeState.gems >= cost ? 1.0 : 0.5)
+            .opacity(homeState.gems >= cost && !homeState.isBanned ? 1.0 : 0.5)
         }
         .buttonStyle(.plain)
-        .disabled(homeState.gems < cost)
+        .disabled(homeState.gems < cost || homeState.isBanned)
+        .onTapGesture {
+            if homeState.isBanned { homeState.showBanAlert = true }
+        }
     }
     
     private var spinButton: some View {
         Button(action: handleSpinTap) {
-            Text(canSpin ? "SPIN" : "WAIT")
+            Text(homeState.isBanned ? "BANNED" : (canSpin ? "SPIN" : "WAIT"))
                 .font(.avenirNext(size: 24, weight: .bold))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .foregroundStyle(.white)
@@ -259,8 +281,9 @@ public struct SpinWheelView: View {
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(
                             LinearGradient(
-                                colors: canSpin ? [Color(red: 0.29, green: 0.96, blue: 0.52), Color(red: 0.17, green: 0.76, blue: 0.99)]
-                                                 : [Color.gray.opacity(0.4)],
+                                colors: homeState.isBanned ? [Color.red.opacity(0.6)]
+                                    : (canSpin ? [Color(red: 0.29, green: 0.96, blue: 0.52), Color(red: 0.17, green: 0.76, blue: 0.99)]
+                                                 : [Color.gray.opacity(0.4)]),
                                 startPoint: .leading,
                                 endPoint: .trailing
                             ),
@@ -269,7 +292,11 @@ public struct SpinWheelView: View {
                 )
         }
         .frame(height: 100)
+        .disabled(homeState.isBanned)
         .opacity(canSpin ? 1.0 : 0.6)
+        .onTapGesture {
+            if homeState.isBanned { homeState.showBanAlert = true }
+        }
     }
     
     private func handleSpinTap() {
@@ -290,6 +317,7 @@ public struct SpinWheelView: View {
     }
     
     private func purchaseBonusSpins(count: Int, cost: Int) {
+        guard !homeState.isBanned else { return }
         guard homeState.gems >= cost else {
             purchaseFeedback = "Need \(cost) gems."
             return

@@ -5,6 +5,7 @@ import GameApp
 public struct ChallengeModeView: View {
     @Environment(\.challengeStore) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(HomeState.self) private var homeState
     @State private var scrollViewProxy: ScrollViewProxy? = nil
     @State private var currentTime = Date()  // For countdown timer updates
     @State private var selectedChallenge: Challenge? = nil
@@ -75,6 +76,11 @@ public struct ChallengeModeView: View {
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { time in
                 currentTime = time
             }
+            .alert("Banned", isPresented: Bindable(homeState).showBanAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("You are banned due to \(homeState.banReasonText). \(homeState.banDurationText)")
+            }
         }
     }
 
@@ -117,7 +123,29 @@ public struct ChallengeModeView: View {
 
     private var playButton: some View {
         Group {
-            if let selected = selectedChallenge {
+            if homeState.isBanned {
+                // Banned: disable challenge entry
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "xmark.shield.fill")
+                        Text("Challenges Disabled")
+                    }
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .semibold))
+                    .foregroundStyle(.red)
+
+                    if let banText = homeState.banTimeRemainingText {
+                        Text("Banned for \(banText)")
+                            .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    homeState.showBanAlert = true
+                }
+            } else if let selected = selectedChallenge {
                 // A playable challenge is selected
                 let challengeNumber = (store.challenges.firstIndex(where: { $0.id == selected.id }) ?? 0) + 1
                 let isReplay = store.completedIds.contains(selected.id)
