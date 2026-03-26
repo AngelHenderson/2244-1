@@ -131,24 +131,25 @@ struct PlayerHistoryView: View {
                     // Banned event (28%)
                     // Each reason maps to a severity tier with appropriate duration ranges
                     // Minor: 1 day – 1 week  |  Medium: 2 weeks – 2 months  |  Severe: 6 months – permanent
-                    let reasonsWithDurations: [(reason: String, durations: [String])] = [
-                        ("inappropriate behavior", ["one day", "two days", "three days", "one week"]),
-                        ("false reports", ["one day", "two days", "three days", "one week"]),
-                        ("account sharing", ["two weeks", "three weeks", "one month", "two months"]),
-                        ("score manipulation", ["two weeks", "three weeks", "one month", "two months"]),
-                        ("cheating", ["six months", "one year", "two years", "five years"]),
-                        ("using third-party tools", ["six months", "one year", "two years", "five years"]),
-                        ("exploiting game bugs", ["one year", "two years", "five years"]),
+                    let reasonsWithDurations: [(reason: String, durations: [String], canBePermanent: Bool)] = [
+                        ("inappropriate behavior", ["one day", "two days", "three days", "one week"], false),
+                        ("false reports", ["one day", "two days", "three days", "one week"], false),
+                        ("account sharing", ["two weeks", "three weeks", "one month", "two months"], false),
+                        ("score manipulation", ["two weeks", "three weeks", "one month", "two months"], false),
+                        ("cheating", ["six months", "one year", "two years", "five years"], true),
+                        ("using third-party tools", ["six months", "one year", "two years", "five years"], true),
+                        ("exploiting game bugs", ["one year", "two years", "five years"], true),
                     ]
                     let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(reasonsWithDurations.count))
                     let entry = reasonsWithDurations[min(reasonIdx, reasonsWithDurations.count - 1)]
                     let reason = entry.reason
 
-                    // Pick duration within this reason's allowed range
-                    let durationIdx = abs(eventIndex * 37 + daysAgo * 13 + seed) % (entry.durations.count + 1)
+                    // Pick duration — only severe reasons can roll permanent
+                    let maxIdx = entry.canBePermanent ? entry.durations.count : entry.durations.count - 1
+                    let durationIdx = abs(eventIndex * 37 + daysAgo * 13 + seed) % (maxIdx + 1)
 
                     let message: String
-                    if durationIdx >= entry.durations.count {
+                    if entry.canBePermanent && durationIdx >= entry.durations.count {
                         message = "\(playerName) got permanently banned due to \(reason)."
                     } else {
                         let duration = entry.durations[min(durationIdx, entry.durations.count - 1)]
