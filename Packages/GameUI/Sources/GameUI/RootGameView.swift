@@ -72,9 +72,23 @@ public struct RootGameView: View {
                         }
                         // Reset captured multiplier after use
                         capturedChallengeCreationMultiplier = 1
+                        // Remember if this was a designer-created challenge before clearing config
+                        let wasDesignerChallenge = config.challengeId == nil
+                        // Remember if this was a pre-made challenge (from challenge list)
+                        let wasFromChallengeList = config.challengeId != nil
                         withAnimation(.easeInOut(duration: 0.3)) {
                             isPlayingCustomChallenge = false
                             customChallengeConfig = nil
+                        }
+                        // Re-open the challenge list so the player can see progress / pick next
+                        if wasFromChallengeList {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                showChallenge = true
+                            }
+                        }
+                        // Re-open the challenge designer so the user can tweak and play again
+                        if wasDesignerChallenge {
+                            showChallengeDesigner = true
                         }
                     }
                 )
