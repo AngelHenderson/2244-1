@@ -342,7 +342,7 @@ public struct LeaderboardView: View {
             if let entry = entries.first(where: { $0.rank == rank }) {
                 previews.append(RankPreview(
                     rank: rank,
-                    milestone: entry.highestTile,
+                    milestone: entry.highestTile ?? "",
                     isUserRank: entry.isMe
                 ))
             }
