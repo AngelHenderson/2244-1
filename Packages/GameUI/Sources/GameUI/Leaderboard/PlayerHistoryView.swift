@@ -240,13 +240,17 @@ struct PlayerHistoryView: View {
                         )
                     }
 
-                    // ~40% of game over players recover their moves (same player, same time)
+                    // ~40% of game over players recover their moves (same player, same minute)
                     if MockLeaderboardData.seededRandom(seed: seed + 12, index: eventDay) < 0.4 {
+                        // Use seed + 999 for unique ID; override date to be 1 minute after game over
+                        let gameOverEvent = event
+                        let recoveryDate = gameOverEvent.eventDate.addingTimeInterval(60)
                         let recovery = HistoryEvent(
                             type: .moveRecovery,
                             message: "\(playerName) recovered their moves and is back in the game!",
                             daysAgo: daysAgo,
-                            seed: seed  // same seed = same timestamp
+                            seed: seed + 999,
+                            overrideDate: recoveryDate
                         )
                         result.append(recovery)
                     }
