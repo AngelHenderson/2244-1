@@ -1,8 +1,10 @@
 import SwiftUI
 import GameCore
+import GameApp
 
 public struct DailyQuestsView: View {
     @Environment(DailyQuestStore.self) private var questStore
+    @Environment(HomeState.self) private var homeState
     @Environment(\.dismiss) private var dismiss
 
     @State private var countdown: String = ""
@@ -31,7 +33,11 @@ public struct DailyQuestsView: View {
 
                     // Quest cards
                     ForEach(questStore.quests) { quest in
-                        QuestCard(quest: quest) {
+                        QuestCard(
+                            quest: quest,
+                            highestTileStep: homeState.highestTileStep,
+                            tileQuestTargetStep: questStore.tileQuestTargetStep
+                        ) {
                             questStore.claim(questId: quest.id)
                         }
                     }
@@ -76,6 +82,8 @@ public struct DailyQuestsView: View {
 
 private struct QuestCard: View {
     let quest: DailyQuestStore.Quest
+    let highestTileStep: Int
+    let tileQuestTargetStep: Int
     let onClaim: () -> Void
 
     private var statusColor: Color {
@@ -113,21 +121,30 @@ private struct QuestCard: View {
                 .multilineTextAlignment(.center)
 
             // Progress bar
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(progressText)
-                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text("\(Int(quest.progress * 100))%")
-                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
+            if quest.id == "daily_tile_reach" && tileQuestTargetStep > 0 {
+                QuestMilestoneBar(
+                    startStep: tileQuestTargetStep - 10,
+                    targetStep: tileQuestTargetStep,
+                    currentStep: highestTileStep
+                )
+                .padding(.vertical, 4)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(progressText)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("\(Int(quest.progress * 100))%")
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                    ProgressView(value: Double(min(quest.current, quest.target)), total: Double(quest.target))
+                        .progressViewStyle(.linear)
+                        .tint(quest.isComplete ? .green : .blue)
                 }
-                ProgressView(value: Double(min(quest.current, quest.target)), total: Double(quest.target))
-                    .progressViewStyle(.linear)
-                    .tint(quest.isComplete ? .green : .blue)
             }
 
             // Rewards row

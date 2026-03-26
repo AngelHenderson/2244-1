@@ -881,7 +881,11 @@ struct DailyQuestsSection: View {
 
             if isExpanded {
                 ForEach(questStore.quests) { quest in
-                    DailyQuestRow(quest: quest) {
+                    DailyQuestRow(
+                        quest: quest,
+                        highestTileStep: homeState.highestTileStep,
+                        tileQuestTargetStep: questStore.tileQuestTargetStep
+                    ) {
                         questStore.claim(questId: quest.id)
                         // Sync gems immediately
                         let updatedGems = UserDefaults.standard.integer(forKey: "coins")
@@ -920,6 +924,8 @@ struct DailyQuestsSection: View {
 
 private struct DailyQuestRow: View {
     let quest: DailyQuestStore.Quest
+    let highestTileStep: Int
+    let tileQuestTargetStep: Int
     let onClaim: () -> Void
 
     var body: some View {
@@ -953,16 +959,25 @@ private struct DailyQuestRow: View {
             }
 
             // Progress bar
-            HStack(spacing: 8) {
-                ProgressView(value: Double(min(quest.current, quest.target)), total: Double(quest.target))
-                    .progressViewStyle(.linear)
-                    .tint(quest.isComplete ? .green : .blue)
+            if quest.id == "daily_tile_reach" && tileQuestTargetStep > 0 {
+                QuestMilestoneBar(
+                    startStep: tileQuestTargetStep - 10,
+                    targetStep: tileQuestTargetStep,
+                    currentStep: highestTileStep
+                )
+                .padding(.vertical, 4)
+            } else {
+                HStack(spacing: 8) {
+                    ProgressView(value: Double(min(quest.current, quest.target)), total: Double(quest.target))
+                        .progressViewStyle(.linear)
+                        .tint(quest.isComplete ? .green : .blue)
 
-                Text("\(min(quest.current, quest.target))/\(quest.target)")
-                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                    .frame(minWidth: 50, alignment: .trailing)
+                    Text("\(min(quest.current, quest.target))/\(quest.target)")
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .frame(minWidth: 50, alignment: .trailing)
+                }
             }
 
             // Reward icons row
@@ -1000,8 +1015,8 @@ private struct DailyQuestRewardRow: View {
         if let m = rewards.magnets, m > 0 { list.append(Item(text: "\(m)", assetName: "magnet", systemName: nil, color: .clear)) }
         if let s = rewards.swaps, s > 0 { list.append(Item(text: "\(s)", assetName: "swap", systemName: nil, color: .clear)) }
         if let sp = rewards.spins, sp > 0 { list.append(Item(text: "\(sp)", assetName: "spinthewheel", systemName: nil, color: .clear)) }
-        if let b2 = rewards.boost2x, b2 > 0 { list.append(Item(text: "\(b2)×", assetName: "boost2x", systemName: nil, color: .clear)) }
-        if let b3 = rewards.boost3x, b3 > 0 { list.append(Item(text: "\(b3)×", assetName: "boost3x", systemName: nil, color: .clear)) }
+        if let b2 = rewards.boost2x, b2 > 0 { list.append(Item(text: "\(b2)×", assetName: nil, systemName: "2.circle.fill", color: .yellow)) }
+        if let b3 = rewards.boost3x, b3 > 0 { list.append(Item(text: "\(b3)×", assetName: nil, systemName: "3.circle.fill", color: .pink)) }
         if let b4 = rewards.boost4x, b4 > 0 { list.append(Item(text: "\(b4)×", assetName: nil, systemName: "4.circle.fill", color: .orange)) }
         return list
     }
