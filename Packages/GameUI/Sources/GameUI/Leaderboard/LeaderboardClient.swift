@@ -1487,6 +1487,45 @@ public enum MockLeaderboardData {
     ) -> [LeaderboardEntry] {
         var entries: [LeaderboardEntry] = []
 
+        // Helper: compute milestone for a rank using the provided brackets
+        func milestoneFromBrackets(rank: Int) -> String? {
+            guard rank > 150 else { return nil }
+
+            var baseMilestone: String? = nil
+            var nextHigherBracketMilestone: String? = nil
+            for (i, bracket) in extendedBrackets.enumerated() {
+                if bracket.startRank <= rank {
+                    baseMilestone = bracket.milestone
+                    if i > 0 {
+                        nextHigherBracketMilestone = extendedBrackets[i - 1].milestone
+                    }
+                } else {
+                    break
+                }
+            }
+
+            guard let base = baseMilestone,
+                  let baseIndex = allMilestones.firstIndex(of: base) else {
+                return baseMilestone
+            }
+
+            let playerIndex = rank + countrySeed
+            let randomFactor = seededRandom(seed: playerIndex * 888, index: playerIndex)
+            let dailyRate = 0.75 + randomFactor * 4.25
+            let tiersGained = Int(dailyRate * Double(day))
+            var newIndex = baseIndex + tiersGained
+
+            if let capMilestone = nextHigherBracketMilestone,
+               let capIndex = allMilestones.firstIndex(of: capMilestone) {
+                newIndex = min(newIndex, capIndex)
+            } else {
+                newIndex = min(newIndex, baseIndex)
+            }
+
+            newIndex = min(newIndex, allMilestones.count - 1)
+            return allMilestones[newIndex]
+        }
+
         // Generate 5 players above and 5 players below the user
         let ranksToShow = 5
 
@@ -1500,8 +1539,8 @@ public enum MockLeaderboardData {
             let avatar = avatarForPlayer(index: playerIndex, countrySeed: countrySeed, day: day)
             let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
 
-            // Use milestoneForExtendedRank for slow, capped progression
-            var milestone = milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
+            // Use brackets-based milestone computation
+            var milestone = milestoneFromBrackets(rank: rank) ?? userMilestone
             // Ensure above-user entries have milestones >= user's milestone
             let aboveMilestoneIdx = milestoneIndex(for: milestone)
             let userMilestoneIdx = milestoneIndex(for: userMilestone)
@@ -1548,8 +1587,8 @@ public enum MockLeaderboardData {
             let avatar = avatarForPlayer(index: playerIndex, countrySeed: countrySeed, day: day)
             let platform: Platform = playerIndex % 2 == 0 ? .ios : .android
 
-            // Use milestoneForExtendedRank for slow, capped progression
-            var milestone = milestoneForExtendedRank(rank: rank, countryCode: countryCode) ?? userMilestone
+            // Use brackets-based milestone computation
+            var milestone = milestoneFromBrackets(rank: rank) ?? userMilestone
             // Ensure below-user entries have milestones <= user's milestone
             let belowMilestoneIdx = milestoneIndex(for: milestone)
             let userMilestoneIdx = milestoneIndex(for: userMilestone)

@@ -328,80 +328,24 @@ public struct LeaderboardView: View {
     /// Generates rank preview entries around the user's current rank
     /// Shows consecutive individual ranks (-3 to +3) with their corresponding milestones
     private func generateRankPreviews(userMilestone: String, filter: LeaderboardFilter, entries: [LeaderboardEntry]) -> [RankPreview] {
-        let userRank = rankForFilter(filter, milestone: userMilestone)
-        var previews: [RankPreview] = []
-
-        // For country leaderboards, use actual entries data
-        if filter.countryCode != nil {
-            return generateCountryRankPreviews(
-                userMilestone: userMilestone,
-                userRank: userRank,
-                filter: filter,
-                entries: entries
-            )
-        }
-
-        // For non-country leaderboards, we need the user's position in the milestone list
-        let milestones = Self.allMilestones
-        guard let userIndex = milestones.firstIndex(of: userMilestone) else {
+        // Use actual entries data for consistent rank preview
+        guard let userEntry = entries.first(where: { $0.isMe }) else {
             return []
         }
+        let userRank = userEntry.rank
 
-        // Calculate the user's tier boundaries directly
-        // The tier start is where players with this milestone begin (rank returned by rankForFilter)
-        let userTierStart = rankForFilter(filter, milestone: userMilestone)
-
-        // Find the next worse milestone to get the tier end
-        let nextWorseMilestoneIndex = userIndex + 1
-        let userTierEnd: Int
-        if nextWorseMilestoneIndex < milestones.count {
-            // The next tier starts where the worse milestone begins
-            let nextTierRank = rankForFilter(filter, milestone: milestones[nextWorseMilestoneIndex])
-            // Ensure userTierEnd is at least userTierStart + 1 to include user's rank
-            userTierEnd = max(nextTierRank, userTierStart + 1)
-        } else {
-            // User has the worst milestone, tier extends to infinity
-            userTierEnd = Int.max
-        }
-
-        // Build a map of rank ranges to milestones for ranks outside user's tier
-        let rangeStart = max(0, userIndex - 5)
-        let rangeEnd = min(milestones.count - 1, userIndex + 5)
-
-        var rankToMilestone: [(startRank: Int, milestone: String)] = []
-        for i in rangeStart...rangeEnd {
-            let milestone = milestones[i]
-            let rank = rankForFilter(filter, milestone: milestone)
-            rankToMilestone.append((rank, milestone))
-        }
-        rankToMilestone.sort { $0.startRank < $1.startRank }
-
-        // Show ranks from 3 above to 3 below user's rank
         let startRank = max(1, userRank - 3)
         let endRank = userRank + 3
+        var previews: [RankPreview] = []
 
         for rank in startRank...endRank {
-            let milestone: String
-
-            // Always show user's actual milestone for their exact rank
-            if rank == userRank {
-                milestone = userMilestone
-            } else if rank >= userTierStart && rank < userTierEnd {
-                // This rank is in the same tier as the user - show user's milestone
-                milestone = userMilestone
-            } else if rank < userTierStart {
-                // Rank is better than user's tier - find the appropriate better milestone
-                milestone = findMilestoneForBetterRank(rank, userRank: userRank, userMilestone: userMilestone, rankToMilestone: rankToMilestone)
-            } else {
-                // Rank is worse than user's tier - find the appropriate worse milestone
-                milestone = findMilestoneForWorseRank(rank, userRank: userRank, userMilestone: userMilestone, rankToMilestone: rankToMilestone)
+            if let entry = entries.first(where: { $0.rank == rank }) {
+                previews.append(RankPreview(
+                    rank: rank,
+                    milestone: entry.highestTile,
+                    isUserRank: entry.isMe
+                ))
             }
-
-            previews.append(RankPreview(
-                rank: rank,
-                milestone: milestone,
-                isUserRank: rank == userRank
-            ))
         }
 
         return previews

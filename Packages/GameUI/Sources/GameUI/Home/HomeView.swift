@@ -91,8 +91,6 @@ public struct HomeView: View {
                                 customImage: "mysterybox",
                                 title: "SHOP",
                                 badge: state.hasShopBadge,
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
                                 action: { isShowingShop = true }
                             )
 
@@ -100,8 +98,6 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "soundeffect",
                                 title: "MUSIC",
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
                                 action: { isShowingMusic = true }
                             )
 
@@ -110,8 +106,6 @@ public struct HomeView: View {
                                 customImage: "salesoffer",
                                 title: "SALE OFFER",
                                 badge: true,
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
                                 action: { actions.openSaleOffer() }
                             )
 
@@ -182,8 +176,6 @@ public struct HomeView: View {
                                         systemImage: nil,
                                         customImage: "gift",
                                         title: "BEST OFFER",
-                                        banned: state.isBanned,
-                                        onBannedTap: { state.showBanAlert = true },
                                         action: { isShowingWeeklyOffer = true }
                                     )
                                     CountdownView(deadline: deadline)
@@ -193,8 +185,6 @@ public struct HomeView: View {
                                     systemImage: nil,
                                     customImage: "gift",
                                     title: "BEST OFFER",
-                                    banned: state.isBanned,
-                                    onBannedTap: { state.showBanAlert = true },
                                     action: { isShowingWeeklyOffer = true }
                                 )
                             }
@@ -203,8 +193,6 @@ public struct HomeView: View {
                                 systemImage: nil,
                                 customImage: "themedefault",
                                 title: "THEME",
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
                                 action: { isShowingThemePicker = true }
                             )
 
@@ -241,10 +229,8 @@ public struct HomeView: View {
                         system: "person.circle.fill",
                         title: "Profile",
                         badge: state.hasProfileBadge,
-                        banned: state.isBanned,
                         action: {
-                            if state.isBanned { state.showBanAlert = true }
-                            else { isShowingProfile = true }
+                            isShowingProfile = true
                         }
                     )
                     dockItem(
@@ -260,19 +246,15 @@ public struct HomeView: View {
                     dockItem(
                         system: "trophy.circle.fill",
                         title: "Leaderboard",
-                        banned: state.isBanned,
                         action: {
-                            if state.isBanned { state.showBanAlert = true }
-                            else { isShowingLeaderboard = true }
+                            isShowingLeaderboard = true
                         }
                     )
                     dockItem(
                         system: "gearshape.fill",
                         title: "Settings",
-                        banned: state.isBanned,
                         action: {
-                            if state.isBanned { state.showBanAlert = true }
-                            else { isShowingSettings = true }
+                            isShowingSettings = true
                         }
                     )
                 }
