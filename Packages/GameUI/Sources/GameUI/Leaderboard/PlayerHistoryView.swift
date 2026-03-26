@@ -334,6 +334,9 @@ struct PlayerHistoryView: View {
         // Track starting ladder index per player (based on their first offense severity)
         var banStartIndex: [String: Int] = [:]
 
+        var reportCounts: [String: Int] = [:]  // tracks how many times each player was reported
+        let reportsUntilReview = 3  // number of reports before action is taken
+
         for event in result.reversed() {
             if event.type == .falseReport, let name = event.playerName {
                 // Skip further false reports after player is already banned
@@ -366,6 +369,48 @@ struct PlayerHistoryView: View {
                     msg = msg.replacingOccurrences(of: ".", with: "") + " (\(remaining) point\(remaining == 1 ? "" : "s") until ban)"
                     processed.append(HistoryEvent(
                         type: .falseReport,
+                        message: msg,
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                }
+
+            } else if event.type == .reported {
+                // Track report count for the reported player
+                // Extract the reported player's name (first part of message before " from")
+                let reportedName: String
+                if let fromRange = event.message.range(of: " from ") {
+                    reportedName = String(event.message[event.message.startIndex..<fromRange.lowerBound])
+                } else {
+                    reportedName = "Unknown"
+                }
+
+                let count = (reportCounts[reportedName] ?? 0) + 1
+                reportCounts[reportedName] = count
+
+                if count >= reportsUntilReview {
+                    // Player reached report threshold — ban them
+                    playerBanned[reportedName] = true
+                    let banNumber = banCounts[reportedName] ?? 0
+                    banCounts[reportedName] = banNumber + 1
+                    let startIdx = banStartIndex[reportedName] ?? 0
+                    let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
+
+                    processed.append(HistoryEvent(
+                        type: .banned,
+                        message: "\(reportedName) got banned for \(duration) due to three reports.",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                } else {
+                    let remaining = reportsUntilReview - count
+                    var msg = event.message.replacingOccurrences(of: ".", with: "")
+                    msg += " (\(remaining) more report\(remaining == 1 ? "" : "s") until ban)"
+
+                    processed.append(HistoryEvent(
+                        type: .reported,
                         message: msg,
                         daysAgo: 0,
                         seed: 0,
