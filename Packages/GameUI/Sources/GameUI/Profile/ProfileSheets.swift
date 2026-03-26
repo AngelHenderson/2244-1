@@ -347,8 +347,15 @@ struct CompareView: View {
         return 0
     }
 
-    /// Parses a milestone string (e.g., "256K", "1M", "32a") into a numeric value for comparison
+    /// Parses a milestone string (e.g., "256K", "1M", "32a", "5∞") into a numeric value for comparison
     private func parseMilestone(_ str: String) -> Double {
+        // Infinity milestones always rank highest — sort by count
+        if str.hasSuffix("∞") {
+            let countStr = str.dropLast()
+            let count = Double(countStr) ?? 0
+            return Double.greatestFiniteMagnitude - 1_000_000 + count
+        }
+
         let s = str.uppercased()
         var multiplier: Double = 1
 
