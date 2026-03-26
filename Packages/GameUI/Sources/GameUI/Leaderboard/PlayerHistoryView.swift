@@ -336,14 +336,27 @@ struct PlayerHistoryView: View {
         result.sort { $0.eventDate > $1.eventDate }
 
         // Post-process: escalate chanceTaken events per player
-        // Process oldest-first so 1st report = 2 chances, 2nd = 1 chance, 3rd = banned
+        // Every 3 events = 1 cycle: warning (2 chances) → warning (1 chance) → ban
+        // Each ban cycle escalates the duration
         var reportCounts: [String: Int] = [:]
+        var banCounts: [String: Int] = [:]  // how many times this player has been banned
         var processed: [HistoryEvent] = []
+
+        // Escalation ladder — each subsequent ban picks the next tier
+        let escalationLadder = [
+            "for one day", "for two days", "for three days", "for one week",
+            "for two weeks", "for one month", "for two months",
+            "for six months", "for one year", "for two years", "for five years",
+            "permanently"
+        ]
 
         for event in result.reversed() {
             if event.type == .chanceTaken, let name = event.playerName {
                 let count = (reportCounts[name] ?? 0) + 1
                 reportCounts[name] = count
+
+                // Determine position in the current 3-event cycle
+                let posInCycle = ((count - 1) % 3) + 1  // 1, 2, or 3
 
                 // Determine the reason text for warnings
                 let reasonText: String
@@ -355,8 +368,8 @@ struct PlayerHistoryView: View {
                     reasonText = "due to a report"
                 }
 
-                if count == 1 {
-                    // First offense: 2 chances remaining
+                if posInCycle == 1 {
+                    // First in cycle: 2 chances remaining
                     processed.append(HistoryEvent(
                         type: .chanceTaken,
                         message: "\(name) got a chance taken away \(reasonText). (2 chances remaining)",
@@ -364,8 +377,8 @@ struct PlayerHistoryView: View {
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
-                } else if count == 2 {
-                    // Second offense: 1 chance remaining
+                } else if posInCycle == 2 {
+                    // Second in cycle: 1 chance remaining
                     processed.append(HistoryEvent(
                         type: .chanceTaken,
                         message: "\(name) got a chance taken away \(reasonText). (1 chance remaining)",
@@ -373,17 +386,19 @@ struct PlayerHistoryView: View {
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
-                } else if count == 3 {
-                    // Third offense: banned with appropriate duration
+                } else {
+                    // Third in cycle: banned — duration escalates with each ban
+                    let banNumber = (banCounts[name] ?? 0)
+                    banCounts[name] = banNumber + 1
+
+                    let reason = event.banReason ?? "repeated offenses"
+                    let escalatedDuration = escalationLadder[min(banNumber, escalationLadder.count - 1)]
+
                     let banMsg: String
-                    if let reason = event.banReason, let duration = event.banDuration {
-                        if duration == "permanently" {
-                            banMsg = "\(name) got permanently banned due to \(reason)."
-                        } else {
-                            banMsg = "\(name) got banned \(duration) due to \(reason)."
-                        }
+                    if escalatedDuration == "permanently" {
+                        banMsg = "\(name) got permanently banned due to \(reason)."
                     } else {
-                        banMsg = "\(name) got banned due to receiving too many reports."
+                        banMsg = "\(name) got banned \(escalatedDuration) due to \(reason)."
                     }
                     processed.append(HistoryEvent(
                         type: .banned,
@@ -393,7 +408,6 @@ struct PlayerHistoryView: View {
                         overrideDate: event.eventDate
                     ))
                 }
-                // 4th+ offenses for the same player are dropped
             } else {
                 processed.append(event)
             }
