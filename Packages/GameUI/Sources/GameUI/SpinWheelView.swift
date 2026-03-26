@@ -206,14 +206,22 @@ public struct SpinWheelView: View {
                 }
             } else {
                 HStack {
-                    Label("Next spin", systemImage: "clock.fill")
-                        .font(.avenirNext(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
+                    if !bonusReady && !(slotReady && spinState.lastConsumedSlot != nil) {
+                        Label("Next spin in \(spinState.formattedCountdown(now: now).lowercased())", systemImage: "clock.fill")
+                            .font(.avenirNext(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                    } else {
+                        Label("Next spin", systemImage: "clock.fill")
+                            .font(.avenirNext(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    
                     Spacer()
-                    if !bonusReady {
-                        Text(spinState.formattedCountdown(now: now))
+                    
+                    if !bonusReady && slotReady && spinState.lastConsumedSlot != nil {
+                        Text("Ready now")
                             .font(.avenirNext(size: 18, weight: .bold))
-                            .foregroundStyle(slotReady && spinState.lastConsumedSlot != nil ? .green : .white)
+                            .foregroundStyle(.green)
                     }
                 }
 
