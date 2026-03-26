@@ -822,7 +822,7 @@ private struct YearlyRewardPageView: View {
     }
 
     private var hasReachedTarget: Bool {
-        currentClaimDay >= requiredDay || claim.isClaimed
+        currentClaimDay >= requiredDay || claim.isClaimed || claim.isAvailable
     }
 
     private var yearlyRewardText: String {
