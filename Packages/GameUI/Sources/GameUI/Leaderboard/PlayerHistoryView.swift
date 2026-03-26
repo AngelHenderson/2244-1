@@ -128,41 +128,32 @@ struct PlayerHistoryView: View {
                 let event: HistoryEvent
 
                 if random < 0.28 {
-                    // Warning/chance event (28%) — escalates to ban on 3rd strike
+                    // Banned event (28%)
                     // Each reason maps to a severity tier with appropriate duration ranges
                     // Minor: 1 day – 1 week  |  Medium: 2 weeks – 2 months  |  Severe: 6 months – permanent
-                    let reasonsWithDurations: [(reason: String, durations: [String], canBePermanent: Bool)] = [
-                        ("inappropriate behavior", ["one day", "two days", "three days", "one week"], false),
-                        ("false reports", ["one day", "two days", "three days", "one week"], false),
-                        ("account sharing", ["two weeks", "three weeks", "one month", "two months"], false),
-                        ("score manipulation", ["two weeks", "three weeks", "one month", "two months"], false),
-                        ("cheating", ["six months", "one year", "two years", "five years"], true),
-                        ("using third-party tools", ["six months", "one year", "two years", "five years"], true),
-                        ("exploiting game bugs", ["one year", "two years", "five years"], true),
+                    let reasonsWithDurations: [(reason: String, durations: [String])] = [
+                        ("inappropriate behavior", ["one day", "two days", "three days", "one week"]),
+                        ("false reports", ["one day", "two days", "three days", "one week"]),
+                        ("account sharing", ["two weeks", "three weeks", "one month", "two months"]),
+                        ("score manipulation", ["two weeks", "three weeks", "one month", "two months"]),
+                        ("cheating", ["six months", "one year", "two years", "five years"]),
+                        ("using third-party tools", ["six months", "one year", "two years", "five years"]),
+                        ("exploiting game bugs", ["one year", "two years", "five years"]),
                     ]
                     let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(reasonsWithDurations.count))
                     let entry = reasonsWithDurations[min(reasonIdx, reasonsWithDurations.count - 1)]
                     let reason = entry.reason
 
-                    // Pick duration — only severe reasons can roll permanent
-                    let maxIdx = entry.canBePermanent ? entry.durations.count : entry.durations.count - 1
-                    let durationIdx = abs(eventIndex * 37 + daysAgo * 13 + seed) % (maxIdx + 1)
-
-                    let banDuration: String
-                    if entry.canBePermanent && durationIdx >= entry.durations.count {
-                        banDuration = "permanently"
-                    } else {
-                        banDuration = "for \(entry.durations[min(durationIdx, entry.durations.count - 1)])"
-                    }
+                    // Starting duration index — post-processing will escalate from here
+                    let durationIdx = abs(eventIndex * 37 + daysAgo * 13 + seed) % entry.durations.count
+                    let duration = entry.durations[min(durationIdx, entry.durations.count - 1)]
 
                     event = HistoryEvent(
-                        type: .chanceTaken,
+                        type: .banned,
                         playerName: playerName,
-                        message: "",  // set in post-processing
+                        message: "\(playerName) got banned for \(duration) due to \(reason).",
                         daysAgo: daysAgo,
-                        seed: seed,
-                        banReason: reason,
-                        banDuration: banDuration
+                        seed: seed
                     )
 
                 } else if random < 0.47 {
@@ -335,19 +326,17 @@ struct PlayerHistoryView: View {
         // Sort by date, newest first
         result.sort { $0.eventDate > $1.eventDate }
 
-        // Post-process: escalate chanceTaken events per player
-        // Every 3 events = 1 cycle: warning (2 chances) → warning (1 chance) → ban
-        // Each ban cycle escalates the duration
+        // Post-process: escalate chanceTaken events per player AND escalate ban durations
+        // Process oldest-first so 1st report = 2 chances, 2nd = 1 chance, 3rd = banned
         var reportCounts: [String: Int] = [:]
-        var banCounts: [String: Int] = [:]  // how many times this player has been banned
+        var banCounts: [String: Int] = [:]  // tracks how many bans per player for escalation
         var processed: [HistoryEvent] = []
 
         // Escalation ladder — each subsequent ban picks the next tier
         let escalationLadder = [
-            "for one day", "for two days", "for three days", "for one week",
-            "for two weeks", "for one month", "for two months",
-            "for six months", "for one year", "for two years", "for five years",
-            "permanently"
+            "one day", "two days", "three days", "one week",
+            "two weeks", "one month", "two months",
+            "six months", "one year", "two years", "five years"
         ]
 
         for event in result.reversed() {
@@ -355,59 +344,62 @@ struct PlayerHistoryView: View {
                 let count = (reportCounts[name] ?? 0) + 1
                 reportCounts[name] = count
 
-                // Determine position in the current 3-event cycle
-                let posInCycle = ((count - 1) % 3) + 1  // 1, 2, or 3
-
-                // Determine the reason text for warnings
-                let reasonText: String
-                if let banReason = event.banReason {
-                    reasonText = "due to \(banReason)"
-                } else if let reporter = event.reporterName {
-                    reasonText = "due to a report from \(reporter)"
-                } else {
-                    reasonText = "due to a report"
-                }
-
-                if posInCycle == 1 {
-                    // First in cycle: 2 chances remaining
+                if count == 1 {
+                    // First report: 2 chances remaining
+                    let reporter = event.reporterName ?? "another player"
                     processed.append(HistoryEvent(
                         type: .chanceTaken,
-                        message: "\(name) got a chance taken away \(reasonText). (2 chances remaining)",
+                        message: "\(name) got a chance taken away due to a report from \(reporter). (2 chances remaining)",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
-                } else if posInCycle == 2 {
-                    // Second in cycle: 1 chance remaining
+                } else if count == 2 {
+                    // Second report: 1 chance remaining
+                    let reporter = event.reporterName ?? "another player"
                     processed.append(HistoryEvent(
                         type: .chanceTaken,
-                        message: "\(name) got a chance taken away \(reasonText). (1 chance remaining)",
+                        message: "\(name) got a chance taken away due to a report from \(reporter). (1 chance remaining)",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
-                } else {
-                    // Third in cycle: banned — duration escalates with each ban
-                    let banNumber = (banCounts[name] ?? 0)
+                } else if count == 3 {
+                    // Third report: banned — use escalation ladder
+                    let banNumber = banCounts[name] ?? 0
                     banCounts[name] = banNumber + 1
-
-                    let reason = event.banReason ?? "repeated offenses"
-                    let escalatedDuration = escalationLadder[min(banNumber, escalationLadder.count - 1)]
-
-                    let banMsg: String
-                    if escalatedDuration == "permanently" {
-                        banMsg = "\(name) got permanently banned due to \(reason)."
-                    } else {
-                        banMsg = "\(name) got banned \(escalatedDuration) due to \(reason)."
-                    }
+                    let duration = escalationLadder[min(banNumber, escalationLadder.count - 1)]
                     processed.append(HistoryEvent(
                         type: .banned,
-                        message: banMsg,
+                        message: "\(name) got banned for \(duration) due to receiving too many reports.",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
                 }
+                // 4th+ reports for the same player are dropped
+
+            } else if event.type == .banned, let name = event.playerName {
+                // Escalate ban duration for repeat offenders
+                let banNumber = banCounts[name] ?? 0
+                banCounts[name] = banNumber + 1
+                let escalatedDuration = escalationLadder[min(banNumber, escalationLadder.count - 1)]
+
+                // Extract the reason from the original message (after "due to ")
+                let reason: String
+                if let range = event.message.range(of: "due to ") {
+                    reason = String(event.message[range.upperBound...]).replacingOccurrences(of: ".", with: "")
+                } else {
+                    reason = "repeated offenses"
+                }
+
+                processed.append(HistoryEvent(
+                    type: .banned,
+                    message: "\(name) got banned for \(escalatedDuration) due to \(reason).",
+                    daysAgo: 0,
+                    seed: 0,
+                    overrideDate: event.eventDate
+                ))
             } else {
                 processed.append(event)
             }
@@ -469,17 +461,13 @@ struct HistoryEvent: Identifiable {
     let eventDate: Date
     let playerName: String?
     let reporterName: String?
-    let banReason: String?
-    let banDuration: String?
 
-    init(type: EventType, playerName: String? = nil, reporterName: String? = nil, message: String, daysAgo: Int, seed: Int, overrideDate: Date? = nil, banReason: String? = nil, banDuration: String? = nil) {
+    init(type: EventType, playerName: String? = nil, reporterName: String? = nil, message: String, daysAgo: Int, seed: Int, overrideDate: Date? = nil) {
         self.id = "\(seed)_\(daysAgo)_\(type)_\(message.hashValue)"
         self.type = type
         self.message = message
         self.playerName = playerName
         self.reporterName = reporterName
-        self.banReason = banReason
-        self.banDuration = banDuration
 
         // If an override date is provided (post-processing), use it directly
         if let override = overrideDate {
@@ -527,6 +515,44 @@ struct HistoryEvent: Identifiable {
         case .moveRecovery: return "heart.fill"
         case .joined: return "person.badge.plus"
         case .deleted: return "trash.fill"
+        case .restart: return "arrow.counterclockwise"
+        }
+    }
+
+    var iconBackground: Color {
+        switch type {
+        case .banned: return .red
+        case .reported: return .orange
+        case .chanceTaken: return Color(red: 0.9, green: 0.4, blue: 0.2)
+        case .falseReport: return .yellow
+        case .madeInfinity: return .purple
+        case .gameOver: return Color(red: 0.6, green: 0.3, blue: 0.1)
+        case .moveRecovery: return .teal
+        case .joined: return .green
+        case .deleted: return .gray
+        case .restart: return .blue
+        }
+    }
+
+    var timeAgo: String {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+        let time = timeFormatter.string(from: eventDate)
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM d, yyyy"
+        let date = dateFormatter.string(from: eventDate)
+
+        let calendar = Calendar.current
+        if calendar.isDateInToday(eventDate) {
+            return "\(time) today · \(date)"
+        } else if calendar.isDateInYesterday(eventDate) {
+            return "\(time) yesterday · \(date)"
+        } else {
+            return "\(time) at \(date)"
+        }
+    }
+}
         case .restart: return "arrow.counterclockwise"
         }
     }
