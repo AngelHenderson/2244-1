@@ -11927,21 +11927,31 @@ public extension LeaderboardClient {
             return $0.id < $1.id
         }
 
-        // Insert user at their calculated rank
+        // Insert user into sorted entries based on their milestone index
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
-        let uzRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "UZ")
+
+        // Add user to the sorted list based on milestone comparison
+        var entriesWithUser = nonInfinityEntries
+        var userInsertIndex = entriesWithUser.count  // default: end
+        for (idx, player) in entriesWithUser.enumerated() {
+            if userMilestoneIdx > player.milestoneIdx ||
+               (userMilestoneIdx == player.milestoneIdx && true) {
+                userInsertIndex = idx
+                break
+            }
+        }
 
         var entries: [LeaderboardEntry] = []
-        var userInserted = false
         var currentRank = 1
 
-        for player in nonInfinityEntries {
-            if !userInserted && currentRank >= uzRank {
+        for (idx, player) in entriesWithUser.enumerated() {
+            // Insert user at their milestone-sorted position
+            if idx == userInsertIndex {
                 entries.append(LeaderboardEntry(
                     id: "me",
                     rank: currentRank,
-                    name: "You",
+                    name: UserLeaderboardData.playerName,
                     score: userMilestoneIdx * 100,
                     countryCode: "UZ",
                     platform: .ios,
@@ -11949,7 +11959,6 @@ public extension LeaderboardClient {
                     avatarURL: "",
                     highestTile: userMilestone
                 ))
-                userInserted = true
                 currentRank += 1
                 if entries.count >= 150 { break }
             }
@@ -11969,19 +11978,36 @@ public extension LeaderboardClient {
             if entries.count >= 150 { break }
         }
 
-        // If user wasn't inserted yet (rank is beyond the entries)
-        if !userInserted {
-            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
-                aroundRank: uzRank,
-                userMilestone: userMilestone,
+        // If user wasn't inserted yet (milestone is lower than all entries)
+        if userInsertIndex >= entriesWithUser.count {
+            // Insert user at the end
+            entries.append(LeaderboardEntry(
+                id: "me",
+                rank: currentRank,
+                name: UserLeaderboardData.playerName,
+                score: userMilestoneIdx * 100,
                 countryCode: "UZ",
-                countrySeed: 260000,
-                names: MockLeaderboardData.uzbekistanNames,
-                day: day,
-                totalPlayers: 28_473_673,
-                extendedBrackets: uzbekistanExtendedRankBrackets
-            )
-            entries.append(contentsOf: extendedEntries)
+                platform: .ios,
+                isMe: true,
+                avatarURL: "",
+                highestTile: userMilestone
+            ))
+
+            // If user is far beyond top 150, use extended bracket entries
+            if entries.count > 150 {
+                let uzRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "UZ")
+                let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                    aroundRank: uzRank,
+                    userMilestone: userMilestone,
+                    countryCode: "UZ",
+                    countrySeed: 260000,
+                    names: MockLeaderboardData.uzbekistanNames,
+                    day: day,
+                    totalPlayers: 28_473_673,
+                    extendedBrackets: uzbekistanExtendedRankBrackets
+                )
+                entries = extendedEntries
+            }
         }
 
         return entries
