@@ -1941,6 +1941,10 @@ public final class GameStore {
         let doubledValue = base <= (Int.max >> 1) ? base * 2 : Int.max
         journey.didReach(tile: doubledValue)
 
+        // Track tier mastery for the doubled tile
+        let doubledTile = state.board[position]
+        incrementTierMasteryCount(for: doubledTile, value: doubledValue)
+
         // Show milestone notification if this created a new highest tile
         // Pass steps for high-value tiles to enable proper comparison
         setMergeInfoIfMilestone(
@@ -2268,6 +2272,9 @@ public final class GameStore {
                 newStep: mergedStep
             )
             self.achievementEvaluator?.onTilesMerged(count: matchingPositions.count)
+
+            // Track tier mastery for the merged tile
+            self.incrementTierMasteryCount(for: mergedTile, value: mergedValue)
 
             // Set up double offer for magnet merges (same rules as regular merges)
             // Only offer double if tile is one step below OR same as previous highest (not a new record)
