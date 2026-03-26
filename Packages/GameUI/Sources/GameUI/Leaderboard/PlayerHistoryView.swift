@@ -177,39 +177,25 @@ struct PlayerHistoryView: View {
                         seed: seed
                     )
 
-                } else if random < 0.54 {
-                    // Chance taken away (7%) — chances count set in post-processing
-                    let reporterNameIndex = Int(MockLeaderboardData.seededRandom(seed: seed + 10, index: eventDay) * 200.0)
-                    let reporterName = MockLeaderboardData.nameForPlayer(
-                        index: reporterNameIndex,
-                        names: MockLeaderboardData.hallOfFameNames,
-                        countrySeed: seed + 200,
-                        day: eventDay
-                    )
-
-                    event = HistoryEvent(
-                        type: .chanceTaken,
-                        playerName: playerName,
-                        reporterName: reporterName,
-                        message: "",  // set in post-processing
-                        daysAgo: daysAgo,
-                        seed: seed
-                    )
-
                 } else if random < 0.60 {
-                    // False report (6%) — split into regular and leaderboard overtake
+                    // False report (13%) — split into regular and leaderboard overtake
+                    // Leaderboard overtakes = 2 abuse points, others = 1 abuse point
+                    // At 5+ abuse points → banned
                     let isOvertake = MockLeaderboardData.seededRandom(seed: seed + 13, index: eventDay) < 0.4
                     if isOvertake {
                         event = HistoryEvent(
                             type: .falseReport,
-                            message: "\(playerName) made a false report due to reporting someone ahead of him in the leaderboard.",
+                            playerName: playerName,
+                            reporterName: "overtake",  // marker for 2 abuse points
+                            message: "\(playerName) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
                             daysAgo: daysAgo,
                             seed: seed
                         )
                     } else {
                         event = HistoryEvent(
                             type: .falseReport,
-                            message: "\(playerName) made a false report.",
+                            playerName: playerName,
+                            message: "\(playerName) made a false report. (+1 abuse point)",
                             daysAgo: daysAgo,
                             seed: seed
                         )
@@ -326,66 +312,82 @@ struct PlayerHistoryView: View {
         // Sort by date, newest first
         result.sort { $0.eventDate > $1.eventDate }
 
-        // Post-process: escalate chanceTaken events per player AND escalate ban durations
-        // Process oldest-first so 1st report = 2 chances, 2nd = 1 chance, 3rd = banned
-        var reportCounts: [String: Int] = [:]
+        // Post-process: track abuse points from false reports AND escalate ban durations
+        // Leaderboard overtake = 2 abuse points, other false reports = 1 point
+        // At 5+ abuse points → banned (with escalating duration for repeat offenders)
+        var abusePoints: [String: Int] = [:]  // tracks abuse points per player
         var banCounts: [String: Int] = [:]  // tracks how many bans per player for escalation
+        var playerBanned: [String: Bool] = [:]  // whether player already got banned this cycle
         var processed: [HistoryEvent] = []
 
-        // Escalation ladder — each subsequent ban picks the next tier
+        // Escalation ladder — each subsequent ban moves up from their starting tier
         let escalationLadder = [
             "one day", "two days", "three days", "one week",
             "two weeks", "one month", "two months",
             "six months", "one year", "two years", "five years"
         ]
 
-        for event in result.reversed() {
-            if event.type == .chanceTaken, let name = event.playerName {
-                let count = (reportCounts[name] ?? 0) + 1
-                reportCounts[name] = count
+        // Track starting ladder index per player (based on their first offense severity)
+        var banStartIndex: [String: Int] = [:]
 
-                if count == 1 {
-                    // First report: 2 chances remaining
-                    let reporter = event.reporterName ?? "another player"
-                    processed.append(HistoryEvent(
-                        type: .chanceTaken,
-                        message: "\(name) got a chance taken away due to a report from \(reporter). (2 chances remaining)",
-                        daysAgo: 0,
-                        seed: 0,
-                        overrideDate: event.eventDate
-                    ))
-                } else if count == 2 {
-                    // Second report: 1 chance remaining
-                    let reporter = event.reporterName ?? "another player"
-                    processed.append(HistoryEvent(
-                        type: .chanceTaken,
-                        message: "\(name) got a chance taken away due to a report from \(reporter). (1 chance remaining)",
-                        daysAgo: 0,
-                        seed: 0,
-                        overrideDate: event.eventDate
-                    ))
-                } else if count == 3 {
-                    // Third report: banned — use escalation ladder
+        for event in result.reversed() {
+            if event.type == .falseReport, let name = event.playerName {
+                // Skip further false reports after player is already banned
+                if playerBanned[name] == true { continue }
+
+                let isOvertake = event.reporterName == "overtake"
+                let points = isOvertake ? 2 : 1
+                let currentPoints = (abusePoints[name] ?? 0) + points
+                abusePoints[name] = currentPoints
+
+                if currentPoints >= 5 {
+                    // Threshold reached — ban the player
                     let banNumber = banCounts[name] ?? 0
                     banCounts[name] = banNumber + 1
-                    let duration = escalationLadder[min(banNumber, escalationLadder.count - 1)]
+                    playerBanned[name] = true
+                    let startIdx = banStartIndex[name] ?? 0
+                    let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
                     processed.append(HistoryEvent(
                         type: .banned,
-                        message: "\(name) got banned for \(duration) due to receiving too many reports.",
+                        message: "\(name) got banned for \(duration) due to accumulating \(currentPoints) abuse points from false reports.",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                } else {
+                    // Show the false report with current abuse point total
+                    let remaining = 5 - currentPoints
+                    var msg = event.message
+                    // Append remaining threshold info
+                    msg = msg.replacingOccurrences(of: ".", with: "") + " (\(remaining) point\(remaining == 1 ? "" : "s") until ban)"
+                    processed.append(HistoryEvent(
+                        type: .falseReport,
+                        message: msg,
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
                 }
-                // 4th+ reports for the same player are dropped
 
             } else if event.type == .banned, let name = event.playerName {
                 // Escalate ban duration for repeat offenders
                 let banNumber = banCounts[name] ?? 0
-                banCounts[name] = banNumber + 1
-                let escalatedDuration = escalationLadder[min(banNumber, escalationLadder.count - 1)]
 
-                // Extract the reason from the original message (after "due to ")
+                // On first ban, find where their initial duration sits on the ladder
+                if banNumber == 0 {
+                    if let forRange = event.message.range(of: "banned for "),
+                       let dueRange = event.message.range(of: " due to") {
+                        let initialDuration = String(event.message[forRange.upperBound..<dueRange.lowerBound])
+                        let startIdx = escalationLadder.firstIndex(of: initialDuration) ?? 0
+                        banStartIndex[name] = startIdx
+                    }
+                }
+
+                banCounts[name] = banNumber + 1
+                let startIdx = banStartIndex[name] ?? 0
+                let escalatedDuration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
+
+                // Extract the reason from the original message
                 let reason: String
                 if let range = event.message.range(of: "due to ") {
                     reason = String(event.message[range.upperBound...]).replacingOccurrences(of: ".", with: "")
