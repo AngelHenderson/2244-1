@@ -128,7 +128,7 @@ struct PlayerHistoryView: View {
                 let event: HistoryEvent
 
                 if random < 0.28 {
-                    // Banned event (28%)
+                    // Warning/chance event (28%) — escalates to ban on 3rd strike
                     // Each reason maps to a severity tier with appropriate duration ranges
                     // Minor: 1 day – 1 week  |  Medium: 2 weeks – 2 months  |  Severe: 6 months – permanent
                     let reasonsWithDurations: [(reason: String, durations: [String], canBePermanent: Bool)] = [
@@ -148,19 +148,21 @@ struct PlayerHistoryView: View {
                     let maxIdx = entry.canBePermanent ? entry.durations.count : entry.durations.count - 1
                     let durationIdx = abs(eventIndex * 37 + daysAgo * 13 + seed) % (maxIdx + 1)
 
-                    let message: String
+                    let banDuration: String
                     if entry.canBePermanent && durationIdx >= entry.durations.count {
-                        message = "\(playerName) got permanently banned due to \(reason)."
+                        banDuration = "permanently"
                     } else {
-                        let duration = entry.durations[min(durationIdx, entry.durations.count - 1)]
-                        message = "\(playerName) got banned for \(duration) due to \(reason)."
+                        banDuration = "for \(entry.durations[min(durationIdx, entry.durations.count - 1)])"
                     }
 
                     event = HistoryEvent(
-                        type: .banned,
-                        message: message,
+                        type: .chanceTaken,
+                        playerName: playerName,
+                        message: "",  // set in post-processing
                         daysAgo: daysAgo,
-                        seed: seed
+                        seed: seed,
+                        banReason: reason,
+                        banDuration: banDuration
                     )
 
                 } else if random < 0.47 {
@@ -343,37 +345,55 @@ struct PlayerHistoryView: View {
                 let count = (reportCounts[name] ?? 0) + 1
                 reportCounts[name] = count
 
+                // Determine the reason text for warnings
+                let reasonText: String
+                if let banReason = event.banReason {
+                    reasonText = "due to \(banReason)"
+                } else if let reporter = event.reporterName {
+                    reasonText = "due to a report from \(reporter)"
+                } else {
+                    reasonText = "due to a report"
+                }
+
                 if count == 1 {
-                    // First report: 2 chances remaining
-                    let reporter = event.reporterName ?? "another player"
+                    // First offense: 2 chances remaining
                     processed.append(HistoryEvent(
                         type: .chanceTaken,
-                        message: "\(name) got a chance taken away due to a report from \(reporter). (2 chances remaining)",
+                        message: "\(name) got a chance taken away \(reasonText). (2 chances remaining)",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
                 } else if count == 2 {
-                    // Second report: 1 chance remaining
-                    let reporter = event.reporterName ?? "another player"
+                    // Second offense: 1 chance remaining
                     processed.append(HistoryEvent(
                         type: .chanceTaken,
-                        message: "\(name) got a chance taken away due to a report from \(reporter). (1 chance remaining)",
+                        message: "\(name) got a chance taken away \(reasonText). (1 chance remaining)",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
                 } else if count == 3 {
-                    // Third report: banned
+                    // Third offense: banned with appropriate duration
+                    let banMsg: String
+                    if let reason = event.banReason, let duration = event.banDuration {
+                        if duration == "permanently" {
+                            banMsg = "\(name) got permanently banned due to \(reason)."
+                        } else {
+                            banMsg = "\(name) got banned \(duration) due to \(reason)."
+                        }
+                    } else {
+                        banMsg = "\(name) got banned due to receiving too many reports."
+                    }
                     processed.append(HistoryEvent(
                         type: .banned,
-                        message: "\(name) got banned due to receiving too many reports.",
+                        message: banMsg,
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
                     ))
                 }
-                // 4th+ reports for the same player are dropped
+                // 4th+ offenses for the same player are dropped
             } else {
                 processed.append(event)
             }
@@ -435,13 +455,17 @@ struct HistoryEvent: Identifiable {
     let eventDate: Date
     let playerName: String?
     let reporterName: String?
+    let banReason: String?
+    let banDuration: String?
 
-    init(type: EventType, playerName: String? = nil, reporterName: String? = nil, message: String, daysAgo: Int, seed: Int, overrideDate: Date? = nil) {
+    init(type: EventType, playerName: String? = nil, reporterName: String? = nil, message: String, daysAgo: Int, seed: Int, overrideDate: Date? = nil, banReason: String? = nil, banDuration: String? = nil) {
         self.id = "\(seed)_\(daysAgo)_\(type)_\(message.hashValue)"
         self.type = type
         self.message = message
         self.playerName = playerName
         self.reporterName = reporterName
+        self.banReason = banReason
+        self.banDuration = banDuration
 
         // If an override date is provided (post-processing), use it directly
         if let override = overrideDate {
