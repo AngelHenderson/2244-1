@@ -794,6 +794,27 @@ public final class GameStore {
         isExtendingToGift = false
     }
     
+    public func isValidNextTile(_ position: Position) -> Bool {
+        guard !currentPath.contains(position) else { return false }
+        guard pendingGiftBoxes[position] == nil else { return false }
+        
+        if let last = currentPath.last, !last.isAdjacent(to: position) {
+            return false
+        }
+        
+        var testPath = currentPath
+        testPath.append(position)
+        
+        let boardIndex = BoardIndex(position)
+        let isGift = state.board[boardIndex].kind == .gift
+        
+        if isGift {
+            return engine.validateGiftChain(testPath).isValid
+        } else {
+            return engine.validateChain(testPath).isValid
+        }
+    }
+    
     public func extendPath(to position: Position) {
         guard !currentPath.contains(position) else { return }
         guard pendingGiftBoxes[position] == nil else { return }

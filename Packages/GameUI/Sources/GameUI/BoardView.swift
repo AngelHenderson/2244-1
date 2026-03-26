@@ -182,6 +182,7 @@ public struct BoardView: View {
     private func pathOverlay(tileSize: CGFloat, containerSize: CGSize) -> some View {
         if tileSize > 0, !gameStore.currentPath.isEmpty {
             Path { path in
+                // Draw lines between established connected tiles
                 for (index, position) in gameStore.currentPath.enumerated() {
                     let point = centerPoint(for: position, tileSize: tileSize, containerSize: containerSize)
                     
@@ -190,6 +191,39 @@ public struct BoardView: View {
                     } else {
                         path.addLine(to: point)
                     }
+                }
+                
+                // If the user is dragging, draw an extension "pipe" pointing to the finger
+                if isDragging, let lastPosition = gameStore.currentPath.last {
+                    let lastPoint = centerPoint(for: lastPosition, tileSize: tileSize, containerSize: containerSize)
+                    var pipeEndPoint = dragLocation
+                    
+                    let hoverPosition = gridPosition(from: dragLocation, tileSize: tileSize, containerSize: containerSize)
+                    var isSafeToDrawFull = false
+                    
+                    if let hoverPosition = hoverPosition {
+                        if hoverPosition == lastPosition {
+                            isSafeToDrawFull = true
+                        } else if gameStore.currentPath.contains(hoverPosition) {
+                            isSafeToDrawFull = true
+                        } else if gameStore.isValidNextTile(hoverPosition) {
+                            isSafeToDrawFull = true
+                        }
+                    }
+                    
+                    if !isSafeToDrawFull {
+                        // Pointing towards an invalid tile or off-board. Clamp the pipe length.
+                        let maxDist = tileSize / 2 + spacing / 4
+                        let dx = dragLocation.x - lastPoint.x
+                        let dy = dragLocation.y - lastPoint.y
+                        let dist = hypot(dx, dy)
+                        if dist > maxDist {
+                            pipeEndPoint = CGPoint(x: lastPoint.x + (dx / dist) * maxDist,
+                                                   y: lastPoint.y + (dy / dist) * maxDist)
+                        }
+                    }
+                    
+                    path.addLine(to: pipeEndPoint)
                 }
             }
             .stroke(style: StrokeStyle(lineWidth: Tokens.Size.pathWidth, lineCap: .round, lineJoin: .round))
