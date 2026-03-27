@@ -3880,9 +3880,9 @@ public enum MockLeaderboardData {
 
     // MARK: - Extended Brackets Access for Rank Preview
 
-    /// Global extended brackets (uses US as representative for global leaderboard)
+    /// Global extended brackets
     static var globalExtendedBrackets: [(milestone: String, startRank: Int)] {
-        LeaderboardClient.usExtendedRankBrackets
+        LeaderboardClient.globalExtendedRankBrackets
     }
 
     /// Hall of Fame extended brackets
@@ -6326,7 +6326,7 @@ public extension LeaderboardClient {
     ]
 
     // Extended Global milestone brackets for rank calculation (ranks 151+)
-    private static let globalExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+    static let globalExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         // ap-tier brackets (ranks 151-154)
         ("372ap", 151), ("46ap", 152), ("11ap", 153), ("2ap", 154),
         // ao-tier brackets (ranks 155-157)
