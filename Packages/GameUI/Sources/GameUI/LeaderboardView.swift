@@ -325,8 +325,7 @@ public struct LeaderboardView: View {
         let isUserRank: Bool
     }
 
-    /// Generates rank preview entries around the user's current rank
-    /// Shows consecutive individual ranks (-3 to +3) with their corresponding milestones
+    /// Generates rank previews around the user's current rank using monotonic tier boundaries
     private func generateRankPreviews(userMilestone: String, filter: LeaderboardFilter, entries: [LeaderboardEntry]) -> [RankPreview] {
         guard let userEntry = entries.first(where: { $0.isMe }) else {
             return []
@@ -337,40 +336,23 @@ public struct LeaderboardView: View {
         let endRank = userRank + 3
         var previews: [RankPreview] = []
 
-        // Helper to check if a specific rank is exactly defined in extended brackets
-        let extBrackets: [(milestone: String, startRank: Int)]
-        if let countryCode = filter.countryCode {
-            extBrackets = MockLeaderboardData.extendedBrackets(for: countryCode)
-        } else {
-            // For Global, use global brackets
-            extBrackets = MockLeaderboardData.globalExtendedBrackets
-        }
+        // Check if user is within Top 150 entries
+        let userInTop150 = userRank <= 150
 
         for rank in startRank...endRank {
             var milestoneForRank = userMilestone
 
             if rank == userRank {
                 milestoneForRank = userMilestone
-            } else if let actualEntry = entries.first(where: { $0.rank == rank }) {
-                // If the player actually exists in the entries list, use their milestone
+            } else if userInTop150, let actualEntry = entries.first(where: { $0.rank == rank }) {
+                // If in Top 150, exact entry data determines milestone
                 milestoneForRank = actualEntry.highestTile ?? userMilestone
-            } else if rank > 150 {
-                // For synthetic intermediate ranks (that aren't simulated players), 
-                // we lookup what bracket they fall into
-                var bracketMilestone: String? = nil
-                for bracket in extBrackets {
-                    if bracket.startRank <= rank {
-                        bracketMilestone = bracket.milestone
-                    } else {
-                        break
-                    }
-                }
-                
-                if let bm = bracketMilestone {
-                    milestoneForRank = bm
-                }
+            } else if !userInTop150, rank <= 150, let actualEntry = entries.first(where: { $0.rank == rank }) {
+                // Viewing Top 150 while outside of it
+                milestoneForRank = actualEntry.highestTile ?? userMilestone
             } else {
-                // Top 150 non-simulated ranks should use the actual distribution from rankForFilter
+                // For synthesized ranks (>150), strictly enforce mathematical monotonic boundaries
+                // This perfectly mirrors the visual list representation in the main UI
                 milestoneForRank = tierMilestoneForRank(rank, userMilestone: userMilestone, filter: filter)
             }
 

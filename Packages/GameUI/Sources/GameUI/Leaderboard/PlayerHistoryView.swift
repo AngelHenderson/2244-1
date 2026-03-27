@@ -101,128 +101,209 @@ struct PlayerHistoryView: View {
         for daysAgo in 0..<30 {
             let eventDay = day - daysAgo
 
-            // Use seeded random for deterministic events per day
-            let eventCount = 3 + Int(MockLeaderboardData.seededRandom(seed: 55555, index: eventDay) * 5.0) // 3-7 events per day
+            let countries = ["US", "BR", "GB", "DE", "JP", "IN", "FR", "MX", "AU", "CA",
+                             "KR", "IT", "ES", "NL", "SE", "NO", "CH", "AT", "NZ", "IE",
+                             "VN", "KZ", "CW", "AZ", "TJ", "KE", "ZA", "FJ", "PH", "TH"]
 
-            for eventIndex in 0..<eventCount {
-                let seed = eventDay * 100 + eventIndex
-                let random = MockLeaderboardData.seededRandom(seed: seed, index: eventDay)
-
-                // Pick a country for this event
-                let countries = ["US", "BR", "GB", "DE", "JP", "IN", "FR", "MX", "AU", "CA",
-                                 "KR", "IT", "ES", "NL", "SE", "NO", "CH", "AT", "NZ", "IE",
-                                 "VN", "KZ", "CW", "AZ", "TJ", "KE", "ZA", "FJ", "PH", "TH"]
-                let countryIndex = Int(MockLeaderboardData.seededRandom(seed: seed + 1, index: eventDay) * Double(countries.count))
-                let country = countries[min(countryIndex, countries.count - 1)]
-                let countryName = Self.countryDisplayName(for: country)
-
-                // Generate player name
-                let nameIndex = Int(MockLeaderboardData.seededRandom(seed: seed + 2, index: eventDay) * 200.0)
-                let playerName = MockLeaderboardData.nameForPlayer(
-                    index: nameIndex,
+            // Helper to make a player name + country for a given seed
+            func makePlayer(seed: Int) -> (name: String, country: String, countryName: String) {
+                let cIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 1, index: eventDay) * Double(countries.count))
+                let country = countries[min(cIdx, countries.count - 1)]
+                let nIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 2, index: eventDay) * 200.0)
+                let name = MockLeaderboardData.nameForPlayer(
+                    index: nIdx,
                     names: MockLeaderboardData.hallOfFameNames,
                     countrySeed: seed,
                     day: eventDay
                 )
+                return (name, country, Self.countryDisplayName(for: country))
+            }
+
+            // === Guaranteed events: 2+ of each type per day ===
+            // Bans are NOT generated directly — they emerge from report/false-report post-processing
+
+            // 1) Reported (x4) — 3 reports on same player triggers a ban via post-processing
+            for i in 0..<4 {
+                let seed = eventDay * 700 + 100 + i * 11
+                let p = makePlayer(seed: seed)
+                let rSeed = seed + 50
+                let rp = makePlayer(seed: rSeed)
+                result.append(HistoryEvent(
+                    type: .reported,
+                    message: "\(p.name) from \(p.countryName) leaderboard got reported by \(rp.name) from \(rp.countryName).",
+                    daysAgo: daysAgo,
+                    seed: seed
+                ))
+            }
+
+            // 2) False report (x4) — 5 abuse points triggers a ban via post-processing
+            for i in 0..<4 {
+                let seed = eventDay * 700 + 200 + i * 11
+                let p = makePlayer(seed: seed)
+                let isOvertake = i % 2 == 0  // alternate between overtake and regular
+                if isOvertake {
+                    result.append(HistoryEvent(
+                        type: .falseReport,
+                        playerName: p.name,
+                        reporterName: "overtake",
+                        message: "\(p.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    ))
+                } else {
+                    result.append(HistoryEvent(
+                        type: .falseReport,
+                        playerName: p.name,
+                        message: "\(p.name) made a false report. (+1 abuse point)",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    ))
+                }
+            }
+
+            // 4) Made infinity (x2)
+            for i in 0..<2 {
+                let seed = eventDay * 700 + 300 + i * 11
+                let p = makePlayer(seed: seed)
+                result.append(HistoryEvent(
+                    type: .madeInfinity,
+                    message: "\(p.name) made infinity!",
+                    daysAgo: daysAgo,
+                    seed: seed
+                ))
+            }
+
+            // 5) Game over / out of moves (x2)
+            for i in 0..<2 {
+                let seed = eventDay * 700 + 400 + i * 11
+                let p = makePlayer(seed: seed)
+                let isInfinity = i == 0
+                if isInfinity {
+                    let count = 1 + Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * 150.0)
+                    result.append(HistoryEvent(
+                        type: .gameOver,
+                        message: "\(p.name) ran out of moves at \(count)∞.",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    ))
+                } else {
+                    let milestoneValues = [
+                        "16M", "8M", "4M", "2M", "1M", "524K", "262K", "131K", "65K", "32K",
+                        "16K", "8192", "4096", "2048", "1024", "512", "256", "128",
+                        "199as", "47br", "3bw", "106by", "28ax", "84al", "803p", "604d",
+                        "590c", "576b", "549B", "268M", "134M", "67M", "33M",
+                        "726ao", "994y", "7u", "6s", "3r", "1q", "79f", "19e"
+                    ]
+                    let mIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(milestoneValues.count))
+                    let milestone = milestoneValues[min(mIdx, milestoneValues.count - 1)]
+                    result.append(HistoryEvent(
+                        type: .gameOver,
+                        message: "\(p.name) ran out of moves at \(milestone).",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    ))
+                }
+                // ~40% recovery
+                if MockLeaderboardData.seededRandom(seed: seed + 12, index: eventDay) < 0.4 {
+                    let recoveryDate = result.last!.eventDate.addingTimeInterval(60)
+                    result.append(HistoryEvent(
+                        type: .moveRecovery,
+                        message: "\(p.name) recovered their moves and is back in the game!",
+                        daysAgo: daysAgo,
+                        seed: seed + 999,
+                        overrideDate: recoveryDate
+                    ))
+                }
+            }
+
+            // 6) Deleted (x2)
+            for i in 0..<2 {
+                let seed = eventDay * 700 + 500 + i * 11
+                let p = makePlayer(seed: seed)
+                result.append(HistoryEvent(
+                    type: .deleted,
+                    message: "\(p.name) deleted the game.",
+                    daysAgo: daysAgo,
+                    seed: seed
+                ))
+            }
+
+            // 7) Restart (x2)
+            for i in 0..<2 {
+                let seed = eventDay * 700 + 600 + i * 11
+                let p = makePlayer(seed: seed)
+                result.append(HistoryEvent(
+                    type: .restart,
+                    message: "\(p.name) chose to restart their progress.",
+                    daysAgo: daysAgo,
+                    seed: seed
+                ))
+            }
+
+            // === Extra random events (2-4 per day for variety) ===
+            let extraCount = 2 + Int(MockLeaderboardData.seededRandom(seed: 55555, index: eventDay) * 3.0)
+            for eventIndex in 0..<extraCount {
+                let seed = eventDay * 100 + eventIndex
+                let random = MockLeaderboardData.seededRandom(seed: seed, index: eventDay)
+                let p = makePlayer(seed: seed)
 
                 let event: HistoryEvent
 
-                if random < 0.28 {
-                    // Banned event (28%)
-                    // Each reason maps to a severity tier with appropriate duration ranges
-                    // Minor: 1 day – 1 week  |  Medium: 2 weeks – 2 months  |  Severe: 6 months – permanent
-                    let reasonsWithDurations: [(reason: String, durations: [String])] = [
-                        ("inappropriate behavior", ["one day", "two days", "three days", "one week"]),
-                        ("false reports", ["one day", "two days", "three days", "one week"]),
-                        ("account sharing", ["two weeks", "three weeks", "one month", "two months"]),
-                        ("score manipulation", ["two weeks", "three weeks", "one month", "two months"]),
-                        ("cheating", ["six months", "one year", "two years", "five years"]),
-                        ("using third-party tools", ["six months", "one year", "two years", "five years"]),
-                        ("exploiting game bugs", ["one year", "two years", "five years"]),
-                    ]
-                    let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(reasonsWithDurations.count))
-                    let entry = reasonsWithDurations[min(reasonIdx, reasonsWithDurations.count - 1)]
-                    let reason = entry.reason
-
-                    // Starting duration index — post-processing will escalate from here
-                    let durationIdx = abs(eventIndex * 37 + daysAgo * 13 + seed) % entry.durations.count
-                    let duration = entry.durations[min(durationIdx, entry.durations.count - 1)]
-
-                    event = HistoryEvent(
-                        type: .banned,
-                        playerName: playerName,
-                        message: "\(playerName) got banned for \(duration) due to \(reason).",
-                        daysAgo: daysAgo,
-                        seed: seed
-                    )
-
-                } else if random < 0.47 {
-                    // Reported event (19%)
-                    let reporterNameIndex = Int(MockLeaderboardData.seededRandom(seed: seed + 4, index: eventDay) * 200.0)
-                    let reporterName = MockLeaderboardData.nameForPlayer(
-                        index: reporterNameIndex,
-                        names: MockLeaderboardData.hallOfFameNames,
-                        countrySeed: seed + 100,
-                        day: eventDay
-                    )
-
-                    let reporterCountryIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 5, index: eventDay) * Double(countries.count))
-                    let reporterCountry = countries[min(reporterCountryIdx, countries.count - 1)]
-                    let reporterCountryName = Self.countryDisplayName(for: reporterCountry)
-
+                if random < 0.30 {
+                    // Extra reported event (bans come from post-processing)
+                    let rp = makePlayer(seed: seed + 50)
                     event = HistoryEvent(
                         type: .reported,
-                        message: "\(playerName) from \(countryName) leaderboard got reported by \(reporterName) from \(reporterCountryName).",
+                        message: "\(p.name) from \(p.countryName) leaderboard got reported by \(rp.name) from \(rp.countryName).",
                         daysAgo: daysAgo,
                         seed: seed
                     )
-
+                } else if random < 0.47 {
+                    let rp = makePlayer(seed: seed + 50)
+                    event = HistoryEvent(
+                        type: .reported,
+                        message: "\(p.name) from \(p.countryName) leaderboard got reported by \(rp.name) from \(rp.countryName).",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    )
                 } else if random < 0.60 {
-                    // False report (13%) — split into regular and leaderboard overtake
-                    // Leaderboard overtakes = 2 abuse points, others = 1 abuse point
-                    // At 5+ abuse points → banned
                     let isOvertake = MockLeaderboardData.seededRandom(seed: seed + 13, index: eventDay) < 0.4
                     if isOvertake {
                         event = HistoryEvent(
                             type: .falseReport,
-                            playerName: playerName,
-                            reporterName: "overtake",  // marker for 2 abuse points
-                            message: "\(playerName) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                            playerName: p.name,
+                            reporterName: "overtake",
+                            message: "\(p.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
                             daysAgo: daysAgo,
                             seed: seed
                         )
                     } else {
                         event = HistoryEvent(
                             type: .falseReport,
-                            playerName: playerName,
-                            message: "\(playerName) made a false report. (+1 abuse point)",
+                            playerName: p.name,
+                            message: "\(p.name) made a false report. (+1 abuse point)",
                             daysAgo: daysAgo,
                             seed: seed
                         )
                     }
-
                 } else if random < 0.65 {
-                    // Made infinity (7%)
                     event = HistoryEvent(
                         type: .madeInfinity,
-                        message: "\(playerName) made infinity!",
+                        message: "\(p.name) made infinity!",
                         daysAgo: daysAgo,
                         seed: seed
                     )
-
                 } else if random < 0.85 {
-                    // Out of moves (15%) — split between regular and infinity players
                     let isInfinityPlayer = MockLeaderboardData.seededRandom(seed: seed + 7, index: eventDay) < 0.4
                     if isInfinityPlayer {
                         let infinityCount = 1 + Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * 150.0)
                         event = HistoryEvent(
                             type: .gameOver,
-                            message: "\(playerName) ran out of moves at \(infinityCount)∞.",
+                            message: "\(p.name) ran out of moves at \(infinityCount)∞.",
                             daysAgo: daysAgo,
                             seed: seed
                         )
                     } else {
-                        // Regular player with a milestone
                         let milestoneValues = [
                             "16M", "8M", "4M", "2M", "1M", "524K", "262K", "131K", "65K", "32K",
                             "16K", "8192", "4096", "2048", "1024", "512", "256", "128",
@@ -234,41 +315,35 @@ struct PlayerHistoryView: View {
                         let milestone = milestoneValues[min(milestoneIdx, milestoneValues.count - 1)]
                         event = HistoryEvent(
                             type: .gameOver,
-                            message: "\(playerName) ran out of moves at \(milestone).",
+                            message: "\(p.name) ran out of moves at \(milestone).",
                             daysAgo: daysAgo,
                             seed: seed
                         )
                     }
 
-                    // ~40% of game over players recover their moves (same player, same minute)
                     if MockLeaderboardData.seededRandom(seed: seed + 12, index: eventDay) < 0.4 {
-                        // Use seed + 999 for unique ID; override date to be 1 minute after game over
                         let gameOverEvent = event
                         let recoveryDate = gameOverEvent.eventDate.addingTimeInterval(60)
                         let recovery = HistoryEvent(
                             type: .moveRecovery,
-                            message: "\(playerName) recovered their moves and is back in the game!",
+                            message: "\(p.name) recovered their moves and is back in the game!",
                             daysAgo: daysAgo,
                             seed: seed + 999,
                             overrideDate: recoveryDate
                         )
                         result.append(recovery)
                     }
-
                 } else if random < 0.92 {
-                    // Deleted (8%)
                     event = HistoryEvent(
                         type: .deleted,
-                        message: "\(playerName) deleted the game.",
+                        message: "\(p.name) deleted the game.",
                         daysAgo: daysAgo,
                         seed: seed
                     )
-
                 } else {
-                    // Restart (8%)
                     event = HistoryEvent(
                         type: .restart,
-                        message: "\(playerName) chose to restart their progress.",
+                        message: "\(p.name) chose to restart their progress.",
                         daysAgo: daysAgo,
                         seed: seed
                     )
