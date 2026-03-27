@@ -338,8 +338,13 @@ public struct LeaderboardView: View {
         var previews: [RankPreview] = []
 
         // Helper to check if a specific rank is exactly defined in extended brackets
-        let countryCode = filter.countryCode ?? "US"  // "US" is the global fallback
-        let extBrackets = LeaderboardClient.extendedBrackets(for: countryCode)
+        let extBrackets: [(milestone: String, startRank: Int)]
+        if let countryCode = filter.countryCode {
+            extBrackets = MockLeaderboardData.extendedBrackets(for: countryCode)
+        } else {
+            // For Global, use global brackets
+            extBrackets = MockLeaderboardData.globalExtendedBrackets
+        }
 
         for rank in startRank...endRank {
             var milestoneForRank = userMilestone
