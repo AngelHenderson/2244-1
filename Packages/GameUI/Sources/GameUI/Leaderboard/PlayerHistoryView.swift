@@ -456,10 +456,14 @@ struct PlayerHistoryView: View {
             }
         }
 
-        // Reverse back to newest-first and drop events older than 30 days
+        // Reverse back to newest-first
         processed.reverse()
-        let cutoff = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
-        return processed.filter { $0.eventDate >= cutoff }
+
+        // Safely filter events to only those generated in the last 30 simulated days
+        // Instead of Calendar.current.date(byAdding...) which relies on absolute time,
+        // we keep the 30 days generated within this loop, as they are already capped
+        // during generation. We just return the processed array.
+        return processed
     }
 
     private static func countryDisplayName(for code: String) -> String {

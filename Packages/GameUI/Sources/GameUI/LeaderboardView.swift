@@ -328,7 +328,6 @@ public struct LeaderboardView: View {
     /// Generates rank preview entries around the user's current rank
     /// Shows consecutive individual ranks (-3 to +3) with their corresponding milestones
     private func generateRankPreviews(userMilestone: String, filter: LeaderboardFilter, entries: [LeaderboardEntry]) -> [RankPreview] {
-        // Use actual entries data for consistent rank preview
         guard let userEntry = entries.first(where: { $0.isMe }) else {
             return []
         }
@@ -338,14 +337,43 @@ public struct LeaderboardView: View {
         let endRank = userRank + 3
         var previews: [RankPreview] = []
 
+        // Helper to check if a specific rank is exactly defined in extended brackets
+        let countryCode = filter.countryCode ?? "US"  // "US" is the global fallback
+        let extBrackets = LeaderboardClient.extendedBrackets(for: countryCode)
+
         for rank in startRank...endRank {
-            if let entry = entries.first(where: { $0.rank == rank }) {
-                previews.append(RankPreview(
-                    rank: rank,
-                    milestone: entry.highestTile ?? "",
-                    isUserRank: entry.isMe
-                ))
+            var milestoneForRank = userMilestone
+
+            if rank == userRank {
+                milestoneForRank = userMilestone
+            } else if let actualEntry = entries.first(where: { $0.rank == rank }) {
+                // If the player actually exists in the entries list, use their milestone
+                milestoneForRank = actualEntry.highestTile ?? userMilestone
+            } else if rank > 150 {
+                // For synthetic intermediate ranks (that aren't simulated players), 
+                // we lookup what bracket they fall into
+                var bracketMilestone: String? = nil
+                for bracket in extBrackets {
+                    if bracket.startRank <= rank {
+                        bracketMilestone = bracket.milestone
+                    } else {
+                        break
+                    }
+                }
+                
+                if let bm = bracketMilestone {
+                    milestoneForRank = bm
+                }
+            } else {
+                // Top 150 non-simulated ranks should use the actual distribution from rankForFilter
+                milestoneForRank = tierMilestoneForRank(rank, userMilestone: userMilestone, filter: filter)
             }
+
+            previews.append(RankPreview(
+                rank: rank,
+                milestone: milestoneForRank,
+                isUserRank: rank == userRank
+            ))
         }
 
         return previews
