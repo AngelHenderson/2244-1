@@ -291,30 +291,32 @@ public struct SimplifiedGlassBoardView: View {
                 // If the user is dragging, draw an extension "pipe" pointing to the finger
                 if isDragging, let lastPosition = gameStore.currentPath.last {
                     let lastPoint = centerPoint(for: lastPosition, tileSize: tileSize, containerSize: containerSize)
-                    var pipeEndPoint = dragLocation
+                    let dx = dragLocation.x - lastPoint.x
+                    let dy = dragLocation.y - lastPoint.y
+                    let dist = hypot(dx, dy)
                     
                     let hoverPosition = gridPosition(from: dragLocation, tileSize: tileSize, containerSize: containerSize)
-                    var isSafeToDrawFull = false
                     
-                    if let hoverPosition = hoverPosition {
-                        if hoverPosition == lastPosition {
-                            isSafeToDrawFull = true
-                        } else if gameStore.currentPath.contains(hoverPosition) {
-                            isSafeToDrawFull = true
-                        } else if gameStore.isValidNextTile(hoverPosition) {
-                            isSafeToDrawFull = true
-                        }
-                    }
+                    // Check if the finger is over a valid next tile
+                    let isOverValid: Bool = {
+                        guard let hp = hoverPosition else { return false }
+                        if hp == lastPosition { return false }
+                        if gameStore.currentPath.contains(hp) { return true }
+                        return gameStore.isValidNextTile(hp)
+                    }()
                     
-                    if !isSafeToDrawFull {
-                        // Pointing towards an invalid tile or off-board. Clamp the pipe length.
-                        let maxDist = tileSize / 2 + spacing / 4
-                        let dx = dragLocation.x - lastPoint.x
-                        let dy = dragLocation.y - lastPoint.y
-                        let dist = hypot(dx, dy)
-                        if dist > maxDist {
+                    let pipeEndPoint: CGPoint
+                    if isOverValid {
+                        // Finger is over a valid connectable tile — extend fully to finger
+                        pipeEndPoint = dragLocation
+                    } else {
+                        // Cap extension to stay within the adjacent cell zone
+                        let maxDist = tileSize * 0.6
+                        if dist > maxDist && dist > 0 {
                             pipeEndPoint = CGPoint(x: lastPoint.x + (dx / dist) * maxDist,
                                                    y: lastPoint.y + (dy / dist) * maxDist)
+                        } else {
+                            pipeEndPoint = dragLocation
                         }
                     }
                     

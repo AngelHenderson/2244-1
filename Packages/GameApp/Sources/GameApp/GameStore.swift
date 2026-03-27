@@ -1093,6 +1093,7 @@ public final class GameStore {
                     pendingGiftBoxes[position] = GiftReward.rewardForColumn(position.col, isFromGlassShatter: true)
                 }
                 persistPendingGiftBoxes()
+                persistBrokenGlassTiles()
             }
         }
         // Added value is the tile now at lastPos
@@ -3658,6 +3659,12 @@ extension GameStore {
         let stored = pendingGiftBoxes.map { StoredGiftBox(row: $0.key.row, col: $0.key.col, reward: $0.value) }
         let data = try? JSONEncoder().encode(stored)
         UserDefaults.standard.set(data, forKey: "pendingGiftBoxes")
+    }
+    
+    private func persistBrokenGlassTiles() {
+        guard !sandboxed else { return }
+        let brokenGlassData = try? JSONEncoder().encode(Array(brokenGlassTiles).map { ["row": $0.row, "col": $0.col] })
+        UserDefaults.standard.set(brokenGlassData, forKey: "brokenGlassTiles")
     }
     
     private func restorePendingGiftBoxes() {

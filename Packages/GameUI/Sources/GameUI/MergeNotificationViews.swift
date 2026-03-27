@@ -572,11 +572,14 @@ struct AddedNotificationView: View {
             }
 
             // No reward for adding tiles - just continue
-            Button("Continue") {
-                onClose()
+            Button(action: onClose) {
+                Text("Continue")
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 12))
             }
-            .buttonStyle(.borderedProminent)
-            .frame(maxWidth: .infinity)
         }
         .padding(20)
         .presentationDetents([.height(240)])
@@ -712,11 +715,14 @@ struct ExcludedNotificationView: View {
             }
 
             // No reward for eliminating tiles - just continue
-            Button("Continue") {
-                onClose()
+            Button(action: onClose) {
+                Text("Continue")
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 12))
             }
-            .buttonStyle(.borderedProminent)
-            .frame(maxWidth: .infinity)
         }
         .padding(20)
         .presentationDetents([.height(240)])
