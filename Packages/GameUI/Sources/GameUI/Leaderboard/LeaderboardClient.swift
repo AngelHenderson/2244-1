@@ -216,8 +216,8 @@ public enum MockLeaderboardData {
 
     // Cache for scoreZeroPlayersAtCurrentTime to avoid recomputing the day loop
     // Key: "baseCount_countrySeed", invalidated each hour
-    private static var scoreZeroCacheHour: Int = -1
-    private static var scoreZeroCache: [String: Int] = [:]
+    nonisolated(unsafe) private static var scoreZeroCacheHour: Int = -1
+    nonisolated(unsafe) private static var scoreZeroCache: [String: Int] = [:]
 
     // Calculate score 0 player count with compounding daily attrition + new player cohorts
     // Each day, 75% of score 0 players progress, leaving 25% at end of day
@@ -983,8 +983,8 @@ public enum MockLeaderboardData {
     // Calculate total players for a specific country with new joins and attrition
     // New players: 0.5-4 per day, Attrition: 0.1-0.5 per day (95% outside top 150)
     // Cache for totalCountryPlayers results (invalidated daily)
-    private static var totalCountryPlayersCacheDay: Int = -1
-    private static var totalCountryPlayersCache: [String: Int] = [:]
+    nonisolated(unsafe) private static var totalCountryPlayersCacheDay: Int = -1
+    nonisolated(unsafe) private static var totalCountryPlayersCache: [String: Int] = [:]
 
     static func totalCountryPlayers(basePlayers: Int, on day: Int, countrySeed: Int) -> Int {
         // Invalidate cache when day changes
@@ -1032,8 +1032,8 @@ public enum MockLeaderboardData {
     }
 
     // Cache for totalPlayers results (invalidated daily)
-    private static var totalPlayersCacheDay: Int = -1
-    private static var totalPlayersCache: [Bool: Int] = [:]
+    nonisolated(unsafe) private static var totalPlayersCacheDay: Int = -1
+    nonisolated(unsafe) private static var totalPlayersCache: [Bool: Int] = [:]
 
     static func totalPlayers(on day: Int, isUS: Bool) -> Int {
         if day != totalPlayersCacheDay {
@@ -2161,9 +2161,9 @@ public enum MockLeaderboardData {
     }
 
     /// Cache for countAllPlayersBetterThan results (invalidated hourly)
-    private static var globalRankCacheHour: Int = -1
-    private static var globalRankCacheDay: Int = -1
-    private static var globalRankCache: [String: Int] = [:]
+    nonisolated(unsafe) private static var globalRankCacheHour: Int = -1
+    nonisolated(unsafe) private static var globalRankCacheDay: Int = -1
+    nonisolated(unsafe) private static var globalRankCache: [String: Int] = [:]
 
     /// Count players better than user's milestone across all countries
     /// Used by UserLeaderboardData.calculateGlobalRank for accurate global ranking
