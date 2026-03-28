@@ -202,6 +202,55 @@ struct CompareView: View {
         return entries.sorted { parseMilestone($0.milestone) > parseMilestone($1.milestone) }
     }
 
+    /// Sorted HOF entries for the infinity comparison
+    private var hofComparisonLeaderboard: [ComparisonEntry] {
+        var entries: [ComparisonEntry] = []
+
+        // Add "You" entry with infinity count from UserDefaults
+        let myInfinityCount = UserDefaults.standard.integer(forKey: "infinityMergeCount")
+        let myHofDisplay = myInfinityCount > 0 ? "\(myInfinityCount)∞" : "—"
+        entries.append(ComparisonEntry(
+            id: "me_hof",
+            name: "You",
+            code: friendCode,
+            countryFlag: myProfile.countryFlag,
+            milestone: myHofDisplay,
+            isMe: true
+        ))
+
+        // Add selected players — extract infinity count from their milestone
+        for player in selectedPlayers {
+            let hofDisplay: String
+            if player.milestone.hasSuffix("∞") {
+                hofDisplay = player.milestone
+            } else {
+                hofDisplay = "—"
+            }
+            entries.append(ComparisonEntry(
+                id: "\(player.id)_hof",
+                name: player.name,
+                code: player.code,
+                countryFlag: player.countryFlag,
+                milestone: hofDisplay,
+                isMe: false
+            ))
+        }
+
+        // Sort: players with infinity counts first (by count descending), then "—" entries
+        return entries.sorted { a, b in
+            let aCount = infinityCount(from: a.milestone)
+            let bCount = infinityCount(from: b.milestone)
+            return aCount > bCount
+        }
+    }
+
+    /// Extract the numeric infinity count from a milestone string like "5∞"
+    private func infinityCount(from milestone: String) -> Int {
+        guard milestone.hasSuffix("∞") else { return -1 }
+        let countStr = milestone.dropLast()
+        return Int(countStr) ?? 0
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -319,6 +368,59 @@ struct CompareView: View {
                                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                             }
                         }
+                    }
+
+                    // HOF Mini Comparison Leaderboard
+                    Section {
+                        ForEach(Array(hofComparisonLeaderboard.enumerated()), id: \.element.id) { index, entry in
+                            HStack(spacing: 12) {
+                                // Rank
+                                Text("#\(index + 1)")
+                                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                                    .foregroundColor(entry.isMe ? .accentColor : .secondary)
+                                    .frame(width: 28, alignment: .leading)
+
+                                // Country flag
+                                Text(entry.countryFlag)
+                                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+
+                                // Name and code
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(entry.name)
+                                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: entry.isMe ? .bold : .medium))
+                                        .foregroundColor(entry.isMe ? .accentColor : .primary)
+                                    Text(entry.code)
+                                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular)).monospaced()
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer()
+
+                                // Infinity count
+                                Text(entry.milestone)
+                                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                                    .foregroundColor(entry.isMe ? .accentColor : .primary)
+
+                                // Remove button (only for non-me entries)
+                                if !entry.isMe {
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedPlayers.removeAll { $0.id == entry.id }
+                                            saveSelectedPlayers()
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                            .background(entry.isMe ? Color.accentColor.opacity(0.1) : Color.clear)
+                            .cornerRadius(8)
+                        }
+                    } header: {
+                        Text("Hall of Fame")
                     }
                 }
             }
