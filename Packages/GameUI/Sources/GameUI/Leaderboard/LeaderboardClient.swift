@@ -2233,10 +2233,27 @@ public enum MockLeaderboardData {
         return total
     }
 
+    // Cache for milestoneWithProgression results (invalidated daily)
+    // Key = combined hash of (baseMilestone, playerIndex), since day is constant within a cache period
+    nonisolated(unsafe) private static var progressionCacheDay: Int = -1
+    nonisolated(unsafe) private static var progressionCache: [Int: String] = [:]
+
     // Calculate milestone progression for regular leaderboard players
     // Players at/above 16K milestone: progress at 0.25-1 milestones per day
     // Players below 16K milestone: progress at 1.5-4 milestones per day (faster to catch up)
     static func milestoneWithProgression(baseMilestone: String, playerIndex: Int, day: Int) -> String {
+        // Invalidate cache when day changes
+        if day != progressionCacheDay {
+            progressionCache.removeAll(keepingCapacity: true)
+            progressionCacheDay = day
+        }
+
+        // Use combined hash as cache key for O(1) lookup
+        let cacheKey = baseMilestone.hashValue &+ playerIndex &* 2654435761
+        if let cached = progressionCache[cacheKey] {
+            return cached
+        }
+
         guard let baseIndex = allMilestonesLookup[baseMilestone] else {
             return baseMilestone
         }
@@ -2245,7 +2262,7 @@ public enum MockLeaderboardData {
         let milestone16KIndex = 14
 
         // Use cached elite threshold index
-        let milestone1bxIdx = milestone1bxIndex
+        _ = milestone1bxIndex
 
         // Each player gets a consistent daily milestone progression rate
         // Rate depends on milestone tier
@@ -2266,14 +2283,18 @@ public enum MockLeaderboardData {
 
         // If progression goes beyond the highest milestone, player reaches infinity
         // Calculate infinity count based on how far past the max they've progressed
+        let result: String
         if newIndex >= allMilestones.count {
             let tiersPastMax = newIndex - allMilestones.count + 1
             // Each tier past max represents making and merging infinity tiles
             // Sequential: 1∞, 2∞, 3∞, 4∞, 5∞, ...
-            return "\(tiersPastMax)∞"
+            result = "\(tiersPastMax)∞"
+        } else {
+            result = allMilestones[newIndex]
         }
 
-        return allMilestones[newIndex]
+        progressionCache[cacheKey] = result
+        return result
     }
 
     // Get milestone index for sorting (higher index = better milestone)
@@ -4086,10 +4107,31 @@ public enum MockLeaderboardData {
 }
 
 public extension LeaderboardClient {
+    // Page-level cache for the noop client's fetchPage results
+    // Invalidated when day or user milestone changes
+    nonisolated(unsafe) private static var pageCacheDay: Int = -1
+    nonisolated(unsafe) private static var pageCacheMilestone: String = ""
+    nonisolated(unsafe) private static var pageCache: [LeaderboardFilter: LeaderboardPage] = [:]
+
     static let noop = LeaderboardClient(
         authenticate: { true },
         submitScore: { _ in },
         fetchPage: { _, filter, _, _ in
+            let day = MockLeaderboardData.daysSinceReference
+            let userMilestone = UserLeaderboardData.currentMilestone
+
+            // Invalidate entire cache when day or user milestone changes
+            if day != pageCacheDay || userMilestone != pageCacheMilestone {
+                pageCache.removeAll(keepingCapacity: true)
+                pageCacheDay = day
+                pageCacheMilestone = userMilestone
+            }
+
+            // Return cached page if available for this filter
+            if let cached = pageCache[filter] {
+                return cached
+            }
+
             let entries: [LeaderboardEntry]
             switch filter {
             case .hallOfFame:
@@ -4205,7 +4247,7 @@ public extension LeaderboardClient {
             case .global:
                 entries = globalEntries()
             }
-            let day = MockLeaderboardData.daysSinceReference
+            // day already declared above for cache check
             // Dynamic player counts with joining rate and attrition
             let totalPlayers: Int
             switch filter {
@@ -4377,7 +4419,9 @@ public extension LeaderboardClient {
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
             let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
-            return .init(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
+            let page = LeaderboardPage(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
+            pageCache[filter] = page
+            return page
         },
         fetchMyRank: { _, _ in globalEntries().first(where: { $0.isMe }) ?? globalEntries().last },
         initialData: {
@@ -6559,8 +6603,20 @@ public extension LeaderboardClient {
 
     // Global leaderboard - combines all country leaderboards (US + UK + more to come)
     // Ranks are based on milestone - higher milestone = better rank
+    // Entry-level cache for global entries (invalidated daily or when user milestone changes)
+    nonisolated(unsafe) private static var globalEntriesCacheDay: Int = -1
+    nonisolated(unsafe) private static var globalEntriesCacheMilestone: String = ""
+    nonisolated(unsafe) private static var cachedGlobalEntries: [LeaderboardEntry]?
+
     private static func globalEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
+        let userMilestone = UserLeaderboardData.currentMilestone
+
+        // Return cached entries if day and user milestone haven't changed
+        if day == globalEntriesCacheDay && userMilestone == globalEntriesCacheMilestone,
+           let cached = cachedGlobalEntries {
+            return cached
+        }
 
         // Combine players from all countries
         var playerData: [(originalIndex: Int, playerIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, country: String, platform: Platform, avatar: String, id: String)] = []
@@ -7066,7 +7122,6 @@ public extension LeaderboardClient {
         }
 
         // Add the user to playerData so they get sorted with everyone else
-        let userMilestone = UserLeaderboardData.currentMilestone
         let userCountry = UserLeaderboardData.currentCountry
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
         // Use compareMilestones for better index if standard index returns 0
@@ -7185,6 +7240,10 @@ public extension LeaderboardClient {
             entries.append(contentsOf: extendedEntries)
         }
 
+        // Cache the result
+        globalEntriesCacheDay = day
+        globalEntriesCacheMilestone = userMilestone
+        cachedGlobalEntries = entries
         return entries
     }
 
