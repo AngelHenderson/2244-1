@@ -122,12 +122,25 @@ struct PlayerHistoryView: View {
             // === Guaranteed events: 2+ of each type per day ===
             // Bans are NOT generated directly — they emerge from report/false-report post-processing
 
-            // 1) Reported (x4) — 3 reports on same player triggers a ban via post-processing
-            for i in 0..<4 {
-                let seed = eventDay * 700 + 100 + i * 11
+            // 1) Reported — 3 reports on ONE player → triggers "banned due to three reports"
+            //    Then 2 more reports on different players for variety
+            let victimSeed = eventDay * 700 + 100
+            let victim = makePlayer(seed: victimSeed)
+            for i in 0..<3 {
+                let reporterSeed = victimSeed + 50 + i * 17
+                let reporter = makePlayer(seed: reporterSeed)
+                result.append(HistoryEvent(
+                    type: .reported,
+                    message: "\(victim.name) from \(victim.countryName) leaderboard got reported by \(reporter.name) from \(reporter.countryName).",
+                    daysAgo: daysAgo,
+                    seed: victimSeed + i
+                ))
+            }
+            // 2 extra reports on different players
+            for i in 0..<2 {
+                let seed = eventDay * 700 + 130 + i * 11
                 let p = makePlayer(seed: seed)
-                let rSeed = seed + 50
-                let rp = makePlayer(seed: rSeed)
+                let rp = makePlayer(seed: seed + 50)
                 result.append(HistoryEvent(
                     type: .reported,
                     message: "\(p.name) from \(p.countryName) leaderboard got reported by \(rp.name) from \(rp.countryName).",
@@ -136,33 +149,45 @@ struct PlayerHistoryView: View {
                 ))
             }
 
-            // 2) False report (x4) — 5 abuse points triggers a ban via post-processing
-            for i in 0..<4 {
-                let seed = eventDay * 700 + 200 + i * 11
+            // 2) False reports — ONE player makes 3 false reports (2 overtake + 1 regular = 5 abuse pts)
+            //    → triggers "banned due to 5 abuse points from false reports"
+            //    Then 2 more false reports from different players for variety
+            let abuserSeed = eventDay * 700 + 200
+            let abuser = makePlayer(seed: abuserSeed)
+            // 2 overtake false reports = 4 abuse points
+            for i in 0..<2 {
+                result.append(HistoryEvent(
+                    type: .falseReport,
+                    playerName: abuser.name,
+                    reporterName: "overtake",
+                    message: "\(abuser.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                    daysAgo: daysAgo,
+                    seed: abuserSeed + i
+                ))
+            }
+            // 1 regular false report = 1 abuse point (total: 5)
+            result.append(HistoryEvent(
+                type: .falseReport,
+                playerName: abuser.name,
+                message: "\(abuser.name) made a false report. (+1 abuse point)",
+                daysAgo: daysAgo,
+                seed: abuserSeed + 2
+            ))
+            // 2 extra false reports from different players
+            for i in 0..<2 {
+                let seed = eventDay * 700 + 230 + i * 11
                 let p = makePlayer(seed: seed)
-                let isOvertake = i % 2 == 0  // alternate between overtake and regular
-                if isOvertake {
-                    result.append(HistoryEvent(
-                        type: .falseReport,
-                        playerName: p.name,
-                        reporterName: "overtake",
-                        message: "\(p.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
-                        daysAgo: daysAgo,
-                        seed: seed
-                    ))
-                } else {
-                    result.append(HistoryEvent(
-                        type: .falseReport,
-                        playerName: p.name,
-                        message: "\(p.name) made a false report. (+1 abuse point)",
-                        daysAgo: daysAgo,
-                        seed: seed
-                    ))
-                }
+                result.append(HistoryEvent(
+                    type: .falseReport,
+                    playerName: p.name,
+                    message: "\(p.name) made a false report. (+1 abuse point)",
+                    daysAgo: daysAgo,
+                    seed: seed
+                ))
             }
 
-            // 4) Made infinity (x2)
-            for i in 0..<2 {
+            // 3) Made infinity (x3)
+            for i in 0..<3 {
                 let seed = eventDay * 700 + 300 + i * 11
                 let p = makePlayer(seed: seed)
                 result.append(HistoryEvent(
@@ -173,8 +198,8 @@ struct PlayerHistoryView: View {
                 ))
             }
 
-            // 5) Game over / out of moves (x2)
-            for i in 0..<2 {
+            // 4) Game over / out of moves (x3)
+            for i in 0..<3 {
                 let seed = eventDay * 700 + 400 + i * 11
                 let p = makePlayer(seed: seed)
                 let isInfinity = i == 0
@@ -216,8 +241,8 @@ struct PlayerHistoryView: View {
                 }
             }
 
-            // 6) Deleted (x2)
-            for i in 0..<2 {
+            // 5) Deleted (x3)
+            for i in 0..<3 {
                 let seed = eventDay * 700 + 500 + i * 11
                 let p = makePlayer(seed: seed)
                 result.append(HistoryEvent(
@@ -228,8 +253,8 @@ struct PlayerHistoryView: View {
                 ))
             }
 
-            // 7) Restart (x2)
-            for i in 0..<2 {
+            // 6) Restart (x3)
+            for i in 0..<3 {
                 let seed = eventDay * 700 + 600 + i * 11
                 let p = makePlayer(seed: seed)
                 result.append(HistoryEvent(
@@ -240,8 +265,9 @@ struct PlayerHistoryView: View {
                 ))
             }
 
-            // === Extra random events (2-4 per day for variety) ===
-            let extraCount = 2 + Int(MockLeaderboardData.seededRandom(seed: 55555, index: eventDay) * 3.0)
+            // === Extra random events (2-3 per day for variety) ===
+            // (recovery events after game-overs also add to the daily total)
+            let extraCount = 2 + Int(MockLeaderboardData.seededRandom(seed: 55555, index: eventDay) * 2.0)
             for eventIndex in 0..<extraCount {
                 let seed = eventDay * 100 + eventIndex
                 let random = MockLeaderboardData.seededRandom(seed: seed, index: eventDay)
@@ -353,9 +379,6 @@ struct PlayerHistoryView: View {
             }
 
             // Generate join events separately using actual joining rates
-            let countries = ["US", "BR", "GB", "DE", "JP", "IN", "FR", "MX", "AU", "CA",
-                             "KR", "IT", "ES", "NL", "SE", "NO", "CH", "AT", "NZ", "IE",
-                             "VN", "KZ", "CW", "AZ", "TJ", "KE", "ZA", "FJ", "PH", "TH"]
 
             // Pick 2-3 countries that had joins visible in the feed today
             let visibleCountryCount = 2 + Int(MockLeaderboardData.seededRandom(seed: 77777, index: eventDay) * 2.0)
@@ -545,7 +568,7 @@ struct PlayerHistoryView: View {
         switch code {
         case "US": return "United States"
         case "BR": return "Brazil"
-        case "GB": return "United Kingdom"
+        case "GB": return "UK"
         case "DE": return "Germany"
         case "JP": return "Japan"
         case "IN": return "India"
