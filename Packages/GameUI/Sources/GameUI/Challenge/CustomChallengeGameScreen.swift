@@ -249,7 +249,7 @@ public struct CustomChallengeGameScreen: View {
         #elseif canImport(AppKit)
         if let img = NSImage(named: "gem") { return Image(nsImage: img) }
         #endif
-        return Image(systemName: "diamond.fill")
+        return Image("gem")
     }
 
     private func powerupItem(
@@ -307,8 +307,10 @@ public struct CustomChallengeGameScreen: View {
                         .offset(x: 4, y: -4)
                 } else if let price = price {
                     HStack(spacing: 1) {
-                        Image(systemName: "diamond.fill")
-                            .font(.system(size: 7))
+                        Image("gem")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 8, height: 8)
                         Text("\(price)")
                             .font(.system(size: 8, weight: .bold))
                     }
@@ -524,8 +526,10 @@ public struct CustomChallengeGameScreen: View {
                         let gemAmount = fullReward?.coins ?? config.predictedRewardGems
                         if gemAmount > 0 {
                             HStack(spacing: 8) {
-                                Image(systemName: "diamond.fill")
-                                    .foregroundStyle(.mint)
+                                Image("gem")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
                                 Text("+\(gemAmount) Gems")
                                     .font(.system(.title3, design: .rounded).bold())
                             }
