@@ -153,6 +153,18 @@ public struct CustomChallengeGameScreen: View {
                 isShowingLowOnMoves = true
             }
         }
+        .onChange(of: isShowingOutOfMoves) { _, isShowing in
+            // If alert dismissed and not entering recovery, execute game over
+            if !isShowing && !isShowingPowerUpRecovery && challengeGameStore.state.isGameOver && !challengeEnded {
+                endChallenge(won: false)
+            }
+        }
+        .onChange(of: isShowingPowerUpRecovery) { _, isShowing in
+            // If recovery dismissed without using a powerup, execute game over
+            if !isShowing && challengeGameStore.state.isGameOver && !isShowingOutOfMoves && !challengeEnded {
+                endChallenge(won: false)
+            }
+        }
         .alert("Low On Moves", isPresented: $isShowingLowOnMoves) {
             Button("Use Powerup") {
                 isShowingPowerUpRecovery = true

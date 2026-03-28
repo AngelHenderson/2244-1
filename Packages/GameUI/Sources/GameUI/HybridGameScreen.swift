@@ -381,6 +381,18 @@ public struct HybridGameScreen: View {
                     isShowingLowOnMoves = true
                 }
             }
+            .onChange(of: isShowingOutOfMoves) { _, isShowing in
+                // If alert dismissed and not entering recovery, execute game over
+                if !isShowing && !isShowingPowerUpRecovery && gameStore.state.isGameOver && !isShowingGameOverText {
+                    showGameOverAndReset()
+                }
+            }
+            .onChange(of: isShowingPowerUpRecovery) { _, isShowing in
+                // If recovery dismissed without using a powerup, execute game over
+                if !isShowing && gameStore.state.isGameOver && !isShowingGameOverText && !isShowingOutOfMoves {
+                    showGameOverAndReset()
+                }
+            }
 
         // Wrap everything with full-screen wallpaper background
         return ZStack {
