@@ -842,7 +842,7 @@ struct HorizontalPowerupDock: View {
                         .offset(x: 4, y: -4)
                 } else if let price = price {
                     HStack(spacing: 1) {
-                        Image("gem")
+                        Image("gems")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 8, height: 8)
@@ -991,7 +991,7 @@ struct SimplePowerupDock: View {
                         .offset(x: 4, y: -4)
                 } else if let price = price {
                     HStack(spacing: 1) {
-                        Image("gem")
+                        Image("gems")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 9, height: 9)

@@ -86,7 +86,7 @@ struct SideRailButton: View {
                     // Special label inside the button (e.g., gem reward for ad button)
                     if specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
                         HStack(spacing: 2) {
-                            Image("gem")
+                            Image("gems")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 10, height: 10)

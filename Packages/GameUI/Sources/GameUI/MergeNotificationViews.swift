@@ -165,7 +165,7 @@ struct UnlockedNotificationView: View {
                         .foregroundStyle(.green)
 
                     HStack(spacing: 8) {
-                        Image("gem")
+                        Image("gems")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 32, height: 32)
@@ -201,7 +201,7 @@ struct UnlockedNotificationView: View {
                         .foregroundStyle(.secondary)
 
                     HStack(spacing: 6) {
-                        Image("gem")
+                        Image("gems")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 24, height: 24)

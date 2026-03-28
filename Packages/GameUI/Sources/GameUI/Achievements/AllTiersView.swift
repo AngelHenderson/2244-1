@@ -165,7 +165,7 @@ private struct TierRewardSummary: View {
     private var rewardItems: [RewardItem] {
         var items: [RewardItem] = []
         if let gems = rewards.gems, gems > 0 {
-            items.append(RewardItem(icon: .asset("gem"), label: "Gems", amount: gems))
+            items.append(RewardItem(icon: .asset("gems"), label: "Gems", amount: gems))
         }
         if let hammers = rewards.hammers, hammers > 0 {
             items.append(RewardItem(icon: .asset("hammer"), label: "Hammer", amount: hammers))

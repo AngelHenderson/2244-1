@@ -602,7 +602,7 @@ private struct RewardSummary: View {
         guard let rewards else { return [] }
         var items: [RewardItem] = []
         if let gems = rewards.gems, gems > 0 {
-            items.append(RewardItem(icon: .asset("gem"), text: "\(gems) Gems"))
+            items.append(RewardItem(icon: .asset("gems"), text: "\(gems) Gems"))
         }
         if let hammers = rewards.hammers, hammers > 0 {
             items.append(RewardItem(icon: .asset("hammer"), text: "\(hammers) Hammer\(hammers == 1 ? "" : "s")"))
@@ -1010,7 +1010,7 @@ private struct DailyQuestRewardRow: View {
 
     private var items: [Item] {
         var list: [Item] = []
-        if let g = rewards.gems, g > 0 { list.append(Item(text: "\(g)", assetName: "gem", systemName: nil, color: .clear)) }
+        if let g = rewards.gems, g > 0 { list.append(Item(text: "\(g)", assetName: "gems", systemName: nil, color: .clear)) }
         if let h = rewards.hammers, h > 0 { list.append(Item(text: "\(h)", assetName: "hammer", systemName: nil, color: .clear)) }
         if let m = rewards.magnets, m > 0 { list.append(Item(text: "\(m)", assetName: "magnet", systemName: nil, color: .clear)) }
         if let s = rewards.swaps, s > 0 { list.append(Item(text: "\(s)", assetName: "swap", systemName: nil, color: .clear)) }

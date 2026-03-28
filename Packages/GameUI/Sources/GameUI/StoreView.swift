@@ -19,7 +19,7 @@ struct StoreView: View {
                 Section("Gem Packs") {
                     ForEach(packs) { pack in
                         HStack {
-                            Image("gem")
+                            Image("gems")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)

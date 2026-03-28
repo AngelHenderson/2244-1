@@ -104,7 +104,7 @@ struct HUDTopBar: View {
 
             Button(action: { actions.openShop() }) {
                 HStack(spacing: 6) {
-                    Image("gem")
+                    Image("gems")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 24, height: 24)

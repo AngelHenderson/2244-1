@@ -241,7 +241,7 @@ public struct BoostsSheet: View {
 
                 // Cost badge
                 HStack(spacing: 4) {
-                    Image("gem")
+                    Image("gems")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 18, height: 18)

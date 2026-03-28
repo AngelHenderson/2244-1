@@ -57,7 +57,7 @@ struct RightToolbar: View {
         .buttonStyle(.plain)
         .overlay(alignment: .trailing) {
             HStack(spacing: 6) {
-                Image("gem")
+                Image("gems")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
