@@ -516,6 +516,9 @@ public struct SpinWheelView: View {
 
 #if canImport(UIKit)
 private func segmentImage(named name: String) -> Image? {
+    if let uiImage = UIImage(named: name) {
+        return Image(uiImage: uiImage).renderingMode(.original)
+    }
     if let uiImage = UIImage(named: name, in: .module, compatibleWith: nil) {
         return Image(uiImage: uiImage).renderingMode(.original)
     }
@@ -527,6 +530,9 @@ private func segmentImage(named name: String) -> Image? {
 }
 #elseif canImport(AppKit)
 private func segmentImage(named name: String) -> Image? {
+    if let nsImage = NSImage(named: name) {
+        return Image(nsImage: nsImage)
+    }
     if let nsImage = Bundle.module.image(forResource: NSImage.Name(name)) {
         return Image(nsImage: nsImage)
     }

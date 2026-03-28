@@ -426,7 +426,7 @@ public final class WheelEngine {
               color: Color(red: 0.64, green: 0.29, blue: 0.99), reward: .init(type: .magnets, amount: 2)),
         .init(title: "2X Boost", subtitle: "24h multiplier", icon: "⚡️", shortLabel: "2X",
               color: Color(red: 0.36, green: 0.80, blue: 0.98), reward: .init(type: .multiplier(.twoX), amount: 1)),
-        .init(title: "100 Gems", subtitle: "Shimmering win", icon: "💎", shortLabel: "100",
+        .init(title: "100 Gems", subtitle: "Shimmering win", icon: "💎", iconAssetName: "gem", shortLabel: "100",
               color: Color(red: 0.08, green: 0.71, blue: 0.94), reward: .init(type: .gems, amount: 100)),
         .init(title: "1 Swap", subtitle: "Swap tiles", icon: "🔁", iconAssetName: "SwapIcon", shortLabel: "1x",
               color: Color(red: 126.0/255.0, green: 91.0/255.0, blue: 1.0), reward: .init(type: .swap, amount: 1))
