@@ -224,20 +224,35 @@ public enum MockLeaderboardData {
     // - Day 1, 11:59 PM: 12,500 (25%)
     // - Day 2, 11:59 PM: 3,125 (6.25%)
     // - Day 3, 11:59 PM: 781 (1.5625%)
-    static func scoreZeroPlayersAtCurrentTime(baseCount: Int) -> Int {
+    static func scoreZeroPlayersAtCurrentTime(baseCount: Int, countrySeed: Int? = nil) -> Int {
         let days = daysSinceReference
         let hour = Double(currentHourOfDay)
-
-        // Calculate score 0 players at start and end of current day
         let dailyRetention = 0.25  // 25% remain at end of each day
-        let startOfDayMultiplier = pow(dailyRetention, Double(days))
-        let endOfDayMultiplier = pow(dailyRetention, Double(days + 1))
+        var remainingPlayers = Double(baseCount)
 
+        // Loop through completed days to accumulate new players and apply attrition
+        for d in 0..<days {
+            // New players joining on day `d`
+            let activeSeed = countrySeed ?? 12345 // default to US seed if null
+            let joinedToday = countryNewPlayersJoining(on: d, countrySeed: activeSeed)
+            
+            // Add new players and apply daily retention to the total pool
+            remainingPlayers += joinedToday
+            remainingPlayers *= dailyRetention
+        }
+
+        // For the current day (partial day), add today's joined players and apply partial attrition
+        let activeSeed = countrySeed ?? 12345
+        let joinedToday = countryNewPlayersJoining(on: days, countrySeed: activeSeed)
+        
+        let startOfDayTotal = remainingPlayers + joinedToday
+        let endOfDayTotal = startOfDayTotal * dailyRetention
+        
         // Linear interpolation within the day based on current hour
         let hourProgress = hour / 24.0
-        let currentMultiplier = startOfDayMultiplier - (startOfDayMultiplier - endOfDayMultiplier) * hourProgress
+        let currentTotal = startOfDayTotal - (startOfDayTotal - endOfDayTotal) * hourProgress
 
-        return max(1, Int(Double(baseCount) * currentMultiplier))
+        return max(1, Int(currentTotal))
     }
 
     // All milestone tiers in order (lowest to highest) - generated from doubling sequence
@@ -328,6 +343,18 @@ public enum MockLeaderboardData {
         "3by", "6by", "13by", "26by", "53by", "106by", "213by", "426by", "853by", "1bz",
         "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "873bz"
     ]
+
+    /// Precomputed dictionary for O(1) milestone → index lookups (replaces O(n) firstIndex scans)
+    static let allMilestonesLookup: [String: Int] = {
+        var dict = [String: Int](minimumCapacity: allMilestones.count)
+        for (index, milestone) in allMilestones.enumerated() {
+            dict[milestone] = index
+        }
+        return dict
+    }()
+
+    /// Cached index for the "1bx" elite threshold milestone
+    static let milestone1bxIndex: Int = allMilestonesLookup["1bx"] ?? 820
 
     /// Searchable player data for compare view - generated from actual leaderboard data
     public struct SearchablePlayer: Identifiable {
@@ -2090,9 +2117,9 @@ public enum MockLeaderboardData {
         let scoreZeroBracket = extendedBrackets.last { $0.milestone == "0" }
         let scoreZeroStartRank = scoreZeroBracket?.startRank ?? totalPlayers
 
-        // Calculate score 0 players and apply retention multiplier
+        // Calculate score 0 players and apply retention multiplier + new player cohorts
         let baseScoreZeroPlayers = totalPlayers - scoreZeroStartRank + 1
-        let currentScoreZeroPlayers = scoreZeroPlayersAtCurrentTime(baseCount: baseScoreZeroPlayers)
+        let currentScoreZeroPlayers = scoreZeroPlayersAtCurrentTime(baseCount: baseScoreZeroPlayers, countrySeed: countrySeed)
         let adjustedTotalPlayers = scoreZeroStartRank - 1 + currentScoreZeroPlayers
 
         return max(0, adjustedTotalPlayers - 1)
@@ -2106,48 +2133,48 @@ public enum MockLeaderboardData {
         var total = 0
 
         // Add each country's count
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.usPlayerMilestones, extendedBrackets: LeaderboardClient.usExtendedRankBrackets, totalPlayers: Self.totalPlayers(on: day, isUS: true))
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.ukPlayerMilestones, extendedBrackets: LeaderboardClient.ukExtendedRankBrackets, totalPlayers: 17_676)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.canadaPlayerMilestones, extendedBrackets: LeaderboardClient.canadaExtendedRankBrackets, totalPlayers: 12_847)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.australiaPlayerMilestones, extendedBrackets: LeaderboardClient.australiaExtendedRankBrackets, totalPlayers: 63_213)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.germanyPlayerMilestones, extendedBrackets: LeaderboardClient.germanyExtendedRankBrackets, totalPlayers: 76_767)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.francePlayerMilestones, extendedBrackets: LeaderboardClient.franceExtendedRankBrackets, totalPlayers: 127_676)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.japanPlayerMilestones, extendedBrackets: LeaderboardClient.japanExtendedRankBrackets, totalPlayers: 894)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.indiaPlayerMilestones, extendedBrackets: LeaderboardClient.indiaExtendedRankBrackets, totalPlayers: 1_488)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.brazilPlayerMilestones, extendedBrackets: LeaderboardClient.brazilExtendedRankBrackets, totalPlayers: 10_000)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.mexicoPlayerMilestones, extendedBrackets: LeaderboardClient.mexicoExtendedRankBrackets, totalPlayers: 7_229)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.afghanistanPlayerMilestones, extendedBrackets: LeaderboardClient.afghanistanExtendedRankBrackets, totalPlayers: 11_111)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.albaniaPlayerMilestones, extendedBrackets: LeaderboardClient.albaniaExtendedRankBrackets, totalPlayers: 11_222)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.algeriaPlayerMilestones, extendedBrackets: LeaderboardClient.algeriaExtendedRankBrackets, totalPlayers: 3_333)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.chinaPlayerMilestones, extendedBrackets: LeaderboardClient.chinaExtendedRankBrackets, totalPlayers: 8_192)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.southKoreaPlayerMilestones, extendedBrackets: LeaderboardClient.southKoreaExtendedRankBrackets, totalPlayers: 3_123)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.italyPlayerMilestones, extendedBrackets: LeaderboardClient.italyExtendedRankBrackets, totalPlayers: 13_856)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.spainPlayerMilestones, extendedBrackets: LeaderboardClient.spainExtendedRankBrackets, totalPlayers: 14_399)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.netherlandsPlayerMilestones, extendedBrackets: LeaderboardClient.netherlandsExtendedRankBrackets, totalPlayers: 46_767)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.switzerlandPlayerMilestones, extendedBrackets: LeaderboardClient.switzerlandExtendedRankBrackets, totalPlayers: 20_000)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.norwayPlayerMilestones, extendedBrackets: LeaderboardClient.norwayExtendedRankBrackets, totalPlayers: 34_924)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.denmarkPlayerMilestones, extendedBrackets: LeaderboardClient.denmarkExtendedRankBrackets, totalPlayers: 90_123)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.finlandPlayerMilestones, extendedBrackets: LeaderboardClient.finlandExtendedRankBrackets, totalPlayers: 87_654)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.polandPlayerMilestones, extendedBrackets: LeaderboardClient.polandExtendedRankBrackets, totalPlayers: 67_108)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.belgiumPlayerMilestones, extendedBrackets: LeaderboardClient.belgiumExtendedRankBrackets, totalPlayers: 8_989)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.swedenPlayerMilestones, extendedBrackets: LeaderboardClient.swedenExtendedRankBrackets, totalPlayers: 6_288)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.austriaPlayerMilestones, extendedBrackets: LeaderboardClient.austriaExtendedRankBrackets, totalPlayers: 7_543)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.irelandPlayerMilestones, extendedBrackets: LeaderboardClient.irelandExtendedRankBrackets, totalPlayers: 34_567)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.portugalPlayerMilestones, extendedBrackets: LeaderboardClient.portugalExtendedRankBrackets, totalPlayers: 98_989)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.greecePlayerMilestones, extendedBrackets: LeaderboardClient.greeceExtendedRankBrackets, totalPlayers: 41_414)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.czechiaPlayerMilestones, extendedBrackets: LeaderboardClient.czechiaExtendedRankBrackets, totalPlayers: 61_616)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.romaniaPlayerMilestones, extendedBrackets: LeaderboardClient.romaniaExtendedRankBrackets, totalPlayers: 5_966)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.malaysiaPlayerMilestones, extendedBrackets: LeaderboardClient.malaysiaExtendedRankBrackets, totalPlayers: 52_111)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.newZealandPlayerMilestones, extendedBrackets: LeaderboardClient.newZealandExtendedRankBrackets, totalPlayers: 2_623)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.hungaryPlayerMilestones, extendedBrackets: LeaderboardClient.hungaryExtendedRankBrackets, totalPlayers: 111_111)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.azerbaijanPlayerMilestones, extendedBrackets: LeaderboardClient.azerbaijanExtendedRankBrackets, totalPlayers: 543_296)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kazakhstanPlayerMilestones, extendedBrackets: LeaderboardClient.kazakhstanExtendedRankBrackets, totalPlayers: 62_211)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.tajikistanPlayerMilestones, extendedBrackets: LeaderboardClient.tajikistanExtendedRankBrackets, totalPlayers: 193_773)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.niuePlayerMilestones, extendedBrackets: LeaderboardClient.niueExtendedRankBrackets, totalPlayers: 947)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kyrgyzstanPlayerMilestones, extendedBrackets: LeaderboardClient.kyrgyzstanExtendedRankBrackets, totalPlayers: 1_097_478)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.icelandPlayerMilestones, extendedBrackets: LeaderboardClient.icelandExtendedRankBrackets, totalPlayers: 2_846)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.slovakiaPlayerMilestones, extendedBrackets: LeaderboardClient.slovakiaExtendedRankBrackets, totalPlayers: 2_093_776)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.uzbekistanPlayerMilestones, extendedBrackets: LeaderboardClient.uzbekistanExtendedRankBrackets, totalPlayers: 28_473_673)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.usPlayerMilestones, extendedBrackets: LeaderboardClient.usExtendedRankBrackets, totalPlayers: Self.totalPlayers(on: day, isUS: true), countrySeed: countryPlayerSeeds["US"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.ukPlayerMilestones, extendedBrackets: LeaderboardClient.ukExtendedRankBrackets, totalPlayers: 17_676, countrySeed: countryPlayerSeeds["GB"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.canadaPlayerMilestones, extendedBrackets: LeaderboardClient.canadaExtendedRankBrackets, totalPlayers: 12_847, countrySeed: countryPlayerSeeds["CA"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.australiaPlayerMilestones, extendedBrackets: LeaderboardClient.australiaExtendedRankBrackets, totalPlayers: 63_213, countrySeed: countryPlayerSeeds["AU"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.germanyPlayerMilestones, extendedBrackets: LeaderboardClient.germanyExtendedRankBrackets, totalPlayers: 76_767, countrySeed: countryPlayerSeeds["DE"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.francePlayerMilestones, extendedBrackets: LeaderboardClient.franceExtendedRankBrackets, totalPlayers: 127_676, countrySeed: countryPlayerSeeds["FR"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.japanPlayerMilestones, extendedBrackets: LeaderboardClient.japanExtendedRankBrackets, totalPlayers: 894, countrySeed: countryPlayerSeeds["JP"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.indiaPlayerMilestones, extendedBrackets: LeaderboardClient.indiaExtendedRankBrackets, totalPlayers: 1_488, countrySeed: countryPlayerSeeds["IN"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.brazilPlayerMilestones, extendedBrackets: LeaderboardClient.brazilExtendedRankBrackets, totalPlayers: 10_000, countrySeed: countryPlayerSeeds["BR"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.mexicoPlayerMilestones, extendedBrackets: LeaderboardClient.mexicoExtendedRankBrackets, totalPlayers: 7_229, countrySeed: countryPlayerSeeds["MX"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.afghanistanPlayerMilestones, extendedBrackets: LeaderboardClient.afghanistanExtendedRankBrackets, totalPlayers: 11_111, countrySeed: countryPlayerSeeds["AF"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.albaniaPlayerMilestones, extendedBrackets: LeaderboardClient.albaniaExtendedRankBrackets, totalPlayers: 11_222, countrySeed: countryPlayerSeeds["AL"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.algeriaPlayerMilestones, extendedBrackets: LeaderboardClient.algeriaExtendedRankBrackets, totalPlayers: 3_333, countrySeed: countryPlayerSeeds["DZ"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.chinaPlayerMilestones, extendedBrackets: LeaderboardClient.chinaExtendedRankBrackets, totalPlayers: 8_192, countrySeed: countryPlayerSeeds["CN"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.southKoreaPlayerMilestones, extendedBrackets: LeaderboardClient.southKoreaExtendedRankBrackets, totalPlayers: 3_123, countrySeed: countryPlayerSeeds["KR"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.italyPlayerMilestones, extendedBrackets: LeaderboardClient.italyExtendedRankBrackets, totalPlayers: 13_856, countrySeed: countryPlayerSeeds["IT"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.spainPlayerMilestones, extendedBrackets: LeaderboardClient.spainExtendedRankBrackets, totalPlayers: 14_399, countrySeed: countryPlayerSeeds["ES"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.netherlandsPlayerMilestones, extendedBrackets: LeaderboardClient.netherlandsExtendedRankBrackets, totalPlayers: 46_767, countrySeed: countryPlayerSeeds["NL"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.switzerlandPlayerMilestones, extendedBrackets: LeaderboardClient.switzerlandExtendedRankBrackets, totalPlayers: 20_000, countrySeed: countryPlayerSeeds["CH"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.norwayPlayerMilestones, extendedBrackets: LeaderboardClient.norwayExtendedRankBrackets, totalPlayers: 34_924, countrySeed: countryPlayerSeeds["NO"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.denmarkPlayerMilestones, extendedBrackets: LeaderboardClient.denmarkExtendedRankBrackets, totalPlayers: 90_123, countrySeed: countryPlayerSeeds["DK"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.finlandPlayerMilestones, extendedBrackets: LeaderboardClient.finlandExtendedRankBrackets, totalPlayers: 87_654, countrySeed: countryPlayerSeeds["FI"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.polandPlayerMilestones, extendedBrackets: LeaderboardClient.polandExtendedRankBrackets, totalPlayers: 67_108, countrySeed: countryPlayerSeeds["PL"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.belgiumPlayerMilestones, extendedBrackets: LeaderboardClient.belgiumExtendedRankBrackets, totalPlayers: 8_989, countrySeed: countryPlayerSeeds["BE"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.swedenPlayerMilestones, extendedBrackets: LeaderboardClient.swedenExtendedRankBrackets, totalPlayers: 6_288, countrySeed: countryPlayerSeeds["SE"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.austriaPlayerMilestones, extendedBrackets: LeaderboardClient.austriaExtendedRankBrackets, totalPlayers: 7_543, countrySeed: countryPlayerSeeds["AT"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.irelandPlayerMilestones, extendedBrackets: LeaderboardClient.irelandExtendedRankBrackets, totalPlayers: 34_567, countrySeed: countryPlayerSeeds["IE"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.portugalPlayerMilestones, extendedBrackets: LeaderboardClient.portugalExtendedRankBrackets, totalPlayers: 98_989, countrySeed: countryPlayerSeeds["PT"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.greecePlayerMilestones, extendedBrackets: LeaderboardClient.greeceExtendedRankBrackets, totalPlayers: 41_414, countrySeed: countryPlayerSeeds["GR"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.czechiaPlayerMilestones, extendedBrackets: LeaderboardClient.czechiaExtendedRankBrackets, totalPlayers: 61_616, countrySeed: countryPlayerSeeds["CZ"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.romaniaPlayerMilestones, extendedBrackets: LeaderboardClient.romaniaExtendedRankBrackets, totalPlayers: 5_966, countrySeed: countryPlayerSeeds["RO"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.malaysiaPlayerMilestones, extendedBrackets: LeaderboardClient.malaysiaExtendedRankBrackets, totalPlayers: 52_111, countrySeed: countryPlayerSeeds["MY"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.newZealandPlayerMilestones, extendedBrackets: LeaderboardClient.newZealandExtendedRankBrackets, totalPlayers: 2_623, countrySeed: countryPlayerSeeds["NZ"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.hungaryPlayerMilestones, extendedBrackets: LeaderboardClient.hungaryExtendedRankBrackets, totalPlayers: 111_111, countrySeed: countryPlayerSeeds["HU"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.azerbaijanPlayerMilestones, extendedBrackets: LeaderboardClient.azerbaijanExtendedRankBrackets, totalPlayers: 543_296, countrySeed: countryPlayerSeeds["AZ"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kazakhstanPlayerMilestones, extendedBrackets: LeaderboardClient.kazakhstanExtendedRankBrackets, totalPlayers: 62_211, countrySeed: countryPlayerSeeds["KZ"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.tajikistanPlayerMilestones, extendedBrackets: LeaderboardClient.tajikistanExtendedRankBrackets, totalPlayers: 193_773, countrySeed: countryPlayerSeeds["TJ"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.niuePlayerMilestones, extendedBrackets: LeaderboardClient.niueExtendedRankBrackets, totalPlayers: 947, countrySeed: countryPlayerSeeds["NU"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kyrgyzstanPlayerMilestones, extendedBrackets: LeaderboardClient.kyrgyzstanExtendedRankBrackets, totalPlayers: 1_097_478, countrySeed: countryPlayerSeeds["KG"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.icelandPlayerMilestones, extendedBrackets: LeaderboardClient.icelandExtendedRankBrackets, totalPlayers: 2_846, countrySeed: countryPlayerSeeds["IS"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.slovakiaPlayerMilestones, extendedBrackets: LeaderboardClient.slovakiaExtendedRankBrackets, totalPlayers: 2_093_776, countrySeed: countryPlayerSeeds["SK"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.uzbekistanPlayerMilestones, extendedBrackets: LeaderboardClient.uzbekistanExtendedRankBrackets, totalPlayers: 28_473_673, countrySeed: countryPlayerSeeds["UZ"] ?? 0)
 
         return total
     }
@@ -2156,15 +2183,15 @@ public enum MockLeaderboardData {
     // Players at/above 16K milestone: progress at 0.25-1 milestones per day
     // Players below 16K milestone: progress at 1.5-4 milestones per day (faster to catch up)
     static func milestoneWithProgression(baseMilestone: String, playerIndex: Int, day: Int) -> String {
-        guard let baseIndex = allMilestones.firstIndex(of: baseMilestone) else {
+        guard let baseIndex = allMilestonesLookup[baseMilestone] else {
             return baseMilestone
         }
 
         // Index of "16K" in allMilestones array
         let milestone16KIndex = 14
 
-        // Index of "1bx" in allMilestones array (elite threshold)
-        let milestone1bxIndex = allMilestones.firstIndex(of: "1bx") ?? 820
+        // Use cached elite threshold index
+        let milestone1bxIdx = milestone1bxIndex
 
         // Each player gets a consistent daily milestone progression rate
         // Rate depends on milestone tier
@@ -2207,13 +2234,13 @@ public enum MockLeaderboardData {
         // Normalize the milestone first
         let normalized = normalizeMilestone(milestone)
 
-        // Try exact match first
-        if let index = allMilestones.firstIndex(of: normalized) {
+        // Try exact match via dictionary (O(1) instead of O(n))
+        if let index = allMilestonesLookup[normalized] {
             return index
         }
-        // Try case-insensitive match
+        // Try case-insensitive match via dictionary
         let lowercased = normalized.lowercased()
-        if let index = allMilestones.firstIndex(where: { $0.lowercased() == lowercased }) {
+        if let index = allMilestonesLookup[lowercased] {
             return index
         }
 
