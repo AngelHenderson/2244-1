@@ -214,45 +214,51 @@ public enum MockLeaderboardData {
         Calendar.current.component(.hour, from: Date())
     }
 
-    // Calculate score 0 player count with compounding daily attrition
+    // Cache for scoreZeroPlayersAtCurrentTime to avoid recomputing the day loop
+    // Key: "baseCount_countrySeed", invalidated each hour
+    private static var scoreZeroCacheHour: Int = -1
+    private static var scoreZeroCache: [String: Int] = [:]
+
+    // Calculate score 0 player count with compounding daily attrition + new player cohorts
     // Each day, 75% of score 0 players progress, leaving 25% at end of day
-    // This compounds: Day 1 end = 25%, Day 2 end = 6.25%, Day 3 end = 1.5625%, etc.
-    // Within each day, attrition happens linearly from start to end
-    //
-    // Example with 50,000 base score 0 players:
-    // - Day 1, 12:00 AM: 50,000
-    // - Day 1, 11:59 PM: 12,500 (25%)
-    // - Day 2, 11:59 PM: 3,125 (6.25%)
-    // - Day 3, 11:59 PM: 781 (1.5625%)
+    // New players join each day and are subject to the same attrition going forward
     static func scoreZeroPlayersAtCurrentTime(baseCount: Int, countrySeed: Int? = nil) -> Int {
         let days = daysSinceReference
-        let hour = Double(currentHourOfDay)
-        let dailyRetention = 0.25  // 25% remain at end of each day
+        let hour = currentHourOfDay
+        let activeSeed = countrySeed ?? 12345
+
+        // Invalidate cache when the hour changes
+        if hour != scoreZeroCacheHour {
+            scoreZeroCache.removeAll()
+            scoreZeroCacheHour = hour
+        }
+
+        let cacheKey = "\(baseCount)_\(activeSeed)"
+        if let cached = scoreZeroCache[cacheKey] {
+            return cached
+        }
+
+        let dailyRetention = 0.25
         var remainingPlayers = Double(baseCount)
 
         // Loop through completed days to accumulate new players and apply attrition
         for d in 0..<days {
-            // New players joining on day `d`
-            let activeSeed = countrySeed ?? 12345 // default to US seed if null
             let joinedToday = countryNewPlayersJoining(on: d, countrySeed: activeSeed)
-            
-            // Add new players and apply daily retention to the total pool
             remainingPlayers += joinedToday
             remainingPlayers *= dailyRetention
         }
 
         // For the current day (partial day), add today's joined players and apply partial attrition
-        let activeSeed = countrySeed ?? 12345
         let joinedToday = countryNewPlayersJoining(on: days, countrySeed: activeSeed)
-        
         let startOfDayTotal = remainingPlayers + joinedToday
         let endOfDayTotal = startOfDayTotal * dailyRetention
-        
-        // Linear interpolation within the day based on current hour
-        let hourProgress = hour / 24.0
+
+        let hourProgress = Double(hour) / 24.0
         let currentTotal = startOfDayTotal - (startOfDayTotal - endOfDayTotal) * hourProgress
 
-        return max(1, Int(currentTotal))
+        let result = max(1, Int(currentTotal))
+        scoreZeroCache[cacheKey] = result
+        return result
     }
 
     // All milestone tiers in order (lowest to highest) - generated from doubling sequence
@@ -821,8 +827,8 @@ public enum MockLeaderboardData {
         // Normalize the milestone first
         let normalized = normalizeMilestone(milestone)
 
-        // Find milestone index in allMilestones array
-        if let index = allMilestones.firstIndex(of: normalized) {
+        // Find milestone index in allMilestones array (O(1) dictionary lookup)
+        if let index = allMilestonesLookup[normalized] {
             // Score grows with milestone tier
             // Use a logarithmic scale to prevent overflow
             let baseScore = 1_000_000  // 1 million base
@@ -976,7 +982,22 @@ public enum MockLeaderboardData {
 
     // Calculate total players for a specific country with new joins and attrition
     // New players: 0.5-4 per day, Attrition: 0.1-0.5 per day (95% outside top 150)
+    // Cache for totalCountryPlayers results (invalidated daily)
+    private static var totalCountryPlayersCacheDay: Int = -1
+    private static var totalCountryPlayersCache: [String: Int] = [:]
+
     static func totalCountryPlayers(basePlayers: Int, on day: Int, countrySeed: Int) -> Int {
+        // Invalidate cache when day changes
+        if day != totalCountryPlayersCacheDay {
+            totalCountryPlayersCache.removeAll()
+            totalCountryPlayersCacheDay = day
+        }
+
+        let cacheKey = "\(basePlayers)_\(countrySeed)"
+        if let cached = totalCountryPlayersCache[cacheKey] {
+            return cached
+        }
+
         var totalNew: Double = 0
         var totalLeft: Double = 0
         for d in 0...day {
@@ -984,7 +1005,9 @@ public enum MockLeaderboardData {
             totalLeft += countryPlayersLeaving(on: d, countrySeed: countrySeed)
         }
         // Net players = base + new - left (ensure at least 151 to maintain top 150 leaderboard)
-        return max(151, basePlayers + Int(totalNew) - Int(totalLeft))
+        let result = max(151, basePlayers + Int(totalNew) - Int(totalLeft))
+        totalCountryPlayersCache[cacheKey] = result
+        return result
     }
 
     // Starting milestones for active new players (players who start making progress immediately)
@@ -1008,9 +1031,19 @@ public enum MockLeaderboardData {
         return newPlayerStartingMilestones[min(index, newPlayerStartingMilestones.count - 1)]
     }
 
-    // Calculate total players including all who joined up to this day, minus those who left
-    // Players leave due to: bans, running out of moves, deleting game, or choosing to restart
+    // Cache for totalPlayers results (invalidated daily)
+    private static var totalPlayersCacheDay: Int = -1
+    private static var totalPlayersCache: [Bool: Int] = [:]
+
     static func totalPlayers(on day: Int, isUS: Bool) -> Int {
+        if day != totalPlayersCacheDay {
+            totalPlayersCache.removeAll()
+            totalPlayersCacheDay = day
+        }
+        if let cached = totalPlayersCache[isUS] {
+            return cached
+        }
+
         let basePlayers = isUS ? baseUSPlayers : baseGlobalPlayers
         var totalNew: Double = 0
         var totalLeft: Double = 0
@@ -1019,7 +1052,9 @@ public enum MockLeaderboardData {
             totalLeft += playersLeaving(on: d, isUS: isUS)
         }
         // Net players = base + new - left (ensure non-negative)
-        return max(0, basePlayers + Int(totalNew) - Int(totalLeft))
+        let result = max(0, basePlayers + Int(totalNew) - Int(totalLeft))
+        totalPlayersCache[isUS] = result
+        return result
     }
 
     // Calculate score with daily progression for a player
@@ -1532,7 +1567,7 @@ public enum MockLeaderboardData {
             }
 
             guard let base = baseMilestone,
-                  let baseIndex = allMilestones.firstIndex(of: base) else {
+                  let baseIndex = allMilestonesLookup[base] else {
                 return baseMilestone
             }
 
@@ -1543,7 +1578,7 @@ public enum MockLeaderboardData {
             var newIndex = baseIndex + tiersGained
 
             if let capMilestone = nextHigherBracketMilestone,
-               let capIndex = allMilestones.firstIndex(of: capMilestone) {
+               let capIndex = allMilestonesLookup[capMilestone] {
                 newIndex = min(newIndex, capIndex)
             } else {
                 newIndex = min(newIndex, baseIndex)
@@ -1824,7 +1859,7 @@ public enum MockLeaderboardData {
         }
 
         guard let base = baseMilestone,
-              let baseIndex = allMilestones.firstIndex(of: base) else {
+              let baseIndex = allMilestonesLookup[base] else {
             return baseMilestone
         }
 
@@ -1840,7 +1875,7 @@ public enum MockLeaderboardData {
         // For the first bracket (no higher bracket), cap at the base milestone itself
         // since these players are at the highest extended tier already
         if let capMilestone = nextHigherBracketMilestone,
-           let capIndex = allMilestones.firstIndex(of: capMilestone) {
+           let capIndex = allMilestonesLookup[capMilestone] {
             newIndex = min(newIndex, capIndex)
         } else {
             // First bracket: don't progress beyond the base milestone
@@ -2125,11 +2160,29 @@ public enum MockLeaderboardData {
         return max(0, adjustedTotalPlayers - 1)
     }
 
+    /// Cache for countAllPlayersBetterThan results (invalidated hourly)
+    private static var globalRankCacheHour: Int = -1
+    private static var globalRankCacheDay: Int = -1
+    private static var globalRankCache: [String: Int] = [:]
+
     /// Count players better than user's milestone across all countries
     /// Used by UserLeaderboardData.calculateGlobalRank for accurate global ranking
     static func countAllPlayersBetterThan(userMilestone: String) -> Int {
-        let userMilestoneIdx = milestoneIndex(for: userMilestone)
         let day = daysSinceReference
+        let hour = currentHourOfDay
+
+        // Invalidate cache when day or hour changes
+        if day != globalRankCacheDay || hour != globalRankCacheHour {
+            globalRankCache.removeAll()
+            globalRankCacheDay = day
+            globalRankCacheHour = hour
+        }
+
+        if let cached = globalRankCache[userMilestone] {
+            return cached
+        }
+
+        let userMilestoneIdx = milestoneIndex(for: userMilestone)
         var total = 0
 
         // Add each country's count
@@ -2176,6 +2229,7 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.slovakiaPlayerMilestones, extendedBrackets: LeaderboardClient.slovakiaExtendedRankBrackets, totalPlayers: 2_093_776, countrySeed: countryPlayerSeeds["SK"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.uzbekistanPlayerMilestones, extendedBrackets: LeaderboardClient.uzbekistanExtendedRankBrackets, totalPlayers: 28_473_673, countrySeed: countryPlayerSeeds["UZ"] ?? 0)
 
+        globalRankCache[userMilestone] = total
         return total
     }
 
