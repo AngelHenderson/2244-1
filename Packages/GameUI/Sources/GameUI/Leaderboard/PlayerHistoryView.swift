@@ -566,7 +566,7 @@ struct PlayerHistoryView: View {
 
     private static func countryDisplayName(for code: String) -> String {
         switch code {
-        case "US": return "United States"
+        case "US": return "US"
         case "BR": return "Brazil"
         case "GB": return "UK"
         case "DE": return "Germany"
