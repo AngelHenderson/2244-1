@@ -19,7 +19,10 @@ struct StoreView: View {
                 Section("Gem Packs") {
                     ForEach(packs) { pack in
                         HStack {
-                            Image(systemName: "diamond.fill").foregroundStyle(.mint)
+                            Image("gem")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
                             Text("\(pack.amount)")
                             Spacer()
                             Button(pack.priceLabel) { buy(pack) }

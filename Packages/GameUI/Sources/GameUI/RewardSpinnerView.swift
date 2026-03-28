@@ -41,7 +41,10 @@ struct RewardSpinnerView: View {
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .semibold))
                     .foregroundStyle(.secondary)
                 HStack(spacing: 6) {
-                    Image(systemName: "diamond.fill")
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
                         .foregroundStyle(.mint)
                     Text("\(baseAmount)")
                         .font(.avenirNext(size: GameFonts.title2Size, weight: .heavy))

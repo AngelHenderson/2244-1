@@ -842,8 +842,10 @@ struct HorizontalPowerupDock: View {
                         .offset(x: 4, y: -4)
                 } else if let price = price {
                     HStack(spacing: 1) {
-                        Image(systemName: "diamond.fill")
-                            .font(.avenirNext(size: 7, weight: .regular))
+                        Image("gem")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 8, height: 8)
                         Text("\(price)")
                             .font(.avenirNext(size: 8, weight: .bold))
                     }
@@ -989,8 +991,10 @@ struct SimplePowerupDock: View {
                         .offset(x: 4, y: -4)
                 } else if let price = price {
                     HStack(spacing: 1) {
-                        Image(systemName: "diamond.fill")
-                            .font(.avenirNext(size: 8, weight: .regular))
+                        Image("gem")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 9, height: 9)
                         Text("\(price)")
                             .font(.avenirNext(size: 9, weight: .bold))
                     }

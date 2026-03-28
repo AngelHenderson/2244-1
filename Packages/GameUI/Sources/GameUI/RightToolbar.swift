@@ -57,7 +57,10 @@ struct RightToolbar: View {
         .buttonStyle(.plain)
         .overlay(alignment: .trailing) {
             HStack(spacing: 6) {
-                Image(systemName: "diamond.fill").foregroundStyle(.mint)
+                Image("gem")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                 Text("\(price)")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundColor(.white)

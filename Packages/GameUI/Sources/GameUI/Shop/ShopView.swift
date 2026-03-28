@@ -63,7 +63,7 @@ public struct WeeklyOfferSheet: View {
                                 Divider().padding(.leading, 52)
                             }
                             if let gems = offer.gems {
-                                offerRow(icon: "diamond.fill", text: "\(gems.formatted()) Gems", color: .cyan)
+                                offerRow(icon: "gems", text: "\(gems.formatted()) Gems", color: .clear)
                                 Divider().padding(.leading, 52)
                             }
                             if let hammers = offer.hammers {
@@ -158,10 +158,18 @@ public struct WeeklyOfferSheet: View {
 
     private func offerRow(icon: String, text: String, color: Color) -> some View {
         HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
-                .foregroundStyle(color)
-                .frame(width: 36)
+            if icon == "gems" {
+                Image("gems")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+                    .frame(width: 36)
+            } else {
+                Image(systemName: icon)
+                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
+                    .foregroundStyle(color)
+                    .frame(width: 36)
+            }
 
             Text(text)
                 .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
@@ -229,7 +237,7 @@ public struct ShopView: View {
         var icon: String {
             switch self {
             case .bundles: return "cube.box.fill"
-            case .gems: return "diamond.fill"
+            case .gems: return "gems"
             case .journey: return "map.fill"
             case .perks: return "star.fill"
             }
@@ -461,7 +469,7 @@ struct WeeklyOfferCard: View {
                     Label {
                         Text(verbatim: "\(gems.formatted()) Gems")
                     } icon: {
-                        Image(systemName: "diamond.fill")
+                        Image("gems").resizable().scaledToFit().frame(width: 14, height: 14)
                     }
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
@@ -621,7 +629,10 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(gems) Gems")
                         } icon: {
-                            Image(systemName: "diamond.fill")
+                            Image("gems")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
                         }
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
@@ -772,7 +783,7 @@ struct GemBundleRow: View {
             return Image(nsImage: nsImage)
         }
         #endif
-        return Image(systemName: "diamond.fill")
+        return Image("gems")
     }
 }
 

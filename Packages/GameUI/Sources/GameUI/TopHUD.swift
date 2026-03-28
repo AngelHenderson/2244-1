@@ -108,12 +108,7 @@ struct TopHUD: View {
     }
 
     private var gemImage: Image {
-        #if canImport(UIKit)
-        if let img = UIImage(named: "currency_gem") { return Image(uiImage: img) }
-        #elseif canImport(AppKit)
-        if let img = NSImage(named: "currency_gem") { return Image(nsImage: img) }
-        #endif
-        return Image(systemName: "diamond.fill")
+        return Image("gem")
     }
 
     private var pauseButton: some View {

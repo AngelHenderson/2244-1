@@ -242,7 +242,10 @@ private struct MilestoneCard: View {
                 Label {
                     Text(verbatim: String(gems))
                 } icon: {
-                    Image(systemName: "diamond.fill")
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 14, height: 14)
                 }
                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                 .foregroundStyle(.cyan)
@@ -345,9 +348,16 @@ private struct StreakDetailSheet: View {
                     VStack(spacing: 12) {
                         ForEach(streak.rewards.entries, id: \.self) { entry in
                             HStack {
-                                Image(systemName: entry.kind.iconName)
-                                    .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
-                                    .foregroundStyle(entry.kind.iconColor)
+                                if entry.kind == .gems {
+                                    Image("gem")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 24, height: 24)
+                                } else {
+                                    Image(systemName: entry.kind.iconName)
+                                        .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
+                                        .foregroundStyle(entry.kind.iconColor)
+                                }
                                 Text("\(entry.amount) \(entry.kind.displayName)")
                                     .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                                 Spacer()
@@ -377,8 +387,19 @@ private struct RewardsDisplay: View {
     var body: some View {
         HStack(spacing: 12) {
             ForEach(rewards.entries, id: \.self) { entry in
-                Label("\(entry.amount)", systemImage: entry.kind.iconName)
+                if entry.kind == .gems {
+                    HStack(spacing: 4) {
+                        Image("gem")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                        Text("\(entry.amount)")
+                    }
                     .foregroundStyle(entry.kind.iconColor)
+                } else {
+                    Label("\(entry.amount)", systemImage: entry.kind.iconName)
+                        .foregroundStyle(entry.kind.iconColor)
+                }
             }
         }
     }
@@ -387,7 +408,7 @@ private struct RewardsDisplay: View {
 private extension AchievementDef.Rewards.Entry.Kind {
     var iconName: String {
         switch self {
-        case .gems: return "diamond.fill"
+        case .gems: return "gem"
         case .spins: return "arrow.triangle.2.circlepath"
         case .hammers: return "hammer.fill"
         case .magnets: return "magnet.fill"

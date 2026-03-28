@@ -86,9 +86,10 @@ struct SideRailButton: View {
                     // Special label inside the button (e.g., gem reward for ad button)
                     if specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
                         HStack(spacing: 2) {
-                            Image(systemName: "diamond.fill")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(.cyan)
+                            Image("gem")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 10, height: 10)
                             Text(specialLabel)
                                 .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
                                 .foregroundStyle(backgroundTheme.textColor)

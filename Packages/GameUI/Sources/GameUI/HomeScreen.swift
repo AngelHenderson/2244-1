@@ -272,7 +272,10 @@ private struct CreateChallengeSheet: View {
         VStack(spacing: 6) {
             Text("REWARD").font(.headline.weight(.bold))
             HStack(spacing: 8) {
-                Image(systemName: "diamond.fill").foregroundStyle(.mint)
+                Image("gem")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                 Text("+\(settings.reward)")
                     .font(.headline.weight(.bold))
                     .monospacedDigit()

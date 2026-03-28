@@ -1169,6 +1169,12 @@ private struct RewardIconView: View {
                             .offset(x: 5, y: -6)
                     )
             }
+        } else if kind == .gems {
+            Image("gem")
+                .resizable()
+                .scaledToFit()
+                // Approximate size equivalent to .body font system image
+                .frame(width: 20, height: 20)
         } else {
             Image(systemName: kind.iconName)
                 .foregroundStyle(kind.iconColor)
@@ -1220,7 +1226,7 @@ private struct RewardChip: View {
 private extension AchievementDef.Rewards.Entry.Kind {
     var iconName: String {
         switch self {
-        case .gems: return "diamond.fill"
+        case .gems: return "gem"
         case .spins: return "arrow.triangle.2.circlepath"
         case .hammers: return "hammer.fill"
         case .magnets: return "dot.radiowaves.left.and.right"

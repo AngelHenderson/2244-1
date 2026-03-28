@@ -320,8 +320,7 @@ private struct ChallengeCard: View {
                         .padding(.bottom, 4)
                     ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
                         HStack(spacing: 6) {
-                            Image(systemName: part.icon)
-                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                            iconView(for: part.icon)
                                 .frame(width: 20)
                             Text(part.text)
                                 .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
@@ -334,11 +333,22 @@ private struct ChallengeCard: View {
         } else if let part = parts.first {
             // Single reward - show specific icon
             HStack(spacing: 4) {
-                Image(systemName: part.icon)
-                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                iconView(for: part.icon)
                 Text(part.text)
                     .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
             }
+        }
+    }
+
+    @ViewBuilder
+    private func iconView(for icon: String) -> some View {
+        if icon == "gems" {
+            Image("gems")
+                .resizable()
+                .scaledToFit()
+        } else {
+            Image(systemName: icon)
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
         }
     }
 
@@ -347,7 +357,7 @@ private struct ChallengeCard: View {
 
         // Gems
         if reward.coins > 0 {
-            parts.append((icon: "diamond.fill", text: "\(reward.coins)"))
+            parts.append((icon: "gems", text: "\(reward.coins)"))
         }
 
         // Power-ups
@@ -565,7 +575,7 @@ private struct IconLegendSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private let legendItems: [(icon: String, name: String, description: String)] = [
-        ("diamond.fill", "Gems", "Currency to spend in shop"),
+        ("gems", "Gems", "Currency to spend in shop"),
         ("hammer.fill", "Hammer", "Destroy any tile"),
         ("arrow.left.arrow.right", "Swap", "Swap two tiles"),
         ("dot.radiowaves.left.and.right", "MegaMerge", "Pull matching tiles together"),
@@ -582,10 +592,8 @@ private struct IconLegendSheet: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(legendItems, id: \.icon) { item in
                         HStack(spacing: 16) {
-                            Image(systemName: item.icon)
-                                .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
-                                .foregroundStyle(iconColor(for: item.icon))
-                                .frame(width: 32)
+                            iconView(for: item.icon)
+                                .frame(width: 32, height: 32)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(item.name)
@@ -621,7 +629,7 @@ private struct IconLegendSheet: View {
 
     private func iconColor(for icon: String) -> Color {
         switch icon {
-        case "diamond.fill": return .cyan
+        case "gems": return .clear // handled by asset
         case "hammer.fill": return .gray
         case "arrow.left.arrow.right": return .green
         case "dot.radiowaves.left.and.right": return .red
@@ -631,6 +639,19 @@ private struct IconLegendSheet: View {
         case "4.circle.fill": return .red
         case "shippingbox.fill": return .orange
         default: return .primary
+        }
+    }
+
+    @ViewBuilder
+    private func iconView(for icon: String) -> some View {
+        if icon == "gems" {
+            Image("gems")
+                .resizable()
+                .scaledToFit()
+        } else {
+            Image(systemName: icon)
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
+                .foregroundStyle(iconColor(for: icon))
         }
     }
 }

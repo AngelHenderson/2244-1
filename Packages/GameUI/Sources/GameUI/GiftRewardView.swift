@@ -198,6 +198,11 @@ public struct GiftRewardView: View {
     @ViewBuilder
     private func rewardIcon(for item: GiftRewardItem) -> some View {
         switch item.type {
+        case .gems:
+            Image("gems")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 36, height: 36)
         case .hammer:
             Image("hammer", bundle: .module)
                 .resizable()
@@ -217,7 +222,7 @@ public struct GiftRewardView: View {
         switch item.type {
         case .hammer: return "hammer.fill"
         case .magnet: return "magnet.fill"
-        case .gems: return "diamond.fill"
+        case .gems: return "gem"
         case .swap: return "arrow.2.squarepath"
         case .undo: return "arrow.uturn.backward.circle.fill"
         case .bonusSpin: return "arrow.triangle.2.circlepath"
