@@ -106,10 +106,10 @@ public struct SpinWheelView: View {
         } message: {
             Text("Sorry! You are out of bonus spins. Try earning a spin or waiting.")
         }
-        .alert("Banned", isPresented: Bindable(homeState).showBanAlert) {
+        .alert("You Are Still Banned!", isPresented: Bindable(homeState).showBanAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("You are banned due to \(homeState.banReasonText). \(homeState.banDurationText)")
+            Text("You are still banned. Your ban is over in \(homeState.banTimeRemainingText ?? "never (permanent)").")
         }
     }
     

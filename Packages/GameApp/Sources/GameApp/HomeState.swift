@@ -85,7 +85,7 @@ public final class HomeState {
         }
     }
 
-    /// Human-readable remaining ban time (e.g. "2 days, 3 hours remaining")
+    /// Human-readable remaining ban time (e.g. "2d 6h 48m 52s remaining")
     public var banTimeRemainingText: String? {
         guard isBanned, let endDate = banEndDate else {
             if isBanned && banEndDate == nil { return "Permanent" }
@@ -93,13 +93,15 @@ public final class HomeState {
         }
         let remaining = endDate.timeIntervalSince(Date())
         guard remaining > 0 else { return "Expiring..." }
-        let days = Int(remaining) / 86400
-        let hours = (Int(remaining) % 86400) / 3600
+        let total = Int(remaining)
+        let days = total / 86400
+        let hours = (total % 86400) / 3600
+        let minutes = (total % 3600) / 60
+        let seconds = total % 60
         if days > 0 {
-            return "\(days)d \(hours)h remaining"
+            return "\(days)d \(hours)h \(minutes)m \(seconds)s remaining"
         } else {
-            let minutes = (Int(remaining) % 3600) / 60
-            return "\(hours)h \(minutes)m remaining"
+            return "\(hours)h \(minutes)m \(seconds)s remaining"
         }
     }
 

@@ -327,10 +327,10 @@ public struct HomeView: View {
         } message: {
             Text("Sorry! You do not have a high enough tile to unlock this. You need a 1B tile.")
         }
-        .alert("Banned", isPresented: Bindable(state).showBanAlert) {
+        .alert("You Are Still Banned!", isPresented: Bindable(state).showBanAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("You are banned due to \(state.banReasonText). \(state.banDurationText)")
+            Text("You are still banned. Your ban is over in \(state.banTimeRemainingText ?? "never (permanent)").")
         }
         .alert("\(state.warningsRemaining) Chances Left!", isPresented: Bindable(state).showWarningAlert) {
             Button("OK", role: .cancel) { }
