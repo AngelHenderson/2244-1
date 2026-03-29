@@ -782,6 +782,10 @@ public struct CustomChallengeGameScreen: View {
         case .tile(let target):
             return challengeGameStore.state.highestTile >= target
         case .tileStep(let targetStep):
+            // Special case: infinity target — check if any infinity tile exists on the board
+            if targetStep == Int.max {
+                return challengeGameStore.state.board.contains { $0.isInfinity }
+            }
             // Compare using step values
             return challengeGameStore.state.highestTileStep >= targetStep
         case .chain:

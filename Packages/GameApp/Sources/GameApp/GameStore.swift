@@ -18,6 +18,7 @@ public final class GameStore {
     public private(set) var currentPath: [Position] = []
     public private(set) var pathValidation: ChainValidation = .valid
     public var achievementEvaluator: AchievementEvaluator?
+    public var spinWheelState: SpinWheelState?
 
     /// Count of valid move pairs (adjacent identical tiles) - stored for SwiftUI reactivity
     public private(set) var validMovesCount: Int = 0
@@ -3733,14 +3734,22 @@ extension GameStore {
     
     private func addBonusSpins(_ amount: Int) {
         guard amount > 0 else { return }
-        let spinState = SpinWheelState()
-        spinState.addBonusSpins(amount)
+        if let shared = spinWheelState {
+            shared.addBonusSpins(amount)
+        } else {
+            // Fallback: create temporary instance (persists to UserDefaults)
+            SpinWheelState().addBonusSpins(amount)
+        }
     }
     
     private func addMultipliers(_ tier: SpinWheelState.MultiplierTier, count: Int) {
         guard count > 0 else { return }
-        let spinState = SpinWheelState()
-        spinState.addMultiplier(tier, count: count)
+        if let shared = spinWheelState {
+            shared.addMultiplier(tier, count: count)
+        } else {
+            // Fallback: create temporary instance (persists to UserDefaults)
+            SpinWheelState().addMultiplier(tier, count: count)
+        }
     }
 
     // MARK: - Challenge Rewards

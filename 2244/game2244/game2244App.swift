@@ -121,6 +121,7 @@ struct game2244App: App {
                 .task {
                     gemWallet.attach(gameStore: gameStore, homeState: homeState)
                     gemWallet.bootstrapFromLocal()
+                    gameStore.spinWheelState = spinWheelState
                     
                     FirebaseService.shared.initialize()
                     if FirebaseApp.app() != nil {
@@ -215,6 +216,7 @@ struct game2244App: App {
                     evaluator.dailyQuestStore = dailyQuestStore
                     dailyQuestStore.setHighestTileStep(gameStore.state.highestTileStep)
                     dailyQuestStore.onReward = { rewards in
+                        applyRewards(rewards)
                         homeState.addGems(0) // trigger UI refresh
                     }
 
