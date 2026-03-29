@@ -1335,6 +1335,38 @@ public final class GameStore {
         achievementEvaluator?.onGameStart(state: state)
     }
 
+    /// Reset game at a specific milestone step (gem-purchased head start)
+    /// The board fills with tiles in a 4-step window around the milestone.
+    public func resetGameAtMilestone(step: Int) {
+        let minStep = max(0, step - 3)
+        let config = GameConfig(
+            minSpawnStep: minStep,
+            maxSpawnStep: step
+        )
+        engine = GameEngine(config: config)
+
+        state = engine.currentState()
+        refreshDerivedState(highestStep: persistedHighestTileStep())
+        syncEngineScoreBoost()
+        cancelRefillRevealTask()
+        cancelMergeCleanupTask()
+        pendingRefillPositions = []
+        currentPath = []
+        pathValidation = .valid
+        isInputLocked = false
+        lastAddedTileValue = nil
+        pendingDoubleBase = nil
+        pendingDoubleBaseStep = nil
+        brokenGlassTiles = []
+        pendingGiftBoxes = [:]
+        movesHistory = []
+        powerUpHistory = []
+        persistPendingGiftBoxes()
+        gameOverProcessed = false
+
+        achievementEvaluator?.onGameStart(state: state)
+    }
+
     /// Reset game with a custom GameConfig (used for challenge mode)
     public func resetGame(with config: GameConfig) {
         engine = GameEngine(config: config)

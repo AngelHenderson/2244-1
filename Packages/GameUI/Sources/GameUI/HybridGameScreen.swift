@@ -41,6 +41,8 @@ public struct HybridGameScreen: View {
     @State private var isShowingOutOfMoves = false
     @State private var isShowingGameOverText = false
     @State private var isShowingPowerUpRecovery = false
+    @State private var isShowingMilestoneStart = false
+    @State private var selectedMilestoneIndex: Int = 0
     @State private var gameOverResetTask: Task<Void, Never>? = nil
     @State private var isShowingLowOnMoves = false
     @State private var lowMovesWarningArmed = true
@@ -407,6 +409,11 @@ public struct HybridGameScreen: View {
                 gameOverTextOverlay
             }
 
+            // Milestone start picker overlay
+            if isShowingMilestoneStart {
+                milestoneStartOverlay
+            }
+
             // Power-up recovery selection overlay
             if isShowingPowerUpRecovery {
                 powerUpRecoveryOverlay
@@ -494,16 +501,29 @@ public struct HybridGameScreen: View {
         // Cancel any existing reset task
         gameOverResetTask?.cancel()
 
-        // Reset after 3 seconds
+        // Show GAME OVER for 2 seconds, then transition to milestone picker
         gameOverResetTask = Task {
-            try? await Task.sleep(for: .seconds(3))
+            try? await Task.sleep(for: .seconds(2))
 
             guard !Task.isCancelled else { return }
 
             await MainActor.run {
                 isShowingGameOverText = false
-                gameStore.resetGame()
+                selectedMilestoneIndex = 0
+                isShowingMilestoneStart = true
             }
+        }
+    }
+
+    private func startAtMilestone(_ tier: MilestoneTier) {
+        if tier.gemCost > 0 {
+            guard gameStore.spendCoins(tier.gemCost) else { return }
+        }
+        isShowingMilestoneStart = false
+        if tier.step == 0 {
+            gameStore.resetGame()
+        } else {
+            gameStore.resetGameAtMilestone(step: tier.step)
         }
     }
 
@@ -1263,5 +1283,173 @@ private struct ProgressLine: View {
     }
 }
 
+// MARK: - Milestone Start Data
 
+struct MilestoneTier: Identifiable {
+    let id: Int  // index
+    let step: Int
+    let gemCost: Int
+    let label: String
 
+    static let allTiers: [MilestoneTier] = [
+        MilestoneTier(id: 0,  step: 0,   gemCost: 0,       label: "2"),
+        MilestoneTier(id: 1,  step: 9,   gemCost: 50,      label: "1024"),
+        MilestoneTier(id: 2,  step: 10,  gemCost: 100,     label: "2048"),
+        MilestoneTier(id: 3,  step: 11,  gemCost: 150,     label: "4096"),
+        MilestoneTier(id: 4,  step: 12,  gemCost: 200,     label: "8192"),
+        MilestoneTier(id: 5,  step: 13,  gemCost: 250,     label: "16K"),
+        MilestoneTier(id: 6,  step: 19,  gemCost: 500,     label: "1M"),
+        MilestoneTier(id: 7,  step: 29,  gemCost: 750,     label: "1B"),
+        MilestoneTier(id: 8,  step: 39,  gemCost: 1_000,   label: "1a"),
+        MilestoneTier(id: 9,  step: 49,  gemCost: 1_250,   label: "1b"),
+        MilestoneTier(id: 10, step: 59,  gemCost: 1_500,   label: "1c"),
+        MilestoneTier(id: 11, step: 298, gemCost: 50_000,  label: "1aa"),
+        MilestoneTier(id: 12, step: 587, gemCost: 200_000, label: "1bd"),
+    ]
+}
+
+// MARK: - Milestone Start Overlay
+
+extension HybridGameScreen {
+    var milestoneStartOverlay: some View {
+        let allTimeHighestStep = UserDefaults.standard.integer(forKey: "savedHighestTileStep")
+
+        return ZStack {
+            Color.black.opacity(0.8)
+                .ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                Text("Replay")
+                    .font(.avenirNext(size: 32, weight: .heavy))
+                    .foregroundColor(.white)
+
+                // Selected milestone preview tile
+                let selectedTier = MilestoneTier.allTiers[selectedMilestoneIndex]
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white.opacity(0.08))
+                        .frame(width: 120, height: 120)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [.yellow, .orange],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 3
+                                )
+                        )
+
+                    TileView(
+                        tile: Tile.make(forStep: selectedTier.step),
+                        isSelected: false,
+                        isValid: true,
+                        size: 100,
+                        theme: currentTheme
+                    )
+
+                    // Crown
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.yellow, .orange],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .offset(y: -62)
+                }
+                .padding(.bottom, 4)
+
+                // Scrollable tile picker row
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(MilestoneTier.allTiers) { tier in
+                            let isUnlocked = tier.step == 0 || tier.step <= allTimeHighestStep
+                            let isSelected = selectedMilestoneIndex == tier.id
+                            let canAfford = tier.gemCost == 0 || gameStore.coins >= tier.gemCost
+
+                            VStack(spacing: 6) {
+                                ZStack {
+                                    TileView(
+                                        tile: Tile.make(forStep: tier.step),
+                                        isSelected: false,
+                                        isValid: true,
+                                        size: 56,
+                                        theme: currentTheme
+                                    )
+                                    .saturation(isUnlocked ? 1.0 : 0.0)
+                                    .opacity(isUnlocked ? 1.0 : 0.5)
+
+                                    if !isUnlocked {
+                                        Image(systemName: "lock.fill")
+                                            .font(.system(size: 16, weight: .bold))
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                }
+                                .frame(width: 60, height: 60)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .strokeBorder(
+                                            isSelected ? Color.green : Color.clear,
+                                            lineWidth: 3
+                                        )
+                                )
+
+                                // Price label
+                                if tier.gemCost == 0 {
+                                    Text("FREE")
+                                        .font(.avenirNext(size: 10, weight: .bold))
+                                        .foregroundColor(.green)
+                                } else if isUnlocked {
+                                    HStack(spacing: 2) {
+                                        Image("gems")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 12, height: 12)
+                                        Text(tier.gemCost >= 1000 ? "\(tier.gemCost / 1000)K" : "\(tier.gemCost)")
+                                            .font(.avenirNext(size: 10, weight: .bold))
+                                            .foregroundColor(canAfford ? .white : .red)
+                                    }
+                                } else {
+                                    Text("🔒")
+                                        .font(.system(size: 10))
+                                }
+                            }
+                            .onTapGesture {
+                                guard isUnlocked else { return }
+                                selectedMilestoneIndex = tier.id
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .frame(height: 90)
+
+                // Action buttons
+                HStack(spacing: 16) {
+                    // OK button to start
+                    Button {
+                        let tier = MilestoneTier.allTiers[selectedMilestoneIndex]
+                        startAtMilestone(tier)
+                    } label: {
+                        Text("OK")
+                            .font(.avenirNext(size: 20, weight: .heavy))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.green)
+                            )
+                    }
+                }
+                .padding(.horizontal, 30)
+            }
+            .padding(.vertical, 30)
+        }
+        .transition(.opacity)
+    }
+}
