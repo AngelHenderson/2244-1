@@ -1341,7 +1341,7 @@ extension HybridGameScreen {
                                         startPoint: .top,
                                         endPoint: .bottom
                                     ),
-                                    lineWidth: 3
+                                    lineWidth: 6
                                 )
                         )
 
@@ -1349,7 +1349,7 @@ extension HybridGameScreen {
                         tile: Tile.make(forStep: selectedTier.step),
                         isSelected: false,
                         isValid: true,
-                        size: 100,
+                        size: 96,
                         theme: currentTheme
                     )
 
@@ -1382,7 +1382,7 @@ extension HybridGameScreen {
                                         tile: Tile.make(forStep: tier.step),
                                         isSelected: false,
                                         isValid: true,
-                                        size: 56,
+                                        size: 60,
                                         theme: currentTheme
                                     )
                                     .saturation(isAvailable ? 1.0 : 0.0)
@@ -1396,31 +1396,31 @@ extension HybridGameScreen {
                                 }
                                 .frame(width: 60, height: 60)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
+                                    RoundedRectangle(cornerRadius: 12)
                                         .strokeBorder(
                                             isSelected ? Color.green : Color.clear,
-                                            lineWidth: 3
+                                            lineWidth: 4
                                         )
                                 )
 
                                 // Price label
                                 if tier.gemCost == 0 {
                                     Text("FREE")
-                                        .font(.avenirNext(size: 10, weight: .bold))
+                                        .font(.avenirNext(size: 12, weight: .bold))
                                         .foregroundColor(.green)
                                 } else if reachedMilestone {
                                     HStack(spacing: 2) {
-                                        Image("gems")
+                                        Image("gem")
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 12, height: 12)
+                                            .frame(width: 14, height: 14)
                                         Text(tier.gemCost >= 1000 ? "\(tier.gemCost / 1000)K" : "\(tier.gemCost)")
-                                            .font(.avenirNext(size: 10, weight: .bold))
+                                            .font(.avenirNext(size: 14, weight: .bold))
                                             .foregroundColor(canAfford ? .white : .red)
                                     }
                                 } else {
                                     Text("🔒")
-                                        .font(.system(size: 10))
+                                        .font(.system(size: 12))
                                 }
                             }
                             .onTapGesture {
@@ -1433,32 +1433,83 @@ extension HybridGameScreen {
                                     return
                                 }
                                 selectedMilestoneIndex = tier.id
+                                haptics.selection()
                             }
                         }
                     }
                     .padding(.horizontal, 20)
                 }
-                .frame(height: 90)
+                .frame(height: 100)
 
                 // Action buttons
-                HStack(spacing: 16) {
+                HStack(spacing: 12) {
                     // OK button to start
                     Button {
                         let tier = MilestoneTier.allTiers[selectedMilestoneIndex]
                         startAtMilestone(tier)
                     } label: {
                         Text("OK")
-                            .font(.avenirNext(size: 20, weight: .heavy))
+                            .font(.avenirNext(size: 24, weight: .heavy))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 50)
+                            .frame(height: 60)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.green)
+                                    .fill(Color(red: 0.38, green: 0.82, blue: 0.32)) // Bright green like image
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(Color(red: 0.6, green: 0.9, blue: 0.5), lineWidth: 2) // Lighter top edge fake 3d
                             )
                     }
+
+                    // FREE +120 AD button
+                    Button {
+                        Task {
+                            let _ = await adService.showRewarded {
+                                gameStore.addCoins(120)
+                                haptics.success()
+                            }
+                        }
+                    } label: {
+                        VStack(spacing: 0) {
+                            Text("FREE")
+                                .font(.avenirNext(size: 12, weight: .heavy))
+                                .foregroundColor(.white)
+                            HStack(spacing: 2) {
+                                Image("gem")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 12, height: 12)
+                                Text("+120")
+                                    .font(.avenirNext(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            HStack(spacing: 4) {
+                                Image(systemName: "play.rectangle.fill")
+                                    .font(.system(size: 8))
+                                Text("AD")
+                                    .font(.avenirNext(size: 10, weight: .black))
+                            }
+                            .foregroundColor(.black.opacity(0.6))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.white.opacity(0.3))
+                            .cornerRadius(4)
+                            .padding(.top, 2)
+                        }
+                        .frame(width: 80, height: 60)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(red: 1.0, green: 0.75, blue: 0.0)) // Golden yellow
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(Color(red: 1.0, green: 0.9, blue: 0.4), lineWidth: 2)
+                        )
+                    }
                 }
-                .padding(.horizontal, 30)
+                .padding(.horizontal, 24)
             }
             .padding(.vertical, 30)
         }
