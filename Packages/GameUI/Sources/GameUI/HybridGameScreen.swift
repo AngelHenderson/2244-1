@@ -43,6 +43,7 @@ public struct HybridGameScreen: View {
     @State private var isShowingPowerUpRecovery = false
     @State private var isShowingMilestoneStart = false
     @State private var isShowingInsufficientGemsAlert = false
+    @State private var isShowingMilestoneTooLowAlert = false
     @State private var selectedMilestoneIndex: Int = 0
     @State private var gameOverResetTask: Task<Void, Never>? = nil
     @State private var isShowingLowOnMoves = false
@@ -1422,7 +1423,10 @@ extension HybridGameScreen {
                                 }
                             }
                             .onTapGesture {
-                                guard reachedMilestone else { return }
+                                guard reachedMilestone else {
+                                    isShowingMilestoneTooLowAlert = true
+                                    return
+                                }
                                 guard canAfford else {
                                     isShowingInsufficientGemsAlert = true
                                     return
@@ -1462,6 +1466,11 @@ extension HybridGameScreen {
             Button("OK", role: .cancel) { }
         } message: {
             Text("You cannot start from this tile because you have insufficient gems. Pick a new tile to start from where you have enough gems for it.")
+        }
+        .alert("Milestone Is Too Low", isPresented: $isShowingMilestoneTooLowAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You cannot start from this tile because you have a milestone too low. Pick a new tile to start from where your milestone is high enough.")
         }
     }
 }
