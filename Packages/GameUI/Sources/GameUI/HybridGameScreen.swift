@@ -1312,7 +1312,8 @@ struct MilestoneTier: Identifiable {
 
 extension HybridGameScreen {
     var milestoneStartOverlay: some View {
-        let allTimeHighestStep = UserDefaults.standard.integer(forKey: "savedHighestTileStep")
+        // Use the current session's highest tile step — not all-time record
+        let sessionHighestStep = gameStore.state.highestTileStep
 
         return ZStack {
             Color.black.opacity(0.8)
@@ -1367,7 +1368,7 @@ extension HybridGameScreen {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(MilestoneTier.allTiers) { tier in
-                            let isUnlocked = tier.step == 0 || tier.step <= allTimeHighestStep
+                            let isUnlocked = tier.step == 0 || tier.step <= sessionHighestStep
                             let isSelected = selectedMilestoneIndex == tier.id
                             let canAfford = tier.gemCost == 0 || gameStore.coins >= tier.gemCost
 
