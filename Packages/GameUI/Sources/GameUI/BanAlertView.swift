@@ -45,11 +45,12 @@ public enum BanDuration: Sendable {
 public enum BanAlert {
     /// Generates the subtitle message for a ban alert.
     public static func message(reason: BanReason, duration: BanDuration) -> String {
+        let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
         switch duration {
         case .temporary:
-            return "You are banned due to \(reason.rawValue). Your account has been suspended for \(duration.displayText)."
+            return "You are banned due to \(reason.rawValue). Your account has been suspended for \(duration.displayText). \(disabledNote)"
         case .permanent:
-            return "You are banned due to \(reason.rawValue). Your account has been permanently banned."
+            return "You are banned due to \(reason.rawValue). Your account has been permanently banned. \(disabledNote)"
         }
     }
 }

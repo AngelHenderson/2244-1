@@ -1368,9 +1368,10 @@ extension HybridGameScreen {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(MilestoneTier.allTiers) { tier in
-                            let isUnlocked = tier.step == 0 || tier.step <= sessionHighestStep
-                            let isSelected = selectedMilestoneIndex == tier.id
+                            let reachedMilestone = tier.step == 0 || tier.step <= sessionHighestStep
                             let canAfford = tier.gemCost == 0 || gameStore.coins >= tier.gemCost
+                            let isAvailable = reachedMilestone && canAfford
+                            let isSelected = selectedMilestoneIndex == tier.id
 
                             VStack(spacing: 6) {
                                 ZStack {
@@ -1381,10 +1382,10 @@ extension HybridGameScreen {
                                         size: 56,
                                         theme: currentTheme
                                     )
-                                    .saturation(isUnlocked ? 1.0 : 0.0)
-                                    .opacity(isUnlocked ? 1.0 : 0.5)
+                                    .saturation(isAvailable ? 1.0 : 0.0)
+                                    .opacity(isAvailable ? 1.0 : 0.5)
 
-                                    if !isUnlocked {
+                                    if !isAvailable {
                                         Image(systemName: "lock.fill")
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(.white.opacity(0.8))
@@ -1404,7 +1405,7 @@ extension HybridGameScreen {
                                     Text("FREE")
                                         .font(.avenirNext(size: 10, weight: .bold))
                                         .foregroundColor(.green)
-                                } else if isUnlocked {
+                                } else if reachedMilestone {
                                     HStack(spacing: 2) {
                                         Image("gems")
                                             .resizable()
@@ -1420,7 +1421,7 @@ extension HybridGameScreen {
                                 }
                             }
                             .onTapGesture {
-                                guard isUnlocked else { return }
+                                guard isAvailable else { return }
                                 selectedMilestoneIndex = tier.id
                             }
                         }
