@@ -63,7 +63,7 @@ public struct WeeklyOfferSheet: View {
                                 Divider().padding(.leading, 52)
                             }
                             if let gems = offer.gems {
-                                offerRow(icon: "gems", text: "\(gems.formatted()) Gems", color: .clear)
+                                offerRow(icon: "gem", text: "\(gems.formatted()) Gems", color: .clear)
                                 Divider().padding(.leading, 52)
                             }
                             if let hammers = offer.hammers {
@@ -158,7 +158,7 @@ public struct WeeklyOfferSheet: View {
 
     private func offerRow(icon: String, text: String, color: Color) -> some View {
         HStack(spacing: 16) {
-            if icon == "gems" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" {
+            if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" {
                 Image(icon)
                     .resizable()
                     .scaledToFit()
@@ -237,7 +237,7 @@ public struct ShopView: View {
         var icon: String {
             switch self {
             case .bundles: return "cube.box.fill"
-            case .gems: return "gems"
+            case .gems: return "gem"
             case .journey: return "map.fill"
             case .perks: return "star.fill"
             }
@@ -469,7 +469,7 @@ struct WeeklyOfferCard: View {
                     Label {
                         Text(verbatim: "\(gems.formatted()) Gems")
                     } icon: {
-                        Image("gems").resizable().scaledToFit().frame(width: 14, height: 14)
+                        Image("gem").resizable().scaledToFit().frame(width: 14, height: 14)
                     }
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
@@ -629,7 +629,7 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(gems) Gems")
                         } icon: {
-                            Image("gems")
+                            Image("gem")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 14, height: 14)
@@ -795,7 +795,7 @@ struct GemBundleRow: View {
             return Image(nsImage: nsImage)
         }
         #endif
-        return Image("gems")
+        return Image("gem")
     }
 }
 

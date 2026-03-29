@@ -108,7 +108,7 @@ struct TopHUD: View {
     }
 
     private var gemImage: Image {
-        return Image("gems")
+        return Image("gem")
     }
 
     private var pauseButton: some View {

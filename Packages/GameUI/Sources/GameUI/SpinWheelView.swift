@@ -493,7 +493,7 @@ public struct SpinWheelView: View {
 
     private func rewardTypeKey(_ type: WheelReward.RewardType) -> String {
         switch type {
-        case .gems: return "gems"
+        case .gems: return "gem"
         case .hammers: return "hammers"
         case .magnets: return "magnets"
         case .swap: return "swap"

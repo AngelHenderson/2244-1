@@ -342,7 +342,7 @@ private struct ChallengeCard: View {
 
     @ViewBuilder
     private func iconView(for icon: String) -> some View {
-        if icon == "gems" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" {
+        if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" {
             Image(icon)
                 .resizable()
                 .scaledToFit()
@@ -357,7 +357,7 @@ private struct ChallengeCard: View {
 
         // Gems
         if reward.coins > 0 {
-            parts.append((icon: "gems", text: "\(reward.coins)"))
+            parts.append((icon: "gem", text: "\(reward.coins)"))
         }
 
         // Power-ups
@@ -575,7 +575,7 @@ private struct IconLegendSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private let legendItems: [(icon: String, name: String, description: String)] = [
-        ("gems", "Gems", "Currency to spend in shop"),
+        ("gem", "Gems", "Currency to spend in shop"),
         ("hammer", "Hammer", "Destroy any tile"),
         ("swap", "Swap", "Swap two tiles"),
         ("magnet", "MegaMerge", "Pull matching tiles together"),
@@ -629,7 +629,7 @@ private struct IconLegendSheet: View {
 
     private func iconColor(for icon: String) -> Color {
         switch icon {
-        case "gems": return .clear // handled by asset
+        case "gem": return .clear // handled by asset
         case "hammer.fill": return .gray
         case "arrow.left.arrow.right": return .green
         case "dot.radiowaves.left.and.right": return .red
@@ -644,8 +644,8 @@ private struct IconLegendSheet: View {
 
     @ViewBuilder
     private func iconView(for icon: String) -> some View {
-        if icon == "gems" {
-            Image("gems")
+        if icon == "gem" {
+            Image("gem")
                 .resizable()
                 .scaledToFit()
         } else {

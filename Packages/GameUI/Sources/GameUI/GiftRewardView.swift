@@ -199,7 +199,7 @@ public struct GiftRewardView: View {
     private func rewardIcon(for item: GiftRewardItem) -> some View {
         switch item.type {
         case .gems:
-            Image("gems")
+            Image("gem")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 36, height: 36)

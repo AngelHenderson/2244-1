@@ -159,7 +159,7 @@ public struct ChallengeDesignerView: View {
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 6) {
-                    Image("gems")
+                    Image("gem")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 20, height: 20)

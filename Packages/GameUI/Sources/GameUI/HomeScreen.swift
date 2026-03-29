@@ -272,7 +272,7 @@ private struct CreateChallengeSheet: View {
         VStack(spacing: 6) {
             Text("REWARD").font(.headline.weight(.bold))
             HStack(spacing: 8) {
-                Image("gems")
+                Image("gem")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)

@@ -226,7 +226,7 @@ private struct QuestRewardSummary: View {
     private var rewardItems: [RewardItem] {
         var items: [RewardItem] = []
         if let gems = rewards.gems, gems > 0 {
-            items.append(RewardItem(icon: .asset("gems"), text: "\(gems)"))
+            items.append(RewardItem(icon: .asset("gem"), text: "\(gems)"))
         }
         if let hammers = rewards.hammers, hammers > 0 {
             items.append(RewardItem(icon: .asset("hammer"), text: "\(hammers)"))

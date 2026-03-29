@@ -1130,7 +1130,7 @@ private struct ClaimAnimationOverlay: View {
             .padding()
         }
     }
-}private struct RewardIconView: View {
+};   private struct RewardIconView: View {
     let kind: AchievementDef.Rewards.Entry.Kind
     var font: Font = .body
 
@@ -1147,7 +1147,6 @@ private struct ClaimAnimationOverlay: View {
                 .font(font)
         }
     }
-}
 }
 
 private struct RewardChip: View {
@@ -1193,7 +1192,7 @@ private struct RewardChip: View {
 private extension AchievementDef.Rewards.Entry.Kind {
     var assetName: String? {
         switch self {
-        case .gems: return "gems"
+        case .gems: return "gem"
         case .spins: return "spinthewheel"
         case .hammers: return "hammer"
         case .magnets: return "magnet"

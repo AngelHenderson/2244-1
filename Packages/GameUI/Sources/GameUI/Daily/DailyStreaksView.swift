@@ -408,7 +408,7 @@ private struct RewardsDisplay: View {
 private extension AchievementDef.Rewards.Entry.Kind {
     var assetName: String? {
         switch self {
-        case .gems: return "gems"
+        case .gems: return "gem"
         case .spins: return "spinthewheel"
         case .hammers: return "hammer"
         case .magnets: return "magnet"
