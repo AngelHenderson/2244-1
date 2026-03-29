@@ -28,6 +28,7 @@ public struct HybridGameScreen: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.leaderboardClient) private var leaderboardClient
+    @Environment(\.currentTheme) private var currentTheme
 
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
