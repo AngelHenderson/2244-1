@@ -1130,47 +1130,13 @@ private struct ClaimAnimationOverlay: View {
             .padding()
         }
     }
-}
-
-/// Custom icon view that handles special cases like swap (two-colored arrows) and hammer (two-colored)
-private struct RewardIconView: View {
+}private struct RewardIconView: View {
     let kind: AchievementDef.Rewards.Entry.Kind
     var font: Font = .body
 
     var body: some View {
-        if kind == .swaps {
-            // Swap icon with green and yellow curved arrows forming a refresh cycle
-            ZStack {
-                // Green arrow: curves from top-left to bottom-right
-                Image(systemName: "arrowshape.turn.up.left")
-                    .foregroundStyle(.green)
-                    .rotationEffect(.degrees(180))
-                    .offset(x: -2, y: 3)
-                // Yellow arrow: curves from bottom-right to top-left
-                Image(systemName: "arrowshape.turn.up.left")
-                    .foregroundStyle(.yellow)
-                    .offset(x: 2, y: -3)
-            }
-            .font(font)
-        } else if kind == .hammers {
-            // Hammer icon with gray head and brown handle
-            ZStack {
-                // Brown handle (bottom layer)
-                Image(systemName: "hammer.fill")
-                    .foregroundStyle(.brown)
-                    .font(font)
-                // Gray head overlay using mask
-                Image(systemName: "hammer.fill")
-                    .foregroundStyle(.gray)
-                    .font(font)
-                    .mask(
-                        Rectangle()
-                            .frame(width: 50, height: 8)
-                            .offset(x: 5, y: -6)
-                    )
-            }
-        } else if kind == .gems {
-            Image("gem")
+        if let assetName = kind.assetName {
+            Image(assetName)
                 .resizable()
                 .scaledToFit()
                 // Approximate size equivalent to .body font system image
@@ -1181,6 +1147,7 @@ private struct RewardIconView: View {
                 .font(font)
         }
     }
+}
 }
 
 private struct RewardChip: View {
@@ -1224,6 +1191,17 @@ private struct RewardChip: View {
 }
 
 private extension AchievementDef.Rewards.Entry.Kind {
+    var assetName: String? {
+        switch self {
+        case .gems: return "gems"
+        case .spins: return "spinthewheel"
+        case .hammers: return "hammer"
+        case .magnets: return "magnet"
+        case .swaps: return "swap"
+        case .boost2x, .boost3x, .boost4x: return nil
+        }
+    }
+
     var iconName: String {
         switch self {
         case .gems: return "gem"

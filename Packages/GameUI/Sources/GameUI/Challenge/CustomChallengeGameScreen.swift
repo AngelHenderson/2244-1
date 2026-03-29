@@ -200,7 +200,7 @@ public struct CustomChallengeGameScreen: View {
 
             // Swap
             powerupItem(
-                assetName: "restart",
+                assetName: "swap",
                 badge: challengeGameStore.powerUpInventory["swap", default: 0],
                 price: challengeGameStore.powerUpPrice("swap"),
                 isEnabled: challengeGameStore.isPowerUpAvailable("swap"),
@@ -539,8 +539,15 @@ public struct CustomChallengeGameScreen: View {
                         if let powerUps = fullReward?.powerUps, !powerUps.isEmpty {
                             ForEach(Array(powerUps.sorted(by: { $0.key.rawValue < $1.key.rawValue })), id: \.key) { type, count in
                                 HStack(spacing: 8) {
-                                    Image(systemName: powerUpIcon(for: type))
-                                        .foregroundStyle(.yellow)
+                                    if type == .hammer || type == .swap || type == .magnet {
+                                        Image(powerUpIcon(for: type))
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
+                                    } else {
+                                        Image(systemName: powerUpIcon(for: type))
+                                            .foregroundStyle(.yellow)
+                                    }
                                     Text("+\(count) \(powerUpName(for: type))")
                                         .font(.system(.title3, design: .rounded).bold())
                                 }
@@ -588,9 +595,9 @@ public struct CustomChallengeGameScreen: View {
 
     private func powerUpIcon(for type: PowerUpType) -> String {
         switch type {
-        case .hammer: return "hammer.fill"
-        case .swap: return "arrow.left.arrow.right"
-        case .magnet: return "arrow.triangle.merge"
+        case .hammer: return "hammer"
+        case .swap: return "swap"
+        case .magnet: return "magnet"
         case .undo: return "arrow.uturn.backward"
         default: return "star.fill"
         }
@@ -629,12 +636,12 @@ public struct CustomChallengeGameScreen: View {
                     .foregroundColor(.white)
 
                 HStack(spacing: 16) {
-                    recoveryPowerUpButton(name: "Hammer", icon: "hammer.fill") {
+                    recoveryPowerUpButton(name: "Hammer", icon: "hammer") {
                         isShowingPowerUpRecovery = false
                         isHammerMode = true
                     }
 
-                    recoveryPowerUpButton(name: "Shuffle", icon: "shuffle") {
+                    recoveryPowerUpButton(name: "Shuffle", icon: "shuffle", isSystemIcon: true) {
                         isShowingPowerUpRecovery = false
                         if challengeGameStore.useShuffle() {
                             // Shuffle successful - game continues
@@ -662,11 +669,18 @@ public struct CustomChallengeGameScreen: View {
         }
     }
 
-    private func recoveryPowerUpButton(name: String, icon: String, action: @escaping () -> Void) -> some View {
+    private func recoveryPowerUpButton(name: String, icon: String, isSystemIcon: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
+                if isSystemIcon {
+                    Image(systemName: icon)
+                        .font(.system(size: 24))
+                } else {
+                    Image(icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
+                }
                 Text(name)
                     .font(.system(size: 12, weight: .bold, design: .rounded))
             }

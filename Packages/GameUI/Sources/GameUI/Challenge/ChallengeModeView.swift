@@ -342,8 +342,8 @@ private struct ChallengeCard: View {
 
     @ViewBuilder
     private func iconView(for icon: String) -> some View {
-        if icon == "gems" {
-            Image("gems")
+        if icon == "gems" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" {
+            Image(icon)
                 .resizable()
                 .scaledToFit()
         } else {
@@ -367,13 +367,13 @@ private struct ChallengeCard: View {
             switch powerUp {
             case .hammer:
                 name = "Hammer"
-                icon = "hammer.fill"
+                icon = "hammer"
             case .swap:
                 name = "Swap"
-                icon = "arrow.left.arrow.right"
+                icon = "swap"
             case .magnet:
                 name = "MegaMerge"
-                icon = "dot.radiowaves.left.and.right"
+                icon = "magnet"
             case .shuffle:
                 name = "Shuffle"
                 icon = "shuffle"
@@ -394,7 +394,7 @@ private struct ChallengeCard: View {
 
         // Spins
         if reward.spins > 0 {
-            parts.append((icon: "arrow.trianglehead.2.clockwise.rotate.90", text: "\(reward.spins) Spin"))
+            parts.append((icon: "spinthewheel", text: "\(reward.spins) Spin"))
         }
 
         return parts
@@ -576,10 +576,10 @@ private struct IconLegendSheet: View {
 
     private let legendItems: [(icon: String, name: String, description: String)] = [
         ("gems", "Gems", "Currency to spend in shop"),
-        ("hammer.fill", "Hammer", "Destroy any tile"),
-        ("arrow.left.arrow.right", "Swap", "Swap two tiles"),
-        ("dot.radiowaves.left.and.right", "MegaMerge", "Pull matching tiles together"),
-        ("arrow.trianglehead.2.clockwise.rotate.90", "Spin", "Bonus spin on reward wheel"),
+        ("hammer", "Hammer", "Destroy any tile"),
+        ("swap", "Swap", "Swap two tiles"),
+        ("magnet", "MegaMerge", "Pull matching tiles together"),
+        ("spinthewheel", "Spin", "Bonus spin on reward wheel"),
         ("2.circle.fill", "2× Boost", "Double spin multiplier"),
         ("3.circle.fill", "3× Boost", "Triple spin multiplier"),
         ("4.circle.fill", "4× Boost", "Quadruple spin multiplier"),

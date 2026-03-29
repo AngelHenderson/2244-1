@@ -348,8 +348,8 @@ private struct StreakDetailSheet: View {
                     VStack(spacing: 12) {
                         ForEach(streak.rewards.entries, id: \.self) { entry in
                             HStack {
-                                if entry.kind == .gems {
-                                    Image("gem")
+                                if let assetName = entry.kind.assetName {
+                                    Image(assetName)
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 24, height: 24)
@@ -387,9 +387,9 @@ private struct RewardsDisplay: View {
     var body: some View {
         HStack(spacing: 12) {
             ForEach(rewards.entries, id: \.self) { entry in
-                if entry.kind == .gems {
+                if let assetName = entry.kind.assetName {
                     HStack(spacing: 4) {
-                        Image("gem")
+                        Image(assetName)
                             .resizable()
                             .scaledToFit()
                             .frame(width: 16, height: 16)
@@ -406,6 +406,17 @@ private struct RewardsDisplay: View {
 }
 
 private extension AchievementDef.Rewards.Entry.Kind {
+    var assetName: String? {
+        switch self {
+        case .gems: return "gems"
+        case .spins: return "spinthewheel"
+        case .hammers: return "hammer"
+        case .magnets: return "magnet"
+        case .swaps: return "swap"
+        case .boost2x, .boost3x, .boost4x: return nil
+        }
+    }
+
     var iconName: String {
         switch self {
         case .gems: return "gem"

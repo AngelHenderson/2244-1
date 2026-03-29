@@ -67,19 +67,19 @@ public struct WeeklyOfferSheet: View {
                                 Divider().padding(.leading, 52)
                             }
                             if let hammers = offer.hammers {
-                                offerRow(icon: "hammer.fill", text: "\(hammers) Hammers", color: .gray)
+                                offerRow(icon: "hammer", text: "\(hammers) Hammers", color: .clear)
                                 Divider().padding(.leading, 52)
                             }
                             if let swaps = offer.swaps {
-                                offerRow(icon: "arrow.2.squarepath", text: "\(swaps) Swaps", color: .blue)
+                                offerRow(icon: "swap", text: "\(swaps) Swaps", color: .clear)
                                 Divider().padding(.leading, 52)
                             }
                             if let magnets = offer.magnets {
-                                offerRow(icon: "dot.radiowaves.left.and.right", text: "\(magnets) MegaMerges", color: .purple)
+                                offerRow(icon: "magnet", text: "\(magnets) MegaMerges", color: .clear)
                                 Divider().padding(.leading, 52)
                             }
                             if let spins = offer.spins {
-                                offerRow(icon: "arrow.trianglehead.2.clockwise.rotate.90", text: "\(spins) Spins", color: .orange)
+                                offerRow(icon: "spinthewheel", text: "\(spins) Spins", color: .clear)
                                 Divider().padding(.leading, 52)
                             }
                             if let boost2x = offer.boost2x {
@@ -158,8 +158,8 @@ public struct WeeklyOfferSheet: View {
 
     private func offerRow(icon: String, text: String, color: Color) -> some View {
         HStack(spacing: 16) {
-            if icon == "gems" {
-                Image("gems")
+            if icon == "gems" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" {
+                Image(icon)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
@@ -477,7 +477,7 @@ struct WeeklyOfferCard: View {
                     Label {
                         Text(verbatim: "\(hammers) Hammers")
                     } icon: {
-                        Image(systemName: "hammer.fill")
+                        Image("hammer").resizable().scaledToFit().frame(width: 14, height: 14)
                     }
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
@@ -485,7 +485,7 @@ struct WeeklyOfferCard: View {
                     Label {
                         Text(verbatim: "\(swaps) Swaps")
                     } icon: {
-                        Image(systemName: "arrow.2.squarepath")
+                        Image("swap").resizable().scaledToFit().frame(width: 14, height: 14)
                     }
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
@@ -493,7 +493,7 @@ struct WeeklyOfferCard: View {
                     Label {
                         Text(verbatim: "\(magnets) MegaMerges")
                     } icon: {
-                        Image(systemName: "dot.radiowaves.left.and.right")
+                        Image("magnet").resizable().scaledToFit().frame(width: 14, height: 14)
                     }
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
@@ -501,7 +501,7 @@ struct WeeklyOfferCard: View {
                     Label {
                         Text(verbatim: "\(spins) Spins")
                     } icon: {
-                        Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                        Image("spinthewheel").resizable().scaledToFit().frame(width: 14, height: 14)
                     }
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
@@ -640,7 +640,10 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(hammers) Hammers")
                         } icon: {
-                            Image(systemName: "hammer.fill")
+                            Image("hammer")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
                         }
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
@@ -648,7 +651,10 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(swaps) Swaps")
                         } icon: {
-                            Image(systemName: "arrow.2.squarepath")
+                            Image("swap")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
                         }
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
@@ -656,7 +662,10 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(magnets) MegaMerges")
                         } icon: {
-                            Image(systemName: "dot.radiowaves.left.and.right")
+                            Image("magnet")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
                         }
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
@@ -664,7 +673,10 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(spins) Spins")
                         } icon: {
-                            Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                            Image("spinthewheel")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
                         }
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
@@ -828,46 +840,12 @@ struct PerkBundleRow: View {
     }
 
     private var perkIcon: Image {
-        let iconName: String
-        let fallbackSystemName: String
         switch perk.item.lowercased() {
-        case "hammer":
-            iconName = "HammerIcon"
-            fallbackSystemName = "hammer.fill"
-        case "swap":
-            iconName = "SwapIcon"
-            fallbackSystemName = "arrow.left.arrow.right"
-        case "magnet":
-            iconName = "MegaMergeIcon"
-            fallbackSystemName = "dot.radiowaves.left.and.right"
-        default:
-            iconName = "HammerIcon"
-            fallbackSystemName = "star.fill"
+        case "hammer": return Image("hammer")
+        case "swap": return Image("swap")
+        case "magnet": return Image("magnet")
+        default: return Image(systemName: "star.fill")
         }
-
-        #if canImport(UIKit)
-        // Try path-based loading first
-        if let path = Bundle.module.path(forResource: iconName, ofType: "png"),
-           let uiImage = UIImage(contentsOfFile: path) {
-            return Image(uiImage: uiImage)
-        }
-        // Try URL-based loading as fallback
-        if let url = Bundle.module.url(forResource: iconName, withExtension: "png"),
-           let data = try? Data(contentsOf: url),
-           let uiImage = UIImage(data: data) {
-            return Image(uiImage: uiImage)
-        }
-        #elseif canImport(AppKit)
-        if let path = Bundle.module.path(forResource: iconName, ofType: "png"),
-           let nsImage = NSImage(contentsOfFile: path) {
-            return Image(nsImage: nsImage)
-        }
-        if let url = Bundle.module.url(forResource: iconName, withExtension: "png"),
-           let nsImage = NSImage(contentsOf: url) {
-            return Image(nsImage: nsImage)
-        }
-        #endif
-        return Image(systemName: fallbackSystemName)
     }
 }
 

@@ -764,7 +764,7 @@ struct HorizontalPowerupDock: View {
 
             // Swap
             powerupItem(
-                assetName: "restart",
+                assetName: "swap",
                 badge: gameStore.powerUpInventory["swap", default: 0],
                 price: gameStore.powerUpPrice("swap"),
                 isEnabled: gameStore.isPowerUpAvailable("swap"),
@@ -909,7 +909,7 @@ struct SimplePowerupDock: View {
 
             // Swap Any 2 Tiles With Each Other (Restart/Swap)
             powerupDockItem(
-                assetName: "restart",
+                assetName: "swap",
                 badge: gameStore.powerUpInventory["swap", default: 0],
                 price: gameStore.powerUpPrice("swap"),
                 isEnabled: gameStore.isPowerUpAvailable("swap"),
