@@ -94,11 +94,14 @@ private final class AudioPlayerDelegate: NSObject, AVAudioPlayerDelegate, Sendab
 public actor LiveAudioService: AudioServiceProtocol {
     private var musicPlayer: AVAudioPlayer?
     private var musicPlayerDelegate: AudioPlayerDelegate?
-    private var sfxPlayers: [AVAudioPlayer] = []
+    
+    // Pool of SFX players keyed by local URL path to prevent AVFoundation object exhaustion
+    private var sfxPlayerPool: [String: [AVAudioPlayer]] = [:]
     private var tickPlayers: [AVAudioPlayer] = []
+    
     private var instrumentTapIndex: Int = 0
     private let storage = AudioSettingsStorage()
-    private let maxConcurrentSfx = 8  // Limit concurrent sound effects
+    private let maxConcurrentIdenticalSfx = 4  // Limit concurrent IDENTICAL sound effects
     private var lastHammerPlayTime: Date?  // Debounce hammer sound
     private var lastElectricPlayTime: Date?  // Debounce electric sound
     private var currentMusicFileName: String?  // Track current music for restart
@@ -320,24 +323,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
         
         do {
-            let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.8
-            player.prepareToPlay()
-            if !player.play() {
-                ensureAudioSessionActive()
-                player.play()
+            if let player = getPooledPlayer(for: audioUrl) {
+                player.volume = 0.8
+                if !player.play() {
+                    ensureAudioSessionActive()
+                    player.play()
+                }
             }
-
-            // Keep reference to prevent deallocation
-            sfxPlayers.append(player)
-
-            // Remove completed players
-            Task {
-                try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                await removeSfxPlayer(player)
-            }
-        } catch {
-            print("Failed to play SFX: \(error)")
         }
     }
     
@@ -395,21 +387,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.7
-            player.prepareToPlay()
-            if !player.play() {
-                ensureAudioSessionActive()
-                player.play()
+            if let player = getPooledPlayer(for: audioUrl) {
+                player.volume = 0.7
+                if !player.play() {
+                    ensureAudioSessionActive()
+                    player.play()
+                }
             }
-            sfxPlayers.append(player)
-
-            Task {
-                try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                await removeSfxPlayer(player)
-            }
-        } catch {
-            print("❌ Failed to play electric sound: \(error)")
         }
     }
 
@@ -438,21 +422,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.8
-            player.prepareToPlay()
-            if !player.play() {
-                ensureAudioSessionActive()
-                player.play()
+            if let player = getPooledPlayer(for: audioUrl) {
+                player.volume = 0.8
+                if !player.play() {
+                    ensureAudioSessionActive()
+                    player.play()
+                }
             }
-            sfxPlayers.append(player)
-
-            Task {
-                try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                await removeSfxPlayer(player)
-            }
-        } catch {
-            print("❌ Failed to play hammer sound: \(error)")
         }
     }
 
@@ -472,21 +448,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.3  // Subtle volume for chain feedback
-            player.prepareToPlay()
-            if !player.play() {
-                ensureAudioSessionActive()
-                player.play()
+            if let player = getPooledPlayer(for: audioUrl) {
+                player.volume = 0.3  // Subtle volume for chain feedback
+                if !player.play() {
+                    ensureAudioSessionActive()
+                    player.play()
+                }
             }
-            sfxPlayers.append(player)
-
-            Task {
-                try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                await removeSfxPlayer(player)
-            }
-        } catch {
-            print("❌ Failed to play chain tick sound: \(error)")
         }
     }
 
@@ -504,23 +472,19 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.5
-            player.prepareToPlay()
-            if !player.play() {
-                ensureAudioSessionActive()
-                player.play()
-            }
-            sfxPlayers.append(player)
-            tickPlayers.append(player)
+            if let player = getPooledPlayer(for: audioUrl) {
+                player.volume = 0.5
+                if !player.play() {
+                    ensureAudioSessionActive()
+                    player.play()
+                }
+                tickPlayers.append(player)
 
-            Task {
-                try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                await removeSfxPlayer(player)
-                await removeTickPlayer(player)
+                Task {
+                    try? await Task.sleep(for: .seconds(player.duration + 0.1))
+                    await removeTickPlayer(player)
+                }
             }
-        } catch {
-            print("❌ Failed to play tick sound: \(error)")
         }
     }
 
@@ -540,21 +504,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.8
-            player.prepareToPlay()
-            if !player.play() {
-                ensureAudioSessionActive()
-                player.play()
+            if let player = getPooledPlayer(for: audioUrl) {
+                player.volume = 0.8
+                if !player.play() {
+                    ensureAudioSessionActive()
+                    player.play()
+                }
             }
-            sfxPlayers.append(player)
-
-            Task {
-                try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                await removeSfxPlayer(player)
-            }
-        } catch {
-            print("❌ Failed to play cheer sound: \(error)")
         }
     }
 
@@ -602,23 +558,14 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.7
-            player.prepareToPlay()
-            if !player.play() {
-                // Play failed — try reactivating audio session and retry once
-                ensureAudioSessionActive()
-                player.play()
+            if let player = getPooledPlayer(for: audioUrl) {
+                player.volume = 0.7
+                if !player.play() {
+                    // Play failed — try reactivating audio session and retry once
+                    ensureAudioSessionActive()
+                    player.play()
+                }
             }
-
-            sfxPlayers.append(player)
-
-            Task {
-                try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                await removeSfxPlayer(player)
-            }
-        } catch {
-            print("❌ Failed to play \(effectiveTheme) tap sound: \(error)")
         }
     }
 
@@ -645,67 +592,90 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
 
         do {
-            let player = try AVAudioPlayer(contentsOf: audioUrl)
-            player.volume = 0.7
-            player.prepareToPlay()
-
-            // Only do note slicing if this is the original instrument file (not piano fallback)
-            if !usingFallback && config.notesInSingleFile > 1 {
-                let noteDuration = player.duration / Double(config.notesInSingleFile)
-                let startTime = Double(noteIndex) * noteDuration
-                player.currentTime = startTime
-                if !player.play() {
-                    ensureAudioSessionActive()
+            if let player = getPooledPlayer(for: audioUrl) {
+                player.volume = 0.7
+                
+                // Only do note slicing if this is the original instrument file (not piano fallback)
+                if !usingFallback && config.notesInSingleFile > 1 {
+                    let noteDuration = player.duration / Double(config.notesInSingleFile)
+                    let startTime = Double(noteIndex) * noteDuration
                     player.currentTime = startTime
-                    player.play()
-                }
-                sfxPlayers.append(player)
+                    if !player.play() {
+                        ensureAudioSessionActive()
+                        player.currentTime = startTime
+                        player.play()
+                    }
 
-                // Stop after one note's duration
-                Task {
-                    try? await Task.sleep(for: .seconds(noteDuration))
-                    player.stop()
-                    await removeSfxPlayer(player)
-                }
-            } else {
-                // Piano fallback - play full sound
-                if !player.play() {
-                    ensureAudioSessionActive()
-                    player.play()
-                }
-                sfxPlayers.append(player)
-
-                Task {
-                    try? await Task.sleep(for: .seconds(player.duration + 0.1))
-                    await removeSfxPlayer(player)
+                    // Stop after one note's duration
+                    let wrapper = PlayerWrapper(player: player)
+                    Task {
+                        try? await Task.sleep(for: .seconds(noteDuration))
+                        wrapper.stop()
+                    }
+                } else {
+                    // Piano fallback - play full sound
+                    if !player.play() {
+                        ensureAudioSessionActive()
+                        player.play()
+                    }
                 }
             }
-        } catch {
-            print("❌ Failed to play \(theme) note: \(error)")
         }
     }
     
-    private func removeSfxPlayer(_ player: AVAudioPlayer) async {
-        sfxPlayers.removeAll { $0 === player }
+    private func getPooledPlayer(for url: URL) -> AVAudioPlayer? {
+        let key = url.path
+        
+        // 1. Try to find an idle player in the pool for this sound
+        if let pool = sfxPlayerPool[key] {
+            if let idlePlayer = pool.first(where: { !$0.isPlaying }) {
+                idlePlayer.currentTime = 0
+                return idlePlayer
+            }
+        }
+        
+        // 2. Either no pool exists, or all players are busy.
+        // Check if we haven't reached the max instances for this specific sound.
+        let currentCount = sfxPlayerPool[key]?.count ?? 0
+        if currentCount < maxConcurrentIdenticalSfx {
+            do {
+                let newPlayer = try AVAudioPlayer(contentsOf: url)
+                newPlayer.prepareToPlay()
+                sfxPlayerPool[key, default: []].append(newPlayer)
+                return newPlayer
+            } catch {
+                print("❌ Pooling failed to instantiate player: \(error)")
+                return nil
+            }
+        }
+        
+        // 3. Max reached for this sound! Force-steal the oldest playing instance
+        if let oldestPlayer = sfxPlayerPool[key]?.first {
+            oldestPlayer.stop()
+            oldestPlayer.currentTime = 0
+            // Rotate it to the back to keep age order correct
+            sfxPlayerPool[key]?.removeAll(where: { $0 === oldestPlayer })
+            sfxPlayerPool[key]?.append(oldestPlayer)
+            return oldestPlayer
+        }
+        
+        return nil
+    }
+
+    private struct PlayerWrapper: @unchecked Sendable {
+        let player: AVAudioPlayer
+        func stop() {
+            player.stop()
+        }
     }
 
     private func removeTickPlayer(_ player: AVAudioPlayer) async {
         tickPlayers.removeAll { $0 === player }
     }
 
-    /// Clean up finished players and ensure we don't exceed the limit
+    /// We no longer destroy players in this method; we reuse them.
     private func cleanupAndPrepareForNewSound() {
-        // Remove players that have finished playing
-        sfxPlayers.removeAll { !$0.isPlaying }
-
-        // If still too many, remove oldest ones
-        while sfxPlayers.count >= maxConcurrentSfx {
-            if let oldest = sfxPlayers.first {
-                oldest.stop()
-                sfxPlayers.removeFirst()
-            }
-        }
-        
+        // Obsolete in pooling architecture, but kept blank so calls still resolve
     }
 
     /// Lightweight periodic check - runs every few seconds during active gameplay
