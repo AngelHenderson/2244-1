@@ -12130,7 +12130,7 @@ public extension LeaderboardClient {
             
             entries.append(LeaderboardEntry(
                 id: "pk_\(i)",
-                rank: i + 1,
+                rank: 0, // Assigned correctly later
                 name: name,
                 score: MockLeaderboardData.milestoneIndex(for: milestone) * 100,
                 countryCode: "PK",
@@ -12139,6 +12139,18 @@ public extension LeaderboardClient {
                 avatarURL: "avatar_\(i % 10)",
                 highestTile: milestone
             ))
+        }
+
+        // Sort progressed players by score to maintain strictly descending order over time
+        entries.sort {
+            if $0.score != $1.score {
+                return $0.score > $1.score
+            }
+            return $0.name < $1.name
+        }
+
+        for i in 0..<entries.count {
+            entries[i].rank = i + 1
         }
 
         let userMilestone = UserLeaderboardData.currentMilestone
