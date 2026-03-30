@@ -1627,17 +1627,17 @@ public enum MockLeaderboardData {
 
         // Add user entry
         let userScore = scoreForMilestone(userMilestone)
-        entries.append(LeaderboardEntry(
-            id: "me",
-            rank: userRank,
-            name: UserLeaderboardData.playerName,
-            score: userScore,
-            countryCode: countryCode,
-            platform: .ios,
-            isMe: true,
-            avatarURL: UserLeaderboardData.avatarID,
-            highestTile: userMilestone
-        ))
+            entries.append(LeaderboardEntry(
+                id: "me",
+                rank: userRank,
+                name: UserLeaderboardData.playerName,
+                score: userScore,
+                countryCode: countryCode,
+                platform: .ios,
+                isMe: true,
+                avatarURL: UserLeaderboardData.avatarID,
+                highestTile: userMilestone
+            ))
 
         // Players below user (worse ranks)
         for offset in 1...ranksToShow {
@@ -12125,16 +12125,19 @@ public extension LeaderboardClient {
         var entries: [LeaderboardEntry] = []
         for i in 0..<pakistanPlayerMilestones.count {
             let baseMilestone = pakistanPlayerMilestones[i]
-            let milestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i, day: day)
+            let milestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i, day: day)
             let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.pakistanNames, countrySeed: 152, day: day)
             
-            entries.append(LeaderboardEntry)
-            id.self: "pk_\(i)",
+            entries.append(LeaderboardEntry(
+                id: "pk_\(i)",
                 rank: i + 1,
-                playerName: name,
-                milestone: milestone,
+                name: name,
+                score: MockLeaderboardData.milestoneIndex(for: milestone) * 100,
+                countryCode: "PK",
+                platform: .ios,
                 isMe: false,
-                countryCode: "PK"
+                avatarURL: "avatar_\(i % 10)",
+                highestTile: milestone
             ))
         }
 
