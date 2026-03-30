@@ -12111,7 +12111,7 @@ public extension LeaderboardClient {
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
 
         // Add user to the sorted list based on milestone comparison
-        var entriesWithUser = nonInfinityEntries
+        let entriesWithUser = nonInfinityEntries
         var userInsertIndex = entriesWithUser.count  // default: end
         for (idx, player) in entriesWithUser.enumerated() {
             if userMilestoneIdx > player.milestoneIdx ||
