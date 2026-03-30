@@ -151,8 +151,18 @@ public actor ProgressSyncCoordinator: Sendable {
             completedDailyChallenges: max(a.completedDailyChallenges, b.completedDailyChallenges),
             currentWinStreak: max(a.currentWinStreak, b.currentWinStreak),
             bestWinStreak: max(a.bestWinStreak, b.bestWinStreak),
-            tierMasteryCounts: mergeTierCounts(a.tierMasteryCounts, b.tierMasteryCounts)
+            powerUpInventory: mergeInventory(a.powerUpInventory, b.powerUpInventory),
+            tierMasteryCounts: mergeTierCounts(a.tierMasteryCounts, b.tierMasteryCounts),
+            infinityMergeCount: max(a.infinityMergeCount, b.infinityMergeCount)
         )
+    }
+    
+    private func mergeInventory(_ a: [String: Int], _ b: [String: Int]) -> [String: Int] {
+        var merged = a
+        for (key, val) in b {
+            merged[key] = max(val, merged[key, default: 0])
+        }
+        return merged
     }
     
     private func mergeTierCounts(_ lhs: [String: Int]?, _ rhs: [String: Int]?) -> [String: Int]? {
@@ -210,7 +220,8 @@ extension HomeState {
             achievements: [],
             theme: themesLeftName.lowercased(),
             rank: rank,
-            lastUpdatedAt: Date()
+            lastUpdatedAt: Date(),
+            powerUpInventory: [:] // Explicitly empty so it doesn't give free starter items if converted and loaded
         )
     }
 }
