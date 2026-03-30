@@ -12129,7 +12129,7 @@ public extension LeaderboardClient {
             let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.pakistanNames, countrySeed: 152, day: day)
             
             entries.append(LeaderboardEntry)
-                id: "pk_\(i)",
+            id.self: "pk_\(i)",
                 rank: i + 1,
                 playerName: name,
                 milestone: milestone,
@@ -12144,10 +12144,12 @@ public extension LeaderboardClient {
             entries.append(LeaderboardEntry(
                 id: "me",
                 rank: pkRank,
-                playerName: UserLeaderboardData.playerName,
-                milestone: userMilestone,
-                isMe: true,
+                name: UserLeaderboardData.playerName,
+                score: MockLeaderboardData.milestoneIndex(for: userMilestone) * 100,
                 countryCode: UserLeaderboardData.countryCode,
+                platform: .ios,
+                isMe: true,
+                avatarURL: UserLeaderboardData.avatarID,
                 highestTile: userMilestone
             ))
 
