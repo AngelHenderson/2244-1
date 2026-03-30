@@ -435,7 +435,39 @@ struct PlayerHistoryView: View {
         var reportCounts: [String: Int] = [:]  // tracks how many times each player was reported
         let reportsUntilReview = 3  // number of reports before action is taken
 
+        var pendingUnbans: [(name: String, unbanDate: Date)] = []
+        
+        func intervalForDuration(_ duration: String) -> TimeInterval? {
+            switch duration {
+            case "one day": return 86400
+            case "two days": return 86400 * 2
+            case "three days": return 86400 * 3
+            case "one week": return 86400 * 7
+            case "two weeks": return 86400 * 14
+            case "one month": return 86400 * 30
+            case "two months": return 86400 * 60
+            case "six months": return 86400 * 180
+            case "one year": return 86400 * 365
+            case "two years": return 86400 * 365 * 2
+            case "five years": return nil
+            default: return nil
+            }
+        }
+
         for event in result.reversed() {
+            // Check if any pending unbans should happen before this event
+            pendingUnbans.removeAll { pending in
+                if pending.unbanDate <= event.eventDate {
+                    processed.append(HistoryEvent(
+                        type: .unbanned,
+                        message: "\(pending.name) was unbanned after serving their penalty.",
+                        daysAgo: 0, seed: 0, overrideDate: pending.unbanDate
+                    ))
+                    playerBanned[pending.name] = false
+                    return true
+                }
+                return false
+            }
             if event.type == .falseReport, let name = event.playerName {
                 // Skip further false reports after player is already banned
                 if playerBanned[name] == true { continue }
@@ -452,6 +484,9 @@ struct PlayerHistoryView: View {
                     playerBanned[name] = true
                     let startIdx = banStartIndex[name] ?? 0
                     let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
+                    if let interval = intervalForDuration(duration) {
+                        pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                    }
                     processed.append(HistoryEvent(
                         type: .banned,
                         message: "\(name) got banned for \(duration) due to accumulating \(currentPoints) abuse points from false reports.",
@@ -495,6 +530,9 @@ struct PlayerHistoryView: View {
                     let startIdx = banStartIndex[reportedName] ?? 0
                     let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
 
+                    if let interval = intervalForDuration(duration) {
+                        pendingUnbans.append((reportedName, event.eventDate.addingTimeInterval(interval)))
+                    }
                     processed.append(HistoryEvent(
                         type: .banned,
                         message: "\(reportedName) got banned for \(duration) due to three reports.",
@@ -542,6 +580,9 @@ struct PlayerHistoryView: View {
                     reason = "repeated offenses"
                 }
 
+                if let interval = intervalForDuration(escalatedDuration) {
+                    pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                }
                 processed.append(HistoryEvent(
                     type: .banned,
                     message: "\(name) got banned for \(escalatedDuration) due to \(reason).",
@@ -554,8 +595,20 @@ struct PlayerHistoryView: View {
             }
         }
 
-        // Reverse back to newest-first
-        processed.reverse()
+        // Add any pending unbans that mature before now
+        let now = Date()
+        for pending in pendingUnbans {
+            if pending.unbanDate <= now {
+                processed.append(HistoryEvent(
+                    type: .unbanned,
+                    message: "\(pending.name) was unbanned after serving their penalty.",
+                    daysAgo: 0, seed: 0, overrideDate: pending.unbanDate
+                ))
+            }
+        }
+
+        // Reverse back to newest-first, re-sorting to guarantee correct order with injected unbans
+        processed.sort { $0.eventDate > $1.eventDate }
 
         // Safely filter events to only those generated in the last 30 simulated days
         // Instead of Calendar.current.date(byAdding...) which relies on absolute time,
@@ -605,7 +658,7 @@ struct PlayerHistoryView: View {
 
 struct HistoryEvent: Identifiable {
     enum EventType {
-        case banned, reported, chanceTaken, falseReport, madeInfinity, gameOver, moveRecovery, joined, deleted, restart
+        case banned, reported, chanceTaken, falseReport, madeInfinity, gameOver, moveRecovery, joined, deleted, restart, unbanned
     }
 
     let id: String
@@ -669,6 +722,7 @@ struct HistoryEvent: Identifiable {
         case .joined: return "person.badge.plus"
         case .deleted: return "trash.fill"
         case .restart: return "arrow.counterclockwise"
+        case .unbanned: return "lock.open.fill"
         }
     }
 
@@ -684,6 +738,7 @@ struct HistoryEvent: Identifiable {
         case .joined: return .green
         case .deleted: return .gray
         case .restart: return .blue
+        case .unbanned: return .green
         }
     }
 

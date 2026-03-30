@@ -1995,6 +1995,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.slovakiaPlayerMilestones, LeaderboardClient.slovakiaExtendedRankBrackets, 2_093_776)
         case "UZ":
             return (LeaderboardClient.uzbekistanPlayerMilestones, LeaderboardClient.uzbekistanExtendedRankBrackets, 28_473_673)
+        case "PK":
+            return (LeaderboardClient.pakistanPlayerMilestones, LeaderboardClient.pakistanExtendedRankBrackets, 93_432)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -2060,7 +2062,8 @@ public enum MockLeaderboardData {
             ("KG", 1_097_478),
             ("IS", 2_846),
             ("SK", 2_093_776),
-            ("UZ", 28_473_673)
+            ("UZ", 28_473_673),
+            ("PK", 93_432)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -2228,6 +2231,7 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.icelandPlayerMilestones, extendedBrackets: LeaderboardClient.icelandExtendedRankBrackets, totalPlayers: 2_846, countrySeed: countryPlayerSeeds["IS"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.slovakiaPlayerMilestones, extendedBrackets: LeaderboardClient.slovakiaExtendedRankBrackets, totalPlayers: 2_093_776, countrySeed: countryPlayerSeeds["SK"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.uzbekistanPlayerMilestones, extendedBrackets: LeaderboardClient.uzbekistanExtendedRankBrackets, totalPlayers: 28_473_673, countrySeed: countryPlayerSeeds["UZ"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.pakistanPlayerMilestones, extendedBrackets: LeaderboardClient.pakistanExtendedRankBrackets, totalPlayers: 93_432, countrySeed: countryPlayerSeeds["PK"] ?? 0)
 
         globalRankCache[userMilestone] = total
         return total
@@ -2721,6 +2725,12 @@ public enum MockLeaderboardData {
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1
+    ]
+
+
+    static let pakistanHallOfFameInfinityCounts: [Int] = [
+        13, 11, 8, 7, 5, 4, 3, 3, 2, 2,
+        2, 1, 1, 1, 1, 1, 1, 1, 1, 1
     ]
 
     static let uzbekistanHallOfFameInfinityCounts: [Int] = [
@@ -3917,6 +3927,28 @@ public enum MockLeaderboardData {
         "OravaPride", "LiptovLion", "SpišStar", "ZemplínZapper", "GemerskýGhost"
     ]
 
+
+    static let pakistanNames = [
+        "Aamir", "Abdul", "Abdullah", "Adeel", "Adnan", "Ahmad", "Ali", "Amin",
+        "Amir", "Aqeel", "Arif", "Asad", "Asif", "Atif", "Awais", "Azam",
+        "Babar", "Basit", "Bilal", "Danish", "Ehsan", "Faisal", "Farhan", "Farooq",
+        "Fawad", "Ghulam", "Gohar", "Hafiz", "Hammad", "Hamza", "Hanan", "Haseeb",
+        "Hassan", "Hussain", "Ijaz", "Ilyas", "Imran", "Inzamam", "Iqbal", "Irfan",
+        "Ismail", "Jalal", "Jamil", "Javed", "Junaid", "Kamal", "Kamran", "Kashif",
+        "Khalid", "Latif", "Mansoor", "Maqsood", "Mehmood", "Mohsin", "Mubashir", "Muhammad",
+        "Mujtaba", "Munir", "Murad", "Mustafa", "Muzammil", "Nabeel", "Nadeem", "Naeem",
+        "Nasir", "Naveed", "Nawaz", "Noman", "Noor", "Omer", "Osama", "Qasim",
+        "Rabat", "Raheel", "Rizwan", "Sajjad", "Salman", "Sami", "Saqib", "Sardar",
+        "Sarfaraz", "Saud", "Shabir", "Shafiq", "Shahbaz", "Shahid", "Shahzad", "Shakeel",
+        "Shoaib", "Sohail", "Sufyan", "Tahir", "Talha", "Tariq", "Tawfiq", "Tayyab",
+        "Umair", "Umar", "Usama", "Usman", "Wajid", "Waleed", "Waqar", "Waqas",
+        "Waseem", "Yaseen", "Yasir", "Younas", "Yousuf", "Zafar", "Zahid", "Zain",
+        "Zakir", "Zaman", "Zeeshan", "Zohaib", "Zubair", "Ayesha", "Fatima", "Maryam",
+        "Zainab", "Sana", "Sadia", "Khadija", "Rabia", "Hira", "Iqra", "Kiran",
+        "Anum", "Amna", "Madiha", "Nida", "Sidra", "Amina", "Saira", "Faiza",
+        "Sobia", "Nazia", "Uzma", "Asma", "Samina", "Shazia", "Fouzia", "Tahira"
+    ]
+
     static let uzbekistanNames = [
         // 1-30: City and geography-based
         "TashkentTitan", "SamarkandStar", "BukharaBlitz", "KhivaKnight", "NukusNinja",
@@ -4101,6 +4133,7 @@ public enum MockLeaderboardData {
         case "IS": return LeaderboardClient.icelandPlayerMilestones
         case "SK": return LeaderboardClient.slovakiaPlayerMilestones
         case "UZ": return LeaderboardClient.uzbekistanPlayerMilestones
+        case "PK": return LeaderboardClient.pakistanPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -4244,6 +4277,8 @@ public extension LeaderboardClient {
                 entries = slovakiaEntries()
             case .countryUZ:
                 entries = uzbekistanEntries()
+            case .countryPK:
+                entries = generatePakistanEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -4359,6 +4394,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_093_776, on: day, countrySeed: 150)
             case .countryUZ:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 28_473_673, on: day, countrySeed: 151)
+            case .countryPK:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -4545,6 +4582,8 @@ public extension LeaderboardClient {
                 entries = slovakiaEntries()
             case .countryUZ:
                 entries = uzbekistanEntries()
+            case .countryPK:
+                entries = generatePakistanEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -4813,6 +4852,12 @@ public extension LeaderboardClient {
             playerData.append(("hof_uz_\(i)", count, "UZ", globalIndex, i + 36000))
             globalIndex += 1
         }
+        // Add Pakistan players
+        for (i, count) in MockLeaderboardData.pakistanHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_pk_\(i)", count, "PK", globalIndex, i + 37500))
+            globalIndex += 1
+        }
+
         // Add Vietnam players
         for (i, count) in MockLeaderboardData.vietnamHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_vn_\(i)", count, "VN", globalIndex, i + 37000))
@@ -12013,6 +12058,13 @@ public extension LeaderboardClient {
     // MARK: - Uzbekistan Leaderboard Data
 
 
+
+    static let pakistanPlayerMilestones: [String] = [
+        "131K", "65K", "32K", "16K", "8192", "4096",
+        "2048", "1024", "512", "256", "128", "64",
+        "32", "16", "8", "4", "2"
+    ]
+
     static let uzbekistanPlayerMilestones: [String] = [
         // Ranks 1-10 (from user's Uzbekistan screenshot)
         "2bt", "1bp", "1bn", "16bf", "2bd",
@@ -12040,6 +12092,15 @@ public extension LeaderboardClient {
 
     // Extended Uzbekistan milestone brackets for rank calculation (ranks 74+)
     // Total Uzbekistan players: ~28,473,673
+
+    static let pakistanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        ("65K", 3), ("32K", 7), ("16K", 15), ("8192", 28),
+        ("4096", 52), ("2048", 98), ("1024", 175), ("512", 298),
+        ("256", 512), ("128", 856), ("64", 1354), ("32", 2125),
+        ("16", 3254), ("8", 5123), ("4", 8145), ("2", 12543),
+        ("1", 20567), ("1c", 35432), ("1b", 50123), ("1a", 71564)
+    ]
+
     static let uzbekistanExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
         ("549B", 74), ("274B", 77), ("137B", 81), ("68B", 86),
         ("34B", 91), ("17B", 97), ("8B", 102), ("4B", 110),
@@ -12055,6 +12116,59 @@ public extension LeaderboardClient {
     ]
 
     // Generate Uzbekistan entries with milestone progression and user insertion
+
+    private static func generatePakistanEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+        
+        let totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
+
+        var entries: [LeaderboardEntry] = []
+        for i in 0..<pakistanPlayerMilestones.count {
+            let baseMilestone = pakistanPlayerMilestones[i]
+            let milestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i, day: day)
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.pakistanNames, countrySeed: 152, day: day)
+            
+            entries.append(LeaderboardEntry)
+                id: "pk_\(i)",
+                rank: i + 1,
+                playerName: name,
+                milestone: milestone,
+                isMe: false,
+                countryCode: "PK"
+            ))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        if userMilestone != "0" {
+            let pkRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "PK")
+            entries.append(LeaderboardEntry(
+                id: "me",
+                rank: pkRank,
+                playerName: UserLeaderboardData.playerName,
+                milestone: userMilestone,
+                isMe: true,
+                countryCode: UserLeaderboardData.countryCode,
+                highestTile: userMilestone
+            ))
+
+            if entries.count > 150 {
+                let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                    aroundRank: pkRank,
+                    userMilestone: userMilestone,
+                    countryCode: "PK",
+                    countrySeed: 152,
+                    names: MockLeaderboardData.pakistanNames,
+                    day: day,
+                    totalPlayers: 93_432,
+                    extendedBrackets: pakistanExtendedRankBrackets
+                )
+                entries = extendedEntries
+            }
+        }
+
+        return entries
+    }
+
     private static func uzbekistanEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
 
