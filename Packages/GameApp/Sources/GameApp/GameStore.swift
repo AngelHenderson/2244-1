@@ -816,25 +816,40 @@ public final class GameStore {
         }
     }
     
-    public func extendPath(to position: Position) {
-        guard !currentPath.contains(position) else { return }
-        guard pendingGiftBoxes[position] == nil else { return }
+    @discardableResult
+    public func extendPath(to position: Position) -> Bool {
+        guard !currentPath.contains(position) else { return false }
+        guard pendingGiftBoxes[position] == nil else { return false }
         
         if let last = currentPath.last, !last.isAdjacent(to: position) {
-            return
+            return false
         }
         
-        currentPath.append(position)
+        let proposedPath = currentPath + [position]
         
         // Check if we're extending to a gift cell
         let boardIndex = BoardIndex(position)
-        isExtendingToGift = state.board[boardIndex].kind == .gift
+        let extendingToGift = state.board[boardIndex].kind == .gift
         
-        // Use gift-aware validation if the chain ends on a gift
-        if isExtendingToGift {
-            pathValidation = engine.validateGiftChain(currentPath)
+        let validation: ChainValidation
+        if extendingToGift {
+            validation = engine.validateGiftChain(proposedPath)
         } else {
-            pathValidation = engine.validateChain(currentPath)
+            validation = engine.validateChain(proposedPath)
+        }
+        
+        if validation.isValid {
+            currentPath.append(position)
+            isExtendingToGift = extendingToGift
+            pathValidation = validation
+            return true
+        } else {
+            // If the tile makes the chain invalid, DO NOT add it.
+            // This prevents "poisoning" the chain when the user drags sloppily
+            // over adjacent invalid tiles while tracing a U-shape.
+            // The drag location will still cause the UI pipe to visually stretch
+            // toward the finger without breaking the underlying valid path.
+            return false
         }
     }
     

@@ -336,21 +336,24 @@ public struct BoardView: View {
                         Task { await audioService.playSfx(name: "select") }
                     }
                 } else if let position = position, gameStore.state.board[position] != nil {
-                    // Backtrack while dragging: if moving to a previously selected tile,
-                    // prune the path back to that tile; otherwise extend when adjacent.
-                    if let existingIndex = gameStore.currentPath.firstIndex(of: position) {
-                        // If we moved back to an earlier tile, prune back
-                        while gameStore.currentPath.count > existingIndex + 1 {
-                            gameStore.backtrackPath()
-                        }
+                    // Backtrack while dragging: only prune back when the finger
+                    // returns to the second-to-last tile (the immediate predecessor).
+                    // This prevents the path from snapping back when the finger
+                    // casually crosses distant earlier tiles while dragging forward.
+                    if let existingIndex = gameStore.currentPath.firstIndex(of: position),
+                       existingIndex == gameStore.currentPath.count - 2 {
+                        // Moved back to the immediately previous tile — undo one step
+                        gameStore.backtrackPath()
                         haptics.lightImpact()
+                    } else if gameStore.currentPath.contains(position) {
+                        // Finger is over a tile already in the path but NOT the predecessor —
+                        // just update dragLocation so the pipe visually extends over it.
+                        // Do nothing to the path.
                     } else {
-                        gameStore.extendPath(to: position)
-                        if gameStore.pathValidation.isValid {
+                        let appended = gameStore.extendPath(to: position)
+                        if appended {
                             haptics.lightImpact()
                             Task { await audioService.playSfx(name: "chain") }
-                        } else {
-                            haptics.warning()
                         }
                     }
                 }

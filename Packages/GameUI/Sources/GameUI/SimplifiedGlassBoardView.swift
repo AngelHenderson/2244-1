@@ -386,21 +386,23 @@ public struct SimplifiedGlassBoardView: View {
                         gestureLogger.info("beginPath skipped | position nil or empty")
                     }
                 } else if let position = position, gameStore.state.board[position] != nil {
-                    if let existingIndex = gameStore.currentPath.firstIndex(of: position) {
-                        while gameStore.currentPath.count > existingIndex + 1 {
-                            gameStore.backtrackPath()
-                        }
+                    if let existingIndex = gameStore.currentPath.firstIndex(of: position),
+                       existingIndex == gameStore.currentPath.count - 2 {
+                        // Moved back to the immediately previous tile — undo one step
+                        gameStore.backtrackPath()
                         haptics.lightImpact()
                         gestureLogger.info("backtrack to index \(existingIndex)")
+                    } else if gameStore.currentPath.contains(position) {
+                        // Finger is over a tile already in the path but NOT the predecessor —
+                        // just update dragLocation so the pipe visually extends over it.
                     } else {
-                        gameStore.extendPath(to: position)
-                        if gameStore.pathValidation.isValid {
+                        let appended = gameStore.extendPath(to: position)
+                        if appended {
                             haptics.lightImpact()
                             Task { await audioService.playSfx(name: "chain") }
                             gestureLogger.info("extendPath valid | row=\(position.row) col=\(position.col) count=\(self.gameStore.currentPath.count)")
                         } else {
-                            haptics.warning()
-                            gestureLogger.warning("extendPath invalid")
+                            gestureLogger.warning("extendPath ignored/invalid")
                         }
                     }
                 } else {
