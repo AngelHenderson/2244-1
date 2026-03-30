@@ -12141,6 +12141,23 @@ public extension LeaderboardClient {
             ))
         }
 
+        // Add random players to pad to 150 if needed
+        while entries.count < 150 {
+            let milestone = LeaderboardClient.pakistanPlayerMilestones.last ?? "1"
+            let name = MockLeaderboardData.nameForPlayer(index: entries.count, names: MockLeaderboardData.pakistanNames, countrySeed: 152, day: day)
+            entries.append(LeaderboardEntry(
+                id: "pk_\(entries.count)",
+                rank: 0,
+                name: name,
+                score: MockLeaderboardData.milestoneIndex(for: milestone) * 100,
+                countryCode: "PK",
+                platform: .ios,
+                isMe: false,
+                avatarURL: "avatar_\(entries.count % 10)",
+                highestTile: milestone
+            ))
+        }
+
         // Sort progressed players by score to maintain strictly descending order over time
         entries.sort {
             if $0.score != $1.score {
