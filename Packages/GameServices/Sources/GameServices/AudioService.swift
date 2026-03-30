@@ -46,11 +46,11 @@ public struct DefaultAudioService: AudioServiceProtocol, Sendable {
     }
     
     public func playSfx(name: String) async {
-        // no-op (intentionally)
+        print("⚠️🔇 DefaultAudioService.playSfx called (NO-OP) for: \(name) — LiveAudioService NOT injected!")
     }
 
     public func playMergeSfx(tileCount: Int) async {
-        // no-op (intentionally)
+        print("⚠️🔇 DefaultAudioService.playMergeSfx called (NO-OP) for tileCount: \(tileCount) — LiveAudioService NOT injected!")
     }
 
     public func stopTickSound() async {
@@ -108,6 +108,12 @@ public actor LiveAudioService: AudioServiceProtocol {
     private var currentMusicLoop: Bool = true  // Track loop setting for restart
     private var lastSessionCheck: Date = Date()
 
+    // Actor-local cached copies of settings — avoids `await MainActor.run` on every audio call
+    // Updated ONLY when settings change via setSfxEnabled / setMusicEnabled / setCurrentMusicTheme
+    private var _cachedSfxEnabled: Bool = true
+    private var _cachedMusicEnabled: Bool = true
+    private var _cachedTheme: String = "piano"
+
     /// Maps theme IDs to their audio configuration
     /// Note: Files are at bundle root level (synchronized groups flatten directory structure)
     private struct InstrumentConfig {
@@ -146,14 +152,25 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
         #endif
         
-        Task { @MainActor in
-            print("🎵 Initialized LiveAudioService with theme: '\(storage.currentMusicTheme)'")
-        }
-        
+        // Seed actor-local caches from storage on init
+        // Read directly from UserDefaults to avoid actor isolation issues
+        let defaults = UserDefaults.standard
+        _cachedSfxEnabled = defaults.object(forKey: "sfxEnabled") as? Bool ?? true
+        _cachedMusicEnabled = defaults.object(forKey: "musicEnabled") as? Bool ?? true
+        _cachedTheme = defaults.string(forKey: "currentMusicTheme") ?? "piano"
+        print("🎵 Initialized LiveAudioService — sfx=\(_cachedSfxEnabled), music=\(_cachedMusicEnabled), theme='\(_cachedTheme)'")
+    }
+
+    /// Called from init Task to push MainActor-read values into actor state
+    private func syncCachedSettings(sfx: Bool, music: Bool, theme: String) {
+        _cachedSfxEnabled = sfx
+        _cachedMusicEnabled = music
+        _cachedTheme = theme
     }
     
     public func setMusicEnabled(_ enabled: Bool) async {
         await MainActor.run { storage.musicEnabled = enabled }
+        _cachedMusicEnabled = enabled
         if !enabled {
             await stopMusic()
         }
@@ -161,6 +178,7 @@ public actor LiveAudioService: AudioServiceProtocol {
     
     public func setSfxEnabled(_ enabled: Bool) async {
         await MainActor.run { storage.sfxEnabled = enabled }
+        _cachedSfxEnabled = enabled
     }
     
     public func playMusic(loop: Bool) async {
@@ -252,9 +270,10 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     public func playSfx(name: String) async {
-        let (sfxEnabled, currentTheme) = await MainActor.run { 
-            (storage.sfxEnabled, storage.currentMusicTheme) 
-        }
+        let sfxEnabled = _cachedSfxEnabled
+        let currentTheme = _cachedTheme
+        
+        print("🎧 playSfx('\(name)') called — sfxEnabled=\(sfxEnabled), theme='\(currentTheme)'")
         
         guard sfxEnabled else { 
             print("🔇 SFX disabled, not playing: \(name)")
@@ -336,14 +355,13 @@ public actor LiveAudioService: AudioServiceProtocol {
     public func setCurrentMusicTheme(_ theme: String) async {
         print("🎵 Setting music theme to: '\(theme)'")
         await MainActor.run { storage.currentMusicTheme = theme }
-        let newTheme = await MainActor.run { storage.currentMusicTheme }
-        print("🎵 Music theme set successfully: '\(newTheme)'")
+        _cachedTheme = theme
+        print("🎵 Music theme set successfully: '\(theme)'")
     }
 
     public func playMergeSfx(tileCount: Int) async {
-        let (sfxEnabled, currentTheme) = await MainActor.run {
-            (storage.sfxEnabled, storage.currentMusicTheme)
-        }
+        let sfxEnabled = _cachedSfxEnabled
+        let currentTheme = _cachedTheme
 
         guard sfxEnabled else {
             print("🔇 SFX disabled, not playing merge sound")

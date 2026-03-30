@@ -55,6 +55,9 @@ public struct SimplifiedGlassBoardView: View {
                     Task { await audioService.playSfx(name: "hammer") }
                 }
             }
+            .onAppear {
+                print("🎵 SimplifiedGlassBoardView audioService type: \(type(of: audioService))")
+            }
         }
     }
 
