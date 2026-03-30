@@ -12149,7 +12149,7 @@ public extension LeaderboardClient {
                 rank: pkRank,
                 name: UserLeaderboardData.playerName,
                 score: MockLeaderboardData.milestoneIndex(for: userMilestone) * 100,
-                countryCode: UserLeaderboardData.countryCode,
+                countryCode: "PK",
                 platform: .ios,
                 isMe: true,
                 avatarURL: UserLeaderboardData.avatarID,
