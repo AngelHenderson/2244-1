@@ -1315,7 +1315,6 @@ struct MilestoneTier: Identifiable {
 
 extension HybridGameScreen {
     var milestoneStartOverlay: some View {
-        // Use the current session's highest tile step — not all-time record
         let sessionHighestStep = gameStore.state.highestTileStep
 
         return ZStack {
@@ -1327,192 +1326,210 @@ extension HybridGameScreen {
                     .font(.avenirNext(size: 32, weight: .heavy))
                     .foregroundColor(.white)
 
-                // Selected milestone preview tile
-                let selectedTier = MilestoneTier.allTiers[selectedMilestoneIndex]
-                ZStack {
+                milestoneStartPreviewTile
+                milestoneStartPickerRow(sessionHighestStep: sessionHighestStep)
+                milestoneStartActionButtons
+            }
+            .padding(.vertical, 30)
+        }
+        .transition(.opacity)
+        .alert("You Can’t Afford This!", isPresented: $isShowingInsufficientGemsAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You cannot start from this tile because you have insufficient gems. Pick a new tile to start from where you have enough gems for it.")
+        }
+        .alert("Milestone Is Too Low", isPresented: $isShowingMilestoneTooLowAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You cannot start from this tile because you have a milestone too low. Pick a new tile to start from where your milestone is high enough.")
+        }
+    }
+
+    private var milestoneStartPreviewTile: some View {
+        let selectedTier = MilestoneTier.allTiers[selectedMilestoneIndex]
+        return ZStack {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.08))
+                .frame(width: 120, height: 120)
+                .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white.opacity(0.08))
-                        .frame(width: 120, height: 120)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .strokeBorder(
-                                    LinearGradient(
-                                        colors: [.yellow, .orange],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    ),
-                                    lineWidth: 6
-                                )
-                        )
-
-                    TileView(
-                        tile: Tile.make(forStep: selectedTier.step),
-                        isSelected: false,
-                        isValid: true,
-                        size: 96,
-                        theme: currentTheme
-                    )
-
-                    // Crown
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(
+                        .strokeBorder(
                             LinearGradient(
                                 colors: [.yellow, .orange],
                                 startPoint: .top,
                                 endPoint: .bottom
-                            )
+                            ),
+                            lineWidth: 6
                         )
-                        .offset(y: -62)
-                }
-                .padding(.bottom, 4)
+                )
 
-                // Scrollable tile picker row
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(MilestoneTier.allTiers) { tier in
-                            let reachedMilestone = tier.step == 0 || tier.step <= sessionHighestStep
-                            let canAfford = tier.gemCost == 0 || gameStore.coins >= tier.gemCost
-                            let isAvailable = reachedMilestone && canAfford
-                            let isSelected = selectedMilestoneIndex == tier.id
+            TileView(
+                tile: Tile.make(forStep: selectedTier.step),
+                isSelected: false,
+                isValid: true,
+                size: 96,
+                theme: currentTheme
+            )
 
-                            VStack(spacing: 6) {
-                                ZStack {
-                                    TileView(
-                                        tile: Tile.make(forStep: tier.step),
-                                        isSelected: false,
-                                        isValid: true,
-                                        size: 60,
-                                        theme: currentTheme
-                                    )
-                                    .saturation(isAvailable ? 1.0 : 0.0)
-                                    .opacity(isAvailable ? 1.0 : 0.5)
+            // Crown
+            Image(systemName: "crown.fill")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.yellow, .orange],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .offset(y: -62)
+        }
+        .padding(.bottom, 4)
+    }
 
-                                    if !isAvailable {
-                                        Image(systemName: "lock.fill")
-                                            .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(.white.opacity(0.8))
-                                    }
-                                }
-                                .frame(width: 60, height: 60)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .strokeBorder(
-                                            isSelected ? Color.green : Color.clear,
-                                            lineWidth: 4
-                                        )
+    private func milestoneStartPickerRow(sessionHighestStep: Int) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(MilestoneTier.allTiers) { tier in
+                    let reachedMilestone = tier.step == 0 || tier.step <= sessionHighestStep
+                    let canAfford = tier.gemCost == 0 || gameStore.coins >= tier.gemCost
+                    let isAvailable = reachedMilestone && canAfford
+                    let isSelected = selectedMilestoneIndex == tier.id
+
+                    VStack(spacing: 6) {
+                        ZStack {
+                            TileView(
+                                tile: Tile.make(forStep: tier.step),
+                                isSelected: false,
+                                isValid: true,
+                                size: 60,
+                                theme: currentTheme
+                            )
+                            .saturation(isAvailable ? 1.0 : 0.0)
+                            .opacity(isAvailable ? 1.0 : 0.5)
+
+                            if !isAvailable {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                        }
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(
+                                    isSelected ? Color.green : Color.clear,
+                                    lineWidth: 4
                                 )
+                        )
 
-                                // Price label
-                                if tier.gemCost == 0 {
-                                    Text("FREE")
-                                        .font(.avenirNext(size: 12, weight: .bold))
-                                        .foregroundColor(.green)
-                                } else if reachedMilestone {
-                                    HStack(spacing: 2) {
-                                        Image("gem")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 14, height: 14)
-                                        Text(tier.gemCost >= 1000 ? "\(tier.gemCost / 1000)K" : "\(tier.gemCost)")
-                                            .font(.avenirNext(size: 14, weight: .bold))
-                                            .foregroundColor(canAfford ? .white : .red)
-                                    }
-                                } else {
-                                    Text("🔒")
-                                        .font(.system(size: 12))
-                                }
-                            }
-                            .onTapGesture {
-                                guard reachedMilestone else {
-                                    isShowingMilestoneTooLowAlert = true
-                                    return
-                                }
-                                guard canAfford else {
-                                    isShowingInsufficientGemsAlert = true
-                                    return
-                                }
-                                selectedMilestoneIndex = tier.id
-                                haptics.selection()
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                }
-                .frame(height: 100)
-
-                // Action buttons
-                HStack(spacing: 12) {
-                    // OK button to start
-                    Button {
-                        let tier = MilestoneTier.allTiers[selectedMilestoneIndex]
-                        startAtMilestone(tier)
-                    } label: {
-                        Text("OK")
-                            .font(.avenirNext(size: 24, weight: .heavy))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 60)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(red: 0.38, green: 0.82, blue: 0.32)) // Bright green like image
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .strokeBorder(Color(red: 0.6, green: 0.9, blue: 0.5), lineWidth: 2) // Lighter top edge fake 3d
-                            )
-                    }
-
-                    // FREE +120 AD button
-                    Button {
-                        Task {
-                            let _ = await adService.showRewarded {
-                                gameStore.addCoins(120)
-                                haptics.success()
-                            }
-                        }
-                    } label: {
-                        VStack(spacing: 0) {
+                        // Price label
+                        if tier.gemCost == 0 {
                             Text("FREE")
-                                .font(.avenirNext(size: 12, weight: .heavy))
-                                .foregroundColor(.white)
+                                .font(.avenirNext(size: 12, weight: .bold))
+                                .foregroundColor(.green)
+                        } else if reachedMilestone {
                             HStack(spacing: 2) {
                                 Image("gem")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 12, height: 12)
-                                Text("+120")
+                                    .frame(width: 14, height: 14)
+                                Text(tier.gemCost >= 1000 ? "\(tier.gemCost / 1000)K" : "\(tier.gemCost)")
                                     .font(.avenirNext(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(canAfford ? .white : .red)
                             }
-                            HStack(spacing: 4) {
-                                Image(systemName: "play.rectangle.fill")
-                                    .font(.system(size: 8))
-                                Text("AD")
-                                    .font(.avenirNext(size: 10, weight: .black))
-                            }
-                            .foregroundColor(.black.opacity(0.6))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.white.opacity(0.3))
-                            .cornerRadius(4)
-                            .padding(.top, 2)
+                        } else {
+                            Text("🔒")
+                                .font(.system(size: 12))
                         }
-                        .frame(width: 80, height: 60)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 1.0, green: 0.75, blue: 0.0)) // Golden yellow
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .strokeBorder(Color(red: 1.0, green: 0.9, blue: 0.4), lineWidth: 2)
-                        )
+                    }
+                    .onTapGesture {
+                        guard reachedMilestone else {
+                            isShowingMilestoneTooLowAlert = true
+                            return
+                        }
+                        guard canAfford else {
+                            isShowingInsufficientGemsAlert = true
+                            return
+                        }
+                        selectedMilestoneIndex = tier.id
+                        haptics.selectionChanged()
                     }
                 }
-                .padding(.horizontal, 24)
             }
-            .padding(.vertical, 30)
+            .padding(.horizontal, 20)
         }
+        .frame(height: 100)
+    }
+
+    private var milestoneStartActionButtons: some View {
+        HStack(spacing: 12) {
+            // OK button to start
+            Button {
+                let tier = MilestoneTier.allTiers[selectedMilestoneIndex]
+                startAtMilestone(tier)
+            } label: {
+                Text("OK")
+                    .font(.avenirNext(size: 24, weight: .heavy))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(red: 0.38, green: 0.82, blue: 0.32)) // Bright green like image
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(Color(red: 0.6, green: 0.9, blue: 0.5), lineWidth: 2) // Lighter top edge fake 3d
+                    )
+            }
+
+            // FREE +120 AD button
+            Button {
+                Task {
+                    let _ = await adService.showRewarded {
+                        gameStore.addCoins(120)
+                        haptics.success()
+                    }
+                }
+            } label: {
+                VStack(spacing: 0) {
+                    Text("FREE")
+                        .font(.avenirNext(size: 12, weight: .heavy))
+                        .foregroundColor(.white)
+                    HStack(spacing: 2) {
+                        Image("gem")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                        Text("+120")
+                            .font(.avenirNext(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    HStack(spacing: 4) {
+                        Image(systemName: "play.rectangle.fill")
+                            .font(.system(size: 8))
+                        Text("AD")
+                            .font(.avenirNext(size: 10, weight: .black))
+                    }
+                    .foregroundColor(.black.opacity(0.6))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.white.opacity(0.3))
+                    .cornerRadius(4)
+                    .padding(.top, 2)
+                }
+                .frame(width: 80, height: 60)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(red: 1.0, green: 0.75, blue: 0.0)) // Golden yellow
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(Color(red: 1.0, green: 0.9, blue: 0.4), lineWidth: 2)
+                )
+            }
+        }
+        .padding(.horizontal, 24)
         .transition(.opacity)
         .alert("You Can’t Afford This!", isPresented: $isShowingInsufficientGemsAlert) {
             Button("OK", role: .cancel) { }
