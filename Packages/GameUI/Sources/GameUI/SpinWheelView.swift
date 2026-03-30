@@ -308,7 +308,8 @@ public struct SpinWheelView: View {
     }
     
     private func handleSpinTap() {
-        if canSpin {
+        guard !engine.isSpinning else { return }
+        if slotReady || bonusReady {
             startSpin()
         } else {
             showOutOfSpins = true
