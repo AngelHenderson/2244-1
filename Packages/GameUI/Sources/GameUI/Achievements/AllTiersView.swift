@@ -180,7 +180,7 @@ private struct TierRewardSummary: View {
             items.append(RewardItem(icon: .asset("spinthewheel"), label: "Spin", amount: spins))
         }
         if let boost2x = rewards.boost2x, boost2x > 0 {
-            items.append(RewardItem(icon: .system("2.circle.fill", .blue), label: "2X", amount: boost2x))
+            items.append(RewardItem(icon: .asset("boost-2x"), label: "2X", amount: boost2x))
         }
         if let boost3x = rewards.boost3x, boost3x > 0 {
             items.append(RewardItem(icon: .system("3.circle.fill", .purple), label: "3X", amount: boost3x))

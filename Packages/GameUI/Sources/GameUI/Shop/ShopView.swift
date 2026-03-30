@@ -83,7 +83,7 @@ public struct WeeklyOfferSheet: View {
                                 Divider().padding(.leading, 52)
                             }
                             if let boost2x = offer.boost2x {
-                                offerRow(icon: "2.circle.fill", text: "\(boost2x) 2X Boost", color: .yellow)
+                                offerRow(icon: "boost-2x", text: "\(boost2x) 2X Boost", color: .clear)
                                 Divider().padding(.leading, 52)
                             }
                             if let boost3x = offer.boost3x {
@@ -158,7 +158,7 @@ public struct WeeklyOfferSheet: View {
 
     private func offerRow(icon: String, text: String, color: Color) -> some View {
         HStack(spacing: 16) {
-            if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" {
+            if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" || icon == "boost-2x" {
                 Image(icon)
                     .resizable()
                     .scaledToFit()
@@ -509,7 +509,10 @@ struct WeeklyOfferCard: View {
                     Label {
                         Text(verbatim: "\(boost2x) 2X Boost")
                     } icon: {
-                        Image(systemName: "2.circle.fill")
+                        Image("boost-2x")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
                     }
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                 }
@@ -684,7 +687,10 @@ struct BundleCard: View {
                         Label {
                             Text(verbatim: "\(boost2x) 2X Boost")
                         } icon: {
-                            Image(systemName: "2.circle.fill")
+                            Image("boost-2x")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
                         }
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
