@@ -280,7 +280,7 @@ public struct SpinWheelView: View {
     
     private var spinButton: some View {
         Button(action: handleSpinTap) {
-            Text(homeState.isBanned ? "BANNED" : (canSpin ? "SPIN" : "WAIT"))
+            Text(homeState.isBanned ? "BANNED" : (engine.isSpinning ? "SPINNING..." : (canSpin ? "SPIN" : "WAIT")))
                 .font(.avenirNext(size: 24, weight: .bold))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .foregroundStyle(.white)
