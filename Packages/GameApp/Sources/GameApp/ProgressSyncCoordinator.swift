@@ -138,6 +138,7 @@ public actor ProgressSyncCoordinator: Sendable {
         // Merge policy: take the best/maximum values from both
         GameProgress(
             highestTile: max(a.highestTile, b.highestTile),
+            highestTileStep: max(a.highestTileStep, b.highestTileStep),
             bestScore: max(a.bestScore, b.bestScore),
             gems: max(a.gems, b.gems), // Conservative: avoid gem loss
             gamesPlayed: max(a.gamesPlayed, b.gamesPlayed),
