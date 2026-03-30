@@ -557,8 +557,10 @@ public struct CustomChallengeGameScreen: View {
                         // Spins
                         if let spins = fullReward?.spins, spins > 0 {
                             HStack(spacing: 8) {
-                                Image(systemName: "arrow.trianglehead.2.counterclockwise.rotate.90")
-                                    .foregroundStyle(.purple)
+                                Image("spinthewheel")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
                                 Text("+\(spins) \(spins == 1 ? "Spin" : "Spins")")
                                     .font(.system(.title3, design: .rounded).bold())
                             }

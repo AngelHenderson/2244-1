@@ -644,8 +644,8 @@ private struct IconLegendSheet: View {
 
     @ViewBuilder
     private func iconView(for icon: String) -> some View {
-        if icon == "gem" {
-            Image("gem")
+        if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" {
+            Image(icon)
                 .resizable()
                 .scaledToFit()
         } else {
