@@ -1307,7 +1307,7 @@ struct MilestoneTier: Identifiable {
         MilestoneTier(id: 9,  step: 49,  gemCost: 1_250,   label: "1b"),
         MilestoneTier(id: 10, step: 59,  gemCost: 1_500,   label: "1c"),
         MilestoneTier(id: 11, step: 298, gemCost: 50_000,  label: "1aa"),
-        MilestoneTier(id: 12, step: 587, gemCost: 200_000, label: "1bd"),
+        MilestoneTier(id: 12, step: 587, gemCost: 100_000, label: "1bd"),
     ]
 }
 
