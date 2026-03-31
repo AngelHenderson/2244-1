@@ -41,7 +41,7 @@ public struct HybridGameScreen: View {
     // Game over flow states
     @State private var isShowingOutOfMoves = false
     @State private var isShowingGameOverText = false
-    @State private var isShowingPowerUpRecovery = false
+
     @State private var isShowingMilestoneStart = false
     @State private var isShowingInsufficientGemsAlert = false
     @State private var isShowingMilestoneTooLowAlert = false
@@ -273,23 +273,11 @@ public struct HybridGameScreen: View {
                 }
             }
             .alert("Low On Moves", isPresented: $isShowingLowOnMoves) {
-                Button("Use Powerup") {
-                    isShowingPowerUpRecovery = true
-                }
-                Button("Continue", role: .cancel) { }
+                Button("OK", role: .cancel) { }
             } message: {
-                Text("You are low on moves. Want to use a powerup to free up moves?")
+                Text("You are low on moves. Use a powerup to free up moves!")
             }
-            .alert("Out Of Moves", isPresented: $isShowingOutOfMoves) {
-                Button("Use Powerup") {
-                    isShowingPowerUpRecovery = true
-                }
-                Button("End Game", role: .destructive) {
-                    showGameOverAndReset()
-                }
-            } message: {
-                Text("You have no moves. Want to use a powerup to revive?")
-            }
+
         
         let changeHandlers = alertView
             .onChange(of: gameStore.lastAddedTileValue) { _, newValue in
@@ -373,7 +361,7 @@ public struct HybridGameScreen: View {
                     gameOverResetTask = nil
                     isShowingOutOfMoves = false
                     isShowingGameOverText = false
-                    isShowingPowerUpRecovery = false
+
                 }
             }
             .onChange(of: gameStore.validMovesCount) { _, newCount in
@@ -386,18 +374,7 @@ public struct HybridGameScreen: View {
                     isShowingLowOnMoves = true
                 }
             }
-            .onChange(of: isShowingOutOfMoves) { _, isShowing in
-                // If alert dismissed and not entering recovery, execute game over
-                if !isShowing && !isShowingPowerUpRecovery && gameStore.state.isGameOver && !isShowingGameOverText {
-                    showGameOverAndReset()
-                }
-            }
-            .onChange(of: isShowingPowerUpRecovery) { _, isShowing in
-                // If recovery dismissed without using a powerup, execute game over
-                if !isShowing && gameStore.state.isGameOver && !isShowingGameOverText && !isShowingOutOfMoves {
-                    showGameOverAndReset()
-                }
-            }
+
 
         // Wrap everything with full-screen wallpaper background
         return ZStack {
@@ -417,9 +394,9 @@ public struct HybridGameScreen: View {
                 milestoneStartOverlay
             }
 
-            // Power-up recovery selection overlay
-            if isShowingPowerUpRecovery {
-                powerUpRecoveryOverlay
+            // Out of moves overlay (replaces iOS alert + recovery overlay)
+            if isShowingOutOfMoves {
+                outOfMovesOverlay
             }
         }
     }
@@ -439,62 +416,196 @@ public struct HybridGameScreen: View {
         }
     }
 
-    private var powerUpRecoveryOverlay: some View {
+    // MARK: - Out of Moves Overlay
+
+    private var outOfMovesOverlay: some View {
         ZStack {
-            Color.black.opacity(0.6)
+            Color.black.opacity(0.65)
                 .ignoresSafeArea()
+                .onTapGesture { /* block taps */ }
 
-            VStack(spacing: 20) {
-                Text("Choose a power-up to continue")
-                    .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                    .foregroundColor(.white)
-
-                HStack(spacing: 16) {
-                    recoveryPowerUpButton(name: "Hammer", icon: "hammer.fill", action: {
-                        isShowingPowerUpRecovery = false
-                        isHammerMode = true
-                    })
-
-                    recoveryPowerUpButton(name: "Shuffle", icon: "shuffle", action: {
-                        isShowingPowerUpRecovery = false
-                        if gameStore.useShuffle() {
-                            // Shuffle successful - game continues
-                        } else {
-                            // Not enough gems - show game over
-                            showGameOverAndReset()
-                        }
-                    })
-
-                    recoveryPowerUpButton(name: "Magnet", icon: "magnet", action: {
-                        isShowingPowerUpRecovery = false
-                        isMagnetMode = true
-                    })
-                }
-
-                Button("Cancel") {
-                    isShowingPowerUpRecovery = false
-                    showGameOverAndReset()
-                }
-                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
-                .foregroundColor(.white.opacity(0.7))
-                .padding(.top, 10)
-            }
-            .padding(30)
+            outOfMovesCard
         }
     }
 
-    private func recoveryPowerUpButton(name: String, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.avenirNext(size: GameFonts.title1Size, weight: .regular))
-                Text(name)
-                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+    private var outOfMovesCard: some View {
+        VStack(spacing: 0) {
+            // Title
+            Text("Out of Moves!")
+                .font(.avenirNext(size: 28, weight: .heavy))
+                .foregroundColor(.white)
+                .padding(.top, 28)
+
+            // Subtitle
+            Text("Continue?")
+                .font(.avenirNext(size: 20, weight: .bold))
+                .foregroundColor(.white.opacity(0.85))
+                .padding(.top, 16)
+
+            // Power-up purchase row
+            outOfMovesPowerUpRow
+                .padding(.top, 24)
+                .padding(.horizontal, 20)
+
+            // Bottom row: No Thanks + FREE AD
+            outOfMovesBottomRow
+                .padding(.top, 24)
+                .padding(.bottom, 20)
+                .padding(.horizontal, 20)
+        }
+        .frame(maxWidth: 340)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(white: 0.18))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .inset(by: 4)
+                .stroke(Color(white: 0.28), lineWidth: 3)
+        )
+        .shadow(color: .black.opacity(0.6), radius: 20, y: 10)
+    }
+
+    private var outOfMovesPowerUpRow: some View {
+        HStack(spacing: 20) {
+            outOfMovesPowerUpCard(
+                assetName: "hammer",
+                cost: gameStore.powerUpPrice("hammer"),
+                hasInventory: gameStore.powerUpInventory["hammer", default: 0] > 0
+            ) {
+                isShowingOutOfMoves = false
+                isHammerMode = true
             }
-            .foregroundColor(.white)
-            .frame(width: 80, height: 80)
-            .background(Color.white.opacity(0.2))
-            .cornerRadius(12)
+
+            outOfMovesPowerUpCard(
+                assetName: "shuffle",
+                cost: gameStore.powerUpPrice("shuffle"),
+                hasInventory: gameStore.powerUpInventory["shuffle", default: 0] > 0
+            ) {
+                isShowingOutOfMoves = false
+                if gameStore.useShuffle() {
+                    // Shuffle succeeded — game continues
+                } else {
+                    showGameOverAndReset()
+                }
+            }
+        }
+    }
+
+    private func outOfMovesPowerUpCard(
+        assetName: String,
+        cost: Int,
+        hasInventory: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            ZStack(alignment: .bottom) {
+                // Green gradient background
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.35, green: 0.78, blue: 0.25),
+                                Color(red: 0.26, green: 0.62, blue: 0.18)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                // Power-up icon
+                VStack {
+                    Image(assetName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 56, height: 56)
+                    Spacer(minLength: 0)
+                }
+                .padding(.top, 14)
+
+                // Gem cost badge
+                HStack(spacing: 4) {
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                    Text(hasInventory ? "FREE" : "\(cost)")
+                        .font(.avenirNext(size: 16, weight: .heavy))
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule().fill(Color.black.opacity(0.35))
+                )
+                .padding(.bottom, 8)
+            }
+            .frame(width: 110, height: 110)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color(red: 0.45, green: 0.88, blue: 0.35), lineWidth: 2)
+            )
+        }
+    }
+
+    private var outOfMovesBottomRow: some View {
+        HStack {
+            // No Thanks button
+            Button {
+                isShowingOutOfMoves = false
+                showGameOverAndReset()
+            } label: {
+                VStack(spacing: 2) {
+                    Text("No Thanks")
+                        .font(.avenirNext(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                    Rectangle()
+                        .fill(Color.white.opacity(0.5))
+                        .frame(height: 1.5)
+                }
+            }
+
+            Spacer()
+
+            // FREE AD button
+            Button {
+                Task {
+                    let _ = await adService.showRewarded {
+                        gameStore.addCoins(135)
+                        haptics.success()
+                    }
+                    isShowingOutOfMoves = false
+                }
+            } label: {
+                VStack(spacing: 0) {
+                    Text("FREE")
+                        .font(.avenirNext(size: 11, weight: .heavy))
+                        .foregroundColor(.white)
+                    HStack(spacing: 2) {
+                        Image("gem")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                        Text("+135")
+                            .font(.avenirNext(size: 15, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    HStack(spacing: 3) {
+                        Image(systemName: "play.rectangle.fill")
+                            .font(.system(size: 8))
+                        Text("AD")
+                            .font(.avenirNext(size: 9, weight: .heavy))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.top, 1)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(red: 0.85, green: 0.65, blue: 0.1))
+                )
+            }
         }
     }
 
