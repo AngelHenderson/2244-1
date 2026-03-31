@@ -2729,8 +2729,9 @@ public enum MockLeaderboardData {
 
 
     static let pakistanHallOfFameInfinityCounts: [Int] = [
-        13, 11, 8, 7, 5, 4, 3, 3, 2, 2,
-        2, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        9576, 3957, 1234, 867, 499, 286, 149, 103, 67, 39,
+        20, 9, 7, 6, 6, 4, 4, 3, 3, 3,
+        2, 2, 2, 1, 1, 1
     ]
 
     static let uzbekistanHallOfFameInfinityCounts: [Int] = [
@@ -3929,24 +3930,26 @@ public enum MockLeaderboardData {
 
 
     static let pakistanNames = [
-        "Aamir", "Abdul", "Abdullah", "Adeel", "Adnan", "Ahmad", "Ali", "Amin",
-        "Amir", "Aqeel", "Arif", "Asad", "Asif", "Atif", "Awais", "Azam",
-        "Babar", "Basit", "Bilal", "Danish", "Ehsan", "Faisal", "Farhan", "Farooq",
-        "Fawad", "Ghulam", "Gohar", "Hafiz", "Hammad", "Hamza", "Hanan", "Haseeb",
-        "Hassan", "Hussain", "Ijaz", "Ilyas", "Imran", "Inzamam", "Iqbal", "Irfan",
-        "Ismail", "Jalal", "Jamil", "Javed", "Junaid", "Kamal", "Kamran", "Kashif",
-        "Khalid", "Latif", "Mansoor", "Maqsood", "Mehmood", "Mohsin", "Mubashir", "Muhammad",
-        "Mujtaba", "Munir", "Murad", "Mustafa", "Muzammil", "Nabeel", "Nadeem", "Naeem",
-        "Nasir", "Naveed", "Nawaz", "Noman", "Noor", "Omer", "Osama", "Qasim",
-        "Rabat", "Raheel", "Rizwan", "Sajjad", "Salman", "Sami", "Saqib", "Sardar",
-        "Sarfaraz", "Saud", "Shabir", "Shafiq", "Shahbaz", "Shahid", "Shahzad", "Shakeel",
-        "Shoaib", "Sohail", "Sufyan", "Tahir", "Talha", "Tariq", "Tawfiq", "Tayyab",
-        "Umair", "Umar", "Usama", "Usman", "Wajid", "Waleed", "Waqar", "Waqas",
-        "Waseem", "Yaseen", "Yasir", "Younas", "Yousuf", "Zafar", "Zahid", "Zain",
-        "Zakir", "Zaman", "Zeeshan", "Zohaib", "Zubair", "Ayesha", "Fatima", "Maryam",
-        "Zainab", "Sana", "Sadia", "Khadija", "Rabia", "Hira", "Iqra", "Kiran",
-        "Anum", "Amna", "Madiha", "Nida", "Sidra", "Amina", "Saira", "Faiza",
-        "Sobia", "Nazia", "Uzma", "Asma", "Samina", "Shazia", "Fouzia", "Tahira"
+        "KarachiKing", "LahoreLion", "IslamabadIcon", "PeshawarPro", "QuettaQueen",
+        "K2Climber", "MurreeMaster", "GilgitGamer", "MultanMystic", "FaisalabadForce",
+        "SwatSniper", "HunzaHero", "NaranNinja", "KaghanKnight", "GwadarGhost",
+        "RawalpindiRider", "SialkotStar", "GujranwalaGuru", "HyderabadHawk", "BhawalpurBoss",
+        "SindhStriker", "PunjabPro", "KhyberKnight", "BalochBoss", "IndusIron",
+        "ChenabChamp", "JhelumJumper", "RaviRaider", "SutlejSniper", "ChagaiChamp",
+        "ChitralChief", "DirDragon", "TharTitan", "CholistanChamp", "NeelumNinja",
+        "SkarduStar", "ZiaratZealot", "BolanBoss", "MakranMaster", "RakaposhiRider",
+        "BabarBoss", "ShaheenSniper", "WasimWizard", "WaqarWarrior", "ImranIcon",
+        "ShoaibSpeed", "ShahidStar", "InziIron", "YounisYeti", "MisbahMaster",
+        "FakharForce", "RizwanRider", "ShadabStriker", "AmirAce", "NaseemNinja",
+        "RaufRider", "HasanHero", "SarfrazStar", "AzharAce", "HafeezHawk",
+        "MalikMaster", "AsifAce", "SaeedSniper", "SohailStar", "SalmanStriker",
+        "KamranKing", "UmarUltra", "WahabWarrior", "JunaidJumper", "YasirYeti",
+        "SaeedStar", "AbdulAce", "MajidMaster", "HanifHero", "ZaheerZealot",
+        "FazalForce", "JansherJumper", "JahangirJedi", "AisamAce", "SamiSniper",
+        "ZubairZeus", "TariqTitan", "RashidRider", "LatifLion", "MoinMaster",
+        "AaqibAce", "TauseefTitan", "MushtaqMystic", "IntikhabIcon", "SadiqStar",
+        "HarisHawk", "ZamanZealot", "AghaAce", "SaudSniper", "FaheemForce",
+        "IftikharIron", "NawazNinja", "ImadIcon", "UsmanUltra", "UsamaUltra"
     ]
 
     static let uzbekistanNames = [
@@ -12060,9 +12063,29 @@ public extension LeaderboardClient {
 
 
     static let pakistanPlayerMilestones: [String] = [
-        "131K", "65K", "32K", "16K", "8192", "4096",
-        "2048", "1024", "512", "256", "128", "64",
-        "32", "16", "8", "4", "2"
+        "689bp", "78bl", "598bj", "18bj", "583bi", 
+        "142bh", "1bg", "518bd", "63bc", "1bc",
+        "966ba", "117az", "28ay", "449ax", "1ax", 
+        "1au", "199as", "1as", "762aq", "88an",
+        "661ak", "80aj", "1aj", "38ah", "601ag", 
+        "150ag", "1ag", "4ae", "17ac", "65aa",
+        "124y", "1y", "7x", "118w", "3w", 
+        "57v", "3v", "452u", "28u", "3u",
+        "441t", "110t", "27t", "13t", "3t", 
+        "1t", "431s", "215s", "53s", "13s",
+        "842r", "26r", "205q", "3p", "5n", 
+        "1n", "730l", "22l", "1l", "178k",
+        "5k", "348j", "21j", "2j", "340i", 
+        "42i", "10i", "5i", "2i", "2i",
+        "664h", "332h", "83h", "10h", "162g", 
+        "10g", "2g", "79f", "9f", "4f",
+        "1f", "618e", "154e", "38e", "1e", 
+        "295c", "36c", "4c", "576b", "18b",
+        "1b", "4a", "1a", "549B", "274B",
+        "274B", "68B", "34B", "34B", "8B",
+        "4B", "4B", "2B", "2B", "2B",
+        "1B", "1B", "1B", "1B", "536M",
+        "536M", "536M", "536M", "536M", "268M"
     ]
 
     static let uzbekistanPlayerMilestones: [String] = [
@@ -12141,21 +12164,39 @@ public extension LeaderboardClient {
             ))
         }
 
-        // Add random players to pad to 150 if needed
-        while entries.count < 150 {
-            let milestone = LeaderboardClient.pakistanPlayerMilestones.last ?? "1"
-            let name = MockLeaderboardData.nameForPlayer(index: entries.count, names: MockLeaderboardData.pakistanNames, countrySeed: 152, day: day)
-            entries.append(LeaderboardEntry(
-                id: "pk_\(entries.count)",
-                rank: 0,
-                name: name,
-                score: MockLeaderboardData.milestoneIndex(for: milestone) * 100,
-                countryCode: "PK",
-                platform: .ios,
-                isMe: false,
-                avatarURL: "avatar_\(entries.count % 10)",
-                highestTile: milestone
-            ))
+        // Calculate the base properties for players missing from the primary static milestone array
+        let baseCount = entries.count
+        if baseCount < 150 {
+            for rankIndex in (baseCount + 1)...150 {
+                var baseMilestone = "1"
+                
+                // Determine milestone cleanly mapping across the predefined extended bracket curve
+                for (bracketIdx, bracket) in LeaderboardClient.pakistanExtendedRankBrackets.enumerated() {
+                    if rankIndex < bracket.startRank {
+                        if bracketIdx > 0 {
+                            baseMilestone = LeaderboardClient.pakistanExtendedRankBrackets[bracketIdx - 1].milestone
+                        } else {
+                            baseMilestone = LeaderboardClient.pakistanPlayerMilestones.last ?? "1"
+                        }
+                        break
+                    }
+                }
+                
+                let name = MockLeaderboardData.nameForPlayer(index: rankIndex, names: MockLeaderboardData.pakistanNames, countrySeed: 152, day: day)
+                let milestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: rankIndex, day: day)
+                
+                entries.append(LeaderboardEntry(
+                    id: "pk_\(rankIndex)",
+                    rank: 0,
+                    name: name,
+                    score: MockLeaderboardData.milestoneIndex(for: milestone) * 100,
+                    countryCode: "PK",
+                    platform: .ios,
+                    isMe: false,
+                    avatarURL: "avatar_\(rankIndex % 10)",
+                    highestTile: milestone
+                ))
+            }
         }
 
         // Sort progressed players by score to maintain strictly descending order over time
