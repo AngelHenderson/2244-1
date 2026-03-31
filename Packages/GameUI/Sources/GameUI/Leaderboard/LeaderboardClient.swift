@@ -12207,26 +12207,44 @@ public extension LeaderboardClient {
             return $0.name < $1.name
         }
 
-        for i in 0..<entries.count {
-            entries[i].rank = i + 1
-        }
-
         let userMilestone = UserLeaderboardData.currentMilestone
         if userMilestone != "0" {
-            let pkRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "PK")
-            entries.append(LeaderboardEntry(
-                id: "me",
-                rank: pkRank,
-                name: UserLeaderboardData.playerName,
-                score: MockLeaderboardData.milestoneIndex(for: userMilestone) * 100,
-                countryCode: "PK",
-                platform: .ios,
-                isMe: true,
-                avatarURL: UserLeaderboardData.avatarID,
-                highestTile: userMilestone
-            ))
-
-            if entries.count > 150 {
+            let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+            let userScore = userMilestoneIdx * 100
+            
+            var insertIndex = entries.count
+            for (idx, entry) in entries.enumerated() {
+                if userScore > entry.score || (userScore == entry.score && true) {
+                    insertIndex = idx
+                    break
+                }
+            }
+            
+            if insertIndex < 150 {
+                // User is inside the Top 150, insert cleanly and prune the spillover
+                entries.insert(LeaderboardEntry(
+                    id: "me",
+                    rank: 0,
+                    name: UserLeaderboardData.playerName,
+                    score: userScore,
+                    countryCode: "PK",
+                    platform: .ios,
+                    isMe: true,
+                    avatarURL: UserLeaderboardData.avatarID,
+                    highestTile: userMilestone
+                ), at: insertIndex)
+                
+                if entries.count > 150 {
+                    entries.removeLast()
+                }
+                
+                // Assign accurate linear ranks for the native list
+                for i in 0..<entries.count {
+                    entries[i].rank = i + 1
+                }
+            } else {
+                // User is beyond the Top 150, fallback to the extended mock segment
+                let pkRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "PK")
                 let extendedEntries = MockLeaderboardData.extendedBracketEntries(
                     aroundRank: pkRank,
                     userMilestone: userMilestone,
@@ -12238,6 +12256,11 @@ public extension LeaderboardClient {
                     extendedBrackets: pakistanExtendedRankBrackets
                 )
                 entries = extendedEntries
+            }
+        } else {
+            // Apply native ranks if no user data is injected
+            for i in 0..<entries.count {
+                entries[i].rank = i + 1
             }
         }
 
