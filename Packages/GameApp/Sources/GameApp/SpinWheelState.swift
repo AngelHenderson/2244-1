@@ -134,10 +134,11 @@ public final class SpinWheelState {
         if bonusSpins > 0 {
             bonusSpins -= 1
             saveBonusSpins()
-            // Stamp the current slot as consumed so the player
+            // Always stamp the current slot as consumed so the player
             // doesn't get a free slot spin after exhausting bonus spins
-            if lastConsumedSlot == nil {
-                lastConsumedSlot = slotStart(for: date)
+            let current = slotStart(for: date)
+            if lastConsumedSlot == nil || current > lastConsumedSlot! {
+                lastConsumedSlot = current
                 saveLastSlot()
             }
             return .bonus
