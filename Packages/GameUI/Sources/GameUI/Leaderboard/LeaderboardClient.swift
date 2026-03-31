@@ -12142,8 +12142,6 @@ public extension LeaderboardClient {
 
     private static func generatePakistanEntries() -> [LeaderboardEntry] {
         let day = MockLeaderboardData.daysSinceReference
-        
-        let totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
 
         var entries: [LeaderboardEntry] = []
         for i in 0..<pakistanPlayerMilestones.count {
