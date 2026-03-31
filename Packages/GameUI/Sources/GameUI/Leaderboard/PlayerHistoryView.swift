@@ -482,6 +482,11 @@ struct PlayerHistoryView: View {
                     let banNumber = banCounts[name] ?? 0
                     banCounts[name] = banNumber + 1
                     playerBanned[name] = true
+                    // Seed the starting ladder index from player name for variety
+                    if banStartIndex[name] == nil {
+                        let nameHash = abs(name.hashValue)
+                        banStartIndex[name] = nameHash % escalationLadder.count
+                    }
                     let startIdx = banStartIndex[name] ?? 0
                     let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
                     if let interval = intervalForDuration(duration) {
@@ -527,6 +532,11 @@ struct PlayerHistoryView: View {
                     playerBanned[reportedName] = true
                     let banNumber = banCounts[reportedName] ?? 0
                     banCounts[reportedName] = banNumber + 1
+                    // Seed the starting ladder index from player name for variety
+                    if banStartIndex[reportedName] == nil {
+                        let nameHash = abs(reportedName.hashValue)
+                        banStartIndex[reportedName] = nameHash % escalationLadder.count
+                    }
                     let startIdx = banStartIndex[reportedName] ?? 0
                     let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
 
