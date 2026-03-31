@@ -12150,6 +12150,8 @@ public extension LeaderboardClient {
             let baseMilestone = pakistanPlayerMilestones[i]
             let milestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i, day: day)
             let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.pakistanNames, countrySeed: 152, day: day)
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 152, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
             
             entries.append(LeaderboardEntry(
                 id: "pk_\(i)",
@@ -12157,9 +12159,9 @@ public extension LeaderboardClient {
                 name: name,
                 score: MockLeaderboardData.milestoneIndex(for: milestone) * 100,
                 countryCode: "PK",
-                platform: .ios,
+                platform: platform,
                 isMe: false,
-                avatarURL: "avatar_\(i % 10)",
+                avatarURL: avatar,
                 highestTile: milestone
             ))
         }
@@ -12184,6 +12186,8 @@ public extension LeaderboardClient {
                 
                 let name = MockLeaderboardData.nameForPlayer(index: rankIndex, names: MockLeaderboardData.pakistanNames, countrySeed: 152, day: day)
                 let milestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: rankIndex, day: day)
+                let avatar = MockLeaderboardData.avatarForPlayer(index: rankIndex, countrySeed: 152, day: day)
+                let platform: Platform = rankIndex % 3 == 0 ? .ios : .android
                 
                 entries.append(LeaderboardEntry(
                     id: "pk_\(rankIndex)",
@@ -12191,9 +12195,9 @@ public extension LeaderboardClient {
                     name: name,
                     score: MockLeaderboardData.milestoneIndex(for: milestone) * 100,
                     countryCode: "PK",
-                    platform: .ios,
+                    platform: platform,
                     isMe: false,
-                    avatarURL: "avatar_\(rankIndex % 10)",
+                    avatarURL: avatar,
                     highestTile: milestone
                 ))
             }
