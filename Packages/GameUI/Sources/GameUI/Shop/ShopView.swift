@@ -222,8 +222,6 @@ public struct WeeklyOfferSheet: View {
 
 public struct ShopView: View {
     @Environment(\.shopStore) private var shopStore
-    @Environment(\.tileJourney) private var journeyStore
-    @Environment(\.gameStore) private var gameStore
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedTab = ShopTab.bundles
@@ -231,14 +229,12 @@ public struct ShopView: View {
     public enum ShopTab: String, CaseIterable {
         case bundles = "Bundles"
         case gems = "Gems"
-        case journey = "Journey"
         case perks = "Perks"
 
         var icon: String {
             switch self {
             case .bundles: return "cube.box.fill"
             case .gems: return "gem"
-            case .journey: return "map.fill"
             case .perks: return "star.fill"
             }
         }
@@ -280,8 +276,7 @@ public struct ShopView: View {
                             bundlesSection
                         case .gems:
                             gemsSection
-                        case .journey:
-                            journeySection
+
                         case .perks:
                             perksSection
                         }
@@ -342,37 +337,6 @@ public struct ShopView: View {
     }
     
     @ViewBuilder
-    private var journeySection: some View {
-        VStack(spacing: 24) {
-            // Journey progress indicator
-            JourneyProgressCard()
-            
-            // Available journey tiles
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Journey Tiles")
-                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
-
-                Text("Unlock tiles as you progress through milestones")
-                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                    .foregroundStyle(.secondary)
-                
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
-                    let window = journeyWindow()
-                    ForEach(Array(window.enumerated()), id: \.offset) { _, item in
-                        JourneyTileView(
-                            label: JourneyTileGenerator.formatTileAtStep(item.step),
-                            isUnlocked: item.step <= item.currentStep
-                        )
-                    }
-                }
-            }
-            .padding()
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-        }
-    }
-    
-    @ViewBuilder
     private var perksSection: some View {
         if let perks = shopStore.catalog?.perkBundles {
             VStack(spacing: 20) {
@@ -390,17 +354,6 @@ public struct ShopView: View {
                 }
             }
         }
-    }
-
-    // MARK: - Helper Methods
-    
-    private func journeyWindow() -> [(step: Int, currentStep: Int)] {
-        // Use step-based tracking directly so tiles past Int.max (step > 62) work correctly.
-        // gameStore.state.highestTileStep is tracked independently and doesn't overflow.
-        let currentStep = max(0, gameStore.state.highestTileStep)
-        let start = max(0, currentStep - 20)
-        let end = currentStep + 20
-        return Array(start...end).map { (step: $0, currentStep: currentStep) }
     }
 }
 
@@ -855,69 +808,6 @@ struct PerkBundleRow: View {
     }
 }
 
-struct JourneyProgressCard: View {
-    @Environment(\.gameStore) private var gameStore
-
-    var body: some View {
-        let currentStep = max(0, gameStore.state.highestTileStep)
-
-        VStack(spacing: 16) {
-            Text("Your Journey")
-                .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
-
-            HStack(spacing: 20) {
-                VStack {
-                    Text("Highest Tile")
-                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                        .foregroundStyle(.secondary)
-                    Text(JourneyTileGenerator.formatTileAtStep(currentStep))
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                }
-
-                Divider()
-                    .frame(height: 40)
-
-                VStack {
-                    Text("Next Milestone")
-                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                        .foregroundStyle(.secondary)
-                    Text(JourneyTileGenerator.formatTileAtStep(currentStep + 1))
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                        .foregroundStyle(.cyan)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-}
-
-struct JourneyTileView: View {
-    let label: String
-    let isUnlocked: Bool
-
-    var body: some View {
-        VStack(spacing: 4) {
-            Text(label)
-                .font(.avenirNext(size: 14, weight: .bold))
-                .foregroundStyle(isUnlocked ? .primary : .tertiary)
-                .minimumScaleFactor(0.7)
-                .lineLimit(1)
-        }
-        .frame(width: 70, height: 70)
-        .background(isUnlocked ? Color.accentColor.opacity(0.15) : Color.gray.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay {
-            if !isUnlocked {
-                Image(systemName: "lock.fill")
-                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                    .foregroundStyle(.tertiary)
-            }
-        }
-    }
-}
 
 struct TagView: View {
     let text: String
