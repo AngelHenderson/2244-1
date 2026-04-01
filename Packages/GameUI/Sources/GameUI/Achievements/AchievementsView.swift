@@ -218,6 +218,8 @@ public struct AchievementsView: View {
                                     definition: def,
                                     state: achievements.unlocks[def.id],
                                     tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
+                                    tileProgressionSteps: def.id == "tile_progression" ? achievements.currentTileTierSteps : nil,
+                                    currentTileStep: max(homeState.highestTileStep, gameStore.state.highestTileStep),
                                     movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
                                     tierDisplay: tierDisplay(for: def.id),
                                     progress: achievements.progress(for: def),
@@ -330,6 +332,8 @@ private struct AchievementRow: View {
     let definition: AchievementDef
     let state: AchievementStore.UnlockState?
     let tileProgressionTier: (suffix: String, label: String, value: Double)?
+    let tileProgressionSteps: (startStep: Int, targetStep: Int)?
+    let currentTileStep: Int?
     let movesProgressionTier: (label: String, value: Double)?
     let tierDisplay: AchievementStore.ProgressTierDisplay?
     let progress: AchievementStore.AchievementProgress?
@@ -342,6 +346,8 @@ private struct AchievementRow: View {
         definition: AchievementDef,
         state: AchievementStore.UnlockState?,
         tileProgressionTier: (suffix: String, label: String, value: Double)? = nil,
+        tileProgressionSteps: (startStep: Int, targetStep: Int)? = nil,
+        currentTileStep: Int? = nil,
         movesProgressionTier: (label: String, value: Double)? = nil,
         tierDisplay: AchievementStore.ProgressTierDisplay? = nil,
         progress: AchievementStore.AchievementProgress? = nil,
@@ -353,6 +359,8 @@ private struct AchievementRow: View {
         self.definition = definition
         self.state = state
         self.tileProgressionTier = tileProgressionTier
+        self.tileProgressionSteps = tileProgressionSteps
+        self.currentTileStep = currentTileStep
         self.movesProgressionTier = movesProgressionTier
         self.tierDisplay = tierDisplay
         self.progress = progress
@@ -457,7 +465,14 @@ private struct AchievementRow: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             // Progress bar (full width)
-            if let progress = progress {
+            if let steps = tileProgressionSteps, let current = currentTileStep, definition.id == "tile_progression" {
+                QuestMilestoneBar(
+                    startStep: steps.startStep,
+                    targetStep: steps.targetStep,
+                    currentStep: current
+                )
+                .padding(.vertical, 4)
+            } else if let progress = progress {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(progressValueText(for: progress))
