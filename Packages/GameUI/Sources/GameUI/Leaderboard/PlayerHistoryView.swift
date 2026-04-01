@@ -95,6 +95,7 @@ struct PlayerHistoryView: View {
 
     private static func generateEvents() -> [HistoryEvent] {
         let day = MockLeaderboardData.daysSinceReference
+        let eventNow = Date()
         var result: [HistoryEvent] = []
 
         // Generate events for the past 30 days
@@ -697,14 +698,11 @@ struct PlayerHistoryView: View {
             }
         }
 
-        // Reverse back to newest-first, re-sorting to guarantee correct order with injected unbans
-        processed.sort { $0.eventDate > $1.eventDate }
-
-        // Safely filter events to only those generated in the last 30 simulated days
-        // Instead of Calendar.current.date(byAdding...) which relies on absolute time,
-        // we keep the 30 days generated within this loop, as they are already capped
-        // during generation. We just return the processed array.
-        return processed
+        // Filter out future events that haven't 'happened' yet today
+        let filtered = processed.filter { $0.eventDate <= eventNow }
+        
+        // Reverse back to newest-first, re-sorting to guarantee correct order
+        return filtered.sorted { $0.eventDate > $1.eventDate }
     }
 
     private static func countryDisplayName(for code: String) -> String {
@@ -779,25 +777,13 @@ struct HistoryEvent: Identifiable {
         let hour = abs(seed * 13 + 7) % 24
         let minute = abs(seed * 31 + 11) % 60
 
-        if daysAgo == 0 {
-            // Today: cap to before the current time
-            let currentHour = calendar.component(.hour, from: now)
-            let currentMinute = calendar.component(.minute, from: now)
-            let cappedHour = min(hour, currentHour)
-            let cappedMinute = cappedHour == currentHour ? min(minute, max(0, currentMinute - 1)) : minute
-
-            var components = calendar.dateComponents([.year, .month, .day], from: now)
-            components.hour = cappedHour
-            components.minute = cappedMinute
-            self.eventDate = calendar.date(from: components) ?? now
-        } else {
-            // Past days: any time is fine
-            let pastDay = calendar.date(byAdding: .day, value: -daysAgo, to: now) ?? now
-            var components = calendar.dateComponents([.year, .month, .day], from: pastDay)
-            components.hour = hour
-            components.minute = minute
-            self.eventDate = calendar.date(from: components) ?? pastDay
-        }
+        // Always use the deterministic time. 
+        // We will filter out future events during post-processing.
+        let pastDay = calendar.date(byAdding: .day, value: -daysAgo, to: now) ?? now
+        var components = calendar.dateComponents([.year, .month, .day], from: pastDay)
+        components.hour = hour
+        components.minute = minute
+        self.eventDate = calendar.date(from: components) ?? pastDay
     }
 
     var iconName: String {
