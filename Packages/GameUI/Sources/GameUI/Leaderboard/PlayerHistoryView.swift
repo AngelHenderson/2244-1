@@ -279,7 +279,6 @@ struct PlayerHistoryView: View {
                 "suspicious activity"
             ]
             let directBanDurations = [
-                "one day", "two days", "three days", "one week",
                 "two weeks", "one month", "two months",
                 "six months", "one year", "two years", "five years",
                 "permanently"
