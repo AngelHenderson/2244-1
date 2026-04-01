@@ -265,6 +265,40 @@ struct PlayerHistoryView: View {
                 ))
             }
 
+            // 7) Direct bans for serious offenses (1-2 per day)
+            //    These are NOT from reports — they're system-detected violations
+            let directBanReasons = [
+                "cheating",
+                "account sharing",
+                "using third-party tools",
+                "score manipulation",
+                "multi-accounting",
+                "exploiting a game bug",
+                "using an unauthorized modified client",
+                "suspicious activity"
+            ]
+            let directBanDurations = [
+                "one day", "two days", "three days", "one week",
+                "two weeks", "one month", "two months",
+                "six months", "one year", "two years", "five years"
+            ]
+            let directBanCount = 1 + Int(MockLeaderboardData.seededRandom(seed: eventDay * 700 + 650, index: eventDay) * 2.0)
+            for i in 0..<directBanCount {
+                let seed = eventDay * 700 + 660 + i * 13
+                let p = makePlayer(seed: seed)
+                let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(directBanReasons.count))
+                let reason = directBanReasons[min(reasonIdx, directBanReasons.count - 1)]
+                let durIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 5, index: eventDay) * Double(directBanDurations.count))
+                let duration = directBanDurations[min(durIdx, directBanDurations.count - 1)]
+                result.append(HistoryEvent(
+                    type: .banned,
+                    playerName: p.name,
+                    message: "\(p.name) got banned for \(duration) due to \(reason).",
+                    daysAgo: daysAgo,
+                    seed: seed
+                ))
+            }
+
             // === Extra random events (2-3 per day for variety) ===
             // (recovery events after game-overs also add to the daily total)
             let extraCount = 2 + Int(MockLeaderboardData.seededRandom(seed: 55555, index: eventDay) * 2.0)
@@ -485,7 +519,7 @@ struct PlayerHistoryView: View {
                     // Seed the starting ladder index from player name for variety
                     if banStartIndex[name] == nil {
                         let nameHash = abs(name.hashValue)
-                        banStartIndex[name] = nameHash % escalationLadder.count
+                        banStartIndex[name] = nameHash % 4  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[name] ?? 0
                     let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
@@ -535,7 +569,7 @@ struct PlayerHistoryView: View {
                     // Seed the starting ladder index from player name for variety
                     if banStartIndex[reportedName] == nil {
                         let nameHash = abs(reportedName.hashValue)
-                        banStartIndex[reportedName] = nameHash % escalationLadder.count
+                        banStartIndex[reportedName] = nameHash % 4  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[reportedName] ?? 0
                     let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
