@@ -65,8 +65,15 @@ public struct BanAlertModifier: ViewModifier {
     let duration: BanDuration
 
     public func body(content: Content) -> some View {
+        let title: String = {
+            switch duration {
+            case .permanent: return "Permanently Banned"
+            case .temporary: return "Banned"
+            }
+        }()
+
         content
-            .alert("Banned", isPresented: $isPresented) {
+            .alert(title, isPresented: $isPresented) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(BanAlert.message(reason: reason, duration: duration))
