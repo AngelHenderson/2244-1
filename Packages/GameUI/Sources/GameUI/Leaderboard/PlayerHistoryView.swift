@@ -280,7 +280,8 @@ struct PlayerHistoryView: View {
             let directBanDurations = [
                 "one day", "two days", "three days", "one week",
                 "two weeks", "one month", "two months",
-                "six months", "one year", "two years", "five years"
+                "six months", "one year", "two years", "five years",
+                "permanently"
             ]
             let directBanCount = 1 + Int(MockLeaderboardData.seededRandom(seed: eventDay * 700 + 650, index: eventDay) * 2.0)
             for i in 0..<directBanCount {
@@ -290,10 +291,16 @@ struct PlayerHistoryView: View {
                 let reason = directBanReasons[min(reasonIdx, directBanReasons.count - 1)]
                 let durIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 5, index: eventDay) * Double(directBanDurations.count))
                 let duration = directBanDurations[min(durIdx, directBanDurations.count - 1)]
+                let banMessage: String
+                if duration == "permanently" {
+                    banMessage = "\(p.name) got permanently banned due to \(reason)."
+                } else {
+                    banMessage = "\(p.name) got banned for \(duration) due to \(reason)."
+                }
                 result.append(HistoryEvent(
                     type: .banned,
                     playerName: p.name,
-                    message: "\(p.name) got banned for \(duration) due to \(reason).",
+                    message: banMessage,
                     daysAgo: daysAgo,
                     seed: seed
                 ))
