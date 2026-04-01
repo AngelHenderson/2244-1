@@ -284,7 +284,7 @@ struct PlayerHistoryView: View {
                 "six months", "one year", "two years", "five years",
                 "permanently"
             ]
-            let directBanCount = 1 + Int(MockLeaderboardData.seededRandom(seed: eventDay * 700 + 650, index: eventDay) * 2.0)
+            let directBanCount = 3 + Int(MockLeaderboardData.seededRandom(seed: eventDay * 700 + 650, index: eventDay) * 3.0)
             for i in 0..<directBanCount {
                 let seed = eventDay * 700 + 660 + i * 13
                 let p = makePlayer(seed: seed)
