@@ -48,9 +48,9 @@ public enum BanAlert {
         let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
         switch duration {
         case .temporary:
-            return "You are banned due to \(reason.rawValue). Your account has been suspended for \(duration.displayText). \(disabledNote)"
+            return "You are banned for \(duration.displayText) due to \(reason.rawValue). \(disabledNote)"
         case .permanent:
-            return "You are banned due to \(reason.rawValue). Your account has been permanently banned. \(disabledNote)"
+            return "You are permanently banned due to \(reason.rawValue). \(disabledNote)"
         }
     }
 }
