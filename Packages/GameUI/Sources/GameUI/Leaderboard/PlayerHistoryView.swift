@@ -548,7 +548,7 @@ struct PlayerHistoryView: View {
                         banStartIndex[name] = nameHash % 4  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[name] ?? 0
-                    let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
+                    let duration = escalationLadder[min(startIdx + banNumber, 3)]  // Cap to one week max for report-based bans
                     if let interval = intervalForDuration(duration) {
                         pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
                     }
@@ -598,7 +598,7 @@ struct PlayerHistoryView: View {
                         banStartIndex[reportedName] = nameHash % 4  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[reportedName] ?? 0
-                    let duration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
+                    let duration = escalationLadder[min(startIdx + banNumber, 3)]  // Cap to one week max for report-based bans
 
                     if let interval = intervalForDuration(duration) {
                         pendingUnbans.append((reportedName, event.eventDate.addingTimeInterval(interval)))
