@@ -437,9 +437,50 @@ public struct CustomChallengeGameScreen: View {
         firstSwapPosition = nil
     }
 
+    private var explicitInstructionText: String? {
+        guard config.challengeId != nil else { return nil }
+
+        let timeText: String
+        let minutes = config.timeLimitSeconds / 60
+        let seconds = config.timeLimitSeconds % 60
+        
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .spellOut
+        
+        if minutes > 0 && seconds == 0 {
+            let numStr = formatter.string(from: NSNumber(value: minutes)) ?? "\(minutes)"
+            timeText = "\(numStr) \(minutes == 1 ? "minute" : "minutes")"
+        } else if minutes == 0 {
+            let numStr = formatter.string(from: NSNumber(value: seconds)) ?? "\(seconds)"
+            timeText = "\(numStr) seconds"
+        } else {
+            timeText = "\(minutes)m \(seconds)s"
+        }
+        
+        switch config.target {
+        case .score:
+            return "Reach \(targetLabel) score in \(timeText)"
+        case .tile, .tileStep:
+            if targetLabel == "∞" {
+                return "Reach infinity in \(timeText)"
+            }
+            return "Reach \(targetLabel) in \(timeText)"
+        case .chain:
+            return "Create a \(targetLabel) in \(timeText)"
+        }
+    }
+
     private var challengeHeader: some View {
-        HStack {
-            // Timer and Target (left, stacked)
+        VStack(spacing: 12) {
+            if let instructions = explicitInstructionText {
+                Text(instructions)
+                    .font(.system(.headline, design: .rounded))
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+            }
+
+            HStack {
+                // Timer and Target (left, stacked)
             VStack(spacing: 8) {
                 // Timer display - uses TimelineView with animation schedule to never pause
                 TimelineView(.animation(minimumInterval: 0.5, paused: false)) { context in
@@ -496,6 +537,7 @@ public struct CustomChallengeGameScreen: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
+            }
             }
         }
         .padding()
