@@ -440,22 +440,7 @@ public struct CustomChallengeGameScreen: View {
     private var explicitInstructionText: String? {
         guard config.challengeId != nil else { return nil }
 
-        let timeText: String
-        let minutes = config.timeLimitSeconds / 60
-        let seconds = config.timeLimitSeconds % 60
-        
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .spellOut
-        
-        if minutes > 0 && seconds == 0 {
-            let numStr = formatter.string(from: NSNumber(value: minutes)) ?? "\(minutes)"
-            timeText = "\(numStr) \(minutes == 1 ? "minute" : "minutes")"
-        } else if minutes == 0 {
-            let numStr = formatter.string(from: NSNumber(value: seconds)) ?? "\(seconds)"
-            timeText = "\(numStr) seconds"
-        } else {
-            timeText = "\(minutes)m \(seconds)s"
-        }
+        let timeText = "\(config.timeLimitSeconds) seconds"
         
         switch config.target {
         case .score:
