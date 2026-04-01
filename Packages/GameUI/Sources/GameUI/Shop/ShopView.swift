@@ -233,9 +233,9 @@ public struct ShopView: View {
 
         var icon: String {
             switch self {
-            case .bundles: return "cube.box.fill"
+            case .bundles: return "mysterybox"
             case .gems: return "gem"
-            case .perks: return "star.fill"
+            case .perks: return "gift"
             }
         }
     }
@@ -545,15 +545,10 @@ struct TabButton: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
-                if icon == "gem" {
-                    Image(icon)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 22, height: 22)
-                } else {
-                    Image(systemName: icon)
-                        .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
-                }
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                 Text(title)
                     .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
             }
