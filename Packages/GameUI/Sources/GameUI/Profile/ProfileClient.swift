@@ -81,8 +81,8 @@ public struct LiveProfileClient: ProfileClient, Sendable {
         // Read friend code (with fallback)
         let friendCode = defaults.string(forKey: "profileFriendCode") ?? generateFriendCode()
 
-        // Read country code
-        let countryCode = defaults.string(forKey: "profileCountryCode")
+        // Read country code (fallback to device locale if not explicitly set)
+        let countryCode = defaults.string(forKey: "profileCountryCode") ?? UserLeaderboardData.currentCountry
 
         // Read highest tile - use leaderboard.milestone for consistency with HUD
         // This ensures Profile and HUD always show the same rank
