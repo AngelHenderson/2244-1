@@ -545,8 +545,15 @@ struct TabButton: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+                if icon == "gem" {
+                    Image(icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
+                } else {
+                    Image(systemName: icon)
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+                }
                 Text(title)
                     .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
             }
