@@ -203,14 +203,16 @@ struct PlayerHistoryView: View {
                     let cheatCount = 50 + Int(MockLeaderboardData.seededRandom(seed: seed + 43, index: eventDay) * 400_000.0)
                     let cheatDate = madeInfinityEvent.eventDate.addingTimeInterval(60 * 10) // 10 minutes later
                     
-                    let flavorType = Int(MockLeaderboardData.seededRandom(seed: seed + 44, index: eventDay) * 3.0)
+                    let timeframes = ["5 minutes", "10 minutes", "15 minutes", "30 minutes", "1 hour", "2 hours", "4 hours", "12 hours", "1 day", "2 days"]
+                    let tIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 45, index: eventDay) * Double(timeframes.count))
+                    let timeframe = timeframes[min(tIdx, timeframes.count - 1)]
+
+                    let flavorType = Int(MockLeaderboardData.seededRandom(seed: seed + 44, index: eventDay) * 2.0)
                     let messageStr: String
                     if flavorType == 0 {
-                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount)∞ counts in impossible speed."
-                    } else if flavorType == 1 {
-                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount) Infinities in 30 seconds."
+                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount)∞ counts in \(timeframe)."
                     } else {
-                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount) Infinities in a day."
+                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount) Infinities in \(timeframe)."
                     }
 
                     // We append this with an overrideDate so it gets sorted correctly
