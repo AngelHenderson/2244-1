@@ -1848,6 +1848,18 @@ public final class AchievementStore {
         return Self.tileTiers[index]
     }
     
+    private func step(forTileValue value: Double) -> Int {
+        return Int(max(0, round(log2(value)) - 1))
+    }
+    
+    public var currentTileTierSteps: (startStep: Int, targetStep: Int) {
+        let index = min(tileProgressionTier, Self.tileTiers.count - 1)
+        let targetValue = Self.tileTiers[index].value
+        let targetStep = step(forTileValue: targetValue)
+        let startStep = index == 0 ? 0 : step(forTileValue: Self.tileTiers[index - 1].value)
+        return (startStep, targetStep)
+    }
+    
     /// Check if tile progression is at max tier (all tiers completed)
     public var isTileProgressionMaxed: Bool {
         tileProgressionTier >= Self.tileTiers.count - 1 && unlocks["tile_progression"]?.claimed == true
