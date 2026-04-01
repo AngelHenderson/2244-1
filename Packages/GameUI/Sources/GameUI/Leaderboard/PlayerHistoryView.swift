@@ -624,41 +624,62 @@ struct PlayerHistoryView: View {
                 }
 
             } else if event.type == .banned, let name = event.playerName {
-                // Escalate ban duration for repeat offenders
+                // For direct system bans, pass through the original message on first offense
+                // Only escalate if this player has been banned before in this cycle
                 let banNumber = banCounts[name] ?? 0
+                banCounts[name] = banNumber + 1
 
-                // On first ban, find where their initial duration sits on the ladder
                 if banNumber == 0 {
+                    // First ban — use the original duration and reason as-is
+                    // Extract duration for unban scheduling
                     if let forRange = event.message.range(of: "banned for "),
                        let dueRange = event.message.range(of: " due to") {
-                        let initialDuration = String(event.message[forRange.upperBound..<dueRange.lowerBound])
-                        let startIdx = escalationLadder.firstIndex(of: initialDuration) ?? 0
-                        banStartIndex[name] = startIdx
+                        let originalDuration = String(event.message[forRange.upperBound..<dueRange.lowerBound])
+                        if let interval = intervalForDuration(originalDuration) {
+                            pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                        }
                     }
-                }
-
-                banCounts[name] = banNumber + 1
-                let startIdx = banStartIndex[name] ?? 0
-                let escalatedDuration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
-
-                // Extract the reason from the original message
-                let reason: String
-                if let range = event.message.range(of: "due to ") {
-                    reason = String(event.message[range.upperBound...]).replacingOccurrences(of: ".", with: "")
+                    // Pass through unchanged
+                    processed.append(HistoryEvent(
+                        type: .banned,
+                        message: event.message,
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
                 } else {
-                    reason = "repeated offenses"
-                }
+                    // Repeat offender — escalate using ladder
+                    if banStartIndex[name] == nil {
+                        if let forRange = event.message.range(of: "banned for "),
+                           let dueRange = event.message.range(of: " due to") {
+                            let initialDuration = String(event.message[forRange.upperBound..<dueRange.lowerBound])
+                            banStartIndex[name] = escalationLadder.firstIndex(of: initialDuration) ?? 4 // default to "two weeks" for system bans
+                        } else {
+                            banStartIndex[name] = 4
+                        }
+                    }
+                    let startIdx = banStartIndex[name] ?? 4
+                    let escalatedDuration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
 
-                if let interval = intervalForDuration(escalatedDuration) {
-                    pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                    // Extract the reason from the original message
+                    let reason: String
+                    if let range = event.message.range(of: "due to ") {
+                        reason = String(event.message[range.upperBound...]).replacingOccurrences(of: ".", with: "")
+                    } else {
+                        reason = "repeated offenses"
+                    }
+
+                    if let interval = intervalForDuration(escalatedDuration) {
+                        pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                    }
+                    processed.append(HistoryEvent(
+                        type: .banned,
+                        message: "\(name) got banned for \(escalatedDuration) due to \(reason).",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
                 }
-                processed.append(HistoryEvent(
-                    type: .banned,
-                    message: "\(name) got banned for \(escalatedDuration) due to \(reason).",
-                    daysAgo: 0,
-                    seed: 0,
-                    overrideDate: event.eventDate
-                ))
             } else {
                 processed.append(event)
             }
