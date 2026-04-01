@@ -198,8 +198,8 @@ struct PlayerHistoryView: View {
                 )
                 result.append(madeInfinityEvent)
 
-                // ~15% chance they get flagged for impossible progression shortly after
-                if MockLeaderboardData.seededRandom(seed: seed + 42, index: eventDay) < 0.15 {
+                // ~25% chance they get flagged for impossible progression shortly after
+                if MockLeaderboardData.seededRandom(seed: seed + 42, index: eventDay) < 0.25 {
                     let cheatCount = 10_000 + Int(MockLeaderboardData.seededRandom(seed: seed + 43, index: eventDay) * 80_000.0)
                     let cheatDate = madeInfinityEvent.eventDate.addingTimeInterval(60 * 10) // 10 minutes later
                     // We append this with an overrideDate so it gets sorted correctly
