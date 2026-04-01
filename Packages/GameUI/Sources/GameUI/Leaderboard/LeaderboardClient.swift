@@ -369,6 +369,7 @@ public enum MockLeaderboardData {
         public let code: String
         public let countryCode: String
         public let milestone: String
+        public let isBanned: Bool
     }
 
     /// Generate all searchable players from leaderboard data with codes
@@ -378,15 +379,24 @@ public enum MockLeaderboardData {
         let letters = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         let digits = Array("0123456789")
 
-        // Helper to generate alphanumeric code from seed
+        // Helper to generate alphanumeric code from seed using hash mixing
         func generateCode(seed: Int) -> String {
+            // Simple hash mixing function for deterministic, well-distributed codes
+            func mix(_ value: Int) -> Int {
+                var h = value &* 2654435761  // Knuth multiplicative hash
+                h ^= (h >> 16)
+                h &*= 0x45d9f3b
+                h ^= (h >> 16)
+                return abs(h)
+            }
+
             func char(at pos: Int) -> Character {
-                let charSeed = seed * (pos + 1) * 11
-                let useDigit = (charSeed % 3) == 0
-                if useDigit {
-                    return digits[(charSeed / 3) % 10]
+                let mixed = mix(seed &+ pos &* 7919)  // Different prime per position
+                let charIndex = mixed % 36  // 26 letters + 10 digits
+                if charIndex < 26 {
+                    return letters[charIndex]
                 } else {
-                    return letters[(charSeed / 2) % 26]
+                    return digits[charIndex - 26]
                 }
             }
             return "\(char(at: 0))\(char(at: 1))\(char(at: 2))-\(char(at: 3))\(char(at: 4))\(char(at: 5))"
@@ -451,12 +461,18 @@ public enum MockLeaderboardData {
                 let progressedMilestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + config.seed, day: day)
                 let codeSeed = (i + 1) * 7 + config.seed + 13
 
+                // ~3% of players are currently banned (deterministic via hash)
+                let banSeed = (i &+ 1) &* 31 &+ config.seed &* 17
+                let banHash = abs(banSeed &* 2654435761) % 100
+                let isBanned = banHash < 3
+
                 players.append(SearchablePlayer(
                     id: "\(config.code.lowercased())_\(i)",
                     name: name,
                     code: generateCode(seed: codeSeed),
                     countryCode: config.code,
-                    milestone: progressedMilestone
+                    milestone: progressedMilestone,
+                    isBanned: isBanned
                 ))
             }
         }

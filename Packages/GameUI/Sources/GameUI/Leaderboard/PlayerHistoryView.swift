@@ -190,12 +190,28 @@ struct PlayerHistoryView: View {
             for i in 0..<3 {
                 let seed = eventDay * 700 + 300 + i * 11
                 let p = makePlayer(seed: seed)
-                result.append(HistoryEvent(
+                let madeInfinityEvent = HistoryEvent(
                     type: .madeInfinity,
                     message: "\(p.name) made infinity!",
                     daysAgo: daysAgo,
                     seed: seed
-                ))
+                )
+                result.append(madeInfinityEvent)
+
+                // ~15% chance they get flagged for impossible progression shortly after
+                if MockLeaderboardData.seededRandom(seed: seed + 42, index: eventDay) < 0.15 {
+                    let cheatCount = 10_000 + Int(MockLeaderboardData.seededRandom(seed: seed + 43, index: eventDay) * 80_000.0)
+                    let cheatDate = madeInfinityEvent.eventDate.addingTimeInterval(60 * 10) // 10 minutes later
+                    // We append this with an overrideDate so it gets sorted correctly
+                    result.append(HistoryEvent(
+                        type: .banned,
+                        playerName: p.name,
+                        message: "\(p.name) got permanently banned due to reaching \(cheatCount)∞ counts in impossible speed.",
+                        daysAgo: daysAgo,
+                        seed: seed + 1,
+                        overrideDate: cheatDate
+                    ))
+                }
             }
 
             // 4) Game over / out of moves (x3)
