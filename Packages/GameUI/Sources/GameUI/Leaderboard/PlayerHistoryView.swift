@@ -197,34 +197,6 @@ struct PlayerHistoryView: View {
                     seed: seed
                 )
                 result.append(madeInfinityEvent)
-
-                // ~25% chance they get flagged for impossible progression shortly after
-                if MockLeaderboardData.seededRandom(seed: seed + 42, index: eventDay) < 0.25 {
-                    let cheatCount = 50 + Int(MockLeaderboardData.seededRandom(seed: seed + 43, index: eventDay) * 400_000.0)
-                    let cheatDate = madeInfinityEvent.eventDate.addingTimeInterval(60 * 10) // 10 minutes later
-                    
-                    let timeframes = ["5 minutes", "10 minutes", "15 minutes", "30 minutes", "1 hour", "2 hours", "4 hours", "12 hours", "1 day", "2 days"]
-                    let tIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 45, index: eventDay) * Double(timeframes.count))
-                    let timeframe = timeframes[min(tIdx, timeframes.count - 1)]
-
-                    let flavorType = Int(MockLeaderboardData.seededRandom(seed: seed + 44, index: eventDay) * 2.0)
-                    let messageStr: String
-                    if flavorType == 0 {
-                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount)∞ counts in \(timeframe)."
-                    } else {
-                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount) Infinities in \(timeframe)."
-                    }
-
-                    // We append this with an overrideDate so it gets sorted correctly
-                    result.append(HistoryEvent(
-                        type: .banned,
-                        playerName: p.name,
-                        message: messageStr,
-                        daysAgo: daysAgo,
-                        seed: seed + 1,
-                        overrideDate: cheatDate
-                    ))
-                }
             }
 
             // 4) Game over / out of moves (x3)
@@ -316,16 +288,34 @@ struct PlayerHistoryView: View {
             for i in 0..<directBanCount {
                 let seed = eventDay * 700 + 660 + i * 13
                 let p = makePlayer(seed: seed)
-                let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(directBanReasons.count))
-                let reason = directBanReasons[min(reasonIdx, directBanReasons.count - 1)]
-                let durIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 5, index: eventDay) * Double(directBanDurations.count))
-                let duration = directBanDurations[min(durIdx, directBanDurations.count - 1)]
                 let banMessage: String
-                if duration == "permanently" {
-                    banMessage = "\(p.name) got permanently banned due to \(reason)."
+                
+                // ~25% of system bans are for impossible infinity counts
+                if MockLeaderboardData.seededRandom(seed: seed + 42, index: eventDay) < 0.25 {
+                    let cheatCount = 50 + Int(MockLeaderboardData.seededRandom(seed: seed + 43, index: eventDay) * 400_000.0)
+                    let timeframes = ["5 minutes", "10 minutes", "15 minutes", "30 minutes", "1 hour", "2 hours", "4 hours", "12 hours", "1 day", "2 days"]
+                    let tIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 45, index: eventDay) * Double(timeframes.count))
+                    let timeframe = timeframes[min(tIdx, timeframes.count - 1)]
+
+                    let flavorType = Int(MockLeaderboardData.seededRandom(seed: seed + 44, index: eventDay) * 2.0)
+                    if flavorType == 0 {
+                        banMessage = "\(p.name) got permanently banned due to reaching \(cheatCount)∞ counts in \(timeframe)."
+                    } else {
+                        banMessage = "\(p.name) got permanently banned due to reaching \(cheatCount) Infinities in \(timeframe)."
+                    }
                 } else {
-                    banMessage = "\(p.name) got banned for \(duration) due to \(reason)."
+                    let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(directBanReasons.count))
+                    let reason = directBanReasons[min(reasonIdx, directBanReasons.count - 1)]
+                    let durIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 5, index: eventDay) * Double(directBanDurations.count))
+                    let duration = directBanDurations[min(durIdx, directBanDurations.count - 1)]
+                    
+                    if duration == "permanently" {
+                        banMessage = "\(p.name) got permanently banned due to \(reason)."
+                    } else {
+                        banMessage = "\(p.name) got banned for \(duration) due to \(reason)."
+                    }
                 }
+                
                 result.append(HistoryEvent(
                     type: .banned,
                     playerName: p.name,
