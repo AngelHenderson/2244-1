@@ -200,13 +200,24 @@ struct PlayerHistoryView: View {
 
                 // ~25% chance they get flagged for impossible progression shortly after
                 if MockLeaderboardData.seededRandom(seed: seed + 42, index: eventDay) < 0.25 {
-                    let cheatCount = 10_000 + Int(MockLeaderboardData.seededRandom(seed: seed + 43, index: eventDay) * 80_000.0)
+                    let cheatCount = 50 + Int(MockLeaderboardData.seededRandom(seed: seed + 43, index: eventDay) * 400_000.0)
                     let cheatDate = madeInfinityEvent.eventDate.addingTimeInterval(60 * 10) // 10 minutes later
+                    
+                    let flavorType = Int(MockLeaderboardData.seededRandom(seed: seed + 44, index: eventDay) * 3.0)
+                    let messageStr: String
+                    if flavorType == 0 {
+                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount)∞ counts in impossible speed."
+                    } else if flavorType == 1 {
+                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount) Infinities in 30 seconds."
+                    } else {
+                        messageStr = "\(p.name) got permanently banned due to reaching \(cheatCount) Infinities in a day."
+                    }
+
                     // We append this with an overrideDate so it gets sorted correctly
                     result.append(HistoryEvent(
                         type: .banned,
                         playerName: p.name,
-                        message: "\(p.name) got permanently banned due to reaching \(cheatCount)∞ counts in impossible speed.",
+                        message: messageStr,
                         daysAgo: daysAgo,
                         seed: seed + 1,
                         overrideDate: cheatDate
