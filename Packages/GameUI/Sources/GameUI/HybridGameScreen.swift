@@ -453,7 +453,7 @@ public struct HybridGameScreen: View {
                 .padding(.bottom, 20)
                 .padding(.horizontal, 20)
         }
-        .frame(maxWidth: 340)
+        .frame(maxWidth: 360)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(white: 0.18))
@@ -467,7 +467,7 @@ public struct HybridGameScreen: View {
     }
 
     private var outOfMovesPowerUpRow: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 12) {
             outOfMovesPowerUpCard(
                 assetName: "hammer",
                 cost: gameStore.powerUpPrice("hammer"),
@@ -478,16 +478,21 @@ public struct HybridGameScreen: View {
             }
 
             outOfMovesPowerUpCard(
-                assetName: "shuffle",
-                cost: gameStore.powerUpPrice("shuffle"),
-                hasInventory: gameStore.powerUpInventory["shuffle", default: 0] > 0
+                assetName: "swap",
+                cost: gameStore.powerUpPrice("swap"),
+                hasInventory: gameStore.powerUpInventory["swap", default: 0] > 0
             ) {
                 isShowingOutOfMoves = false
-                if gameStore.useShuffle() {
-                    // Shuffle succeeded — game continues
-                } else {
-                    showGameOverAndReset()
-                }
+                isSwapMode = true
+            }
+
+            outOfMovesPowerUpCard(
+                assetName: "magnet",
+                cost: gameStore.powerUpPrice("magnet"),
+                hasInventory: gameStore.powerUpInventory["magnet", default: 0] > 0
+            ) {
+                isShowingOutOfMoves = false
+                isMagnetMode = true
             }
         }
     }
@@ -518,29 +523,29 @@ public struct HybridGameScreen: View {
                     Image(assetName)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 56, height: 56)
+                        .frame(width: 48, height: 48)
                     Spacer(minLength: 0)
                 }
-                .padding(.top, 14)
+                .padding(.top, 10)
 
                 // Gem cost badge
                 HStack(spacing: 4) {
                     Image("gem")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 16, height: 16)
+                        .frame(width: 14, height: 14)
                     Text(hasInventory ? "FREE" : "\(cost)")
-                        .font(.avenirNext(size: 16, weight: .heavy))
+                        .font(.avenirNext(size: 14, weight: .heavy))
                         .foregroundColor(.white)
                 }
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 6)
                 .padding(.vertical, 4)
                 .background(
                     Capsule().fill(Color.black.opacity(0.35))
                 )
-                .padding(.bottom, 8)
+                .padding(.bottom, 6)
             }
-            .frame(width: 110, height: 110)
+            .frame(width: 95, height: 100)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(Color(red: 0.45, green: 0.88, blue: 0.35), lineWidth: 2)

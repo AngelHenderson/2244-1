@@ -100,6 +100,7 @@ struct PlayerHistoryView: View {
 
         // Generate events for the past 30 days
         for daysAgo in 0..<30 {
+            let dailyStartIndex = result.count
             let eventDay = day - daysAgo
 
             let countries = ["US", "BR", "GB", "DE", "JP", "IN", "FR", "MX", "AU", "CA",
@@ -470,6 +471,26 @@ struct PlayerHistoryView: View {
                     ))
                 }
             }
+            
+            // --- DISTRIBUTE EVENTS FOR THIS DAY EVENLY ---
+            let dailyCount = result.count - dailyStartIndex
+            if dailyCount > 0 {
+                var indices = Array(dailyStartIndex..<result.count)
+                // Deterministic shuffle so different event types are spread across the hours
+                indices.sort { result[$0].id < result[$1].id }
+                
+                for (i, targetIdx) in indices.enumerated() {
+                    let hour = i % 24
+                    // Deterministic minute
+                    let minute = abs(result[targetIdx].message.hashValue * 11) % 60
+                    
+                    let calendar = Calendar.current
+                    var components = calendar.dateComponents([.year, .month, .day], from: result[targetIdx].eventDate)
+                    components.hour = hour
+                    components.minute = minute
+                    result[targetIdx].eventDate = calendar.date(from: components) ?? result[targetIdx].eventDate
+                }
+            }
         }
         // Sort by date, newest first
         result.sort { $0.eventDate > $1.eventDate }
@@ -752,7 +773,7 @@ struct HistoryEvent: Identifiable {
     let id: String
     let type: EventType
     let message: String
-    let eventDate: Date
+    var eventDate: Date
     let playerName: String?
     let reporterName: String?
 
