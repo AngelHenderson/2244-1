@@ -142,8 +142,7 @@ struct CompareView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var searchText: String = ""
     @State private var selectedPlayers: [MockPlayer] = []
-
-    private var mockPlayers: [MockPlayer] { MockPlayer.generateAll() }
+    @State private var mockPlayers: [MockPlayer] = []
     private static let selectedPlayersKey = "CompareView.selectedPlayerIDs"
 
     private func loadSelectedPlayers() {
@@ -183,7 +182,8 @@ struct CompareView: View {
             code: friendCode,
             countryFlag: myProfile.countryFlag,
             milestone: myProfile.milestone,
-            isMe: true
+            isMe: true,
+            isBanned: false
         ))
 
         // Add selected players (milestone comes from leaderboard data)
@@ -194,12 +194,16 @@ struct CompareView: View {
                 code: player.code,
                 countryFlag: player.countryFlag,
                 milestone: player.milestone,
-                isMe: false
+                isMe: false,
+                isBanned: player.isBanned
             ))
         }
 
-        // Sort by milestone (highest first)
-        return entries.sorted { parseMilestone($0.milestone) > parseMilestone($1.milestone) }
+        // Sort: banned players go to bottom, then by milestone (highest first)
+        return entries.sorted { a, b in
+            if a.isBanned != b.isBanned { return !a.isBanned }
+            return parseMilestone(a.milestone) > parseMilestone(b.milestone)
+        }
     }
 
     /// Sorted HOF entries for the infinity comparison
@@ -215,7 +219,8 @@ struct CompareView: View {
             code: friendCode,
             countryFlag: myProfile.countryFlag,
             milestone: myHofDisplay,
-            isMe: true
+            isMe: true,
+            isBanned: false
         ))
 
         // Add selected players — extract infinity count from their milestone
@@ -232,12 +237,14 @@ struct CompareView: View {
                 code: player.code,
                 countryFlag: player.countryFlag,
                 milestone: hofDisplay,
-                isMe: false
+                isMe: false,
+                isBanned: player.isBanned
             ))
         }
 
-        // Sort: players with infinity counts first (by count descending), then "—" entries
+        // Sort: banned go to bottom, then infinity counts descending, then "—" entries
         return entries.sorted { a, b in
+            if a.isBanned != b.isBanned { return !a.isBanned }
             let aCount = infinityCount(from: a.milestone)
             let bCount = infinityCount(from: b.milestone)
             return aCount > bCount
@@ -331,10 +338,10 @@ struct CompareView: View {
 
                                 Spacer()
 
-                                // Milestone
-                                Text(entry.milestone)
+                                // Milestone (or Banned)
+                                Text(entry.isBanned ? "Banned" : entry.milestone)
                                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                                    .foregroundColor(entry.isMe ? .accentColor : .primary)
+                                    .foregroundColor(entry.isBanned ? .red : (entry.isMe ? .accentColor : .primary))
 
                                 // Remove button (only for non-me entries)
                                 if !entry.isMe {
@@ -396,10 +403,10 @@ struct CompareView: View {
 
                                 Spacer()
 
-                                // Infinity count
-                                Text(entry.milestone)
+                                // Infinity count (or Banned)
+                                Text(entry.isBanned ? "Banned" : entry.milestone)
                                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                                    .foregroundColor(entry.isMe ? .accentColor : .primary)
+                                    .foregroundColor(entry.isBanned ? .red : (entry.isMe ? .accentColor : .primary))
 
                                 // Remove button (only for non-me entries)
                                 if !entry.isMe {
@@ -432,6 +439,9 @@ struct CompareView: View {
                 }
             }
             .onAppear {
+                if mockPlayers.isEmpty {
+                    mockPlayers = MockPlayer.generateAll()
+                }
                 loadSelectedPlayers()
             }
         }
@@ -511,6 +521,7 @@ struct MockPlayer: Identifiable {
     let code: String
     let countryCode: String
     let milestone: String
+    let isBanned: Bool
 
     var countryFlag: String {
         let base: UInt32 = 0x1F1E6
@@ -528,7 +539,8 @@ struct MockPlayer: Identifiable {
                 name: player.name,
                 code: player.code,
                 countryCode: player.countryCode,
-                milestone: player.milestone
+                milestone: player.milestone,
+                isBanned: player.isBanned
             )
         }
     }
@@ -553,6 +565,7 @@ struct ComparisonEntry: Identifiable {
     let countryFlag: String
     let milestone: String
     let isMe: Bool
+    let isBanned: Bool
 }
 
 // MARK: - Comparison Row (kept for potential future use)
