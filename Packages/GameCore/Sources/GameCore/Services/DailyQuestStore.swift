@@ -142,6 +142,11 @@ public final class DailyQuestStore {
 
     public func recordTileReached(step: Int) {
         resetIfNewDay()
+        // Auto-initialize the target if it hasn't been set yet (e.g., player
+        // started a game before returning to the Home screen after a day reset).
+        if tileQuestTargetStep == 0 && step > 0 {
+            setHighestTileStep(step)
+        }
         guard tileQuestTargetStep > 0 else { return }
         guard let idx = quests.firstIndex(where: { $0.id == "daily_tile_reach" }) else { return }
         if step >= tileQuestTargetStep {
