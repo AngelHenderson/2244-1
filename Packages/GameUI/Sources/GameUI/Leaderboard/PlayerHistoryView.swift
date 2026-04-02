@@ -778,7 +778,7 @@ struct HistoryEvent: Identifiable {
     let playerName: String?
     let reporterName: String?
 
-    private static var _nextId = 0
+    nonisolated(unsafe) static var _nextId = 0
     private static func nextUniqueId() -> Int {
         _nextId += 1
         return _nextId
