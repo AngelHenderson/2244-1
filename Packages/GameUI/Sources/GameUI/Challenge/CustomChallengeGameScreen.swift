@@ -597,23 +597,10 @@ public struct CustomChallengeGameScreen: View {
                         if let boosts = fullReward?.scoreBoosts, !boosts.isEmpty {
                             ForEach(Array(boosts.sorted(by: { $0.key < $1.key })), id: \.key) { multiplier, count in
                                 HStack(spacing: 8) {
-                                    let iconName = "boost-\(multiplier)x"
-                                    #if canImport(UIKit)
-                                    if UIImage(named: iconName) != nil {
-                                        Image(iconName)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 20, height: 20)
-                                    } else {
-                                        Image(systemName: "bolt.fill")
-                                            .foregroundStyle(.orange)
-                                    }
-                                    #else
-                                    Image(iconName)
+                                    Image("boost-\(multiplier)x")
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 20, height: 20)
-                                    #endif
                                     Text("+\(count) \(multiplier)X Boost")
                                         .font(.system(.title3, design: .rounded).bold())
                                 }

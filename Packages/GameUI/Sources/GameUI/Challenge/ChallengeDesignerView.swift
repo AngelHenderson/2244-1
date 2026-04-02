@@ -70,20 +70,24 @@ public struct ChallengeDesignerView: View {
                 .buttonStyle(.plain)
 
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(currentTheme?.colorForStep(store.targetStep) ?? Theme.colorForStep(store.targetStep))
-                        .frame(width: 80, height: 80)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .strokeBorder(Color.white.opacity(0.3), lineWidth: 2)
-                        )
-                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                    if store.targetStep >= 817 {
+                        InfinityTileView(size: 80, isSelected: false, isValid: true, useSubtleAnimation: true)
+                    } else {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(currentTheme?.colorForStep(store.targetStep) ?? Theme.colorForStep(store.targetStep))
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(Color.white.opacity(0.3), lineWidth: 2)
+                            )
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
 
-                    Text(store.targetLabel)
-                        .font(.avenirNext(size: 24, weight: .heavy))
-                        .foregroundStyle(currentTheme?.textColorForStep(store.targetStep) ?? Theme.textColorForStep(store.targetStep))
-                        .minimumScaleFactor(0.5)
-                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                        Text(store.targetLabel)
+                            .font(.avenirNext(size: 24, weight: .heavy))
+                            .foregroundStyle(currentTheme?.textColorForStep(store.targetStep) ?? Theme.textColorForStep(store.targetStep))
+                            .minimumScaleFactor(0.5)
+                            .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                    }
                 }
 
                 Button {
@@ -293,23 +297,27 @@ private struct TileChip: View {
     }
 
     var body: some View {
-        ZStack {
-            // Tile background
-            RoundedRectangle(cornerRadius: 20)
-                .fill(tileColor)
-                .frame(width: tileSize, height: tileSize)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .strokeBorder(Color.white.opacity(0.3), lineWidth: 3)
-                )
-                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 3)
+        if step >= 817 {
+            InfinityTileView(size: tileSize, isSelected: false, isValid: true, useSubtleAnimation: true)
+        } else {
+            ZStack {
+                // Tile background
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(tileColor)
+                    .frame(width: tileSize, height: tileSize)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .strokeBorder(Color.white.opacity(0.3), lineWidth: 3)
+                    )
+                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 3)
 
-            // Tile label
-            Text(TileStepLabelFormatter.labelForStep(step))
-                .font(.avenirNext(size: 28, weight: .heavy))
-                .foregroundStyle(textColor)
-                .minimumScaleFactor(0.5)
-                .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 2)
+                // Tile label
+                Text(TileStepLabelFormatter.labelForStep(step))
+                    .font(.avenirNext(size: 28, weight: .heavy))
+                    .foregroundStyle(textColor)
+                    .minimumScaleFactor(0.5)
+                    .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 2)
+            }
         }
     }
 }

@@ -702,7 +702,15 @@ public final class GameStore {
             self.movesHistory = sessionState.movesHistory
             self.lastDailyDateUTC = sessionState.lastDailyDateUTC
             
-            print("🎮 Restored complete game session - Moves: \(sessionState.moves), Score: \(sessionState.score), Highest: \(sessionState.highestTile)")
+            let logStep = sessionState.highestTileStep ?? restoredStep ?? 0
+            let logTile = logStep >= 62 ? TileStepLabelFormatter.labelForStep(logStep, start: 2) : "\(sessionState.highestTile)"
+            let logScore: String
+            if let alpha = sessionState.scoreAlpha {
+                logScore = alpha.formattedLabel()
+            } else {
+                logScore = "\(sessionState.score)"
+            }
+            print("🎮 Restored complete game session - Moves: \(sessionState.moves), Score: \(logScore), Highest: \(logTile) (step \(logStep))")
         } else {
             // Start fresh
             let engine = GameEngine(config: config)

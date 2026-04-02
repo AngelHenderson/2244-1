@@ -343,32 +343,13 @@ private struct ChallengeCard: View {
     @ViewBuilder
     private func iconView(for icon: String) -> some View {
         if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" || icon.hasPrefix("boost-") {
-            #if canImport(UIKit)
-            if UIImage(named: icon) != nil {
-                Image(icon).resizable().scaledToFit()
-            } else {
-                fallbackIcon(for: icon)
-            }
-            #else
-            Image(icon).resizable().scaledToFit()
-            #endif
+            Image(icon)
+                .resizable()
+                .scaledToFit()
         } else {
             Image(systemName: icon)
                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
         }
-    }
-
-    private func fallbackIcon(for icon: String) -> some View {
-        let sysName: String
-        let color: Color
-        if icon == "boost-2x" { sysName = "2.circle.fill"; color = .yellow }
-        else if icon == "boost-3x" { sysName = "3.circle.fill"; color = .pink }
-        else if icon == "boost-4x" { sysName = "4.circle.fill"; color = .red }
-        else { sysName = "bolt.fill"; color = .yellow }
-        
-        return Image(systemName: sysName)
-            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-            .foregroundStyle(color)
     }
 
     private func buildRewardParts(_ reward: ChallengeReward) -> [(icon: String, text: String)] {
@@ -665,33 +646,14 @@ private struct IconLegendSheet: View {
     @ViewBuilder
     private func iconView(for icon: String) -> some View {
         if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" || icon.hasPrefix("boost-") {
-            #if canImport(UIKit)
-            if UIImage(named: icon) != nil {
-                Image(icon).resizable().scaledToFit()
-            } else {
-                fallbackIcon(for: icon)
-            }
-            #else
-            Image(icon).resizable().scaledToFit()
-            #endif
+            Image(icon)
+                .resizable()
+                .scaledToFit()
         } else {
             Image(systemName: icon)
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                 .foregroundStyle(iconColor(for: icon))
         }
-    }
-
-    private func fallbackIcon(for icon: String) -> some View {
-        let sysName: String
-        let color: Color
-        if icon == "boost-2x" { sysName = "2.circle.fill"; color = .yellow }
-        else if icon == "boost-3x" { sysName = "3.circle.fill"; color = .pink }
-        else if icon == "boost-4x" { sysName = "4.circle.fill"; color = .red }
-        else { sysName = "bolt.fill"; color = .yellow }
-        
-        return Image(systemName: sysName)
-            .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
-            .foregroundStyle(color)
     }
 }
 
