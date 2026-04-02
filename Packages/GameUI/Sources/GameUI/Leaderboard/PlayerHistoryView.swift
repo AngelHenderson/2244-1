@@ -481,8 +481,8 @@ struct PlayerHistoryView: View {
                 
                 for (i, targetIdx) in indices.enumerated() {
                     let hour = i % 24
-                    // Deterministic minute
-                    let minute = abs(result[targetIdx].message.hashValue * 11) % 60
+                    // Deterministic minute (use bitwise AND to avoid abs(Int.min) overflow crash)
+                    let minute = ((result[targetIdx].message.hashValue &* 11) & 0x7FFFFFFF) % 60
                     
                     let calendar = Calendar.current
                     var components = calendar.dateComponents([.year, .month, .day], from: result[targetIdx].eventDate)
