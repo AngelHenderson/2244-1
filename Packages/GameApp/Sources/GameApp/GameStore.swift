@@ -1451,6 +1451,7 @@ public final class GameStore {
         syncEngineGems()
         if !sandboxed {
             UserDefaults.standard.set(state.gems, forKey: "coins")
+            saveProgressToStore()
         }
     }
 
