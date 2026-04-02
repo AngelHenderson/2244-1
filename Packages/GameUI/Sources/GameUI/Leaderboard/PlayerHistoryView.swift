@@ -96,6 +96,7 @@ struct PlayerHistoryView: View {
     private static func generateEvents() -> [HistoryEvent] {
         let day = MockLeaderboardData.daysSinceReference
         let eventNow = Date()
+        HistoryEvent._nextId = 0  // Reset counter for fresh generation
         var result: [HistoryEvent] = []
 
         // Generate events for the past 30 days
@@ -777,8 +778,14 @@ struct HistoryEvent: Identifiable {
     let playerName: String?
     let reporterName: String?
 
+    private static var _nextId = 0
+    private static func nextUniqueId() -> Int {
+        _nextId += 1
+        return _nextId
+    }
+
     init(type: EventType, playerName: String? = nil, reporterName: String? = nil, message: String, daysAgo: Int, seed: Int, overrideDate: Date? = nil) {
-        self.id = "\(seed)_\(daysAgo)_\(type)_\(message.hashValue)"
+        self.id = "\(seed)_\(daysAgo)_\(type)_\(Self.nextUniqueId())"
         self.type = type
         self.message = message
         self.playerName = playerName
