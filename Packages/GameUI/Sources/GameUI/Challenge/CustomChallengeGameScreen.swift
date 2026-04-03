@@ -417,10 +417,10 @@ public struct CustomChallengeGameScreen: View {
         // Handle magnet mode
         if isMagnetMode {
             if let tile = challengeGameStore.state.board[position] {
-                let success = challengeGameStore.useMagnet(value: tile.value, to: position)
-                if success {
+                let merges = challengeGameStore.useMagnet(value: tile.value, to: position)
+                if merges > 0 {
                     // Track achievement progress using main game store
-                    mainGameStore.achievementEvaluator?.onPowerUpUsed(type: "magnet")
+                    mainGameStore.achievementEvaluator?.onMagnetUsed(mergeCount: merges)
                     haptics.success()
                 } else {
                     haptics.warning()
@@ -562,6 +562,7 @@ public struct CustomChallengeGameScreen: View {
                                     .frame(width: 20, height: 20)
                                 Text("+\(gemAmount) Gems")
                                     .font(.system(.title3, design: .rounded).bold())
+                                    .foregroundStyle(.white)
                             }
                         }
 
@@ -580,6 +581,7 @@ public struct CustomChallengeGameScreen: View {
                                     }
                                     Text("+\(count) \(powerUpName(for: type))")
                                         .font(.system(.title3, design: .rounded).bold())
+                                        .foregroundStyle(.white)
                                 }
                             }
                         }
@@ -593,6 +595,7 @@ public struct CustomChallengeGameScreen: View {
                                     .frame(width: 20, height: 20)
                                 Text("+\(spins) \(spins == 1 ? "Spin" : "Spins")")
                                     .font(.system(.title3, design: .rounded).bold())
+                                    .foregroundStyle(.white)
                             }
                         }
 
@@ -606,6 +609,7 @@ public struct CustomChallengeGameScreen: View {
                                         .frame(width: 20, height: 20)
                                     Text("+\(count) \(multiplier)X Boost")
                                         .font(.system(.title3, design: .rounded).bold())
+                                        .foregroundStyle(.white)
                                 }
                             }
                         }

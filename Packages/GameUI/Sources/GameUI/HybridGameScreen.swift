@@ -845,8 +845,8 @@ public struct HybridGameScreen: View {
         // Handle magnet mode
         if isMagnetMode {
             if let tile = gameStore.state.board[position] {
-                let success = gameStore.useMagnet(value: tile.value, to: position)
-                if success {
+                let merges = gameStore.useMagnet(value: tile.value, to: position)
+                if merges > 0 {
                     haptics.success()
                 } else {
                     haptics.warning() // No matching tiles found

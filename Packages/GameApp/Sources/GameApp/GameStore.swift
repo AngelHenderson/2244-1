@@ -2556,13 +2556,13 @@ public final class GameStore {
     }
     
     @discardableResult
-    public func useMagnet(value: Int, to position: Position) -> Bool {
-        guard !isInputLocked else { return false }
-        guard isPowerUpAvailable("magnet") else { return false }
+    public func useMagnet(value: Int, to position: Position) -> Int {
+        guard !isInputLocked else { return 0 }
+        guard isPowerUpAvailable("magnet") else { return 0 }
         guard let tile = state.board[position],
               tile.value == value,
-              let targetStep = tile.stepIndex else { return false }
-        guard pendingGiftBoxes[position] == nil else { return false }
+              let targetStep = tile.stepIndex else { return 0 }
+        guard pendingGiftBoxes[position] == nil else { return 0 }
         
         // Count how many tiles with this value exist on the board
         var matchingPositions: [Position] = []
@@ -2578,13 +2578,13 @@ public final class GameStore {
         }
         
         // Need at least 2 tiles to merge
-        guard matchingPositions.count > 1 else { return false }
+        guard matchingPositions.count > 1 else { return 0 }
         
         // Deduct power-up cost
         if powerUpInventory["magnet", default: 0] > 0 {
             powerUpInventory["magnet", default: 0] -= 1
         } else {
-            guard spendCoins(powerUpPrice("magnet")) else { return false }
+            guard spendCoins(powerUpPrice("magnet")) else { return 0 }
         }
         
         // Capture previous highest for milestone detection
@@ -2602,7 +2602,7 @@ public final class GameStore {
             previousHighestStep: previousHighestStep
         )
 
-        return true
+        return matchingPositions.count
     }
 
     // Helper to check if power-up is available (inventory or affordable)
