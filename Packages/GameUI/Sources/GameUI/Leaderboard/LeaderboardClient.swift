@@ -1802,7 +1802,8 @@ public enum MockLeaderboardData {
         "TJ": 235000,
         "NU": 240000,
         "KG": 245000,
-        "IS": 250000
+        "IS": 250000,
+        "UA": 255000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -2013,6 +2014,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.uzbekistanPlayerMilestones, LeaderboardClient.uzbekistanExtendedRankBrackets, 28_473_673)
         case "PK":
             return (LeaderboardClient.pakistanPlayerMilestones, LeaderboardClient.pakistanExtendedRankBrackets, 93_432)
+        case "UA":
+            return (LeaderboardClient.ukrainePlayerMilestones, LeaderboardClient.ukraineExtendedRankBrackets, 88_778)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -2079,7 +2082,8 @@ public enum MockLeaderboardData {
             ("IS", 2_846),
             ("SK", 2_093_776),
             ("UZ", 28_473_673),
-            ("PK", 93_432)
+            ("PK", 93_432),
+            ("UA", 88_778)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
