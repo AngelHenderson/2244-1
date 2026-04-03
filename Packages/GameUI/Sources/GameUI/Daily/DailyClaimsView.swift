@@ -1197,7 +1197,9 @@ private extension AchievementDef.Rewards.Entry.Kind {
         case .hammers: return "hammer"
         case .magnets: return "magnet"
         case .swaps: return "swap"
-        case .boost2x, .boost3x, .boost4x: return nil
+        case .boost2x: return "boost2x"
+        case .boost3x: return "boost3x"
+        case .boost4x: return "boost4x"
         }
     }
 
