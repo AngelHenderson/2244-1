@@ -12464,6 +12464,139 @@ public extension LeaderboardClient {
 
         return entries
     }
+
+    // Ukraine player milestones (88,778 total players)
+    // Top 150 from screenshots
+    static let ukrainePlayerMilestones: [String] = [
+        // Ranks 1-10
+        "436bz", "1by", "1bw", "1bu", "47bt", "706bq", "1bo", "321bm", "1bm", "598bj",
+        // Ranks 11-20
+        "291bi", "1bi", "139bg", "16bf", "8be", "32bd", "2bd", "506bc", "31bc", "7bc",
+        // Ranks 21-30
+        "494bb", "247bb", "61bb", "3bb", "943az", "471az", "235az", "214av", "818at", "1ar",
+        // Ranks 31-40
+        "693am", "1ai", "546ac", "1ab", "254z", "948w", "226u", "904u", "226u", "28u",
+        // Ranks 41-50
+        "862s", "3s", "210r", "105r", "26r", "3r", "822q", "411q", "51q", "6q",
+        // Ranks 51-60
+        "401p", "3p", "6o", "5n", "374m", "187m", "93m", "46m", "46m", "11m",
+        // Ranks 61-70
+        "5m", "730l", "182l", "11l", "5l", "2l", "713k", "178k", "89k", "44k",
+        // Ranks 71-80
+        "44k", "22k", "11k", "5k", "2k", "2k", "1k", "1k", "1k", "348j",
+        // Ranks 81-90
+        "87j", "21j", "5j", "1j", "680i", "170i", "42i", "5i", "664h", "332h",
+        // Ranks 91-100
+        "166h", "83h", "83h", "41h", "4c", "4c", "2c", "2c", "1c", "576b",
+        // Ranks 101-110
+        "576b", "288b", "144b", "72b", "36b", "18b", "9b", "2b", "281a", "140a",
+        // Ranks 111-120
+        "140a", "70a", "70a", "35a", "35a", "35a", "17a", "17a", "17a", "8a",
+        // Ranks 121-130
+        "8a", "8a", "8a", "4a", "4a", "4a", "4a", "2a", "2a", "2a",
+        // Ranks 131-140
+        "2a", "2a", "1a", "1a", "1a", "1a", "1a", "1a", "549B", "549B",
+        // Ranks 141-150
+        "268M", "268M", "134M", "134M", "67M", "67M", "33M", "33M", "16M", "4M"
+    ]
+
+    // Extended Ukraine milestone brackets for rank calculation (ranks 155+)
+    // Total Ukraine players: ~88,778
+    static let ukraineExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // M-tier brackets
+        ("2M", 155), ("1M", 170), ("524K", 200), ("262K", 240),
+        ("131K", 290), ("65K", 350), ("32K", 430),
+        // K-tier brackets
+        ("16K", 550), ("8192", 700), ("4096", 900), ("2048", 1150),
+        ("1024", 1500), ("512", 2100), ("256", 3100), ("128", 4500),
+        ("64", 6500), ("32", 9500), ("16", 14000), ("8", 21000),
+        ("4", 32000), ("2", 50000), ("0", 63546)  // Score 0 = deleted app, came back
+    ]
+
+    // Hall of Fame infinity counts for Ukraine (36 entries from screenshots)
+    static let ukraineHallOfFameInfinityCounts: [Int] = [
+        37636, 27148, 15322, 12876, 9141, 7288, 5622, 4100, 3017, 2584,
+        2100, 1720, 1388, 1050, 800, 640, 511, 387, 301, 244,
+        198, 150, 120, 89, 64, 48, 33, 22, 15, 10,
+        7, 4, 3, 2, 1, 1
+    ]
+
+    // Generate Ukraine entries with milestone progression and user insertion
+    private static func ukraineEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<ukrainePlayerMilestones.count {
+            let baseMilestone = ukrainePlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.ukraineNames, countrySeed: 255000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 255000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 255000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "ua_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalUkrainePlayers = 88_778
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 255000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "UA",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            let ukraineRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "UA")
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: ukraineRank,
+                userMilestone: userMilestone,
+                countryCode: "UA",
+                countrySeed: 255000,
+                names: MockLeaderboardData.ukraineNames,
+                day: day,
+                totalPlayers: totalUkrainePlayers,
+                extendedBrackets: ukraineExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
 }
 
 
