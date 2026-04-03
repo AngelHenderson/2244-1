@@ -205,38 +205,37 @@ public struct SpinWheelView: View {
                         .font(.avenirNext(size: 14, weight: .medium))
                 }
             } else {
-                HStack {
-                    if !bonusReady && !(slotReady && spinState.lastConsumedSlot != nil) {
-                        Label("Next spin in \(spinState.formattedCountdown(now: now).lowercased())", systemImage: "clock.fill")
+                if !bonusReady && !(slotReady && spinState.lastConsumedSlot != nil) {
+                    Label("Next spin in \(spinState.formattedCountdown(now: now).lowercased())", systemImage: "clock.fill")
+                        .font(.avenirNext(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                    
+                    Text("Windows reset every 12a / 4a / 8a / 12p / 4p / 8p.")
+                        .foregroundStyle(.white.opacity(0.6))
+                        .font(.avenirNext(size: 14, weight: .medium))
+                } else if bonusReady {
+                    HStack {
+                        Label("Bonus Spins", systemImage: "gift.fill")
                             .font(.avenirNext(size: 18, weight: .semibold))
                             .foregroundStyle(.white)
-                    } else {
-                        Label("Next spin", systemImage: "clock.fill")
-                            .font(.avenirNext(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
+                        Spacer()
                     }
-                    
-                    Spacer()
-                    
-                    if !bonusReady && slotReady && spinState.lastConsumedSlot != nil {
-                        Text("Ready now")
-                            .font(.avenirNext(size: 18, weight: .bold))
-                            .foregroundStyle(.green)
-                    }
-                }
-
-                if bonusReady {
                     Text("Bonus spins available: \(spinState.bonusSpins)")
                         .foregroundStyle(.white.opacity(0.85))
                         .font(.avenirNext(size: 16, weight: .medium))
                 } else if slotReady && spinState.lastConsumedSlot != nil {
+                    HStack {
+                        Label("Free Spin", systemImage: "gift.fill")
+                            .font(.avenirNext(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Text("Ready now")
+                            .font(.avenirNext(size: 18, weight: .bold))
+                            .foregroundStyle(.green)
+                    }
                     Text("Ready now - tap Spin to claim this window.")
                         .foregroundStyle(.white.opacity(0.75))
                         .font(.avenirNext(size: 16, weight: .medium))
-                } else {
-                    Text("Windows reset every 12a / 4a / 8a / 12p / 4p / 8p.")
-                        .foregroundStyle(.white.opacity(0.6))
-                        .font(.avenirNext(size: 14, weight: .medium))
                 }
             }
         }
