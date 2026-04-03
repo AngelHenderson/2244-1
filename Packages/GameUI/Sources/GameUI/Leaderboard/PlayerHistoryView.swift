@@ -217,11 +217,14 @@ struct PlayerHistoryView: View {
                     ))
                 } else {
                     let milestoneValues = [
-                        "16M", "8M", "4M", "2M", "1M", "524K", "262K", "131K", "65K", "32K",
-                        "16K", "8192", "4096", "2048", "1024", "512", "256", "128",
-                        "199as", "47br", "3bw", "106by", "28ax", "84al", "803p", "604d",
-                        "590c", "576b", "549B", "268M", "134M", "67M", "33M",
-                        "726ao", "994y", "7u", "6s", "3r", "1q", "79f", "19e"
+                        // Basic numbers / K / M / B
+                        "128", "256", "512", "1024", "2048", "4096", "8192", "16K", "32K", "65K", "131K", "262K", "524K", "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "549B",
+                        // a-z
+                        "1a", "2b", "4c", "8d", "19e", "79f", "604d", "590c", "576b", "1q", "3r", "6s", "883t", "7u", "994y",
+                        // aa-az
+                        "84al", "726ao", "199as", "28ax",
+                        // ba-bz
+                        "106by", "109bz", "47br", "3bw", "436bz", "1by", "706bq", "321bm", "598bj"
                     ]
                     let mIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(milestoneValues.count))
                     let milestone = milestoneValues[min(mIdx, milestoneValues.count - 1)]
@@ -393,11 +396,14 @@ struct PlayerHistoryView: View {
                         )
                     } else {
                         let milestoneValues = [
-                            "16M", "8M", "4M", "2M", "1M", "524K", "262K", "131K", "65K", "32K",
-                            "16K", "8192", "4096", "2048", "1024", "512", "256", "128",
-                            "199as", "47br", "3bw", "106by", "28ax", "84al", "803p", "604d",
-                            "590c", "576b", "549B", "268M", "134M", "67M", "33M",
-                            "726ao", "994y", "7u", "6s", "3r", "1q", "79f", "19e"
+                            // Basic numbers / K / M / B
+                            "128", "256", "512", "1024", "2048", "4096", "8192", "16K", "32K", "65K", "131K", "262K", "524K", "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "549B",
+                            // a-z
+                            "1a", "2b", "4c", "8d", "19e", "79f", "604d", "590c", "576b", "1q", "3r", "6s", "883t", "7u", "994y",
+                            // aa-az
+                            "84al", "726ao", "199as", "28ax",
+                            // ba-bz
+                            "106by", "109bz", "47br", "3bw", "436bz", "1by", "706bq", "321bm", "598bj"
                         ]
                         let milestoneIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(milestoneValues.count))
                         let milestone = milestoneValues[min(milestoneIdx, milestoneValues.count - 1)]
