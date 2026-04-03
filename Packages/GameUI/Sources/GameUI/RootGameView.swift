@@ -59,6 +59,13 @@ public struct RootGameView: View {
                     playerHighestTileStep: gameStore.state.highestTileStep,
                     initialGems: homeState.gems,
                     onDismiss: {
+                        // CRITICAL: Sync final gem balance from homeState → gameStore
+                        // During the challenge, homeState.gems was decremented for each power-up use.
+                        // We must push this final value into gameStore (and thus UserDefaults + progress store)
+                        // BEFORE HomeView reappears and loadProgressWithCoordinator overwrites homeState.gems.
+                        gameStore.coins = homeState.gems
+                        gameStore.saveProgressToStore()
+                        
                         // Track challenge completion for achievement progress
                         // (both custom-created and pre-made challenge mode challenges count)
                         gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
