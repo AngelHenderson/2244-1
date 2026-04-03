@@ -223,6 +223,7 @@ public struct SpinWheelView: View {
                     Text("Bonus spins available: \(spinState.bonusSpins)")
                         .foregroundStyle(.white.opacity(0.85))
                         .font(.avenirNext(size: 16, weight: .medium))
+                        .frame(maxWidth: .infinity, alignment: .center)
                 } else if slotReady && spinState.lastConsumedSlot != nil {
                     HStack {
                         Label("Free Spin", systemImage: "gift.fill")
