@@ -4910,6 +4910,11 @@ public extension LeaderboardClient {
             playerData.append(("hof_id_\(i)", count, "ID", globalIndex, i + 40000))
             globalIndex += 1
         }
+        // Add Ukraine players
+        for (i, count) in MockLeaderboardData.ukraineHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_ua_\(i)", count, "UA", globalIndex, i + 41000))
+            globalIndex += 1
+        }
 
         // Apply daily progression to infinity counts using tiered rates:
         // 1-99: 0.2-0.55/day, 100-999: 1-4/day, 1000-9999: 3-7/day, 10000-99999: 6-15/day, 100000+: 10-30/day
