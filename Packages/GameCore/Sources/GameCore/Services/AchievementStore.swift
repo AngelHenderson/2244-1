@@ -1852,6 +1852,13 @@ public final class AchievementStore {
         return Int(max(0, round(log2(value)) - 1))
     }
     
+    public var highestEvaluatedTileStep: Int {
+        guard let maxTile = lastEvaluatedSnapshot?.max_tile, maxTile > 0 else {
+            return 0
+        }
+        return step(forTileValue: maxTile)
+    }
+    
     public var currentTileTierSteps: (startStep: Int, targetStep: Int) {
         let index = min(tileProgressionTier, Self.tileTiers.count - 1)
         let targetValue = Self.tileTiers[index].value
@@ -1994,13 +2001,18 @@ public final class AchievementStore {
                 print("   Snapshot max_tile: \(snapshot.max_tile) (\(String(format: "%.2e", snapshot.max_tile)))")
                 print("   Comparison result: \(snapshot.max_tile >= targetValue ? "PASSED ✓" : "NOT YET (\(String(format: "%.2f", snapshot.max_tile / targetValue * 100))% progress)")")
                 if snapshot.max_tile >= targetValue {
-                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
-                    didUnlock = true
-                    print("   ✅ TIER UNLOCKED! Ready to claim.")
+                    if unlocks[def.id]?.unlocked != true {
+                        unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                        didUnlock = true
+                        print("   ✅ TIER UNLOCKED! Ready to claim.")
+                    }
                 } else {
                     // Lock if current tile no longer qualifies (e.g., after game over)
-                    unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
-                    print("   🔒 TIER LOCKED - tile dropped below target")
+                    if unlocks[def.id]?.unlocked == true {
+                        unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+                        didUnlock = true // Trigger save
+                        print("   🔒 TIER LOCKED - tile dropped below target")
+                    }
                 }
                 continue
             }
@@ -2218,11 +2230,16 @@ public final class AchievementStore {
                 if currentLeaderboardRank > 0 &&
                    currentLeaderboardRank <= targetRank &&
                    nextTierToClaimIndex <= qualifyingTier {
-                    unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
-                    didUnlock = true
+                    if unlocks[def.id]?.unlocked != true {
+                        unlocks[def.id] = .init(unlocked: true, unlockedAt: Date(), claimed: false)
+                        didUnlock = true
+                    }
                 } else {
                     // Rank doesn't qualify for the next unclaimed tier yet - show as locked
-                    unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+                    if unlocks[def.id]?.unlocked == true {
+                        unlocks[def.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+                        didUnlock = true
+                    }
                 }
                 continue
             }

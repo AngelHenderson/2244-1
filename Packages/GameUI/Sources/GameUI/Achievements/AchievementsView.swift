@@ -219,7 +219,7 @@ public struct AchievementsView: View {
                                     state: achievements.unlocks[def.id],
                                     tileProgressionTier: def.id == "tile_progression" ? achievements.currentTileTier : nil,
                                     tileProgressionSteps: def.id == "tile_progression" ? achievements.currentTileTierSteps : nil,
-                                    currentTileStep: max(homeState.highestTileStep, gameStore.state.highestTileStep),
+                                    currentTileStep: achievements.highestEvaluatedTileStep,
                                     movesProgressionTier: def.id == "moves_progression" ? achievements.currentMovesTier : nil,
                                     tierDisplay: tierDisplay(for: def.id),
                                     progress: achievements.progress(for: def),
@@ -242,7 +242,7 @@ public struct AchievementsView: View {
 
                 case .dailyQuests:
                     ScrollView {
-                        DailyQuestsSection(questStore: questStore, homeState: homeState)
+                        DailyQuestsSection(questStore: questStore, homeState: homeState, highestTileStep: achievements.highestEvaluatedTileStep)
                             .padding()
                     }
                 }
@@ -848,6 +848,7 @@ private struct ClaimAllButton: View {
 struct DailyQuestsSection: View {
     let questStore: DailyQuestStore
     let homeState: HomeState
+    let highestTileStep: Int
 
     @State private var countdown: String = ""
     @State private var timer: Timer?
@@ -898,7 +899,7 @@ struct DailyQuestsSection: View {
                 ForEach(questStore.quests) { quest in
                     DailyQuestRow(
                         quest: quest,
-                        highestTileStep: homeState.highestTileStep,
+                        highestTileStep: highestTileStep,
                         tileQuestTargetStep: questStore.tileQuestTargetStep
                     ) {
                         questStore.claim(questId: quest.id)

@@ -206,37 +206,30 @@ public struct SpinWheelView: View {
                 }
             } else {
                 if !bonusReady && !(slotReady && spinState.lastConsumedSlot != nil) {
-                    Label("Next spin in \(spinState.formattedCountdown(now: now).lowercased())", systemImage: "clock.fill")
-                        .font(.avenirNext(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
-                    
-                    Text("Windows reset every 12a / 4a / 8a / 12p / 4p / 8p.")
-                        .foregroundStyle(.white.opacity(0.6))
-                        .font(.avenirNext(size: 14, weight: .medium))
-                } else if bonusReady {
-                    HStack {
-                        Label("Bonus Spins", systemImage: "gift.fill")
+                    VStack(spacing: 8) {
+                        Label("Next spin in \(spinState.formattedCountdown(now: now).lowercased())", systemImage: "clock.fill")
                             .font(.avenirNext(size: 18, weight: .semibold))
                             .foregroundStyle(.white)
-                        Spacer()
+                        Text("Windows reset every 12a / 4a / 8a / 12p / 4p / 8p.")
+                            .foregroundStyle(.white.opacity(0.6))
+                            .font(.avenirNext(size: 14, weight: .medium))
                     }
+                    .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+                } else if bonusReady {
                     Text("Bonus spins available: \(spinState.bonusSpins)")
                         .foregroundStyle(.white.opacity(0.85))
-                        .font(.avenirNext(size: 16, weight: .medium))
-                        .frame(maxWidth: .infinity, alignment: .center)
+                        .font(.avenirNext(size: 18, weight: .semibold))
+                        .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
                 } else if slotReady && spinState.lastConsumedSlot != nil {
-                    HStack {
-                        Label("Free Spin", systemImage: "gift.fill")
-                            .font(.avenirNext(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
-                        Spacer()
-                        Text("Ready now")
+                    VStack(spacing: 8) {
+                        Label("Ready now", systemImage: "gift.fill")
                             .font(.avenirNext(size: 18, weight: .bold))
                             .foregroundStyle(.green)
+                        Text("Tap Spin to claim this window.")
+                            .foregroundStyle(.white.opacity(0.75))
+                            .font(.avenirNext(size: 16, weight: .medium))
                     }
-                    Text("Ready now - tap Spin to claim this window.")
-                        .foregroundStyle(.white.opacity(0.75))
-                        .font(.avenirNext(size: 16, weight: .medium))
+                    .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
                 }
             }
         }
