@@ -3276,15 +3276,11 @@ extension GameStore {
         
         // Log EVERY tile creation (not just records)
         if let tile = newTile, tile > 0 {
-            if tile >= Int.max {
-                print("♾️  INFINITY TILE CREATED!")
-            } else if tile >= 2_147_483_648 { // 2B
-                print("🌟 2B TILE CREATED!")
-            } else if tile >= 1_073_741_824 { // 1B
-                print("💎 1B TILE CREATED!")
-            } else {
-                print("🆕 Tile created: \(tile)")
-            }
+            let step = state.highestTileStep
+            let label = step >= 62
+                ? TileStepLabelFormatter.labelForStep(step, start: 2)
+                : "\(tile)"
+            print("🆕 Tile created: \(label) (step \(step))")
         }
         
         // ALWAYS save current score (regardless of all-time best)
@@ -3493,12 +3489,18 @@ extension GameStore {
         saveProgressToStore()
         
         print("💾 COMPREHENSIVE SESSION DATA SAVED")
-        print("   • Session highest: \(currentHighest)")
-        print("   • Session score: \(state.score)")
+        let logHighestLabel = state.highestTileStep >= 62
+            ? TileStepLabelFormatter.labelForStep(state.highestTileStep, start: 2)
+            : "\(currentHighest)"
+        print("   • Session highest: \(logHighestLabel) (step \(state.highestTileStep))")
+        print("   • Session score: \(state.scoreValue.formattedLabel())")
         print("   • Gems: \(state.gems)")
         print("   • Moves: \(state.moves)")
         print("   • Power-ups: \(powerUpInventory)")
-        print("   • Journey highest: \(journey.highestTile)")
+        let journeyLabel = journey.highestTile >= Int.max / 2
+            ? "step \(state.highestTileStep)+"
+            : "\(journey.highestTile)"
+        print("   • Journey highest: \(journeyLabel)")
         print("   • Total merges: \(UserDefaults.standard.integer(forKey: "totalMerges"))")
         print("   • Total time: \(String(format: "%.1f", UserDefaults.standard.double(forKey: "totalTimePlayed")))s")
         print("   • Session efficiency: \(String(format: "%.2f", UserDefaults.standard.double(forKey: "sessionEfficiencyScore")))")
