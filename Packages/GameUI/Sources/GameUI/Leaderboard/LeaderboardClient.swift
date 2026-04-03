@@ -2252,6 +2252,7 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.slovakiaPlayerMilestones, extendedBrackets: LeaderboardClient.slovakiaExtendedRankBrackets, totalPlayers: 2_093_776, countrySeed: countryPlayerSeeds["SK"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.uzbekistanPlayerMilestones, extendedBrackets: LeaderboardClient.uzbekistanExtendedRankBrackets, totalPlayers: 28_473_673, countrySeed: countryPlayerSeeds["UZ"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.pakistanPlayerMilestones, extendedBrackets: LeaderboardClient.pakistanExtendedRankBrackets, totalPlayers: 93_432, countrySeed: countryPlayerSeeds["PK"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.ukrainePlayerMilestones, extendedBrackets: LeaderboardClient.ukraineExtendedRankBrackets, totalPlayers: 88_778, countrySeed: countryPlayerSeeds["UA"] ?? 0)
 
         globalRankCache[userMilestone] = total
         return total
@@ -4157,6 +4158,7 @@ public enum MockLeaderboardData {
         case "SK": return LeaderboardClient.slovakiaPlayerMilestones
         case "UZ": return LeaderboardClient.uzbekistanPlayerMilestones
         case "PK": return LeaderboardClient.pakistanPlayerMilestones
+        case "UA": return LeaderboardClient.ukrainePlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
