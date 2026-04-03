@@ -3973,6 +3973,30 @@ public enum MockLeaderboardData {
         "IftikharIron", "NawazNinja", "ImadIcon", "UsmanUltra", "UsamaUltra"
     ]
 
+    static let ukraineNames = [
+        // 1-30: Geographic and city-based
+        "KyivKing", "LvivLegend", "OdesaOrbit", "KharkivHawk", "DniproDestroyer",
+        "ZaporizhzhiaZealot", "VinnytsiaViking", "PoltavaPro", "ChernihivChamp", "IvanoFrankivskIce",
+        "TernopilTitan", "LutskLord", "RivneRider", "KhmelnytskyyKnight", "SumyStar",
+        "CherkasyCrush", "ZhytomyrZeus", "UzhhorodUltra", "MukachivoMaster", "ChernivtsiCobra",
+        "MariupolMystic", "KryvyiRihKrusher", "MykolaivMaverick", "KhersonHero", "KropyvnUltra",
+        "KamianskeKing", "MelitopolMaster", "NikopolNinja", "BerdianskBolt", "PavlohradPro",
+        // 31-60: Historical and cultural
+        "KozakCrusher", "HetmanHero", "TryzubTitan", "VyshyvankaStar", "BanduraBoss",
+        "KobzarKnight", "MazepaMaster", "RuslanaRider", "DniproDragon", "CarpathianCobra",
+        "PodobnaProslayer", "TarasBulbaBlitz", "SichSlayer", "HopakHero", "PysankaPlayer",
+        "BorshchBoss", "VarenykyViking", "SaloStar", "PampushkaPro", "HalushkaGhost",
+        "DerunDragon", "KutiaPower", "HolubtsiHero", "MlyntsiMaster", "SyrnikSniper",
+        "KyivCakeCrusher", "UzvarUltra", "KostiumKing", "LirnykLion", "SopilkaStar",
+        // 61-90: More local flavor
+        "PechivoProslayer", "KhortitsyaHawk", "AskaniaStar", "SofiyskaBlade", "MaydanMaster",
+        "ZolotiVorotaZealot", "PecherLavraLord", "AndriyivskyyAce", "KhreshchatykKing", "PoshtovaPro",
+        "SvitaznaBolt", "SynevyrStar", "HoverlaMaster", "BukovelBoss", "TustaJudge",
+        "ShypiytKnight", "DragobyKing", "KremenetsCrusher", "FortecyaForce", "ZamokZealot",
+        "KaminetsPodilskyyKP", "OstrozkaOmega", "LubartskaLord", "BilhorodBlitz", "AkermanAce",
+        "TrypillyaThunder", "SkifStar", "RoksolanaRider", "YaroslavMaster", "MyroslavMyth"
+    ]
+
     static let uzbekistanNames = [
         // 1-30: City and geography-based
         "TashkentTitan", "SamarkandStar", "BukharaBlitz", "KhivaKnight", "NukusNinja",
