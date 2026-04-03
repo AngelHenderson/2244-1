@@ -221,15 +221,18 @@ public struct SpinWheelView: View {
                         .font(.avenirNext(size: 18, weight: .semibold))
                         .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
                 } else if slotReady && spinState.lastConsumedSlot != nil {
-                    VStack(spacing: 8) {
-                        Label("Ready now", systemImage: "gift.fill")
+                    HStack {
+                        Label("Free Spin", systemImage: "gift.fill")
+                            .font(.avenirNext(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Text("Ready now")
                             .font(.avenirNext(size: 18, weight: .bold))
                             .foregroundStyle(.green)
-                        Text("Tap Spin to claim this window.")
-                            .foregroundStyle(.white.opacity(0.75))
-                            .font(.avenirNext(size: 16, weight: .medium))
                     }
-                    .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+                    Text("Ready now - tap Spin to claim this window.")
+                        .foregroundStyle(.white.opacity(0.75))
+                        .font(.avenirNext(size: 16, weight: .medium))
                 }
             }
         }
