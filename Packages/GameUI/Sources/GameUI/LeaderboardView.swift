@@ -989,6 +989,8 @@ public struct LeaderboardView: View {
             return Color.blue  // Uzbekistan - blue from the flag
         case .countryPK:
             return Color.green // Pakistan - green from the flag
+        case .countryUA:
+            return Color.blue  // Ukraine - blue from the flag
         }
     }
 

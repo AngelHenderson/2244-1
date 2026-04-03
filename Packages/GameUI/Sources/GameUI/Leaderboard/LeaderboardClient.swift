@@ -2846,6 +2846,13 @@ public enum MockLeaderboardData {
         1, 1, 1
     ]
 
+    static let ukraineHallOfFameInfinityCounts: [Int] = [
+        37636, 27148, 15322, 12876, 9141, 7288, 5622, 4100, 3017, 2584,
+        2100, 1720, 1388, 1050, 800, 640, 511, 387, 301, 244,
+        198, 150, 120, 89, 64, 48, 33, 22, 15, 10,
+        7, 4, 3, 2, 1, 1
+    ]
+
     static let usNames = [
         "AmericanEagle486408", "StarsAndStripes", "USAChamp879384", "LibertyGamer", "PatriotPlayer",
         "FreedomFighter", "StateStar221473", "CapitalCity096548", "RedWhiteBlue", "UncleSamPro",
@@ -12513,13 +12520,6 @@ public extension LeaderboardClient {
         ("4", 32000), ("2", 50000), ("0", 63546)  // Score 0 = deleted app, came back
     ]
 
-    // Hall of Fame infinity counts for Ukraine (36 entries from screenshots)
-    static let ukraineHallOfFameInfinityCounts: [Int] = [
-        37636, 27148, 15322, 12876, 9141, 7288, 5622, 4100, 3017, 2584,
-        2100, 1720, 1388, 1050, 800, 640, 511, 387, 301, 244,
-        198, 150, 120, 89, 64, 48, 33, 22, 15, 10,
-        7, 4, 3, 2, 1, 1
-    ]
 
     // Generate Ukraine entries with milestone progression and user insertion
     private static func ukraineEntries() -> [LeaderboardEntry] {
