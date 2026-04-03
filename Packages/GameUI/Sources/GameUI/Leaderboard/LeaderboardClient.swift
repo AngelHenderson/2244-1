@@ -4304,6 +4304,8 @@ public extension LeaderboardClient {
                 entries = uzbekistanEntries()
             case .countryPK:
                 entries = generatePakistanEntries()
+            case .countryUA:
+                entries = ukraineEntries()
             case .global:
                 entries = globalEntries()
             }
