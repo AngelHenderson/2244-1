@@ -4421,6 +4421,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 28_473_673, on: day, countrySeed: 151)
             case .countryPK:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
+            case .countryUA:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 88_778, on: day, countrySeed: 153)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -4477,7 +4479,8 @@ public extension LeaderboardClient {
                 let skPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_093_776, on: day, countrySeed: 150)
                 let uzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 28_473_673, on: day, countrySeed: 151)
                 let pkPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers + kgPlayers + isPlayers + skPlayers + uzPlayers + pkPlayers
+                let uaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 88_778, on: day, countrySeed: 153)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers + kgPlayers + isPlayers + skPlayers + uzPlayers + pkPlayers + uaPlayers
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -4609,6 +4612,8 @@ public extension LeaderboardClient {
                 entries = uzbekistanEntries()
             case .countryPK:
                 entries = generatePakistanEntries()
+            case .countryUA:
+                entries = ukraineEntries()
             case .global:
                 entries = globalEntries()
             }
