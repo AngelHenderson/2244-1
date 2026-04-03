@@ -338,8 +338,8 @@ public struct ShopView: View {
     
     @ViewBuilder
     private var perksSection: some View {
-        if let perks = shopStore.catalog?.perkBundles {
-            VStack(spacing: 20) {
+        VStack(spacing: 20) {
+            if let perks = shopStore.catalog?.perkBundles {
                 ForEach(Dictionary(grouping: perks, by: { $0.item }).sorted(by: { $0.key < $1.key }), id: \.key) { item, bundles in
                     VStack(alignment: .leading, spacing: 12) {
                         Text(item.lowercased() == "magnet" ? "MegaMerges" : "\(item.capitalized)s")
@@ -353,6 +353,8 @@ public struct ShopView: View {
                     }
                 }
             }
+            
+            FreePerksSection()
         }
     }
 }
@@ -810,6 +812,86 @@ struct PerkBundleRow: View {
     }
 }
 
+
+struct FreePerksSection: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Rectangle().fill(Color.primary.opacity(0.2)).frame(height: 2)
+                Text("FREE PERKS")
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                Rectangle().fill(Color.primary.opacity(0.2)).frame(height: 2)
+            }
+            .padding(.top, 10)
+            
+            VStack(spacing: 12) {
+                FreePerkRow(icon: "hammer")
+                FreePerkRow(icon: "swap")
+                FreePerkRow(icon: "magnet")
+            }
+        }
+    }
+}
+
+struct FreePerkRow: View {
+    let icon: String
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(icon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 44, height: 44)
+                .padding(.leading, 16)
+            
+            // Central number pill
+            Text("01")
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 4)
+                .background(Color(red: 0.0, green: 0.6, blue: 0.6))
+                .clipShape(Capsule())
+            
+            Spacer()
+            
+            // Action button
+            Button {
+                // Future action to claim free perk
+            } label: {
+                Text("Free")
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 8)
+                    .frame(width: 100)
+                    .background(Color(red: 0.1, green: 0.7, blue: 0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.green.opacity(0.8), lineWidth: 2)
+                    )
+            }
+            .padding(.trailing, 16)
+        }
+        .padding(.vertical, 12)
+        .background(
+            LinearGradient(
+                colors: [Color(red: 0.1, green: 0.9, blue: 0.9), Color(red: 0.0, green: 0.7, blue: 0.85)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(alignment: .topTrailing) {
+            // Notification dot
+            Image(systemName: "exclamationmark.circle.fill")
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(.white, .red)
+                .font(.system(size: 20))
+                .offset(x: 8, y: -8)
+        }
+    }
+}
 
 struct TagView: View {
     let text: String
