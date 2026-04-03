@@ -33,6 +33,9 @@ public struct CustomChallengeGameScreen: View {
     @State private var isShowingOutOfMoves = false
     @State private var isShowingLowOnMoves = false
     @State private var isShowingPowerUpRecovery = false
+    @State private var isShowingTimeRecovery = false
+    @State private var isShowingInsufficientGemsAlert = false
+    @State private var hasUsedTimeRecovery = false
     @State private var lowMovesWarningArmed = true
 
     // Store player's highest tile/step for re-applying after game reset
@@ -98,11 +101,14 @@ public struct CustomChallengeGameScreen: View {
                 resultOverlay
             }
 
-
-
             // Power-up recovery selection overlay
             if isShowingPowerUpRecovery {
                 powerUpRecoveryOverlay
+            }
+
+            // Time recovery overlay
+            if isShowingTimeRecovery {
+                timeRecoveryOverlay
             }
         }
         .onAppear {
@@ -186,6 +192,13 @@ public struct CustomChallengeGameScreen: View {
         } message: {
             Text("You have no moves. Want to use a powerup to revive?")
         }
+        .alert("Insufficient Gems", isPresented: $isShowingInsufficientGemsAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            let needed = timeRecoveryCost - homeState.gems
+            Text("You need \(timeRecoveryCost) gems to recover time, but you only have \(homeState.gems). You need \(needed) more gems.")
+        }
+
     }
 
     // MARK: - Power-up Dock
@@ -484,7 +497,15 @@ public struct CustomChallengeGameScreen: View {
                     }
                     .onChange(of: remaining <= 0) { _, isExpired in
                         if isExpired && !challengeEnded {
-                            endChallenge(won: checkWinCondition())
+                            if checkWinCondition() {
+                                endChallenge(won: true)
+                            } else if !hasUsedTimeRecovery {
+                                // Freeze timer and show recovery prompt
+                                frozenTimeRemaining = 0
+                                isShowingTimeRecovery = true
+                            } else {
+                                endChallenge(won: false)
+                            }
                         }
                     }
                 }
@@ -729,6 +750,123 @@ public struct CustomChallengeGameScreen: View {
         }
     }
 
+    // MARK: - Time Recovery Overlay
+
+    private let timeRecoveryCost = 1500
+    private let timeRecoveryBonus = 30 // seconds
+
+    private var timeRecoveryOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.65)
+                .ignoresSafeArea()
+                .onTapGesture { /* block taps */ }
+
+            VStack(spacing: 20) {
+                Text("Time's Up!")
+                    .font(.system(size: 28, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+
+                Text("Add +\(timeRecoveryBonus)s to keep going?")
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white.opacity(0.85))
+
+                // Purchase button
+                Button {
+                    purchaseTimeRecovery()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "clock.badge.checkmark")
+                            .font(.system(size: 20, weight: .bold))
+                        Text("+\(timeRecoveryBonus)s")
+                            .font(.system(size: 20, weight: .heavy, design: .rounded))
+                        Text("·")
+                            .foregroundColor(.white.opacity(0.5))
+                        Image("gem")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
+                        Text("\(timeRecoveryCost)")
+                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(red: 0.35, green: 0.78, blue: 0.25), Color(red: 0.26, green: 0.62, blue: 0.18)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .strokeBorder(Color(red: 0.45, green: 0.88, blue: 0.35), lineWidth: 2)
+                    )
+                }
+                .opacity(homeState.gems >= timeRecoveryCost ? 1.0 : 0.4)
+
+                if homeState.gems < timeRecoveryCost {
+                    Text("Not enough gems")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.red.opacity(0.8))
+                }
+
+                Button {
+                    isShowingTimeRecovery = false
+                    endChallenge(won: false)
+                } label: {
+                    VStack(spacing: 2) {
+                        Text("No Thanks")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundColor(.white.opacity(0.7))
+                        Rectangle()
+                            .fill(Color.white.opacity(0.3))
+                            .frame(height: 1)
+                    }
+                    .fixedSize()
+                }
+                .padding(.top, 4)
+            }
+            .padding(30)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color(white: 0.15))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(Color(white: 0.25), lineWidth: 2)
+            )
+            .shadow(color: .black.opacity(0.5), radius: 20, y: 10)
+            .padding(.horizontal, 30)
+        }
+    }
+
+    private func purchaseTimeRecovery() {
+        guard homeState.gems >= timeRecoveryCost else {
+            isShowingInsufficientGemsAlert = true
+            return
+        }
+
+        // Deduct gems from both homeState and challenge store
+        homeState.gems -= timeRecoveryCost
+        mainGameStore.spendCoins(timeRecoveryCost)
+        challengeGameStore.coins -= timeRecoveryCost
+
+        // Mark as used (one-time only)
+        hasUsedTimeRecovery = true
+        isShowingTimeRecovery = false
+
+        // Extend the timer by adding bonus seconds to startTime
+        // This effectively "adds" time because timeRemaining = totalDuration - elapsed
+        startTime = startTime.addingTimeInterval(TimeInterval(timeRecoveryBonus))
+        frozenTimeRemaining = nil // Unfreeze the timer
+
+        haptics.success()
+    }
+
     private var targetLabel: String {
         switch config.target {
         case .score(let value):
@@ -833,6 +971,8 @@ public struct CustomChallengeGameScreen: View {
             return false // TODO: Track chain lengths
         }
     }
+
+
 
     private func endChallenge(won: Bool) {
         guard !challengeEnded else { return } // Prevent multiple calls
