@@ -208,7 +208,14 @@ struct PlayerHistoryView: View {
                 let p = makePlayer(seed: seed)
                 let isInfinity = i == 0
                 if isInfinity {
-                    let count = 1 + Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * 150.0)
+                    let infinityValues = [
+                        2, 5, 8, 12, 19, 27, 34, 45, 62, 85, 110, 145,
+                        180, 250, 340, 480, 650, 920, 1300, 1850, 2600, 3500,
+                        4800, 6500, 9200, 12500, 18000, 25000, 34000, 48000,
+                        65000, 88000, 120000, 160000, 220000, 310000
+                    ]
+                    let iIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * Double(infinityValues.count))
+                    let count = infinityValues[min(iIdx, infinityValues.count - 1)]
                     result.append(HistoryEvent(
                         type: .gameOver,
                         message: "\(p.name) ran out of moves at \(count)∞.",
@@ -387,7 +394,14 @@ struct PlayerHistoryView: View {
                 } else if random < 0.85 {
                     let isInfinityPlayer = MockLeaderboardData.seededRandom(seed: seed + 7, index: eventDay) < 0.4
                     if isInfinityPlayer {
-                        let infinityCount = 1 + Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * 150.0)
+                        let infinityValues = [
+                            2, 5, 8, 12, 19, 27, 34, 45, 62, 85, 110, 145,
+                            180, 250, 340, 480, 650, 920, 1300, 1850, 2600, 3500,
+                            4800, 6500, 9200, 12500, 18000, 25000, 34000, 48000,
+                            65000, 88000, 120000, 160000, 220000, 310000
+                        ]
+                        let iIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * Double(infinityValues.count))
+                        let infinityCount = infinityValues[min(iIdx, infinityValues.count - 1)]
                         event = HistoryEvent(
                             type: .gameOver,
                             message: "\(p.name) ran out of moves at \(infinityCount)∞.",
