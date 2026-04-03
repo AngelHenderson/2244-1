@@ -120,6 +120,9 @@ public struct CustomChallengeGameScreen: View {
             if newValue < oldValue {
                 let spent = oldValue - newValue
                 homeState.gems -= spent
+                // Also sync to main game store so updateHomeFromGameProgress()
+                // doesn't overwrite homeState.gems with stale value
+                _ = mainGameStore.spendCoins(spent)
             }
         }
         .onChange(of: challengeGameStore.state.moves) { oldMoves, newMoves in
