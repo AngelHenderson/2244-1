@@ -29,6 +29,10 @@ public final class GameStore {
     // Track if game over has been processed for this session (reset on new game)
     private var gameOverProcessed: Bool = false
 
+    /// Set to true only when the player confirms game over (dismisses recovery overlay).
+    /// Used by board views for the greyout animation instead of `state.isGameOver`.
+    @Published public var gameOverConfirmed: Bool = false
+
     // Sandboxed mode for challenges - doesn't persist progress to main game
     public let sandboxed: Bool
 
@@ -1358,6 +1362,7 @@ public final class GameStore {
         powerUpHistory = []
         persistPendingGiftBoxes()
         gameOverProcessed = false  // Reset for new game session
+        gameOverConfirmed = false
 
         // Notify achievement evaluator
         achievementEvaluator?.onGameStart(state: state)
@@ -1391,6 +1396,7 @@ public final class GameStore {
         powerUpHistory = []
         persistPendingGiftBoxes()
         gameOverProcessed = false
+        gameOverConfirmed = false
 
         achievementEvaluator?.onGameStart(state: state)
     }
@@ -1417,6 +1423,7 @@ public final class GameStore {
         powerUpHistory = []
         persistPendingGiftBoxes()
         gameOverProcessed = false
+        gameOverConfirmed = false
 
         achievementEvaluator?.onGameStart(state: state)
     }
@@ -1446,6 +1453,7 @@ public final class GameStore {
         powerUpHistory = []
         persistPendingGiftBoxes()
         gameOverProcessed = false  // Reset for new game session
+        gameOverConfirmed = false
     }
 
 
