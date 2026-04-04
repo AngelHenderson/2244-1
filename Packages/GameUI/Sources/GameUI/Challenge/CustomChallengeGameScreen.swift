@@ -858,7 +858,7 @@ public struct CustomChallengeGameScreen: View {
 
         // Deduct gems from both homeState and challenge store
         homeState.gems -= timeRecoveryCost
-        mainGameStore.spendCoins(timeRecoveryCost)
+        _ = mainGameStore.spendCoins(timeRecoveryCost)
         challengeGameStore.coins -= timeRecoveryCost
 
         // Mark as used (one-time only)
