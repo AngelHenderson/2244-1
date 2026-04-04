@@ -342,7 +342,7 @@ private struct ChallengeCard: View {
 
     @ViewBuilder
     private func iconView(for icon: String) -> some View {
-        if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" || icon.hasPrefix("boost-") {
+        if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" || icon.hasPrefix("boost") {
             Image(icon)
                 .resizable()
                 .scaledToFit()
@@ -389,7 +389,7 @@ private struct ChallengeCard: View {
 
         // Score boosts
         for (multiplier, count) in reward.scoreBoosts.sorted(by: { $0.key < $1.key }) {
-            let iconName = "boost-\(multiplier)x"
+            let iconName = "boost\(multiplier)x"
             parts.append((icon: iconName, text: "\(count)x \(multiplier)X"))
         }
 
@@ -581,9 +581,9 @@ private struct IconLegendSheet: View {
         ("swap", "Swap", "Swap two tiles"),
         ("magnet", "MegaMerge", "Pull matching tiles together"),
         ("spinthewheel", "Spin", "Bonus spin on reward wheel"),
-        ("boost-2x", "2× Boost", "Double spin multiplier"),
-        ("boost-3x", "3× Boost", "Triple spin multiplier"),
-        ("boost-4x", "4× Boost", "Quadruple spin multiplier"),
+        ("boost2x", "2× Boost", "Double spin multiplier"),
+        ("boost3x", "3× Boost", "Triple spin multiplier"),
+        ("boost4x", "4× Boost", "Quadruple spin multiplier"),
         ("shippingbox.fill", "Treasure Box", "Contains multiple rewards")
     ]
 
@@ -645,7 +645,7 @@ private struct IconLegendSheet: View {
 
     @ViewBuilder
     private func iconView(for icon: String) -> some View {
-        if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" || icon.hasPrefix("boost-") {
+        if icon == "gem" || icon == "hammer" || icon == "swap" || icon == "magnet" || icon == "spinthewheel" || icon.hasPrefix("boost") {
             Image(icon)
                 .resizable()
                 .scaledToFit()

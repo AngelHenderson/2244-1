@@ -624,7 +624,7 @@ public struct CustomChallengeGameScreen: View {
                         if let boosts = fullReward?.scoreBoosts, !boosts.isEmpty {
                             ForEach(Array(boosts.sorted(by: { $0.key < $1.key })), id: \.key) { multiplier, count in
                                 HStack(spacing: 8) {
-                                    Image("boost-\(multiplier)x")
+                                    Image("boost\(multiplier)x")
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 20, height: 20)

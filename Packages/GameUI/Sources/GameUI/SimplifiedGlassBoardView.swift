@@ -192,7 +192,7 @@ public struct SimplifiedGlassBoardView: View {
         .simultaneousGesture(
             dragGesture(
                 tileSize: tileSize,
-                containerSize: containerSize
+                containerSize: gridFrameSize(for: tileSize)
             )
         )
     }
@@ -441,6 +441,16 @@ public struct SimplifiedGlassBoardView: View {
         let tileHeight = availableHeight / CGFloat(heightCount)
         let candidate = min(tileWidth, tileHeight)
         return candidate.isFinite ? max(0, candidate) : 0
+    }
+    
+    private func gridFrameSize(for tileSize: CGFloat) -> CGSize {
+        let widthCount = max(1, gameStore.state.board.width)
+        let heightCount = max(1, gameStore.state.board.height)
+        let totalTilesWidth = CGFloat(widthCount) * tileSize + CGFloat(max(0, widthCount - 1)) * spacing
+        let totalTilesHeight = CGFloat(heightCount) * tileSize + CGFloat(max(0, heightCount - 1)) * spacing
+        let boardWidth = totalTilesWidth + 2 * spacing
+        let boardHeight = totalTilesHeight + 2 * spacing
+        return CGSize(width: boardWidth, height: boardHeight)
     }
     
     private func gridPosition(from location: CGPoint, tileSize: CGFloat, containerSize: CGSize) -> Position? {

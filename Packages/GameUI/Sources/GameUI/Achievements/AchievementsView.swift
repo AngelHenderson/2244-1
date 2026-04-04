@@ -638,7 +638,7 @@ private struct RewardSummary: View {
             items.append(RewardItem(icon: .asset("boost3x"), text: "\(boost3x)× 3X Boost"))
         }
         if let boost4x = rewards.boost4x, boost4x > 0 {
-            items.append(RewardItem(icon: .system("4.circle.fill", .orange), text: "\(boost4x)× 4X Boost"))
+            items.append(RewardItem(icon: .asset("boost4x"), text: "\(boost4x)× 4X Boost"))
         }
         return items
     }
@@ -1031,9 +1031,9 @@ private struct DailyQuestRewardRow: View {
         if let m = rewards.magnets, m > 0 { list.append(Item(text: "\(m)", assetName: "magnet", systemName: nil, color: .clear)) }
         if let s = rewards.swaps, s > 0 { list.append(Item(text: "\(s)", assetName: "swap", systemName: nil, color: .clear)) }
         if let sp = rewards.spins, sp > 0 { list.append(Item(text: "\(sp)", assetName: "spinthewheel", systemName: nil, color: .clear)) }
-        if let b2 = rewards.boost2x, b2 > 0 { list.append(Item(text: "\(b2)×", assetName: "boost-2x", systemName: nil, color: .clear)) }
-        if let b3 = rewards.boost3x, b3 > 0 { list.append(Item(text: "\(b3)×", assetName: nil, systemName: "3.circle.fill", color: .pink)) }
-        if let b4 = rewards.boost4x, b4 > 0 { list.append(Item(text: "\(b4)×", assetName: nil, systemName: "4.circle.fill", color: .orange)) }
+        if let b2 = rewards.boost2x, b2 > 0 { list.append(Item(text: "\(b2)×", assetName: "boost2x", systemName: nil, color: .clear)) }
+        if let b3 = rewards.boost3x, b3 > 0 { list.append(Item(text: "\(b3)×", assetName: "boost3x", systemName: nil, color: .clear)) }
+        if let b4 = rewards.boost4x, b4 > 0 { list.append(Item(text: "\(b4)×", assetName: "boost4x", systemName: nil, color: .clear)) }
         return list
     }
 
