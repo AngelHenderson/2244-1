@@ -757,7 +757,7 @@ public struct CustomChallengeGameScreen: View {
            let index = challengeStore.challenges.firstIndex(where: { $0.id == challengeId }) {
             return 500 * (index + 1)
         }
-        return 500 // fallback for custom challenges
+        return 1500 // fallback for custom challenges
     }
     private let timeRecoveryBonus = 30 // seconds
 
