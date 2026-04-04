@@ -192,7 +192,7 @@ public struct CustomChallengeGameScreen: View {
         } message: {
             Text("You have no moves. Want to use a powerup to revive?")
         }
-        .alert("Can't Afford", isPresented: $isShowingInsufficientGemsAlert) {
+        .alert("Can't Afford It", isPresented: $isShowingInsufficientGemsAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             let needed = timeRecoveryCost - homeState.gems
@@ -752,7 +752,13 @@ public struct CustomChallengeGameScreen: View {
 
     // MARK: - Time Recovery Overlay
 
-    private let timeRecoveryCost = 1500
+    private var timeRecoveryCost: Int {
+        if let challengeId = config.challengeId,
+           let index = challengeStore.challenges.firstIndex(where: { $0.id == challengeId }) {
+            return 500 * (index + 1)
+        }
+        return 500 // fallback for custom challenges
+    }
     private let timeRecoveryBonus = 30 // seconds
 
     private var timeRecoveryOverlay: some View {
