@@ -1037,6 +1037,10 @@ public final class GameStore {
         let newCount = engine.countValidMoves()
         validMovesCount = newCount
 
+        if newCount == 0 {
+            state.isGameOver = true
+        }
+
         // Debug: Log significant changes
         if oldCount > 0 {
             let changePercent = abs(Double(newCount - oldCount) / Double(oldCount) * 100)
