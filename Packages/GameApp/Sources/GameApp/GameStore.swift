@@ -1041,7 +1041,7 @@ public final class GameStore {
         if oldCount > 0 {
             let changePercent = abs(Double(newCount - oldCount) / Double(oldCount) * 100)
             if changePercent > 50 {
-                print("⚠️ VALID MOVES: Large change detected: \(oldCount) → \(newCount) (\(Int(changePercent))% change)")
+                print("⚠️ VALID MOVES: Large change detected: \(oldCount) → \(newCount) (\(Int(round(changePercent)))% change)")
             }
         }
     }

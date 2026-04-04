@@ -38,8 +38,12 @@ public struct HybridGameScreen: View {
     @State private var isShowingLeaderboard = false
     @State private var isShowingUnlockReward = false
 
-    // Game over flow states
-    @State private var isShowingOutOfMoves = false
+    enum PowerUpOverlayContext {
+        case outOfMoves
+        case lowOnMoves
+    }
+    @State private var powerUpOverlayContext: PowerUpOverlayContext?
+    @State private var isShowingPowerUpOverlay = false
     @State private var isShowingGameOverText = false
 
     @State private var isShowingMilestoneStart = false
@@ -273,9 +277,13 @@ public struct HybridGameScreen: View {
                 }
             }
             .alert("Low On Moves", isPresented: $isShowingLowOnMoves) {
-                Button("OK", role: .cancel) { }
+                Button("Yes") {
+                    powerUpOverlayContext = .lowOnMoves
+                    isShowingPowerUpOverlay = true
+                }
+                Button("No", role: .cancel) { }
             } message: {
-                Text("You are low on moves. Use a powerup to free up moves!")
+                Text("You are low on moves. Want to use a powerup to free up moves?")
             }
 
         
@@ -314,7 +322,8 @@ public struct HybridGameScreen: View {
 
                 // Check if game is already over on appear
                 if gameStore.state.isGameOver {
-                    isShowingOutOfMoves = true
+                    powerUpOverlayContext = .outOfMoves
+                    isShowingPowerUpOverlay = true
                 }
             }
             .onDisappear {
@@ -351,17 +360,17 @@ public struct HybridGameScreen: View {
                 }
             }
             .onChange(of: gameStore.state.isGameOver) { _, isGameOver in
-                if isGameOver && !isShowingOutOfMoves && !isShowingGameOverText {
+                if isGameOver && !isShowingPowerUpOverlay && !isShowingGameOverText {
                     // Show out of moves dialog when game ends
-                    isShowingOutOfMoves = true
+                    powerUpOverlayContext = .outOfMoves
+                    isShowingPowerUpOverlay = true
                 } else if !isGameOver {
                     // Game recovered (e.g., power-up created new moves)
                     // Cancel any pending reset and hide overlays
                     gameOverResetTask?.cancel()
                     gameOverResetTask = nil
-                    isShowingOutOfMoves = false
+                    isShowingPowerUpOverlay = false
                     isShowingGameOverText = false
-
                 }
             }
             .onChange(of: gameStore.validMovesCount) { _, newCount in
@@ -369,7 +378,7 @@ public struct HybridGameScreen: View {
                 // Re-arms when moves go back above 5 (e.g., after using a powerup)
                 if newCount > 5 {
                     lowMovesWarningArmed = true
-                } else if newCount > 0 && newCount <= 5 && lowMovesWarningArmed && !gameStore.state.isGameOver && !isShowingOutOfMoves {
+                } else if newCount > 0 && newCount <= 5 && lowMovesWarningArmed && !gameStore.state.isGameOver && !isShowingPowerUpOverlay {
                     lowMovesWarningArmed = false
                     isShowingLowOnMoves = true
                 }
@@ -394,9 +403,9 @@ public struct HybridGameScreen: View {
                 milestoneStartOverlay
             }
 
-            // Out of moves overlay (replaces iOS alert + recovery overlay)
-            if isShowingOutOfMoves {
-                outOfMovesOverlay
+            // Power-up recovery overlay (for out of moves / low on moves)
+            if isShowingPowerUpOverlay {
+                powerUpOverlay
             }
         }
     }
@@ -416,39 +425,39 @@ public struct HybridGameScreen: View {
         }
     }
 
-    // MARK: - Out of Moves Overlay
+    // MARK: - Power Up Recovery Overlay (Out of Moves & Low on Moves)
 
-    private var outOfMovesOverlay: some View {
+    private var powerUpOverlay: some View {
         ZStack {
             Color.black.opacity(0.65)
                 .ignoresSafeArea()
                 .onTapGesture { /* block taps */ }
 
-            outOfMovesCard
+            powerUpCard
         }
     }
 
-    private var outOfMovesCard: some View {
+    private var powerUpCard: some View {
         VStack(spacing: 0) {
             // Title
-            Text("Out of Moves!")
+            Text(powerUpOverlayContext == .outOfMoves ? "Out of Moves!" : "Low on Moves!")
                 .font(.avenirNext(size: 28, weight: .heavy))
                 .foregroundColor(.white)
                 .padding(.top, 28)
 
             // Subtitle
-            Text("Continue?")
+            Text(powerUpOverlayContext == .outOfMoves ? "Continue?" : "Need a boost?")
                 .font(.avenirNext(size: 20, weight: .bold))
                 .foregroundColor(.white.opacity(0.85))
                 .padding(.top, 16)
 
             // Power-up purchase row
-            outOfMovesPowerUpRow
+            powerUpIconRow
                 .padding(.top, 24)
                 .padding(.horizontal, 20)
 
             // Bottom row: No Thanks + FREE AD
-            outOfMovesBottomRow
+            powerUpBottomRow
                 .padding(.top, 24)
                 .padding(.bottom, 20)
                 .padding(.horizontal, 20)
@@ -466,38 +475,38 @@ public struct HybridGameScreen: View {
         .shadow(color: .black.opacity(0.6), radius: 20, y: 10)
     }
 
-    private var outOfMovesPowerUpRow: some View {
+    private var powerUpIconRow: some View {
         HStack(spacing: 12) {
-            outOfMovesPowerUpCard(
+            powerUpCardView(
                 assetName: "hammer",
                 cost: gameStore.powerUpPrice("hammer"),
                 hasInventory: gameStore.powerUpInventory["hammer", default: 0] > 0
             ) {
-                isShowingOutOfMoves = false
+                isShowingPowerUpOverlay = false
                 isHammerMode = true
             }
 
-            outOfMovesPowerUpCard(
+            powerUpCardView(
                 assetName: "swap",
                 cost: gameStore.powerUpPrice("swap"),
                 hasInventory: gameStore.powerUpInventory["swap", default: 0] > 0
             ) {
-                isShowingOutOfMoves = false
+                isShowingPowerUpOverlay = false
                 isSwapMode = true
             }
 
-            outOfMovesPowerUpCard(
+            powerUpCardView(
                 assetName: "magnet",
                 cost: gameStore.powerUpPrice("magnet"),
                 hasInventory: gameStore.powerUpInventory["magnet", default: 0] > 0
             ) {
-                isShowingOutOfMoves = false
+                isShowingPowerUpOverlay = false
                 isMagnetMode = true
             }
         }
     }
 
-    private func outOfMovesPowerUpCard(
+    private func powerUpCardView(
         assetName: String,
         cost: Int,
         hasInventory: Bool,
@@ -553,12 +562,14 @@ public struct HybridGameScreen: View {
         }
     }
 
-    private var outOfMovesBottomRow: some View {
+    private var powerUpBottomRow: some View {
         HStack {
             // No Thanks button
             Button {
-                isShowingOutOfMoves = false
-                showGameOverAndReset()
+                isShowingPowerUpOverlay = false
+                if powerUpOverlayContext == .outOfMoves {
+                    showGameOverAndReset()
+                }
             } label: {
                 VStack(spacing: 2) {
                     Text("No Thanks")
@@ -579,7 +590,7 @@ public struct HybridGameScreen: View {
                         gameStore.addCoins(135)
                         haptics.success()
                     }
-                    isShowingOutOfMoves = false
+                    isShowingPowerUpOverlay = false
                 }
             } label: {
                 VStack(spacing: 0) {
