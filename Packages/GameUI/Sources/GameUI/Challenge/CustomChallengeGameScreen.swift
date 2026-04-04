@@ -192,7 +192,7 @@ public struct CustomChallengeGameScreen: View {
         } message: {
             Text("You have no moves. Want to use a powerup to revive?")
         }
-        .alert("Insufficient Gems", isPresented: $isShowingInsufficientGemsAlert) {
+        .alert("Can't Afford", isPresented: $isShowingInsufficientGemsAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             let needed = timeRecoveryCost - homeState.gems
