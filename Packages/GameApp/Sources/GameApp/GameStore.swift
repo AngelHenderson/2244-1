@@ -2344,6 +2344,9 @@ public final class GameStore {
             }()
             let mergedStep = mergedTile?.stepIndex ?? (TileStepLabelFormatter.stepForValue(mergedValue, start: 2) ?? 0)
 
+            // Increment mastery count
+            self.incrementTierMasteryCount(for: mergedTile, value: mergedValue)
+
             self.setMergeInfoIfMilestone(
                 previousHighest: previousHighest,
                 newTileValue: mergedValue,

@@ -468,21 +468,20 @@ struct CompareView: View {
             return Double.greatestFiniteMagnitude - 1_000_000 + count
         }
 
-        let s = str.uppercased()
         var multiplier: Double = 1
 
-        // Find where the numeric part ends and suffix begins
-        var numericEnd = s.startIndex
-        for (index, char) in s.enumerated() {
+        // Find where the numeric part ends and suffix begins preserving case
+        var numericEnd = str.startIndex
+        for (index, char) in str.enumerated() {
             if char.isNumber || char == "." {
-                numericEnd = s.index(s.startIndex, offsetBy: index + 1)
+                numericEnd = str.index(str.startIndex, offsetBy: index + 1)
             } else {
                 break
             }
         }
 
-        let numericPart = String(s[..<numericEnd])
-        let suffix = String(s[numericEnd...])
+        let numericPart = String(str[..<numericEnd])
+        let suffix = String(str[numericEnd...])
 
         if !suffix.isEmpty {
             switch suffix {
@@ -491,14 +490,14 @@ struct CompareView: View {
             case "B": multiplier = 1_000_000_000
             default:
                 // Extended suffixes: single letters (a-z) or double letters (aa-zz)
-                let lowSuffix = suffix.lowercased()
-                if lowSuffix.count == 1, let asciiVal = lowSuffix.first?.asciiValue {
+                // These are strictly lowercase
+                if suffix.count == 1, let asciiVal = suffix.first?.asciiValue {
                     // Single letter: a = 10^12, b = 10^15, etc.
                     let letterIndex = Int(asciiVal) - Int(Character("a").asciiValue!)
                     multiplier = pow(10, Double(12 + letterIndex * 3))
-                } else if lowSuffix.count == 2 {
+                } else if suffix.count == 2 {
                     // Double letter: aa-az, ba-bz (52 total)
-                    let chars = Array(lowSuffix)
+                    let chars = Array(suffix)
                     if let first = chars[0].asciiValue, let second = chars[1].asciiValue {
                         let firstIndex = Int(first) - Int(Character("a").asciiValue!) // 0 for 'a', 1 for 'b'
                         let secondIndex = Int(second) - Int(Character("a").asciiValue!)
