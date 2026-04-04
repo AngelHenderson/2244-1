@@ -497,16 +497,6 @@ public struct SimplifiedGlassBoardView: View {
         return CGPoint(x: originX, y: originY)
     }
 
-    private func gridFrameSize(for tileSize: CGFloat) -> CGSize {
-        let widthCount = max(1, gameStore.state.board.width)
-        let heightCount = max(1, gameStore.state.board.height)
-        let totalTilesWidth = CGFloat(widthCount) * tileSize + CGFloat(max(0, widthCount - 1)) * spacing
-        let totalTilesHeight = CGFloat(heightCount) * tileSize + CGFloat(max(0, heightCount - 1)) * spacing
-        let boardWidth = totalTilesWidth + 2 * spacing
-        let boardHeight = totalTilesHeight + 2 * spacing
-        return CGSize(width: boardWidth, height: boardHeight)
-    }
-    
     private func describe(_ point: CGPoint) -> String {
         "(\(String(format: "%.1f", point.x)), \(String(format: "%.1f", point.y)))"
     }

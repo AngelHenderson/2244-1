@@ -266,7 +266,8 @@ public struct LeaderboardView: View {
                             milestoneRow(
                                 milestone: tier.milestone,
                                 rankLabel: tier.rankLabel,
-                                isUserTier: tier.milestone == userMilestone
+                                isUserTier: tier.milestone == userMilestone,
+                                userMilestone: userMilestone
                             )
                         }
                     }
@@ -704,7 +705,7 @@ public struct LeaderboardView: View {
     }
 
     @ViewBuilder
-    private func milestoneRow(milestone: String, rankLabel: String, isUserTier: Bool) -> some View {
+    private func milestoneRow(milestone: String, rankLabel: String, isUserTier: Bool, userMilestone: String) -> some View {
         HStack(spacing: 0) {
 
             // Rank label (e.g., "73150 - 1B")
@@ -713,6 +714,25 @@ public struct LeaderboardView: View {
                 .foregroundStyle(isUserTier ? .white : .white.opacity(0.7))
 
             Spacer()
+            
+            // Distance indicator
+            if !isUserTier {
+                let targetIdx = MockLeaderboardData.milestoneIndex(for: milestone)
+                let userIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+                let distance = targetIdx - userIdx
+                
+                if distance > 0 {
+                    Text("\(distance) away")
+                        .font(.avenirNext(size: 13, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.5))
+                        .padding(.trailing, 8)
+                } else if distance < 0 {
+                    Text("\(abs(distance)) ahead")
+                        .font(.avenirNext(size: 13, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.4))
+                        .padding(.trailing, 8)
+                }
+            }
 
             // Milestone badge
             let tileRadius: CGFloat = currentTheme?.tileShape == .square ? 3 : 6
