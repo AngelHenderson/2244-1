@@ -626,6 +626,7 @@ public struct HybridGameScreen: View {
     }
 
     private func showGameOverAndReset() {
+        gameStore.gameOverConfirmed = true
         isShowingGameOverText = true
 
         // Cancel any existing reset task

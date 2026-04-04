@@ -159,7 +159,7 @@ public struct SimplifiedGlassBoardView: View {
                     theme: currentTheme
                 )
                 .frame(width: tileSize, height: tileSize)
-                .saturation(gameStore.state.isGameOver ? 0.0 : 1.0)
+                .saturation(gameStore.gameOverConfirmed ? 0.0 : 1.0)
                 .opacity(shouldHideTile(at: item.position) ? 0 : 1)
                 .position(centerPoint(for: item.position, tileSize: tileSize, containerSize: containerSize))
                 .transition(.identity)
