@@ -166,7 +166,7 @@ public struct SimplifiedGlassBoardView: View {
                 // Position animation
                 .animation(.spring(response: 0.35, dampingFraction: 0.8), value: item.position)
                 // Game over grayscale animation
-                .animation(.easeInOut(duration: 1.5), value: gameStore.state.isGameOver)
+                .animation(.easeInOut(duration: 2.5), value: gameStore.gameOverConfirmed)
                 .allowsHitTesting(false)
             }
 
