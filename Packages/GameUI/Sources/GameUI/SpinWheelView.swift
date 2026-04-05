@@ -216,7 +216,7 @@ public struct SpinWheelView: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
                 } else if bonusReady {
-                    Text("Bonus spins available: \(spinState.bonusSpins)")
+                    Text("Spins left: \(spinState.bonusSpins)")
                         .foregroundStyle(.white.opacity(0.85))
                         .font(.avenirNext(size: 18, weight: .semibold))
                         .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
