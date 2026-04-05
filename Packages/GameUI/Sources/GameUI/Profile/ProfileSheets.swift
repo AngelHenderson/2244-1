@@ -183,7 +183,8 @@ struct CompareView: View {
             countryFlag: myProfile.countryFlag,
             milestone: myProfile.milestone,
             isMe: true,
-            isBanned: false
+            isBanned: false,
+            isGameOver: false
         ))
 
         // Add selected players (milestone comes from leaderboard data)
@@ -195,13 +196,16 @@ struct CompareView: View {
                 countryFlag: player.countryFlag,
                 milestone: player.milestone,
                 isMe: false,
-                isBanned: player.isBanned
+                isBanned: player.isBanned,
+                isGameOver: player.isGameOver
             ))
         }
 
-        // Sort: banned players go to bottom, then by milestone (highest first)
+        // Sort: banned at very bottom, game-over above banned, then by milestone (highest first)
         return entries.sorted { a, b in
-            if a.isBanned != b.isBanned { return !a.isBanned }
+            let aPriority = a.isBanned ? 2 : (a.isGameOver ? 1 : 0)
+            let bPriority = b.isBanned ? 2 : (b.isGameOver ? 1 : 0)
+            if aPriority != bPriority { return aPriority < bPriority }
             return parseMilestone(a.milestone) > parseMilestone(b.milestone)
         }
     }
@@ -220,7 +224,8 @@ struct CompareView: View {
             countryFlag: myProfile.countryFlag,
             milestone: myHofDisplay,
             isMe: true,
-            isBanned: false
+            isBanned: false,
+            isGameOver: false
         ))
 
         // Add selected players — extract infinity count from their milestone
@@ -238,13 +243,16 @@ struct CompareView: View {
                 countryFlag: player.countryFlag,
                 milestone: hofDisplay,
                 isMe: false,
-                isBanned: player.isBanned
+                isBanned: player.isBanned,
+                isGameOver: player.isGameOver
             ))
         }
 
-        // Sort: banned go to bottom, then infinity counts descending, then "—" entries
+        // Sort: banned at very bottom, game-over above banned, then infinity counts descending
         return entries.sorted { a, b in
-            if a.isBanned != b.isBanned { return !a.isBanned }
+            let aPriority = a.isBanned ? 2 : (a.isGameOver ? 1 : 0)
+            let bPriority = b.isBanned ? 2 : (b.isGameOver ? 1 : 0)
+            if aPriority != bPriority { return aPriority < bPriority }
             let aCount = infinityCount(from: a.milestone)
             let bCount = infinityCount(from: b.milestone)
             return aCount > bCount
@@ -338,10 +346,10 @@ struct CompareView: View {
 
                                 Spacer()
 
-                                // Milestone (or Banned)
-                                Text(entry.isBanned ? "Banned" : entry.milestone)
+                                // Milestone (or status)
+                                Text(entry.isBanned ? "Banned" : (entry.isGameOver ? "Game Over" : entry.milestone))
                                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                                    .foregroundColor(entry.isBanned ? .red : (entry.isMe ? .accentColor : .primary))
+                                    .foregroundColor(entry.isBanned ? .red : (entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary)))
 
                                 // Remove button (only for non-me entries)
                                 if !entry.isMe {
@@ -403,10 +411,10 @@ struct CompareView: View {
 
                                 Spacer()
 
-                                // Infinity count (or Banned)
-                                Text(entry.isBanned ? "Banned" : entry.milestone)
+                                // Infinity count (or status)
+                                Text(entry.isBanned ? "Banned" : (entry.isGameOver ? "Game Over" : entry.milestone))
                                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                                    .foregroundColor(entry.isBanned ? .red : (entry.isMe ? .accentColor : .primary))
+                                    .foregroundColor(entry.isBanned ? .red : (entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary)))
 
                                 // Remove button (only for non-me entries)
                                 if !entry.isMe {
@@ -521,6 +529,7 @@ struct MockPlayer: Identifiable {
     let countryCode: String
     let milestone: String
     let isBanned: Bool
+    let isGameOver: Bool
 
     var countryFlag: String {
         let base: UInt32 = 0x1F1E6
@@ -539,7 +548,8 @@ struct MockPlayer: Identifiable {
                 code: player.code,
                 countryCode: player.countryCode,
                 milestone: player.milestone,
-                isBanned: player.isBanned
+                isBanned: player.isBanned,
+                isGameOver: player.isGameOver
             )
         }
     }
@@ -565,6 +575,7 @@ struct ComparisonEntry: Identifiable {
     let milestone: String
     let isMe: Bool
     let isBanned: Bool
+    let isGameOver: Bool
 }
 
 // MARK: - Comparison Row (kept for potential future use)
