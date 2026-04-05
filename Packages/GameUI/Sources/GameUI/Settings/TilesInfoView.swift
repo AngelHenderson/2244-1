@@ -1,5 +1,6 @@
 import SwiftUI
 import GameApp
+import GameCore
 
 public struct TilesInfoView: View {
     @Environment(\.dismiss) private var dismiss
@@ -182,38 +183,57 @@ private struct AbbreviationsListView: View {
         return (exp / 3) * 10 - 1
     }
 
+    /// Finds the exact step index where the suffix transitions
+    private func exactStep(forAbbrev targetAbbrev: String, fallback: Int) -> Int {
+        let searchStart = max(0, fallback - 5)
+        let searchEnd = min(817, fallback + 5)
+        
+        for step in searchStart...searchEnd {
+            let label = TileStepLabelFormatter.labelForStep(step, start: 2)
+            if let firstLetterIdx = label.firstIndex(where: { $0.isLetter }) {
+                let abbrev = String(label[firstLetterIdx...])
+                if abbrev == targetAbbrev {
+                    return step
+                }
+            }
+        }
+        return fallback
+    }
+
     // Generate all tile info including double letters
     // overrideColor allows specific entries to use a fixed color instead of theme color
     private var tileInfo: [(abbrev: String, exponent: Int, sample: String, step: Int, overrideColor: Color?)] {
         var info: [(abbrev: String, exponent: Int, sample: String, step: Int, overrideColor: Color?)] = []
 
+        func addInfo(abbrev: String, exponent: Int) {
+            let fallback = stepForBase10Exponent(exponent)
+            let step = exactStep(forAbbrev: abbrev, fallback: fallback)
+            let sample = TileStepLabelFormatter.labelForStep(step, start: 2)
+            info.append((abbrev, exponent, sample, step, nil))
+        }
+
         // Single letters: K, M, B
-        // K is special: sample "16K" = 16,384 = 2^14 → step 13
-        // M: 1M ≈ 2^20 → step 19
-        info.append(("K", 3, "16K", 13, nil))
-        info.append(("M", 6, "1M", 19, nil))
-        info.append(("B", 9, "1B", stepForBase10Exponent(9), nil))
+        addInfo(abbrev: "K", exponent: 3)
+        addInfo(abbrev: "M", exponent: 6)
+        addInfo(abbrev: "B", exponent: 9)
 
         // Single letters: a-z (exponents 12, 15, 18, ... 87)
         let letters = "abcdefghijklmnopqrstuvwxyz"
         for (index, letter) in letters.enumerated() {
             let exponent = 12 + (index * 3)
-            let abbrev = String(letter)
-            info.append((abbrev, exponent, "1\(abbrev)", stepForBase10Exponent(exponent), nil))
+            addInfo(abbrev: String(letter), exponent: exponent)
         }
 
         // Double letters: aa-az (exponents 90, 93, ... 165)
         for (index, secondLetter) in letters.enumerated() {
             let exponent = 90 + (index * 3)
-            let abbrev = "a\(secondLetter)"
-            info.append((abbrev, exponent, "1\(abbrev)", stepForBase10Exponent(exponent), nil))
+            addInfo(abbrev: "a\(secondLetter)", exponent: exponent)
         }
 
         // Double letters: ba-bz (exponents 168, 171, ... 243)
         for (index, secondLetter) in letters.enumerated() {
             let exponent = 168 + (index * 3)
-            let abbrev = "b\(secondLetter)"
-            info.append((abbrev, exponent, "1\(abbrev)", stepForBase10Exponent(exponent), nil))
+            addInfo(abbrev: "b\(secondLetter)", exponent: exponent)
         }
 
         return info
