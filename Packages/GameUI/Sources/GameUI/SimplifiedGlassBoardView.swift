@@ -192,7 +192,7 @@ public struct SimplifiedGlassBoardView: View {
         .simultaneousGesture(
             dragGesture(
                 tileSize: tileSize,
-                containerSize: gridFrameSize(for: tileSize)
+                containerSize: containerSize
             )
         )
     }
