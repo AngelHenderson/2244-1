@@ -370,6 +370,7 @@ public enum MockLeaderboardData {
         public let countryCode: String
         public let milestone: String
         public let isBanned: Bool
+        public let isGameOver: Bool
     }
 
     /// Generate all searchable players from leaderboard data with codes
@@ -466,13 +467,19 @@ public enum MockLeaderboardData {
                 let banHash = abs(banSeed &* 2654435761) % 100
                 let isBanned = banHash < 3
 
+                // ~5% of non-banned players recently ran out of moves
+                let goSeed = (i &+ 1) &* 53 &+ config.seed &* 29
+                let goHash = abs(goSeed &* 2246822519) % 100
+                let isGameOver = !isBanned && goHash < 5
+
                 players.append(SearchablePlayer(
                     id: "\(config.code.lowercased())_\(i)",
                     name: name,
                     code: generateCode(seed: codeSeed),
                     countryCode: config.code,
                     milestone: progressedMilestone,
-                    isBanned: isBanned
+                    isBanned: isBanned,
+                    isGameOver: isGameOver
                 ))
             }
         }

@@ -31,7 +31,7 @@ public final class GameStore {
 
     /// Set to true only when the player confirms game over (dismisses recovery overlay).
     /// Used by board views for the greyout animation instead of `state.isGameOver`.
-    @Published public var gameOverConfirmed: Bool = false
+    public var gameOverConfirmed: Bool = false
 
     // Sandboxed mode for challenges - doesn't persist progress to main game
     public let sandboxed: Bool
