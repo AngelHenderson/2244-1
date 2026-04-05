@@ -728,17 +728,26 @@ struct PlayerHistoryView: View {
                     }
 
                     // Repeat offender — escalate using ladder
-                    if banStartIndex[name] == nil {
-                        if let forRange = event.message.range(of: "banned for "),
-                           let dueRange = event.message.range(of: " due to") {
-                            let initialDuration = String(event.message[forRange.upperBound..<dueRange.lowerBound])
-                            banStartIndex[name] = escalationLadder.firstIndex(of: initialDuration) ?? 4 // default to "two weeks" for system bans
-                        } else {
-                            banStartIndex[name] = 4
-                        }
+                    // Determine the system's intended duration for this specific offense
+                    var intendedIndex = 4 // Fallback to "two weeks"
+                    if let forRange = event.message.range(of: "banned for "),
+                       let dueRange = event.message.range(of: " due to") {
+                        let initialDuration = String(event.message[forRange.upperBound..<dueRange.lowerBound])
+                        intendedIndex = escalationLadder.firstIndex(of: initialDuration) ?? 4
                     }
-                    let startIdx = banStartIndex[name] ?? 4
-                    let escalatedDuration = escalationLadder[min(startIdx + banNumber, escalationLadder.count - 1)]
+                    
+                    let baseIdx = banStartIndex[name] ?? 0
+                    
+                    // The new ladder index is the max of:
+                    // 1) Their previous ladder tier + 1 (escalated)
+                    // 2) The severity of the new offense itself
+                    // 3) At least 4 ("two weeks") because this is a system ban
+                    let ladderIndex = max(baseIdx + banNumber, intendedIndex, 4)
+                    
+                    // Update their base index so future bans escalate properly from here
+                    banStartIndex[name] = max(0, ladderIndex - banNumber)
+                    
+                    let escalatedDuration = escalationLadder[min(ladderIndex, escalationLadder.count - 1)]
 
                     // Extract the reason from the original message
                     let reason: String
