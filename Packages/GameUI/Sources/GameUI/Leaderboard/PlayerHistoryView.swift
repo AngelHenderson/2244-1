@@ -152,30 +152,34 @@ struct PlayerHistoryView: View {
                 ))
             }
 
-            // 2) False reports — ONE player makes 5 false reports (1 overtake + 4 regular)
-            //    → triggers "banned due to 5+ abuse points from false reports"
+            // 2) False reports — ONE player makes false reports that reach 5+ abuse pts
+            //    Pattern A: 1 overtake (+2) + 4 regular (+4) = 6 pts
+            //    Pattern B: 2 overtakes (+4) + 1 regular (+1) = 5 pts
             //    Then 2 more false reports from different players for variety
             let abuserSeed = eventDay * 700 + 200
             let abuser = makePlayer(seed: abuserSeed)
+            let usePatternB = MockLeaderboardData.seededRandom(seed: abuserSeed + 99, index: eventDay) < 0.5
             
-            // 1 overtake false report = 2 abuse points
-            result.append(HistoryEvent(
-                type: .falseReport,
-                playerName: abuser.name,
-                reporterName: "overtake",
-                message: "\(abuser.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
-                daysAgo: daysAgo,
-                seed: abuserSeed
-            ))
+            let overtakeCount = usePatternB ? 2 : 1
+            let regularCount = usePatternB ? 1 : 4
             
-            // 4 regular false reports = 4 abuse points
-            for i in 0..<4 {
+            for i in 0..<overtakeCount {
+                result.append(HistoryEvent(
+                    type: .falseReport,
+                    playerName: abuser.name,
+                    reporterName: "overtake",
+                    message: "\(abuser.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                    daysAgo: daysAgo,
+                    seed: abuserSeed + i
+                ))
+            }
+            for i in 0..<regularCount {
                 result.append(HistoryEvent(
                     type: .falseReport,
                     playerName: abuser.name,
                     message: "\(abuser.name) made a false report. (+1 abuse point)",
                     daysAgo: daysAgo,
-                    seed: abuserSeed + 1 + i
+                    seed: abuserSeed + overtakeCount + i
                 ))
             }
             // 2 extra false reports from different players (mix of +1 and +2)
