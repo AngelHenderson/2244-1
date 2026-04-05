@@ -413,7 +413,9 @@ private extension AchievementDef.Rewards.Entry.Kind {
         case .hammers: return "hammer"
         case .magnets: return "magnet"
         case .swaps: return "swap"
-        case .boost2x, .boost3x, .boost4x: return nil
+        case .boost2x: return "boost2x"
+        case .boost3x: return "boost3x"
+        case .boost4x: return "boost4x"
         }
     }
 
@@ -422,7 +424,7 @@ private extension AchievementDef.Rewards.Entry.Kind {
         case .gems: return "gem"
         case .spins: return "arrow.triangle.2.circlepath"
         case .hammers: return "hammer.fill"
-        case .magnets: return "magnet.fill"
+        case .magnets: return "dot.radiowaves.left.and.right"
         case .swaps: return "arrow.2.squarepath"
         case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
         }
