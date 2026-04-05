@@ -255,18 +255,9 @@ struct PlayerHistoryView: View {
                         seed: seed
                     ))
                 } else {
-                    let milestoneValues = [
-                        // Basic numbers / K / M / B
-                        "16K", "32K", "65K", "131K", "262K", "524K", "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "549B",
-                        // a-z
-                        "1a", "2b", "4c", "9d", "19e", "79f", "604d", "590c", "576b", "1q", "3r", "6s", "883t", "7u", "994y",
-                        // aa-az
-                        "84al", "726ao", "199as", "28ax",
-                        // ba-bz
-                        "106by", "109bz", "47br", "3bw", "436bz", "1by", "706bq", "321bm", "598bj"
-                    ]
-                    let mIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(milestoneValues.count))
-                    let milestone = milestoneValues[min(mIdx, milestoneValues.count - 1)]
+                    let allM = MockLeaderboardData.allMilestones
+                    let mIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(allM.count))
+                    let milestone = allM[min(mIdx, allM.count - 1)]
                     result.append(HistoryEvent(
                         type: .gameOver,
                         message: "\(p.name) ran out of moves at \(milestone).",
@@ -451,18 +442,9 @@ struct PlayerHistoryView: View {
                             seed: seed
                         )
                     } else {
-                        let milestoneValues = [
-                            // Basic numbers / K / M / B
-                            "128", "256", "512", "1024", "2048", "4096", "8192", "16K", "32K", "65K", "131K", "262K", "524K", "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "549B",
-                            // a-z
-                            "1a", "2b", "4c", "8d", "19e", "79f", "604d", "590c", "576b", "1q", "3r", "6s", "883t", "7u", "994y",
-                            // aa-az
-                            "84al", "726ao", "199as", "28ax",
-                            // ba-bz
-                            "106by", "109bz", "47br", "3bw", "436bz", "1by", "706bq", "321bm", "598bj"
-                        ]
-                        let milestoneIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(milestoneValues.count))
-                        let milestone = milestoneValues[min(milestoneIdx, milestoneValues.count - 1)]
+                        let allM = MockLeaderboardData.allMilestones
+                        let milestoneIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(allM.count))
+                        let milestone = allM[min(milestoneIdx, allM.count - 1)]
                         event = HistoryEvent(
                             type: .gameOver,
                             message: "\(p.name) ran out of moves at \(milestone).",
