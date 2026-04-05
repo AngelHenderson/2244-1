@@ -496,11 +496,21 @@ struct PlayerHistoryView: View {
             // --- DISTRIBUTE EVENTS FOR THIS DAY EVENLY ---
             let dailyCount = result.count - dailyStartIndex
             if dailyCount > 0 {
-                var indices = Array(dailyStartIndex..<result.count)
-                // Deterministic shuffle so different event types are spread across the hours
-                indices.sort { result[$0].id < result[$1].id }
+                // Separate recovery events from the rest — they must stay paired with their game over
+                var normalIndices: [Int] = []
+                var recoveryIndices: [Int] = []
+                for idx in dailyStartIndex..<result.count {
+                    if result[idx].type == .moveRecovery {
+                        recoveryIndices.append(idx)
+                    } else {
+                        normalIndices.append(idx)
+                    }
+                }
                 
-                for (i, targetIdx) in indices.enumerated() {
+                // Deterministic shuffle for non-recovery events
+                normalIndices.sort { result[$0].id < result[$1].id }
+                
+                for (i, targetIdx) in normalIndices.enumerated() {
                     let hour = i % 24
                     // Deterministic minute (use bitwise AND to avoid abs(Int.min) overflow crash)
                     let minute = ((result[targetIdx].message.hashValue &* 11) & 0x7FFFFFFF) % 60
@@ -510,6 +520,20 @@ struct PlayerHistoryView: View {
                     components.hour = hour
                     components.minute = minute
                     result[targetIdx].eventDate = calendar.date(from: components) ?? result[targetIdx].eventDate
+                }
+                
+                // Re-attach each recovery event to 1 minute after its paired game over
+                // The recovery is always appended right after its game over, so walk backward to find it
+                for recoveryIdx in recoveryIndices {
+                    let recoveryPlayerName = result[recoveryIdx].message.components(separatedBy: " recovered").first ?? ""
+                    // Search backward from recoveryIdx for the matching gameOver
+                    for searchIdx in stride(from: recoveryIdx - 1, through: dailyStartIndex, by: -1) {
+                        if result[searchIdx].type == .gameOver,
+                           result[searchIdx].message.hasPrefix(recoveryPlayerName) {
+                            result[recoveryIdx].eventDate = result[searchIdx].eventDate.addingTimeInterval(60)
+                            break
+                        }
+                    }
                 }
             }
         }
@@ -691,6 +715,18 @@ struct PlayerHistoryView: View {
                         overrideDate: event.eventDate
                     ))
                 } else {
+                    if event.message.contains("permanently") {
+                        // Permanent system bans should never be downgraded by the escalation ladder
+                        processed.append(HistoryEvent(
+                            type: .banned,
+                            message: event.message,
+                            daysAgo: 0,
+                            seed: 0,
+                            overrideDate: event.eventDate
+                        ))
+                        continue
+                    }
+
                     // Repeat offender — escalate using ladder
                     if banStartIndex[name] == nil {
                         if let forRange = event.message.range(of: "banned for "),
