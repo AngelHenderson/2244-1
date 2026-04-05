@@ -199,7 +199,8 @@ public struct BoardView: View {
                 
                 // If the user is dragging, draw an extension "pipe" to the finger
                 if isDragging, gameStore.currentPath.last != nil {
-                    path.addLine(to: dragLocation)
+                    let origin = gridOrigin(in: containerSize, tileSize: tileSize)
+                    path.addLine(to: CGPoint(x: dragLocation.x + origin.x, y: dragLocation.y + origin.y))
                 }
             }
             .stroke(style: StrokeStyle(lineWidth: Tokens.Size.pathWidth, lineCap: .round, lineJoin: .round))
