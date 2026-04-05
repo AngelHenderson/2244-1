@@ -153,34 +153,47 @@ struct PlayerHistoryView: View {
             }
 
             // 2) False reports — ONE player makes false reports that reach 5+ abuse pts
-            //    Pattern A: 1 overtake (+2) + 4 regular (+4) = 6 pts
-            //    Pattern B: 2 overtakes (+4) + 1 regular (+1) = 5 pts
+            //    5 pattern variants rotated by day:
+            //    A: 1 overtake (+2) + 4 regular (+4) = 6 pts
+            //    B: 2 overtakes (+4) + 1 regular (+1) = 5 pts
+            //    C: 3 overtakes (+6) = 6 pts (only overtakes)
+            //    D: 5 regulars (+5) = 5 pts (only regulars)
+            //    E: overtake-regular-overtake (+2,+1,+2) = 5 pts (interleaved)
             //    Then 2 more false reports from different players for variety
             let abuserSeed = eventDay * 700 + 200
             let abuser = makePlayer(seed: abuserSeed)
-            let usePatternB = MockLeaderboardData.seededRandom(seed: abuserSeed + 99, index: eventDay) < 0.5
             
-            let overtakeCount = usePatternB ? 2 : 1
-            let regularCount = usePatternB ? 1 : 4
+            // Each entry is true = overtake (+2), false = regular (+1)
+            let patterns: [[Bool]] = [
+                [true, false, false, false, false],       // A: 1 overtake + 4 regular
+                [true, false, false, false],              // B: 1 overtake + 3 regular
+                [true, true, false],                      // C: 2 overtakes + 1 regular
+                [true, true, true],                       // D: only overtakes
+                [false, false, false, false, false],      // E: only regulars
+                [true, false, true],                      // F: overtake, regular, overtake
+            ]
+            let patternIdx = Int(MockLeaderboardData.seededRandom(seed: abuserSeed + 99, index: eventDay) * Double(patterns.count))
+            let pattern = patterns[min(patternIdx, patterns.count - 1)]
             
-            for i in 0..<overtakeCount {
-                result.append(HistoryEvent(
-                    type: .falseReport,
-                    playerName: abuser.name,
-                    reporterName: "overtake",
-                    message: "\(abuser.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
-                    daysAgo: daysAgo,
-                    seed: abuserSeed + i
-                ))
-            }
-            for i in 0..<regularCount {
-                result.append(HistoryEvent(
-                    type: .falseReport,
-                    playerName: abuser.name,
-                    message: "\(abuser.name) made a false report. (+1 abuse point)",
-                    daysAgo: daysAgo,
-                    seed: abuserSeed + overtakeCount + i
-                ))
+            for (i, isOvertake) in pattern.enumerated() {
+                if isOvertake {
+                    result.append(HistoryEvent(
+                        type: .falseReport,
+                        playerName: abuser.name,
+                        reporterName: "overtake",
+                        message: "\(abuser.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                        daysAgo: daysAgo,
+                        seed: abuserSeed + i
+                    ))
+                } else {
+                    result.append(HistoryEvent(
+                        type: .falseReport,
+                        playerName: abuser.name,
+                        message: "\(abuser.name) made a false report. (+1 abuse point)",
+                        daysAgo: daysAgo,
+                        seed: abuserSeed + i
+                    ))
+                }
             }
             // 2 extra false reports from different players (mix of +1 and +2)
             for i in 0..<2 {
