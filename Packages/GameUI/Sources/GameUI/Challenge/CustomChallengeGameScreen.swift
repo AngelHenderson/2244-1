@@ -865,9 +865,11 @@ public struct CustomChallengeGameScreen: View {
         hasUsedTimeRecovery = true
         isShowingTimeRecovery = false
 
-        // Extend the timer by adding bonus seconds to startTime
-        // This effectively "adds" time because timeRemaining = totalDuration - elapsed
-        startTime = startTime.addingTimeInterval(TimeInterval(timeRecoveryBonus))
+        // Reset timer so remaining = exactly timeRecoveryBonus seconds from now
+        // Formula: timeRemaining = totalDuration - (now - startTime)
+        // We want timeRemaining = timeRecoveryBonus, so:
+        // startTime = now - (totalDuration - timeRecoveryBonus)
+        startTime = Date().addingTimeInterval(-Double(totalDuration - timeRecoveryBonus))
         frozenTimeRemaining = nil // Unfreeze the timer
 
         haptics.success()
@@ -991,6 +993,10 @@ public struct CustomChallengeGameScreen: View {
             if let challengeId = config.challengeId,
                let reward = challengeStore.reward(for: challengeId) {
                 mainGameStore.grantChallengeReward(reward)
+                // Also sync reward gems to homeState so the displayed balance updates
+                if reward.coins > 0 {
+                    homeState.gems += reward.coins
+                }
             } else {
                 // Fallback to just gems if no challenge ID or reward found
                 homeState.addGems(config.predictedRewardGems)
