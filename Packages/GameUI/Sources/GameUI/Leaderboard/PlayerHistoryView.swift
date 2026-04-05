@@ -332,11 +332,10 @@ struct PlayerHistoryView: View {
                     let tIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 45, index: eventDay) * Double(timeframes.count))
                     let timeframe = timeframes[min(tIdx, timeframes.count - 1)]
 
-                    var duration = "permanently"
-                    if cheatCount < 20000 {
-                        let durIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 46, index: eventDay) * Double(directBanDurations.count))
-                        duration = directBanDurations[min(durIdx, directBanDurations.count - 1)]
-                    }
+                    let durIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 46, index: eventDay) * Double(directBanDurations.count))
+                    let duration = cheatCount >= 20000
+                        ? "permanently"
+                        : directBanDurations[min(durIdx, directBanDurations.count - 1)]
                     
                     let flavorType = Int(MockLeaderboardData.seededRandom(seed: seed + 44, index: eventDay) * 2.0)
                     let reason = flavorType == 0 
