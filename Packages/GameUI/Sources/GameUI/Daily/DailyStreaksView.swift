@@ -348,16 +348,10 @@ private struct StreakDetailSheet: View {
                     VStack(spacing: 12) {
                         ForEach(streak.rewards.entries, id: \.self) { entry in
                             HStack {
-                                if let assetName = entry.kind.assetName {
-                                    Image(assetName)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 24, height: 24)
-                                } else {
-                                    Image(systemName: entry.kind.iconName)
-                                        .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
-                                        .foregroundStyle(entry.kind.iconColor)
-                                }
+                                Image(entry.kind.assetName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 24, height: 24)
                                 Text("\(entry.amount) \(entry.kind.displayName)")
                                     .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
                                 Spacer()
@@ -387,18 +381,12 @@ private struct RewardsDisplay: View {
     var body: some View {
         HStack(spacing: 12) {
             ForEach(rewards.entries, id: \.self) { entry in
-                if let assetName = entry.kind.assetName {
-                    HStack(spacing: 4) {
-                        Image(assetName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 16, height: 16)
-                        Text("\(entry.amount)")
-                    }
-                    .foregroundStyle(entry.kind.iconColor)
-                } else {
-                    Label("\(entry.amount)", systemImage: entry.kind.iconName)
-                        .foregroundStyle(entry.kind.iconColor)
+                HStack(spacing: 4) {
+                    Image(entry.kind.assetName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                    Text("\(entry.amount)")
                 }
             }
         }
@@ -406,7 +394,7 @@ private struct RewardsDisplay: View {
 }
 
 private extension AchievementDef.Rewards.Entry.Kind {
-    var assetName: String? {
+    var assetName: String {
         switch self {
         case .gems: return "gem"
         case .spins: return "spinthewheel"
@@ -419,30 +407,6 @@ private extension AchievementDef.Rewards.Entry.Kind {
         }
     }
 
-    var iconName: String {
-        switch self {
-        case .gems: return "gem"
-        case .spins: return "arrow.triangle.2.circlepath"
-        case .hammers: return "hammer.fill"
-        case .magnets: return "dot.radiowaves.left.and.right"
-        case .swaps: return "arrow.2.squarepath"
-        case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
-        }
-    }
-    
-    var iconColor: Color {
-        switch self {
-        case .gems: return .cyan
-        case .spins: return .purple
-        case .hammers: return .orange
-        case .magnets: return .blue
-        case .swaps: return .green
-        case .boost2x: return .yellow
-        case .boost3x: return .pink
-        case .boost4x: return .red
-        }
-    }
-    
     var displayName: String {
         switch self {
         case .gems: return "Gems"
