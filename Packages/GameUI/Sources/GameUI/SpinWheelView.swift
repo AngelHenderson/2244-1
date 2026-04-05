@@ -447,41 +447,55 @@ public struct SpinWheelView: View {
     }
 
     private func randomSingleGiftReward() -> WheelReward {
-        let options: [WheelReward] = [
-            .init(type: .gems, amount: 2000),
-            .init(type: .magnets, amount: 2),
-            .init(type: .hammers, amount: 3),
-            .init(type: .swap, amount: 2),
-            .init(type: .spin, amount: 2),
-            .init(type: .multiplier(.fourX), amount: 1),
-            .init(type: .multiplier(.threeX), amount: 1)
-        ]
-        return options.randomElement() ?? options[0]
+        // Weighted: Gems 50%, Hammers 10%, Swaps 10%, MegaMerges 10%, Spins 15%, 2X/3X/4X ~1.67% each
+        let roll = Double.random(in: 0..<100)
+        if roll < 50 {
+            return .init(type: .gems, amount: 2000)
+        } else if roll < 60 {
+            return .init(type: .hammers, amount: 3)
+        } else if roll < 70 {
+            return .init(type: .swap, amount: 2)
+        } else if roll < 80 {
+            return .init(type: .magnets, amount: 2)
+        } else if roll < 95 {
+            return .init(type: .spin, amount: 2)
+        } else if roll < 96.67 {
+            return .init(type: .multiplier(.twoX), amount: 1)
+        } else if roll < 98.34 {
+            return .init(type: .multiplier(.threeX), amount: 1)
+        } else {
+            return .init(type: .multiplier(.fourX), amount: 1)
+        }
     }
 
     private func randomMultipleGiftRewards() -> [WheelReward] {
-        let allOptions: [WheelReward] = [
-            .init(type: .gems, amount: 300),
-            .init(type: .gems, amount: 500),
-            .init(type: .magnets, amount: 1),
-            .init(type: .hammers, amount: 2),
-            .init(type: .swap, amount: 1),
-            .init(type: .spin, amount: 1),
-            .init(type: .multiplier(.twoX), amount: 1),
-            .init(type: .multiplier(.threeX), amount: 1)
-        ]
-
+        // Same weighted probabilities for multi-reward picks, deduplicated by type
+        let rewardCount = Int.random(in: 2...3)
         var selected: [WheelReward] = []
         var usedTypes: Set<String> = []
-        let rewardCount = Int.random(in: 2...3)
 
-        var shuffled = allOptions.shuffled()
-        while selected.count < rewardCount && !shuffled.isEmpty {
-            let reward = shuffled.removeFirst()
+        while selected.count < rewardCount {
+            let reward = randomSingleGiftReward()
             let typeKey = rewardTypeKey(reward.type)
             if !usedTypes.contains(typeKey) {
                 usedTypes.insert(typeKey)
-                selected.append(reward)
+                // Use smaller amounts for multi-reward
+                let adjusted: WheelReward
+                switch reward.type {
+                case .gems:
+                    adjusted = .init(type: .gems, amount: [300, 500].randomElement()!)
+                case .hammers:
+                    adjusted = .init(type: .hammers, amount: 2)
+                case .swap:
+                    adjusted = .init(type: .swap, amount: 1)
+                case .magnets:
+                    adjusted = .init(type: .magnets, amount: 1)
+                case .spin:
+                    adjusted = .init(type: .spin, amount: 1)
+                default:
+                    adjusted = reward
+                }
+                selected.append(adjusted)
             }
         }
 
