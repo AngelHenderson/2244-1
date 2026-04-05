@@ -176,17 +176,30 @@ struct PlayerHistoryView: View {
                 daysAgo: daysAgo,
                 seed: abuserSeed + 2
             ))
-            // 2 extra false reports from different players
+            // 2 extra false reports from different players (mix of +1 and +2)
             for i in 0..<2 {
                 let seed = eventDay * 700 + 230 + i * 11
                 let p = makePlayer(seed: seed)
-                result.append(HistoryEvent(
-                    type: .falseReport,
-                    playerName: p.name,
-                    message: "\(p.name) made a false report. (+1 abuse point)",
-                    daysAgo: daysAgo,
-                    seed: seed
-                ))
+                let isOvertake = MockLeaderboardData.seededRandom(seed: seed + 42, index: eventDay) < 0.5
+                
+                if isOvertake {
+                    result.append(HistoryEvent(
+                        type: .falseReport,
+                        playerName: p.name,
+                        reporterName: "overtake",
+                        message: "\(p.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    ))
+                } else {
+                    result.append(HistoryEvent(
+                        type: .falseReport,
+                        playerName: p.name,
+                        message: "\(p.name) made a false report. (+1 abuse point)",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    ))
+                }
             }
 
             // 3) Made infinity (x3)
