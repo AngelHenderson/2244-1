@@ -152,30 +152,32 @@ struct PlayerHistoryView: View {
                 ))
             }
 
-            // 2) False reports — ONE player makes 3 false reports (2 overtake + 1 regular = 5 abuse pts)
-            //    → triggers "banned due to 5 abuse points from false reports"
+            // 2) False reports — ONE player makes 5 false reports (1 overtake + 4 regular)
+            //    → triggers "banned due to 5+ abuse points from false reports"
             //    Then 2 more false reports from different players for variety
             let abuserSeed = eventDay * 700 + 200
             let abuser = makePlayer(seed: abuserSeed)
-            // 2 overtake false reports = 4 abuse points
-            for i in 0..<2 {
-                result.append(HistoryEvent(
-                    type: .falseReport,
-                    playerName: abuser.name,
-                    reporterName: "overtake",
-                    message: "\(abuser.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
-                    daysAgo: daysAgo,
-                    seed: abuserSeed + i
-                ))
-            }
-            // 1 regular false report = 1 abuse point (total: 5)
+            
+            // 1 overtake false report = 2 abuse points
             result.append(HistoryEvent(
                 type: .falseReport,
                 playerName: abuser.name,
-                message: "\(abuser.name) made a false report. (+1 abuse point)",
+                reporterName: "overtake",
+                message: "\(abuser.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
                 daysAgo: daysAgo,
-                seed: abuserSeed + 2
+                seed: abuserSeed
             ))
+            
+            // 4 regular false reports = 4 abuse points
+            for i in 0..<4 {
+                result.append(HistoryEvent(
+                    type: .falseReport,
+                    playerName: abuser.name,
+                    message: "\(abuser.name) made a false report. (+1 abuse point)",
+                    daysAgo: daysAgo,
+                    seed: abuserSeed + 1 + i
+                ))
+            }
             // 2 extra false reports from different players (mix of +1 and +2)
             for i in 0..<2 {
                 let seed = eventDay * 700 + 230 + i * 11
