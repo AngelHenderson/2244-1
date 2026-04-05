@@ -463,6 +463,22 @@ public struct HybridGameScreen: View {
                 .padding(.horizontal, 20)
         }
         .frame(maxWidth: 360)
+        .overlay(alignment: .topTrailing) {
+            // Home button — go back without choosing
+            if powerUpOverlayContext == .outOfMoves {
+                Button {
+                    isShowingPowerUpOverlay = false
+                    isPlayingDismiss?()
+                } label: {
+                    Image(systemName: "house.fill")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white.opacity(0.7))
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(Color.white.opacity(0.12)))
+                }
+                .padding(12)
+            }
+        }
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(white: 0.18))
