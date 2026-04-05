@@ -309,11 +309,21 @@ struct PlayerHistoryView: View {
                     let tIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 45, index: eventDay) * Double(timeframes.count))
                     let timeframe = timeframes[min(tIdx, timeframes.count - 1)]
 
+                    var duration = "permanently"
+                    if cheatCount < 20000 {
+                        let durIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 46, index: eventDay) * Double(directBanDurations.count))
+                        duration = directBanDurations[min(durIdx, directBanDurations.count - 1)]
+                    }
+                    
                     let flavorType = Int(MockLeaderboardData.seededRandom(seed: seed + 44, index: eventDay) * 2.0)
-                    if flavorType == 0 {
-                        banMessage = "\(p.name) got permanently banned due to reaching \(cheatCount)∞ counts in \(timeframe)."
+                    let reason = flavorType == 0 
+                        ? "reaching \(cheatCount)∞ counts in \(timeframe)"
+                        : "reaching \(cheatCount) Infinities in \(timeframe)"
+                        
+                    if duration == "permanently" {
+                        banMessage = "\(p.name) got permanently banned due to \(reason)."
                     } else {
-                        banMessage = "\(p.name) got permanently banned due to reaching \(cheatCount) Infinities in \(timeframe)."
+                        banMessage = "\(p.name) got banned for \(duration) due to \(reason)."
                     }
                 } else {
                     let reasonIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 3, index: eventDay) * Double(directBanReasons.count))
