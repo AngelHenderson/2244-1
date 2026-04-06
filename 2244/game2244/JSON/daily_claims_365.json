@@ -9031,26 +9031,4 @@
   {
     "id": "daily_claim_day_365",
     "gcIdentifier": "daily_claim_day_365",
-    "title": "Daily Claim — Day 365",
-    "description": "Claim your Day 365 daily reward.",
-    "category": "DailyClaim",
-    "rewards": {
-      "spins": 1,
-      "boost3x": 1
-    },
-    "hidden": false,
-    "conditionExpr": "",
-    "conditions": [
-      {
-        "field": "daily_claim_available",
-        "op": "==",
-        "value": 1
-      },
-      {
-        "field": "claim_day_index",
-        "op": "==",
-        "value": 365
-      }
-    ]
-  }
-]
+    "title": 
