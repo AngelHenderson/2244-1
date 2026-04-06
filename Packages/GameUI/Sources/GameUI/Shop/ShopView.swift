@@ -825,20 +825,35 @@ struct FreePerksSection: View {
             .padding(.top, 10)
             
             VStack(spacing: 12) {
-                FreePerkRow(icon: "hammer")
-                FreePerkRow(icon: "swap")
-                FreePerkRow(icon: "magnet")
+                FreePerkRow(perkType: "hammer", cooldownHours: 12)
+                FreePerkRow(perkType: "swap", cooldownHours: 18)
+                FreePerkRow(perkType: "magnet", cooldownHours: 24)
             }
         }
     }
 }
 
 struct FreePerkRow: View {
-    let icon: String
+    let perkType: String
+    let cooldownHours: Int
+    
+    @Environment(\.gameStore) private var gameStore
+    @State private var remainingSeconds: TimeInterval = 0
+    @State private var isReady: Bool = false
+    
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    private var userDefaultsKey: String {
+        "freePerk_\(perkType)_lastClaimed"
+    }
+    
+    private var cooldownInterval: TimeInterval {
+        TimeInterval(cooldownHours * 3600)
+    }
     
     var body: some View {
         HStack(spacing: 16) {
-            Image(icon)
+            Image(perkType)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 44, height: 44)
@@ -855,41 +870,105 @@ struct FreePerkRow: View {
             
             Spacer()
             
-            // Action button
-            Button {
-                // Future action to claim free perk
-            } label: {
-                Text("Free")
-                    .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
-                    .foregroundStyle(.white)
+            if isReady {
+                // Claim button
+                Button {
+                    claimPerk()
+                } label: {
+                    Text("Free")
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 8)
+                        .frame(width: 100)
+                        .background(Color(red: 0.1, green: 0.7, blue: 0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.green.opacity(0.8), lineWidth: 2)
+                        )
+                }
+                .padding(.trailing, 16)
+            } else {
+                // Countdown timer
+                Text(formattedTime)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(.white.opacity(0.9))
                     .padding(.vertical, 8)
                     .frame(width: 100)
-                    .background(Color(red: 0.1, green: 0.7, blue: 0.1))
+                    .background(Color.white.opacity(0.2))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.green.opacity(0.8), lineWidth: 2)
-                    )
+                    .padding(.trailing, 16)
             }
-            .padding(.trailing, 16)
         }
         .padding(.vertical, 12)
         .background(
             LinearGradient(
-                colors: [Color(red: 0.1, green: 0.9, blue: 0.9), Color(red: 0.0, green: 0.7, blue: 0.85)],
+                colors: isReady
+                    ? [Color(red: 0.1, green: 0.9, blue: 0.9), Color(red: 0.0, green: 0.7, blue: 0.85)]
+                    : [Color(red: 0.4, green: 0.6, blue: 0.7), Color(red: 0.3, green: 0.5, blue: 0.6)],
                 startPoint: .leading,
                 endPoint: .trailing
             )
         )
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(alignment: .topTrailing) {
-            // Notification dot
-            Image(systemName: "exclamationmark.circle.fill")
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(.white, .red)
-                .font(.system(size: 20))
-                .offset(x: 8, y: -8)
+            if isReady {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(.white, .red)
+                    .font(.system(size: 20))
+                    .offset(x: 8, y: -8)
+            }
         }
+        .onAppear {
+            updateCooldown()
+        }
+        .onReceive(timer) { _ in
+            updateCooldown()
+        }
+    }
+    
+    private var formattedTime: String {
+        let total = Int(remainingSeconds)
+        let hours = total / 3600
+        let minutes = (total % 3600) / 60
+        let seconds = total % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+    
+    private func updateCooldown() {
+        let lastClaimed = UserDefaults.standard.double(forKey: userDefaultsKey)
+        
+        // If never claimed, it's ready
+        guard lastClaimed > 0 else {
+            isReady = true
+            remainingSeconds = 0
+            return
+        }
+        
+        let lastClaimedDate = Date(timeIntervalSince1970: lastClaimed)
+        let elapsed = Date().timeIntervalSince(lastClaimedDate)
+        let remaining = cooldownInterval - elapsed
+        
+        if remaining <= 0 {
+            isReady = true
+            remainingSeconds = 0
+        } else {
+            isReady = false
+            remainingSeconds = remaining
+        }
+    }
+    
+    private func claimPerk() {
+        // Grant the perk
+        gameStore.addPowerUp(perkType, count: 1)
+        
+        // Record claim time
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: userDefaultsKey)
+        
+        // Update state
+        updateCooldown()
     }
 }
 
