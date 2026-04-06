@@ -135,67 +135,7 @@
       "price": 99.99
     }
   ],
-  "specialOffers": [
-    {
-      "id": "live_themes",
-      "title": "Live Themes",
-      "price": 10.99,
-      "perks": {
-        "noAds": true
-      },
-      "items": {
-        "liveThemes": 6
-      }
-    },
-    {
-      "id": "melody_beats",
-      "title": "Melody Beats",
-      "price": 4.99,
-      "tags": [
-        "New"
-      ],
-      "items": {
-        "tileBeats": [
-          "Drum",
-          "Guitar",
-          "Kalimba",
-          "Muted Nylon",
-          "Xylophone"
-        ]
-      }
-    },
-    {
-      "id": "live_themes_pack2",
-      "title": "Live Themes Pack 2",
-      "price": 9.99,
-      "items": {
-        "liveThemes": 6
-      }
-    },
-    {
-      "id": "beats_plus",
-      "title": "Beats Plus",
-      "price": 6.99,
-      "items": {
-        "tileBeats": [
-          "Piano",
-          "Marimba",
-          "Steel Drum",
-          "Electric",
-          "808"
-        ]
-      }
-    },
-    {
-      "id": "no_ads_lifetime",
-      "title": "No Ads (Lifetime)",
-      "price": 7.99,
-      "perks": {
-        "noAds": true
-      },
-      "items": {}
-    }
-  ],
+
   "perkBundles": [
     {
       "id": "hammers_5",

@@ -77,7 +77,6 @@ public struct ShopCatalog: Codable {
     public let pricingModel: String
     public let bundles: [ShopBundle]
     public let gemBundles: [GemBundle]
-    public let specialOffers: [ShopBundle]
     public let perkBundles: [PerkBundle]
     public let freePerks: [PerkBundle]
 }
@@ -243,16 +242,7 @@ public final class ShopStore {
                 GemBundle(id: "gems_250000", gems: 250000, price: 49.99, tags: ["Popular"]),
                 GemBundle(id: "gems_500000", gems: 500000, price: 99.99, tags: ["Whale"])
             ],
-            specialOffers: [
-                ShopBundle(
-                    id: "no_ads_lifetime",
-                    title: "No Ads (Lifetime)",
-                    price: 7.99,
-                    tags: nil,
-                    perks: ShopBundle.Perks(noAds: true, allBeats: nil, allLiveThemes: nil),
-                    items: nil
-                )
-            ],
+
             perkBundles: [
                 PerkBundle(id: "hammers_5", item: "hammer", quantity: 5, price: 0.99),
                 PerkBundle(id: "hammers_15", item: "hammer", quantity: 15, price: 1.99),
