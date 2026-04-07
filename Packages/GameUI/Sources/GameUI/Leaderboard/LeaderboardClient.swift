@@ -4021,7 +4021,7 @@ public enum MockLeaderboardData {
         "SvitaznaBolt", "SynevyrStar", "HoverlaMaster", "BukovelBoss", "TustaJudge",
         "ShypiytKnight", "DragobyKing", "KremenetsCrusher", "FortecyaForce", "ZamokZealot",
         "KaminetsPodilskyyKP", "OstrozkaOmega", "LubartskaLord", "BilhorodBlitz", "AkermanAce",
-        \"TrypillyaThunder\", \"SkifStar\", \"RoksolanaRider\", \"YaroslavMaster\", \"MyroslavMyth\"
+        "TrypillyaThunder", "SkifStar", "RoksolanaRider", "YaroslavMaster", "MyroslavMyth"
     ]
 
     static let madagascarNames = [
