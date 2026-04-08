@@ -181,7 +181,7 @@ struct PlayerHistoryView: View {
                         type: .falseReport,
                         playerName: abuser.name,
                         reporterName: "overtake",
-                        message: "\(abuser.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                        message: "\(abuser.name) made a false report: \"He is ahead of me in the leaderboard!\" (+2 abuse points)",
                         daysAgo: daysAgo,
                         seed: abuserSeed + i
                     ))
@@ -206,7 +206,7 @@ struct PlayerHistoryView: View {
                         type: .falseReport,
                         playerName: p.name,
                         reporterName: "overtake",
-                        message: "\(p.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                        message: "\(p.name) made a false report: \"He is ahead of me in the leaderboard!\" (+2 abuse points)",
                         daysAgo: daysAgo,
                         seed: seed
                     ))
@@ -403,7 +403,7 @@ struct PlayerHistoryView: View {
                             type: .falseReport,
                             playerName: p.name,
                             reporterName: "overtake",
-                            message: "\(p.name) made a false report due to reporting someone ahead of him in the leaderboard. (+2 abuse points)",
+                            message: "\(p.name) made a false report: \"He is ahead of me in the leaderboard!\" (+2 abuse points)",
                             daysAgo: daysAgo,
                             seed: seed
                         )
