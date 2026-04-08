@@ -2025,7 +2025,7 @@ public enum MockLeaderboardData {
         case "UA":
             return (LeaderboardClient.ukrainePlayerMilestones, LeaderboardClient.ukraineExtendedRankBrackets, 88_778)
         case "MG":
-            return (LeaderboardClient.madagascarPlayerMilestones, LeaderboardClient.madagascarExtendedRankBrackets, 45_678)
+            return (LeaderboardClient.madagascarPlayerMilestones, LeaderboardClient.madagascarExtendedRankBrackets, 258_679)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -2094,7 +2094,7 @@ public enum MockLeaderboardData {
             ("UZ", 28_473_673),
             ("PK", 93_432),
             ("UA", 88_778),
-            ("MG", 45_678)
+            ("MG", 258_679)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -2264,7 +2264,7 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.uzbekistanPlayerMilestones, extendedBrackets: LeaderboardClient.uzbekistanExtendedRankBrackets, totalPlayers: 28_473_673, countrySeed: countryPlayerSeeds["UZ"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.pakistanPlayerMilestones, extendedBrackets: LeaderboardClient.pakistanExtendedRankBrackets, totalPlayers: 93_432, countrySeed: countryPlayerSeeds["PK"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.ukrainePlayerMilestones, extendedBrackets: LeaderboardClient.ukraineExtendedRankBrackets, totalPlayers: 88_778, countrySeed: countryPlayerSeeds["UA"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.madagascarPlayerMilestones, extendedBrackets: LeaderboardClient.madagascarExtendedRankBrackets, totalPlayers: 45_678, countrySeed: countryPlayerSeeds["MG"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.madagascarPlayerMilestones, extendedBrackets: LeaderboardClient.madagascarExtendedRankBrackets, totalPlayers: 258_679, countrySeed: countryPlayerSeeds["MG"] ?? 0)
 
         globalRankCache[userMilestone] = total
         return total
@@ -4504,7 +4504,7 @@ public extension LeaderboardClient {
             case .countryUA:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 88_778, on: day, countrySeed: 153)
             case .countryMG:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 45_678, on: day, countrySeed: 154)
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 258_679, on: day, countrySeed: 154)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -4562,7 +4562,7 @@ public extension LeaderboardClient {
                 let uzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 28_473_673, on: day, countrySeed: 151)
                 let pkPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
                 let uaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 88_778, on: day, countrySeed: 153)
-                let mgPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 45_678, on: day, countrySeed: 154)
+                let mgPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 258_679, on: day, countrySeed: 154)
                 totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers + kgPlayers + isPlayers + skPlayers + uzPlayers + pkPlayers + uaPlayers + mgPlayers
             }
             // Resolve duplicate realistic first names by adding last names
@@ -12745,7 +12745,7 @@ public extension LeaderboardClient {
 
         var entries: [LeaderboardEntry] = []
         var userInTop150 = false
-        let totalMadagascarPlayers = 45_678
+        let totalMadagascarPlayers = 258_679
 
         for (rank, player) in playerData.prefix(150).enumerated() {
             let isUserEntry = player.id == "me"
