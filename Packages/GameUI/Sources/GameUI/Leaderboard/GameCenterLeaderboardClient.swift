@@ -124,77 +124,15 @@ public extension LeaderboardClient {
                 }
                 
                 // Map period to GK time scope
-                let timeScope: GKLeaderboard.TimeScope = {
-                    switch period {
-                    case .today: return .today
-                    case .week: return .week
-                    case .allTime: return .allTime
-                    }
-                }()
+                let timeScope: GKLeaderboard.TimeScope
+                switch period {
+                case .today: timeScope = .today
+                case .week: timeScope = .week
+                case .allTime: timeScope = .allTime
+                }
                 
-                // Map filter to GK player scope
-                let playerScope: GKLeaderboard.PlayerScope = {
-                    switch filter {
-                    case .global: return .global
-                    case .hallOfFame: return .global
-                    case .country: return .global
-                    case .countryUK: return .global
-                    case .countryCA: return .global
-                    case .countryAU: return .global
-                    case .countryDE: return .global
-                    case .countryFR: return .global
-                    case .countryJP: return .global
-                    case .countryIN: return .global
-                    case .countryBR: return .global
-                    case .countryMX: return .global
-                    case .countryAF: return .global
-                    case .countryAL: return .global
-                    case .countryDZ: return .global
-                    case .countryCN: return .global
-                    case .countryKR: return .global
-                    case .countryIT: return .global
-                    case .countryES: return .global
-                    case .countryNL: return .global
-                    case .countryCH: return .global
-                    case .countryNO: return .global
-                    case .countryDK: return .global
-                    case .countryFI: return .global
-                    case .countryPL: return .global
-                    case .countryBE: return .global
-                    case .countrySE: return .global
-                    case .countryAT: return .global
-                    case .countryIE: return .global
-                    case .countryPT: return .global
-                    case .countryGR: return .global
-                    case .countryCZ: return .global
-                    case .countryRO: return .global
-                    case .countryMY: return .global
-                    case .countryNZ: return .global
-                    case .countryHU: return .global
-                    case .countryTH: return .global
-                    case .countryAE: return .global
-                    case .countryPH: return .global
-                    case .countryAD: return .global
-                    case .countryID: return .global
-                    case .countryZA: return .global
-                    case .countryKE: return .global
-                    case .countryFJ: return .global
-                    case .countryVN: return .global
-                    case .countryCW: return .global
-                    case .countryVE: return .global
-                    case .countryAZ: return .global
-                    case .countryKZ: return .global
-                    case .countryTJ: return .global
-                    case .countryNU: return .global
-                    case .countryKG: return .global
-                    case .countryIS: return .global
-                    case .countrySK: return .global
-                    case .countryUZ: return .global
-                    case .countryPK: return .global
-                    case .countryUA: return .global
-                    case .countryMG: return .global
-                    }
-                }()
+                // All filters use global player scope (country filtering is done client-side)
+                let playerScope: GKLeaderboard.PlayerScope = .global
 
                 let (localPlayerEntry, entries, totalPlayerCount) = try await board.loadEntries(
                     for: playerScope,
@@ -249,13 +187,12 @@ public extension LeaderboardClient {
                 let boards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboardID])
                 guard let board = boards.first else { return nil }
                 
-                let timeScope: GKLeaderboard.TimeScope = {
-                    switch period {
-                    case .today: return .today
-                    case .week: return .week
-                    case .allTime: return .allTime
-                    }
-                }()
+                let timeScope: GKLeaderboard.TimeScope
+                switch period {
+                case .today: timeScope = .today
+                case .week: timeScope = .week
+                case .allTime: timeScope = .allTime
+                }
                 
                 let result = try? await board.loadEntries(
                     for: [GKLocalPlayer.local],
