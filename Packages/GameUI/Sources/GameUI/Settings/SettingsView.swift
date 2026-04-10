@@ -23,6 +23,7 @@ public struct SettingsView: View {
     @State private var isShowingHowToPlay: Bool = false
     @State private var isShowingTilesInfo: Bool = false
     @State private var isShowingPerksInfo: Bool = false
+    @State private var isShowingValidMovesInfo: Bool = false
     @State private var isShowingGameCenter: Bool = false
     @State private var gameCenterEnabled: Bool = false
     @State private var gameCenterDisplayName: String = ""
@@ -291,6 +292,13 @@ public struct SettingsView: View {
                     }
 
                     Button {
+                        isShowingValidMovesInfo = true
+                    } label: {
+                        Text("Valid Moves Info")
+                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    }
+
+                    Button {
                         if let url = URL(string: "mailto:support@game2244.com?subject=Game Support") {
                             UIApplication.shared.open(url)
                         }
@@ -399,6 +407,9 @@ public struct SettingsView: View {
             }
             .sheet(isPresented: $isShowingPerksInfo) {
                 PerksInfoView()
+            }
+            .sheet(isPresented: $isShowingValidMovesInfo) {
+                ValidMovesInfoView()
             }
             .sheet(isPresented: $isShowingGameCenter) {
                 gameCenterSheet
