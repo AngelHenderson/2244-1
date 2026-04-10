@@ -9033,7 +9033,7 @@
     "gcIdentifier": "daily_claim_day_365",
     "title": "Daily Claim — Day 365",
     "description": "Claim your Year 1 yearly award!",
-    "category": "YearlyAward",
+    "category": "DailyClaim",
     "rewards": {
       "spins": 1,
       "boost3x": 1
