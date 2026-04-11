@@ -1707,14 +1707,6 @@ private struct ValidMovesTutorialPage: View {
                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                 .foregroundStyle(.secondary)
                 .padding(.top, 8)
-            
-            if showMergeResult {
-                Button("Reset") {
-                    resetBoard()
-                }
-                .font(.caption.bold())
-                .buttonStyle(.bordered)
-            }
 
             Text(page.description)
                 .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
@@ -1766,6 +1758,11 @@ private struct ValidMovesTutorialPage: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 showMergeResult = true
+            }
+            
+            // Auto reset after 2 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                resetBoard()
             }
         }
     }
