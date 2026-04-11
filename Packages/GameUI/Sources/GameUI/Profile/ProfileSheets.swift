@@ -197,6 +197,7 @@ struct CompareView: View {
                 milestone: player.milestone,
                 isMe: false,
                 isBanned: player.isBanned,
+                banTimeLeft: player.banTimeLeft,
                 isGameOver: player.isGameOver
             ))
         }
@@ -244,6 +245,7 @@ struct CompareView: View {
                 milestone: hofDisplay,
                 isMe: false,
                 isBanned: player.isBanned,
+                banTimeLeft: player.banTimeLeft,
                 isGameOver: player.isGameOver
             ))
         }
@@ -347,8 +349,8 @@ struct CompareView: View {
                                 Spacer()
 
                                 // Milestone (or status)
-                                Text(entry.isBanned ? "Banned" : (entry.isGameOver ? "Game Over" : entry.milestone))
-                                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                                Text(entry.isBanned ? (entry.banTimeLeft == "Permanent" ? "Permanently Banned" : "Banned - \(entry.banTimeLeft ?? "")") : (entry.isGameOver ? "Game Over" : entry.milestone))
+                                    .font(.avenirNext(size: entry.isBanned ? GameFonts.footnoteSize : GameFonts.subheadlineSize, weight: .bold))
                                     .foregroundColor(entry.isBanned ? .red : (entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary)))
 
                                 // Remove button (only for non-me entries)
@@ -412,8 +414,8 @@ struct CompareView: View {
                                 Spacer()
 
                                 // Infinity count (or status)
-                                Text(entry.isBanned ? "Banned" : (entry.isGameOver ? "Game Over" : entry.milestone))
-                                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                                Text(entry.isBanned ? (entry.banTimeLeft == "Permanent" ? "Permanently Banned" : "Banned - \(entry.banTimeLeft ?? "")") : (entry.isGameOver ? "Game Over" : entry.milestone))
+                                    .font(.avenirNext(size: entry.isBanned ? GameFonts.footnoteSize : GameFonts.subheadlineSize, weight: .bold))
                                     .foregroundColor(entry.isBanned ? .red : (entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary)))
 
                                 // Remove button (only for non-me entries)
@@ -529,6 +531,7 @@ struct MockPlayer: Identifiable {
     let countryCode: String
     let milestone: String
     let isBanned: Bool
+    let banTimeLeft: String?
     let isGameOver: Bool
 
     var countryFlag: String {
@@ -549,6 +552,7 @@ struct MockPlayer: Identifiable {
                 countryCode: player.countryCode,
                 milestone: player.milestone,
                 isBanned: player.isBanned,
+                banTimeLeft: player.banTimeLeft,
                 isGameOver: player.isGameOver
             )
         }
@@ -575,6 +579,7 @@ struct ComparisonEntry: Identifiable {
     let milestone: String
     let isMe: Bool
     let isBanned: Bool
+    let banTimeLeft: String?
     let isGameOver: Bool
 }
 

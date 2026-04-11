@@ -89,10 +89,14 @@ public final class HomeState {
                     self.evaluationMessage = "Thank you for your report! After investigation, \(nameField) has been banned for \(dayLabel) and will be unbanned on \(dateString)."
                 } else {
                     let currentPts = UserDefaults.standard.integer(forKey: "totalUniqueReports")
-                    UserDefaults.standard.set(currentPts + pts, forKey: "totalUniqueReports")
+                    let newTotal = currentPts + pts
+                    UserDefaults.standard.set(newTotal, forKey: "totalUniqueReports")
+                    
+                    let remaining = max(0, 5 - newTotal)
+                    let remainingText = remaining == 1 ? "1 abuse point left" : "\(remaining) abuse points left"
                     
                     self.evaluationTitle = "False Report / Untrue Details"
-                    self.evaluationMessage = "Your report or the provided details were evaluated and found to be false. You have accumulated \(pts) abuse point\(pts == 1 ? "" : "s")."
+                    self.evaluationMessage = "Your report or the provided details were evaluated and found to be false. You have accumulated \(pts) abuse point\(pts == 1 ? "" : "s"). You have \(remainingText) until your account is banned."
                 }
                 self.showEvaluationAlert = true
             }

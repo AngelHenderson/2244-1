@@ -370,6 +370,7 @@ public enum MockLeaderboardData {
         public let countryCode: String
         public let milestone: String
         public let isBanned: Bool
+        public let banTimeLeft: String?
         public let isGameOver: Bool
     }
 
@@ -467,6 +468,26 @@ public enum MockLeaderboardData {
                 let banHash = abs(banSeed &* 2654435761) % 100
                 let isBanned = banHash < 3
 
+                var banTimeLeft: String? = nil
+                if isBanned {
+                    let timeHash = abs(banSeed &* 123456789) % 100
+                    if timeHash < 20 {
+                        banTimeLeft = "Permanent"
+                    } else if timeHash < 60 {
+                        // Days left: 1 to 30
+                        let days = 1 + (timeHash % 30)
+                        banTimeLeft = "\(days)d left"
+                    } else if timeHash < 90 {
+                        // Hours left: 1 to 23
+                        let hours = 1 + (timeHash % 23)
+                        banTimeLeft = "\(hours)h left"
+                    } else {
+                        // Minutes left: 15 to 59
+                        let mins = 15 + (timeHash % 45)
+                        banTimeLeft = "\(mins)m left"
+                    }
+                }
+
                 // ~5% of non-banned players recently ran out of moves
                 let goSeed = (i &+ 1) &* 53 &+ config.seed &* 29
                 let goHash = abs(goSeed &* 2246822519) % 100
@@ -479,6 +500,7 @@ public enum MockLeaderboardData {
                     countryCode: config.code,
                     milestone: progressedMilestone,
                     isBanned: isBanned,
+                    banTimeLeft: banTimeLeft,
                     isGameOver: isGameOver
                 ))
             }
