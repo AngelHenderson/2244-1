@@ -505,6 +505,8 @@ struct GameCenterView: UIViewControllerRepresentable {
 struct ReportPlayerSheet: View {
     @Environment(\.dismiss) private var dismiss
     
+    @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
+    
     @State private var playerName: String = ""
     @State private var selectedReason: String = "Cheating or memory editing"
     @State private var additionalDetails: String = ""
@@ -514,6 +516,7 @@ struct ReportPlayerSheet: View {
         "Fake currency/gem generation",
         "Impossible scores or impossible progression",
         "Speed hacks or timer manipulation",
+        "He is ahead of me on the leaderboard!",
         "Bots, macros, or auto-play",
         "Exploiting bugs repeatedly for unfair gain",
         "Refund or payment abuse",
@@ -559,6 +562,10 @@ struct ReportPlayerSheet: View {
     }
     
     private func submitReport() {
+        if selectedReason == "He is ahead of me on the leaderboard!" {
+            totalUniqueReports += 2
+        }
+        
         let nameField = playerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
             ? "[enter player name]" 
             : playerName.trimmingCharacters(in: .whitespacesAndNewlines)

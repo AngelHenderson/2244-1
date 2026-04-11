@@ -20,7 +20,7 @@ public struct LeaderboardView: View {
 
     // Report abuse protection
     /// How many unique players the local user has reported
-    @State private var totalUniqueReports: Int = 0
+    @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
     /// Player IDs that were banned because of THIS user's reports
     @State private var playersBannedByMe: Set<String> = []
     /// Alert for when the user is caught abusing reports
