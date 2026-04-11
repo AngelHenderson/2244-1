@@ -74,7 +74,7 @@ public struct TilesInfoView: View {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color(hex: "667eea"), Color(hex: "764ba2")],
+                                        colors: [Color.purple.opacity(0.8), Color.cyan.opacity(0.8)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
@@ -320,7 +320,7 @@ private struct InfinityRow: View {
                 .frame(width: 56, height: 56)
                 .background(
                     LinearGradient(
-                        colors: [Color(hex: "667eea"), Color(hex: "764ba2")],
+                        colors: [Color.purple.opacity(0.8), Color.cyan.opacity(0.8)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
