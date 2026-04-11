@@ -326,8 +326,12 @@ public struct SettingsView: View {
                         Additional details:
                         [describe what you observed]
                         """
-                        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
-                        let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? body
+                        // .urlQueryAllowed doesn't encode `&` or `+` properly for mailto links
+                        var customAllowed = CharacterSet.urlQueryAllowed
+                        customAllowed.remove(charactersIn: "+&")
+                        
+                        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? subject
+                        let encodedBody = body.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? body
                         if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
                             UIApplication.shared.open(url)
                         }
