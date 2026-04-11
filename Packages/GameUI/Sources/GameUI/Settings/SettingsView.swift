@@ -511,6 +511,11 @@ struct ReportPlayerSheet: View {
     @State private var selectedReason: String = "• Cheating or memory editing"
     @State private var additionalDetails: String = ""
     
+    @State private var showEvaluationAlert = false
+    @State private var evaluationTitle = ""
+    @State private var evaluationMessage = ""
+    @State private var pendingMailtoURL: URL? = nil
+    
     let reasons = [
         "• Cheating or memory editing",
         "• Fake currency/gem generation",
@@ -558,18 +563,38 @@ struct ReportPlayerSheet: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            .alert(evaluationTitle, isPresented: $showEvaluationAlert) {
+                Button("OK") {
+                    if let url = pendingMailtoURL {
+                        UIApplication.shared.open(url)
+                    }
+                    dismiss()
+                }
+            } message: {
+                Text(evaluationMessage)
+            }
         }
     }
     
     private func submitReport() {
-        if selectedReason == "• He is ahead of me on the leaderboard!" {
-            totalUniqueReports += 2
-        }
-        
         let nameField = playerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
             ? "[enter player name]" 
             : playerName.trimmingCharacters(in: .whitespacesAndNewlines)
             
+        let isTrapReason = (selectedReason == "• He is ahead of me on the leaderboard!")
+        let isTrueReport = isTrapReason ? false : Bool.random()
+        
+        if isTrueReport {
+            evaluationTitle = "Player Banned"
+            evaluationMessage = "Thank you for your report! After investigation, \(nameField) has been banned for 30 days."
+        } else {
+            let pts = isTrapReason ? 2 : 1
+            totalUniqueReports += pts
+            
+            evaluationTitle = "False Report"
+            evaluationMessage = "Your report was evaluated and found to be false. You have accumulated \(pts) abuse point\(pts == 1 ? "" : "s")."
+        }
+        
         let subject = "Player Report"
         let body = """
         I would like to report a player for the following reason:
@@ -586,10 +611,10 @@ struct ReportPlayerSheet: View {
         
         let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? subject
         let encodedBody = body.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? body
-        if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
-            UIApplication.shared.open(url)
-            dismiss()
-        }
+        
+        pendingMailtoURL = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)")
+        
+        showEvaluationAlert = true
     }
 }
 
