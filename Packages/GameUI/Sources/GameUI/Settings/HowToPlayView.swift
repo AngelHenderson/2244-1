@@ -1541,9 +1541,9 @@ private struct ValidMovesTutorialPage: View {
 
     @State private var tiles: [TileState] = [
         TileState(id: 0, row: 0, col: 0, value: 512, step: 8),
-        TileState(id: 1, row: 0, col: 1, value: 256, step: 7),
+        TileState(id: 1, row: 0, col: 1, value: 16, step: 3),
         TileState(id: 2, row: 0, col: 2, value: 128, step: 6),
-        TileState(id: 3, row: 1, col: 0, value: 16, step: 3),
+        TileState(id: 3, row: 1, col: 0, value: 256, step: 7),
         TileState(id: 4, row: 1, col: 1, value: 32, step: 4),
         TileState(id: 5, row: 1, col: 2, value: 64, step: 5),
         TileState(id: 6, row: 2, col: 0, value: 2, step: 0),
@@ -1775,9 +1775,9 @@ private struct ValidMovesTutorialPage: View {
             
             tiles = [
                 TileState(id: 0, row: 0, col: 0, value: 512, step: 8),
-                TileState(id: 1, row: 0, col: 1, value: 256, step: 7),
+                TileState(id: 1, row: 0, col: 1, value: 16, step: 3),
                 TileState(id: 2, row: 0, col: 2, value: 128, step: 6),
-                TileState(id: 3, row: 1, col: 0, value: 16, step: 3),
+                TileState(id: 3, row: 1, col: 0, value: 256, step: 7),
                 TileState(id: 4, row: 1, col: 1, value: 32, step: 4),
                 TileState(id: 5, row: 1, col: 2, value: 64, step: 5),
                 TileState(id: 6, row: 2, col: 0, value: 2, step: 0),
