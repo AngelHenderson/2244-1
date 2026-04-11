@@ -507,6 +507,10 @@ struct ReportPlayerSheet: View {
     
     @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
     
+    @State private var playerName: String = ""
+    @State private var selectedReason: String = "• Cheating or memory editing"
+    @State private var additionalDetails: String = ""
+    
     @State private var showAreYouSure = false
     @State private var showEvaluationAlert = false
     @State private var evaluationTitle = ""
