@@ -457,9 +457,14 @@ public enum MockLeaderboardData {
         ]
 
         for config in countryConfigs {
-            for i in 0..<min(150, config.milestones.count) {
+            let count = min(150, config.milestones.count)
+            let indices = Array(0..<count)
+            let resolvedNames = namesForPlayers(indices: indices, gamertagNames: config.names, countrySeed: config.seed, day: day)
+
+            for i in 0..<count {
                 let baseMilestone = config.milestones[i]
-                let name = nameForPlayer(index: i, names: config.names, countrySeed: config.seed, day: day)
+                // Use the resolved name which handles duplicate real names by adding last names
+                let name = resolvedNames[i] ?? nameForPlayer(index: i, names: config.names, countrySeed: config.seed, day: day)
                 let progressedMilestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + config.seed, day: day)
                 let codeSeed = (i + 1) * 7 + config.seed + 13
 
@@ -473,18 +478,22 @@ public enum MockLeaderboardData {
                     let timeHash = abs(banSeed &* 123456789) % 100
                     if timeHash < 20 {
                         banTimeLeft = "Permanent"
-                    } else if timeHash < 60 {
+                    } else if timeHash < 50 {
                         // Days left: 1 to 30
                         let days = 1 + (timeHash % 30)
-                        banTimeLeft = "\(days)d left"
-                    } else if timeHash < 90 {
+                        banTimeLeft = "\(days) day\(days == 1 ? "" : "s") left"
+                    } else if timeHash < 75 {
                         // Hours left: 1 to 23
                         let hours = 1 + (timeHash % 23)
-                        banTimeLeft = "\(hours)h left"
+                        banTimeLeft = "\(hours) hour\(hours == 1 ? "" : "s") left"
+                    } else if timeHash < 90 {
+                        // Minutes left: 1 to 59
+                        let mins = 1 + (timeHash % 59)
+                        banTimeLeft = "\(mins) minute\(mins == 1 ? "" : "s") left"
                     } else {
-                        // Minutes left: 15 to 59
-                        let mins = 15 + (timeHash % 45)
-                        banTimeLeft = "\(mins)m left"
+                        // Seconds left: 1 to 59
+                        let secs = 1 + (timeHash % 59)
+                        banTimeLeft = "\(secs) second\(secs == 1 ? "" : "s") left"
                     }
                 }
 
