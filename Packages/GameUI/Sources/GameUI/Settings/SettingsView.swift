@@ -584,15 +584,25 @@ struct ReportPlayerSheet: View {
         let isTrapReason = (selectedReason == "• He is ahead of me on the leaderboard!")
         let isTrueReport = isTrapReason ? false : Bool.random()
         
-        if isTrueReport {
+        let detailsFilled = !additionalDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let areDetailsFalse = detailsFilled ? Bool.random() : false
+        
+        var pts = 0
+        if !isTrueReport {
+            pts += isTrapReason ? 2 : 1
+        }
+        if areDetailsFalse {
+            pts += 1
+        }
+        
+        if pts == 0 {
             evaluationTitle = "Player Banned"
             evaluationMessage = "Thank you for your report! After investigation, \(nameField) has been banned for 30 days."
         } else {
-            let pts = isTrapReason ? 2 : 1
             totalUniqueReports += pts
             
-            evaluationTitle = "False Report"
-            evaluationMessage = "Your report was evaluated and found to be false. You have accumulated \(pts) abuse point\(pts == 1 ? "" : "s")."
+            evaluationTitle = "False Report / Untrue Details"
+            evaluationMessage = "Your report or the provided details were evaluated and found to be false. You have accumulated \(pts) abuse point\(pts == 1 ? "" : "s")."
         }
         
         let subject = "Player Report"
