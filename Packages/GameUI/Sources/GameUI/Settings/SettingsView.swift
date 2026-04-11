@@ -508,20 +508,20 @@ struct ReportPlayerSheet: View {
     @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
     
     @State private var playerName: String = ""
-    @State private var selectedReason: String = "Cheating or memory editing"
+    @State private var selectedReason: String = "• Cheating or memory editing"
     @State private var additionalDetails: String = ""
     
     let reasons = [
-        "Cheating or memory editing",
-        "Fake currency/gem generation",
-        "Impossible scores or impossible progression",
-        "Speed hacks or timer manipulation",
-        "He is ahead of me on the leaderboard!",
-        "Bots, macros, or auto-play",
-        "Exploiting bugs repeatedly for unfair gain",
-        "Refund or payment abuse",
-        "Account selling, sharing, or ban evasion",
-        "Other"
+        "• Cheating or memory editing",
+        "• Fake currency/gem generation",
+        "• Impossible scores or impossible progression",
+        "• Speed hacks or timer manipulation",
+        "• He is ahead of me on the leaderboard!",
+        "• Bots, macros, or auto-play",
+        "• Exploiting bugs repeatedly for unfair gain",
+        "• Refund or payment abuse",
+        "• Account selling, sharing, or ban evasion",
+        "• Other"
     ]
     
     var body: some View {
@@ -562,7 +562,7 @@ struct ReportPlayerSheet: View {
     }
     
     private func submitReport() {
-        if selectedReason == "He is ahead of me on the leaderboard!" {
+        if selectedReason == "• He is ahead of me on the leaderboard!" {
             totalUniqueReports += 2
         }
         
