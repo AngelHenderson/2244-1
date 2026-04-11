@@ -66,6 +66,13 @@ public struct HowToPlayView: View {
             imageColor: .yellow
         ),
         TutorialPage(
+            title: "Valid Moves",
+            subtitle: "Watch your count",
+            description: "To survive, you need valid moves! Watch what happens to the moves counter when we merge these 8s.",
+            systemImage: "exclamationmark.triangle.fill",
+            imageColor: .orange
+        ),
+        TutorialPage(
             title: "You're Ready!",
             subtitle: "Start playing",
             description: "Reach higher tile values to climb the leaderboard and get infinity. Good luck!",
@@ -136,6 +143,9 @@ public struct HowToPlayView: View {
                         } else if index == 7 {
                             // Page 8: MegaMerge demo
                             MegaMergePage(page: pages[index])
+                                .tag(index)
+                        } else if index == 8 {
+                            ValidMovesTutorialPage(page: pages[index])
                                 .tag(index)
                         } else {
                             TutorialPageView(page: pages[index])
@@ -1503,6 +1513,281 @@ private struct TutorialTile: View {
             .shadow(color: isHighlighted ? color.opacity(0.6) : .clear, radius: 8)
             .scaleEffect(isHighlighted ? 1.05 : 1.0)
             .animation(.easeInOut(duration: 0.2), value: isHighlighted)
+    }
+}
+
+// MARK: - Valid Moves Tutorial Page
+
+private struct ValidMovesTutorialPage: View {
+    let page: TutorialPage
+    @State private var connectedTileIds: Set<Int> = []
+    @State private var showMergeResult = false
+    @State private var isDragging = false
+    @State private var validMovesCount = 1
+
+    // Initial 3x3 grid:
+    // 512, 256, 128  (row 0)
+    // 16,  32,  64   (row 1)
+    // 2,   8,   8    (row 2)
+    // The only valid move is 8 + 8
+
+    private struct TileState: Identifiable {
+        let id: Int
+        var row: Int
+        var col: Int
+        var value: Int
+        var step: Int
+    }
+
+    @State private var tiles: [TileState] = [
+        TileState(id: 0, row: 0, col: 0, value: 512, step: 8),
+        TileState(id: 1, row: 0, col: 1, value: 256, step: 7),
+        TileState(id: 2, row: 0, col: 2, value: 128, step: 6),
+        TileState(id: 3, row: 1, col: 0, value: 16, step: 3),
+        TileState(id: 4, row: 1, col: 1, value: 32, step: 4),
+        TileState(id: 5, row: 1, col: 2, value: 64, step: 5),
+        TileState(id: 6, row: 2, col: 0, value: 2, step: 0),
+        TileState(id: 7, row: 2, col: 1, value: 8, step: 2), // The first 8
+        TileState(id: 8, row: 2, col: 2, value: 8, step: 2)  // The second 8
+    ]
+    
+    // Spawner tile (starts off-board, drops to 0,1)
+    @State private var spawnedTile: TileState? = nil
+
+    private let tileSize: CGFloat = 65
+    private let tileSpacing: CGFloat = 8
+    private var totalWidth: CGFloat { tileSize * 3 + tileSpacing * 2 }
+
+    private func tileAt(location: CGPoint) -> Int? {
+        let col = Int(location.x / (tileSize + tileSpacing))
+        let row = Int(location.y / (tileSize + tileSpacing))
+        return tiles.first { $0.row == row && $0.col == col }?.id
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Text(page.title)
+                .font(.avenirNext(size: GameFonts.largeTitleSize, weight: .bold))
+
+            Text(page.subtitle)
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+                .foregroundStyle(.secondary)
+
+            // Valid moves indicator
+            VStack(spacing: 2) {
+                Text("\(validMovesCount)")
+                    .font(.system(.title, design: .rounded).bold())
+                    .foregroundStyle(validMovesCount == 0 ? .red : Color(hex: "FB923C"))
+                    .contentTransition(.numericText())
+                Text("Valid Moves")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.bottom, 8)
+
+            // Tutorial Grid
+            ZStack {
+                // Connection line
+                if connectedTileIds.contains(7) && connectedTileIds.contains(8) {
+                    let y = 2 * (tileSize + tileSpacing) + tileSize / 2
+                    let startX = 1 * (tileSize + tileSpacing) + tileSize / 2
+                    let endX = 2 * (tileSize + tileSpacing) + tileSize / 2
+                    Path { path in
+                        path.move(to: CGPoint(x: startX, y: y))
+                        path.addLine(to: CGPoint(x: endX, y: y))
+                    }
+                    .stroke(Color.white.opacity(0.8), lineWidth: 4)
+                }
+
+                // Empty tile background slots
+                ForEach(0..<3, id: \.self) { row in
+                    ForEach(0..<3, id: \.self) { col in
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: tileSize, height: tileSize)
+                            .position(
+                                x: CGFloat(col) * (tileSize + tileSpacing) + tileSize / 2,
+                                y: CGFloat(row) * (tileSize + tileSpacing) + tileSize / 2
+                            )
+                    }
+                }
+
+                // Actual Tiles
+                ForEach(tiles) { tile in
+                    TutorialTile(
+                        value: "\(tile.value)",
+                        color: Theme.colorForStep(tile.step),
+                        isHighlighted: connectedTileIds.contains(tile.id),
+                        size: tileSize
+                    )
+                    .position(
+                        x: CGFloat(tile.col) * (tileSize + tileSpacing) + tileSize / 2,
+                        y: CGFloat(tile.row) * (tileSize + tileSpacing) + tileSize / 2
+                    )
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: tile.col)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: tile.row)
+                }
+                
+                // Spawned Tile
+                if let newTile = spawnedTile {
+                    TutorialTile(
+                        value: "\(newTile.value)",
+                        color: Theme.colorForStep(newTile.step),
+                        isHighlighted: false,
+                        size: tileSize
+                    )
+                    .position(
+                        x: CGFloat(newTile.col) * (tileSize + tileSpacing) + tileSize / 2,
+                        y: CGFloat(newTile.row) * (tileSize + tileSpacing) + tileSize / 2
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: newTile.row)
+                }
+                
+                // Out of Moves Alert Overlay
+                if showMergeResult {
+                    VStack(spacing: 8) {
+                        Text("Out of Moves!")
+                            .font(.headline)
+                            .foregroundStyle(.red)
+                        HStack(spacing: 8) {
+                            Text("Use Power-Up")
+                                .font(.caption2)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(uiColor: .tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 6))
+                            Text("No Thanks")
+                                .font(.caption2)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(uiColor: .tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 6))
+                        }
+                    }
+                    .padding()
+                    .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+                    .transition(.scale.combined(with: .opacity))
+                    .zIndex(10)
+                }
+
+            }
+            .frame(width: totalWidth, height: totalWidth)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        guard !showMergeResult else { return }
+                        isDragging = true
+                        if let tileId = tileAt(location: value.location) {
+                            if connectedTileIds.isEmpty {
+                                if tileId == 7 || tileId == 8 {
+                                    connectedTileIds.insert(tileId)
+                                }
+                            } else if connectedTileIds.count == 1 {
+                                let first = connectedTileIds.first!
+                                if (first == 7 && tileId == 8) || (first == 8 && tileId == 7) {
+                                    connectedTileIds.insert(tileId)
+                                }
+                            }
+                        }
+                    }
+                    .onEnded { _ in
+                        guard !showMergeResult else { return }
+                        isDragging = false
+                        if connectedTileIds.count == 2 {
+                            performMerge()
+                        } else {
+                            connectedTileIds.removeAll()
+                        }
+                    }
+            )
+
+            Text(showMergeResult ? "0 moves left! Game Over." : "Drag the 8s to merge them")
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                .foregroundStyle(.secondary)
+                .padding(.top, 8)
+            
+            if showMergeResult {
+                Button("Reset") {
+                    resetBoard()
+                }
+                .font(.caption.bold())
+                .buttonStyle(.bordered)
+            }
+
+            Text(page.description)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 32)
+                .padding(.top, 16)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+            Spacer()
+        }
+        .padding()
+    }
+    
+    private func performMerge() {
+        withAnimation {
+            connectedTileIds.removeAll()
+            
+            // Merge occurs at col 2 (second 8)
+            if let index8 = tiles.firstIndex(where: { $0.id == 8 }) {
+                tiles[index8].value = 16
+                tiles[index8].step = 3
+            }
+            
+            // Remove the first 8 at (2,1)
+            tiles.removeAll { $0.id == 7 }
+            
+            // Apply gravity
+            // Tile 32 at (1,1) falls to (2,1)
+            if let idx = tiles.firstIndex(where: { $0.id == 4 }) {
+                tiles[idx].row = 2
+            }
+            // Tile 256 at (0,1) falls to (1,1)
+            if let idx = tiles.firstIndex(where: { $0.id == 1 }) {
+                tiles[idx].row = 1
+            }
+        }
+        
+        // Spawn the new 32 at (0,1)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            withAnimation {
+                spawnedTile = TileState(id: 99, row: 0, col: 1, value: 32, step: 4)
+                validMovesCount = 0
+            }
+        }
+        
+        // Show out of moves alert
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                showMergeResult = true
+            }
+        }
+    }
+    
+    private func resetBoard() {
+        withAnimation {
+            showMergeResult = false
+            spawnedTile = nil
+            validMovesCount = 1
+            
+            tiles = [
+                TileState(id: 0, row: 0, col: 0, value: 512, step: 8),
+                TileState(id: 1, row: 0, col: 1, value: 256, step: 7),
+                TileState(id: 2, row: 0, col: 2, value: 128, step: 6),
+                TileState(id: 3, row: 1, col: 0, value: 16, step: 3),
+                TileState(id: 4, row: 1, col: 1, value: 32, step: 4),
+                TileState(id: 5, row: 1, col: 2, value: 64, step: 5),
+                TileState(id: 6, row: 2, col: 0, value: 2, step: 0),
+                TileState(id: 7, row: 2, col: 1, value: 8, step: 2),
+                TileState(id: 8, row: 2, col: 2, value: 8, step: 2)
+            ]
+        }
     }
 }
 
