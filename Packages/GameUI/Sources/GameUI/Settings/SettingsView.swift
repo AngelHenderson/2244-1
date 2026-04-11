@@ -27,6 +27,8 @@ public struct SettingsView: View {
     @State private var isShowingGameCenter: Bool = false
     @State private var gameCenterEnabled: Bool = false
     @State private var gameCenterDisplayName: String = ""
+    @State private var isShowingReportPrompt: Bool = false
+    @State private var reportedPlayerName: String = ""
     
     // Trail style toggle (shared with TileScrollerView via AppStorage)
     @AppStorage("useCurvedTrail") private var useCurvedTrail: Bool = false
@@ -308,33 +310,8 @@ public struct SettingsView: View {
                     }
 
                     Button {
-                        let subject = "Player Report"
-                        let body = """
-                        I would like to report a player for the following reason:
-
-                        Player name: [enter player name]
-                        Reason (select one):
-                        • Cheating or memory editing
-                        • Fake currency/gem generation
-                        • Impossible scores or impossible progression
-                        • Speed hacks or timer manipulation
-                        • Bots, macros, or auto-play
-                        • Exploiting bugs repeatedly for unfair gain
-                        • Refund or payment abuse
-                        • Account selling, sharing, or ban evasion
-
-                        Additional details:
-                        [describe what you observed]
-                        """
-                        // .urlQueryAllowed doesn't encode `&` or `+` properly for mailto links
-                        var customAllowed = CharacterSet.urlQueryAllowed
-                        customAllowed.remove(charactersIn: "+&")
-                        
-                        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? subject
-                        let encodedBody = body.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? body
-                        if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
-                            UIApplication.shared.open(url)
-                        }
+                        reportedPlayerName = ""
+                        isShowingReportPrompt = true
                     } label: {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -417,6 +394,45 @@ public struct SettingsView: View {
             }
             .sheet(isPresented: $isShowingGameCenter) {
                 gameCenterSheet
+            }
+            .alert("Report a Player", isPresented: $isShowingReportPrompt) {
+                TextField("Player Name", text: $reportedPlayerName)
+                Button("Cancel", role: .cancel) { }
+                Button("Report") {
+                    let nameField = reportedPlayerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
+                        ? "[enter player name]" 
+                        : reportedPlayerName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    
+                    let subject = "Player Report"
+                    let body = """
+                    I would like to report a player for the following reason:
+
+                    Player name: \(nameField)
+                    Reason (select one):
+                    • Cheating or memory editing
+                    • Fake currency/gem generation
+                    • Impossible scores or impossible progression
+                    • Speed hacks or timer manipulation
+                    • Bots, macros, or auto-play
+                    • Exploiting bugs repeatedly for unfair gain
+                    • Refund or payment abuse
+                    • Account selling, sharing, or ban evasion
+
+                    Additional details:
+                    [describe what you observed]
+                    """
+                    // .urlQueryAllowed doesn't encode `&` or `+` properly for mailto links
+                    var customAllowed = CharacterSet.urlQueryAllowed
+                    customAllowed.remove(charactersIn: "+&")
+                    
+                    let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? subject
+                    let encodedBody = body.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? body
+                    if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            } message: {
+                Text("Enter the name of the player you wish to report.")
             }
         }
     }
