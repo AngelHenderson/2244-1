@@ -40,6 +40,47 @@ public final class HomeState {
     /// Ban/unban uses exact time — banned at 8:34 AM means unbanned at exactly 8:34 AM.
     public var banEndDate: Date? = nil
 
+    // Report evaluation state
+    public var showEvaluationAlert: Bool = false
+    public var evaluationTitle: String = ""
+    public var evaluationMessage: String = ""
+    
+    /// Queues a simulated investigation of a player report that takes time to complete
+    public func queueReportEvaluation(
+        isTrueReport: Bool,
+        isTrapReason: Bool,
+        areDetailsFalse: Bool,
+        nameField: String,
+        delaySeconds: Double
+    ) {
+        Task {
+            // Wait the randomized delay
+            try? await Task.sleep(nanoseconds: UInt64(delaySeconds * 1_000_000_000))
+            
+            await MainActor.run {
+                var pts = 0
+                if !isTrueReport {
+                    pts += isTrapReason ? 2 : 1
+                }
+                if areDetailsFalse {
+                    pts += 1
+                }
+                
+                if pts == 0 {
+                    self.evaluationTitle = "Player Banned"
+                    self.evaluationMessage = "Thank you for your report! After investigation, \(nameField) has been banned for 30 days."
+                } else {
+                    let currentPts = UserDefaults.standard.integer(forKey: "totalUniqueReports")
+                    UserDefaults.standard.set(currentPts + pts, forKey: "totalUniqueReports")
+                    
+                    self.evaluationTitle = "False Report / Untrue Details"
+                    self.evaluationMessage = "Your report or the provided details were evaluated and found to be false. You have accumulated \(pts) abuse point\(pts == 1 ? "" : "s")."
+                }
+                self.showEvaluationAlert = true
+            }
+        }
+    }
+
     // Pre-ban warning system (first offense only — 3 chances before first ban)
     /// Warnings remaining before the first ban (starts at 3)
     public var warningsRemaining: Int = 3

@@ -300,6 +300,7 @@ public struct HomeView: View {
         // Settings (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingSettings) {
             SettingsView()
+                .environment(state)
         }
         // Theme Picker (full screen on iPad)
         .adaptiveSheet(isPresented: $isShowingThemePicker) {
@@ -336,6 +337,11 @@ public struct HomeView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("You have \(state.warningsRemaining) chances left! After that, you are banned!")
+        }
+        .alert(state.evaluationTitle, isPresented: Bindable(state).showEvaluationAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(state.evaluationMessage)
         }
     }
 

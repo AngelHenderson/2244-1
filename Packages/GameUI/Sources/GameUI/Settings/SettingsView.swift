@@ -504,6 +504,7 @@ struct GameCenterView: UIViewControllerRepresentable {
 
 struct ReportPlayerSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(HomeState.self) private var homeState
     
     @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
     
@@ -512,10 +513,6 @@ struct ReportPlayerSheet: View {
     @State private var additionalDetails: String = ""
     
     @State private var showAreYouSure = false
-    @State private var showEvaluationAlert = false
-    @State private var evaluationTitle = ""
-    @State private var evaluationMessage = ""
-    @State private var pendingMailtoURL: URL? = nil
     
     let reasons = [
         "• Cheating or memory editing",
@@ -572,16 +569,6 @@ struct ReportPlayerSheet: View {
             } message: {
                 Text("Are you sure this player did something that violates the rules? False reports will count against you.")
             }
-            .alert(evaluationTitle, isPresented: $showEvaluationAlert) {
-                Button("OK") {
-                    if let url = pendingMailtoURL {
-                        UIApplication.shared.open(url)
-                    }
-                    dismiss()
-                }
-            } message: {
-                Text(evaluationMessage)
-            }
         }
     }
     
@@ -596,26 +583,8 @@ struct ReportPlayerSheet: View {
         let detailsFilled = !additionalDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let areDetailsFalse = detailsFilled ? Bool.random() : false
         
-        var pts = 0
-        if !isTrueReport {
-            pts += isTrapReason ? 2 : 1
-        }
-        if areDetailsFalse {
-            pts += 1
-        }
-        
-        if pts == 0 {
-            evaluationTitle = "Player Banned"
-            evaluationMessage = "Thank you for your report! After investigation, \(nameField) has been banned for 30 days."
-        } else {
-            totalUniqueReports += pts
-            
-            evaluationTitle = "False Report / Untrue Details"
-            evaluationMessage = "Your report or the provided details were evaluated and found to be false. You have accumulated \(pts) abuse point\(pts == 1 ? "" : "s")."
-        }
-        
         let subject = "Player Report"
-        let body = """
+        let bodyText = """
         I would like to report a player for the following reason:
 
         Player name: \(nameField)
@@ -629,11 +598,22 @@ struct ReportPlayerSheet: View {
         customAllowed.remove(charactersIn: "+&")
         
         let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? subject
-        let encodedBody = body.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? body
+        let encodedBody = bodyText.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? bodyText
         
-        pendingMailtoURL = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)")
+        // Queue the investigation alert task over 1-2 minutes asynchronously
+        homeState.queueReportEvaluation(
+            isTrueReport: isTrueReport,
+            isTrapReason: isTrapReason,
+            areDetailsFalse: areDetailsFalse,
+            nameField: nameField,
+            delaySeconds: Double.random(in: 60...120)
+        )
         
-        showEvaluationAlert = true
+        if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
+            UIApplication.shared.open(url)
+        }
+        
+        dismiss()
     }
 }
 
