@@ -550,7 +550,7 @@ struct ReportPlayerSheet: View {
                 
                 Section {
                     Button(action: { showAreYouSure = true }) {
-                        Text("Open Mail to Report")
+                        Text("Report")
                             .frame(maxWidth: .infinity)
                             .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
                             .foregroundStyle(Color.accentColor)
