@@ -67,8 +67,26 @@ public final class HomeState {
                 }
                 
                 if pts == 0 {
+                    let randomDays = [7, 14, 21, 30, 60, 180, 365].randomElement() ?? 30
+                    let dayLabel: String
+                    switch randomDays {
+                    case 7: dayLabel = "1 week"
+                    case 14: dayLabel = "2 weeks"
+                    case 21: dayLabel = "3 weeks"
+                    case 30: dayLabel = "1 month"
+                    case 60: dayLabel = "2 months"
+                    case 180: dayLabel = "6 months"
+                    case 365: dayLabel = "1 year"
+                    default: dayLabel = "\(randomDays) days"
+                    }
+                    
+                    let unbanDate = Calendar.current.date(byAdding: .day, value: randomDays, to: Date()) ?? Date()
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MMM d"
+                    let dateString = formatter.string(from: unbanDate)
+                    
                     self.evaluationTitle = "Player Banned"
-                    self.evaluationMessage = "Thank you for your report! After investigation, \(nameField) has been banned for 30 days."
+                    self.evaluationMessage = "Thank you for your report! After investigation, \(nameField) has been banned for \(dayLabel) and will be unbanned on \(dateString)."
                 } else {
                     let currentPts = UserDefaults.standard.integer(forKey: "totalUniqueReports")
                     UserDefaults.standard.set(currentPts + pts, forKey: "totalUniqueReports")
