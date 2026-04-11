@@ -507,10 +507,7 @@ struct ReportPlayerSheet: View {
     
     @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
     
-    @State private var playerName: String = ""
-    @State private var selectedReason: String = "• Cheating or memory editing"
-    @State private var additionalDetails: String = ""
-    
+    @State private var showAreYouSure = false
     @State private var showEvaluationAlert = false
     @State private var evaluationTitle = ""
     @State private var evaluationMessage = ""
@@ -548,7 +545,7 @@ struct ReportPlayerSheet: View {
                 }
                 
                 Section {
-                    Button(action: submitReport) {
+                    Button(action: { showAreYouSure = true }) {
                         Text("Open Mail to Report")
                             .frame(maxWidth: .infinity)
                             .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
@@ -563,6 +560,14 @@ struct ReportPlayerSheet: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            .alert("Are you sure?", isPresented: $showAreYouSure) {
+                Button("Yes", role: .destructive) {
+                    evaluateAndSubmitReport()
+                }
+                Button("No", role: .cancel) { }
+            } message: {
+                Text("Are you sure this player did something that violates the rules? False reports will count against you.")
+            }
             .alert(evaluationTitle, isPresented: $showEvaluationAlert) {
                 Button("OK") {
                     if let url = pendingMailtoURL {
@@ -576,7 +581,7 @@ struct ReportPlayerSheet: View {
         }
     }
     
-    private func submitReport() {
+    private func evaluateAndSubmitReport() {
         let nameField = playerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
             ? "[enter player name]" 
             : playerName.trimmingCharacters(in: .whitespacesAndNewlines)
