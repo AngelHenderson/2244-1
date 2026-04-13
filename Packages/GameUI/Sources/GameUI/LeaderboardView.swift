@@ -407,7 +407,7 @@ public struct LeaderboardView: View {
 
     /// Look up the milestone tier boundary for a given rank using rankForFilter
     private func tierMilestoneForRank(_ targetRank: Int, userMilestone: String, filter: LeaderboardFilter) -> String {
-        let milestones = Self.allMilestones
+        let milestones = MockLeaderboardData.allMilestones
         guard let userIndex = milestones.firstIndex(of: userMilestone) else {
             return userMilestone
         }
@@ -542,60 +542,6 @@ public struct LeaderboardView: View {
         }
     }
 
-    // All milestones in order from highest to lowest
-    // Includes: letter tiers (a-z, aa-az, etc.), B (Billion), M (Million), K (Thousand), raw numbers
-    private static let allMilestones: [String] = [
-        // Ultra-high tiers (alphabetic - highest first)
-        "1an", "693am", "346am", "173am", "86am", "43am", "21am", "10am", "5am", "2am",
-        "1am", "676al", "338al", "169al", "84al", "42al", "21al", "10al", "5al", "2al",
-        "1al", "661ak", "330ak", "165ak", "82ak", "41ak", "20ak", "10ak", "5ak", "2ak",
-        "1ak", "645aj", "322aj", "161aj", "80aj", "40aj", "20aj", "10aj", "5aj", "2aj",
-        "1aj", "630ai", "315ai", "157ai", "78ai", "39ai", "19ai", "9ai", "4ai", "2ai",
-        "1ai", "615ah", "307ah", "153ah", "76ah", "38ah", "19ah", "9ah", "4ah", "2ah",
-        "1ah", "601ag", "300ag", "150ag", "75ag", "37ag", "18ag", "9ag", "4ag", "2ag",
-        "1ag", "587af", "293af", "146af", "73af", "36af", "18af", "9af", "4af", "2af",
-        "1af", "573ae", "286ae", "143ae", "71ae", "35ae", "17ae", "8ae", "4ae", "2ae",
-        "1ae", "559ad", "279ad", "139ad", "69ad", "34ad", "17ad", "8ad", "4ad", "2ad",
-        "1ad", "546ac", "273ac", "136ac", "68ac", "34ac", "17ac", "8ac", "4ac", "2ac",
-        "1ac", "533ab", "266ab", "133ab", "66ab", "33ab", "16ab", "8ab", "4ab", "2ab",
-        "1ab", "521aa", "260aa", "130aa", "65aa", "32aa", "16aa", "8aa", "4aa", "2aa",
-        "1aa", "509z", "254z", "127z", "63z", "31z", "15z", "7z", "3z",
-        "1z", "994y", "497y", "248y", "124y", "62y", "31y", "15y", "7y", "3y",
-        "1y", "971x", "485x", "242x", "121x", "60x", "30x", "15x", "7x", "3x",
-        "1x", "948w", "474w", "237w", "118w", "59w", "29w", "14w", "7w", "3w",
-        "1w", "926v", "463v", "231v", "115v", "57v", "28v", "14v", "7v", "3v",
-        "1v", "904u", "452u", "226u", "113u", "56u", "28u", "14u", "7u", "3u",
-        "1u", "883t", "441t", "220t", "110t", "55t", "27t", "13t", "6t", "3t",
-        "1t", "862s", "431s", "215s", "107s", "53s", "26s", "13s", "6s", "3s",
-        "1s", "842r", "421r", "210r", "105r", "52r", "26r", "13r", "6r", "3r",
-        "1r", "822q", "411q", "205q", "102q", "51q", "25q", "12q", "6q", "3q",
-        "1q", "803p", "401p", "200p", "100p", "50p", "25p", "12p", "6p", "3p",
-        "1p", "784o", "392o", "196o", "98o", "49o", "24o", "12o", "6o", "3o",
-        "1o", "766n", "383n", "191n", "95n", "47n", "23n", "11n", "5n", "2n",
-        "1n", "748m", "374m", "187m", "93m", "46m", "23m", "11m", "5m", "2m",
-        "1m", "730l", "365l", "182l", "91l", "45l", "22l", "11l", "5l", "2l",
-        "1l", "713k", "356k", "178k", "89k", "44k", "22k", "11k", "5k", "2k",
-        "1k", "696j", "348j", "174j", "87j", "43j", "21j", "10j", "5j", "2j",
-        "1j", "680i", "340i", "170i", "85i", "42i", "21i", "10i", "5i", "2i",
-        "1i", "664h", "332h", "166h", "83h", "41h", "20h", "10h", "5h", "2h",
-        "1h", "649g", "324g", "162g", "81g", "40g", "20g", "10g", "5g", "2g",
-        "1g", "633f", "316f", "158f", "79f", "39f", "19f", "9f", "4f", "2f",
-        "1f", "618e", "309e", "154e", "77e", "38e", "19e", "9e", "4e", "2e",
-        "1e", "604d", "302d", "151d", "75d", "37d", "18d", "9d", "4d", "2d",
-        "1d", "590c", "295c", "147c", "73c", "36c", "18c", "9c", "4c", "2c",
-        "1c", "576b", "288b", "144b", "72b", "36b", "18b", "9b", "4b", "2b",
-        "1b", "562a", "281a", "140a", "70a", "35a", "17a", "8a", "4a", "2a",
-        "1a",
-        // Billions
-        "549B", "274B", "137B", "68B", "34B", "17B", "8B", "4B", "2B", "1B",
-        // Millions
-        "536M", "268M", "134M", "67M", "33M", "16M", "8M", "4M", "2M", "1M",
-        // Thousands
-        "524K", "262K", "131K", "65K", "32K", "16K",
-        // Raw numbers (lowest)
-        "8192", "4096", "2048", "1024", "512", "256", "128", "64", "32", "16", "8", "4", "2"
-    ]
-
     /// Returns milestones around the user's current milestone (3 above, user, 3 below)
     /// Each entry includes the rank number for that milestone tier based on selected filter
     private func milestoneTiersAroundUser(userMilestone: String, filter: LeaderboardFilter, entries: [LeaderboardEntry]) -> [(milestone: String, rankLabel: String)] {
@@ -607,7 +553,7 @@ public struct LeaderboardView: View {
             }
         }
 
-        let milestones = Self.allMilestones
+        let milestones = MockLeaderboardData.allMilestones
 
         // Find user's position in the milestone list
         guard let userIndex = milestones.firstIndex(of: userMilestone) else {
