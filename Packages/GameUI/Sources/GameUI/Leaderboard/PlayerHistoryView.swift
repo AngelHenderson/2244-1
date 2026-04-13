@@ -102,7 +102,7 @@ struct PlayerHistoryView: View {
             let eventDay = day - daysAgo
 
             // Helper to make a player name + country for a given seed
-            func makePlayer(seed: Int) -> (name: String, country: String, countryName: String) {
+            func makePlayer(seed: Int) -> (name: String, country: String, countryName: String, highestTile: String?) {
                 if entries.isEmpty {
                     // Fallback
                     let countries = ["US", "GB", "DE", "FR"]
@@ -115,13 +115,13 @@ struct PlayerHistoryView: View {
                         countrySeed: seed,
                         day: eventDay
                     )
-                    return (name, country, Self.countryDisplayName(for: country))
+                    return (name, country, Self.countryDisplayName(for: country), nil)
                 } else {
                     // Use entries exactly to ensure they correspond to current rank filter!
                     let index = Int(MockLeaderboardData.seededRandom(seed: seed, index: eventDay) * Double(entries.count))
                     let entry = entries[min(index, entries.count - 1)]
                     let cCode = entry.countryCode ?? "US"
-                    return (entry.name, cCode, Self.countryDisplayName(for: cCode))
+                    return (entry.name, cCode, Self.countryDisplayName(for: cCode), entry.highestTile)
                 }
             }
 
@@ -241,33 +241,33 @@ struct PlayerHistoryView: View {
             for i in 0..<3 {
                 let seed = eventDay * 700 + 400 + i * 11
                 let p = makePlayer(seed: seed)
-                let isInfinity = i == 0
-                if isInfinity {
-                    let infinityValues = [
-                        2, 5, 8, 12, 19, 27, 34, 45, 62, 85, 110, 145,
-                        180, 250, 340, 480, 650, 920, 1300, 1850, 2600, 3500,
-                        4800, 6500, 9200, 12500, 18000, 25000, 34000, 48000,
-                        65000, 88000, 120000, 160000, 220000, 310000
-                    ]
-                    let iIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * Double(infinityValues.count))
-                    let count = infinityValues[min(iIdx, infinityValues.count - 1)]
-                    result.append(HistoryEvent(
-                        type: .gameOver,
-                        message: "\(p.name) ran out of moves at \(count)∞.",
-                        daysAgo: daysAgo,
-                        seed: seed
-                    ))
+                let reportedTile: String
+                if let tile = p.highestTile {
+                    reportedTile = tile
                 } else {
-                    let allM = MockLeaderboardData.allMilestones
-                    let mIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(allM.count))
-                    let milestone = allM[min(mIdx, allM.count - 1)]
-                    result.append(HistoryEvent(
-                        type: .gameOver,
-                        message: "\(p.name) ran out of moves at \(milestone).",
-                        daysAgo: daysAgo,
-                        seed: seed
-                    ))
+                    let isInfinity = i == 0
+                    if isInfinity {
+                        let infinityValues = [
+                            2, 5, 8, 12, 19, 27, 34, 45, 62, 85, 110, 145,
+                            180, 250, 340, 480, 650, 920, 1300, 1850, 2600, 3500,
+                            4800, 6500, 9200, 12500, 18000, 25000, 34000, 48000,
+                            65000, 88000, 120000, 160000, 220000, 310000
+                        ]
+                        let iIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * Double(infinityValues.count))
+                        reportedTile = "\(infinityValues[min(iIdx, infinityValues.count - 1)])∞"
+                    } else {
+                        let allM = MockLeaderboardData.allMilestones
+                        let mIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(allM.count))
+                        reportedTile = allM[min(mIdx, allM.count - 1)]
+                    }
                 }
+                
+                result.append(HistoryEvent(
+                    type: .gameOver,
+                    message: "\(p.name) ran out of moves at \(reportedTile).",
+                    daysAgo: daysAgo,
+                    seed: seed
+                ))
                 // ~40% recovery
                 if MockLeaderboardData.seededRandom(seed: seed + 12, index: eventDay) < 0.4 {
                     let recoveryDate = result.last!.eventDate.addingTimeInterval(60)
@@ -427,33 +427,32 @@ struct PlayerHistoryView: View {
                         seed: seed
                     )
                 } else if random < 0.85 {
-                    let isInfinityPlayer = MockLeaderboardData.seededRandom(seed: seed + 7, index: eventDay) < 0.4
-                    if isInfinityPlayer {
-                        let infinityValues = [
-                            2, 5, 8, 12, 19, 27, 34, 45, 62, 85, 110, 145,
-                            180, 250, 340, 480, 650, 920, 1300, 1850, 2600, 3500,
-                            4800, 6500, 9200, 12500, 18000, 25000, 34000, 48000,
-                            65000, 88000, 120000, 160000, 220000, 310000
-                        ]
-                        let iIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * Double(infinityValues.count))
-                        let infinityCount = infinityValues[min(iIdx, infinityValues.count - 1)]
-                        event = HistoryEvent(
-                            type: .gameOver,
-                            message: "\(p.name) ran out of moves at \(infinityCount)∞.",
-                            daysAgo: daysAgo,
-                            seed: seed
-                        )
+                    let reportedTile: String
+                    if let tile = p.highestTile {
+                        reportedTile = tile
                     } else {
-                        let allM = MockLeaderboardData.allMilestones
-                        let milestoneIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(allM.count))
-                        let milestone = allM[min(milestoneIdx, allM.count - 1)]
-                        event = HistoryEvent(
-                            type: .gameOver,
-                            message: "\(p.name) ran out of moves at \(milestone).",
-                            daysAgo: daysAgo,
-                            seed: seed
-                        )
+                        let isInfinityPlayer = MockLeaderboardData.seededRandom(seed: seed + 7, index: eventDay) < 0.4
+                        if isInfinityPlayer {
+                            let infinityValues = [
+                                2, 5, 8, 12, 19, 27, 34, 45, 62, 85, 110, 145,
+                                180, 250, 340, 480, 650, 920, 1300, 1850, 2600, 3500,
+                                4800, 6500, 9200, 12500, 18000, 25000, 34000, 48000,
+                                65000, 88000, 120000, 160000, 220000, 310000
+                            ]
+                            let iIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * Double(infinityValues.count))
+                            reportedTile = "\(infinityValues[min(iIdx, infinityValues.count - 1)])∞"
+                        } else {
+                            let allM = MockLeaderboardData.allMilestones
+                            let milestoneIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(allM.count))
+                            reportedTile = allM[min(milestoneIdx, allM.count - 1)]
+                        }
                     }
+                    event = HistoryEvent(
+                        type: .gameOver,
+                        message: "\(p.name) ran out of moves at \(reportedTile).",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    )
 
                     if MockLeaderboardData.seededRandom(seed: seed + 12, index: eventDay) < 0.4 {
                         let gameOverEvent = event
@@ -645,19 +644,40 @@ struct PlayerHistoryView: View {
                     let banNumber = banCounts[name] ?? 0
                     banCounts[name] = banNumber + 1
                     playerBanned[name] = true
+                    
+                    let ghostSeed = abs(name.hashValue)
+                    // Ensure deterministic ghost name based on the original name
+                    let nIdx = (ghostSeed * 17) % MockLeaderboardData.hallOfFameNames.count
+                    let ghostName = MockLeaderboardData.hallOfFameNames[nIdx]
+                    
+                    // Retroactively swap all occurrences of `name` with `ghostName` in processed
+                    for idx in 0..<processed.count {
+                        if processed[idx].message.contains(name) {
+                            processed[idx] = HistoryEvent(
+                                type: processed[idx].type,
+                                playerName: processed[idx].playerName == name ? ghostName : processed[idx].playerName,
+                                reporterName: processed[idx].reporterName == name ? ghostName : processed[idx].reporterName,
+                                message: processed[idx].message.replacingOccurrences(of: name, with: ghostName),
+                                daysAgo: 0, seed: 0, overrideDate: processed[idx].eventDate
+                            )
+                        }
+                    }
+                    
+                    let targetName = ghostName
+
                     // Seed the starting ladder index from player name for variety
                     if banStartIndex[name] == nil {
-                        let nameHash = abs(name.hashValue)
+                        let nameHash = abs(targetName.hashValue)
                         banStartIndex[name] = nameHash % 4  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[name] ?? 0
                     let duration = escalationLadder[min(startIdx + banNumber, 3)]  // Cap to one week max for report-based bans
                     if let interval = intervalForDuration(duration) {
-                        pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                        pendingUnbans.append((targetName, event.eventDate.addingTimeInterval(interval)))
                     }
                     processed.append(HistoryEvent(
                         type: .banned,
-                        message: "\(name) got banned for \(duration) due to accumulating \(currentPoints) abuse points from false reports.",
+                        message: "\(targetName) got banned for \(duration) due to accumulating \(currentPoints) abuse points from false reports.",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
@@ -695,20 +715,41 @@ struct PlayerHistoryView: View {
                     playerBanned[reportedName] = true
                     let banNumber = banCounts[reportedName] ?? 0
                     banCounts[reportedName] = banNumber + 1
+                    
+                    let ghostSeed = abs(reportedName.hashValue)
+                    // Ensure deterministic ghost name based on the original name
+                    let nIdx = (ghostSeed * 17) % MockLeaderboardData.hallOfFameNames.count
+                    let ghostName = MockLeaderboardData.hallOfFameNames[nIdx]
+                    
+                    // Retroactively swap all occurrences of `reportedName` with `ghostName` in processed
+                    for idx in 0..<processed.count {
+                        if processed[idx].message.contains(reportedName) {
+                            processed[idx] = HistoryEvent(
+                                type: processed[idx].type,
+                                playerName: processed[idx].playerName == reportedName ? ghostName : processed[idx].playerName,
+                                reporterName: processed[idx].reporterName == reportedName ? ghostName : processed[idx].reporterName,
+                                message: processed[idx].message.replacingOccurrences(of: reportedName, with: ghostName),
+                                daysAgo: 0, seed: 0, overrideDate: processed[idx].eventDate
+                            )
+                        }
+                    }
+                    
+                    let targetName = ghostName
+
                     // Seed the starting ladder index from player name for variety
                     if banStartIndex[reportedName] == nil {
-                        let nameHash = abs(reportedName.hashValue)
+                        let nameHash = abs(targetName.hashValue)
                         banStartIndex[reportedName] = nameHash % 4  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[reportedName] ?? 0
                     let duration = escalationLadder[min(startIdx + banNumber, 3)]  // Cap to one week max for report-based bans
 
                     if let interval = intervalForDuration(duration) {
-                        pendingUnbans.append((reportedName, event.eventDate.addingTimeInterval(interval)))
+                        pendingUnbans.append((targetName, event.eventDate.addingTimeInterval(interval)))
                     }
                     processed.append(HistoryEvent(
                         type: .banned,
-                        message: "\(reportedName) got banned for \(duration) due to three reports.",
+                        message: "\(targetName) got banned for \(duration) due to three reports.",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
