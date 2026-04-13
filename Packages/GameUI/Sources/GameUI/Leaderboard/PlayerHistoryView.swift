@@ -487,13 +487,24 @@ struct PlayerHistoryView: View {
             }
 
             // Generate join events separately using actual joining rates
-
+            
             // Pick 2-3 countries that had joins visible in the feed today
             let visibleCountryCount = 2 + Int(MockLeaderboardData.seededRandom(seed: 77777, index: eventDay) * 2.0)
+            let fallbackCountries = ["US", "BR", "GB", "DE", "JP", "IN", "FR", "MX", "AU", "CA",
+                                     "KR", "IT", "ES", "NL", "SE", "NO", "CH", "AT", "NZ", "IE",
+                                     "VN", "KZ", "CW", "AZ", "TJ", "KE", "ZA", "FJ", "PH", "TH"]
+            
             for countryIdx in 0..<visibleCountryCount {
                 let cSeed = eventDay * 50 + countryIdx
-                let cIndex = Int(MockLeaderboardData.seededRandom(seed: cSeed, index: eventDay) * Double(countries.count))
-                let country = countries[min(cIndex, countries.count - 1)]
+                let cIndex = Int(MockLeaderboardData.seededRandom(seed: cSeed, index: eventDay) * Double(fallbackCountries.count))
+                
+                let country: String
+                if filterId == "global" || filterId == "hof" || filterId.isEmpty {
+                    country = fallbackCountries[min(cIndex, fallbackCountries.count - 1)]
+                } else {
+                    country = filterId
+                }
+                
                 let countryName = Self.countryDisplayName(for: country)
 
                 // Use actual joining rate to determine how many joins to show for this country
@@ -503,16 +514,16 @@ struct PlayerHistoryView: View {
 
                 for joinIdx in 0..<visibleJoins {
                     let joinSeed = eventDay * 300 + countryIdx * 10 + joinIdx
-                    let nameIdx = Int(MockLeaderboardData.seededRandom(seed: joinSeed + 2, index: eventDay) * 200.0)
-                    let joinPlayerName = MockLeaderboardData.nameForPlayer(
-                        index: nameIdx,
-                        names: MockLeaderboardData.hallOfFameNames,
-                        countrySeed: joinSeed,
-                        day: eventDay
-                    )
+                    
+                    // We can reuse the `makePlayer` closure for consistency where we map matching names,
+                    // but since they 'just joined', using random mock names here is technically fine too.
+                    // Let's use `makePlayer` to just get a generic player, but we ignore the `makePlayer`'s
+                    // country tracking and just use `countryName`.
+                    let randomPlayer = makePlayer(seed: joinSeed)
+                    
                     result.append(HistoryEvent(
                         type: .joined,
-                        message: "\(joinPlayerName) joined the \(countryName) leaderboard.",
+                        message: "\(randomPlayer.name) joined the \(countryName) leaderboard.",
                         daysAgo: daysAgo,
                         seed: joinSeed
                     ))
