@@ -370,7 +370,7 @@ public enum MockLeaderboardData {
         public let countryCode: String
         public let milestone: String
         public let isBanned: Bool
-        public let banTimeLeft: String?
+        public let banEndDate: Date?
         public let isGameOver: Bool
     }
 
@@ -473,27 +473,33 @@ public enum MockLeaderboardData {
                 let banHash = abs(banSeed &* 2654435761) % 100
                 let isBanned = banHash < 3
 
-                var banTimeLeft: String? = nil
+                var banEndDate: Date? = nil
                 if isBanned {
                     let timeHash = abs(banSeed &* 123456789) % 100
+                    let totalSeconds: Int
                     if timeHash < 20 {
-                        banTimeLeft = "Permanent"
+                        totalSeconds = -1  // Permanent (sentinel)
                     } else if timeHash < 50 {
                         // Days left: 1 to 30
                         let days = 1 + (timeHash % 30)
-                        banTimeLeft = "\(days) day\(days == 1 ? "" : "s") left"
+                        totalSeconds = days * 86400
                     } else if timeHash < 75 {
                         // Hours left: 1 to 23
                         let hours = 1 + (timeHash % 23)
-                        banTimeLeft = "\(hours) hour\(hours == 1 ? "" : "s") left"
+                        totalSeconds = hours * 3600
                     } else if timeHash < 90 {
                         // Minutes left: 1 to 59
                         let mins = 1 + (timeHash % 59)
-                        banTimeLeft = "\(mins) minute\(mins == 1 ? "" : "s") left"
+                        totalSeconds = mins * 60
                     } else {
                         // Seconds left: 1 to 59
                         let secs = 1 + (timeHash % 59)
-                        banTimeLeft = "\(secs) second\(secs == 1 ? "" : "s") left"
+                        totalSeconds = secs
+                    }
+                    if totalSeconds == -1 {
+                        banEndDate = .distantFuture  // Permanent
+                    } else {
+                        banEndDate = Date().addingTimeInterval(Double(totalSeconds))
                     }
                 }
 
@@ -509,7 +515,7 @@ public enum MockLeaderboardData {
                     countryCode: config.code,
                     milestone: progressedMilestone,
                     isBanned: isBanned,
-                    banTimeLeft: banTimeLeft,
+                    banEndDate: banEndDate,
                     isGameOver: isGameOver
                 ))
             }

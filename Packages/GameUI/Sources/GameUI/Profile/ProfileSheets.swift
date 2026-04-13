@@ -184,7 +184,7 @@ struct CompareView: View {
             milestone: myProfile.milestone,
             isMe: true,
             isBanned: false,
-            banTimeLeft: nil,
+            banEndDate: nil,
             isGameOver: false
         ))
 
@@ -198,7 +198,7 @@ struct CompareView: View {
                 milestone: player.milestone,
                 isMe: false,
                 isBanned: player.isBanned,
-                banTimeLeft: player.banTimeLeft,
+                banEndDate: player.banEndDate,
                 isGameOver: player.isGameOver
             ))
         }
@@ -227,7 +227,7 @@ struct CompareView: View {
             milestone: myHofDisplay,
             isMe: true,
             isBanned: false,
-            banTimeLeft: nil,
+            banEndDate: nil,
             isGameOver: false
         ))
 
@@ -247,7 +247,7 @@ struct CompareView: View {
                 milestone: hofDisplay,
                 isMe: false,
                 isBanned: player.isBanned,
-                banTimeLeft: player.banTimeLeft,
+                banEndDate: player.banEndDate,
                 isGameOver: player.isGameOver
             ))
         }
@@ -351,9 +351,17 @@ struct CompareView: View {
                                 Spacer()
 
                                 // Milestone (or status)
-                                Text(entry.isBanned ? (entry.banTimeLeft == "Permanent" ? "Permanently Banned" : "Banned - \(entry.banTimeLeft ?? "")") : (entry.isGameOver ? "Game Over" : entry.milestone))
-                                    .font(.avenirNext(size: entry.isBanned ? GameFonts.footnoteSize : GameFonts.subheadlineSize, weight: .bold))
-                                    .foregroundColor(entry.isBanned ? .red : (entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary)))
+                                if entry.isBanned {
+                                    TimelineView(.periodic(every: 1)) { context in
+                                        Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
+                                            .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
+                                            .foregroundColor(.red)
+                                    }
+                                } else {
+                                    Text(entry.isGameOver ? "Game Over" : entry.milestone)
+                                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                                        .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
+                                }
 
                                 // Remove button (only for non-me entries)
                                 if !entry.isMe {
@@ -416,9 +424,17 @@ struct CompareView: View {
                                 Spacer()
 
                                 // Infinity count (or status)
-                                Text(entry.isBanned ? (entry.banTimeLeft == "Permanent" ? "Permanently Banned" : "Banned - \(entry.banTimeLeft ?? "")") : (entry.isGameOver ? "Game Over" : entry.milestone))
-                                    .font(.avenirNext(size: entry.isBanned ? GameFonts.footnoteSize : GameFonts.subheadlineSize, weight: .bold))
-                                    .foregroundColor(entry.isBanned ? .red : (entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary)))
+                                if entry.isBanned {
+                                    TimelineView(.periodic(every: 1)) { context in
+                                        Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
+                                            .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
+                                            .foregroundColor(.red)
+                                    }
+                                } else {
+                                    Text(entry.isGameOver ? "Game Over" : entry.milestone)
+                                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                                        .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
+                                }
 
                                 // Remove button (only for non-me entries)
                                 if !entry.isMe {
@@ -533,7 +549,7 @@ struct MockPlayer: Identifiable {
     let countryCode: String
     let milestone: String
     let isBanned: Bool
-    let banTimeLeft: String?
+    let banEndDate: Date?
     let isGameOver: Bool
 
     var countryFlag: String {
@@ -554,7 +570,7 @@ struct MockPlayer: Identifiable {
                 countryCode: player.countryCode,
                 milestone: player.milestone,
                 isBanned: player.isBanned,
-                banTimeLeft: player.banTimeLeft,
+                banEndDate: player.banEndDate,
                 isGameOver: player.isGameOver
             )
         }
@@ -581,8 +597,29 @@ struct ComparisonEntry: Identifiable {
     let milestone: String
     let isMe: Bool
     let isBanned: Bool
-    let banTimeLeft: String?
+    let banEndDate: Date?
     let isGameOver: Bool
+}
+
+/// Format a ban end date into a human-readable countdown string
+private func formatBanTimeLeft(_ endDate: Date?, now: Date) -> String {
+    guard let endDate = endDate else { return "Banned" }
+    if endDate == .distantFuture { return "Permanently Banned" }
+    let remaining = Int(endDate.timeIntervalSince(now))
+    if remaining <= 0 { return "Unbanned" }
+    let days = remaining / 86400
+    let hours = (remaining % 86400) / 3600
+    let minutes = (remaining % 3600) / 60
+    let seconds = remaining % 60
+    if days > 0 {
+        return "Banned - \(days) day\(days == 1 ? "" : "s") left"
+    } else if hours > 0 {
+        return "Banned - \(hours) hour\(hours == 1 ? "" : "s") left"
+    } else if minutes > 0 {
+        return "Banned - \(minutes)m \(seconds)s left"
+    } else {
+        return "Banned - \(seconds)s left"
+    }
 }
 
 // MARK: - Comparison Row (kept for potential future use)
