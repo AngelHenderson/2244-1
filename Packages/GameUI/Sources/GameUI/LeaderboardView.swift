@@ -129,6 +129,52 @@ public struct LeaderboardView: View {
                     }
                 }
             }
+            .alert("Report Abuse Detected", isPresented: $showReportAbuseAlert) {
+                Button("OK", role: .cancel) {
+                    // Trigger the ban system — issues a warning (or ban if out of chances)
+                    homeState.issueWarning(reason: "Abusing the report system")
+                    dismiss()
+                }
+            } message: {
+                Text("You have been flagged for abusing the report system. All players you reported have been unbanned. Continued abuse will result in your account being suspended.")
+            }
+            .alert("Are you sure?", isPresented: $showReportAreYouSure) {
+                Button("Yes", role: .destructive) {
+                    // Move to True or False step
+                    showReportTrueOrFalse = true
+                }
+                Button("Cancel", role: .cancel) {
+                    pendingReportEntry = nil
+                }
+            } message: {
+                Text("Are you sure \(pendingReportEntry?.name ?? "this player") did something that violates the rules? False reports will count against you.")
+            }
+            .alert("True or False?", isPresented: $showReportTrueOrFalse) {
+                Button("True") {
+                    // Legitimate report — player gets a warning toward ban
+                    if let entry = pendingReportEntry {
+                        reportPlayer(entry)
+                        pendingReportEntry = nil
+                    }
+                }
+                Button("False", role: .destructive) {
+                    // False report — 2 abuse points if reporting someone ahead (overtake), 1 otherwise
+                    if let entry = pendingReportEntry {
+                        let myRank = model.myEntry?.rank ?? Int.max
+                        let abusePoints = entry.rank < myRank ? 2 : 1
+                        totalUniqueReports += abusePoints
+                    }
+                    pendingReportEntry = nil
+                    showFalseReportWarning = true
+                }
+            } message: {
+                Text("Did \(pendingReportEntry?.name ?? "this player") actually do something wrong?")
+            }
+            .alert("False Report!", isPresented: $showFalseReportWarning) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Your false report has been recorded. False reports count against you and may result in your account being suspended.")
+            }
         }
         .fullScreenCover(isPresented: $showPlayerHistory) {
             PlayerHistoryView(entries: model.entries, filterId: model.selectedFilter.id)
@@ -148,52 +194,6 @@ public struct LeaderboardView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("\(lastReportedName) has been banned and removed from the leaderboard due to multiple reports.")
-        }
-        .alert("Report Abuse Detected", isPresented: $showReportAbuseAlert) {
-            Button("OK", role: .cancel) {
-                // Trigger the ban system — issues a warning (or ban if out of chances)
-                homeState.issueWarning(reason: "Abusing the report system")
-                dismiss()
-            }
-        } message: {
-            Text("You have been flagged for abusing the report system. All players you reported have been unbanned. Continued abuse will result in your account being suspended.")
-        }
-        .alert("Are you sure?", isPresented: $showReportAreYouSure) {
-            Button("Yes", role: .destructive) {
-                // Move to True or False step
-                showReportTrueOrFalse = true
-            }
-            Button("Cancel", role: .cancel) {
-                pendingReportEntry = nil
-            }
-        } message: {
-            Text("Are you sure \(pendingReportEntry?.name ?? "this player") did something that violates the rules? False reports will count against you.")
-        }
-        .alert("True or False?", isPresented: $showReportTrueOrFalse) {
-            Button("True") {
-                // Legitimate report — player gets a warning toward ban
-                if let entry = pendingReportEntry {
-                    reportPlayer(entry)
-                    pendingReportEntry = nil
-                }
-            }
-            Button("False", role: .destructive) {
-                // False report — 2 abuse points if reporting someone ahead (overtake), 1 otherwise
-                if let entry = pendingReportEntry {
-                    let myRank = model.myEntry?.rank ?? Int.max
-                    let abusePoints = entry.rank < myRank ? 2 : 1
-                    totalUniqueReports += abusePoints
-                }
-                pendingReportEntry = nil
-                showFalseReportWarning = true
-            }
-        } message: {
-            Text("Did \(pendingReportEntry?.name ?? "this player") actually do something wrong?")
-        }
-        .alert("False Report!", isPresented: $showFalseReportWarning) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text("Your false report has been recorded. False reports count against you and may result in your account being suspended.")
         }
         .onChange(of: showingTop150) { _, isTop150 in
             // When switching to Top 150 view, force a refresh so the entries
