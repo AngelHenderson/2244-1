@@ -425,16 +425,17 @@ struct CompareView: View {
                                 Spacer()
 
                                 // Infinity count (or status)
-                                if entry.isBanned {
-                                    TimelineView(.periodic(every: 1)) { context in
+                                TimelineView(.periodic(every: 1)) { context in
+                                    let banned = entry.isCurrentlyBanned(at: context.date)
+                                    if banned {
                                         Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
                                             .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
                                             .foregroundColor(.red)
+                                    } else {
+                                        Text(entry.isGameOver ? "Game Over" : entry.milestone)
+                                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                                            .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
                                     }
-                                } else {
-                                    Text(entry.isGameOver ? "Game Over" : entry.milestone)
-                                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                                        .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
                                 }
 
                                 // Remove button (only for non-me entries)
