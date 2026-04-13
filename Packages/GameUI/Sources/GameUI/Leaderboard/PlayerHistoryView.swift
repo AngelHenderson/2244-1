@@ -3,6 +3,11 @@ import SwiftUI
 /// Shows a chronological feed of player events: bans, reports, game overs, joins, etc.
 struct PlayerHistoryView: View {
     @Environment(\.dismiss) private var dismiss
+    
+    let entries: [LeaderboardEntry]
+    let filterId: String
+    
+    @State private var events: [HistoryEvent] = []
 
     private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
 
@@ -44,6 +49,11 @@ struct PlayerHistoryView: View {
                 }
             }
         }
+        .onAppear {
+            if events.isEmpty {
+                events = generateEvents()
+            }
+        }
     }
 
     // MARK: - Event Row
@@ -80,20 +90,7 @@ struct PlayerHistoryView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    // Cache events so timestamps don't shift on re-render
-    nonisolated(unsafe) private static var cachedDay: Int = -1
-    nonisolated(unsafe) private static var cachedEvents: [HistoryEvent] = []
-
-    private var events: [HistoryEvent] {
-        let today = MockLeaderboardData.daysSinceReference
-        if Self.cachedDay != today || Self.cachedEvents.isEmpty {
-            Self.cachedEvents = Self.generateEvents()
-            Self.cachedDay = today
-        }
-        return Self.cachedEvents
-    }
-
-    private static func generateEvents() -> [HistoryEvent] {
+    private func generateEvents() -> [HistoryEvent] {
         let day = MockLeaderboardData.daysSinceReference
         let eventNow = Date()
         HistoryEvent._nextId = 0  // Reset counter for fresh generation
@@ -104,22 +101,28 @@ struct PlayerHistoryView: View {
             let dailyStartIndex = result.count
             let eventDay = day - daysAgo
 
-            let countries = ["US", "BR", "GB", "DE", "JP", "IN", "FR", "MX", "AU", "CA",
-                             "KR", "IT", "ES", "NL", "SE", "NO", "CH", "AT", "NZ", "IE",
-                             "VN", "KZ", "CW", "AZ", "TJ", "KE", "ZA", "FJ", "PH", "TH"]
-
             // Helper to make a player name + country for a given seed
             func makePlayer(seed: Int) -> (name: String, country: String, countryName: String) {
-                let cIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 1, index: eventDay) * Double(countries.count))
-                let country = countries[min(cIdx, countries.count - 1)]
-                let nIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 2, index: eventDay) * 200.0)
-                let name = MockLeaderboardData.nameForPlayer(
-                    index: nIdx,
-                    names: MockLeaderboardData.hallOfFameNames,
-                    countrySeed: seed,
-                    day: eventDay
-                )
-                return (name, country, Self.countryDisplayName(for: country))
+                if entries.isEmpty {
+                    // Fallback
+                    let countries = ["US", "GB", "DE", "FR"]
+                    let cIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 1, index: eventDay) * Double(countries.count))
+                    let country = countries[min(cIdx, countries.count - 1)]
+                    let nIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 2, index: eventDay) * 200.0)
+                    let name = MockLeaderboardData.nameForPlayer(
+                        index: nIdx,
+                        names: MockLeaderboardData.hallOfFameNames,
+                        countrySeed: seed,
+                        day: eventDay
+                    )
+                    return (name, country, Self.countryDisplayName(for: country))
+                } else {
+                    // Use entries exactly to ensure they correspond to current rank filter!
+                    let index = Int(MockLeaderboardData.seededRandom(seed: seed, index: eventDay) * Double(entries.count))
+                    let entry = entries[min(index, entries.count - 1)]
+                    let cCode = entry.countryCode ?? "US"
+                    return (entry.name, cCode, Self.countryDisplayName(for: cCode))
+                }
             }
 
             // === Guaranteed events: 2+ of each type per day ===

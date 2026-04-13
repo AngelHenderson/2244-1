@@ -131,7 +131,7 @@ public struct LeaderboardView: View {
             }
         }
         .fullScreenCover(isPresented: $showPlayerHistory) {
-            PlayerHistoryView()
+            PlayerHistoryView(entries: model.entries, filterId: model.selectedFilter.id)
         }
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
