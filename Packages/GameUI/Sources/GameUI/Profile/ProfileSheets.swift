@@ -594,7 +594,7 @@ private struct ComparisonEntryStatusView: View {
     let entry: ComparisonEntry
     
     var body: some View {
-        TimelineView(.periodic(every: 1)) { context in
+        TimelineView(.periodic(from: .now, by: 1.0)) { context in
             let banned = entry.isCurrentlyBanned(at: context.date)
             if banned {
                 Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
