@@ -184,6 +184,7 @@ struct CompareView: View {
             milestone: myProfile.milestone,
             isMe: true,
             isBanned: false,
+            banTimeLeft: nil,
             isGameOver: false
         ))
 
@@ -226,6 +227,7 @@ struct CompareView: View {
             milestone: myHofDisplay,
             isMe: true,
             isBanned: false,
+            banTimeLeft: nil,
             isGameOver: false
         ))
 
