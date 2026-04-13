@@ -351,18 +351,7 @@ struct CompareView: View {
                                 Spacer()
 
                                 // Milestone (or status)
-                                TimelineView(.periodic(every: 1)) { context in
-                                    let banned = entry.isCurrentlyBanned(at: context.date)
-                                    if banned {
-                                        Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
-                                            .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
-                                            .foregroundColor(.red)
-                                    } else {
-                                        Text(entry.isGameOver ? "Game Over" : entry.milestone)
-                                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                                            .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
-                                    }
-                                }
+                                ComparisonEntryStatusView(entry: entry)
 
                                 // Remove button (only for non-me entries)
                                 if !entry.isMe {
@@ -425,18 +414,7 @@ struct CompareView: View {
                                 Spacer()
 
                                 // Infinity count (or status)
-                                TimelineView(.periodic(every: 1)) { context in
-                                    let banned = entry.isCurrentlyBanned(at: context.date)
-                                    if banned {
-                                        Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
-                                            .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
-                                            .foregroundColor(.red)
-                                    } else {
-                                        Text(entry.isGameOver ? "Game Over" : entry.milestone)
-                                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                                            .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
-                                    }
-                                }
+                                ComparisonEntryStatusView(entry: entry)
 
                                 // Remove button (only for non-me entries)
                                 if !entry.isMe {
@@ -607,6 +585,27 @@ struct ComparisonEntry: Identifiable {
         guard isBanned, let endDate = banEndDate else { return false }
         if endDate == .distantFuture { return true }  // Permanent
         return now < endDate
+    }
+}
+
+// MARK: - Subviews
+
+private struct ComparisonEntryStatusView: View {
+    let entry: ComparisonEntry
+    
+    var body: some View {
+        TimelineView(.periodic(every: 1)) { context in
+            let banned = entry.isCurrentlyBanned(at: context.date)
+            if banned {
+                Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
+                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
+                    .foregroundColor(.red)
+            } else {
+                Text(entry.isGameOver ? "Game Over" : entry.milestone)
+                    .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                    .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
+            }
+        }
     }
 }
 
