@@ -143,6 +143,8 @@ struct CompareView: View {
     @State private var searchText: String = ""
     @State private var selectedPlayers: [MockPlayer] = []
     @State private var mockPlayers: [MockPlayer] = []
+    @State private var currentTime = Date()
+    private let liveTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     private static let selectedPlayersKey = "CompareView.selectedPlayerIDs"
 
     private func loadSelectedPlayers() {
@@ -205,8 +207,8 @@ struct CompareView: View {
 
         // Sort: banned at very bottom, game-over above banned, then by milestone (highest first)
         return entries.sorted { a, b in
-            let aPriority = a.isCurrentlyBanned() ? 2 : (a.isGameOver ? 1 : 0)
-            let bPriority = b.isCurrentlyBanned() ? 2 : (b.isGameOver ? 1 : 0)
+            let aPriority = a.isCurrentlyBanned(at: currentTime) ? 2 : (a.isGameOver ? 1 : 0)
+            let bPriority = b.isCurrentlyBanned(at: currentTime) ? 2 : (b.isGameOver ? 1 : 0)
             if aPriority != bPriority { return aPriority < bPriority }
             return parseMilestone(a.milestone) > parseMilestone(b.milestone)
         }
@@ -254,8 +256,8 @@ struct CompareView: View {
 
         // Sort: banned at very bottom, game-over above banned, then infinity counts descending
         return entries.sorted { a, b in
-            let aPriority = a.isCurrentlyBanned() ? 2 : (a.isGameOver ? 1 : 0)
-            let bPriority = b.isCurrentlyBanned() ? 2 : (b.isGameOver ? 1 : 0)
+            let aPriority = a.isCurrentlyBanned(at: currentTime) ? 2 : (a.isGameOver ? 1 : 0)
+            let bPriority = b.isCurrentlyBanned(at: currentTime) ? 2 : (b.isGameOver ? 1 : 0)
             if aPriority != bPriority { return aPriority < bPriority }
             let aCount = infinityCount(from: a.milestone)
             let bCount = infinityCount(from: b.milestone)
@@ -438,6 +440,9 @@ struct CompareView: View {
                         Text("Hall of Fame")
                     }
                 }
+            }
+            .onReceive(liveTimer) { time in
+                currentTime = time
             }
             .navigationTitle("Compare Profiles")
             .navigationBarTitleDisplayMode(.inline)
