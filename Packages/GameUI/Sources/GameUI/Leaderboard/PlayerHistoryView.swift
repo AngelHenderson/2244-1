@@ -419,8 +419,68 @@ struct PlayerHistoryView: View {
                             seed: seed
                         )
                     }
+                } else if random < 0.65 {
+                    event = HistoryEvent(
+                        type: .madeInfinity,
+                        message: "\(p.name) made infinity!",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    )
+                } else if random < 0.85 {
+                    let isInfinityPlayer = MockLeaderboardData.seededRandom(seed: seed + 7, index: eventDay) < 0.4
+                    if isInfinityPlayer {
+                        let infinityValues = [
+                            2, 5, 8, 12, 19, 27, 34, 45, 62, 85, 110, 145,
+                            180, 250, 340, 480, 650, 920, 1300, 1850, 2600, 3500,
+                            4800, 6500, 9200, 12500, 18000, 25000, 34000, 48000,
+                            65000, 88000, 120000, 160000, 220000, 310000
+                        ]
+                        let iIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 8, index: eventDay) * Double(infinityValues.count))
+                        let infinityCount = infinityValues[min(iIdx, infinityValues.count - 1)]
+                        event = HistoryEvent(
+                            type: .gameOver,
+                            message: "\(p.name) ran out of moves at \(infinityCount)∞.",
+                            daysAgo: daysAgo,
+                            seed: seed
+                        )
+                    } else {
+                        let allM = MockLeaderboardData.allMilestones
+                        let milestoneIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 9, index: eventDay) * Double(allM.count))
+                        let milestone = allM[min(milestoneIdx, allM.count - 1)]
+                        event = HistoryEvent(
+                            type: .gameOver,
+                            message: "\(p.name) ran out of moves at \(milestone).",
+                            daysAgo: daysAgo,
+                            seed: seed
+                        )
+                    }
+
+                    if MockLeaderboardData.seededRandom(seed: seed + 12, index: eventDay) < 0.4 {
+                        let gameOverEvent = event
+                        let recoveryDate = gameOverEvent.eventDate.addingTimeInterval(60)
+                        let recovery = HistoryEvent(
+                            type: .moveRecovery,
+                            message: "\(p.name) recovered their moves and is back in the game!",
+                            daysAgo: daysAgo,
+                            seed: seed + 999,
+                            overrideDate: recoveryDate
+                        )
+                        result.append(recovery)
+                    }
+                } else if random < 0.92 {
+                    event = HistoryEvent(
+                        type: .deleted,
+                        message: "\(p.name) deleted the game.",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    )
                 } else {
-                    continue
+                    event = HistoryEvent(
+                        type: .restart,
+                        message: "\(p.name) chose to restart their progress.",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    )
                 }
 
                 result.append(event)
@@ -517,73 +577,247 @@ struct PlayerHistoryView: View {
         // Sort by date, newest first
         result.sort { $0.eventDate > $1.eventDate }
 
-        // --- POST-PROCESS: INJECT ACTUAL ENTRY DATA ---
-        var processed = result
-        let now = Date()
-        let calendar = Calendar.current
+        // Post-process: track abuse points from false reports AND escalate ban durations
+        // Leaderboard overtake = 2 abuse points, other false reports = 1 point
+        // At 5+ abuse points → banned (with escalating duration for repeat offenders)
+        var abusePoints: [String: Int] = [:]  // tracks abuse points per player
+        var banCounts: [String: Int] = [:]  // tracks how many bans per player for escalation
+        var playerBanned: [String: Bool] = [:]  // whether player already got banned this cycle
+        var processed: [HistoryEvent] = []
+
+        // Escalation ladder — each subsequent ban moves up from their starting tier
+        let escalationLadder = [
+            "one day", "two days", "three days", "one week",
+            "two weeks", "one month", "two months",
+            "six months", "one year", "two years", "five years"
+        ]
+
+        // Track starting ladder index per player (based on their first offense severity)
+        var banStartIndex: [String: Int] = [:]
+
+        var reportCounts: [String: Int] = [:]  // tracks how many times each player was reported
+        let reportsUntilReview = 3  // number of reports before action is taken
+
+        var pendingUnbans: [(name: String, unbanDate: Date)] = []
         
-        for entry in entries {
-            let seed = abs(entry.name.hashValue)
-            let daysAgo = seed % 30
-            
-            // Build absolute timestamp
-            let targetDate = calendar.date(byAdding: .day, value: -daysAgo, to: now) ?? now
-            var components = calendar.dateComponents([.year, .month, .day], from: targetDate)
-            components.hour = (seed * 13 + 7) % 24
-            components.minute = (seed * 31 + 11) % 60
-            let eventDate = calendar.date(from: components) ?? targetDate
-            
-            // Bans
-            if entry.isBanned {
-                let msg: String
-                if let unban = entry.banEndDate {
-                    if unban == .distantFuture {
-                        msg = "\(entry.name) got permanently banned due to multiple reports."
-                    } else {
-                        let formatter = DateFormatter()
-                        formatter.dateFormat = "MMM d"
-                        let dateStr = formatter.string(from: unban)
-                        msg = "\(entry.name) got banned and will be unbanned on \(dateStr)."
-                    }
-                } else {
-                    msg = "\(entry.name) got banned for violating the rules."
-                }
-                
-                processed.append(HistoryEvent(
-                    type: .banned, message: msg, daysAgo: daysAgo, seed: seed, overrideDate: eventDate
-                ))
+        func intervalForDuration(_ duration: String) -> TimeInterval? {
+            switch duration {
+            case "one day": return 86400
+            case "two days": return 86400 * 2
+            case "three days": return 86400 * 3
+            case "one week": return 86400 * 7
+            case "two weeks": return 86400 * 14
+            case "one month": return 86400 * 30
+            case "two months": return 86400 * 60
+            case "six months": return 86400 * 180
+            case "one year": return 86400 * 365
+            case "two years": return 86400 * 365 * 2
+            case "five years": return nil
+            default: return nil
             }
-            
-            // Game Over
-            if entry.isGameOver {
-                processed.append(HistoryEvent(
-                    type: .gameOver,
-                    message: "\(entry.name) ran out of moves at \(entry.milestone).",
-                    daysAgo: daysAgo, seed: seed, overrideDate: eventDate
-                ))
-                
-                // Small chance they recovered 1 min later
-                if seed % 10 < 3 {
+        }
+
+        for event in result.reversed() {
+            // Check if any pending unbans should happen before this event
+            pendingUnbans.removeAll { pending in
+                if pending.unbanDate <= event.eventDate {
                     processed.append(HistoryEvent(
-                        type: .moveRecovery,
-                        message: "\(entry.name) recovered their moves and is back in the game!",
-                        daysAgo: daysAgo, seed: seed + 999, overrideDate: eventDate.addingTimeInterval(60)
+                        type: .unbanned,
+                        message: "\(pending.name) was unbanned after serving their penalty.",
+                        daysAgo: 0, seed: 0, overrideDate: pending.unbanDate
+                    ))
+                    playerBanned[pending.name] = false
+                    return true
+                }
+                return false
+            }
+            if event.type == .falseReport, let name = event.playerName {
+                // Skip further false reports after player is already banned
+                if playerBanned[name] == true { continue }
+
+                let isOvertake = event.reporterName == "overtake"
+                let points = isOvertake ? 2 : 1
+                let currentPoints = (abusePoints[name] ?? 0) + points
+                abusePoints[name] = currentPoints
+
+                if currentPoints >= 5 {
+                    // Threshold reached — ban the player
+                    let banNumber = banCounts[name] ?? 0
+                    banCounts[name] = banNumber + 1
+                    playerBanned[name] = true
+                    // Seed the starting ladder index from player name for variety
+                    if banStartIndex[name] == nil {
+                        let nameHash = abs(name.hashValue)
+                        banStartIndex[name] = nameHash % 4  // Cap to one day – one week for report-based bans
+                    }
+                    let startIdx = banStartIndex[name] ?? 0
+                    let duration = escalationLadder[min(startIdx + banNumber, 3)]  // Cap to one week max for report-based bans
+                    if let interval = intervalForDuration(duration) {
+                        pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                    }
+                    processed.append(HistoryEvent(
+                        type: .banned,
+                        message: "\(name) got banned for \(duration) due to accumulating \(currentPoints) abuse points from false reports.",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                } else {
+                    // Show the false report with current abuse point total
+                    let remaining = 5 - currentPoints
+                    var msg = event.message
+                    // Append remaining threshold info
+                    msg = msg.replacingOccurrences(of: ".", with: "") + " (\(remaining) point\(remaining == 1 ? "" : "s") until ban)"
+                    processed.append(HistoryEvent(
+                        type: .falseReport,
+                        message: msg,
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
                     ))
                 }
-            } else if seed % 100 < 5 {
-                processed.append(HistoryEvent(
-                    type: .restart,
-                    message: "\(entry.name) chose to restart their progress.",
-                    daysAgo: daysAgo, seed: seed, overrideDate: eventDate
-                ))
+
+            } else if event.type == .reported {
+                // Track report count for the reported player
+                // Extract the reported player's name (first part of message before " from")
+                let reportedName: String
+                if let fromRange = event.message.range(of: " from ") {
+                    reportedName = String(event.message[event.message.startIndex..<fromRange.lowerBound])
+                } else {
+                    reportedName = "Unknown"
+                }
+
+                let count = (reportCounts[reportedName] ?? 0) + 1
+                reportCounts[reportedName] = count
+
+                if count >= reportsUntilReview {
+                    // Player reached report threshold — ban them
+                    playerBanned[reportedName] = true
+                    let banNumber = banCounts[reportedName] ?? 0
+                    banCounts[reportedName] = banNumber + 1
+                    // Seed the starting ladder index from player name for variety
+                    if banStartIndex[reportedName] == nil {
+                        let nameHash = abs(reportedName.hashValue)
+                        banStartIndex[reportedName] = nameHash % 4  // Cap to one day – one week for report-based bans
+                    }
+                    let startIdx = banStartIndex[reportedName] ?? 0
+                    let duration = escalationLadder[min(startIdx + banNumber, 3)]  // Cap to one week max for report-based bans
+
+                    if let interval = intervalForDuration(duration) {
+                        pendingUnbans.append((reportedName, event.eventDate.addingTimeInterval(interval)))
+                    }
+                    processed.append(HistoryEvent(
+                        type: .banned,
+                        message: "\(reportedName) got banned for \(duration) due to three reports.",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                } else {
+                    let remaining = reportsUntilReview - count
+                    var msg = event.message.replacingOccurrences(of: ".", with: "")
+                    msg += " (\(remaining) more report\(remaining == 1 ? "" : "s") until ban)"
+
+                    processed.append(HistoryEvent(
+                        type: .reported,
+                        message: msg,
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                }
+
+            } else if event.type == .banned, let name = event.playerName {
+                // For direct system bans, pass through the original message on first offense
+                // Only escalate if this player has been banned before in this cycle
+                let banNumber = banCounts[name] ?? 0
+                banCounts[name] = banNumber + 1
+
+                if banNumber == 0 {
+                    // First ban — use the original duration and reason as-is
+                    // Extract duration for unban scheduling
+                    if let forRange = event.message.range(of: "banned for "),
+                       let dueRange = event.message.range(of: " due to") {
+                        let originalDuration = String(event.message[forRange.upperBound..<dueRange.lowerBound])
+                        if let interval = intervalForDuration(originalDuration) {
+                            pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                        }
+                    }
+                    // Pass through unchanged
+                    processed.append(HistoryEvent(
+                        type: .banned,
+                        message: event.message,
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                } else {
+                    if event.message.contains("permanently") {
+                        // Permanent system bans should never be downgraded by the escalation ladder
+                        processed.append(HistoryEvent(
+                            type: .banned,
+                            message: event.message,
+                            daysAgo: 0,
+                            seed: 0,
+                            overrideDate: event.eventDate
+                        ))
+                        continue
+                    }
+
+                    // Repeat offender — escalate using ladder
+                    // Determine the system's intended duration for this specific offense
+                    var intendedIndex = 4 // Fallback to "two weeks"
+                    if let forRange = event.message.range(of: "banned for "),
+                       let dueRange = event.message.range(of: " due to") {
+                        let initialDuration = String(event.message[forRange.upperBound..<dueRange.lowerBound])
+                        intendedIndex = escalationLadder.firstIndex(of: initialDuration) ?? 4
+                    }
+                    
+                    let baseIdx = banStartIndex[name] ?? 0
+                    
+                    // The new ladder index is the max of:
+                    // 1) Their previous ladder tier + 1 (escalated)
+                    // 2) The severity of the new offense itself
+                    // 3) At least 4 ("two weeks") because this is a system ban
+                    let ladderIndex = max(baseIdx + banNumber, intendedIndex, 4)
+                    
+                    // Update their base index so future bans escalate properly from here
+                    banStartIndex[name] = max(0, ladderIndex - banNumber)
+                    
+                    let escalatedDuration = escalationLadder[min(ladderIndex, escalationLadder.count - 1)]
+
+                    // Extract the reason from the original message
+                    let reason: String
+                    if let range = event.message.range(of: "due to ") {
+                        reason = String(event.message[range.upperBound...]).replacingOccurrences(of: ".", with: "")
+                    } else {
+                        reason = "repeated offenses"
+                    }
+
+                    if let interval = intervalForDuration(escalatedDuration) {
+                        pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
+                    }
+                    processed.append(HistoryEvent(
+                        type: .banned,
+                        message: "\(name) got banned for \(escalatedDuration) due to \(reason).",
+                        daysAgo: 0,
+                        seed: 0,
+                        overrideDate: event.eventDate
+                    ))
+                }
+            } else {
+                processed.append(event)
             }
-            
-            // Made Infinity
-            if entry.rank <= 100 && seed % 10 < 4 {
+        }
+
+        // Add any pending unbans that mature before now
+        let now = Date()
+        for pending in pendingUnbans {
+            if pending.unbanDate <= now {
                 processed.append(HistoryEvent(
-                    type: .madeInfinity,
-                    message: "\(entry.name) made infinity!",
-                    daysAgo: daysAgo, seed: seed, overrideDate: eventDate.addingTimeInterval(-86400 * 2)
+                    type: .unbanned,
+                    message: "\(pending.name) was unbanned after serving their penalty.",
+                    daysAgo: 0, seed: 0, overrideDate: pending.unbanDate
                 ))
             }
         }
