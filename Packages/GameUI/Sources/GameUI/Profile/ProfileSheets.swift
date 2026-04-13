@@ -351,16 +351,17 @@ struct CompareView: View {
                                 Spacer()
 
                                 // Milestone (or status)
-                                if entry.isBanned {
-                                    TimelineView(.periodic(every: 1)) { context in
+                                TimelineView(.periodic(every: 1)) { context in
+                                    let banned = entry.isCurrentlyBanned(at: context.date)
+                                    if banned {
                                         Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
                                             .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
                                             .foregroundColor(.red)
+                                    } else {
+                                        Text(entry.isGameOver ? "Game Over" : entry.milestone)
+                                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                                            .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
                                     }
-                                } else {
-                                    Text(entry.isGameOver ? "Game Over" : entry.milestone)
-                                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                                        .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
                                 }
 
                                 // Remove button (only for non-me entries)
@@ -599,6 +600,13 @@ struct ComparisonEntry: Identifiable {
     let isBanned: Bool
     let banEndDate: Date?
     let isGameOver: Bool
+
+    /// Whether the player is currently banned (ban hasn't expired yet)
+    func isCurrentlyBanned(at now: Date = Date()) -> Bool {
+        guard isBanned, let endDate = banEndDate else { return false }
+        if endDate == .distantFuture { return true }  // Permanent
+        return now < endDate
+    }
 }
 
 /// Format a ban end date into a human-readable countdown string
@@ -606,7 +614,7 @@ private func formatBanTimeLeft(_ endDate: Date?, now: Date) -> String {
     guard let endDate = endDate else { return "Banned" }
     if endDate == .distantFuture { return "Permanently Banned" }
     let remaining = Int(endDate.timeIntervalSince(now))
-    if remaining <= 0 { return "Unbanned" }
+    if remaining <= 0 { return "" }  // Should not be shown; isCurrentlyBanned handles this
     let days = remaining / 86400
     let hours = (remaining % 86400) / 3600
     let minutes = (remaining % 3600) / 60
