@@ -407,7 +407,7 @@ public struct LeaderboardView: View {
 
     /// Look up the milestone tier boundary for a given rank using rankForFilter
     private func tierMilestoneForRank(_ targetRank: Int, userMilestone: String, filter: LeaderboardFilter) -> String {
-        let milestones = MockLeaderboardData.allMilestones
+        let milestones = Array(MockLeaderboardData.allMilestones.reversed())
         guard let userIndex = milestones.firstIndex(of: userMilestone) else {
             return userMilestone
         }
@@ -553,7 +553,7 @@ public struct LeaderboardView: View {
             }
         }
 
-        let milestones = MockLeaderboardData.allMilestones
+        let milestones = Array(MockLeaderboardData.allMilestones.reversed())
 
         // Find user's position in the milestone list
         guard let userIndex = milestones.firstIndex(of: userMilestone) else {
