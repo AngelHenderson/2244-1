@@ -707,11 +707,15 @@ struct PlayerHistoryView: View {
                     reportedName = "Unknown"
                 }
 
+                // Skip further reports after player is already banned
+                if playerBanned[reportedName] == true { continue }
+
                 let count = (reportCounts[reportedName] ?? 0) + 1
                 reportCounts[reportedName] = count
 
                 if count >= reportsUntilReview {
                     // Player reached report threshold — ban them
+                    reportCounts[reportedName] = 0  // Reset so future reports after unban start fresh
                     playerBanned[reportedName] = true
                     let banNumber = banCounts[reportedName] ?? 0
                     banCounts[reportedName] = banNumber + 1
