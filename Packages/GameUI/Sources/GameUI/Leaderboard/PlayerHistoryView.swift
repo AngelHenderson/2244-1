@@ -677,7 +677,7 @@ struct PlayerHistoryView: View {
                     }
                     processed.append(HistoryEvent(
                         type: .banned,
-                        message: "\(targetName) got banned for \(duration) due to accumulating \(currentPoints) abuse points from false reports.",
+                        message: "\(targetName) got banned for \(duration) due to accumulating 5 abuse points from false reports.",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
