@@ -206,10 +206,16 @@ struct CompareView: View {
         }
 
         // Sort: banned at very bottom, game-over above banned, then by milestone (highest first)
+        // Within banned: soonest expiration first, permanent bans last
         return entries.sorted { a, b in
             let aPriority = a.isCurrentlyBanned(at: currentTime) ? 2 : (a.isGameOver ? 1 : 0)
             let bPriority = b.isCurrentlyBanned(at: currentTime) ? 2 : (b.isGameOver ? 1 : 0)
             if aPriority != bPriority { return aPriority < bPriority }
+            if aPriority == 2 {
+                let aEnd = a.banEndDate ?? .distantFuture
+                let bEnd = b.banEndDate ?? .distantFuture
+                return aEnd < bEnd
+            }
             return parseMilestone(a.milestone) > parseMilestone(b.milestone)
         }
     }
@@ -255,10 +261,16 @@ struct CompareView: View {
         }
 
         // Sort: banned at very bottom, game-over above banned, then infinity counts descending
+        // Within banned: soonest expiration first, permanent bans last
         return entries.sorted { a, b in
             let aPriority = a.isCurrentlyBanned(at: currentTime) ? 2 : (a.isGameOver ? 1 : 0)
             let bPriority = b.isCurrentlyBanned(at: currentTime) ? 2 : (b.isGameOver ? 1 : 0)
             if aPriority != bPriority { return aPriority < bPriority }
+            if aPriority == 2 {
+                let aEnd = a.banEndDate ?? .distantFuture
+                let bEnd = b.banEndDate ?? .distantFuture
+                return aEnd < bEnd
+            }
             let aCount = infinityCount(from: a.milestone)
             let bCount = infinityCount(from: b.milestone)
             return aCount > bCount
