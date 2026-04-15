@@ -851,10 +851,19 @@ struct PlayerHistoryView: View {
             }
         }
 
-        // Add any pending unbans that mature before now
+        // Add any pending unbans that mature before now (deduplicate by name, keep latest)
         let now = Date()
+        var seenUnbanNames = Set<String>()
+        // Process from main loop already emitted some unbans — collect those names
+        for ev in processed where ev.type == .unbanned {
+            // Extract the name from "X was unbanned after serving their penalty."
+            if let range = ev.message.range(of: " was unbanned") {
+                seenUnbanNames.insert(String(ev.message[ev.message.startIndex..<range.lowerBound]))
+            }
+        }
         for pending in pendingUnbans {
-            if pending.unbanDate <= now {
+            if pending.unbanDate <= now, !seenUnbanNames.contains(pending.name) {
+                seenUnbanNames.insert(pending.name)
                 processed.append(HistoryEvent(
                     type: .unbanned,
                     message: "\(pending.name) was unbanned after serving their penalty.",
