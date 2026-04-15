@@ -558,8 +558,8 @@ struct MockPlayer: Identifiable {
     }
 
     /// Generate all players from the actual leaderboard data (cached per session/day)
-    private static var cachedPlayers: [MockPlayer]?
-    private static var cachedDay: Int?
+    nonisolated(unsafe) private static var cachedPlayers: [MockPlayer]?
+    nonisolated(unsafe) private static var cachedDay: Int?
 
     static func generateAll() -> [MockPlayer] {
         let today = MockLeaderboardData.daysSinceReference
