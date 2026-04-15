@@ -645,9 +645,9 @@ struct PlayerHistoryView: View {
                     banCounts[name] = banNumber + 1
                     playerBanned[name] = true
                     
-                    let ghostSeed = abs(name.hashValue)
+                    let ghostSeed = name.hashValue & 0x7FFFFFFF
                     // Ensure deterministic ghost name based on the original name
-                    let nIdx = (ghostSeed * 17) % MockLeaderboardData.hallOfFameNames.count
+                    let nIdx = (ghostSeed &* 17) % MockLeaderboardData.hallOfFameNames.count
                     let ghostName = MockLeaderboardData.hallOfFameNames[nIdx]
                     
                     // Retroactively swap all occurrences of `name` with `ghostName` in processed
@@ -667,7 +667,7 @@ struct PlayerHistoryView: View {
 
                     // Seed the starting ladder index from player name for variety
                     if banStartIndex[name] == nil {
-                        let nameHash = abs(targetName.hashValue)
+                        let nameHash = targetName.hashValue & 0x7FFFFFFF
                         banStartIndex[name] = nameHash % 4  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[name] ?? 0
@@ -716,9 +716,9 @@ struct PlayerHistoryView: View {
                     let banNumber = banCounts[reportedName] ?? 0
                     banCounts[reportedName] = banNumber + 1
                     
-                    let ghostSeed = abs(reportedName.hashValue)
+                    let ghostSeed = reportedName.hashValue & 0x7FFFFFFF
                     // Ensure deterministic ghost name based on the original name
-                    let nIdx = (ghostSeed * 17) % MockLeaderboardData.hallOfFameNames.count
+                    let nIdx = (ghostSeed &* 17) % MockLeaderboardData.hallOfFameNames.count
                     let ghostName = MockLeaderboardData.hallOfFameNames[nIdx]
                     
                     // Retroactively swap all occurrences of `reportedName` with `ghostName` in processed
@@ -738,7 +738,7 @@ struct PlayerHistoryView: View {
 
                     // Seed the starting ladder index from player name for variety
                     if banStartIndex[reportedName] == nil {
-                        let nameHash = abs(targetName.hashValue)
+                        let nameHash = targetName.hashValue & 0x7FFFFFFF
                         banStartIndex[reportedName] = nameHash % 4  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[reportedName] ?? 0
@@ -945,8 +945,8 @@ struct HistoryEvent: Identifiable {
         let now = Date()
 
         // Generate deterministic hour (0-23) and minute (0-59) from seed
-        let hour = abs(seed * 13 + 7) % 24
-        let minute = abs(seed * 31 + 11) % 60
+        let hour = (((seed &* 13) &+ 7) & 0x7FFFFFFF) % 24
+        let minute = (((seed &* 31) &+ 11) & 0x7FFFFFFF) % 60
 
         // Always use the deterministic time. 
         // We will filter out future events during post-processing.
