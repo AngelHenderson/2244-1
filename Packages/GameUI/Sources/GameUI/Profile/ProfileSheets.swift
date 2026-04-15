@@ -557,9 +557,16 @@ struct MockPlayer: Identifiable {
         }.joined()
     }
 
-    /// Generate all players from the actual leaderboard data
+    /// Generate all players from the actual leaderboard data (cached per session/day)
+    private static var cachedPlayers: [MockPlayer]?
+    private static var cachedDay: Int?
+
     static func generateAll() -> [MockPlayer] {
-        MockLeaderboardData.allSearchablePlayers().map { player in
+        let today = MockLeaderboardData.daysSinceReference
+        if let cached = cachedPlayers, cachedDay == today {
+            return cached
+        }
+        let players = MockLeaderboardData.allSearchablePlayers().map { player in
             MockPlayer(
                 id: player.id,
                 name: player.name,
@@ -571,6 +578,9 @@ struct MockPlayer: Identifiable {
                 isGameOver: player.isGameOver
             )
         }
+        cachedPlayers = players
+        cachedDay = today
+        return players
     }
 }
 
