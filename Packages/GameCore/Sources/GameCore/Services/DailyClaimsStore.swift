@@ -178,7 +178,12 @@ public final class DailyClaimsStore {
         dailyClaims = dailyClaims.map { claim in
             var updated = claim
             updated.isClaimed = claimedDays.contains(claim.day)
-            updated.isAvailable = canClaimToday && claim.day >= nextDay && claim.day <= maxAvailableDay
+            if Self.isYearlyAwardDay(claim.day) {
+                // Yearly award days are only available when all prior days in that year are claimed
+                updated.isAvailable = Self.isYearlyAwardUnlocked(day: claim.day, claimedDays: claimedDays) && !claim.isClaimed
+            } else {
+                updated.isAvailable = canClaimToday && claim.day >= nextDay && claim.day <= maxAvailableDay
+            }
             return updated
         }
     }
@@ -187,7 +192,14 @@ public final class DailyClaimsStore {
     public func claimDailyReward() {
         guard canClaimToday, availableClaims > 0 else { return }
 
-        let nextClaimDay = currentClaimDay + 1
+        var nextClaimDay = currentClaimDay + 1
+
+        // Skip yearly award days in the normal sequential flow
+        // (they are claimed separately via claimYearlyReward)
+        if Self.isYearlyAwardDay(nextClaimDay) {
+            nextClaimDay += 1
+        }
+
         guard let claimIndex = dailyClaims.firstIndex(where: { $0.day == nextClaimDay }) else { return }
 
         // Get rewards before updating state
@@ -216,7 +228,11 @@ public final class DailyClaimsStore {
         dailyClaims = dailyClaims.map { claim in
             var updated = claim
             updated.isClaimed = claimedDays.contains(claim.day)
-            updated.isAvailable = availableClaims > 0 && claim.day >= nextAvailableDay && claim.day <= maxAvailableDay
+            if Self.isYearlyAwardDay(claim.day) {
+                updated.isAvailable = Self.isYearlyAwardUnlocked(day: claim.day, claimedDays: claimedDays) && !claim.isClaimed
+            } else {
+                updated.isAvailable = availableClaims > 0 && claim.day >= nextAvailableDay && claim.day <= maxAvailableDay
+            }
             return updated
         }
 
@@ -239,7 +255,58 @@ public final class DailyClaimsStore {
     }
     
     public func getNextClaimableDay() -> Int? {
-        return (canClaimToday && availableClaims > 0) ? currentClaimDay + 1 : nil
+        guard canClaimToday, availableClaims > 0 else { return nil }
+        let next = currentClaimDay + 1
+        // Skip yearly award days in the normal flow
+        return Self.isYearlyAwardDay(next) ? next + 1 : next
+    }
+
+    /// Claims a yearly award day (365, 730, 1095, etc.) once all prior days in that year are complete.
+    @MainActor
+    public func claimYearlyReward(day: Int) {
+        guard Self.isYearlyAwardDay(day),
+              !claimedDays.contains(day),
+              Self.isYearlyAwardUnlocked(day: day, claimedDays: claimedDays)
+        else { return }
+
+        guard let claimIndex = dailyClaims.firstIndex(where: { $0.day == day }) else { return }
+        let rewards = dailyClaims[claimIndex].rewards
+
+        // Mark as claimed
+        claimedDays.insert(day)
+        saveProgress()
+
+        // Rebuild states
+        let nextAvailableDay = currentClaimDay + 1
+        let maxAvailableDay = currentClaimDay + availableClaims
+        dailyClaims = dailyClaims.map { claim in
+            var updated = claim
+            updated.isClaimed = claimedDays.contains(claim.day)
+            if Self.isYearlyAwardDay(claim.day) {
+                updated.isAvailable = Self.isYearlyAwardUnlocked(day: claim.day, claimedDays: claimedDays) && !claim.isClaimed
+            } else {
+                updated.isAvailable = canClaimToday && claim.day >= nextAvailableDay && claim.day <= maxAvailableDay
+            }
+            return updated
+        }
+
+        onReward?(rewards)
+    }
+
+    /// Returns true for yearly milestone days: 365, 730, 1095, …
+    public static func isYearlyAwardDay(_ day: Int) -> Bool {
+        day > 0 && day % 365 == 0
+    }
+
+    /// A yearly award day is unlocked when all 364 preceding days in that year are claimed.
+    private static func isYearlyAwardUnlocked(day: Int, claimedDays: Set<Int>) -> Bool {
+        guard isYearlyAwardDay(day) else { return false }
+        let yearStart = day - 364  // e.g. 1 for day 365, 366 for day 730
+        let yearEnd = day - 1      // e.g. 364 for day 365, 729 for day 730
+        for d in yearStart...yearEnd {
+            if !claimedDays.contains(d) { return false }
+        }
+        return true
     }
     
     public func getTimeUntilNextClaim() -> TimeInterval? {

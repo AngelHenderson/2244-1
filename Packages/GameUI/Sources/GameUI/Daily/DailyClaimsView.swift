@@ -268,7 +268,7 @@ public struct DailyClaimsView: View {
                                 claim: day365,
                                 currentClaimDay: store.currentClaimDay,
                                 yearNumber: 1,
-                                onClaim: day365.isAvailable ? { claimReward(day365.rewards) } : nil
+                                onClaim: day365.isAvailable ? { claimYearlyReward(day: 365, rewards: day365.rewards) } : nil
                             )
                             .tag(index)
                         // Special full-page layout for Day 730 (Year 2)
@@ -277,7 +277,7 @@ public struct DailyClaimsView: View {
                                 claim: day730,
                                 currentClaimDay: store.currentClaimDay,
                                 yearNumber: 2,
-                                onClaim: day730.isAvailable ? { claimReward(day730.rewards) } : nil
+                                onClaim: day730.isAvailable ? { claimYearlyReward(day: 730, rewards: day730.rewards) } : nil
                             )
                             .tag(index)
                         } else {
@@ -414,6 +414,29 @@ public struct DailyClaimsView: View {
         }
 
         store.claimDailyReward()
+        gameStore.achievementEvaluator?.onDailyClaimed()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                showClaimAnimation = false
+                claimedRewards = nil
+                claimedBonusCount = 0
+            }
+        }
+    }
+
+    private func claimYearlyReward(day: Int, rewards: AchievementDef.Rewards) {
+        guard !homeState.isBanned else { return }
+        claimedBonusCount = 0
+        claimedBaseRewards = rewards
+        claimedRewards = rewards
+        showClaimAnimation = true
+
+        Task {
+            await audio.playSfx(name: "cheer")
+        }
+
+        store.claimYearlyReward(day: day)
         gameStore.achievementEvaluator?.onDailyClaimed()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -814,11 +837,11 @@ private struct YearlyRewardPageView: View {
     let onClaim: (() -> Void)?
 
     private var targetDay: Int {
-        yearNumber == 1 ? 365 : 730
+        yearNumber * 365
     }
 
     private var requiredDay: Int {
-        yearNumber == 1 ? 364 : 729
+        yearNumber * 365 - 1
     }
 
     private var hasReachedTarget: Bool {
