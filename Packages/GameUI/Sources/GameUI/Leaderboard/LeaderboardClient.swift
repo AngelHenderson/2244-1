@@ -456,7 +456,7 @@ public enum MockLeaderboardData {
             (LeaderboardClient.uzbekistanPlayerMilestones, MockLeaderboardData.uzbekistanNames, 260000, "UZ")
         ]
 
-        var savedBanDates: [String: Double] = UserDefaults.standard.dictionary(forKey: "MockLeaderboard.BanEndDates") as? [String: Double] ?? [:]
+        var savedBanDates: [String: Double] = UserDefaults.standard.dictionary(forKey: "MockLeaderboard.BanEndDates.v2") as? [String: Double] ?? [:]
         var datesChanged = false
 
         for config in countryConfigs {
@@ -482,22 +482,10 @@ public enum MockLeaderboardData {
                     let totalSeconds: Int
                     if timeHash < 20 {
                         totalSeconds = -1  // Permanent (sentinel)
-                    } else if timeHash < 50 {
+                    } else {
                         // Days left: 1 to 30
                         let days = 1 + (timeHash % 30)
                         totalSeconds = days * 86400
-                    } else if timeHash < 75 {
-                        // Hours left: 1 to 23
-                        let hours = 1 + (timeHash % 23)
-                        totalSeconds = hours * 3600
-                    } else if timeHash < 90 {
-                        // Minutes left: 1 to 59
-                        let mins = 1 + (timeHash % 59)
-                        totalSeconds = mins * 60
-                    } else {
-                        // Seconds left: 1 to 59
-                        let secs = 1 + (timeHash % 59)
-                        totalSeconds = secs
                     }
                     if totalSeconds == -1 {
                         banEndDate = .distantFuture  // Permanent
@@ -533,7 +521,7 @@ public enum MockLeaderboardData {
         }
 
         if datesChanged {
-            UserDefaults.standard.set(savedBanDates, forKey: "MockLeaderboard.BanEndDates")
+            UserDefaults.standard.set(savedBanDates, forKey: "MockLeaderboard.BanEndDates.v2")
         }
 
         return players.sorted { $0.code < $1.code }
