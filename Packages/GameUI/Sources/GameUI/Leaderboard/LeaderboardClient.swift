@@ -532,6 +532,10 @@ public enum MockLeaderboardData {
             }
         }
 
+        if datesChanged {
+            UserDefaults.standard.set(savedBanDates, forKey: "MockLeaderboard.BanEndDates")
+        }
+
         return players.sorted { $0.code < $1.code }
     }
 
