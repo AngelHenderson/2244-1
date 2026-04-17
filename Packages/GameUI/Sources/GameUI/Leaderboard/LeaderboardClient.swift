@@ -456,6 +456,9 @@ public enum MockLeaderboardData {
             (LeaderboardClient.uzbekistanPlayerMilestones, MockLeaderboardData.uzbekistanNames, 260000, "UZ")
         ]
 
+        var savedBanDates: [String: Double] = UserDefaults.standard.dictionary(forKey: "MockLeaderboard.BanEndDates") as? [String: Double] ?? [:]
+        var datesChanged = false
+
         for config in countryConfigs {
             let count = min(150, config.milestones.count)
             let indices = Array(0..<count)
@@ -499,7 +502,15 @@ public enum MockLeaderboardData {
                     if totalSeconds == -1 {
                         banEndDate = .distantFuture  // Permanent
                     } else {
-                        banEndDate = Date().addingTimeInterval(Double(totalSeconds))
+                        let playerID = "\(config.code.lowercased())_\(i)"
+                        if let savedTime = savedBanDates[playerID] {
+                            banEndDate = Date(timeIntervalSince1970: savedTime)
+                        } else {
+                            let newDate = Date().addingTimeInterval(Double(totalSeconds))
+                            banEndDate = newDate
+                            savedBanDates[playerID] = newDate.timeIntervalSince1970
+                            datesChanged = true
+                        }
                     }
                 }
 
