@@ -605,7 +605,9 @@ private struct MultiplierInventoryCard: View {
                     Text("×\(spinState.count(for: tier))")
                         .font(.avenirNext(size: 14, weight: .bold))
                         .foregroundStyle(.white)
-                        .frame(width: 36, alignment: .trailing)
+                        .lineLimit(1)
+                        .fixedSize()
+                        .frame(minWidth: 36, alignment: .trailing)
                     Button("Use") {
                         if spinState.activateMultiplier(tier, now: now) {
                             switch tier {
