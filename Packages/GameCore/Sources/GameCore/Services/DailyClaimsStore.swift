@@ -852,7 +852,41 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(spins: 5),
         AchievementDef.Rewards(hammers: 1, swaps: 1),
         AchievementDef.Rewards(boost2x: 1),
-        AchievementDef.Rewards(gems: 7000)
+        AchievementDef.Rewards(gems: 7000),
+        // Week 49
+        AchievementDef.Rewards(spins: 3),
+        AchievementDef.Rewards(magnets: 2),
+        AchievementDef.Rewards(hammers: 3),
+        AchievementDef.Rewards(swaps: 1, boost4x: 1),
+        AchievementDef.Rewards(magnets: 2),
+        AchievementDef.Rewards(gems: 7455),
+        AchievementDef.Rewards(gems: 8266),
+        // Week 50
+        AchievementDef.Rewards(gems: 8364),
+        AchievementDef.Rewards(hammers: 1, magnets: 1, swaps: 1, boost3x: 1),
+        AchievementDef.Rewards(boost2x: 1, boost4x: 1),
+        AchievementDef.Rewards(gems: 4898, spins: 13, boost3x: 1),
+        AchievementDef.Rewards(gems: 7467, spins: 1, magnets: 4, swaps: 3),
+        AchievementDef.Rewards(gems: 9277, hammers: 2),
+        AchievementDef.Rewards(spins: 8, boost4x: 1),
+        // Week 51
+        AchievementDef.Rewards(spins: 3, hammers: 3, magnets: 3, boost2x: 1),
+        AchievementDef.Rewards(swaps: 3),
+        AchievementDef.Rewards(gems: 7469),
+        AchievementDef.Rewards(gems: 8188),
+        AchievementDef.Rewards(gems: 8277),
+        AchievementDef.Rewards(hammers: 1, boost4x: 1),
+        AchievementDef.Rewards(spins: 15),
+        // Week 52
+        AchievementDef.Rewards(spins: 14, boost2x: 1),
+        AchievementDef.Rewards(gems: 9177, spins: 2),
+        AchievementDef.Rewards(gems: 8277),
+        AchievementDef.Rewards(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost3x: 1),
+        AchievementDef.Rewards(gems: 7999, hammers: 2),
+        AchievementDef.Rewards(gems: 9454, boost2x: 1),
+        AchievementDef.Rewards(gems: 9786, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1),
+        // Day 365 — Yearly Award
+        AchievementDef.Rewards(gems: 10000)
     ]
     
     static func rewards(for day: Int) -> AchievementDef.Rewards {
@@ -862,9 +896,10 @@ private enum DailyRewardSchedule {
         let dayInYear = ((day - 1) % 365) + 1
         let index = (dayInYear - 1) % cycle.count
 
-        // Calculate year for gem multiplier
-        // Year 1: 1.0x, Year 2: 1.5x, Year 3: 2.0x, Year 4: 2.5x, etc.
+        // Year 1 (days 1-365): no scaling. Scaling starts at day 366.
+        // Year 2: 1.5x, Year 3: 2.0x, Year 4: 2.5x, etc.
         let year = ((day - 1) / 365) + 1
+        guard year > 1 else { return cycle[index] }
         let gemMultiplier = 1.0 + (Double(year - 1) * 0.5)
 
         return cycle[index].scaled(forYear: year, gemMultiplier: gemMultiplier)
