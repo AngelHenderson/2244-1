@@ -1851,7 +1851,8 @@ public enum MockLeaderboardData {
         "KG": 245000,
         "IS": 250000,
         "UA": 255000,
-        "MG": 260000
+        "MG": 260000,
+        "IQ": 265000
     ]
 
     /// Get the milestone at a specific rank for a country's top 150 players
@@ -2066,6 +2067,8 @@ public enum MockLeaderboardData {
             return (LeaderboardClient.ukrainePlayerMilestones, LeaderboardClient.ukraineExtendedRankBrackets, 88_778)
         case "MG":
             return (LeaderboardClient.madagascarPlayerMilestones, LeaderboardClient.madagascarExtendedRankBrackets, 258_679)
+        case "IQ":
+            return (LeaderboardClient.iraqPlayerMilestones, LeaderboardClient.iraqExtendedRankBrackets, 638_686)
         default:
             // Default to US data for unknown countries
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -2134,7 +2137,8 @@ public enum MockLeaderboardData {
             ("UZ", 28_473_673),
             ("PK", 93_432),
             ("UA", 88_778),
-            ("MG", 258_679)
+            ("MG", 258_679),
+            ("IQ", 638_686)
         ]
 
         let countriesWithLeaderboards = countryPlayerCounts
@@ -2305,6 +2309,7 @@ public enum MockLeaderboardData {
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.pakistanPlayerMilestones, extendedBrackets: LeaderboardClient.pakistanExtendedRankBrackets, totalPlayers: 93_432, countrySeed: countryPlayerSeeds["PK"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.ukrainePlayerMilestones, extendedBrackets: LeaderboardClient.ukraineExtendedRankBrackets, totalPlayers: 88_778, countrySeed: countryPlayerSeeds["UA"] ?? 0)
         total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.madagascarPlayerMilestones, extendedBrackets: LeaderboardClient.madagascarExtendedRankBrackets, totalPlayers: 258_679, countrySeed: countryPlayerSeeds["MG"] ?? 0)
+        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.iraqPlayerMilestones, extendedBrackets: LeaderboardClient.iraqExtendedRankBrackets, totalPlayers: 638_686, countrySeed: countryPlayerSeeds["IQ"] ?? 0)
 
         globalRankCache[userMilestone] = total
         return total
@@ -2911,6 +2916,16 @@ public enum MockLeaderboardData {
         38, 32, 28, 17, 14, 11, 9, 9, 8, 8,
         7, 7, 7, 6, 6, 4, 3, 3, 2, 2,
         2, 1, 1, 1, 1
+    ]
+
+    static let iraqHallOfFameInfinityCounts: [Int] = [
+        // Iraq Hall of Fame (51 players)
+        214567, 36587, 5986, 987, 643, 299, 132, 67, 67, 65,
+        59, 23, 21, 19, 16, 14, 12, 11, 10, 9,
+        9, 8, 8, 7, 7, 6, 6, 5, 5, 4,
+        4, 4, 3, 3, 3, 3, 2, 2, 2, 2,
+        2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
+        1
     ]
 
     static let usNames = [
@@ -4275,6 +4290,7 @@ public enum MockLeaderboardData {
         case "PK": return LeaderboardClient.pakistanPlayerMilestones
         case "UA": return LeaderboardClient.ukrainePlayerMilestones
         case "MG": return LeaderboardClient.madagascarPlayerMilestones
+        case "IQ": return LeaderboardClient.iraqPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
@@ -4424,6 +4440,8 @@ public extension LeaderboardClient {
                 entries = ukraineEntries()
             case .countryMG:
                 entries = madagascarEntries()
+            case .countryIQ:
+                entries = iraqEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -4545,6 +4563,8 @@ public extension LeaderboardClient {
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 88_778, on: day, countrySeed: 153)
             case .countryMG:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 258_679, on: day, countrySeed: 154)
+            case .countryIQ:
+                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 638_686, on: day, countrySeed: 155)
             case .global:
                 // Global = sum of all country players (dynamic)
                 let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
@@ -4603,7 +4623,8 @@ public extension LeaderboardClient {
                 let pkPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
                 let uaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 88_778, on: day, countrySeed: 153)
                 let mgPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 258_679, on: day, countrySeed: 154)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers + kgPlayers + isPlayers + skPlayers + uzPlayers + pkPlayers + uaPlayers + mgPlayers
+                let iqPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 638_686, on: day, countrySeed: 155)
+                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers + kgPlayers + isPlayers + skPlayers + uzPlayers + pkPlayers + uaPlayers + mgPlayers + iqPlayers
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -4739,6 +4760,8 @@ public extension LeaderboardClient {
                 entries = ukraineEntries()
             case .countryMG:
                 entries = madagascarEntries()
+            case .countryIQ:
+                entries = iraqEntries()
             case .global:
                 entries = globalEntries()
             }
@@ -5041,6 +5064,11 @@ public extension LeaderboardClient {
         // Add Madagascar players
         for (i, count) in MockLeaderboardData.madagascarHallOfFameInfinityCounts.enumerated() {
             playerData.append(("hof_mg_\(i)", count, "MG", globalIndex, i + 42000))
+            globalIndex += 1
+        }
+        // Add Iraq players
+        for (i, count) in MockLeaderboardData.iraqHallOfFameInfinityCounts.enumerated() {
+            playerData.append(("hof_iq_\(i)", count, "IQ", globalIndex, i + 43000))
             globalIndex += 1
         }
 
@@ -12821,6 +12849,160 @@ public extension LeaderboardClient {
                 day: day,
                 totalPlayers: totalMadagascarPlayers,
                 extendedBrackets: madagascarExtendedRankBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
+        return entries
+    }
+
+    // MARK: - Iraq (IQ)
+
+    static let iraqNames = [
+        // 1-30: Geographic and city-based
+        "BaghdadBlaster", "BasraBoss", "ErbilElite", "MosulMaster", "NajafNinja",
+        "KarbalaKnight", "KirkukKing", "SulaymaniyahStar", "RamadiFury", "FallujahFlash",
+        "TikritTitan", "SamarraSurge", "HillahHawk", "KutKrusher", "NasiriyahNova",
+        "DiwaniyahDagger", "AmmarahArcher", "DuhokDynamo", "ZakhoZealot", "HalabjahHero",
+        "BaqubahBlade", "BaladBolt", "HadithaHunter", "QaimQuake", "SinjarSniper",
+        "TalAfarThunder", "MandaliMighty", "AliAlGharbiAce", "BadrahBeast", "KhanaqinKobra",
+        // 31-60: Culture and history
+        "TigrisTornado", "EuphratesEagle", "MesopotamiaMaverick", "BabylonBrawler", "AssyrianArrow",
+        "SumerStrike", "AkkadAssault", "UrukUltra", "NinevehNinja", "IshtarIce",
+        "GilgameshGlory", "HammurabiHit", "NebuchadnezzarNova", "ZigguratZapper", "MarshlandMaster",
+        "DatePalmDynamo", "SaffronStrike", "KurdishKnight", "ArabArchon", "TurkmenTank",
+        "MasgoufMaster", "KleijaKrusher", "DolmaDestroyer", "BiryaniBlast", "SamoonSurge",
+        "ChaiBoss", "KebbabKing", "FalafelFury", "TabrizThreat", "QimaQuake",
+        // 61-90: More local flavor
+        "ShatAlArabShot", "ThartharThunder", "HabaniyahHawk", "RazzazaRanger", "DukanDemon",
+        "DarbandikhanDart", "HamrinHero", "SinjairSlash", "QaraTepeQuest", "MakhmurMace",
+        "TuzKhurmatuTank", "ChemchemalChamp", "PenjwinPro", "RaniyaRocket", "ShaqlawaShadow",
+        "AmadiahAlpha", "AqrahArrow", "TelkeppeTitan", "AlqoshAce", "BashiqaBlade",
+        "SinuniSniper", "ShekhanShark", "KalakKnight", "BardarashBolt", "MergasorMighty",
+        "SoranStorm", "ChomanCrush", "HajOmranHawk", "RawanduzRuler", "SidakanSniper"
+    ]
+
+    // Iraq player milestones (638,686 total players)
+    // Top 110 from screenshots
+    static let iraqPlayerMilestones: [String] = [
+        // Ranks 1-10
+        "285bh", "1be", "943az", "214av", "1aq", "22an", "645al", "76ah", "587af", "71ae",
+        // Ranks 11-20
+        "559ad", "4ad", "2ac", "1ab", "8aa", "509z", "254z", "127z", "127z", "31z",
+        // Ranks 21-30
+        "994y", "497y", "3y", "1y", "15x", "14w", "904u", "215s", "26r", "1o",
+        // Ranks 31-40
+        "365l", "2l", "356k", "5k", "10j", "680i", "340i", "170i", "21i", "664h",
+        // Ranks 41-50
+        "2h", "5g", "19f", "38e", "2e", "604d", "302d", "151d", "151d", "75d",
+        // Ranks 51-60
+        "75d", "37d", "37d", "18d", "4d", "1d", "295c", "147c", "36c", "9c",
+        // Ranks 61-70
+        "2c", "1c", "288b", "144b", "72b", "36b", "18b", "18b", "9b", "9b",
+        // Ranks 71-80
+        "4b", "4b", "4b", "2b", "281a", "8a", "1a", "274B", "137B", "137B",
+        // Ranks 81-90
+        "68B", "34B", "34B", "17B", "17B", "8B", "8B", "8B", "4B", "4B",
+        // Ranks 91-100
+        "4B", "4B", "2B", "2B", "2B", "2B", "2B", "1B", "1B", "1B",
+        // Ranks 101-110
+        "1B", "1B", "1B", "536M", "536M", "536M", "536M", "536M", "536M", "268M"
+    ]
+
+    // Extended Iraq milestone brackets for rank calculation (ranks beyond top 110)
+    // Total Iraq players: ~638,686
+    static let iraqExtendedRankBrackets: [(milestone: String, startRank: Int)] = [
+        // c-tier brackets
+        ("295c", 57), ("147c", 58), ("36c", 59), ("9c", 60), ("2c", 61), ("1c", 62),
+        // b-tier brackets
+        ("288b", 63), ("144b", 64), ("72b", 65), ("36b", 66),
+        ("18b", 67), ("9b", 69), ("4b", 71), ("2b", 74),
+        // a-tier brackets
+        ("281a", 75), ("8a", 76), ("1a", 77),
+        // B-tier brackets
+        ("274B", 78), ("137B", 79), ("68B", 81), ("34B", 82),
+        ("17B", 84), ("8B", 86), ("4B", 89), ("2B", 93), ("1B", 98),
+        // M-tier brackets
+        ("536M", 104), ("268M", 110), ("134M", 117), ("67M", 125), ("33M", 142),
+        ("16M", 166), ("8M", 194), ("4M", 233), ("2M", 284), ("1M", 356),
+        // K-tier brackets
+        ("524K", 436), ("262K", 545), ("131K", 686), ("65K", 836), ("32K", 1000),
+        ("16K", 1234), ("8192", 1543), ("4096", 2118), ("2048", 2947),
+        ("1024", 3756), ("512", 5245), ("256", 6937), ("128", 9282),
+        ("64", 12746), ("32", 30289), ("16", 56287), ("8", 93756),
+        ("4", 163556), ("2", 274688), ("0", 456357)  // Score 0 = deleted app, came back
+    ]
+
+    // Generate Iraq entries with milestone progression and user insertion
+    private static func iraqEntries() -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        for i in 0..<iraqPlayerMilestones.count {
+            let baseMilestone = iraqPlayerMilestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: MockLeaderboardData.iraqNames, countrySeed: 265000, day: day)
+            let platform: Platform = i % 3 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: 265000, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + 265000, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "iq_\(i)"))
+        }
+
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+        let totalIraqPlayers = 638_686
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry {
+                userInTop150 = true
+            }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + 265000, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: "IQ",
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            let iraqRank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: "IQ")
+
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: iraqRank,
+                userMilestone: userMilestone,
+                countryCode: "IQ",
+                countrySeed: 265000,
+                names: MockLeaderboardData.iraqNames,
+                day: day,
+                totalPlayers: totalIraqPlayers,
+                extendedBrackets: iraqExtendedRankBrackets
             )
             entries.append(contentsOf: extendedEntries)
         }
