@@ -1867,7 +1867,16 @@ public enum MockLeaderboardData {
 
     /// Calculate country-specific rank for a given milestone
     static func calculateCountryRank(milestone: String, countryCode: String) -> Int {
-        let userMilestoneIdx = milestoneIndex(for: milestone)
+        var userMilestoneIdx = milestoneIndex(for: milestone)
+        if userMilestoneIdx == 0 {
+            var foundIdx = 0
+            for (idx, m) in allMilestones.enumerated() {
+                if compareMilestones(milestone, m) >= 0 {
+                    foundIdx = idx
+                }
+            }
+            userMilestoneIdx = foundIdx
+        }
         let day = daysSinceReference
 
         // Get country-specific data and seed
@@ -7086,7 +7095,17 @@ public extension LeaderboardClient {
         // Add user to playerData so they get sorted with everyone else
         let userMilestone = UserLeaderboardData.currentMilestone
         let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
-        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+        var effectiveUserIdx = userMilestoneIdx
+        if userMilestoneIdx == 0 {
+            var foundIdx = 0
+            for (idx, m) in MockLeaderboardData.allMilestones.enumerated() {
+                if MockLeaderboardData.compareMilestones(userMilestone, m) >= 0 {
+                    foundIdx = idx
+                }
+            }
+            effectiveUserIdx = foundIdx
+        }
+        playerData.append((-1, userMilestone, effectiveUserIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
 
         playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
         playerData.sort {
