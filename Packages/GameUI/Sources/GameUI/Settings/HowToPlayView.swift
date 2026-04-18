@@ -1747,10 +1747,10 @@ private struct ValidMovesTutorialPage: View {
             }
         }
         
-        // Spawn the new 32 at (0,2)
+        // Spawn the new 64 at (0,2)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             withAnimation {
-                spawnedTile = TileState(id: 99, row: 0, col: 2, value: 32, step: 4)
+                spawnedTile = TileState(id: 99, row: 0, col: 2, value: 64, step: 5)
                 validMovesCount = 0
             }
         }
