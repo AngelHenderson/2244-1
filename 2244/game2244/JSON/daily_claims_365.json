@@ -8349,7 +8349,7 @@
     "description": "Claim your Day 337 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 15
+      "spins": 3
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8373,7 +8373,7 @@
     "description": "Claim your Day 338 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 25
+      "magnets": 2
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8397,7 +8397,7 @@
     "description": "Claim your Day 339 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "hammers": 1
+      "hammers": 3
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8421,7 +8421,8 @@
     "description": "Claim your Day 340 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 40
+      "swaps": 1,
+      "boost4x": 1
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8445,7 +8446,7 @@
     "description": "Claim your Day 341 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 50
+      "magnets": 2
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8469,7 +8470,7 @@
     "description": "Claim your Day 342 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "boost2x": 1
+      "gems": 7455
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8493,8 +8494,7 @@
     "description": "Claim your Day 343 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 75,
-      "hammers": 1
+      "gems": 8266
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8518,7 +8518,7 @@
     "description": "Claim your Day 344 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "magnets": 1
+      "gems": 8364
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8542,6 +8542,9 @@
     "description": "Claim your Day 345 daily reward.",
     "category": "DailyClaim",
     "rewards": {
+      "hammers": 1,
+      "magnets": 1,
+      "swaps": 1,
       "boost3x": 1
     },
     "hidden": false,
@@ -8566,7 +8569,8 @@
     "description": "Claim your Day 346 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "spins": 1
+      "boost2x": 1,
+      "boost4x": 1
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8590,7 +8594,9 @@
     "description": "Claim your Day 347 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 110
+      "gems": 4898,
+      "spins": 13,
+      "boost3x": 1
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8614,7 +8620,10 @@
     "description": "Claim your Day 348 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 125
+      "gems": 7467,
+      "spins": 1,
+      "magnets": 4,
+      "swaps": 3
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8638,7 +8647,8 @@
     "description": "Claim your Day 349 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "swaps": 1
+      "gems": 9277,
+      "hammers": 2
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8662,7 +8672,8 @@
     "description": "Claim your Day 350 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 200
+      "spins": 8,
+      "boost4x": 1
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8686,9 +8697,9 @@
     "description": "Claim your Day 351 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 100,
-      "hammers": 1,
-      "magnets": 1,
+      "spins": 3,
+      "hammers": 3,
+      "magnets": 3,
       "boost2x": 1
     },
     "hidden": false,
@@ -8713,7 +8724,7 @@
     "description": "Claim your Day 352 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "swaps": 2
+      "swaps": 3
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8737,7 +8748,7 @@
     "description": "Claim your Day 353 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "magnets": 1
+      "gems": 7469
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8761,8 +8772,7 @@
     "description": "Claim your Day 354 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "spins": 1,
-      "boost4x": 1
+      "gems": 8188
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8786,7 +8796,7 @@
     "description": "Claim your Day 355 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "hammers": 1
+      "gems": 8277
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8810,8 +8820,8 @@
     "description": "Claim your Day 356 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 150,
-      "magnets": 2
+      "hammers": 1,
+      "boost4x": 1
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8835,7 +8845,7 @@
     "description": "Claim your Day 357 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 175
+      "spins": 15
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8859,8 +8869,8 @@
     "description": "Claim your Day 358 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 220,
-      "spins": 1
+      "spins": 14,
+      "boost2x": 1
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8884,8 +8894,8 @@
     "description": "Claim your Day 359 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "magnets": 2,
-      "boost4x": 1
+      "gems": 9177,
+      "spins": 2
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8909,9 +8919,7 @@
     "description": "Claim your Day 360 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "boost2x": 1,
-      "boost3x": 1,
-      "boost4x": 1
+      "gems": 8277
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8935,8 +8943,10 @@
     "description": "Claim your Day 361 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 250,
+      "spins": 1,
+      "hammers": 1,
       "magnets": 1,
+      "swaps": 1,
       "boost3x": 1
     },
     "hidden": false,
@@ -8961,8 +8971,8 @@
     "description": "Claim your Day 362 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "gems": 244,
-      "boost4x": 1
+      "gems": 7999,
+      "hammers": 2
     },
     "hidden": false,
     "conditionExpr": "",
@@ -8986,7 +8996,8 @@
     "description": "Claim your Day 363 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "spins": 2
+      "gems": 9454,
+      "boost2x": 1
     },
     "hidden": false,
     "conditionExpr": "",
@@ -9010,8 +9021,14 @@
     "description": "Claim your Day 364 daily reward.",
     "category": "DailyClaim",
     "rewards": {
-      "spins": 2,
-      "boost2x": 1
+      "gems": 9786,
+      "spins": 1,
+      "hammers": 1,
+      "magnets": 1,
+      "swaps": 1,
+      "boost2x": 1,
+      "boost3x": 1,
+      "boost4x": 1
     },
     "hidden": false,
     "conditionExpr": "",
@@ -9035,8 +9052,7 @@
     "description": "Claim your Year 1 yearly award!",
     "category": "DailyClaim",
     "rewards": {
-      "spins": 1,
-      "boost3x": 1
+      "gems": 10000
     },
     "hidden": false,
     "conditionExpr": "",
