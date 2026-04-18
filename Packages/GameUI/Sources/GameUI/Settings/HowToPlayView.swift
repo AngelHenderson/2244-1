@@ -1681,12 +1681,13 @@ private struct ValidMovesTutorialPage: View {
                         isDragging = true
                         if let tileId = tileAt(location: value.location) {
                             if connectedTileIds.isEmpty {
-                                if tileId == 7 || tileId == 8 {
+                                // Only allow starting on the right 8 (tile 8)
+                                if tileId == 8 {
                                     connectedTileIds.insert(tileId)
                                 }
                             } else if connectedTileIds.count == 1 {
-                                let first = connectedTileIds.first!
-                                if (first == 7 && tileId == 8) || (first == 8 && tileId == 7) {
+                                // Only allow dragging left to tile 7
+                                if connectedTileIds.contains(8) && tileId == 7 {
                                     connectedTileIds.insert(tileId)
                                 }
                             }
