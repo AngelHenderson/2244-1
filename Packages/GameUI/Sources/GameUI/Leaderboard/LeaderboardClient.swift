@@ -4103,6 +4103,30 @@ public enum MockLeaderboardData {
         "MahafalyMaster", "SakalavarStar", "MerinaMaverick", "BetsileoBlaze", "TsimhetyTitan"
     ]
 
+    static let iraqNames = [
+        // 1-30: Geographic and city-based
+        "BaghdadBlaster", "BasraBoss", "ErbilElite", "MosulMaster", "NajafNinja",
+        "KarbalaKnight", "KirkukKing", "SulaymaniyahStar", "RamadiFury", "FallujahFlash",
+        "TikritTitan", "SamarraSurge", "HillahHawk", "KutKrusher", "NasiriyahNova",
+        "DiwaniyahDagger", "AmmarahArcher", "DuhokDynamo", "ZakhoZealot", "HalabjahHero",
+        "BaqubahBlade", "BaladBolt", "HadithaHunter", "QaimQuake", "SinjarSniper",
+        "TalAfarThunder", "MandaliMighty", "AliAlGharbiAce", "BadrahBeast", "KhanaqinKobra",
+        // 31-60: Culture and history
+        "TigrisTornado", "EuphratesEagle", "MesopotamiaMaverick", "BabylonBrawler", "AssyrianArrow",
+        "SumerStrike", "AkkadAssault", "UrukUltra", "NinevehNinja", "IshtarIce",
+        "GilgameshGlory", "HammurabiHit", "NebuchadnezzarNova", "ZigguratZapper", "MarshlandMaster",
+        "DatePalmDynamo", "SaffronStrike", "KurdishKnight", "ArabArchon", "TurkmenTank",
+        "MasgoufMaster", "KleijaKrusher", "DolmaDestroyer", "BiryaniBlast", "SamoonSurge",
+        "ChaiBoss", "KebbabKing", "FalafelFury", "TabrizThreat", "QimaQuake",
+        // 61-90: More local flavor
+        "ShatAlArabShot", "ThartharThunder", "HabaniyahHawk", "RazzazaRanger", "DukanDemon",
+        "DarbandikhanDart", "HamrinHero", "SinjairSlash", "QaraTepeQuest", "MakhmurMace",
+        "TuzKhurmatuTank", "ChemchemalChamp", "PenjwinPro", "RaniyaRocket", "ShaqlawaShadow",
+        "AmadiahAlpha", "AqrahArrow", "TelkeppeTitan", "AlqoshAce", "BashiqaBlade",
+        "SinuniSniper", "ShekhanShark", "KalakKnight", "BardarashBolt", "MergasorMighty",
+        "SoranStorm", "ChomanCrush", "HajOmranHawk", "RawanduzRuler", "SidakanSniper"
+    ]
+
     static let uzbekistanNames = [
         // 1-30: City and geography-based
         "TashkentTitan", "SamarkandStar", "BukharaBlitz", "KhivaKnight", "NukusNinja",
