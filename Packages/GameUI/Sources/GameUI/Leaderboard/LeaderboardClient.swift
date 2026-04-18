@@ -2005,10 +2005,9 @@ public enum MockLeaderboardData {
         return allMilestones[newIndex]
     }
 
-    /// Returns country-specific milestone data
     static func countryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int) {
-        let milestones = LeaderboardClient.top150Milestones(for: countryCode)
-        let brackets = LeaderboardClient.extendedBrackets(for: countryCode)
+        let milestones = top150Milestones(for: countryCode)
+        let brackets = extendedBrackets(for: countryCode)
         let count = totalCountryPlayers(for: countryCode, on: day)
         return (milestones, brackets, count)
     }
