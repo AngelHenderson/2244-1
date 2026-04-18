@@ -1043,6 +1043,47 @@ public enum MockLeaderboardData {
         return 0.05 + random * 0.35  // 0.05 to 0.4 players per day
     }
 
+    public static let baseCountryPlayerCounts: [String: Int] = [
+        "FR": 127_676, "DK": 90_123, "FI": 87_654,
+        "DE": 76_767, "PL": 67_108, "AU": 63_213,
+        "NL": 46_767, "NO": 34_924, "IE": 34_567,
+        "CH": 20_000, "GB": 17_676, "ES": 14_399,
+        "IT": 13_856, "CA": 12_847, "AL": 11_222,
+        "AF": 11_111, "BR": 10_000, "BE": 8_989,
+        "CN": 8_192, "AT": 7_543, "MX": 7_229,
+        "SE": 6_288, "DZ": 3_333, "KR": 3_123,
+        "RO": 5_966, "MY": 52_111, "NZ": 2_623,
+        "HU": 111_111, "IN": 1_488, "JP": 894,
+        "TH": 5_444, "AE": 19_889, "PH": 43_210,
+        "AD": 1_977, "ID": 98_982, "KE": 15_111,
+        "FJ": 1_214, "CZ": 61_616, "PT": 98_989,
+        "GR": 41_414, "ZA": 2_974, "VN": 167_676,
+        "CW": 39_999, "VE": 71_837, "AZ": 543_296,
+        "KZ": 62_211, "TJ": 193_773, "NU": 947,
+        "KG": 1_097_478, "IS": 2_846, "SK": 2_093_776,
+        "UZ": 28_473_673, "PK": 93_432, "UA": 88_778,
+        "MG": 258_679, "IQ": 638_686
+    ]
+
+    static func basePlayerCount(for countryCode: String) -> Int {
+        if let base = baseCountryPlayerCounts[countryCode] {
+            return base
+        }
+        var hasher = Hasher()
+        hasher.combine(countryCode)
+        let hash = abs(hasher.finalize())
+        return 5000 + (hash % 245_000)
+    }
+
+    static func totalCountryPlayers(for countryCode: String, on day: Int) -> Int {
+        if countryCode == "US" {
+            return totalPlayers(on: day, isUS: true)
+        }
+        let basePlayers = basePlayerCount(for: countryCode)
+        let seed = countrySeed(for: countryCode)
+        return totalCountryPlayers(basePlayers: basePlayers, on: day, countrySeed: seed)
+    }
+
     // Calculate total players for a specific country with new joins and attrition
     // New players: 0.5-4 per day, Attrition: 0.1-0.5 per day (95% outside top 150)
     // Cache for totalCountryPlayers results (invalidated daily)
@@ -1855,12 +1896,22 @@ public enum MockLeaderboardData {
         "IQ": 265000
     ]
 
+    static func countrySeed(for countryCode: String) -> Int {
+        if let seed = countryPlayerSeeds[countryCode] {
+            return seed
+        }
+        var hasher = Hasher()
+        hasher.combine(countryCode)
+        hasher.combine("seed")
+        return abs(hasher.finalize()) % 1_000_000
+    }
+
     /// Get the milestone at a specific rank for a country's top 150 players
     /// Returns nil if rank is out of bounds
     static func milestoneAtCountryRank(rank: Int, countryCode: String) -> String? {
         let day = daysSinceReference
         let (milestones, _, _) = countryData(for: countryCode, day: day)
-        let countrySeed = countryPlayerSeeds[countryCode] ?? 0
+        let countrySeed = countrySeed(for: countryCode)
 
         // Rank is 1-indexed, array is 0-indexed
         let index = rank - 1
@@ -1955,7 +2006,78 @@ public enum MockLeaderboardData {
     }
 
     /// Returns country-specific milestone data
-    private static func countryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int) {
+    static func countryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int) {
+        let milestones = LeaderboardClient.top150Milestones(for: countryCode)
+        let brackets = LeaderboardClient.extendedBrackets(for: countryCode)
+        let count = totalCountryPlayers(for: countryCode, on: day)
+        return (milestones, brackets, count)
+    }
+
+    /// Returns the array of names for a country code
+    static func names(for countryCode: String) -> [String] {
+        switch countryCode {
+        case "US": return usNames
+        case "GB": return ukNames
+        case "CA": return canadaNames
+        case "AU": return australiaNames
+        case "DE": return germanyNames
+        case "FR": return franceNames
+        case "JP": return japanNames
+        case "IN": return indiaNames
+        case "BR": return brazilNames
+        case "MX": return mexicoNames
+        case "AF": return afghanistanNames
+        case "AL": return albaniaNames
+        case "DZ": return algeriaNames
+        case "CN": return chinaNames
+        case "KR": return southKoreaNames
+        case "IT": return italyNames
+        case "ES": return spainNames
+        case "NL": return netherlandsNames
+        case "CH": return switzerlandNames
+        case "NO": return norwayNames
+        case "DK": return denmarkNames
+        case "FI": return finlandNames
+        case "PL": return polandNames
+        case "BE": return belgiumNames
+        case "SE": return swedenNames
+        case "AT": return austriaNames
+        case "IE": return irelandNames
+        case "PT": return portugalNames
+        case "GR": return greeceNames
+        case "CZ": return czechiaNames
+        case "RO": return romaniaNames
+        case "MY": return malaysiaNames
+        case "NZ": return newZealandNames
+        case "HU": return hungaryNames
+        case "TH": return thailandNames
+        case "AE": return uaeNames
+        case "PH": return philippinesNames
+        case "AD": return andorraNames
+        case "ID": return indonesiaNames
+        case "ZA": return southAfricaNames
+        case "KE": return kenyaNames
+        case "FJ": return fijiNames
+        case "VN": return vietnamNames
+        case "CW": return curacaoNames
+        case "VE": return venezuelaNames
+        case "AZ": return azerbaijanNames
+        case "KZ": return kazakhstanNames
+        case "TJ": return tajikistanNames
+        case "NU": return niueNames
+        case "KG": return kyrgyzstanNames
+        case "IS": return icelandNames
+        case "SK": return slovakiaNames
+        case "UZ": return uzbekistanNames
+        case "PK": return pakistanNames
+        case "UA": return ukraineNames
+        case "MG": return madagascarNames
+        case "IQ": return iraqNames
+        default: return usNames
+        }
+    }
+
+    private static func unusedCountryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int) {
         switch countryCode {
         case "US":
             return (LeaderboardClient.usPlayerMilestones, LeaderboardClient.usExtendedRankBrackets, totalPlayers(on: day, isUS: true))
@@ -2081,67 +2203,15 @@ public enum MockLeaderboardData {
         let day = daysSinceReference
 
         // Countries with leaderboard data and their base player counts
-        let countryPlayerCounts: [(code: String, players: Int)] = [
-            ("FR", 127_676),
-            ("DK", 90_123),
-            ("FI", 87_654),
-            ("US", totalPlayers(on: day, isUS: true)),
-            ("DE", 76_767),
-            ("PL", 67_108),
-            ("AU", 63_213),
-            ("NL", 46_767),
-            ("NO", 34_924),
-            ("IE", 34_567),
-            ("CH", 20_000),
-            ("GB", 17_676),
-            ("ES", 14_399),
-            ("IT", 13_856),
-            ("CA", 12_847),
-            ("AL", 11_222),
-            ("AF", 11_111),
-            ("BR", 10_000),
-            ("BE", 8_989),
-            ("CN", 8_192),
-            ("AT", 7_543),
-            ("MX", 7_229),
-            ("SE", 6_288),
-            ("DZ", 3_333),
-            ("KR", 3_123),
-            ("RO", 5_966),
-            ("MY", 52_111),
-            ("NZ", 2_623),
-            ("HU", 111_111),
-            ("IN", 1_488),
-            ("JP", 894),
-            ("TH", 5_444),
-            ("AE", 19_889),
-            ("PH", 43_210),
-            ("AD", 1_977),
-            ("ID", 98_982),
-            ("KE", 15_111),
-            ("FJ", 1_214),
-            ("CZ", 61_616),
-            ("PT", 98_989),
-            ("GR", 41_414),
-            ("ZA", 2_974),
-            ("VN", 167_676),
-            ("CW", 39_999),
-            ("VE", 71_837),
-            ("AZ", 543_296),
-            ("KZ", 62_211),
-            ("TJ", 193_773),
-            ("NU", 947),
-            ("KG", 1_097_478),
-            ("IS", 2_846),
-            ("SK", 2_093_776),
-            ("UZ", 28_473_673),
-            ("PK", 93_432),
-            ("UA", 88_778),
-            ("MG", 258_679),
-            ("IQ", 638_686)
+        var counts: [(code: String, players: Int)] = [
+            ("US", totalPlayers(on: day, isUS: true))
         ]
 
-        let countriesWithLeaderboards = countryPlayerCounts
+        for (code, _) in MockLeaderboardData.baseCountryPlayerCounts {
+            counts.append((code, MockLeaderboardData.totalCountryPlayers(for: code, on: day)))
+        }
+
+        let countriesWithLeaderboards = counts
             .sorted { $0.players > $1.players }
             .map { $0.code }
 
@@ -2263,53 +2333,27 @@ public enum MockLeaderboardData {
         let userMilestoneIdx = milestoneIndex(for: userMilestone)
         var total = 0
 
-        // Add each country's count
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.usPlayerMilestones, extendedBrackets: LeaderboardClient.usExtendedRankBrackets, totalPlayers: Self.totalPlayers(on: day, isUS: true), countrySeed: countryPlayerSeeds["US"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.ukPlayerMilestones, extendedBrackets: LeaderboardClient.ukExtendedRankBrackets, totalPlayers: 17_676, countrySeed: countryPlayerSeeds["GB"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.canadaPlayerMilestones, extendedBrackets: LeaderboardClient.canadaExtendedRankBrackets, totalPlayers: 12_847, countrySeed: countryPlayerSeeds["CA"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.australiaPlayerMilestones, extendedBrackets: LeaderboardClient.australiaExtendedRankBrackets, totalPlayers: 63_213, countrySeed: countryPlayerSeeds["AU"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.germanyPlayerMilestones, extendedBrackets: LeaderboardClient.germanyExtendedRankBrackets, totalPlayers: 76_767, countrySeed: countryPlayerSeeds["DE"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.francePlayerMilestones, extendedBrackets: LeaderboardClient.franceExtendedRankBrackets, totalPlayers: 127_676, countrySeed: countryPlayerSeeds["FR"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.japanPlayerMilestones, extendedBrackets: LeaderboardClient.japanExtendedRankBrackets, totalPlayers: 894, countrySeed: countryPlayerSeeds["JP"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.indiaPlayerMilestones, extendedBrackets: LeaderboardClient.indiaExtendedRankBrackets, totalPlayers: 1_488, countrySeed: countryPlayerSeeds["IN"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.brazilPlayerMilestones, extendedBrackets: LeaderboardClient.brazilExtendedRankBrackets, totalPlayers: 10_000, countrySeed: countryPlayerSeeds["BR"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.mexicoPlayerMilestones, extendedBrackets: LeaderboardClient.mexicoExtendedRankBrackets, totalPlayers: 7_229, countrySeed: countryPlayerSeeds["MX"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.afghanistanPlayerMilestones, extendedBrackets: LeaderboardClient.afghanistanExtendedRankBrackets, totalPlayers: 11_111, countrySeed: countryPlayerSeeds["AF"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.albaniaPlayerMilestones, extendedBrackets: LeaderboardClient.albaniaExtendedRankBrackets, totalPlayers: 11_222, countrySeed: countryPlayerSeeds["AL"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.algeriaPlayerMilestones, extendedBrackets: LeaderboardClient.algeriaExtendedRankBrackets, totalPlayers: 3_333, countrySeed: countryPlayerSeeds["DZ"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.chinaPlayerMilestones, extendedBrackets: LeaderboardClient.chinaExtendedRankBrackets, totalPlayers: 8_192, countrySeed: countryPlayerSeeds["CN"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.southKoreaPlayerMilestones, extendedBrackets: LeaderboardClient.southKoreaExtendedRankBrackets, totalPlayers: 3_123, countrySeed: countryPlayerSeeds["KR"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.italyPlayerMilestones, extendedBrackets: LeaderboardClient.italyExtendedRankBrackets, totalPlayers: 13_856, countrySeed: countryPlayerSeeds["IT"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.spainPlayerMilestones, extendedBrackets: LeaderboardClient.spainExtendedRankBrackets, totalPlayers: 14_399, countrySeed: countryPlayerSeeds["ES"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.netherlandsPlayerMilestones, extendedBrackets: LeaderboardClient.netherlandsExtendedRankBrackets, totalPlayers: 46_767, countrySeed: countryPlayerSeeds["NL"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.switzerlandPlayerMilestones, extendedBrackets: LeaderboardClient.switzerlandExtendedRankBrackets, totalPlayers: 20_000, countrySeed: countryPlayerSeeds["CH"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.norwayPlayerMilestones, extendedBrackets: LeaderboardClient.norwayExtendedRankBrackets, totalPlayers: 34_924, countrySeed: countryPlayerSeeds["NO"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.denmarkPlayerMilestones, extendedBrackets: LeaderboardClient.denmarkExtendedRankBrackets, totalPlayers: 90_123, countrySeed: countryPlayerSeeds["DK"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.finlandPlayerMilestones, extendedBrackets: LeaderboardClient.finlandExtendedRankBrackets, totalPlayers: 87_654, countrySeed: countryPlayerSeeds["FI"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.polandPlayerMilestones, extendedBrackets: LeaderboardClient.polandExtendedRankBrackets, totalPlayers: 67_108, countrySeed: countryPlayerSeeds["PL"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.belgiumPlayerMilestones, extendedBrackets: LeaderboardClient.belgiumExtendedRankBrackets, totalPlayers: 8_989, countrySeed: countryPlayerSeeds["BE"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.swedenPlayerMilestones, extendedBrackets: LeaderboardClient.swedenExtendedRankBrackets, totalPlayers: 6_288, countrySeed: countryPlayerSeeds["SE"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.austriaPlayerMilestones, extendedBrackets: LeaderboardClient.austriaExtendedRankBrackets, totalPlayers: 7_543, countrySeed: countryPlayerSeeds["AT"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.irelandPlayerMilestones, extendedBrackets: LeaderboardClient.irelandExtendedRankBrackets, totalPlayers: 34_567, countrySeed: countryPlayerSeeds["IE"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.portugalPlayerMilestones, extendedBrackets: LeaderboardClient.portugalExtendedRankBrackets, totalPlayers: 98_989, countrySeed: countryPlayerSeeds["PT"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.greecePlayerMilestones, extendedBrackets: LeaderboardClient.greeceExtendedRankBrackets, totalPlayers: 41_414, countrySeed: countryPlayerSeeds["GR"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.czechiaPlayerMilestones, extendedBrackets: LeaderboardClient.czechiaExtendedRankBrackets, totalPlayers: 61_616, countrySeed: countryPlayerSeeds["CZ"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.romaniaPlayerMilestones, extendedBrackets: LeaderboardClient.romaniaExtendedRankBrackets, totalPlayers: 5_966, countrySeed: countryPlayerSeeds["RO"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.malaysiaPlayerMilestones, extendedBrackets: LeaderboardClient.malaysiaExtendedRankBrackets, totalPlayers: 52_111, countrySeed: countryPlayerSeeds["MY"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.newZealandPlayerMilestones, extendedBrackets: LeaderboardClient.newZealandExtendedRankBrackets, totalPlayers: 2_623, countrySeed: countryPlayerSeeds["NZ"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.hungaryPlayerMilestones, extendedBrackets: LeaderboardClient.hungaryExtendedRankBrackets, totalPlayers: 111_111, countrySeed: countryPlayerSeeds["HU"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.azerbaijanPlayerMilestones, extendedBrackets: LeaderboardClient.azerbaijanExtendedRankBrackets, totalPlayers: 543_296, countrySeed: countryPlayerSeeds["AZ"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kazakhstanPlayerMilestones, extendedBrackets: LeaderboardClient.kazakhstanExtendedRankBrackets, totalPlayers: 62_211, countrySeed: countryPlayerSeeds["KZ"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.tajikistanPlayerMilestones, extendedBrackets: LeaderboardClient.tajikistanExtendedRankBrackets, totalPlayers: 193_773, countrySeed: countryPlayerSeeds["TJ"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.niuePlayerMilestones, extendedBrackets: LeaderboardClient.niueExtendedRankBrackets, totalPlayers: 947, countrySeed: countryPlayerSeeds["NU"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.kyrgyzstanPlayerMilestones, extendedBrackets: LeaderboardClient.kyrgyzstanExtendedRankBrackets, totalPlayers: 1_097_478, countrySeed: countryPlayerSeeds["KG"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.icelandPlayerMilestones, extendedBrackets: LeaderboardClient.icelandExtendedRankBrackets, totalPlayers: 2_846, countrySeed: countryPlayerSeeds["IS"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.slovakiaPlayerMilestones, extendedBrackets: LeaderboardClient.slovakiaExtendedRankBrackets, totalPlayers: 2_093_776, countrySeed: countryPlayerSeeds["SK"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.uzbekistanPlayerMilestones, extendedBrackets: LeaderboardClient.uzbekistanExtendedRankBrackets, totalPlayers: 28_473_673, countrySeed: countryPlayerSeeds["UZ"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.pakistanPlayerMilestones, extendedBrackets: LeaderboardClient.pakistanExtendedRankBrackets, totalPlayers: 93_432, countrySeed: countryPlayerSeeds["PK"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.ukrainePlayerMilestones, extendedBrackets: LeaderboardClient.ukraineExtendedRankBrackets, totalPlayers: 88_778, countrySeed: countryPlayerSeeds["UA"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.madagascarPlayerMilestones, extendedBrackets: LeaderboardClient.madagascarExtendedRankBrackets, totalPlayers: 258_679, countrySeed: countryPlayerSeeds["MG"] ?? 0)
-        total += Self.countBetterInCountry(userMilestoneIdx: userMilestoneIdx, milestones: LeaderboardClient.iraqPlayerMilestones, extendedBrackets: LeaderboardClient.iraqExtendedRankBrackets, totalPlayers: 638_686, countrySeed: countryPlayerSeeds["IQ"] ?? 0)
+        // Add US players
+        total += Self.countBetterInCountry(
+            userMilestoneIdx: userMilestoneIdx,
+            milestones: LeaderboardClient.usPlayerMilestones,
+            extendedBrackets: LeaderboardClient.usExtendedRankBrackets,
+            totalPlayers: totalPlayers(on: day, isUS: true),
+            countrySeed: countrySeed(for: "US")
+        )
+
+        // Add all base countries
+        for (code, _) in baseCountryPlayerCounts {
+            let data = countryData(for: code, day: day)
+            let seed = countrySeed(for: code)
+            total += Self.countBetterInCountry(
+                userMilestoneIdx: userMilestoneIdx,
+                milestones: data.milestones,
+                extendedBrackets: data.extendedBrackets,
+                totalPlayers: data.totalPlayers,
+                countrySeed: seed
+            )
+        }
 
         globalRankCache[userMilestone] = total
         return total
@@ -4352,122 +4396,14 @@ public extension LeaderboardClient {
                 // Show only top 150 Hall of Fame entries
                 let allHofEntries = hallOfFameEntries()
                 entries = Array(allHofEntries.prefix(150))
-            case .country:
-                entries = countryEntries()
-            case .countryUK:
-                entries = ukEntries()
-            case .countryCA:
-                entries = canadaEntries()
-            case .countryAU:
-                entries = australiaEntries()
-            case .countryDE:
-                entries = germanyEntries()
-            case .countryFR:
-                entries = franceEntries()
-            case .countryJP:
-                entries = japanEntries()
-            case .countryIN:
-                entries = indiaEntries()
-            case .countryBR:
-                entries = brazilEntries()
-            case .countryMX:
-                entries = mexicoEntries()
-            case .countryAF:
-                entries = afghanistanEntries()
-            case .countryAL:
-                entries = albaniaEntries()
-            case .countryDZ:
-                entries = algeriaEntries()
-            case .countryCN:
-                entries = chinaEntries()
-            case .countryKR:
-                entries = southKoreaEntries()
-            case .countryIT:
-                entries = italyEntries()
-            case .countryES:
-                entries = spainEntries()
-            case .countryNL:
-                entries = netherlandsEntries()
-            case .countryCH:
-                entries = switzerlandEntries()
-            case .countryNO:
-                entries = norwayEntries()
-            case .countryDK:
-                entries = denmarkEntries()
-            case .countryFI:
-                entries = finlandEntries()
-            case .countryPL:
-                entries = polandEntries()
-            case .countryBE:
-                entries = belgiumEntries()
-            case .countrySE:
-                entries = swedenEntries()
-            case .countryAT:
-                entries = austriaEntries()
-            case .countryIE:
-                entries = irelandEntries()
-            case .countryPT:
-                entries = portugalEntries()
-            case .countryGR:
-                entries = greeceEntries()
-            case .countryCZ:
-                entries = czechiaEntries()
-            case .countryRO:
-                entries = romaniaEntries()
-            case .countryMY:
-                entries = malaysiaEntries()
-            case .countryNZ:
-                entries = newZealandEntries()
-            case .countryHU:
-                entries = hungaryEntries()
-            case .countryTH:
-                entries = thailandEntries()
-            case .countryAE:
-                entries = uaeEntries()
-            case .countryPH:
-                entries = philippinesEntries()
-            case .countryAD:
-                entries = andorraEntries()
-            case .countryID:
-                entries = indonesiaEntries()
-            case .countryZA:
-                entries = southAfricaEntries()
-            case .countryKE:
-                entries = kenyaEntries()
-            case .countryFJ:
-                entries = fijiEntries()
-            case .countryVN:
-                entries = vietnamEntries()
-            case .countryCW:
-                entries = curacaoEntries()
-            case .countryVE:
-                entries = venezuelaEntries()
-            case .countryAZ:
-                entries = azerbaijanEntries()
-            case .countryKZ:
-                entries = kazakhstanEntries()
-            case .countryTJ:
-                entries = tajikistanEntries()
-            case .countryNU:
-                entries = niueEntries()
-            case .countryKG:
-                entries = kyrgyzstanEntries()
-            case .countryIS:
-                entries = icelandEntries()
-            case .countrySK:
-                entries = slovakiaEntries()
-            case .countryUZ:
-                entries = uzbekistanEntries()
-            case .countryPK:
-                entries = generatePakistanEntries()
-            case .countryUA:
-                entries = ukraineEntries()
-            case .countryMG:
-                entries = madagascarEntries()
-            case .countryIQ:
-                entries = iraqEntries()
             case .global:
                 entries = globalEntries()
+            case .country:
+                if let code = filter.countryCode {
+                    entries = unifiedCountryEntries(for: code)
+                } else {
+                    entries = unifiedCountryEntries(for: "US")
+                }
             }
             // day already declared above for cache check
             // Dynamic player counts with joining rate and attrition
@@ -4475,180 +4411,19 @@ public extension LeaderboardClient {
             switch filter {
             case .hallOfFame:
                 totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 604, on: day, countrySeed: 999)
-            case .country:
-                totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
-            case .countryUK:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 17_676, on: day, countrySeed: 100)
-            case .countryCA:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 12_847, on: day, countrySeed: 101)
-            case .countryAU:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 63_213, on: day, countrySeed: 102)
-            case .countryDE:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 76_767, on: day, countrySeed: 103)
-            case .countryFR:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 127_676, on: day, countrySeed: 104)
-            case .countryJP:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 894, on: day, countrySeed: 105)
-            case .countryIN:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_488, on: day, countrySeed: 106)
-            case .countryBR:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 10_000, on: day, countrySeed: 107)
-            case .countryMX:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 7_229, on: day, countrySeed: 108)
-            case .countryAF:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 11_111, on: day, countrySeed: 109)
-            case .countryAL:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 11_222, on: day, countrySeed: 110)
-            case .countryDZ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 3_333, on: day, countrySeed: 111)
-            case .countryCN:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 8_192, on: day, countrySeed: 112)
-            case .countryKR:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 3_123, on: day, countrySeed: 113)
-            case .countryIT:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 13_856, on: day, countrySeed: 114)
-            case .countryES:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 14_399, on: day, countrySeed: 115)
-            case .countryNL:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 46_767, on: day, countrySeed: 116)
-            case .countryCH:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 20_000, on: day, countrySeed: 117)
-            case .countryNO:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 34_924, on: day, countrySeed: 118)
-            case .countryDK:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 90_123, on: day, countrySeed: 119)
-            case .countryFI:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 87_654, on: day, countrySeed: 120)
-            case .countryPL:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 67_108, on: day, countrySeed: 121)
-            case .countryBE:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 8_989, on: day, countrySeed: 122)
-            case .countrySE:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 6_288, on: day, countrySeed: 123)
-            case .countryAT:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 7_543, on: day, countrySeed: 124)
-            case .countryIE:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 34_567, on: day, countrySeed: 125)
-            case .countryPT:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_989, on: day, countrySeed: 126)
-            case .countryGR:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 41_414, on: day, countrySeed: 127)
-            case .countryCZ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 61_616, on: day, countrySeed: 128)
-            case .countryRO:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 5_966, on: day, countrySeed: 129)
-            case .countryMY:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 52_111, on: day, countrySeed: 130)
-            case .countryNZ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_623, on: day, countrySeed: 131)
-            case .countryHU:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 111_111, on: day, countrySeed: 132)
-            case .countryTH:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 5_444, on: day, countrySeed: 133)
-            case .countryAE:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 19_889, on: day, countrySeed: 134)
-            case .countryPH:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 43_210, on: day, countrySeed: 135)
-            case .countryAD:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_977, on: day, countrySeed: 136)
-            case .countryID:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
-            case .countryZA:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
-            case .countryKE:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 15_111, on: day, countrySeed: 139)
-            case .countryFJ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_214, on: day, countrySeed: 140)
-            case .countryVN:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 167_676, on: day, countrySeed: 141)
-            case .countryCW:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 39_999, on: day, countrySeed: 142)
-            case .countryVE:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 71_837, on: day, countrySeed: 143)
-            case .countryAZ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 543_296, on: day, countrySeed: 144)
-            case .countryKZ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 62_211, on: day, countrySeed: 145)
-            case .countryTJ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 193_773, on: day, countrySeed: 146)
-            case .countryNU:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 947, on: day, countrySeed: 147)
-            case .countryKG:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_097_478, on: day, countrySeed: 148)
-            case .countryIS:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_846, on: day, countrySeed: 149)
-            case .countrySK:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_093_776, on: day, countrySeed: 150)
-            case .countryUZ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 28_473_673, on: day, countrySeed: 151)
-            case .countryPK:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
-            case .countryUA:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 88_778, on: day, countrySeed: 153)
-            case .countryMG:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 258_679, on: day, countrySeed: 154)
-            case .countryIQ:
-                totalPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 638_686, on: day, countrySeed: 155)
             case .global:
                 // Global = sum of all country players (dynamic)
-                let usPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
-                let ukPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 17_676, on: day, countrySeed: 100)
-                let caPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 12_847, on: day, countrySeed: 101)
-                let auPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 63_213, on: day, countrySeed: 102)
-                let dePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 76_767, on: day, countrySeed: 103)
-                let frPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 127_676, on: day, countrySeed: 104)
-                let jpPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 894, on: day, countrySeed: 105)
-                let inPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_488, on: day, countrySeed: 106)
-                let brPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 10_000, on: day, countrySeed: 107)
-                let mxPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 7_229, on: day, countrySeed: 108)
-                let afPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 11_111, on: day, countrySeed: 109)
-                let alPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 11_222, on: day, countrySeed: 110)
-                let dzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 3_333, on: day, countrySeed: 111)
-                let cnPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 8_192, on: day, countrySeed: 112)
-                let krPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 3_123, on: day, countrySeed: 113)
-                let itPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 13_856, on: day, countrySeed: 114)
-                let esPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 14_399, on: day, countrySeed: 115)
-                let nlPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 46_767, on: day, countrySeed: 116)
-                let chPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 20_000, on: day, countrySeed: 117)
-                let noPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 34_924, on: day, countrySeed: 118)
-                let dkPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 90_123, on: day, countrySeed: 119)
-                let fiPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 87_654, on: day, countrySeed: 120)
-                let plPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 67_108, on: day, countrySeed: 121)
-                let bePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 8_989, on: day, countrySeed: 122)
-                let sePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 6_288, on: day, countrySeed: 123)
-                let atPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 7_543, on: day, countrySeed: 124)
-                let iePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 34_567, on: day, countrySeed: 125)
-                let ptPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_989, on: day, countrySeed: 126)
-                let grPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 41_414, on: day, countrySeed: 127)
-                let czPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 61_616, on: day, countrySeed: 128)
-                let roPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 5_966, on: day, countrySeed: 129)
-                let myPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 52_111, on: day, countrySeed: 130)
-                let nzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_623, on: day, countrySeed: 131)
-                let huPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 111_111, on: day, countrySeed: 132)
-                let thPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 5_444, on: day, countrySeed: 133)
-                let aePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 19_889, on: day, countrySeed: 134)
-                let phPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 43_210, on: day, countrySeed: 135)
-                let adPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_977, on: day, countrySeed: 136)
-                let idPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 98_982, on: day, countrySeed: 137)
-                let zaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_974, on: day, countrySeed: 138)
-                let kePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 15_111, on: day, countrySeed: 139)
-                let fjPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_214, on: day, countrySeed: 140)
-                let vnPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 167_676, on: day, countrySeed: 141)
-                let cwPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 39_999, on: day, countrySeed: 142)
-                let vePlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 71_837, on: day, countrySeed: 143)
-                let azPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 543_296, on: day, countrySeed: 144)
-                let kzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 62_211, on: day, countrySeed: 145)
-                let tjPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 193_773, on: day, countrySeed: 146)
-                let nuPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 947, on: day, countrySeed: 147)
-                let kgPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 1_097_478, on: day, countrySeed: 148)
-                let isPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_846, on: day, countrySeed: 149)
-                let skPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 2_093_776, on: day, countrySeed: 150)
-                let uzPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 28_473_673, on: day, countrySeed: 151)
-                let pkPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 93_432, on: day, countrySeed: 152)
-                let uaPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 88_778, on: day, countrySeed: 153)
-                let mgPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 258_679, on: day, countrySeed: 154)
-                let iqPlayers = MockLeaderboardData.totalCountryPlayers(basePlayers: 638_686, on: day, countrySeed: 155)
-                totalPlayers = usPlayers + ukPlayers + caPlayers + auPlayers + dePlayers + frPlayers + jpPlayers + inPlayers + brPlayers + mxPlayers + afPlayers + alPlayers + dzPlayers + cnPlayers + krPlayers + itPlayers + esPlayers + nlPlayers + chPlayers + noPlayers + dkPlayers + fiPlayers + plPlayers + bePlayers + sePlayers + atPlayers + iePlayers + ptPlayers + grPlayers + czPlayers + roPlayers + myPlayers + nzPlayers + huPlayers + thPlayers + aePlayers + phPlayers + adPlayers + idPlayers + zaPlayers + kePlayers + fjPlayers + vnPlayers + cwPlayers + vePlayers + azPlayers + kzPlayers + tjPlayers + nuPlayers + kgPlayers + isPlayers + skPlayers + uzPlayers + pkPlayers + uaPlayers + mgPlayers + iqPlayers
+                var sum = MockLeaderboardData.totalPlayers(on: day, isUS: true)
+                for (code, _) in MockLeaderboardData.baseCountryPlayerCounts where code != "US" {
+                    sum += MockLeaderboardData.totalCountryPlayers(for: code, on: day)
+                }
+                totalPlayers = sum
+            case .country:
+                if let code = filter.countryCode {
+                    totalPlayers = MockLeaderboardData.totalCountryPlayers(for: code, on: day)
+                } else {
+                    totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
+                }
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
@@ -4672,122 +4447,14 @@ public extension LeaderboardClient {
             case .hallOfFame:
                 let allHofEntries = hallOfFameEntries()
                 entries = Array(allHofEntries.prefix(150))
-            case .country:
-                entries = countryEntries()
-            case .countryUK:
-                entries = ukEntries()
-            case .countryCA:
-                entries = canadaEntries()
-            case .countryAU:
-                entries = australiaEntries()
-            case .countryDE:
-                entries = germanyEntries()
-            case .countryFR:
-                entries = franceEntries()
-            case .countryJP:
-                entries = japanEntries()
-            case .countryIN:
-                entries = indiaEntries()
-            case .countryBR:
-                entries = brazilEntries()
-            case .countryMX:
-                entries = mexicoEntries()
-            case .countryAF:
-                entries = afghanistanEntries()
-            case .countryAL:
-                entries = albaniaEntries()
-            case .countryDZ:
-                entries = algeriaEntries()
-            case .countryCN:
-                entries = chinaEntries()
-            case .countryKR:
-                entries = southKoreaEntries()
-            case .countryIT:
-                entries = italyEntries()
-            case .countryES:
-                entries = spainEntries()
-            case .countryNL:
-                entries = netherlandsEntries()
-            case .countryCH:
-                entries = switzerlandEntries()
-            case .countryNO:
-                entries = norwayEntries()
-            case .countryDK:
-                entries = denmarkEntries()
-            case .countryFI:
-                entries = finlandEntries()
-            case .countryPL:
-                entries = polandEntries()
-            case .countryBE:
-                entries = belgiumEntries()
-            case .countrySE:
-                entries = swedenEntries()
-            case .countryAT:
-                entries = austriaEntries()
-            case .countryIE:
-                entries = irelandEntries()
-            case .countryPT:
-                entries = portugalEntries()
-            case .countryGR:
-                entries = greeceEntries()
-            case .countryCZ:
-                entries = czechiaEntries()
-            case .countryRO:
-                entries = romaniaEntries()
-            case .countryMY:
-                entries = malaysiaEntries()
-            case .countryNZ:
-                entries = newZealandEntries()
-            case .countryHU:
-                entries = hungaryEntries()
-            case .countryTH:
-                entries = thailandEntries()
-            case .countryAE:
-                entries = uaeEntries()
-            case .countryPH:
-                entries = philippinesEntries()
-            case .countryAD:
-                entries = andorraEntries()
-            case .countryID:
-                entries = indonesiaEntries()
-            case .countryZA:
-                entries = southAfricaEntries()
-            case .countryKE:
-                entries = kenyaEntries()
-            case .countryFJ:
-                entries = fijiEntries()
-            case .countryVN:
-                entries = vietnamEntries()
-            case .countryCW:
-                entries = curacaoEntries()
-            case .countryVE:
-                entries = venezuelaEntries()
-            case .countryAZ:
-                entries = azerbaijanEntries()
-            case .countryKZ:
-                entries = kazakhstanEntries()
-            case .countryTJ:
-                entries = tajikistanEntries()
-            case .countryNU:
-                entries = niueEntries()
-            case .countryKG:
-                entries = kyrgyzstanEntries()
-            case .countryIS:
-                entries = icelandEntries()
-            case .countrySK:
-                entries = slovakiaEntries()
-            case .countryUZ:
-                entries = uzbekistanEntries()
-            case .countryPK:
-                entries = generatePakistanEntries()
-            case .countryUA:
-                entries = ukraineEntries()
-            case .countryMG:
-                entries = madagascarEntries()
-            case .countryIQ:
-                entries = iraqEntries()
             case .global:
                 entries = globalEntries()
+            case .country:
+                if let code = filter.countryCode {
+                    entries = unifiedCountryEntries(for: code)
+                } else {
+                    entries = unifiedCountryEntries(for: "US")
+                }
             }
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
             let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
@@ -7507,6 +7174,83 @@ public extension LeaderboardClient {
         globalEntriesCacheDay = day
         globalEntriesCacheMilestone = userMilestone
         cachedGlobalEntries = entries
+        return entries
+    }
+    // Unified function to generate entries for any country code
+    private static func unifiedCountryEntries(for countryCode: String) -> [LeaderboardEntry] {
+        let day = MockLeaderboardData.daysSinceReference
+        var playerData: [(originalIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, platform: Platform, avatar: String, id: String)] = []
+
+        let data = MockLeaderboardData.countryData(for: countryCode, day: day)
+        let milestones = data.milestones
+        let seed = MockLeaderboardData.countrySeed(for: countryCode)
+        let names = MockLeaderboardData.names(for: countryCode)
+        let totalPlayers = data.totalPlayers
+
+        for i in 0..<milestones.count {
+            let baseMilestone = milestones[i]
+            let name = MockLeaderboardData.nameForPlayer(index: i, names: names, countrySeed: seed, day: day)
+            let platform: Platform = i % 2 == 0 ? .ios : .android
+            let avatar = MockLeaderboardData.avatarForPlayer(index: i, countrySeed: seed, day: day)
+
+            let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + seed, day: day)
+            let milestoneIdx = MockLeaderboardData.milestoneIndex(for: progressedMilestone)
+            playerData.append((i, progressedMilestone, milestoneIdx, name, platform, avatar, "\(countryCode.lowercased())_\(i)"))
+        }
+
+        // Add user to playerData so they get sorted with everyone else
+        let userMilestone = UserLeaderboardData.currentMilestone
+        let userMilestoneIdx = MockLeaderboardData.milestoneIndex(for: userMilestone)
+        playerData.append((-1, userMilestone, userMilestoneIdx, UserLeaderboardData.playerName, .ios, UserLeaderboardData.avatarID, "me"))
+
+        playerData = playerData.filter { !$0.progressedMilestone.hasSuffix("∞") }
+        playerData.sort {
+            if $0.milestoneIdx != $1.milestoneIdx {
+                return $0.milestoneIdx > $1.milestoneIdx
+            }
+            if $0.id == "me" { return true }
+            if $1.id == "me" { return false }
+            return $0.originalIndex < $1.originalIndex
+        }
+
+        var entries: [LeaderboardEntry] = []
+        var userInTop150 = false
+
+        for (rank, player) in playerData.prefix(150).enumerated() {
+            let isUserEntry = player.id == "me"
+            if isUserEntry { userInTop150 = true }
+
+            let baseScore = MockLeaderboardData.scoreForMilestone(player.progressedMilestone)
+            let score = isUserEntry ? baseScore : MockLeaderboardData.scoreWithDailyProgression(baseScore: baseScore, playerIndex: player.originalIndex + seed, day: day)
+
+            entries.append(LeaderboardEntry(
+                id: player.id,
+                rank: rank + 1,
+                name: player.name,
+                score: score,
+                countryCode: countryCode,
+                platform: player.platform,
+                isMe: isUserEntry,
+                avatarURL: player.avatar,
+                highestTile: player.progressedMilestone
+            ))
+        }
+
+        if !userInTop150 {
+            let rank = MockLeaderboardData.calculateCountryRank(milestone: userMilestone, countryCode: countryCode)
+            let extendedEntries = MockLeaderboardData.extendedBracketEntries(
+                aroundRank: rank,
+                userMilestone: userMilestone,
+                countryCode: countryCode,
+                countrySeed: seed,
+                names: names,
+                day: day,
+                totalPlayers: totalPlayers,
+                extendedBrackets: data.extendedBrackets
+            )
+            entries.append(contentsOf: extendedEntries)
+        }
+
         return entries
     }
 
