@@ -13,6 +13,16 @@ struct HUDTopBar: View {
     var scoreText: String? = nil  // Optional score for game context
     var onLeaderboardTap: (() -> Void)? = nil  // Override leaderboard tap for home screen
 
+    @Environment(\.currentTheme) private var currentTheme
+
+    private var activeChainMergedStep: Int? {
+        guard gameStore.currentPath.count > 1 else { return nil }
+        guard gameStore.pathValidation.isValid else { return nil }
+        let tiles = gameStore.currentPath.compactMap { gameStore.state.board[$0] }
+        let steps = tiles.compactMap { $0.stepIndex }
+        return TileStepMath.mergedStep(from: steps)
+    }
+
     private func playtimeText(at date: Date) -> String {
         let savedSeconds = UserDefaults.standard.integer(forKey: "playtime.totalSeconds")
         let sessionStart = gameStore.achievementEvaluator?.sessionStartTime ?? date
@@ -64,6 +74,30 @@ struct HUDTopBar: View {
             // Score and valid moves display (only shown if scoreText provided - game context)
             if let scoreText = scoreText {
                 HStack(spacing: 8) {
+                    // Chain merge preview - shows what the current chain will produce
+                    if let previewStep = activeChainMergedStep {
+                        let previewLabel = JourneyTileGenerator.formatTileAtStep(previewStep)
+                        let previewColor = currentTheme?.colorForStep(previewStep) ?? Theme.colorForStep(previewStep)
+                        let previewTextColor = currentTheme?.textColorForStep(previewStep) ?? Theme.textColorForStep(previewStep)
+
+                        Text(previewLabel)
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                            .foregroundStyle(previewTextColor)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(previewColor)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .strokeBorder(Color.white.opacity(0.4), lineWidth: 1)
+                                    )
+                            )
+                            .shadow(color: previewColor.opacity(0.5), radius: 4, y: 2)
+                            .transition(.scale(scale: 0.8).combined(with: .opacity))
+                            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: previewStep)
+                    }
+
                     // Valid moves count - from GameStore's tracked property for proper reactivity
                     VStack(spacing: 1) {
                         Text("\(gameStore.validMovesCount)")

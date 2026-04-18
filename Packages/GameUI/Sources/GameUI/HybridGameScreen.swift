@@ -1336,14 +1336,6 @@ struct MilestoneProgressBar: View {
         return min(1.0, CGFloat(highestStep - minSpawnStep) / 100.0)
     }
 
-    private var activeChainMergedStep: Int? {
-        guard gameStore.currentPath.count > 1 else { return nil }
-        guard gameStore.pathValidation.isValid else { return nil }
-        let tiles = gameStore.currentPath.compactMap { gameStore.state.board[$0] }
-        let steps = tiles.compactMap { $0.stepIndex }
-        return TileStepMath.mergedStep(from: steps)
-    }
-
     var body: some View {
         HStack(spacing: 0) {
             // Left: minSpawn (lowest tile)
@@ -1359,42 +1351,6 @@ struct MilestoneProgressBar: View {
                         .font(.avenirNext(size: 10, weight: .regular))
                         .foregroundStyle(.yellow)
                         .offset(y: -8)
-                }
-                .overlay(alignment: .top) {
-                    if let previewStep = activeChainMergedStep {
-                        let previewLabel = JourneyTileGenerator.formatTileAtStep(previewStep)
-                        let previewColor = currentTheme?.colorForStep(previewStep) ?? Theme.colorForStep(previewStep)
-                        let previewTextColor = currentTheme?.textColorForStep(previewStep) ?? Theme.textColorForStep(previewStep)
-                        
-                        Text(previewLabel)
-                            .font(.avenirNext(size: 12, weight: .bold))
-                            .foregroundStyle(previewTextColor)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(previewColor)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .strokeBorder(Color.white.opacity(0.5), lineWidth: 1)
-                                    )
-                            )
-                            .overlay(alignment: .bottom) {
-                                Path { path in
-                                    path.move(to: CGPoint(x: 0, y: 0))
-                                    path.addLine(to: CGPoint(x: 8, y: 0))
-                                    path.addLine(to: CGPoint(x: 4, y: 4))
-                                    path.closeSubpath()
-                                }
-                                .fill(previewColor)
-                                .frame(width: 8, height: 4)
-                                .offset(y: 4)
-                            }
-                            .shadow(radius: 4, y: 2)
-                            .offset(y: -36)
-                            .transition(.scale(scale: 0.8).combined(with: .opacity))
-                            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: previewStep)
-                    }
                 }
 
             // Progress line to next (empty)
