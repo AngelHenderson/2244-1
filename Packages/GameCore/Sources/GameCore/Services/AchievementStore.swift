@@ -695,7 +695,7 @@ public final class AchievementStore {
         .init(milestone: 250, categoryLabel: "250 infinities", rewards: .init(gems: 1200, boost3x: 1)),
         .init(milestone: 375, categoryLabel: "375 infinities", rewards: .init(gems: 2000)),
         .init(milestone: 500, categoryLabel: "500 infinities", rewards: .init(boost2x: 1, boost3x: 1, boost4x: 1)),
-        .init(milestone: 750, categoryLabel: "750 infinities", rewards: .init(gems: 1750, swaps: 1, magnets: 1)),
+        .init(milestone: 750, categoryLabel: "750 infinities", rewards: .init(gems: 1750, magnets: 1, swaps: 1)),
         .init(milestone: 1000, categoryLabel: "1000 infinities", rewards: .init(gems: 1500, boost4x: 1)),
         .init(milestone: 1500, categoryLabel: "1500 infinities", rewards: .init(gems: 2340)),
         .init(milestone: 2000, categoryLabel: "2000 infinities", rewards: .init(gems: 2500, magnets: 1, boost2x: 1)),
