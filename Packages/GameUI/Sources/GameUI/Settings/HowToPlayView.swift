@@ -1727,30 +1727,30 @@ private struct ValidMovesTutorialPage: View {
         withAnimation {
             connectedTileIds.removeAll()
             
-            // Merge occurs at col 2 (second 8)
-            if let index8 = tiles.firstIndex(where: { $0.id == 8 }) {
-                tiles[index8].value = 16
-                tiles[index8].step = 3
+            // Merge occurs at col 1 (left 8, tile 7)
+            if let index7 = tiles.firstIndex(where: { $0.id == 7 }) {
+                tiles[index7].value = 16
+                tiles[index7].step = 3
             }
             
-            // Remove the first 8 at (2,1)
-            tiles.removeAll { $0.id == 7 }
+            // Remove the right 8 at (2,2)
+            tiles.removeAll { $0.id == 8 }
             
-            // Apply gravity
-            // Tile 32 at (1,1) falls to (2,1)
-            if let idx = tiles.firstIndex(where: { $0.id == 4 }) {
+            // Apply gravity to right column (col 2)
+            // Tile 64 at (1,2) falls to (2,2)
+            if let idx = tiles.firstIndex(where: { $0.id == 5 }) {
                 tiles[idx].row = 2
             }
-            // Tile 256 at (0,1) falls to (1,1)
-            if let idx = tiles.firstIndex(where: { $0.id == 1 }) {
+            // Tile 128 at (0,2) falls to (1,2)
+            if let idx = tiles.firstIndex(where: { $0.id == 2 }) {
                 tiles[idx].row = 1
             }
         }
         
-        // Spawn the new 32 at (0,1)
+        // Spawn the new 32 at (0,2)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             withAnimation {
-                spawnedTile = TileState(id: 99, row: 0, col: 1, value: 32, step: 4)
+                spawnedTile = TileState(id: 99, row: 0, col: 2, value: 32, step: 4)
                 validMovesCount = 0
             }
         }
