@@ -81,10 +81,11 @@ struct HUDTopBar: View {
                         let previewTextColor = currentTheme?.textColorForStep(previewStep) ?? Theme.textColorForStep(previewStep)
 
                         Text(previewLabel)
-                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                             .foregroundStyle(previewTextColor)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                            .frame(width: 36, height: 36)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(previewColor)
