@@ -681,18 +681,36 @@ public final class AchievementStore {
     ]
     
     private static let infinityTiers: [ComboTierDefinition] = [
+        .init(milestone: 1, categoryLabel: "1 infinity", rewards: .init(gems: 100)),
+        .init(milestone: 3, categoryLabel: "3 infinities", rewards: .init(swaps: 1)),
         .init(milestone: 5, categoryLabel: "5 infinities", rewards: .init(gems: 500)),
+        .init(milestone: 10, categoryLabel: "10 infinities", rewards: .init(spins: 2)),
         .init(milestone: 15, categoryLabel: "15 infinities", rewards: .init(gems: 625, swaps: 1)),
         .init(milestone: 25, categoryLabel: "25 infinities", rewards: .init(gems: 730, hammers: 1)),
+        .init(milestone: 35, categoryLabel: "35 infinities", rewards: .init(hammers: 1)),
         .init(milestone: 50, categoryLabel: "50 infinities", rewards: .init(gems: 840, magnets: 1)),
+        .init(milestone: 75, categoryLabel: "75 infinities", rewards: .init(spins: 2)),
+        .init(milestone: 100, categoryLabel: "100 infinities", rewards: .init(gems: 830, magnets: 1, boost3x: 1)),
         .init(milestone: 150, categoryLabel: "150 infinities", rewards: .init(gems: 1100, magnets: 1)),
         .init(milestone: 250, categoryLabel: "250 infinities", rewards: .init(gems: 1200, boost3x: 1)),
+        .init(milestone: 375, categoryLabel: "375 infinities", rewards: .init(gems: 2000)),
         .init(milestone: 500, categoryLabel: "500 infinities", rewards: .init(boost2x: 1, boost3x: 1, boost4x: 1)),
+        .init(milestone: 750, categoryLabel: "750 infinities", rewards: .init(gems: 1750, swaps: 1, magnets: 1)),
         .init(milestone: 1000, categoryLabel: "1000 infinities", rewards: .init(gems: 1500, boost4x: 1)),
+        .init(milestone: 1500, categoryLabel: "1500 infinities", rewards: .init(gems: 2340)),
         .init(milestone: 2000, categoryLabel: "2000 infinities", rewards: .init(gems: 2500, magnets: 1, boost2x: 1)),
+        .init(milestone: 2500, categoryLabel: "2500 infinities", rewards: .init(gems: 3540)),
         .init(milestone: 3000, categoryLabel: "3000 infinities", rewards: .init(gems: 3270, spins: 1, hammers: 1)),
+        .init(milestone: 4000, categoryLabel: "4000 infinities", rewards: .init(spins: 5, hammers: 1, magnets: 2)),
         .init(milestone: 5000, categoryLabel: "5000 infinities", rewards: .init(spins: 3, hammers: 2, magnets: 2, boost3x: 1, boost4x: 1)),
-        .init(milestone: 10000, categoryLabel: "10000 infinities", rewards: .init(gems: 5000))
+        .init(milestone: 7500, categoryLabel: "7500 infinities", rewards: .init(gems: 4500)),
+        .init(milestone: 10000, categoryLabel: "10000 infinities", rewards: .init(gems: 5000)),
+        .init(milestone: 15000, categoryLabel: "15000 infinities", rewards: .init(gems: 6500)),
+        .init(milestone: 20000, categoryLabel: "20000 infinities", rewards: .init(spins: 10)),
+        .init(milestone: 35000, categoryLabel: "35000 infinities", rewards: .init(gems: 9800)),
+        .init(milestone: 50000, categoryLabel: "50000 infinities", rewards: .init(magnets: 2)),
+        .init(milestone: 75000, categoryLabel: "75000 infinities", rewards: .init(spins: 5, boost4x: 1)),
+        .init(milestone: 100000, categoryLabel: "100000 infinities", rewards: .init(gems: 15000))
     ]
 
     private static let boost2xUseTiers: [ComboTierDefinition] = [
