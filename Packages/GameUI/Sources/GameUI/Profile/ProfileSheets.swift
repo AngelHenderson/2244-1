@@ -647,9 +647,9 @@ private func formatBanTimeLeft(_ endDate: Date?, now: Date) -> String {
     let minutes = (remaining % 3600) / 60
     let seconds = remaining % 60
     if days > 0 {
-        return "Banned - \(days) day\(days == 1 ? "" : "s") left"
+        return "Banned - \(days)d \(hours)h \(minutes)m \(seconds)s left"
     } else if hours > 0 {
-        return "Banned - \(hours) hour\(hours == 1 ? "" : "s") left"
+        return "Banned - \(hours)h \(minutes)m \(seconds)s left"
     } else if minutes > 0 {
         return "Banned - \(minutes)m \(seconds)s left"
     } else {
