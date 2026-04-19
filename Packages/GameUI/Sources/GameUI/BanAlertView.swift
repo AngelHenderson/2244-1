@@ -68,7 +68,7 @@ public struct BanAlertModifier: ViewModifier {
         let title: String = {
             switch duration {
             case .permanent: return "Permanently Banned"
-            case .temporary: return "Banned"
+            case .temporary: return "Temporarily Banned"
             }
         }()
 
