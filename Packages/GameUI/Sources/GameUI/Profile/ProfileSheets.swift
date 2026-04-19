@@ -214,7 +214,7 @@ struct CompareView: View {
             if aPriority == 2 {
                 let aEnd = a.banEndDate ?? .distantFuture
                 let bEnd = b.banEndDate ?? .distantFuture
-                return aEnd < bEnd
+                return aEnd > bEnd
             }
             return parseMilestone(a.milestone) > parseMilestone(b.milestone)
         }
@@ -269,7 +269,7 @@ struct CompareView: View {
             if aPriority == 2 {
                 let aEnd = a.banEndDate ?? .distantFuture
                 let bEnd = b.banEndDate ?? .distantFuture
-                return aEnd < bEnd
+                return aEnd > bEnd
             }
             let aCount = infinityCount(from: a.milestone)
             let bCount = infinityCount(from: b.milestone)
