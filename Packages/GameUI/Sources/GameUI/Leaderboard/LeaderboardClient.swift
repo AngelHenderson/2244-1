@@ -4157,29 +4157,63 @@ public enum MockLeaderboardData {
     /// Get extended brackets for a specific country code
     static func extendedBrackets(for countryCode: String) -> [(milestone: String, startRank: Int)] {
         switch countryCode {
-        case "US": return LeaderboardClient.usExtendedRankBrackets
-        case "GB": return LeaderboardClient.ukExtendedRankBrackets
-        case "CA": return LeaderboardClient.canadaExtendedRankBrackets
-        case "AU": return LeaderboardClient.australiaExtendedRankBrackets
-        case "DE": return LeaderboardClient.germanyExtendedRankBrackets
-        case "FR": return LeaderboardClient.franceExtendedRankBrackets
-        case "JP": return LeaderboardClient.japanExtendedRankBrackets
-        case "IN": return LeaderboardClient.indiaExtendedRankBrackets
-        case "BR": return LeaderboardClient.brazilExtendedRankBrackets
-        case "MX": return LeaderboardClient.mexicoExtendedRankBrackets
+        case "AD": return LeaderboardClient.andorraExtendedRankBrackets
+        case "AE": return LeaderboardClient.uaeExtendedRankBrackets
         case "AF": return LeaderboardClient.afghanistanExtendedRankBrackets
         case "AL": return LeaderboardClient.albaniaExtendedRankBrackets
-        case "DZ": return LeaderboardClient.algeriaExtendedRankBrackets
-        case "CN": return LeaderboardClient.chinaExtendedRankBrackets
-        case "KR": return LeaderboardClient.southKoreaExtendedRankBrackets
-        case "IT": return LeaderboardClient.italyExtendedRankBrackets
-        case "ES": return LeaderboardClient.spainExtendedRankBrackets
-        case "NL": return LeaderboardClient.netherlandsExtendedRankBrackets
+        case "AT": return LeaderboardClient.austriaExtendedRankBrackets
+        case "AU": return LeaderboardClient.australiaExtendedRankBrackets
+        case "AZ": return LeaderboardClient.azerbaijanExtendedRankBrackets
+        case "BE": return LeaderboardClient.belgiumExtendedRankBrackets
+        case "BR": return LeaderboardClient.brazilExtendedRankBrackets
+        case "CA": return LeaderboardClient.canadaExtendedRankBrackets
         case "CH": return LeaderboardClient.switzerlandExtendedRankBrackets
-        case "NO": return LeaderboardClient.norwayExtendedRankBrackets
+        case "CN": return LeaderboardClient.chinaExtendedRankBrackets
+        case "CW": return LeaderboardClient.curacaoExtendedRankBrackets
+        case "CZ": return LeaderboardClient.czechiaExtendedRankBrackets
+        case "DE": return LeaderboardClient.germanyExtendedRankBrackets
         case "DK": return LeaderboardClient.denmarkExtendedRankBrackets
+        case "DZ": return LeaderboardClient.algeriaExtendedRankBrackets
+        case "ES": return LeaderboardClient.spainExtendedRankBrackets
         case "FI": return LeaderboardClient.finlandExtendedRankBrackets
+        case "FJ": return LeaderboardClient.fijiExtendedRankBrackets
+        case "FR": return LeaderboardClient.franceExtendedRankBrackets
+        case "GB": return LeaderboardClient.ukExtendedRankBrackets
+        case "GR": return LeaderboardClient.greeceExtendedRankBrackets
+        case "HU": return LeaderboardClient.hungaryExtendedRankBrackets
+        case "ID": return LeaderboardClient.indonesiaExtendedRankBrackets
+        case "IE": return LeaderboardClient.irelandExtendedRankBrackets
+        case "IN": return LeaderboardClient.indiaExtendedRankBrackets
+        case "IQ": return LeaderboardClient.iraqExtendedRankBrackets
+        case "IS": return LeaderboardClient.icelandExtendedRankBrackets
+        case "IT": return LeaderboardClient.italyExtendedRankBrackets
+        case "JP": return LeaderboardClient.japanExtendedRankBrackets
+        case "KE": return LeaderboardClient.kenyaExtendedRankBrackets
+        case "KG": return LeaderboardClient.kyrgyzstanExtendedRankBrackets
+        case "KR": return LeaderboardClient.southKoreaExtendedRankBrackets
+        case "KZ": return LeaderboardClient.kazakhstanExtendedRankBrackets
+        case "MG": return LeaderboardClient.madagascarExtendedRankBrackets
+        case "MX": return LeaderboardClient.mexicoExtendedRankBrackets
+        case "MY": return LeaderboardClient.malaysiaExtendedRankBrackets
+        case "NL": return LeaderboardClient.netherlandsExtendedRankBrackets
+        case "NO": return LeaderboardClient.norwayExtendedRankBrackets
+        case "NU": return LeaderboardClient.niueExtendedRankBrackets
+        case "NZ": return LeaderboardClient.newZealandExtendedRankBrackets
+        case "PH": return LeaderboardClient.philippinesExtendedRankBrackets
+        case "PK": return LeaderboardClient.pakistanExtendedRankBrackets
         case "PL": return LeaderboardClient.polandExtendedRankBrackets
+        case "PT": return LeaderboardClient.portugalExtendedRankBrackets
+        case "RO": return LeaderboardClient.romaniaExtendedRankBrackets
+        case "SE": return LeaderboardClient.swedenExtendedRankBrackets
+        case "SK": return LeaderboardClient.slovakiaExtendedRankBrackets
+        case "TH": return LeaderboardClient.thailandExtendedRankBrackets
+        case "TJ": return LeaderboardClient.tajikistanExtendedRankBrackets
+        case "UA": return LeaderboardClient.ukraineExtendedRankBrackets
+        case "US": return LeaderboardClient.usExtendedRankBrackets
+        case "UZ": return LeaderboardClient.uzbekistanExtendedRankBrackets
+        case "VE": return LeaderboardClient.venezuelaExtendedRankBrackets
+        case "VN": return LeaderboardClient.vietnamExtendedRankBrackets
+        case "ZA": return LeaderboardClient.southAfricaExtendedRankBrackets
         default: return LeaderboardClient.usExtendedRankBrackets
         }
     }
@@ -4209,55 +4243,63 @@ public enum MockLeaderboardData {
     /// Get top 150 milestones for a specific country code
     static func top150Milestones(for countryCode: String) -> [String] {
         switch countryCode {
-        case "US": return LeaderboardClient.usPlayerMilestones
-        case "GB": return LeaderboardClient.ukPlayerMilestones
-        case "CA": return LeaderboardClient.canadaPlayerMilestones
-        case "AU": return LeaderboardClient.australiaPlayerMilestones
-        case "DE": return LeaderboardClient.germanyPlayerMilestones
-        case "FR": return LeaderboardClient.francePlayerMilestones
-        case "JP": return LeaderboardClient.japanPlayerMilestones
-        case "IN": return LeaderboardClient.indiaPlayerMilestones
-        case "BR": return LeaderboardClient.brazilPlayerMilestones
-        case "MX": return LeaderboardClient.mexicoPlayerMilestones
+        case "AD": return LeaderboardClient.andorraPlayerMilestones
+        case "AE": return LeaderboardClient.uaePlayerMilestones
         case "AF": return LeaderboardClient.afghanistanPlayerMilestones
         case "AL": return LeaderboardClient.albaniaPlayerMilestones
-        case "DZ": return LeaderboardClient.algeriaPlayerMilestones
-        case "CN": return LeaderboardClient.chinaPlayerMilestones
-        case "KR": return LeaderboardClient.southKoreaPlayerMilestones
-        case "IT": return LeaderboardClient.italyPlayerMilestones
-        case "ES": return LeaderboardClient.spainPlayerMilestones
-        case "NL": return LeaderboardClient.netherlandsPlayerMilestones
-        case "CH": return LeaderboardClient.switzerlandPlayerMilestones
-        case "NO": return LeaderboardClient.norwayPlayerMilestones
-        case "DK": return LeaderboardClient.denmarkPlayerMilestones
-        case "FI": return LeaderboardClient.finlandPlayerMilestones
-        case "PL": return LeaderboardClient.polandPlayerMilestones
-        case "BE": return LeaderboardClient.belgiumPlayerMilestones
-        case "SE": return LeaderboardClient.swedenPlayerMilestones
         case "AT": return LeaderboardClient.austriaPlayerMilestones
-        case "IE": return LeaderboardClient.irelandPlayerMilestones
-        case "PT": return LeaderboardClient.portugalPlayerMilestones
-        case "GR": return LeaderboardClient.greecePlayerMilestones
-        case "CZ": return LeaderboardClient.czechiaPlayerMilestones
-        case "RO": return LeaderboardClient.romaniaPlayerMilestones
-        case "MY": return LeaderboardClient.malaysiaPlayerMilestones
-        case "NZ": return LeaderboardClient.newZealandPlayerMilestones
-        case "HU": return LeaderboardClient.hungaryPlayerMilestones
-        case "VN": return LeaderboardClient.vietnamPlayerMilestones
-        case "CW": return LeaderboardClient.curacaoPlayerMilestones
-        case "VE": return LeaderboardClient.venezuelaPlayerMilestones
+        case "AU": return LeaderboardClient.australiaPlayerMilestones
         case "AZ": return LeaderboardClient.azerbaijanPlayerMilestones
-        case "KZ": return LeaderboardClient.kazakhstanPlayerMilestones
-        case "TJ": return LeaderboardClient.tajikistanPlayerMilestones
-        case "NU": return LeaderboardClient.niuePlayerMilestones
-        case "KG": return LeaderboardClient.kyrgyzstanPlayerMilestones
-        case "IS": return LeaderboardClient.icelandPlayerMilestones
-        case "SK": return LeaderboardClient.slovakiaPlayerMilestones
-        case "UZ": return LeaderboardClient.uzbekistanPlayerMilestones
-        case "PK": return LeaderboardClient.pakistanPlayerMilestones
-        case "UA": return LeaderboardClient.ukrainePlayerMilestones
-        case "MG": return LeaderboardClient.madagascarPlayerMilestones
+        case "BE": return LeaderboardClient.belgiumPlayerMilestones
+        case "BR": return LeaderboardClient.brazilPlayerMilestones
+        case "CA": return LeaderboardClient.canadaPlayerMilestones
+        case "CH": return LeaderboardClient.switzerlandPlayerMilestones
+        case "CN": return LeaderboardClient.chinaPlayerMilestones
+        case "CW": return LeaderboardClient.curacaoPlayerMilestones
+        case "CZ": return LeaderboardClient.czechiaPlayerMilestones
+        case "DE": return LeaderboardClient.germanyPlayerMilestones
+        case "DK": return LeaderboardClient.denmarkPlayerMilestones
+        case "DZ": return LeaderboardClient.algeriaPlayerMilestones
+        case "ES": return LeaderboardClient.spainPlayerMilestones
+        case "FI": return LeaderboardClient.finlandPlayerMilestones
+        case "FJ": return LeaderboardClient.fijiPlayerMilestones
+        case "FR": return LeaderboardClient.francePlayerMilestones
+        case "GB": return LeaderboardClient.ukPlayerMilestones
+        case "GR": return LeaderboardClient.greecePlayerMilestones
+        case "HU": return LeaderboardClient.hungaryPlayerMilestones
+        case "ID": return LeaderboardClient.indonesiaPlayerMilestones
+        case "IE": return LeaderboardClient.irelandPlayerMilestones
+        case "IN": return LeaderboardClient.indiaPlayerMilestones
         case "IQ": return LeaderboardClient.iraqPlayerMilestones
+        case "IS": return LeaderboardClient.icelandPlayerMilestones
+        case "IT": return LeaderboardClient.italyPlayerMilestones
+        case "JP": return LeaderboardClient.japanPlayerMilestones
+        case "KE": return LeaderboardClient.kenyaPlayerMilestones
+        case "KG": return LeaderboardClient.kyrgyzstanPlayerMilestones
+        case "KR": return LeaderboardClient.southKoreaPlayerMilestones
+        case "KZ": return LeaderboardClient.kazakhstanPlayerMilestones
+        case "MG": return LeaderboardClient.madagascarPlayerMilestones
+        case "MX": return LeaderboardClient.mexicoPlayerMilestones
+        case "MY": return LeaderboardClient.malaysiaPlayerMilestones
+        case "NL": return LeaderboardClient.netherlandsPlayerMilestones
+        case "NO": return LeaderboardClient.norwayPlayerMilestones
+        case "NU": return LeaderboardClient.niuePlayerMilestones
+        case "NZ": return LeaderboardClient.newZealandPlayerMilestones
+        case "PH": return LeaderboardClient.philippinesPlayerMilestones
+        case "PK": return LeaderboardClient.pakistanPlayerMilestones
+        case "PL": return LeaderboardClient.polandPlayerMilestones
+        case "PT": return LeaderboardClient.portugalPlayerMilestones
+        case "RO": return LeaderboardClient.romaniaPlayerMilestones
+        case "SE": return LeaderboardClient.swedenPlayerMilestones
+        case "SK": return LeaderboardClient.slovakiaPlayerMilestones
+        case "TH": return LeaderboardClient.thailandPlayerMilestones
+        case "TJ": return LeaderboardClient.tajikistanPlayerMilestones
+        case "UA": return LeaderboardClient.ukrainePlayerMilestones
+        case "US": return LeaderboardClient.usPlayerMilestones
+        case "UZ": return LeaderboardClient.uzbekistanPlayerMilestones
+        case "VE": return LeaderboardClient.venezuelaPlayerMilestones
+        case "VN": return LeaderboardClient.vietnamPlayerMilestones
+        case "ZA": return LeaderboardClient.southAfricaPlayerMilestones
         default: return LeaderboardClient.usPlayerMilestones
         }
     }
