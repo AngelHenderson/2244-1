@@ -21,6 +21,21 @@ public enum LeaderboardFilter: String, Codable, CaseIterable, Sendable, Identifi
         }
     }
 
+    public var title: String {
+        switch self {
+        case .global: return "Global"
+        case .hallOfFame: return "Hall of Fame"
+        case .country:
+            let code = UserLeaderboardData.currentCountry
+            if code.uppercased() == "US" { return "US" }
+            if code.uppercased() == "GB" { return "UK" }
+            // Try localized name in current locale, then English, then fall back to code
+            return Locale.current.localizedString(forRegionCode: code) 
+                ?? Locale(identifier: "en_US").localizedString(forRegionCode: code)
+                ?? code
+        }
+    }
+
     public var countryCode: String? {
         switch self {
         case .country: return UserLeaderboardData.currentCountry

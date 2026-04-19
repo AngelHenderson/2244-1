@@ -522,7 +522,7 @@ public struct LeaderboardView: View {
         case .hallOfFame:
             return "Your Hall of Fame Rank"
         default:
-            return "Your \(filter.rawValue) Rank"
+            return "Your \(filter.title) Rank"
         }
     }
 
@@ -825,7 +825,7 @@ public struct LeaderboardView: View {
                         .font(.avenirNext(size: 14, weight: .regular))
                 }
 
-                Text(filter.rawValue)
+                Text(filter.title)
                     .font(.avenirNext(size: 14, weight: .semibold))
             }
             .foregroundStyle(.white)
