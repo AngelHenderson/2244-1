@@ -1013,6 +1013,7 @@ struct HistoryEvent: Identifiable {
     var eventDate: Date
     let playerName: String?
     let reporterName: String?
+    let seed: Int
 
     nonisolated(unsafe) static var _nextId = 0
     private static func nextUniqueId() -> Int {
@@ -1026,6 +1027,7 @@ struct HistoryEvent: Identifiable {
         self.message = message
         self.playerName = playerName
         self.reporterName = reporterName
+        self.seed = seed
 
         // If an override date is provided (post-processing), use it directly
         if let override = overrideDate {
