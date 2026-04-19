@@ -573,6 +573,84 @@ struct PlayerHistoryView: View {
                 }
             }
         }
+        // --- INJECT REAL BANS ---
+        let allPlayers = MockLeaderboardData.allSearchablePlayers()
+        let entryIds = Set(entries.map { $0.id })
+        let relevantPlayers = allPlayers.filter { entryIds.contains($0.id) }
+        
+        var realBanNames = Set<String>()
+        
+        for p in relevantPlayers {
+            let components = p.id.components(separatedBy: "_")
+            guard components.count == 2, let i = Int(components[1]) else { continue }
+            let countryCode = components[0].uppercased()
+            let configSeed = MockLeaderboardData.countrySeed(for: countryCode)
+            
+            let banSeed = (i &+ 1) &* 31 &+ configSeed &* 17
+            let timeHash = abs(banSeed &* 123456789) % 100
+            
+            if p.isBanned {
+                let durationStr: String
+                let totalSeconds: Int
+                if timeHash < 20 {
+                    totalSeconds = -1
+                    durationStr = "permanently"
+                } else {
+                    let days = 1 + (timeHash % 30)
+                    totalSeconds = days * 86400
+                    if days == 1 { durationStr = "1 day" }
+                    else if days < 7 { durationStr = "\(days) days" }
+                    else if days == 7 { durationStr = "1 week" }
+                    else if days == 14 { durationStr = "2 weeks" }
+                    else if days == 21 { durationStr = "3 weeks" }
+                    else if days == 30 { durationStr = "1 month" }
+                    else { durationStr = "\(days) days" }
+                }
+                
+                let banDate: Date
+                if totalSeconds == -1 {
+                    let daysAgo = timeHash % 30
+                    banDate = Date().addingTimeInterval(-Double(daysAgo * 86400))
+                } else if let endDate = p.banEndDate {
+                    banDate = endDate.addingTimeInterval(-Double(totalSeconds))
+                } else {
+                    continue
+                }
+                
+                if banDate >= Date().addingTimeInterval(-30 * 86400) && banDate <= Date() {
+                    let directBanReasons = [
+                        "cheating", "account sharing", "using third-party tools",
+                        "score manipulation", "multi-accounting", "exploiting a game bug",
+                        "using an unauthorized modified client", "suspicious activity"
+                    ]
+                    let reason = directBanReasons[timeHash % directBanReasons.count]
+                    
+                    let banMessage: String
+                    if totalSeconds == -1 {
+                        banMessage = "\(p.name) got permanently banned due to \(reason)."
+                    } else {
+                        banMessage = "\(p.name) got banned for \(durationStr) due to \(reason)."
+                    }
+                    
+                    realBanNames.insert(p.name)
+                    
+                    result.append(HistoryEvent(
+                        type: .banned,
+                        playerName: p.name,
+                        message: banMessage,
+                        daysAgo: 0,
+                        seed: banSeed,
+                        overrideDate: banDate
+                    ))
+                }
+            }
+        }
+        
+        // Remove fake bans for players that have real bans to avoid duplicates
+        result.removeAll { event in
+            event.type == .banned && event.playerName != nil && realBanNames.contains(event.playerName!) && event.seed != 0
+        }
+        
         // Sort by date, newest first
         result.sort { $0.eventDate > $1.eventDate }
 
@@ -600,20 +678,22 @@ struct PlayerHistoryView: View {
         var pendingUnbans: [(name: String, unbanDate: Date)] = []
         
         func intervalForDuration(_ duration: String) -> TimeInterval? {
-            switch duration {
-            case "one day": return 86400
-            case "two days": return 86400 * 2
-            case "three days": return 86400 * 3
-            case "one week": return 86400 * 7
-            case "two weeks": return 86400 * 14
-            case "one month": return 86400 * 30
-            case "two months": return 86400 * 60
-            case "six months": return 86400 * 180
-            case "one year": return 86400 * 365
-            case "two years": return 86400 * 365 * 2
-            case "five years": return nil
-            default: return nil
+            if duration == "one day" { return 86400 }
+            if duration == "two days" { return 86400 * 2 }
+            if duration == "three days" { return 86400 * 3 }
+            if duration == "one week" { return 86400 * 7 }
+            if duration == "two weeks" { return 86400 * 14 }
+            if duration == "three weeks" { return 86400 * 21 }
+            if duration == "one month" { return 86400 * 30 }
+            if duration == "two months" { return 86400 * 60 }
+            if duration == "six months" { return 86400 * 180 }
+            if duration == "one year" { return 86400 * 365 }
+            if duration == "two years" { return 86400 * 365 * 2 }
+            if duration == "five years" { return nil }
+            if duration.hasSuffix(" days"), let daysStr = duration.components(separatedBy: " ").first, let days = Int(daysStr) {
+                return Double(days * 86400)
             }
+            return nil
         }
 
         for event in result.reversed() {
