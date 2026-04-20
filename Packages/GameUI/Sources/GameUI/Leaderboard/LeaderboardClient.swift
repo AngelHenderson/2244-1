@@ -1540,11 +1540,13 @@ public enum MockLeaderboardData {
         
         // Group entries by first name (only for realistic names)
         var firstNameGroups: [String: [(index: Int, name: String)]] = [:]
+        var realisticFirstNamesIndices: [(index: Int, name: String)] = []
         
         for entry in entries {
             // Check if this is a realistic name (first name only, no spaces)
             if !entry.name.contains(" ") && isRealisticName(entry.name) {
                 firstNameGroups[entry.name, default: []].append(entry)
+                realisticFirstNamesIndices.append(entry)
             } else {
                 // Gamertag or already has last name - keep as is
                 result[entry.index] = entry.name
@@ -1566,6 +1568,33 @@ public enum MockLeaderboardData {
                     let lastNameIndex = regionStart + lastNameOffset
                     let lastName = lastNames[lastNameIndex % lastNames.count]
                     result[entry.index] = firstName + " " + lastName
+                    
+                    // Remove from realisticFirstNamesIndices
+                    if let removeIdx = realisticFirstNamesIndices.firstIndex(where: { $0.index == entry.index }) {
+                        realisticFirstNamesIndices.remove(at: removeIdx)
+                    }
+                }
+            }
+        }
+        
+        // --- Option to have two different first names share a last name ("family members") ---
+        let familyCount = Int(seededRandom(seed: countrySeed * 777 + 123, index: entries.count) * 3) + 1
+        
+        for f in 0..<familyCount {
+            if realisticFirstNamesIndices.count >= 2 {
+                let r1 = Int(seededRandom(seed: countrySeed * 888 + f, index: entries.count) * Double(realisticFirstNamesIndices.count))
+                let entry1 = realisticFirstNamesIndices.remove(at: r1)
+                
+                let r2 = Int(seededRandom(seed: countrySeed * 999 + f, index: entries.count) * Double(realisticFirstNamesIndices.count))
+                let entry2 = realisticFirstNamesIndices.remove(at: r2)
+                
+                if entry1.name != entry2.name {
+                    let regionStart = regionStartForFirstName(entry1.name)
+                    let lastNameOffset = Int(seededRandom(seed: countrySeed * 111 + f, index: entries.count) * 20)
+                    let lastName = lastNames[(regionStart + lastNameOffset) % lastNames.count]
+                    
+                    result[entry1.index] = entry1.name + " " + lastName
+                    result[entry2.index] = entry2.name + " " + lastName
                 }
             }
         }
@@ -1592,6 +1621,7 @@ public enum MockLeaderboardData {
     static func resolveEntryDuplicates(_ entries: [LeaderboardEntry], countrySeed: Int = 0) -> [LeaderboardEntry] {
         // Group entries by name (only for realistic first names)
         var firstNameGroups: [String: [Int]] = [:]  // firstName -> indices in entries array
+        var realisticFirstNamesIndices: [Int] = []
         
         for (idx, entry) in entries.enumerated() {
             // Skip user entries and entries that already have last names or are gamertags
@@ -1601,6 +1631,7 @@ public enum MockLeaderboardData {
             // Check if this is a realistic first name (no spaces, exists in realNames)
             if !name.contains(" ") && isRealisticName(name) {
                 firstNameGroups[name, default: []].append(idx)
+                realisticFirstNamesIndices.append(idx)
             }
         }
         
@@ -1641,6 +1672,47 @@ public enum MockLeaderboardData {
                         isMe: entry.isMe,
                         avatarURL: entry.avatarURL,
                         highestTile: entry.highestTile
+                    )
+                    
+                    // Remove from realisticFirstNamesIndices so we don't modify them again below
+                    if let removeIdx = realisticFirstNamesIndices.firstIndex(of: idx) {
+                        realisticFirstNamesIndices.remove(at: removeIdx)
+                    }
+                }
+            }
+        }
+        
+        // --- Option to have two different first names share a last name ("family members") ---
+        // We pick 1-3 pairs of players and assign them the same last name.
+        let familyCount = Int(seededRandom(seed: countrySeed * 777 + 123, index: entries.count) * 3) + 1
+        
+        for f in 0..<familyCount {
+            if realisticFirstNamesIndices.count >= 2 {
+                // Pick two random but deterministic available indices
+                let r1 = Int(seededRandom(seed: countrySeed * 888 + f, index: entries.count) * Double(realisticFirstNamesIndices.count))
+                let idx1 = realisticFirstNamesIndices.remove(at: r1)
+                
+                let r2 = Int(seededRandom(seed: countrySeed * 999 + f, index: entries.count) * Double(realisticFirstNamesIndices.count))
+                let idx2 = realisticFirstNamesIndices.remove(at: r2)
+                
+                let entry1 = result[idx1]
+                let entry2 = result[idx2]
+                
+                // Extra safety check that they have different first names
+                if entry1.name != entry2.name {
+                    // Give them the same last name based on the first person's region
+                    let regionStart = regionStartForFirstName(entry1.name)
+                    let lastNameOffset = Int(seededRandom(seed: countrySeed * 111 + f, index: entries.count) * 20)
+                    let lastName = lastNames[(regionStart + lastNameOffset) % lastNames.count]
+                    
+                    result[idx1] = LeaderboardEntry(
+                        id: entry1.id, rank: entry1.rank, name: entry1.name + " " + lastName, score: entry1.score,
+                        countryCode: entry1.countryCode, platform: entry1.platform, isMe: entry1.isMe, avatarURL: entry1.avatarURL, highestTile: entry1.highestTile
+                    )
+                    
+                    result[idx2] = LeaderboardEntry(
+                        id: entry2.id, rank: entry2.rank, name: entry2.name + " " + lastName, score: entry2.score,
+                        countryCode: entry2.countryCode, platform: entry2.platform, isMe: entry2.isMe, avatarURL: entry2.avatarURL, highestTile: entry2.highestTile
                     )
                 }
             }
