@@ -140,8 +140,10 @@ public struct LeaderboardView: View {
             }
             .alert("Are you sure?", isPresented: $showReportAreYouSure) {
                 Button("Yes", role: .destructive) {
-                    // Move to True or False step
-                    showReportTrueOrFalse = true
+                    // Move to True or False step (delay needed to prevent SwiftUI consecutive alert bug)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showReportTrueOrFalse = true
+                    }
                 }
                 Button("Cancel", role: .cancel) {
                     pendingReportEntry = nil
