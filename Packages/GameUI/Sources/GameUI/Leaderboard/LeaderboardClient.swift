@@ -4307,9 +4307,10 @@ public enum MockLeaderboardData {
 
 public extension LeaderboardClient {
     // Page-level cache for the noop client's fetchPage results
-    // Invalidated when day or user milestone changes
+    // Invalidated when day, user milestone, or user country changes
     nonisolated(unsafe) private static var pageCacheDay: Int = -1
     nonisolated(unsafe) private static var pageCacheMilestone: String = ""
+    nonisolated(unsafe) private static var pageCacheCountry: String = ""
     nonisolated(unsafe) private static var pageCache: [LeaderboardFilter: LeaderboardPage] = [:]
 
     static let noop = LeaderboardClient(
@@ -4318,12 +4319,14 @@ public extension LeaderboardClient {
         fetchPage: { _, filter, _, _ in
             let day = MockLeaderboardData.daysSinceReference
             let userMilestone = UserLeaderboardData.currentMilestone
+            let userCountry = UserLeaderboardData.currentCountry
 
-            // Invalidate entire cache when day or user milestone changes
-            if day != pageCacheDay || userMilestone != pageCacheMilestone {
+            // Invalidate entire cache when day, user milestone, or country changes
+            if day != pageCacheDay || userMilestone != pageCacheMilestone || userCountry != pageCacheCountry {
                 pageCache.removeAll(keepingCapacity: true)
                 pageCacheDay = day
                 pageCacheMilestone = userMilestone
+                pageCacheCountry = userCountry
             }
 
             // Return cached page if available for this filter
