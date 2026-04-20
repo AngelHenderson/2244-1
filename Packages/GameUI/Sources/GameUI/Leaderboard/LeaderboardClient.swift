@@ -1485,11 +1485,12 @@ public enum MockLeaderboardData {
             var baseName: String
             if hasChanged {
                 // Name has changed - use a different gamertag
-                let newIndex = (index + day * 3) % names.count
+                let newIndex = (index + countrySeed + day * 3) % names.count
                 baseName = names[newIndex]
             } else {
                 // Base gamertag name
-                baseName = names[index % names.count]
+                let nameIndex = (index + countrySeed) % names.count
+                baseName = names[nameIndex]
             }
             
             // Strip any existing trailing digits from the base name
@@ -1881,7 +1882,7 @@ public enum MockLeaderboardData {
 
         // Get country-specific data and seed
         let (milestones, extendedBrackets, totalPlayers) = countryData(for: countryCode, day: day)
-        let countrySeed = countryPlayerSeeds[countryCode] ?? 0
+        let countrySeed = MockLeaderboardData.countrySeed(for: countryCode)
 
         return countBetterInCountry(
             userMilestoneIdx: userMilestoneIdx,
@@ -1972,7 +1973,7 @@ public enum MockLeaderboardData {
     static func milestoneForExtendedRank(rank: Int, countryCode: String) -> String? {
         let day = daysSinceReference
         let (_, extendedBrackets, _) = countryData(for: countryCode, day: day)
-        let countrySeed = countryPlayerSeeds[countryCode] ?? 0
+        let countrySeed = MockLeaderboardData.countrySeed(for: countryCode)
 
         guard rank > 150 else {
             return nil
