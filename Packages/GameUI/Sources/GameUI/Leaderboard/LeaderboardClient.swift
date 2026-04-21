@@ -1072,7 +1072,7 @@ public enum MockLeaderboardData {
         var hasher = Hasher()
         hasher.combine(countryCode)
         let hash = abs(hasher.finalize())
-        return 5000 + (hash % 245_000)
+        return 5000 + (hash % 295_001)
     }
 
     static func totalCountryPlayers(for countryCode: String, on day: Int) -> Int {
@@ -1085,8 +1085,8 @@ public enum MockLeaderboardData {
     }
 
     static func totalGlobalPlayers(on day: Int) -> Int {
-        var sum = totalPlayers(on: day, isUS: true)
-        for (code, _) in baseCountryPlayerCounts where code != "US" {
+        var sum = 0
+        for code in MockLeaderboardData.allScalableCountryCodes {
             sum += totalCountryPlayers(for: code, on: day)
         }
         return sum
@@ -2169,17 +2169,37 @@ public enum MockLeaderboardData {
 
 
 
+    public static var allScalableCountryCodes: [String] {
+        let codes: [String]
+        if #available(iOS 16.0, *) {
+            codes = Locale.Region.isoRegions.compactMap { $0.identifier }
+        } else {
+            codes = Locale.isoRegionCodes
+        }
+        let excludedCodes: Set<String> = [
+            "EU", "EZ", "UN", "QO", "ZZ",
+            "AC", "CP", "DG", "EA", "IC", "TA",
+            "001", "002", "003", "005", "009", "011", "013", "014", "015", "017", "018", "019",
+            "021", "029", "030", "034", "035", "039", "053", "054", "057", "061",
+            "142", "143", "145", "150", "151", "154", "155", "202", "419"
+        ]
+        return codes.filter { code in
+            if excludedCodes.contains(code) { return false }
+            if code.count == 3 && code.allSatisfy({ $0.isNumber }) { return false }
+            if code.count != 2 { return false }
+            return true
+        }
+    }
+
     /// Returns all countries that have leaderboard data, sorted by player count (popularity) descending,
     /// followed by additional popular countries without leaderboard data yet
     public static func countriesWithLeaderboardsSortedByPopularity() -> [String] {
         let day = daysSinceReference
 
         // Countries with leaderboard data and their base player counts
-        var counts: [(code: String, players: Int)] = [
-            ("US", totalPlayers(on: day, isUS: true))
-        ]
+        var counts: [(code: String, players: Int)] = []
 
-        for (code, _) in MockLeaderboardData.baseCountryPlayerCounts {
+        for code in allScalableCountryCodes {
             counts.append((code, MockLeaderboardData.totalCountryPlayers(for: code, on: day)))
         }
 
@@ -2187,13 +2207,7 @@ public enum MockLeaderboardData {
             .sorted { $0.players > $1.players }
             .map { $0.code }
 
-        // Additional popular countries (no leaderboard data yet)
-        let additionalCountries = [
-            "SA", "IL", "TR",
-            "NG", "EG", "AR", "CL", "CO", "PE"
-        ]
-
-        return countriesWithLeaderboards + additionalCountries
+        return countriesWithLeaderboards
     }
 
     /// Helper to count better players in a single country
@@ -2305,17 +2319,8 @@ public enum MockLeaderboardData {
         let userMilestoneIdx = milestoneIndex(for: userMilestone)
         var total = 0
 
-        // Add US players
-        total += Self.countBetterInCountry(
-            userMilestoneIdx: userMilestoneIdx,
-            milestones: LeaderboardClient.usPlayerMilestones,
-            extendedBrackets: LeaderboardClient.usExtendedRankBrackets,
-            totalPlayers: totalPlayers(on: day, isUS: true),
-            countrySeed: countrySeed(for: "US")
-        )
-
-        // Add all base countries
-        for (code, _) in baseCountryPlayerCounts {
+        // Add all countries
+        for code in MockLeaderboardData.allScalableCountryCodes {
             let data = countryData(for: code, day: day)
             let seed = countrySeed(for: code)
             total += Self.countBetterInCountry(
@@ -6564,7 +6569,7 @@ public extension LeaderboardClient {
         var playerData: [(originalIndex: Int, playerIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, country: String, platform: Platform, avatar: String, id: String)] = []
 
         // Iterate over all available countries to populate the global leaderboard dynamically
-        let allCountries = Array(MockLeaderboardData.baseCountryPlayerCounts.keys) + (MockLeaderboardData.baseCountryPlayerCounts.keys.contains("US") ? [] : ["US"])
+        let allCountries = MockLeaderboardData.allScalableCountryCodes
         
         for code in allCountries {
             let data = MockLeaderboardData.countryData(for: code, day: day)
