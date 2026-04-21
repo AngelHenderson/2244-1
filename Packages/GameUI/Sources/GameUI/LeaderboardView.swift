@@ -30,9 +30,7 @@ public struct LeaderboardView: View {
 
     // "Are you sure?" confirmation before reporting
     @State private var pendingReportEntry: LeaderboardEntry?
-    @State private var showReportAreYouSure = false
-    @State private var showReportTrueOrFalse = false
-    @State private var showFalseReportWarning = false
+    @State private var showReportPlayerSheet = false
     @State private var showPlayerHistory = false
 
     private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
@@ -138,44 +136,12 @@ public struct LeaderboardView: View {
             } message: {
                 Text("You have been flagged for abusing the report system. All players you reported have been unbanned. Continued abuse will result in your account being suspended.")
             }
-            .alert("Are you sure?", isPresented: $showReportAreYouSure) {
-                Button("Yes", role: .destructive) {
-                    // Move to True or False step (delay needed to prevent SwiftUI consecutive alert bug)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        showReportTrueOrFalse = true
-                    }
+            .sheet(isPresented: $showReportPlayerSheet) {
+                if let entry = pendingReportEntry {
+                    ReportPlayerSheet(initialName: entry.name)
+                } else {
+                    ReportPlayerSheet()
                 }
-                Button("Cancel", role: .cancel) {
-                    pendingReportEntry = nil
-                }
-            } message: {
-                Text("Are you sure \(pendingReportEntry?.name ?? "this player") did something that violates the rules? False reports will count against you.")
-            }
-            .alert("True or False?", isPresented: $showReportTrueOrFalse) {
-                Button("True") {
-                    // Legitimate report — player gets a warning toward ban
-                    if let entry = pendingReportEntry {
-                        reportPlayer(entry)
-                        pendingReportEntry = nil
-                    }
-                }
-                Button("False", role: .destructive) {
-                    // False report — 2 abuse points if reporting someone ahead (overtake), 1 otherwise
-                    if let entry = pendingReportEntry {
-                        let myRank = model.myEntry?.rank ?? Int.max
-                        let abusePoints = entry.rank < myRank ? 2 : 1
-                        totalUniqueReports += abusePoints
-                    }
-                    pendingReportEntry = nil
-                    showFalseReportWarning = true
-                }
-            } message: {
-                Text("Did \(pendingReportEntry?.name ?? "this player") actually do something wrong?")
-            }
-            .alert("False Report!", isPresented: $showFalseReportWarning) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Your false report has been recorded. False reports count against you and may result in your account being suspended.")
             }
         }
         .fullScreenCover(isPresented: $showPlayerHistory) {
@@ -980,7 +946,7 @@ public struct LeaderboardView: View {
             if !entry.isMe {
                 Button(role: .destructive) {
                     pendingReportEntry = entry
-                    showReportAreYouSure = true
+                    showReportPlayerSheet = true
                 } label: {
                     Label("Report Player", systemImage: "exclamationmark.triangle.fill")
                 }
