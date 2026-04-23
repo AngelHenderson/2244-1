@@ -101,7 +101,6 @@ public struct HomeView: View {
                                 action: { isShowingMusic = true }
                             )
 
-
                             SideRailButton(
                                 systemImage: "bolt.fill",
                                 customImage: nil,
