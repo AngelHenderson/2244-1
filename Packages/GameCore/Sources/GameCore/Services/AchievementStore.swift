@@ -1409,7 +1409,7 @@ public final class AchievementStore {
         let description = isMaxed
             ? "You've mastered playtime. Claim your final reward."
             : "Accumulate \(tier.milestone) minutes of total playtime to reach the next tier."
-        let title = "Level \(level): \(tier.milestone) min played"
+        let title = "Level \(level): \(tier.milestone) mins played"
         return ProgressTierDisplay(
             milestone: tier.milestone,
             level: level,
