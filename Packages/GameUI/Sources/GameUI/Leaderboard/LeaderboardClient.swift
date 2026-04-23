@@ -2401,6 +2401,27 @@ public enum MockLeaderboardData {
     }
 
     // Get milestone index for sorting (higher index = better milestone)
+    /// Computes the true mathematical step (index - 1, plus tier scaling rules for aa-bz).
+    /// Use this strictly for step-based color assignments to accurately represent missing tiers.
+    static func milestoneStep(for milestone: String) -> Int {
+        var step = milestoneIndex(for: milestone)
+        // Adjust for "0" at the start of allMilestones
+        if step > 0 { step -= 1 }
+        
+        let normalized = normalizeMilestone(milestone).lowercased()
+        if let match = normalized.range(of: "[a-z]+", options: .regularExpression) {
+            let letters = String(normalized[match])
+            if letters.count == 2 {
+                if letters >= "aa" && letters <= "bb" {
+                    step -= 1
+                } else if letters >= "bd" && letters <= "bz" {
+                    step -= 2
+                }
+            }
+        }
+        return step
+    }
+
     static func milestoneIndex(for milestone: String) -> Int {
         // Infinity milestones always sort above all regular milestones
         if milestone.hasSuffix("∞") {

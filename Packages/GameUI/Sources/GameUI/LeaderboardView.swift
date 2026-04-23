@@ -682,12 +682,11 @@ public struct LeaderboardView: View {
         if milestone.contains("∞") {
             return Color(red: 0.6, green: 0.9, blue: 0.9)
         }
-        let idx = MockLeaderboardData.milestoneIndex(for: milestone)
-        guard idx > 0 else { return Color(red: 0.4, green: 0.3, blue: 0.5) }
+        let step = MockLeaderboardData.milestoneStep(for: milestone)
         if let theme = currentTheme {
-            return theme.colorForStep(idx - 1)
+            return theme.colorForStep(step)
         }
-        return Theme.colorForStep(idx - 1)
+        return Theme.colorForStep(step)
     }
 
     /// Returns the game tile text color for a milestone string, using the current theme
@@ -696,12 +695,11 @@ public struct LeaderboardView: View {
         if milestone.contains("∞") {
             return Color(red: 0.4, green: 0.5, blue: 0.5)
         }
-        let idx = MockLeaderboardData.milestoneIndex(for: milestone)
-        guard idx > 0 else { return .white }
+        let step = MockLeaderboardData.milestoneStep(for: milestone)
         if let theme = currentTheme {
-            return theme.textColorForStep(idx - 1)
+            return theme.textColorForStep(step)
         }
-        return Theme.textColorForStep(idx - 1)
+        return Theme.textColorForStep(step)
     }
 
     // MARK: - Top 150 View

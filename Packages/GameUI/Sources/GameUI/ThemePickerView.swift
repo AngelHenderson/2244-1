@@ -193,7 +193,7 @@ private struct PlayButtonColorCard: View {
     let onSelect: () -> Void
     
     var body: some View {
-        Button(action: onSelect) {
+        Button(action: { onSelect() }) {
             VStack(spacing: 12) {
                 // Preview of play button with this color
                 Image(systemName: "play.fill")
@@ -210,7 +210,7 @@ private struct PlayButtonColorCard: View {
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemGroupedBackground))
+                    .fill(Color.gray.opacity(0.1))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -239,7 +239,7 @@ private struct ThemeCard: View {
         private let sampleValues = [2, 4, 8, 16, 32, 64]
         
         var body: some View {
-            Button(action: onSelect) {
+            Button(action: { onSelect() }) {
                 VStack(spacing: 12) {
                     LazyVGrid(columns: [
                         GridItem(.flexible(), spacing: 4),
@@ -254,7 +254,7 @@ private struct ThemeCard: View {
                         }
                     }
                     .padding(8)
-                    .background(Color(.secondarySystemGroupedBackground))
+                    .background(Color.gray.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     
                     Text(descriptor.name)
@@ -264,7 +264,7 @@ private struct ThemeCard: View {
                 .padding(12)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(.secondarySystemGroupedBackground))
+                        .fill(Color.gray.opacity(0.1))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
@@ -418,7 +418,7 @@ private struct ThemeCard: View {
         let onSelect: () -> Void
         
         var body: some View {
-            Button(action: onSelect) {
+            Button(action: { onSelect() }) {
                 VStack(spacing: 8) {
                     BackgroundPreview(theme: theme)
                         .aspectRatio(9/16, contentMode: .fit)
@@ -485,7 +485,7 @@ private struct ThemeCard: View {
         let onSelect: () -> Void
         
         var body: some View {
-            Button(action: onSelect) {
+            Button(action: { onSelect() }) {
                 VStack(spacing: 8) {
                     WallpaperPreview(wallpaper: wallpaper)
                         .aspectRatio(9/16, contentMode: .fit)
