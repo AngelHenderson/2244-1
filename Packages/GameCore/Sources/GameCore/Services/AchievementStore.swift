@@ -818,14 +818,32 @@ public final class AchievementStore {
         .init(milestone: 1, categoryLabel: "1 purchase", rewards: .init(gems: 10)),
         .init(milestone: 3, categoryLabel: "3 purchases", rewards: .init(gems: 25, hammers: 1)),
         .init(milestone: 5, categoryLabel: "5 purchases", rewards: .init(gems: 50)),
+        .init(milestone: 7, categoryLabel: "7 purchases", rewards: .init(gems: 70)),
         .init(milestone: 10, categoryLabel: "10 purchases", rewards: .init(gems: 85, spins: 1)),
+        .init(milestone: 15, categoryLabel: "15 purchases", rewards: .init(hammers: 1)),
+        .init(milestone: 20, categoryLabel: "20 purchases", rewards: .init(spins: 2)),
         .init(milestone: 25, categoryLabel: "25 purchases", rewards: .init(gems: 150, swaps: 1)),
+        .init(milestone: 35, categoryLabel: "35 purchases", rewards: .init(hammers: 1)),
         .init(milestone: 50, categoryLabel: "50 purchases", rewards: .init(gems: 210, spins: 1, boost4x: 1)),
+        .init(milestone: 75, categoryLabel: "75 purchases", rewards: .init(spins: 2)),
         .init(milestone: 100, categoryLabel: "100 purchases", rewards: .init(gems: 350, magnets: 1)),
+        .init(milestone: 150, categoryLabel: "150 purchases", rewards: .init(gems: 180, magnets: 1, boost3x: 1)),
         .init(milestone: 200, categoryLabel: "200 purchases", rewards: .init(gems: 500)),
+        .init(milestone: 250, categoryLabel: "250 purchases", rewards: .init(gems: 310)),
+        .init(milestone: 375, categoryLabel: "375 purchases", rewards: .init(spins: 2, boost2x: 1)),
         .init(milestone: 500, categoryLabel: "500 purchases", rewards: .init(gems: 975, magnets: 1)),
+        .init(milestone: 625, categoryLabel: "625 purchases", rewards: .init(spins: 3)),
+        .init(milestone: 750, categoryLabel: "750 purchases", rewards: .init(gems: 750, magnets: 1, swaps: 1)),
         .init(milestone: 1000, categoryLabel: "1000 purchases", rewards: .init(swaps: 3, boost3x: 1)),
-        .init(milestone: 2000, categoryLabel: "2000 purchases", rewards: .init(gems: 2000, spins: 2, hammers: 1, magnets: 2))
+        .init(milestone: 1250, categoryLabel: "1250 purchases", rewards: .init(boost3x: 1, boost4x: 1)),
+        .init(milestone: 1500, categoryLabel: "1500 purchases", rewards: .init(gems: 1505)),
+        .init(milestone: 1750, categoryLabel: "1750 purchases", rewards: .init(gems: 1340, boost4x: 1)),
+        .init(milestone: 2000, categoryLabel: "2000 purchases", rewards: .init(gems: 4540, spins: 2, hammers: 1, magnets: 2)),
+        .init(milestone: 2500, categoryLabel: "2500 purchases", rewards: .init(spins: 5, hammers: 1, magnets: 2)),
+        .init(milestone: 3000, categoryLabel: "3000 purchases", rewards: .init(gems: 2800)),
+        .init(milestone: 3500, categoryLabel: "3500 purchases", rewards: .init(gems: 3500)),
+        .init(milestone: 4250, categoryLabel: "4250 purchases", rewards: .init(spins: 2, magnets: 10)),
+        .init(milestone: 5000, categoryLabel: "5000 purchases", rewards: .init(gems: 5000))
     ]
 
     private static let dailyClaimsTiers: [ComboTierDefinition] = [
