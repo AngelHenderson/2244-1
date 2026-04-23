@@ -1444,8 +1444,8 @@ public final class AchievementStore {
         let level = clampedIndex + 1
         let isMaxed = isInfinityProgressionMaxed
         let description = isMaxed
-            ? "You've mastered creating infinity tiles. Claim your final reward."
-            : "Create \(tier.milestone) infinity tiles to reach the next tier."
+            ? "You've mastered creating infinities. Claim your final reward."
+            : "Create \(tier.milestone) infinities to reach the next tier."
         let title = "Level \(level): \(tier.milestone) infinities"
         return ProgressTierDisplay(
             milestone: tier.milestone,
