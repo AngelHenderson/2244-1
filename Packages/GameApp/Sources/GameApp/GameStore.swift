@@ -115,6 +115,8 @@ public final class GameStore {
     private var refillRevealTask: Task<Void, Never>? = nil
     private var mergeCleanupTask: Task<Void, Never>? = nil
     public private(set) var hammerAnimationState: HammerAnimationState? = nil
+    /// Fires once when the player creates their very first infinity tile (non-sandboxed only)
+    public private(set) var didCreateFirstInfinity: Bool = false
     // Milestone elimination ghost animation - shows tiles fading out after elimination
     public private(set) var milestoneEliminatedTiles: [GameEngine.EliminatedTileInfo] = []
     // Pending elimination tiles to animate after excluded notification is dismissed
@@ -1151,6 +1153,10 @@ public final class GameStore {
                let tile = state.board[lastPos],
                tile.isInfinity {
                 achievementEvaluator?.onInfinityCreated()
+                // Fire the first-infinity event once (non-sandboxed only)
+                if !sandboxed && !UserDefaults.standard.bool(forKey: "hasInfinityAchievement") {
+                    didCreateFirstInfinity = true
+                }
             }
             
             // Track infinity merges for Hall of Fame leaderboard
@@ -2092,6 +2098,11 @@ public final class GameStore {
         }
         currentNotification = nil
         showNextNotification()
+    }
+
+    /// Acknowledge the first-infinity event (called by UI after playing the cheer sound)
+    public func clearFirstInfinityEvent() {
+        didCreateFirstInfinity = false
     }
 
     /// Trigger the elimination ghost animation after excluded notification is dismissed
