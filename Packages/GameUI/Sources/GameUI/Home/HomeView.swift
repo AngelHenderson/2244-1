@@ -101,13 +101,6 @@ public struct HomeView: View {
                                 action: { isShowingMusic = true }
                             )
 
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "salesoffer",
-                                title: "SALE OFFER",
-                                badge: true,
-                                action: { actions.openSaleOffer() }
-                            )
 
                             SideRailButton(
                                 systemImage: "bolt.fill",
