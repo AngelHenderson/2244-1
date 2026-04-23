@@ -1867,7 +1867,7 @@ public final class AchievementStore {
     }
     
     private func step(forTileValue value: Double) -> Int {
-        return Int(max(0, round(log2(value)) - 1))
+        return Int(max(0, ceil(log2(value)) - 1))
     }
     
     public var highestEvaluatedTileStep: Int {
