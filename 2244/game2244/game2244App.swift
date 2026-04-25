@@ -119,19 +119,10 @@ struct game2244App: App {
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
                 .environment(\.spinWheelState, spinWheelState)
                 .task {
+                    // --- Synchronous Setup First ---
                     gemWallet.attach(gameStore: gameStore, homeState: homeState)
                     gemWallet.bootstrapFromLocal()
                     gameStore.spinWheelState = spinWheelState
-                    
-                    FirebaseService.shared.initialize()
-                    if FirebaseApp.app() != nil {
-                        try? await FirebaseService.shared.signInAnonymously()
-                        await gemWallet.startCloudSync()
-                    } else {
-                        #if DEBUG
-                        print("⚠️ Firebase not configured; skipping gem cloud sync.")
-                        #endif
-                    }
                     
                     // Initialize shop store
                     shopStore = ShopStore(
@@ -140,39 +131,8 @@ struct game2244App: App {
                         gemWallet: gemWallet
                     )
                     
-                    // Suppress simulator-specific warnings in console
-                    if ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
-                        // Running in simulator - some warnings are expected
-                        print("🧪 Running in iOS Simulator - some system warnings are expected")
-                    }
-                    
-                    // Honor ad-free state persisted
-                    if UserDefaults.standard.bool(forKey: "isAdFreePurchased") {
-                        adService.setAdFree(true)
-                    }
-                    _ = await gameCenterService.authenticate()
-                    
-                    // Load achievements
+                    // Load achievements synchronously
                     try? achievementStore.loadCatalogFromBundle(named: "2244_achievements")
-                    
-                    // Setup Game Center (place access point away from Rank button)
-                    GameCenterManager.shared.configureAccessPoint(active: true, location: .topTrailing)
-                    #if canImport(UIKit)
-                    GameCenterManager.shared.authenticateIfNeeded {
-                        UIApplication.shared.connectedScenes
-                            .compactMap { $0 as? UIWindowScene }
-                            .first?.windows.first?.rootViewController
-                    }
-                    #endif
-                    await achievementStore.syncWithGameCenter()
-                    
-                    // Enable audio by default if not set
-                    if UserDefaults.standard.object(forKey: "musicEnabled") == nil {
-                        await audioService.setMusicEnabled(true)
-                    }
-                    if UserDefaults.standard.object(forKey: "sfxEnabled") == nil {
-                        await audioService.setSfxEnabled(true)
-                    }
                     
                     let applyRewards: @MainActor @Sendable (AchievementDef.Rewards) -> Void = { rewards in
                         // Gems (also granted directly via AchievementStore, but keep for wallet sync)
@@ -226,9 +186,6 @@ struct game2244App: App {
                     // Setup daily claims reward handler
                     dailyClaimsStore.onReward = applyRewards
                     
-                    // Load daily claims catalogs
-                    await dailyClaimsStore.loadCatalogs()
-
                     // One-time fix for corrupted score data from sandboxed challenges
                     if !UserDefaults.standard.bool(forKey: "hasResetCorruptedScore_v1") {
                         gameStore.resetCorruptedScoreData()
@@ -237,6 +194,52 @@ struct game2244App: App {
 
                     // Load initial progress
                     loadInitialProgress()
+
+                    // --- Asynchronous Network/Auth Setup ---
+                    
+                    FirebaseService.shared.initialize()
+                    if FirebaseApp.app() != nil {
+                        try? await FirebaseService.shared.signInAnonymously()
+                        await gemWallet.startCloudSync()
+                    } else {
+                        #if DEBUG
+                        print("⚠️ Firebase not configured; skipping gem cloud sync.")
+                        #endif
+                    }
+                    
+                    // Suppress simulator-specific warnings in console
+                    if ProcessInfo.processInfo.environment.keys.contains("SIMULATOR_DEVICE_NAME") {
+                        // Running in simulator - some warnings are expected
+                        print("🧪 Running in iOS Simulator - some system warnings are expected")
+                    }
+                    
+                    // Honor ad-free state persisted
+                    if UserDefaults.standard.bool(forKey: "isAdFreePurchased") {
+                        adService.setAdFree(true)
+                    }
+                    _ = await gameCenterService.authenticate()
+                    
+                    // Setup Game Center (place access point away from Rank button)
+                    GameCenterManager.shared.configureAccessPoint(active: true, location: .topTrailing)
+                    #if canImport(UIKit)
+                    GameCenterManager.shared.authenticateIfNeeded {
+                        UIApplication.shared.connectedScenes
+                            .compactMap { $0 as? UIWindowScene }
+                            .first?.windows.first?.rootViewController
+                    }
+                    #endif
+                    await achievementStore.syncWithGameCenter()
+                    
+                    // Enable audio by default if not set
+                    if UserDefaults.standard.object(forKey: "musicEnabled") == nil {
+                        await audioService.setMusicEnabled(true)
+                    }
+                    if UserDefaults.standard.object(forKey: "sfxEnabled") == nil {
+                        await audioService.setSfxEnabled(true)
+                    }
+                    
+                    // Load daily claims catalogs
+                    await dailyClaimsStore.loadCatalogs()
 
                     // Show tutorial on first launch (skip for debug/Xcode builds)
                     #if !DEBUG
