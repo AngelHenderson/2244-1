@@ -2,8 +2,8 @@ import Foundation
 import GameCore
 
 #if canImport(FirebaseFirestore) && canImport(FirebaseAuth)
-import FirebaseFirestore
-import FirebaseAuth
+@preconcurrency import FirebaseFirestore
+@preconcurrency import FirebaseAuth
 
 /// Writes player reports to Firestore at `/reports/{auto-id}`.
 ///
@@ -23,7 +23,7 @@ import FirebaseAuth
 ///
 /// Until the function is deployed, reports are still recorded in Firestore — the local
 /// `HomeState.queueReportEvaluation` provides immediate UX feedback regardless.
-public struct FirestoreReportService: ReportServiceProtocol {
+public final class FirestoreReportService: ReportServiceProtocol, @unchecked Sendable {
     private let firestore: Firestore
     private let auth: Auth
     private let collectionPath: String

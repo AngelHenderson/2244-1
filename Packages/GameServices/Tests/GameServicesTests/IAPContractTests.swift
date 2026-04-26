@@ -1,60 +1,52 @@
 import Testing
-import StoreKit
-@testable import GameServices
 @testable import GameCore
 
 @Suite("IAP Contract Tests")
 struct IAPContractTests {
 
-    @Test("IAP products are defined correctly")
-    @MainActor
-    func iapProductsDefined() async {
-        let iapService = IAPService()
+    @Test("IAP catalog uses launch product IDs")
+    func iapProductsDefined() {
+        let ids = Set(IAPProduct.allProducts.map(\.id))
 
-        let products = iapService.availableProducts
-        #expect(products.contains { $0.id == "com.game2244.adfree" })
-        #expect(products.contains { $0.id == "com.game2244.coins.small" })
-        #expect(products.contains { $0.id == "com.game2244.coins.medium" })
-        #expect(products.contains { $0.id == "com.game2244.coins.large" })
-        #expect(products.contains { $0.id == "com.game2244.powerup.bundle" })
-        #expect(products.contains { $0.id == "com.game2244.theme.cyberpunk" })
-        #expect(products.contains { $0.id == "com.game2244.theme.lofi" })
-        #expect(products.contains { $0.id == "com.game2244.theme.orchestral" })
+        #expect(ids == Set([
+            "com.game2244.adfree",
+            "com.game2244.coins.small",
+            "com.game2244.coins.medium",
+            "com.game2244.coins.large",
+            "com.game2244.powerup.bundle",
+            "com.game2244.theme.cyberpunk",
+            "com.game2244.theme.lofi",
+            "com.game2244.theme.orchestral",
+            "com.game2244.starter.pack",
+            "com.game2244.mega.bundle"
+        ]))
     }
 
-    @Test("Ad-free purchase removes ads permanently")
-    @MainActor
-    func adFreePurchase() async {
-        let iapService = IAPService()
+    @Test("Consumable and non-consumable product types are explicit")
+    func consumableFlags() {
+        #expect(IAPProduct.adFreeProduct.isConsumable == false)
+        #expect(IAPProduct.cyberpunkThemeProduct.isConsumable == false)
+        #expect(IAPProduct.lofiThemeProduct.isConsumable == false)
+        #expect(IAPProduct.orchestralThemeProduct.isConsumable == false)
+        #expect(IAPProduct.starterPackProduct.isConsumable == false)
+        #expect(IAPProduct.megaBundleProduct.isConsumable == false)
 
-        #expect(iapService.isAdFree == false)
-
-        await iapService.purchase(productId: "com.game2244.adfree")
-
-        #expect(iapService.isAdFree == true)
-        #expect(iapService.isPurchased("com.game2244.adfree") == true)
+        #expect(IAPProduct.smallCoinsProduct.isConsumable)
+        #expect(IAPProduct.mediumCoinsProduct.isConsumable)
+        #expect(IAPProduct.largeCoinsProduct.isConsumable)
+        #expect(IAPProduct.powerUpBundleProduct.isConsumable)
     }
 
-    @Test("Coin packages award correct amounts")
-    @MainActor
-    func coinPackages() async {
-        let iapService = IAPService()
-
-        let smallCoins = iapService.coinAmount(for: "com.game2244.coins.small")
-        let mediumCoins = iapService.coinAmount(for: "com.game2244.coins.medium")
-        let largeCoins = iapService.coinAmount(for: "com.game2244.coins.large")
-
-        #expect(smallCoins == 500)
-        #expect(mediumCoins == 2500)
-        #expect(largeCoins == 10000)
+    @Test("Coin packages award canonical amounts")
+    func coinPackages() {
+        #expect(IAPProduct.smallCoinsProduct.items.coinQuantity == 500)
+        #expect(IAPProduct.mediumCoinsProduct.items.coinQuantity == 2500)
+        #expect(IAPProduct.largeCoinsProduct.items.coinQuantity == 10000)
     }
 
     @Test("Power-up bundle contains correct items")
-    @MainActor
-    func powerUpBundle() async {
-        let iapService = IAPService()
-
-        let bundle = iapService.powerUpBundle()
+    func powerUpBundle() {
+        let bundle = IAPProduct.powerUpBundleProduct.items.powerUps
 
         #expect(bundle[.hammer] == 10)
         #expect(bundle[.swap] == 10)
@@ -64,133 +56,43 @@ struct IAPContractTests {
         #expect(bundle[.double] == 5)
     }
 
-    @Test("Theme purchases unlock permanently")
-    @MainActor
-    func themePurchases() async {
-        let iapService = IAPService()
-
-        #expect(iapService.isThemeUnlocked(.cyberpunk) == false)
-
-        await iapService.purchase(productId: "com.game2244.theme.cyberpunk")
-
-        #expect(iapService.isThemeUnlocked(.cyberpunk) == true)
-        #expect(iapService.isPurchased("com.game2244.theme.cyberpunk") == true)
+    @Test("Bundles expose permanent entitlements")
+    func bundledEntitlements() {
+        #expect(IAPProduct.adFreeProduct.permanentEntitlementProductIDs == Set(["com.game2244.adfree"]))
+        #expect(IAPProduct.starterPackProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.starter.pack",
+            "com.game2244.adfree"
+        ]))
+        #expect(IAPProduct.megaBundleProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.mega.bundle",
+            "com.game2244.theme.cyberpunk",
+            "com.game2244.theme.lofi",
+            "com.game2244.theme.orchestral",
+            "com.game2244.adfree"
+        ]))
     }
 
-    @Test("IAP service uses StoreKit 2")
-    @MainActor
-    func usesStoreKit2() async {
-        let iapService = IAPService()
-
-        #expect(iapService.storeKitVersion == 2)
-    }
-
-    @Test("Purchase restoration works")
-    @MainActor
-    func purchaseRestoration() async {
-        let iapService = IAPService()
-
-        await iapService.restorePurchases()
-
-        #expect(iapService.restorationCompleted == true)
-    }
-
-    @Test("Product prices are fetched from store")
-    @MainActor
-    func productPrices() async {
-        let iapService = IAPService()
-
-        await iapService.fetchProducts()
-
-        let adFreePrice = iapService.price(for: "com.game2244.adfree")
-        #expect(adFreePrice != nil)
+    @Test("Theme products map back to StoreKit IDs")
+    func themeProductIDs() {
+        #expect(IAPProduct.productID(for: .cyberpunk) == "com.game2244.theme.cyberpunk")
+        #expect(IAPProduct.productID(for: .lofi) == "com.game2244.theme.lofi")
+        #expect(IAPProduct.productID(for: .orchestral) == "com.game2244.theme.orchestral")
     }
 }
 
-struct IAPProduct {
-    let id: String
-    let type: IAPProductType
-}
+private extension Array where Element == IAPProductItem {
+    var coinQuantity: Int {
+        first {
+            if case .coins = $0.type { return true }
+            return false
+        }?.quantity ?? 0
+    }
 
-enum IAPProductType {
-    case adFree
-    case coins(Int)
-    case powerUpBundle
-    case theme(MusicTheme)
-}
-
-@MainActor
-class IAPService {
-    var isAdFree = false
-    var storeKitVersion = 2
-    var restorationCompleted = false
-
-    var availableProducts: [IAPProduct] = [
-        IAPProduct(id: "com.game2244.adfree", type: .adFree),
-        IAPProduct(id: "com.game2244.coins.small", type: .coins(500)),
-        IAPProduct(id: "com.game2244.coins.medium", type: .coins(2500)),
-        IAPProduct(id: "com.game2244.coins.large", type: .coins(10000)),
-        IAPProduct(id: "com.game2244.powerup.bundle", type: .powerUpBundle),
-        IAPProduct(id: "com.game2244.theme.cyberpunk", type: .theme(.cyberpunk)),
-        IAPProduct(id: "com.game2244.theme.lofi", type: .theme(.lofi)),
-        IAPProduct(id: "com.game2244.theme.orchestral", type: .theme(.orchestral))
-    ]
-
-    private var purchasedProducts: Set<String> = []
-
-    func purchase(productId: String) async {
-        purchasedProducts.insert(productId)
-        if productId == "com.game2244.adfree" {
-            isAdFree = true
+    var powerUps: [PowerUpType: Int] {
+        reduce(into: [:]) { result, item in
+            if case .powerUp(let type) = item.type {
+                result[type] = item.quantity
+            }
         }
-    }
-
-    func isPurchased(_ productId: String) -> Bool {
-        return purchasedProducts.contains(productId)
-    }
-
-    func coinAmount(for productId: String) -> Int {
-        switch productId {
-        case "com.game2244.coins.small": return 500
-        case "com.game2244.coins.medium": return 2500
-        case "com.game2244.coins.large": return 10000
-        default: return 0
-        }
-    }
-
-    func powerUpBundle() -> [PowerUpType: Int] {
-        return [
-            .hammer: 10,
-            .swap: 10,
-            .undo: 20,
-            .shuffle: 5,
-            .magnet: 5,
-            .double: 5
-        ]
-    }
-
-    func isThemeUnlocked(_ theme: MusicTheme) -> Bool {
-        switch theme {
-        case .classic, .minimal, .retro:
-            return true
-        case .cyberpunk:
-            return isPurchased("com.game2244.theme.cyberpunk")
-        case .lofi:
-            return isPurchased("com.game2244.theme.lofi")
-        case .orchestral:
-            return isPurchased("com.game2244.theme.orchestral")
-        }
-    }
-
-    func restorePurchases() async {
-        restorationCompleted = true
-    }
-
-    func fetchProducts() async {
-
-    }
-
-    func price(for productId: String) -> Decimal? {
-        return 4.99
     }
 }
