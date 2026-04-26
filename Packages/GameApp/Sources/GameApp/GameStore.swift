@@ -1047,13 +1047,16 @@ public final class GameStore {
             state.isGameOver = true
         }
 
-        // Log when moves are low (1–5) so we can track near-game-over situations
+        // Log when moves are low (1–5) with percentage change
         if newCount > 0 && newCount <= 5 && newCount != oldCount {
-            print("⚠️ VALID MOVES: Low moves — \(oldCount) → \(newCount)")
-        }
-
-        // Debug: Log significant changes
-        if oldCount > 0 {
+            if oldCount > 0 {
+                let changePercent = Int(round(abs(Double(newCount - oldCount) / Double(oldCount) * 100)))
+                print("⚠️ VALID MOVES: Low moves — \(oldCount) → \(newCount) (\(changePercent)% change)")
+            } else {
+                print("⚠️ VALID MOVES: Low moves — \(oldCount) → \(newCount)")
+            }
+        } else if oldCount > 0 && newCount > 5 {
+            // Log large changes only when not already covered by low-moves log
             let changePercent = abs(Double(newCount - oldCount) / Double(oldCount) * 100)
             if changePercent > 50 {
                 print("⚠️ VALID MOVES: Large change detected: \(oldCount) → \(newCount) (\(Int(round(changePercent)))% change)")
