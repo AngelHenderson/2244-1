@@ -2114,7 +2114,15 @@ public final class GameStore {
             triggerEliminationAnimation()
         }
         currentNotification = nil
-        showNextNotification()
+        // Delay before showing next notification so SwiftUI can complete the
+        // sheet dismiss animation. Without this, the binding goes
+        // true→false→true in a single frame and SwiftUI won't re-present.
+        if !notificationQueue.isEmpty {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 400_000_000) // 0.4 seconds
+                showNextNotification()
+            }
+        }
     }
 
     /// Acknowledge the first-infinity event (called by UI after playing the cheer sound)

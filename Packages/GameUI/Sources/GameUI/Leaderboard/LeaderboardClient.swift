@@ -4813,6 +4813,36 @@ public extension LeaderboardClient {
             progressedData.append((player.id, progressedCount, player.country, player.nameIndex, player.playerIndex))
         }
 
+        // Add dynamic infinity players from scalable countries
+        let explicitHoFCountries: Set<String> = [
+            "US", "GB", "CA", "AU", "DE", "FR", "JP", "IN", "BR", "MX",
+            "AF", "AL", "DZ", "CN", "KR", "IT", "ES", "NL", "NO", "DK",
+            "FI", "PL", "BE", "FJ", "VN", "KZ", "IE", "ID", "CH", "AE",
+            "KG", "IS", "SK", "PK", "UZ", "MY", "AZ", "TJ", "NU", "AT",
+            "HU", "NZ", "UA", "MG", "IQ"
+        ]
+
+        var dynamicGlobalIndex = 1000000 // avoid collision with explicit name indices
+
+        for code in MockLeaderboardData.allScalableCountryCodes {
+            if explicitHoFCountries.contains(code) { continue }
+            
+            let data = MockLeaderboardData.countryData(for: code, day: day)
+            let milestones = data.milestones
+            let seed = MockLeaderboardData.countrySeed(for: code)
+            
+            for i in 0..<milestones.count {
+                let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: milestones[i], playerIndex: i + seed, day: day)
+                if progressedMilestone.hasSuffix("∞") {
+                    let countStr = progressedMilestone.dropLast()
+                    if let progressedCount = Int(countStr) {
+                        progressedData.append(("hof_\(code.lowercased())_\(i)", progressedCount, code, dynamicGlobalIndex, i + seed))
+                        dynamicGlobalIndex += 1
+                    }
+                }
+            }
+        }
+
         // Sort by progressed count (highest first)
         progressedData.sort { $0.progressedCount > $1.progressedCount }
 
