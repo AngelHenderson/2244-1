@@ -3310,7 +3310,7 @@ extension GameStore {
                 formattedMilestone = TileStepLabelFormatter.formatTileValue(currentHighest)
             }
             UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
-            print("🏆 New all-time highest tile: \(currentHighest) (step \(currentHighestStep)) - milestone: \(formattedMilestone)")
+            print("🏆 New all-time highest tile: \(formattedMilestone) (step \(currentHighestStep))")
         }
 
         #if DEBUG
