@@ -132,9 +132,9 @@ public struct WeeklyOfferSheet: View {
                 }
             }
             .navigationTitle("Best Offer")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button("Done") { dismiss() }
                         .font(.avenirNext(size: GameFonts.bodySize, weight: .semibold))
                 }
@@ -285,9 +285,9 @@ public struct ShopView: View {
                 }
             }
             .navigationTitle("Shop")
-            .navigationBarTitleDisplayMode(.large)
+            .platformNavigationTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button("Done") { dismiss() }

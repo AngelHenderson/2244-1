@@ -36,9 +36,9 @@ public struct PerksInfoView: View {
             }
             .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("Perks")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button {
                         dismiss()
                     } label: {

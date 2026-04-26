@@ -2705,21 +2705,42 @@ public final class GameStore {
         public let powerUps: [PowerUpAction]
     }
 
-    
+    /// Replay share-code tag. The prefix identifies the schema; the suffix is version bytes.
+    /// Bump to "GR2" etc. when the ``Replay`` payload gains fields that older clients can't decode;
+    /// keep prior-version cases in ``importReplay`` so old codes still round-trip.
+    public enum ReplayTag {
+        /// Original schema: `{seed, moves, powerUps}` JSON, base64-encoded.
+        public static let v1 = "GR1"
+        /// Tag written by ``exportReplay`` today.
+        public static let current = v1
+    }
+
     public func exportReplay() throws -> String {
         let replay = Replay(seed: engine.seedUsed, moves: movesHistory, powerUps: powerUpHistory)
         let data = try JSONEncoder().encode(replay)
-        return "GR1|" + data.base64EncodedString()
+        return ReplayTag.current + "|" + data.base64EncodedString()
     }
-    
+
     public func importReplay(_ code: String) throws -> Replay {
         let parts = code.split(separator: "|", maxSplits: 1).map(String.init)
-        guard parts.count == 2, parts[0] == "GR1" else { throw ReplayError.invalidFormat }
+        guard parts.count == 2 else { throw ReplayError.invalidFormat }
         guard let data = Data(base64Encoded: parts[1]) else { throw ReplayError.invalidFormat }
-        return try JSONDecoder().decode(Replay.self, from: data)
+        switch parts[0] {
+        case ReplayTag.v1:
+            return try JSONDecoder().decode(Replay.self, from: data)
+        // Add future versions here, e.g.:
+        // case ReplayTag.v2:
+        //     let v2 = try JSONDecoder().decode(ReplayV2.self, from: data)
+        //     return Replay(upgrading: v2)
+        default:
+            throw ReplayError.unsupportedVersion(parts[0])
+        }
     }
-    
-    public enum ReplayError: Error { case invalidFormat }
+
+    public enum ReplayError: Error, Equatable {
+        case invalidFormat
+        case unsupportedVersion(String)
+    }
 
     // Simulate a replay quickly (headless). Returns final state.
     public func simulateReplay(_ replay: Replay) -> GameState {

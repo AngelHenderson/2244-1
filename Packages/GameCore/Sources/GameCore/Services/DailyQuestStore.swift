@@ -191,8 +191,14 @@ public final class DailyQuestStore {
 
         let rewards = quests[idx].rewards
 
-        // Grant gems directly
-        if let gems = rewards.gems, gems > 0 {
+        if let onReward {
+            // Production path: app wires onReward to GemWallet.deposit and the rest of
+            // the reward pipeline. Do not also write to UserDefaults — it double-counts.
+            onReward(rewards)
+        } else if let gems = rewards.gems, gems > 0 {
+            // Fallback path for tests/previews that instantiate DailyQuestStore without
+            // the full app's reward dispatcher. Preserves the historical direct-write
+            // behavior so unit tests continue to pass.
             let currentGems = defaults.integer(forKey: "coins")
             defaults.set(currentGems + gems, forKey: "coins")
             NotificationCenter.default.post(
@@ -201,8 +207,6 @@ public final class DailyQuestStore {
                 userInfo: ["newBalance": currentGems + gems, "added": gems]
             )
         }
-
-        onReward?(rewards)
     }
 
     public var claimableCount: Int {

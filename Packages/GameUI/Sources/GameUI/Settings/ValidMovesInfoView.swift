@@ -96,9 +96,9 @@ public struct ValidMovesInfoView: View {
             }
             .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("Valid Moves")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button {
                         dismiss()
                     } label: {

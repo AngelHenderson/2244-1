@@ -30,11 +30,11 @@ struct AllTiersView: View {
                     }
                 }
             }
-            .background(Color(UIColor.systemGroupedBackground))
+            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle(achievementTitle)
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
@@ -73,7 +73,7 @@ private struct TierRow: View {
         } else if tier.isCurrent {
             return [.blue.opacity(0.2), .blue.opacity(0.1)]
         } else {
-            return [Color(UIColor.systemGray6), Color(UIColor.systemGray5)]
+            return [Color(uiColor: .systemGray6), Color(uiColor: .systemGray5)]
         }
     }
 
@@ -83,7 +83,7 @@ private struct TierRow: View {
         } else if tier.isCompleted {
             return .green.opacity(0.5)
         } else {
-            return Color(UIColor.separator)
+            return Color(uiColor: .separator)
         }
     }
 
@@ -124,7 +124,7 @@ private struct TierRow: View {
                 .padding(.vertical, 6)
                 .background(
                     Capsule()
-                        .fill(tier.isCompleted ? .green.opacity(0.2) : Color(UIColor.systemGray5))
+                        .fill(tier.isCompleted ? .green.opacity(0.2) : Color(uiColor: .systemGray5))
                 )
                 .foregroundStyle(tier.isCompleted ? .green : .secondary)
         }

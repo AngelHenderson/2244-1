@@ -42,7 +42,7 @@ public struct QuestMilestoneBar: View {
                 ZStack(alignment: .leading) {
                     // Background Track
                     Capsule()
-                        .fill(Color(UIColor.systemGray5))
+                        .fill(Color(uiColor: .systemGray5))
                         .frame(height: 8)
 
                     // Fill Track
@@ -66,7 +66,7 @@ public struct QuestMilestoneBar: View {
                                     .fill(
                                         i <= (currentStep - startStep)
                                             ? Color.white.opacity(0.5)
-                                            : Color(UIColor.systemGray4)
+                                            : Color(uiColor: .systemGray4)
                                     )
                                     .frame(width: 4, height: 4)
                             }

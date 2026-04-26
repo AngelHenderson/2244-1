@@ -188,12 +188,17 @@ public actor LiveAudioService: AudioServiceProtocol {
         await playMusic(named: "background", loop: loop)
     }
     
+    /// Target volume for music playback. The crossfade helper ramps new players up to this value.
+    private static let musicTargetVolume: Float = 0.6
+
+    /// Duration of the crossfade between successive music tracks. Kept under the 500ms budget
+    /// defined by FR-029.
+    private static let musicCrossfadeDuration: TimeInterval = 0.3
+
     public func playMusic(named fileName: String, loop: Bool) async {
         let enabled = await MainActor.run { storage.musicEnabled }
         guard enabled else { return }
 
-        await stopMusic()
-        
         // Track current music for restart after interruption
         currentMusicFileName = fileName
         currentMusicLoop = loop
@@ -204,19 +209,25 @@ public actor LiveAudioService: AudioServiceProtocol {
 
         guard let audioUrl = url else {
             print("❌ Audio file not found: \(fileName)")
+            // No source for the new track — stop the current one so we don't leave stale audio behind.
+            await stopMusic()
             return
         }
 
         do {
             // Ensure audio session is active before playing
             ensureAudioSessionActive()
-            
+
+            // Capture the outgoing player BEFORE installing the new one so we can fade it in parallel.
+            let outgoingPlayer = musicPlayer
+
             print("🎵 Playing music: \(fileName) from \(audioUrl)")
             let player = try AVAudioPlayer(contentsOf: audioUrl)
             player.numberOfLoops = loop ? -1 : 0
-            player.volume = 0.6
+            // Start silent if we're crossfading in; otherwise jump straight to target volume.
+            player.volume = (outgoingPlayer != nil) ? 0 : Self.musicTargetVolume
             player.prepareToPlay()
-            
+
             // Set up delegate to handle interruptions
             let delegate = AudioPlayerDelegate(
                 onInterruption: { [weak self] in
@@ -234,13 +245,26 @@ public actor LiveAudioService: AudioServiceProtocol {
             )
             musicPlayerDelegate = delegate
             player.delegate = delegate
-            
+
             musicPlayer = player
-            
+
             if !player.play() {
                 print("⚠️ Music play() returned false, retrying after session reactivation")
                 ensureAudioSessionActive()
                 player.play()
+            }
+
+            if let outgoingPlayer {
+                // AVAudioPlayer.setVolume(_:fadeDuration:) ramps the volume on an internal
+                // audio thread, so both ramps run in parallel without blocking the actor.
+                player.setVolume(Self.musicTargetVolume, fadeDuration: Self.musicCrossfadeDuration)
+                outgoingPlayer.setVolume(0, fadeDuration: Self.musicCrossfadeDuration)
+                // Wait for the fade to complete on this actor so `outgoingPlayer`
+                // (a non-Sendable AVAudioPlayer) never crosses an isolation boundary.
+                // The await suspends this one call; other actor callers are free to proceed.
+                let nanos = UInt64(Self.musicCrossfadeDuration * 1_000_000_000) + 20_000_000
+                try? await Task.sleep(nanoseconds: nanos)
+                outgoingPlayer.stop()
             }
             print("✅ Music started playing: \(fileName)")
         } catch {

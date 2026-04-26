@@ -176,7 +176,7 @@ public struct LeaderboardView: View {
                 Text("Your false report has been recorded. False reports count against you and may result in your account being suspended.")
             }
         }
-        .fullScreenCover(isPresented: $showPlayerHistory) {
+        .platformFullScreenCover(isPresented: $showPlayerHistory) {
             PlayerHistoryView(entries: model.entries, filterId: model.selectedFilter.rawValue)
         }
         .alert("Error", isPresented: $showError) {

@@ -110,9 +110,9 @@ public struct TilesInfoView: View {
             }
             .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("Tiles Info")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button {
                         dismiss()
                     } label: {
@@ -259,7 +259,7 @@ private struct AbbreviationsListView: View {
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Tiles Info")
-        .navigationBarTitleDisplayMode(.inline)
+        .platformNavigationTitleDisplayMode(.inline)
     }
 }
 

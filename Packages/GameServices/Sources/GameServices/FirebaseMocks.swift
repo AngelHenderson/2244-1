@@ -30,9 +30,11 @@ public class Auth: @unchecked Sendable {
 
 public class User: @unchecked Sendable {
     public let uid: String
+    public var displayName: String?
     
-    public init(uid: String) {
+    public init(uid: String, displayName: String? = nil) {
         self.uid = uid
+        self.displayName = displayName
     }
 }
 
@@ -72,8 +74,19 @@ public class FirestoreSettings: @unchecked Sendable {
     public var cacheSizeBytes: Int64 = 0
     public var host: String = "firestore.googleapis.com"
     public var isSSLEnabled: Bool = true
+    public var cacheSettings: LocalCacheSettings?
     
     public init() {}
+}
+
+public protocol LocalCacheSettings: Sendable {}
+
+public final class PersistentCacheSettings: NSObject, LocalCacheSettings {
+    public let sizeBytes: NSNumber
+
+    public init(sizeBytes: NSNumber) {
+        self.sizeBytes = sizeBytes
+    }
 }
 
 public class CollectionReference: @unchecked Sendable {
@@ -199,6 +212,10 @@ public class HTTPSCallableResult: @unchecked Sendable {
 // MARK: - Firebase Core Mocks
 
 public class FirebaseApp: @unchecked Sendable {
+    public static func app() -> FirebaseApp? {
+        nil
+    }
+
     public static func configure() {
         // Mock implementation
     }

@@ -31,9 +31,9 @@ public struct DailyStreaksView: View {
                 }
             }
             .navigationTitle("Daily Streaks")
-            .navigationBarTitleDisplayMode(.large)
+            .platformNavigationTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button("Done") { dismiss() }
@@ -365,9 +365,9 @@ private struct StreakDetailSheet: View {
                 Spacer()
             }
             .padding()
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button("Done") { dismiss() }
                 }
             }

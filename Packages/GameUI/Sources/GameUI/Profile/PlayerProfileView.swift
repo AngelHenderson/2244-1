@@ -27,7 +27,7 @@ public struct PlayerProfileView: View {
                 updateTierStatsFromStore()
             }
             .navigationTitle("Player Profile")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: {
@@ -37,7 +37,7 @@ public struct PlayerProfileView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     GemBalancePill()
                 }
             }
@@ -78,7 +78,7 @@ public struct PlayerProfileView: View {
                 )
             }
             #if os(iOS)
-            .fullScreenCover(isPresented: $model.showCountryPicker) {
+            .platformFullScreenCover(isPresented: $model.showCountryPicker) {
                 CountryPickerView(
                     selectedCountry: model.countryCode,
                     onSelect: { countryCode in
@@ -473,7 +473,7 @@ private struct CountryPickerView: View {
                         .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                         .textFieldStyle(.plain)
                         .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
+                        .platformTextInputAutocapitalizationNever()
                         .focused($isSearchFocused)
                     if !searchText.isEmpty {
                         Button {
@@ -485,7 +485,7 @@ private struct CountryPickerView: View {
                     }
                 }
                 .padding(12)
-                .background(Color(.systemGray6))
+                .background(Color(uiColor: .systemGray6))
                 .cornerRadius(10)
                 .padding(.horizontal)
                 .padding(.vertical, 8)
@@ -528,10 +528,10 @@ private struct CountryPickerView: View {
                         }
                     }
                 }
-                .listStyle(.insetGrouped)
+                .platformInsetGroupedListStyle()
             }
             .navigationTitle("Select Country")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

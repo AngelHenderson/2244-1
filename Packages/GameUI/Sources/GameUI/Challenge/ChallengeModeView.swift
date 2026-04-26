@@ -52,9 +52,9 @@ public struct ChallengeModeView: View {
                 playButton
             }
             .navigationTitle("CHALLENGE MODE")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button {
@@ -524,12 +524,12 @@ private struct ChallengeCard: View {
     private var cardBackground: some View {
         switch status {
         case .completed:
-            Color(UIColor.systemGray6)
+            Color(uiColor: .systemGray6)
         case .active:
             LinearGradient(
                 colors: [
-                    Color(UIColor.systemGray6),
-                    Color(UIColor.systemGray5).opacity(0.5)
+                    Color(uiColor: .systemGray6),
+                    Color(uiColor: .systemGray5).opacity(0.5)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -538,13 +538,13 @@ private struct ChallengeCard: View {
             LinearGradient(
                 colors: [
                     Color.orange.opacity(0.15),
-                    Color(UIColor.systemGray5).opacity(0.6)
+                    Color(uiColor: .systemGray5).opacity(0.6)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         case .locked:
-            Color(UIColor.systemGray5).opacity(0.6)
+            Color(uiColor: .systemGray5).opacity(0.6)
         }
     }
 
@@ -618,9 +618,9 @@ private struct IconLegendSheet: View {
                 .padding(.vertical)
             }
             .navigationTitle("Reward Icons")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button("Done") { dismiss() }
                 }
             }

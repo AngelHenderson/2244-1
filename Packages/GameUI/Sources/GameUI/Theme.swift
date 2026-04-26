@@ -472,7 +472,7 @@ private struct AdaptiveSheetModifier<SheetContent: View>: ViewModifier {
 
     func body(content: Content) -> some View {
         if horizontalSizeClass == .regular {
-            content.fullScreenCover(isPresented: $isPresented, onDismiss: onDismiss, content: sheetContent)
+            content.platformFullScreenCover(isPresented: $isPresented, onDismiss: onDismiss, content: sheetContent)
         } else {
             content.sheet(isPresented: $isPresented, onDismiss: onDismiss, content: sheetContent)
         }
@@ -488,7 +488,7 @@ private struct AdaptiveSheetItemModifier<Item: Identifiable, SheetContent: View>
 
     func body(content: Content) -> some View {
         if horizontalSizeClass == .regular {
-            content.fullScreenCover(item: $item, onDismiss: onDismiss, content: sheetContent)
+            content.platformFullScreenCover(item: $item, onDismiss: onDismiss, content: sheetContent)
         } else {
             content.sheet(item: $item, onDismiss: onDismiss, content: sheetContent)
         }

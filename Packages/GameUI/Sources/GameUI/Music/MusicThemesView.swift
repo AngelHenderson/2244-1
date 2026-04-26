@@ -88,7 +88,7 @@ struct MusicThemesView: View {
                             .tag(index)
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
+                .platformPageTabViewStyle(indexDisplayMode: .never)
 
                 // Left/Right arrows overlay
                 HStack {

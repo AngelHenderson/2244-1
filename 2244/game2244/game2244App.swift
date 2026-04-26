@@ -102,7 +102,10 @@ struct game2244App: App {
                 .environment(\.backgroundThemeRegistry, backgroundThemeRegistry)
                 .environment(\.currentBackgroundTheme, backgroundThemeRegistry.theme(for: selectedBackgroundThemeId))
                 .environment(\.tileJourney, gameStore.journey)
-                .environment(\.leaderboardClient, .noop)
+                // TODO(Batch C): swap `.mock` for `.firebase(LeaderboardService())` or `.gameCenter()`
+                // once the real leaderboard backend is wired. `.mock` returns synthetic data;
+                // `submitScore` is a silent no-op. `.empty` is available for a truly blank state.
+                .environment(\.leaderboardClient, .mock)
                 .environment(homeState)
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
@@ -309,7 +312,7 @@ extension View {
         .environment(\.storage, storage)
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
-        .environment(\.leaderboardClient, .noop)
+        .environment(\.leaderboardClient, .mock)
 }
 
 #Preview("HomeView") {

@@ -208,7 +208,7 @@ public struct AchievementsView: View {
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 12)
-                        .background(Color(UIColor.systemGroupedBackground))
+                        .background(Color(uiColor: .systemGroupedBackground))
                     }
 
                     ScrollView {
@@ -247,14 +247,14 @@ public struct AchievementsView: View {
                     }
                 }
             }
-            .background(Color(UIColor.systemGroupedBackground))
+            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle(selectedTab == .achievements ? "ACHIEVEMENTS" : "DAILY QUESTS")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .onAppear {
                 gameStore.achievementEvaluator?.savePlaytimeProgress(state: gameStore.state)
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button("Done") {
@@ -525,8 +525,8 @@ private struct AchievementRow: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(UIColor.systemGray6),
-                            Color(UIColor.systemGray5)
+                            Color(uiColor: .systemGray6),
+                            Color(uiColor: .systemGray5)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -535,7 +535,7 @@ private struct AchievementRow: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(isClaimable ? Color.green : Color(UIColor.separator), lineWidth: 1)
+                .strokeBorder(isClaimable ? Color.green : Color(uiColor: .separator), lineWidth: 1)
         )
         .opacity(definition.hidden && !isUnlocked ? 0.8 : 1.0)
     }
@@ -913,7 +913,7 @@ struct DailyQuestsSection: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
         )
         .onAppear {
             updateCountdown()
@@ -966,7 +966,7 @@ private struct DailyQuestRow: View {
                         .padding(.vertical, 6)
                         .background(
                             Capsule()
-                                .fill(quest.isClaimable ? Color.green : Color(UIColor.systemGray4))
+                                .fill(quest.isClaimable ? Color.green : Color(uiColor: .systemGray4))
                         )
                         .foregroundStyle(quest.isClaimable ? .white : .secondary)
                 }
@@ -1002,7 +1002,7 @@ private struct DailyQuestRow: View {
         .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(UIColor.tertiarySystemGroupedBackground))
+                .fill(Color(uiColor: .tertiarySystemGroupedBackground))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)

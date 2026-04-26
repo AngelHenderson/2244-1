@@ -68,11 +68,11 @@ public struct ThemePickerView: View {
                     }
                 }
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("Theme")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button("Done") {
@@ -210,7 +210,7 @@ private struct PlayButtonColorCard: View {
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemGroupedBackground))
+                    .fill(Color(uiColor: .secondarySystemGroupedBackground))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -239,7 +239,9 @@ private struct ThemeCard: View {
         private let sampleValues = [2, 4, 8, 16, 32, 64]
         
         var body: some View {
-            Button(action: onSelect) {
+            Button {
+                onSelect()
+            } label: {
                 VStack(spacing: 12) {
                     LazyVGrid(columns: [
                         GridItem(.flexible(), spacing: 4),
@@ -254,7 +256,7 @@ private struct ThemeCard: View {
                         }
                     }
                     .padding(8)
-                    .background(Color(.secondarySystemGroupedBackground))
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     
                     Text(descriptor.name)
@@ -264,7 +266,7 @@ private struct ThemeCard: View {
                 .padding(12)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(.secondarySystemGroupedBackground))
+                        .fill(Color(uiColor: .secondarySystemGroupedBackground))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)

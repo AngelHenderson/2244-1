@@ -94,14 +94,14 @@ struct ThemeTests {
         let cycleLength = 25
         
         for label in labels {
-            guard let tier = JourneyAbbreviationTiers.tier(forLabel: label),
+            guard let tier = GameCore.JourneyAbbreviationTiers.tier(forLabel: label),
                   let step = tier.step else {
                 Issue.record("No tier found for label \(label)")
                 continue
             }
             
             let referenceOrder = tier.order % cycleLength
-            guard let referenceTier = JourneyAbbreviationTiers.tiers.first(where: { $0.order == referenceOrder }),
+            guard let referenceTier = GameCore.JourneyAbbreviationTiers.tiers.first(where: { $0.order == referenceOrder }),
                   let referenceStep = referenceTier.step else {
                 Issue.record("Missing reference tier for order \(referenceOrder)")
                 continue

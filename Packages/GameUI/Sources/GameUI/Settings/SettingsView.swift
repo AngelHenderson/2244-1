@@ -301,7 +301,7 @@ public struct SettingsView: View {
 
                     Button {
                         if let url = URL(string: "mailto:support@game2244.com?subject=Game Support") {
-                            UIApplication.shared.open(url)
+                            openPlatformURL(url)
                         }
                     } label: {
                         Text("Contact Support")
@@ -320,13 +320,7 @@ public struct SettingsView: View {
                     }
 
                     Button {
-                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                            if #available(iOS 18.0, *) {
-                                AppStore.requestReview(in: scene)
-                            } else {
-                                SKStoreReviewController.requestReview(in: scene)
-                            }
-                        }
+                        requestPlatformReview()
                     } label: {
                         Text("Rate the Game")
                             .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
@@ -361,9 +355,9 @@ public struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button("Done") {
@@ -424,19 +418,32 @@ public struct SettingsView: View {
         return "\(version) (\(build))"
     }
 
-    @available(iOS, deprecated: 26.0)
-    @MainActor
-    private func makeGameCenterView() -> some View {
-        GameCenterView()
-    }
-
-    @available(iOS, deprecated: 26.0)
+    @ViewBuilder
     private var gameCenterSheet: some View {
+        #if os(iOS)
         if #available(iOS 14.0, *) {
-            return AnyView(makeGameCenterView())
+            GameCenterView()
         } else {
-            return AnyView(EmptyView())
+            EmptyView()
         }
+        #else
+        VStack(spacing: 12) {
+            Image(systemName: "gamecontroller")
+                .font(.system(size: 36, weight: .regular))
+                .foregroundStyle(.secondary)
+            Text("Game Center Dashboard")
+                .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+            Text("The Game Center dashboard is only available on iOS in this build.")
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button("Done") {
+                isShowingGameCenter = false
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(24)
+        #endif
     }
 
     private func loadSettings() {
@@ -467,6 +474,7 @@ public struct SettingsView: View {
 }
 
 // MARK: - Game Center View
+#if os(iOS)
 @available(iOS, deprecated: 26.0, message: "GKGameCenterViewController is deprecated in iOS 26")
 struct GameCenterView: UIViewControllerRepresentable {
     @Environment(\.dismiss) private var dismiss
@@ -483,7 +491,7 @@ struct GameCenterView: UIViewControllerRepresentable {
         Coordinator(dismiss: dismiss)
     }
 
-    class Coordinator: NSObject, GKGameCenterControllerDelegate {
+    final class Coordinator: NSObject, GKGameCenterControllerDelegate {
         let dismiss: DismissAction
 
         init(dismiss: DismissAction) {
@@ -499,6 +507,7 @@ struct GameCenterView: UIViewControllerRepresentable {
         }
     }
 }
+#endif
 
 // MARK: - Report Player Sheet
 
@@ -555,7 +564,7 @@ struct ReportPlayerSheet: View {
                 }
             }
             .navigationTitle("Report Player")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -610,7 +619,7 @@ struct ReportPlayerSheet: View {
         )
         
         if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
-            UIApplication.shared.open(url)
+            openPlatformURL(url)
         }
         
         dismiss()

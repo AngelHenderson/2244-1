@@ -42,9 +42,9 @@ public struct DailyClaimsView: View {
                 }
             }
             .navigationTitle("Daily Rewards")
-            .navigationBarTitleDisplayMode(.large)
+            .platformNavigationTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button {
@@ -295,7 +295,7 @@ public struct DailyClaimsView: View {
                         }
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .automatic))
+                .platformPageTabViewStyle(indexDisplayMode: .automatic)
                 .frame(height: 7 * 86)
             }
         }
@@ -815,7 +815,7 @@ private struct DayGridCell: View {
         } else if claim.isAvailable {
             return Color.yellow.opacity(0.15)
         } else {
-            return Color(.secondarySystemBackground)
+            return Color(uiColor: .secondarySystemBackground)
         }
     }
 
@@ -1034,7 +1034,7 @@ private struct DailyRewardRow: View {
         } else if claim.isAvailable {
             return Color.yellow.opacity(0.15)
         } else {
-            return Color(.secondarySystemBackground)
+            return Color(uiColor: .secondarySystemBackground)
         }
     }
     
@@ -1359,9 +1359,9 @@ private struct IconLegendView: View {
                 .padding(.vertical)
             }
             .navigationTitle("Reward Icons")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button("Done") { dismiss() }
                 }
             }

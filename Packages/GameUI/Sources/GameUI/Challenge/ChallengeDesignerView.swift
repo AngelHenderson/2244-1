@@ -27,9 +27,9 @@ public struct ChallengeDesignerView: View {
                 }
             }
             .navigationTitle("DESIGN YOUR OWN CHALLENGE")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button { dismiss() } label: {

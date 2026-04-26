@@ -175,7 +175,7 @@ struct SpinWheelPreviewContent: View {
                     }
                 }
             }
-            .toolbar(.hidden, for: .navigationBar)
+            .platformNavigationBarHidden()
         }
     }
 }

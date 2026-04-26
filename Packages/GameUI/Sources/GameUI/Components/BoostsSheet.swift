@@ -63,9 +63,9 @@ public struct BoostsSheet: View {
             }
             .background(Color.black.opacity(0.95))
             .navigationTitle("Boosts & Discounts")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button("Done") { dismiss() }
                 }
             }

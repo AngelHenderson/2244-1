@@ -4313,7 +4313,33 @@ public extension LeaderboardClient {
     nonisolated(unsafe) private static var pageCacheCountry: String = ""
     nonisolated(unsafe) private static var pageCache: [LeaderboardFilter: LeaderboardPage] = [:]
 
-    static let noop = LeaderboardClient(
+    /// Deprecated alias. Kept for source-compat; forwards to ``mock``.
+    /// Prefer ``mock`` when synthetic demo data is intended, or ``empty`` for a true no-backend state.
+    @available(*, deprecated, renamed: "mock", message: "Use .mock to acknowledge this returns synthetic data, or .empty for a true no-backend client.")
+    static var noop: LeaderboardClient { mock }
+
+    /// Truly empty client — no entries, no mock data, no fake submissions.
+    /// Safe default for production contexts that haven't wired a real backend yet;
+    /// the UI will render its empty state instead of fake players.
+    static let empty = LeaderboardClient(
+        authenticate: { true },
+        submitScore: { _ in },
+        fetchPage: { _, _, _, _ in
+            LeaderboardPage(entries: [], myEntry: nil, nextCursor: nil, totalPlayers: 0)
+        },
+        fetchMyRank: { _, _ in nil },
+        initialData: {
+            LeaderboardPage(entries: [], myEntry: nil, nextCursor: nil, totalPlayers: 0)
+        },
+        initialDataForFilter: { _ in
+            LeaderboardPage(entries: [], myEntry: nil, nextCursor: nil, totalPlayers: 0)
+        }
+    )
+
+    /// Rich synthetic client used for previews and for shipping the app before a real
+    /// leaderboard backend is wired. Renders 150+ fake entries with country filters,
+    /// hall-of-fame ordering, and dynamic player counts. `submitScore` is a no-op.
+    static let mock = LeaderboardClient(
         authenticate: { true },
         submitScore: { _ in },
         fetchPage: { _, filter, _, _ in
@@ -7779,7 +7805,10 @@ public extension LeaderboardClient {
 
 
 private struct LeaderboardClientKey: EnvironmentKey {
-    static let defaultValue: LeaderboardClient = .noop
+    // Default stays on mock data so previews and un-injected views continue to render
+    // with the historical fake-data behavior. Production views should inject `.empty`
+    // or a real backend explicitly.
+    static let defaultValue: LeaderboardClient = .mock
 }
 
 public extension EnvironmentValues {

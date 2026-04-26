@@ -6,7 +6,7 @@ import Observation
 @Observable
 @MainActor
 public final class PurchaseService {
-    public static let adFreeProductID = "com.game2248.adfree"
+    public static let adFreeProductID = "com.game2244.adfree"
     
     #if os(iOS)
     public private(set) var products: [Product] = []

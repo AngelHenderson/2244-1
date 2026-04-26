@@ -77,7 +77,7 @@ public struct SpinWheelView: View {
                 }
                 .ignoresSafeArea()
             }
-            .toolbar(.hidden, for: .navigationBar)
+            .platformNavigationBarHidden()
         }
         .onReceive(timer) { date in
             Task { @MainActor in

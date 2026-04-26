@@ -88,7 +88,7 @@ public struct HowToPlayView: View {
     public var body: some View {
         ZStack {
             // Full screen background
-            Color(.systemGroupedBackground)
+            Color(uiColor: .systemGroupedBackground)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -153,7 +153,7 @@ public struct HowToPlayView: View {
                         }
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
+                .platformPageTabViewStyle(indexDisplayMode: .never)
                 .animation(.easeInOut, value: currentPage)
 
                 // Page indicator and buttons

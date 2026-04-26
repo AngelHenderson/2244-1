@@ -189,6 +189,10 @@ public struct RootGameView: View {
 
     @MainActor
     private func makeHomeActions() -> HomeActions {
+        // Only actions that RootGameView actually owns are wired here.
+        // Profile / achievements / leaderboard / settings / theme / sale-offer are
+        // presented from HomeView's own sheet state, so their HomeActions fields
+        // stay at their default no-op values.
         HomeActions(
             play: {
                 // Only reset if the game is over, otherwise resume current session
@@ -200,16 +204,13 @@ public struct RootGameView: View {
                 }
             },
             openShop: {
-                print("Open Shop")
                 showShop = true
             },
             buyGems: {
-                print("Buy Gems")
                 homeState.addGems(120) // Demo: add some gems
                 saveProgress()
             },
             watchAd: {
-                print("Watch Ad")
                 // Simulate ad watch
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 let reward = homeState.adReward
@@ -218,14 +219,12 @@ public struct RootGameView: View {
                 return reward
             },
             openDaily: {
-                print("Open Daily")
                 showDailyClaims = true
             },
             openFreeSpin: {
                 showFreeSpin = true
             },
             openMusic: {
-                print("Toggle Music")
                 homeState.isMusicOn.toggle()
                 saveProgress()
             },
@@ -234,34 +233,6 @@ public struct RootGameView: View {
             },
             openCreate: {
                 showChallengeDesigner = true
-            },
-            openProfile: {
-                print("Open Profile")
-                // TODO: Implement profile
-            },
-            openAchievements: {
-                print("Open Achievements")
-                // TODO: Implement achievements
-            },
-            openLeaderboard: {
-                print("Open Leaderboard")
-                // TODO: Implement leaderboard
-            },
-            openSettings: {
-                print("Open Settings")
-                // TODO: Implement settings
-            },
-            openThemeLeft: {
-                print("Select theme: \(homeState.themesLeftName)")
-                // TODO: Apply theme
-            },
-            openThemeRight: {
-                print("Select theme: \(homeState.themesRightName)")
-                // TODO: Apply theme
-            },
-            openSaleOffer: {
-                print("Open Sale Offer")
-                // TODO: Implement sale offer
             }
         )
     }

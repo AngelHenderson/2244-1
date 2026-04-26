@@ -16,14 +16,14 @@ struct RenameSheet: View {
         NavigationStack {
             Form {
                 TextField("Player Name", text: $name)
-                    .textInputAutocapitalization(.words)
+                    .platformTextInputAutocapitalizationWords()
                     .disableAutocorrection(true)
                 if failed {
                     Text("Could not save name. Try again.").foregroundStyle(.red)
                 }
             }
             .navigationTitle("Edit Name")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -85,7 +85,7 @@ struct AvatarCustomizeView: View {
                 .padding()
             }
             .navigationTitle("Customize Avatar")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar { 
                 ToolbarItem(placement: .confirmationAction) { 
                     Button("Done") { dismiss() } 
@@ -124,7 +124,7 @@ struct SeasonHistoryView: View {
                 }
             }
             .navigationTitle("Season History")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar { 
                 ToolbarItem(placement: .cancellationAction) { 
                     Button("Close") { dismiss() } 
@@ -301,7 +301,7 @@ struct CompareView: View {
 
                 Section("Add Players to Compare") {
                     TextField("Search by name or code", text: $searchText)
-                        .textInputAutocapitalization(.never)
+                        .platformTextInputAutocapitalizationNever()
                         .autocorrectionDisabled()
                 }
 
@@ -457,7 +457,7 @@ struct CompareView: View {
                 currentTime = time
             }
             .navigationTitle("Compare Profiles")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }

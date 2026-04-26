@@ -44,11 +44,11 @@ public struct DailyQuestsView: View {
                 }
                 .padding()
             }
-            .background(Color(UIColor.systemGroupedBackground))
+            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("DAILY QUESTS")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .platformTopBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
@@ -174,7 +174,7 @@ private struct QuestCard: View {
                         .padding(.vertical, 8)
                         .background(
                             Capsule()
-                                .fill(quest.isClaimable ? Color.green : Color(UIColor.systemGray4))
+                                .fill(quest.isClaimable ? Color.green : Color(uiColor: .systemGray4))
                         )
                         .foregroundStyle(quest.isClaimable ? .white : .secondary)
                 }
@@ -188,8 +188,8 @@ private struct QuestCard: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(UIColor.systemGray6),
-                            Color(UIColor.systemGray5)
+                            Color(uiColor: .systemGray6),
+                            Color(uiColor: .systemGray5)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -198,7 +198,7 @@ private struct QuestCard: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(quest.isClaimable ? Color.green : Color(UIColor.separator), lineWidth: 1)
+                .strokeBorder(quest.isClaimable ? Color.green : Color(uiColor: .separator), lineWidth: 1)
         )
     }
 

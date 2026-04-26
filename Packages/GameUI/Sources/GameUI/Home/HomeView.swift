@@ -106,7 +106,9 @@ public struct HomeView: View {
                                 customImage: "salesoffer",
                                 title: "SALE OFFER",
                                 badge: true,
-                                action: { actions.openSaleOffer() }
+                                // Until a dedicated sale-offer flow exists (Batch C), reuse the
+                                // weekly offer sheet rather than dead-ending the tap.
+                                action: { isShowingWeeklyOffer = true }
                             )
 
                             SideRailButton(
@@ -555,7 +557,7 @@ public extension View {
         .environment(\.storage, storage)
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
-        .environment(\.leaderboardClient, .noop)
+        .environment(\.leaderboardClient, .mock)
         .environment(\.toastManager, toastManager)
         .environment(DailyQuestStore())
 }
@@ -610,7 +612,7 @@ public extension View {
         .environment(\.storage, storage)
         .environment(\.currentTheme, themeRegistry.descriptor(for: "raised-3d-square"))
         .environment(\.tileJourney, gameStore.journey)
-        .environment(\.leaderboardClient, .noop)
+        .environment(\.leaderboardClient, .mock)
         .environment(\.toastManager, toastManager)
         .environment(DailyQuestStore())
 }
