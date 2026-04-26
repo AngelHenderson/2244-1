@@ -8,6 +8,8 @@ public struct RootGameView: View {
     @Environment(HomeState.self) private var homeState
     @Environment(\.gameStore) private var gameStore
     @Environment(\.tileJourney) private var journey
+    @Environment(\.adService) private var adService
+    @Environment(\.purchaseService) private var purchaseService
     @State private var isPlaying = false
     @State private var hasLoadedInitialState = false
     @State private var showDailyClaims = false
@@ -211,12 +213,15 @@ public struct RootGameView: View {
                 saveProgress()
             },
             watchAd: {
-                // Simulate ad watch
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                let reward = homeState.adReward
-                homeState.addGems(reward)
-                saveProgress()
-                return reward
+                guard !purchaseService.isAdFreePurchased else { return 0 }
+                var grantedReward = 0
+                let didReward = await adService.showRewarded {
+                    let reward = homeState.adReward
+                    homeState.addGems(reward)
+                    saveProgress()
+                    grantedReward = reward
+                }
+                return didReward ? grantedReward : 0
             },
             openDaily: {
                 showDailyClaims = true

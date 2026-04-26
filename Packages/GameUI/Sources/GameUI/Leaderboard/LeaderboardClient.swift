@@ -89,6 +89,62 @@ public struct LeaderboardClient: Sendable {
     }
 }
 
+public extension LeaderboardClient {
+    static func mirroring(primary: LeaderboardClient, secondary: LeaderboardClient) -> LeaderboardClient {
+        LeaderboardClient(
+            authenticate: {
+                async let primaryAuth = primary.authenticate()
+                async let secondaryAuth = secondary.authenticate()
+                return (try? await primaryAuth) == true || (try? await secondaryAuth) == true
+            },
+            submitScore: { score in
+                var firstError: Error?
+                do {
+                    try await primary.submitScore(score)
+                } catch {
+                    firstError = error
+                }
+
+                do {
+                    try await secondary.submitScore(score)
+                } catch {
+                    if firstError == nil {
+                        firstError = error
+                    }
+                }
+
+                if let firstError {
+                    throw firstError
+                }
+            },
+            submitInfinityCount: { infinityCount in
+                var firstError: Error?
+                do {
+                    try await primary.submitInfinityCount(infinityCount)
+                } catch {
+                    firstError = error
+                }
+
+                do {
+                    try await secondary.submitInfinityCount(infinityCount)
+                } catch {
+                    if firstError == nil {
+                        firstError = error
+                    }
+                }
+
+                if let firstError {
+                    throw firstError
+                }
+            },
+            fetchPage: primary.fetchPage,
+            fetchMyRank: primary.fetchMyRank,
+            initialData: primary.initialData,
+            initialDataForFilter: primary.initialDataForFilter
+        )
+    }
+}
+
 // MARK: - Daily Progression System
 // Players progress through milestones daily. The leaderboard updates at midnight.
 

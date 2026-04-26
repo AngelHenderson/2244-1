@@ -99,15 +99,24 @@ public final class ShopStore {
     private let journeyStore: JourneyKit.Store
     private let purchaseService: PurchaseService?
     private weak var gemWallet: GemWallet?
+    private weak var gameStore: GameStore?
+    private var grantedTransactionIDs: Set<String>
+    private static let grantedTransactionIDsKey = "shopGrantedTransactionIDs"
     
     public init(
         journeyStore: JourneyKit.Store,
         purchaseService: PurchaseService? = nil,
-        gemWallet: GemWallet? = nil
+        gemWallet: GemWallet? = nil,
+        gameStore: GameStore? = nil
     ) {
         self.journeyStore = journeyStore
         self.purchaseService = purchaseService
         self.gemWallet = gemWallet
+        self.gameStore = gameStore
+        self.grantedTransactionIDs = Set(
+            UserDefaults.standard.stringArray(forKey: Self.grantedTransactionIDsKey) ?? []
+        )
+        configurePurchaseDelivery()
         Task { await loadCatalog() }
         calculateJourneyTiles()
     }
@@ -150,9 +159,7 @@ public final class ShopStore {
             catalog = createDefaultCatalog()
         }
         
-        if let gemIDs = catalog?.gemBundles.map(\.id), !gemIDs.isEmpty {
-            await purchaseService?.ensureProductsLoaded(for: gemIDs)
-        }
+        await purchaseService?.ensureProductsLoaded(for: IAPProduct.allProductIDs)
         
         isLoading = false
     }
@@ -165,90 +172,31 @@ public final class ShopStore {
             currency: "USD",
             pricingModel: "one_time",
             bundles: [
-                ShopBundle(
-                    id: "starter_pack",
-                    title: "Starter Pack",
-                    price: 2.99,
-                    tags: ["Starter"],
-                    perks: nil,
-                    items: ShopBundle.Items(
-                        gems: 1500,
-                        hammers: 5,
-                        swaps: 3,
-                        magnets: 2,
-                        spins: nil,
-                        boost2x: nil,
-                        boost3x: nil,
-                        boost4x: nil,
-                        liveThemes: nil,
-                        tileBeats: nil,
-                        galaxyThemes: nil,
-                        colorWheelThemes: nil,
-                        gridThemes: nil
-                    )
-                ),
-                ShopBundle(
-                    id: "value_crate",
-                    title: "Value Crate",
-                    price: 4.99,
-                    tags: ["Best Value"],
-                    perks: nil,
-                    items: ShopBundle.Items(
-                        gems: 4000,
-                        hammers: 10,
-                        swaps: 5,
-                        magnets: 5,
-                        spins: nil,
-                        boost2x: nil,
-                        boost3x: nil,
-                        boost4x: nil,
-                        liveThemes: nil,
-                        tileBeats: nil,
-                        galaxyThemes: nil,
-                        colorWheelThemes: nil,
-                        gridThemes: nil
-                    )
-                ),
-                ShopBundle(
-                    id: "mega_offer",
-                    title: "Mega Offer",
-                    price: 9.99,
-                    tags: ["50% Off"],
-                    perks: ShopBundle.Perks(noAds: true, allBeats: nil, allLiveThemes: nil),
-                    items: ShopBundle.Items(
-                        gems: 5000,
-                        hammers: 30,
-                        swaps: 15,
-                        magnets: 10,
-                        spins: nil,
-                        boost2x: nil,
-                        boost3x: nil,
-                        boost4x: nil,
-                        liveThemes: nil,
-                        tileBeats: nil,
-                        galaxyThemes: 4,
-                        colorWheelThemes: 5,
-                        gridThemes: 4
-                    )
-                )
+                ShopBundle.canonical(IAPProduct.starterPackProduct, tags: ["Starter"]),
+                ShopBundle.canonical(IAPProduct.powerUpBundleProduct, tags: ["Tools"]),
+                ShopBundle.canonical(IAPProduct.megaBundleProduct, tags: ["Best Value"])
             ],
             gemBundles: [
-                GemBundle(id: "gems_1000", gems: 1000, price: 0.99, tags: nil),
-                GemBundle(id: "gems_5000", gems: 5000, price: 2.99, tags: nil),
-                GemBundle(id: "gems_15000", gems: 15000, price: 4.99, tags: nil),
-                GemBundle(id: "gems_25000", gems: 25000, price: 7.49, tags: nil),
-                GemBundle(id: "gems_50000", gems: 50000, price: 9.99, tags: nil),
-                GemBundle(id: "gems_100000", gems: 100000, price: 19.99, tags: nil),
-                GemBundle(id: "gems_250000", gems: 250000, price: 49.99, tags: ["Popular"]),
-                GemBundle(id: "gems_500000", gems: 500000, price: 99.99, tags: ["Whale"])
+                GemBundle(
+                    id: IAPProduct.smallCoinsProduct.id,
+                    gems: 500,
+                    price: 0.99,
+                    tags: nil
+                ),
+                GemBundle(
+                    id: IAPProduct.mediumCoinsProduct.id,
+                    gems: 2500,
+                    price: 3.99,
+                    tags: ["Popular"]
+                ),
+                GemBundle(
+                    id: IAPProduct.largeCoinsProduct.id,
+                    gems: 10000,
+                    price: 9.99,
+                    tags: ["Best Value"]
+                )
             ],
-
-            perkBundles: [
-                PerkBundle(id: "hammers_5", item: "hammer", quantity: 5, price: 0.99),
-                PerkBundle(id: "hammers_15", item: "hammer", quantity: 15, price: 1.99),
-                PerkBundle(id: "swaps_5", item: "swap", quantity: 5, price: 1.29),
-                PerkBundle(id: "magnets_5", item: "magnet", quantity: 5, price: 1.49)
-            ],
+            perkBundles: [],
             freePerks: []
         )
     }
@@ -276,18 +224,22 @@ public final class ShopStore {
         error = nil
         defer { isPurchasing = false }
         
-        if let gemBundle = gemBundle(for: bundleId) {
-            await purchaseGemBundle(gemBundle)
+        guard let product = IAPProduct.product(for: bundleId) else {
+            error = "Product unavailable"
             return
         }
-        
-        // Legacy bundles fallback
-        try? await Task.sleep(for: .seconds(1))
-        purchasedBundles.insert(bundleId)
-        
-        if let bundle = catalog?.bundles.first(where: { $0.id == bundleId }) {
-            applyBundleRewards(bundle)
+
+        guard let purchaseService else {
+            error = "Purchases are unavailable"
+            return
         }
+
+        guard let purchase = await purchaseService.purchaseVerified(productID: product.id) else {
+            error = purchaseService.errorMessage ?? "Purchase failed. Please try again."
+            return
+        }
+
+        applyVerifiedPurchase(purchase)
     }
     
     private func applyBundleRewards(_ bundle: ShopBundle) {
@@ -313,6 +265,58 @@ public final class ShopStore {
     private func performPurchase(productID: String) async -> Bool {
         guard let purchaseService else { return false }
         return await purchaseService.purchase(productID: productID)
+    }
+
+    private func configurePurchaseDelivery() {
+        purchaseService?.onVerifiedPurchase = { [weak self] purchase in
+            self?.applyVerifiedPurchase(purchase)
+        }
+        Task { [weak self] in
+            await self?.purchaseService?.deliverPendingTransactions()
+        }
+    }
+
+    private func applyVerifiedPurchase(_ purchase: VerifiedPurchase) {
+        guard grantedTransactionIDs.insert(purchase.transactionID).inserted else { return }
+        UserDefaults.standard.set(Array(grantedTransactionIDs), forKey: Self.grantedTransactionIDsKey)
+
+        guard let product = IAPProduct.product(for: purchase.productID) else { return }
+        grantProductRewards(product)
+        purchasedBundles.insert(product.id)
+    }
+
+    private func grantProductRewards(_ product: IAPProduct) {
+        for item in product.items {
+            switch item.type {
+            case .coins:
+                grantGems(item.quantity)
+            case .powerUp(let type):
+                grantPowerUp(type.rawValue, count: item.quantity)
+            case .adFree:
+                UserDefaults.standard.set(true, forKey: "isAdFreePurchased")
+            case .theme, .experience:
+                continue
+            }
+        }
+    }
+
+    private func grantPowerUp(_ type: String, count: Int) {
+        guard count > 0 else { return }
+        if let gameStore {
+            gameStore.addPowerUp(type, count: count)
+            return
+        }
+
+        let defaults = UserDefaults.standard
+        var inventory: [String: Int] = [:]
+        if let data = defaults.data(forKey: "powerUpInventory"),
+           let decoded = try? JSONDecoder().decode([String: Int].self, from: data) {
+            inventory = decoded
+        }
+        inventory[type, default: 0] += count
+        if let data = try? JSONEncoder().encode(inventory) {
+            defaults.set(data, forKey: "powerUpInventory")
+        }
     }
     
     private func grantGems(_ amount: Int) {
@@ -341,7 +345,54 @@ public final class ShopStore {
     }
     
     public func isPurchased(_ bundleId: String) -> Bool {
-        purchasedBundles.contains(bundleId)
+        purchasedBundles.contains(bundleId) || purchaseService?.isOwned(bundleId) == true
+    }
+}
+
+private extension ShopBundle {
+    static func canonical(_ product: IAPProduct, tags: [String]? = nil) -> ShopBundle {
+        ShopBundle(
+            id: product.id,
+            title: product.displayName,
+            price: Double(truncating: NSDecimalNumber(decimal: product.price)),
+            tags: tags,
+            perks: product.items.contains { item in
+                if case .adFree = item.type { return true }
+                return false
+            } ? Perks(noAds: true, allBeats: nil, allLiveThemes: nil) : nil,
+            items: Items(
+                gems: product.items.firstQuantity(for: .coins),
+                hammers: product.items.firstQuantity(for: .powerUp(.hammer)),
+                swaps: product.items.firstQuantity(for: .powerUp(.swap)),
+                magnets: product.items.firstQuantity(for: .powerUp(.magnet)),
+                spins: nil,
+                boost2x: nil,
+                boost3x: nil,
+                boost4x: nil,
+                liveThemes: nil,
+                tileBeats: nil,
+                galaxyThemes: nil,
+                colorWheelThemes: nil,
+                gridThemes: nil
+            )
+        )
+    }
+}
+
+private extension Array where Element == IAPProductItem {
+    func firstQuantity(for type: IAPProductItem.ItemType) -> Int? {
+        first { item in
+            switch (item.type, type) {
+            case (.coins, .coins), (.adFree, .adFree), (.experience, .experience):
+                return true
+            case (.powerUp(let lhs), .powerUp(let rhs)):
+                return lhs == rhs
+            case (.theme(let lhs), .theme(let rhs)):
+                return lhs == rhs
+            default:
+                return false
+            }
+        }?.quantity
     }
 }
 

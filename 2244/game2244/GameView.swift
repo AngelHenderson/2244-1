@@ -83,13 +83,12 @@ extension GameView {
         let storedBest = await storage.bestScore()
         let scoreToSubmit = max(current, storedBest)
         do {
-            try await gameCenter.submit(score: scoreToSubmit, leaderboard: "main")
+            try await gameCenter.submit(score: scoreToSubmit, leaderboard: GameCenterLeaderboardID.global)
             hasSubmittedForCurrentGame = true
         } catch {
             // Ignore for no-op default; future implementations can handle errors
         }
     }
 }
-
 
 

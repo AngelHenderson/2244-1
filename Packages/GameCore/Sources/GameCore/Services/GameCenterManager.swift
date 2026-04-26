@@ -8,14 +8,57 @@ import UIKit
 public final class GameCenterManager {
     public static let shared = GameCenterManager()
     private init() {}
+
+    public var isAuthenticated: Bool {
+        GKLocalPlayer.local.isAuthenticated
+    }
+
+    public var displayName: String {
+        GKLocalPlayer.local.displayName
+    }
     
     public func configureAccessPoint(active: Bool = true,
                                      location: GKAccessPoint.Location = .topLeading) {
         GKAccessPoint.shared.isActive = active
         GKAccessPoint.shared.location = location
     }
+
+    public func authenticate() async -> Bool {
+        await authenticate(presentingRoot: nil)
+    }
     
     #if canImport(UIKit)
+    public func authenticate(presentingRoot rootProvider: (() -> UIViewController?)?) async -> Bool {
+        let local = GKLocalPlayer.local
+        guard !local.isAuthenticated else { return true }
+
+        return await withCheckedContinuation { continuation in
+            var didResume = false
+            let resume: (Bool) -> Void = { value in
+                guard !didResume else { return }
+                didResume = true
+                continuation.resume(returning: value)
+            }
+
+            local.authenticateHandler = { vc, error in
+                if let vc, let root = rootProvider?() {
+                    root.present(vc, animated: true)
+                    return
+                }
+
+                if let error {
+                    #if DEBUG
+                    print("Game Center auth error:", error.localizedDescription)
+                    #endif
+                    resume(false)
+                    return
+                }
+
+                resume(local.isAuthenticated)
+            }
+        }
+    }
+
     public func authenticateIfNeeded(presentingRoot rootProvider: @escaping () -> UIViewController?) {
         let local = GKLocalPlayer.local
         guard !local.isAuthenticated else { return }
@@ -26,6 +69,32 @@ public final class GameCenterManager {
                 #if DEBUG
                 print("Game Center auth error:", error)
                 #endif
+            }
+        }
+    }
+    #else
+    public func authenticate(presentingRoot rootProvider: (() -> Any?)?) async -> Bool {
+        let local = GKLocalPlayer.local
+        guard !local.isAuthenticated else { return true }
+
+        return await withCheckedContinuation { continuation in
+            var didResume = false
+            let resume: (Bool) -> Void = { value in
+                guard !didResume else { return }
+                didResume = true
+                continuation.resume(returning: value)
+            }
+
+            local.authenticateHandler = { _, error in
+                if let error {
+                    #if DEBUG
+                    print("Game Center auth error:", error.localizedDescription)
+                    #endif
+                    resume(false)
+                    return
+                }
+
+                resume(local.isAuthenticated)
             }
         }
     }

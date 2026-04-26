@@ -100,8 +100,22 @@ struct AvatarCustomizeView: View {
 
 struct SeasonHistoryView: View {
     var season: SeasonInfo
+    var playerSeed: String?
     @Environment(\.dismiss) private var dismiss
-    
+    @Environment(\.seasonHistoryStore) private var historyStore
+
+    private var currentSeasonNumber: Int {
+        let digits = season.name.split(whereSeparator: { !$0.isNumber })
+        return Int(digits.last ?? "1") ?? 1
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        f.timeStyle = .none
+        return f
+    }()
+
     var body: some View {
         NavigationStack {
             List {
@@ -113,22 +127,39 @@ struct SeasonHistoryView: View {
                     }
                 }
                 Section("Past Seasons") {
-                    ForEach(1..<7) { i in
-                        HStack {
-                            Label("Season \(i)", systemImage: "calendar")
-                            Spacer()
-                            Text(["Bronze","Silver","Gold","Platinum","Diamond","Mythic"].randomElement()!)
-                                .foregroundStyle(.secondary)
+                    if historyStore.past.isEmpty {
+                        Text("No past seasons yet.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(historyStore.past.reversed()) { record in
+                            HStack(alignment: .firstTextBaseline) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Label(record.displayName, systemImage: "calendar")
+                                    Text("\(Self.dateFormatter.string(from: record.startDate)) – \(Self.dateFormatter.string(from: record.endDate))")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                Spacer()
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    Text(record.finalDivision).foregroundStyle(.secondary)
+                                    Text("Rank #\(record.finalRank.formatted())")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
                         }
                     }
                 }
             }
             .navigationTitle("Season History")
             .platformNavigationTitleDisplayMode(.inline)
-            .toolbar { 
-                ToolbarItem(placement: .cancellationAction) { 
-                    Button("Close") { dismiss() } 
-                } 
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+            .onAppear {
+                historyStore.backfillIfEmpty(currentSeasonNumber: currentSeasonNumber, playerSeed: playerSeed)
             }
         }
     }

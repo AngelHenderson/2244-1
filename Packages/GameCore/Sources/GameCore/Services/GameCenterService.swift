@@ -3,6 +3,11 @@ import Foundation
 import GameKit
 #endif
 
+public enum GameCenterLeaderboardID {
+    public static let global = "com.game2244.global"
+    public static let hallOfFame = "com.game2244.halloffame"
+}
+
 public protocol GameCenterServiceProtocol: Sendable {
     func authenticate() async -> Bool
     func submit(score: Int, leaderboard: String) async throws
@@ -35,19 +40,7 @@ public actor DefaultGameCenterService: GameCenterServiceProtocol, Sendable {
 
     public func authenticate() async -> Bool {
         #if canImport(GameKit)
-        return await withCheckedContinuation { continuation in
-            GKLocalPlayer.local.authenticateHandler = { viewController, error in
-                if let error = error {
-                    print("Game Center auth error: \(error.localizedDescription)")
-                    continuation.resume(returning: false)
-                    return
-                }
-
-                // If viewController is returned, user needs to sign in via Settings
-                // We can't present it here, so just return current auth state
-                continuation.resume(returning: GKLocalPlayer.local.isAuthenticated)
-            }
-        }
+        return await GameCenterManager.shared.authenticate()
         #else
         return false
         #endif

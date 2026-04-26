@@ -58,6 +58,40 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
         ]
     }
 
+    public static var allProductIDs: [String] {
+        allProducts.map(\.id)
+    }
+
+    public static func product(for id: String) -> IAPProduct? {
+        allProducts.first { $0.id == id }
+    }
+
+    public static func productID(for theme: MusicTheme) -> String? {
+        allProducts.first {
+            if case .theme(let productTheme) = $0.type {
+                return productTheme == theme
+            }
+            return false
+        }?.id
+    }
+
+    public var permanentEntitlementProductIDs: Set<String> {
+        var ids: Set<String> = isConsumable ? [] : [id]
+        for item in items {
+            switch item.type {
+            case .adFree:
+                ids.insert(Self.adFreeProduct.id)
+            case .theme(let theme):
+                if let themeProductID = Self.productID(for: theme) {
+                    ids.insert(themeProductID)
+                }
+            case .coins, .powerUp, .experience:
+                continue
+            }
+        }
+        return ids
+    }
+
     public static let adFreeProduct = IAPProduct(
         id: "com.game2244.adfree",
         type: .adFree,
@@ -162,6 +196,7 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
             IAPProductItem(type: .powerUp(.undo), quantity: 10),
             IAPProductItem(type: .adFree, quantity: 1)
         ],
+        isConsumable: false,
         displayPriority: 2
     )
 
@@ -184,6 +219,7 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
             IAPProductItem(type: .theme(.orchestral), quantity: 1),
             IAPProductItem(type: .adFree, quantity: 1)
         ],
+        isConsumable: false,
         displayPriority: 3
     )
 }

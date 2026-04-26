@@ -1,4 +1,5 @@
 import Foundation
+import GameCore
 #if canImport(GameKit)
 @preconcurrency import GameKit
 #endif
@@ -25,8 +26,8 @@ public struct GameCenterLeaderboardConfig: Sendable {
     public let submitAutomatically: Bool
 
     public init(
-        globalLeaderboardID: String = "com.game2244.global",
-        hallOfFameLeaderboardID: String = "com.game2244.halloffame",
+        globalLeaderboardID: String = GameCenterLeaderboardID.global,
+        hallOfFameLeaderboardID: String = GameCenterLeaderboardID.hallOfFame,
         submitAutomatically: Bool = true
     ) {
         self.globalLeaderboardID = globalLeaderboardID
@@ -51,26 +52,7 @@ public extension LeaderboardClient {
     static func gameCenter(config: GameCenterLeaderboardConfig = .init()) -> LeaderboardClient {
         LeaderboardClient(
             authenticate: {
-                await withCheckedContinuation { continuation in
-                    Task { @MainActor in
-                        GKLocalPlayer.local.authenticateHandler = { viewController, error in
-                            if let error {
-                                print("Game Center auth error: \(error)")
-                                continuation.resume(returning: false)
-                                return
-                            }
-                            
-                            if viewController != nil {
-                                // Need to present view controller - for now we'll skip
-                                // In production, you'd present this VC
-                                continuation.resume(returning: false)
-                                return
-                            }
-                            
-                            continuation.resume(returning: GKLocalPlayer.local.isAuthenticated)
-                        }
-                    }
-                }
+                await GameCenterManager.shared.authenticate()
             },
             
             submitScore: { score in

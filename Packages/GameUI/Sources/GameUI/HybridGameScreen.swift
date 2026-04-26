@@ -1,6 +1,7 @@
 import SwiftUI
 import GameApp
 import GameCore
+import GameServices
 #if os(macOS)
 import AppKit
 #endif
@@ -29,6 +30,7 @@ public struct HybridGameScreen: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.leaderboardClient) private var leaderboardClient
     @Environment(\.currentTheme) private var currentTheme
+    @Environment(\.purchaseService) private var purchaseService
 
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
@@ -148,6 +150,11 @@ public struct HybridGameScreen: View {
                             MilestoneProgressBar()
                         }
                     }
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                if !purchaseService.isAdFreePurchased {
+                    LiveBannerAdView()
                 }
             }
             .overlay(alignment: .top) {
@@ -319,6 +326,7 @@ public struct HybridGameScreen: View {
 
                 // Initialize comprehensive session tracking
                 gameStore.initializeSessionTracking()
+                Task { await adService.showBanner() }
 
                 // Check if game is already over on appear
                 if gameStore.state.isGameOver {
@@ -330,6 +338,7 @@ public struct HybridGameScreen: View {
                 // Cancel any pending game over reset
                 gameOverResetTask?.cancel()
                 gameOverResetTask = nil
+                Task { await adService.hideBanner() }
             }
             // Enhanced auto-save triggers for comprehensive session data
             .onChange(of: gameStore.state.moves) { _, _ in
@@ -357,6 +366,11 @@ public struct HybridGameScreen: View {
                 // Comprehensive auto-save when app goes to background
                 if newPhase != .active {
                     gameStore.saveProgressImmediately(newTile: nil)
+                }
+            }
+            .onChange(of: purchaseService.isAdFreePurchased) { _, isAdFree in
+                if isAdFree {
+                    Task { await adService.hideBanner() }
                 }
             }
             .onChange(of: gameStore.state.isGameOver) { _, isGameOver in
@@ -599,44 +613,46 @@ public struct HybridGameScreen: View {
 
             Spacer()
 
-            // FREE AD button
-            Button {
-                Task {
-                    let _ = await adService.showRewarded {
-                        gameStore.addCoins(135)
-                        haptics.success()
+            if !purchaseService.isAdFreePurchased {
+                // FREE AD button
+                Button {
+                    Task {
+                        let _ = await adService.showRewarded {
+                            gameStore.addCoins(135)
+                            haptics.success()
+                        }
+                        isShowingPowerUpOverlay = false
                     }
-                    isShowingPowerUpOverlay = false
-                }
-            } label: {
-                VStack(spacing: 0) {
-                    Text("FREE")
-                        .font(.avenirNext(size: 11, weight: .heavy))
-                        .foregroundColor(.white)
-                    HStack(spacing: 2) {
-                        Image("gem")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 14, height: 14)
-                        Text("+135")
-                            .font(.avenirNext(size: 15, weight: .bold))
+                } label: {
+                    VStack(spacing: 0) {
+                        Text("FREE")
+                            .font(.avenirNext(size: 11, weight: .heavy))
                             .foregroundColor(.white)
+                        HStack(spacing: 2) {
+                            Image("gem")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
+                            Text("+135")
+                                .font(.avenirNext(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        HStack(spacing: 3) {
+                            Image(systemName: "play.rectangle.fill")
+                                .font(.system(size: 8))
+                            Text("AD")
+                                .font(.avenirNext(size: 9, weight: .heavy))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.top, 1)
                     }
-                    HStack(spacing: 3) {
-                        Image(systemName: "play.rectangle.fill")
-                            .font(.system(size: 8))
-                        Text("AD")
-                            .font(.avenirNext(size: 9, weight: .heavy))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.top, 1)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(red: 0.85, green: 0.65, blue: 0.1))
+                    )
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(red: 0.85, green: 0.65, blue: 0.1))
-                )
             }
         }
     }
@@ -1627,50 +1643,52 @@ extension HybridGameScreen {
                     )
             }
 
-            // FREE +120 AD button
-            Button {
-                Task {
-                    let _ = await adService.showRewarded {
-                        gameStore.addCoins(120)
-                        haptics.success()
+            if !purchaseService.isAdFreePurchased {
+                // FREE +120 AD button
+                Button {
+                    Task {
+                        let _ = await adService.showRewarded {
+                            gameStore.addCoins(120)
+                            haptics.success()
+                        }
                     }
-                }
-            } label: {
-                VStack(spacing: 0) {
-                    Text("FREE")
-                        .font(.avenirNext(size: 12, weight: .heavy))
-                        .foregroundColor(.white)
-                    HStack(spacing: 2) {
-                        Image("gem")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 12, height: 12)
-                        Text("+120")
-                            .font(.avenirNext(size: 14, weight: .bold))
+                } label: {
+                    VStack(spacing: 0) {
+                        Text("FREE")
+                            .font(.avenirNext(size: 12, weight: .heavy))
                             .foregroundColor(.white)
+                        HStack(spacing: 2) {
+                            Image("gem")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
+                            Text("+120")
+                                .font(.avenirNext(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        HStack(spacing: 4) {
+                            Image(systemName: "play.rectangle.fill")
+                                .font(.system(size: 8))
+                            Text("AD")
+                                .font(.avenirNext(size: 10, weight: .black))
+                        }
+                        .foregroundColor(.black.opacity(0.6))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.white.opacity(0.3))
+                        .cornerRadius(4)
+                        .padding(.top, 2)
                     }
-                    HStack(spacing: 4) {
-                        Image(systemName: "play.rectangle.fill")
-                            .font(.system(size: 8))
-                        Text("AD")
-                            .font(.avenirNext(size: 10, weight: .black))
-                    }
-                    .foregroundColor(.black.opacity(0.6))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.white.opacity(0.3))
-                    .cornerRadius(4)
-                    .padding(.top, 2)
+                    .frame(width: 80, height: 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(red: 1.0, green: 0.75, blue: 0.0)) // Golden yellow
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(Color(red: 1.0, green: 0.9, blue: 0.4), lineWidth: 2)
+                    )
                 }
-                .frame(width: 80, height: 60)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(red: 1.0, green: 0.75, blue: 0.0)) // Golden yellow
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(Color(red: 1.0, green: 0.9, blue: 0.4), lineWidth: 2)
-                )
             }
         }
         .padding(.horizontal, 24)

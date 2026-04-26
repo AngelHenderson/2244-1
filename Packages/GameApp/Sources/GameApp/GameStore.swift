@@ -33,6 +33,10 @@ public final class GameStore {
     /// Used by board views for the greyout animation instead of `state.isGameOver`.
     public var gameOverConfirmed: Bool = false
 
+    /// Fires once per game session when the game ends. Wired by the app entry to
+    /// submit the final score to the active leaderboard backend.
+    public var onGameEnded: (@MainActor (Int) -> Void)?
+
     // Sandboxed mode for challenges - doesn't persist progress to main game
     public let sandboxed: Bool
 
@@ -1247,7 +1251,12 @@ public final class GameStore {
         gameOverProcessed = true
         // Game ended - notify achievement evaluator to save playtime and other stats
         achievementEvaluator?.onGameEnd(state: state, won: state.highestTile >= 2244)
+        if !sandboxed {
+            onGameEnded?(state.score)
+        }
+        #if DEBUG
         print("🎮 Game over processed - playtime saved")
+        #endif
     }
 
     private static let mergeAnimationDelay: UInt64 = 400_000_000

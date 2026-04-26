@@ -1,5 +1,6 @@
 import SwiftUI
 import GameApp
+import GameCore
 
 @MainActor
 struct MusicThemesView: View {
@@ -9,25 +10,45 @@ struct MusicThemesView: View {
         let tagline: String
         let assetName: String
         let priceLabel: String
+        let iapProductID: String?
+
+        init(id: String, displayName: String, tagline: String, assetName: String,
+             priceLabel: String, iapProductID: String? = nil) {
+            self.id = id
+            self.displayName = displayName
+            self.tagline = tagline
+            self.assetName = assetName
+            self.priceLabel = priceLabel
+            self.iapProductID = iapProductID
+        }
+
+        var isPremium: Bool { iapProductID != nil }
     }
 
-    // Inputs
+    // Inputs. The last three instruments are wired to the existing premium theme
+    // IAP product IDs so the paywall flow works end-to-end. Adjust the mapping if
+    // the App Store Connect catalog grows different theme SKUs.
     var instruments: [Instrument] = [
-        .init(id: "piano", displayName: "Piano", tagline: "Merge with Classic Warmth!", assetName: "piano", priceLabel: "$0.99"),
-        .init(id: "xylophone", displayName: "Xylophone", tagline: "Merging Melodies Chime!", assetName: "xylophone", priceLabel: "$0.99"),
-        .init(id: "guitar", displayName: "Guitar", tagline: "Strumming Merges Delight!", assetName: "guitar", priceLabel: "$0.99"),
-        .init(id: "kalimba", displayName: "Kalimba", tagline: "Merge with Gentle Resonance!", assetName: "kalimba", priceLabel: "$0.99"),
-        .init(id: "muted-nylon", displayName: "Muted Nylon", tagline: "Softly Merge Melodies!", assetName: "guitar", priceLabel: "$0.99"),
-        .init(id: "drum", displayName: "Drum", tagline: "Feel the Rhythm Merge!", assetName: "drum", priceLabel: "$0.99")
+        .init(id: "piano", displayName: "Piano", tagline: "Merge with Classic Warmth!", assetName: "piano", priceLabel: "Free"),
+        .init(id: "xylophone", displayName: "Xylophone", tagline: "Merging Melodies Chime!", assetName: "xylophone", priceLabel: "Free"),
+        .init(id: "guitar", displayName: "Guitar", tagline: "Strumming Merges Delight!", assetName: "guitar", priceLabel: "Free"),
+        .init(id: "kalimba", displayName: "Kalimba", tagline: "Merge with Gentle Resonance!", assetName: "kalimba", priceLabel: "$1.99",
+              iapProductID: "com.game2244.theme.lofi"),
+        .init(id: "muted-nylon", displayName: "Muted Nylon", tagline: "Softly Merge Melodies!", assetName: "guitar", priceLabel: "$1.99",
+              iapProductID: "com.game2244.theme.orchestral"),
+        .init(id: "drum", displayName: "Drum", tagline: "Feel the Rhythm Merge!", assetName: "drum", priceLabel: "$1.99",
+              iapProductID: "com.game2244.theme.cyberpunk")
     ]
     var onTry: @Sendable (Instrument) -> Void = { _ in }
     var onPurchase: @Sendable (Instrument) -> Void = { _ in }
 
     // State
     @State private var selectionIndex: Int = 0
+    @State private var paywallInstrument: Instrument?
     @AppStorage("currentMusicTheme") private var currentTheme: String = "piano"
     @Environment(\.dismiss) private var dismiss
     @Environment(\.audio) private var audioService
+    @Environment(\.purchaseService) private var purchaseService
     @State private var previewTimer: Timer?
     @State private var previewTapIndex: Int = 0
 
@@ -52,6 +73,18 @@ struct MusicThemesView: View {
         .onDisappear {
             stopSequencedPreview()
             Task { await audioService.stopMusic() }
+        }
+        .sheet(item: $paywallInstrument) { instrument in
+            ThemePaywallSheet(
+                title: instrument.displayName,
+                tagline: instrument.tagline,
+                assetName: instrument.assetName,
+                productID: instrument.iapProductID ?? "",
+                onUnlocked: {
+                    Task { await audioService.setCurrentMusicTheme(instrument.id) }
+                    onPurchase(instrument)
+                }
+            )
         }
         .accessibilityElement(children: .contain)
     }
@@ -135,17 +168,18 @@ struct MusicThemesView: View {
         VStack(spacing: 12) {
             let instrument = instruments.indices.contains(selectionIndex) ? instruments[selectionIndex] : instruments.first!
             let isSelected = instrument.id == currentTheme
+            let needsPurchase = instrument.isPremium && !purchaseService.isOwned(instrument.iapProductID ?? "")
 
             if isSelected {
-                // Already selected - show "Selected" indicator
                 primaryButton(title: "Selected", role: .secondary) {
-                    // Already selected, just dismiss
                     dismiss()
                 }
+            } else if needsPurchase {
+                primaryButton(title: "Unlock for \(instrument.priceLabel)", role: .primary) {
+                    paywallInstrument = instrument
+                }
             } else {
-                // Select button to choose the instrument
                 primaryButton(title: "Select", role: .primary) {
-                    // Set the music theme when selecting
                     Task { await audioService.setCurrentMusicTheme(instrument.id) }
                     onTry(instrument)
                     dismiss()

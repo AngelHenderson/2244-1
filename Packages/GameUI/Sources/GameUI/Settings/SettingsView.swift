@@ -24,10 +24,12 @@ public struct SettingsView: View {
     @State private var isShowingTilesInfo: Bool = false
     @State private var isShowingPerksInfo: Bool = false
     @State private var isShowingValidMovesInfo: Bool = false
-    @State private var isShowingGameCenter: Bool = false
     @State private var gameCenterEnabled: Bool = false
     @State private var gameCenterDisplayName: String = ""
     @State private var isShowingReportPrompt: Bool = false
+    @State private var isShowingSlotPicker: Bool = false
+    @State private var isShowingReplayExport: Bool = false
+    @State private var isShowingReplayImport: Bool = false
     
     // Trail style toggle (shared with TileScrollerView via AppStorage)
     @AppStorage("useCurvedTrail") private var useCurvedTrail: Bool = false
@@ -242,7 +244,7 @@ public struct SettingsView: View {
                     }
 
                     Button {
-                        isShowingGameCenter = true
+                        GameCenterManager.shared.presentDashboard()
                     } label: {
                         HStack {
                             Image(systemName: "gamecontroller.fill")
@@ -339,6 +341,45 @@ public struct SettingsView: View {
                         .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
                 
+                // MARK: Game Data
+                Section {
+                    Button {
+                        isShowingSlotPicker = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.stack.3d.up.fill")
+                                .foregroundStyle(.tint)
+                            Text("Save Slots")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                        }
+                    }
+
+                    Button {
+                        isShowingReplayExport = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundStyle(.tint)
+                            Text("Export Replay Code")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                        }
+                    }
+
+                    Button {
+                        isShowingReplayImport = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down")
+                                .foregroundStyle(.tint)
+                            Text("Import Replay Code")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                        }
+                    }
+                } header: {
+                    Text("Game Data")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                }
+
                 // MARK: About
                 Section {
                     HStack {
@@ -384,29 +425,27 @@ public struct SettingsView: View {
             .sheet(isPresented: $isShowingValidMovesInfo) {
                 ValidMovesInfoView()
             }
-            .sheet(isPresented: $isShowingGameCenter) {
-                gameCenterSheet
-            }
             .sheet(isPresented: $isShowingReportPrompt) {
                 ReportPlayerSheet()
+            }
+            .sheet(isPresented: $isShowingSlotPicker) {
+                SlotPickerView()
+            }
+            .sheet(isPresented: $isShowingReplayExport) {
+                ReplayExportSheet()
+            }
+            .sheet(isPresented: $isShowingReplayImport) {
+                ReplayImportSheet()
             }
         }
     }
 
     private func checkGameCenterStatus() {
-        // Set up the authenticate handler - GameKit requires this
-        GKLocalPlayer.local.authenticateHandler = { viewController, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("Game Center error: \(error.localizedDescription)")
-                }
-
-                // Update state after handler is called
-                self.gameCenterEnabled = GKLocalPlayer.local.isAuthenticated
-                if self.gameCenterEnabled {
-                    self.gameCenterDisplayName = GKLocalPlayer.local.displayName
-                }
-                print("Game Center auth callback - isAuthenticated: \(GKLocalPlayer.local.isAuthenticated), name: \(GKLocalPlayer.local.displayName)")
+        Task { @MainActor in
+            let authenticated = await GameCenterManager.shared.authenticate()
+            gameCenterEnabled = authenticated
+            if authenticated {
+                gameCenterDisplayName = GameCenterManager.shared.displayName
             }
         }
     }
@@ -416,34 +455,6 @@ public struct SettingsView: View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(version) (\(build))"
-    }
-
-    @ViewBuilder
-    private var gameCenterSheet: some View {
-        #if os(iOS)
-        if #available(iOS 14.0, *) {
-            GameCenterView()
-        } else {
-            EmptyView()
-        }
-        #else
-        VStack(spacing: 12) {
-            Image(systemName: "gamecontroller")
-                .font(.system(size: 36, weight: .regular))
-                .foregroundStyle(.secondary)
-            Text("Game Center Dashboard")
-                .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
-            Text("The Game Center dashboard is only available on iOS in this build.")
-                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Button("Done") {
-                isShowingGameCenter = false
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding(24)
-        #endif
     }
 
     private func loadSettings() {
@@ -465,56 +476,21 @@ public struct SettingsView: View {
         if let product = purchaseService.product(withID: PurchaseService.adFreeProductID) {
             removeAdsPrice = product.displayPrice
         } else {
-            removeAdsPrice = "$2.99"
+            removeAdsPrice = IAPProduct.adFreeProduct.formattedPrice
         }
         #else
-        removeAdsPrice = "$2.99"
+        removeAdsPrice = IAPProduct.adFreeProduct.formattedPrice
         #endif
     }
 }
-
-// MARK: - Game Center View
-#if os(iOS)
-@available(iOS, deprecated: 26.0, message: "GKGameCenterViewController is deprecated in iOS 26")
-struct GameCenterView: UIViewControllerRepresentable {
-    @Environment(\.dismiss) private var dismiss
-
-    func makeUIViewController(context: Context) -> GKGameCenterViewController {
-        let viewController = GKGameCenterViewController(state: .dashboard)
-        viewController.gameCenterDelegate = context.coordinator
-        return viewController
-    }
-
-    func updateUIViewController(_ uiViewController: GKGameCenterViewController, context: Context) {}
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(dismiss: dismiss)
-    }
-
-    final class Coordinator: NSObject, GKGameCenterControllerDelegate {
-        let dismiss: DismissAction
-
-        init(dismiss: DismissAction) {
-            self.dismiss = dismiss
-        }
-
-        @available(iOS, deprecated: 26.0)
-        func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
-            let dismissAction = dismiss
-            Task { @MainActor in
-                dismissAction()
-            }
-        }
-    }
-}
-#endif
 
 // MARK: - Report Player Sheet
 
 struct ReportPlayerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(HomeState.self) private var homeState
-    
+    @Environment(\.reportService) private var reportService
+
     @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
     
     @State private var playerName: String = ""
@@ -617,11 +593,24 @@ struct ReportPlayerSheet: View {
             nameField: nameField,
             delaySeconds: Double.random(in: 60...120)
         )
-        
+
+        // Fire-and-forget cloud submission. Local evaluation above drives UX
+        // immediately so the user isn't waiting on the network.
+        let report = PlayerReport(
+            reportedPlayerName: nameField,
+            reason: selectedReason,
+            additionalDetails: additionalDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? nil : additionalDetails
+        )
+        let service = reportService
+        Task.detached {
+            try? await service.submit(report)
+        }
+
         if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
             openPlatformURL(url)
         }
-        
+
         dismiss()
     }
 }

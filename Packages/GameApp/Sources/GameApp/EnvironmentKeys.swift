@@ -55,6 +55,11 @@ public struct HapticsServiceKey: EnvironmentKey {
     }
 }
 
+public struct ReportServiceKey: EnvironmentKey {
+    public typealias Value = any ReportServiceProtocol
+    public static let defaultValue: any ReportServiceProtocol = NoopReportService()
+}
+
 public extension EnvironmentValues {
     var gameStore: GameStore {
         get { self[GameStoreKey.self] }
@@ -75,6 +80,11 @@ public extension EnvironmentValues {
         get { self[HapticsServiceKey.self] }
         set { self[HapticsServiceKey.self] = newValue }
     }
+
+    var reportService: any ReportServiceProtocol {
+        get { self[ReportServiceKey.self] }
+        set { self[ReportServiceKey.self] = newValue }
+    }
     
     // Theme toggles can be extended to remote config injection in future
     var colorBlindMode: Bool {
@@ -85,6 +95,11 @@ public extension EnvironmentValues {
     var spinWheelState: SpinWheelState {
         get { self[SpinWheelStateKey.self] }
         set { self[SpinWheelStateKey.self] = newValue }
+    }
+
+    var seasonHistoryStore: SeasonHistoryStore {
+        get { self[SeasonHistoryStoreKey.self] }
+        set { self[SeasonHistoryStoreKey.self] = newValue }
     }
 }
 
@@ -106,6 +121,21 @@ public struct SpinWheelStateKey: EnvironmentKey {
     nonisolated public static var defaultValue: SpinWheelState {
         MainActor.assumeIsolated {
             DefaultSpinWheelState.make()
+        }
+    }
+}
+
+private struct DefaultSeasonHistoryStore: Sendable {
+    @MainActor
+    static func make() -> SeasonHistoryStore {
+        SeasonHistoryStore()
+    }
+}
+
+public struct SeasonHistoryStoreKey: EnvironmentKey {
+    nonisolated public static var defaultValue: SeasonHistoryStore {
+        MainActor.assumeIsolated {
+            DefaultSeasonHistoryStore.make()
         }
     }
 }

@@ -201,4 +201,35 @@ public struct WeeklyOfferManager: Sendable {
             return "\(minutes)m"
         }
     }
+
+    // MARK: - Auto-Present Persistence
+
+    private static let lastAutoPresentedKey = "weeklyOffer.lastAutoPresentedWeek"
+
+    /// ISO-week identifier ("2026-17"). Use the ISO calendar so week boundaries
+    /// land on Monday and roll over correctly across year boundaries.
+    public static func weekIdentifier(for date: Date = Date()) -> String {
+        var calendar = Calendar(identifier: .iso8601)
+        calendar.timeZone = .current
+        let comps = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+        let year = comps.yearForWeekOfYear ?? 0
+        let week = comps.weekOfYear ?? 0
+        return "\(year)-\(String(format: "%02d", week))"
+    }
+
+    /// Returns true if the offer has not yet been auto-presented during the
+    /// current ISO week. Manual taps on the SALE OFFER button bypass this
+    /// gate so the user can re-open the sheet at will.
+    public static func shouldAutoPresent(defaults: UserDefaults = .standard, date: Date = Date()) -> Bool {
+        let current = weekIdentifier(for: date)
+        let last = defaults.string(forKey: lastAutoPresentedKey)
+        return last != current
+    }
+
+    /// Records that the offer was auto-presented in the current ISO week.
+    /// Call this immediately when triggering the auto-present so a quick
+    /// dismiss + re-appear cycle does not cause a second presentation.
+    public static func markAutoPresented(defaults: UserDefaults = .standard, date: Date = Date()) {
+        defaults.set(weekIdentifier(for: date), forKey: lastAutoPresentedKey)
+    }
 }

@@ -13,6 +13,7 @@ public struct HomeView: View {
     @Environment(\.toastManager) private var toastManager
     @Environment(\.spinWheelState) private var spinState
     @Environment(\.leaderboardClient) private var leaderboardClient
+    @Environment(\.purchaseService) private var purchaseService
     @State private var isShowingJourney: Bool = false
     @State private var isShowingLeaderboard: Bool = false
     @State private var isShowingAchievements: Bool = false
@@ -141,22 +142,23 @@ public struct HomeView: View {
                                 action: { actions.openCreate() }
                             )
                             
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "ads",
-                                title: "",
-                                badge: true,
-                                banned: state.isBanned,
-                                specialLabel: "+\(state.adReward)",
-                                specialLabelInside: true,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: {
-                                    Task {
-                                        let reward = await actions.watchAd()
-                                        await MainActor.run { state.addGems(reward) }
+                            if !purchaseService.isAdFreePurchased {
+                                SideRailButton(
+                                    systemImage: nil,
+                                    customImage: "ads",
+                                    title: "",
+                                    badge: true,
+                                    banned: state.isBanned,
+                                    specialLabel: "+\(state.adReward)",
+                                    specialLabelInside: true,
+                                    onBannedTap: { state.showBanAlert = true },
+                                    action: {
+                                        Task {
+                                            _ = await actions.watchAd()
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                             
                             SideRailButton(
                                 systemImage: nil,
@@ -318,9 +320,13 @@ public struct HomeView: View {
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)
-        // Update achievements badge count
+        // Update achievements badge count + auto-present weekly offer once per ISO week
         .onAppear {
             state.achievementsBadgeCount = achievementStore.claimableCount
+            if WeeklyOfferManager.shouldAutoPresent() {
+                WeeklyOfferManager.markAutoPresented()
+                isShowingWeeklyOffer = true
+            }
         }
         .onChange(of: achievementStore.claimableCount) { _, newCount in
             state.achievementsBadgeCount = newCount

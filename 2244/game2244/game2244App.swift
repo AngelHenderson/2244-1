@@ -45,7 +45,7 @@ struct game2244App: App {
     @State private var gameStore = GameStore()
     @State private var homeState = HomeState()
     @State private var purchaseService = PurchaseService()
-    @State private var adService = DummyAdService()
+    @State private var adService = LiveAdService()
     @State private var hapticsService = HapticsService()
     @State private var audioService = LiveAudioService()
     @State private var gameCenterService = DefaultGameCenterService()
@@ -64,6 +64,9 @@ struct game2244App: App {
     @State private var challengeDesignerStore = ChallengeDesignerStore()
     @State private var spinWheelState = SpinWheelState()
     @State private var dailyQuestStore = DailyQuestStore()
+    @State private var seasonHistoryStore = SeasonHistoryStore()
+    @State private var leaderboardClient: LeaderboardClient = .mock
+    @State private var reportService: any ReportServiceProtocol = NoopReportService()
 
     // First-launch tutorial tracking
     @AppStorage("hasCompletedTutorial") private var hasCompletedTutorial: Bool = false
@@ -102,45 +105,65 @@ struct game2244App: App {
                 .environment(\.backgroundThemeRegistry, backgroundThemeRegistry)
                 .environment(\.currentBackgroundTheme, backgroundThemeRegistry.theme(for: selectedBackgroundThemeId))
                 .environment(\.tileJourney, gameStore.journey)
-                // TODO(Batch C): swap `.mock` for `.firebase(LeaderboardService())` or `.gameCenter()`
-                // once the real leaderboard backend is wired. `.mock` returns synthetic data;
-                // `submitScore` is a silent no-op. `.empty` is available for a truly blank state.
-                .environment(\.leaderboardClient, .mock)
+                // Starts as `.mock` so previews and offline launches work; swapped to
+                // `.firebase(LeaderboardService())` inside the .task once Firebase init succeeds.
+                .environment(\.leaderboardClient, leaderboardClient)
+                .environment(\.reportService, reportService)
                 .environment(homeState)
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
                 .environment(dailyQuestStore)
+                .environment(\.seasonHistoryStore, seasonHistoryStore)
                 .environment(
                     \.shopStore,
                     shopStore ?? ShopStore(
                         journeyStore: gameStore.journey,
                         purchaseService: purchaseService,
-                        gemWallet: gemWallet
+                        gemWallet: gemWallet,
+                        gameStore: gameStore
                     )
                 )
                 .environment(\.challengeStore, challengeStore)
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
                 .environment(\.spinWheelState, spinWheelState)
+                .onChange(of: purchaseService.isAdFreePurchased) { _, isAdFree in
+                    adService.setAdFree(isAdFree)
+                }
                 .task {
                     gemWallet.attach(gameStore: gameStore, homeState: homeState)
                     gemWallet.bootstrapFromLocal()
                     gameStore.spinWheelState = spinWheelState
                     
                     FirebaseService.shared.initialize()
+                    let gameCenterClient = LeaderboardClient.gameCenter()
                     if FirebaseApp.app() != nil {
                         try? await FirebaseService.shared.signInAnonymously()
                         await gemWallet.startCloudSync()
+                        let firebaseClient = LeaderboardClient.firebase(LeaderboardService())
+                        leaderboardClient = .mirroring(
+                            primary: firebaseClient,
+                            secondary: gameCenterClient
+                        )
+                        reportService = FirestoreReportService()
                     } else {
                         #if DEBUG
-                        print("⚠️ Firebase not configured; skipping gem cloud sync.")
+                        print("⚠️ Firebase not configured; leaderboard uses Game Center and gem cloud sync skipped.")
                         #endif
+                        leaderboardClient = gameCenterClient
+                    }
+
+                    gameStore.onGameEnded = { score in
+                        Task { @MainActor in
+                            await submitGameEndProgress(score: score)
+                        }
                     }
                     
                     // Initialize shop store
                     shopStore = ShopStore(
                         journeyStore: gameStore.journey,
                         purchaseService: purchaseService,
-                        gemWallet: gemWallet
+                        gemWallet: gemWallet,
+                        gameStore: gameStore
                     )
                     
                     // Suppress simulator-specific warnings in console
@@ -153,7 +176,6 @@ struct game2244App: App {
                     if UserDefaults.standard.bool(forKey: "isAdFreePurchased") {
                         adService.setAdFree(true)
                     }
-                    _ = await gameCenterService.authenticate()
                     
                     // Load achievements
                     try? achievementStore.loadCatalogFromBundle(named: "2244_achievements")
@@ -278,6 +300,18 @@ struct game2244App: App {
             homeState.highestTileStep = highestStep
             homeState.milestoneBelow = milestones.below ?? 1024
             homeState.lockedMilestones = milestones.above
+        }
+    }
+
+    @MainActor
+    private func submitGameEndProgress(score: Int) async {
+        try? await leaderboardClient.submitScore(score)
+
+        let storedInfinityCount = UserDefaults.standard.integer(forKey: "infinityMergeCount")
+        let sessionInfinityCount = gameStore.state.infinityMergeCount
+        let infinityCount = max(storedInfinityCount, sessionInfinityCount)
+        if infinityCount > 0 {
+            try? await leaderboardClient.submitInfinityCount(infinityCount)
         }
     }
 }
