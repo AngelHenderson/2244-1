@@ -128,7 +128,7 @@ public final class LiveAdService: AdServiceProtocol {
     private func ensureStarted() async {
         guard !didStart else { return }
         didStart = true
-        MobileAds.shared.start()
+        await MobileAds.shared.start()
     }
 
     private func loadInterstitialIfNeeded() async {

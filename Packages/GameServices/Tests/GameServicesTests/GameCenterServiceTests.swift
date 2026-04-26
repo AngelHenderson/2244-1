@@ -3,21 +3,23 @@ import Testing
 
 struct GameCenterServiceTests {
     @Test
-    func authenticate_returns_true() async {
-        let service: any GameCenterServiceProtocol = DefaultGameCenterService()
-        let result = await service.authenticate()
-        #expect(result == true)
+    func leaderboard_ids_match_app_store_connect_contract() {
+        #expect(GameCenterLeaderboardID.global == "com.game2244.global")
+        #expect(GameCenterLeaderboardID.hallOfFame == "com.game2244.halloffame")
     }
     
     @Test
-    func submit_stores_last_submission() async throws {
+    func submit_stores_last_submission_before_gamekit_delivery() async {
         let service = DefaultGameCenterService()
-        try await service.submit(score: 12345, leaderboard: "main")
+        do {
+            try await service.submit(score: 12345, leaderboard: GameCenterLeaderboardID.global)
+        } catch {
+            // Unit tests should not require a signed-in Game Center account.
+        }
         let last = await service.lastSubmitted
         #expect(last?.score == 12345)
-        #expect(last?.leaderboard == "main")
+        #expect(last?.leaderboard == GameCenterLeaderboardID.global)
     }
 }
-
 
 
