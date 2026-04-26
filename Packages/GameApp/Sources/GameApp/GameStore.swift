@@ -1055,11 +1055,20 @@ public final class GameStore {
             } else {
                 print("⚠️ VALID MOVES: Low moves — \(oldCount) → \(newCount)")
             }
-        } else if oldCount > 0 && newCount > 5 {
+        } else if newCount > 5 && newCount != oldCount {
             // Log large changes only when not already covered by low-moves log
-            let changePercent = abs(Double(newCount - oldCount) / Double(oldCount) * 100)
-            if changePercent > 50 {
-                print("⚠️ VALID MOVES: Large change detected: \(oldCount) → \(newCount) (\(Int(round(changePercent)))% change)")
+            let diff = newCount - oldCount
+            if oldCount > 0 {
+                let changePercent = Int(round(abs(Double(diff) / Double(oldCount) * 100)))
+                if changePercent > 50 {
+                    if diff > 0 {
+                        print("📈 VALID MOVES: Large increase — \(oldCount) → \(newCount) (+\(changePercent)% change, new milestone / board opened up)")
+                    } else {
+                        print("📉 VALID MOVES: Large decrease — \(oldCount) → \(newCount) (\(changePercent)% change, tile eliminated / board tightened)")
+                    }
+                }
+            } else if oldCount == 0 && newCount > 0 {
+                print("📈 VALID MOVES: Recovered from 0 → \(newCount)")
             }
         }
     }
