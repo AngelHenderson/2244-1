@@ -278,11 +278,11 @@ public struct HybridGameScreen: View {
                 }
             }
             .alert("Low On Moves", isPresented: $isShowingLowOnMoves) {
+                Button("No", role: .cancel) { }
                 Button("Yes") {
                     powerUpOverlayContext = .lowOnMoves
                     isShowingPowerUpOverlay = true
                 }
-                Button("No", role: .cancel) { }
             } message: {
                 Text("You are low on moves. Want to use a powerup to free up moves?")
             }
