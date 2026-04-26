@@ -1,6 +1,9 @@
 import SwiftUI
 import GameApp
 import GameCore
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
 
 /// Root view that manages the flow between Home and Game screens
 public struct RootGameView: View {
@@ -37,12 +40,24 @@ public struct RootGameView: View {
     public init(managesBackground: Bool = true) {
         self.managesBackground = managesBackground
         let localStore = UserDefaultsProgressStore()
-        let remoteStore: ProgressStore? = nil // TODO: Add CloudKit/Firebase store
+        // Best-effort cloud sync: only attaches the Firestore store when Firebase
+        // is configured. The coordinator merges local↔remote with a max policy,
+        // so a missing remote degrades cleanly to local-only.
+        let remoteStore: ProgressStore? = Self.makeRemoteStore()
         self.progressCoordinator = ProgressSyncCoordinator(
             local: localStore,
             remote: remoteStore,
             seed: .init(starterGems: 305, starterTheme: "beach")
         )
+    }
+
+    private static func makeRemoteStore() -> ProgressStore? {
+        #if canImport(FirebaseCore)
+        guard FirebaseApp.app() != nil else { return nil }
+        return FirestoreProgressStore()
+        #else
+        return nil
+        #endif
     }
     
     public var body: some View {
@@ -214,14 +229,12 @@ public struct RootGameView: View {
             },
             watchAd: {
                 guard !purchaseService.isAdFreePurchased else { return 0 }
-                var grantedReward = 0
+                let reward = homeState.adReward
                 let didReward = await adService.showRewarded {
-                    let reward = homeState.adReward
                     homeState.addGems(reward)
                     saveProgress()
-                    grantedReward = reward
                 }
-                return didReward ? grantedReward : 0
+                return didReward ? reward : 0
             },
             openDaily: {
                 showDailyClaims = true

@@ -93,9 +93,9 @@ public extension LeaderboardClient {
     static func mirroring(primary: LeaderboardClient, secondary: LeaderboardClient) -> LeaderboardClient {
         LeaderboardClient(
             authenticate: {
-                async let primaryAuth = primary.authenticate()
-                async let secondaryAuth = secondary.authenticate()
-                return (try? await primaryAuth) == true || (try? await secondaryAuth) == true
+                let primaryAuth = (try? await primary.authenticate()) ?? false
+                let secondaryAuth = (try? await secondary.authenticate()) ?? false
+                return primaryAuth || secondaryAuth
             },
             submitScore: { score in
                 var firstError: Error?

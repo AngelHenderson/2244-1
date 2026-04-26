@@ -1,0 +1,170 @@
+{
+  "identifier" : "F1AD1E1E-2244-4A11-9F00-2244AA2244AA",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000001ADFREE",
+      "localizations" : [
+        {
+          "description" : "Enjoy 2244 without any advertisements",
+          "displayName" : "Remove Ads",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.adfree",
+      "referenceName" : "Remove Ads",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000010COIN1",
+      "localizations" : [
+        {
+          "description" : "500 coins to spend on power-ups",
+          "displayName" : "Coin Pouch",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.coins.small",
+      "referenceName" : "Coin Pouch",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "3.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000011COIN2",
+      "localizations" : [
+        {
+          "description" : "2500 coins with 25% bonus",
+          "displayName" : "Coin Bag",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.coins.medium",
+      "referenceName" : "Coin Bag",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000012COIN3",
+      "localizations" : [
+        {
+          "description" : "10000 coins with 50% bonus",
+          "displayName" : "Coin Chest",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.coins.large",
+      "referenceName" : "Coin Chest",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000020POWUP",
+      "localizations" : [
+        {
+          "description" : "Essential power-ups to boost your game",
+          "displayName" : "Power-Up Pack",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.powerup.bundle",
+      "referenceName" : "Power-Up Pack",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000030THCYB",
+      "localizations" : [
+        {
+          "description" : "Futuristic electronic beats",
+          "displayName" : "Cyberpunk Theme",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.theme.cyberpunk",
+      "referenceName" : "Cyberpunk Theme",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000031THLOF",
+      "localizations" : [
+        {
+          "description" : "Relaxing lo-fi hip hop",
+          "displayName" : "Lo-Fi Theme",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.theme.lofi",
+      "referenceName" : "Lo-Fi Theme",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000032THORC",
+      "localizations" : [
+        {
+          "description" : "Epic cinematic experience",
+          "displayName" : "Orchestral Theme",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.theme.orchestral",
+      "referenceName" : "Orchestral Theme",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000002STARTR",
+      "localizations" : [
+        {
+          "description" : "Perfect for new players! Includes coins, power-ups, and ad-free.",
+          "displayName" : "Starter Pack",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.starter.pack",
+      "referenceName" : "Starter Pack",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "19.99",
+      "familyShareable" : false,
+      "internalID" : "PROD0000003MEGAB",
+      "localizations" : [
+        {
+          "description" : "Ultimate value pack! Includes coins, all power-ups, all premium themes, and ad-free.",
+          "displayName" : "Mega Bundle",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.game2244.mega.bundle",
+      "referenceName" : "Mega Bundle",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "2244000000",
+    "_developerTeamID" : "PLACEHOLDER",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 769718400,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

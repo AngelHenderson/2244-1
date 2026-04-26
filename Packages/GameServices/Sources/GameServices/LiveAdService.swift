@@ -10,19 +10,18 @@ import GameCore
 import UIKit
 #endif
 
+#if canImport(AppTrackingTransparency)
+import AppTrackingTransparency
+#endif
+
 /// Production AdMob-backed ad service.
 ///
 /// **Setup checklist** (so this file actually serves real ads):
-/// 1. Add the `GoogleMobileAds` SwiftPM dependency to `Packages/GameServices/Package.swift`
-///    and to the `GameServices` target. Pin to a known-good version.
-/// 2. In `Info.plist`, add `GADApplicationIdentifier` (string) with your AdMob app ID,
-///    plus `SKAdNetworkItems` per AdMob's published list.
-/// 3. Set the three ad unit IDs below (or pass them via `init(...)`) — the defaults are
+/// 1. Register the production app/ad units in AdMob and replace the test app/ad unit IDs.
+/// 2. Keep `GADApplicationIdentifier` and `SKAdNetworkItems` current with AdMob's published list.
+/// 3. Complete consent/ATT before the first ad load in regions where that is required.
+/// 4. Set the three ad unit IDs below (or pass them via `init(...)`) — the defaults are
 ///    Google's public TEST IDs so you can validate wiring without burning real impressions.
-/// 4. In the app entry, swap `DummyAdService()` for `LiveAdService()`.
-///
-/// Until step 1 is complete, `canImport(GoogleMobileAds)` is false and this service
-/// degrades to the same behavior as `DummyAdService` so the app still compiles + runs.
 @Observable
 @MainActor
 public final class LiveAdService: AdServiceProtocol {
@@ -97,14 +96,14 @@ public final class LiveAdService: AdServiceProtocol {
         await loadRewardedIfNeeded()
         guard let rewarded else { return false }
         guard let root = rootViewController() else { return false }
-        var didReward = false
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+        // Avoid capturing the non-escaping `onReward` inside the continuation
+        // closure; signal via the continuation, then call onReward after we resume.
+        let didReward: Bool = await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
             rewarded.present(from: root) {
-                didReward = true
-                onReward()
-                cont.resume()
+                cont.resume(returning: true)
             }
         }
+        if didReward { onReward() }
         self.rewarded = nil
         Task { await loadRewardedIfNeeded() }
         return didReward
@@ -128,7 +127,18 @@ public final class LiveAdService: AdServiceProtocol {
     private func ensureStarted() async {
         guard !didStart else { return }
         didStart = true
+        await requestTrackingAuthorizationIfNeeded()
         await MobileAds.shared.start()
+    }
+
+    private func requestTrackingAuthorizationIfNeeded() async {
+        #if canImport(AppTrackingTransparency)
+        guard #available(iOS 14.0, *) else { return }
+        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            ATTrackingManager.requestTrackingAuthorization { _ in cont.resume() }
+        }
+        #endif
     }
 
     private func loadInterstitialIfNeeded() async {

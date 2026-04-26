@@ -1,5 +1,15 @@
 # Implementation Notes
 
+## Monetization and Game Center Update (2026-04-26)
+
+- Game Center leaderboard IDs are centralized as `com.game2244.global` and `com.game2244.halloffame`. App launch now mirrors score submissions to Firebase and Game Center, and submits the saved infinity merge count to the Hall of Fame route when present.
+- `IAPProduct.allProducts` is the launch StoreKit catalog. The shop JSON uses `com.game2244.*` IDs, and `PurchaseService` loads the canonical catalog, processes verified StoreKit 2 transactions, stores entitlements, handles restore/revocation, and de-dupes reward delivery by transaction ID.
+- Shop rewards are granted only from verified transactions. Coin and power-up purchases are consumable; ad-free, premium music themes, starter pack, and mega bundle are treated as permanent entitlements.
+- `LiveAdService` is the app ad service. It uses Google Mobile Ads test ad unit IDs by default, initializes the SDK lazily, hides placements when ad-free is purchased, and grants rewarded ad callbacks only from the rewarded completion handler.
+- Tile/background visual picker surfaces remain free by catalog choice. Premium gating currently applies to the music themes backed by StoreKit products.
+
+Production console work still required: enable Game Center and achievements in App Store Connect, create matching IAP products, create the AdMob production app/ad units, replace test AdMob IDs, keep SKAdNetwork IDs current, and complete regional consent setup before release.
+
 ## Current Status
 
 The project has been successfully bootstrapped with a modular architecture following the roadmap specifications:
@@ -77,7 +87,7 @@ swift test --package-path Packages/GameCore
 
 1. The workspace needs manual package linking in Xcode
 2. StoreKit products need configuration in App Store Connect
-3. Ad service is currently dummy implementation only
+3. AdMob production IDs, SKAdNetwork refreshes, and consent-region validation must be completed before release
 
 ## Development Workflow
 

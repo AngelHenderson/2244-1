@@ -1,0 +1,97 @@
+rules_version = '2';
+
+// Security rules for the 2244 app's Firestore data.
+// Paste these into Firebase Console → Firestore Database → Rules,
+// or deploy via `firebase deploy --only firestore:rules`.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------
+    // /players/{uid} — gem balance + per-player metadata.
+    // Written by GemWallet.startCloudSync / syncToCloud
+    // (Packages/GameApp/Sources/GameApp/GemWallet.swift).
+    // ------------------------------------------------------------
+    match /players/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && validGemPayload(request.resource.data);
+      allow delete: if false;
+
+      // ------------------------------------------------------------
+      // /players/{uid}/progress/{document} — full GameProgress blob
+      // synced by FirestoreProgressStore
+      // (Packages/GameApp/Sources/GameApp/FirestoreProgressStore.swift).
+      // ------------------------------------------------------------
+      match /progress/{document=**} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // ------------------------------------------------------------
+      // /players/{uid}/leaderboards/{board} — per-player leaderboard
+      // metadata written by LeaderboardService when submitting scores.
+      // ------------------------------------------------------------
+      match /leaderboards/{board=**} {
+        allow read: if request.auth != null;
+        allow write: if isOwner(uid);
+      }
+
+      // /players/{uid}/purchases/{txnId} — receipt mirror written by
+      // PurchaseService.onVerifiedPurchase (server-side hardening).
+      match /purchases/{txnId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid);
+        allow delete: if false;
+      }
+    }
+
+    // ------------------------------------------------------------
+    // /reports/{id} — player abuse reports written by
+    // FirestoreReportService. Append-only from clients; reads are
+    // server-only (admin SDK / Cloud Functions can read freely).
+    // ------------------------------------------------------------
+    match /reports/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.reporterId == request.auth.uid
+        && validReport(request.resource.data);
+      allow read, update, delete: if false;
+    }
+
+    // ------------------------------------------------------------
+    // /leaderboards/{board}/entries/{uid} — public read, owner write.
+    // Cloud Function should validate scores before mirroring here.
+    // ------------------------------------------------------------
+    match /leaderboards/{board}/entries/{uid} {
+      allow read: if request.auth != null;
+      allow write: if isOwner(uid)
+        && request.resource.data.value is number;
+    }
+
+    // Default-deny for anything else.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function validGemPayload(data) {
+      // Sanity bound on gem balance — prevents trivial inflation.
+      // Tighten further with a Cloud Function that validates deltas.
+      return data.gems is number
+        && data.gems >= 0
+        && data.gems <= 100000000;
+    }
+
+    function validReport(data) {
+      return data.reportedPlayerName is string
+        && data.reportedPlayerName.size() <= 100
+        && data.reason is string
+        && data.reason.size() <= 200
+        && (!('additionalDetails' in data) || data.additionalDetails.size() <= 2000);
+    }
+  }
+}
