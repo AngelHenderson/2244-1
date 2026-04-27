@@ -11,6 +11,7 @@
 - Google Mobile Ads is pinned from v13.0.0 and currently resolves to 13.2.0. Google User Messaging Platform is included through Swift Package Manager for consent and privacy options. Debug builds use Google's current iOS demo ad unit IDs: banner (`ca-app-pub-3940256099942544/2435281174`), interstitial (`ca-app-pub-3940256099942544/4411468910`), rewarded (`ca-app-pub-3940256099942544/1712485313`), and rewarded interstitial (`ca-app-pub-3940256099942544/6978759866`).
 - `Info.plist` includes Google's current AdMob SKAdNetworkItems quick-start list. Re-check this list before each release because Google updates it over time.
 - Tile/background visual picker surfaces remain free by catalog choice. Premium gating currently applies to the music themes backed by StoreKit products.
+- The app target bundle identifier is aligned to the App Store Connect 2244 record: `2244.ideabloomlabs.com`.
 
 Production console work still required: enable Game Center and achievements in App Store Connect, create matching IAP products, create/publish the AdMob Privacy & messaging forms for required regions, finish the AdMob payment profile, and link the app to its store listing to avoid limited ad serving once the App Store listing is available.
 
