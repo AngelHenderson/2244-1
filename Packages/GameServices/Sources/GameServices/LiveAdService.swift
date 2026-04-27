@@ -220,11 +220,18 @@ public struct LiveBannerAdView: View {
 
     public var body: some View {
         #if canImport(GoogleMobileAds) && canImport(UIKit)
-        let width = max(320, UIScreen.main.bounds.width)
-        let adSize = currentOrientationAnchoredAdaptiveBanner(width: width)
-        BannerRepresentable(adUnitID: adUnitID, adSize: adSize)
-            .frame(width: adSize.size.width, height: adSize.size.height)
-            .background(Color.clear)
+        GeometryReader { proxy in
+            let width = max(320, proxy.size.width)
+            let adSize = largeAnchoredAdaptiveBanner(width: width)
+            HStack {
+                Spacer(minLength: 0)
+                BannerRepresentable(adUnitID: adUnitID, adSize: adSize)
+                    .frame(width: adSize.size.width, height: adSize.size.height)
+                Spacer(minLength: 0)
+            }
+        }
+        .frame(height: 90)
+        .background(Color.clear)
         #else
         EmptyView()
         #endif

@@ -12,10 +12,10 @@ public struct AdConfiguration: Codable, Sendable {
     public let placementRules: [AdPlacementRule]
 
     public init(
-        bannerId: String = "ca-app-pub-3940256099942544/6300978111",
-        interstitialId: String = "ca-app-pub-3940256099942544/1033173712",
-        rewardedId: String = "ca-app-pub-3940256099942544/5224354917",
-        rewardedInterstitialId: String? = "ca-app-pub-3940256099942544/5354046379",
+        bannerId: String = "ca-app-pub-3940256099942544/2435281174",
+        interstitialId: String = "ca-app-pub-3940256099942544/4411468910",
+        rewardedId: String = "ca-app-pub-3940256099942544/1712485313",
+        rewardedInterstitialId: String? = "ca-app-pub-3940256099942544/6978759866",
         nativeId: String? = nil,
         testMode: Bool = true,
         adFrequency: AdFrequency = .normal,

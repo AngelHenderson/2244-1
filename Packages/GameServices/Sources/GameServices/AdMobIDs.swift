@@ -1,6 +1,8 @@
 import Foundation
 
-public struct AdMobIDs: Equatable, Sendable {
+public typealias AdMobIDs = Game2244AdMobIDs
+
+public struct Game2244AdMobIDs: Equatable, Sendable {
     public let appID: String
     public let banner: String
     public let interstitial: String
@@ -21,15 +23,15 @@ public struct AdMobIDs: Equatable, Sendable {
         self.rewardedInterstitial = rewardedInterstitial
     }
 
-    public static let debug = AdMobIDs(
+    public static let debug = Game2244AdMobIDs(
         appID: "ca-app-pub-3940256099942544~1458002511",
-        banner: "ca-app-pub-3940256099942544/6300978111",
-        interstitial: "ca-app-pub-3940256099942544/1033173712",
-        rewarded: "ca-app-pub-3940256099942544/5224354917",
-        rewardedInterstitial: "ca-app-pub-3940256099942544/5354046379"
+        banner: "ca-app-pub-3940256099942544/2435281174",
+        interstitial: "ca-app-pub-3940256099942544/4411468910",
+        rewarded: "ca-app-pub-3940256099942544/1712485313",
+        rewardedInterstitial: "ca-app-pub-3940256099942544/6978759866"
     )
 
-    public static let production = AdMobIDs(
+    public static let production = Game2244AdMobIDs(
         appID: "ca-app-pub-7853395118626839~7726164547",
         banner: "ca-app-pub-7853395118626839/5881765682",
         interstitial: "ca-app-pub-7853395118626839/8723551443",
@@ -37,15 +39,18 @@ public struct AdMobIDs: Equatable, Sendable {
         rewardedInterstitial: "ca-app-pub-7853395118626839/6221511185"
     )
 
-    public static func resolved(from bundle: Bundle = .main) -> AdMobIDs {
-        let fallback: AdMobIDs
+    public static var current: Game2244AdMobIDs {
         #if DEBUG
-        fallback = .debug
+        debug
         #else
-        fallback = .production
+        production
         #endif
+    }
 
-        return AdMobIDs(
+    public static func resolved(from bundle: Bundle = .main) -> Game2244AdMobIDs {
+        let fallback = current
+
+        return Game2244AdMobIDs(
             appID: string(for: Keys.appID, in: bundle) ?? fallback.appID,
             banner: string(for: Keys.banner, in: bundle) ?? fallback.banner,
             interstitial: string(for: Keys.interstitial, in: bundle) ?? fallback.interstitial,

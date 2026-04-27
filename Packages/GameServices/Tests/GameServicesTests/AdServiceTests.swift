@@ -10,10 +10,10 @@ struct AdServiceTests {
 
         #expect(ids == .debug)
         #expect(ids.appID == "ca-app-pub-3940256099942544~1458002511")
-        #expect(ids.banner == "ca-app-pub-3940256099942544/6300978111")
-        #expect(ids.interstitial == "ca-app-pub-3940256099942544/1033173712")
-        #expect(ids.rewarded == "ca-app-pub-3940256099942544/5224354917")
-        #expect(ids.rewardedInterstitial == "ca-app-pub-3940256099942544/5354046379")
+        #expect(ids.banner == "ca-app-pub-3940256099942544/2435281174")
+        #expect(ids.interstitial == "ca-app-pub-3940256099942544/4411468910")
+        #expect(ids.rewarded == "ca-app-pub-3940256099942544/1712485313")
+        #expect(ids.rewardedInterstitial == "ca-app-pub-3940256099942544/6978759866")
     }
 
     @Test
@@ -30,6 +30,26 @@ struct AdServiceTests {
         #expect(production.interstitialId == AdMobIDs.production.interstitial)
         #expect(production.rewardedId == AdMobIDs.production.rewarded)
         #expect(production.rewardedInterstitialId == AdMobIDs.production.rewardedInterstitial)
+    }
+
+    @Test
+    @MainActor
+    func game2244AdManagerAppliesBannerRules() {
+        let manager = Game2244AdManager(ids: .debug)
+
+        #expect(manager.shouldShowBanner(on: .home))
+        #expect(!manager.shouldShowBanner(on: .board))
+
+        manager.beginGame()
+        #expect(!manager.shouldShowBanner(on: .home))
+
+        manager.endGame()
+        manager.isPremium = true
+        #expect(!manager.shouldShowBanner(on: .home))
+
+        manager.isPremium = false
+        manager.canRequestAds = false
+        #expect(!manager.shouldShowBanner(on: .home))
     }
 
     @Test
