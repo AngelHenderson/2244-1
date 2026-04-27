@@ -13,7 +13,7 @@
 - Tile/background visual picker surfaces remain free by catalog choice. Premium gating currently applies to the music themes backed by StoreKit products.
 - The app target bundle identifier is aligned to the App Store Connect 2244 record: `2244.ideabloomlabs.com`.
 
-Production console work still required: enable Game Center and achievements in App Store Connect, create matching IAP products, create/publish the AdMob Privacy & messaging forms for required regions, finish the AdMob payment profile, and link the app to its store listing to avoid limited ad serving once the App Store listing is available.
+Production console progress: App Store Connect now has the matching `com.game2244.*` IAP draft records, English (U.S.) localizations, all-country availability, and Game Center draft leaderboards for `com.game2244.global` and `com.game2244.halloffame`. Production console work still required: complete the Paid Application agreement/payment setup so pricing can be added, upload IAP review screenshots, attach the IAPs and Game Center leaderboards to the app version, complete App Privacy, create/publish the AdMob Privacy & messaging forms for required regions, finish the AdMob payment profile, and link the app to its store listing to avoid limited ad serving once the App Store listing is available.
 
 ## Current Status
 
