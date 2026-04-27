@@ -3,7 +3,9 @@
     "allow": [
       "Bash(git merge *)",
       "Bash(git add *)",
-      "Bash(xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -quiet clean build)"
+      "Bash(xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -quiet clean build)",
+      "Bash(git fetch *)",
+      "Bash(git rev-list *)"
     ]
   }
 }
