@@ -21,7 +21,15 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>$(ADMOB_APP_ID)</string>
+	<key>GADBannerAdUnitID</key>
+	<string>$(ADMOB_BANNER_AD_UNIT_ID)</string>
+	<key>GADInterstitialAdUnitID</key>
+	<string>$(ADMOB_INTERSTITIAL_AD_UNIT_ID)</string>
+	<key>GADRewardedAdUnitID</key>
+	<string>$(ADMOB_REWARDED_AD_UNIT_ID)</string>
+	<key>GADRewardedInterstitialAdUnitID</key>
+	<string>$(ADMOB_REWARDED_INTERSTITIAL_AD_UNIT_ID)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.games</string>
 	<key>NSUserTrackingUsageDescription</key>

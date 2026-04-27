@@ -4,6 +4,7 @@ public struct AdConfiguration: Codable, Sendable {
     public let bannerId: String
     public let interstitialId: String
     public let rewardedId: String
+    public let rewardedInterstitialId: String?
     public let nativeId: String?
     public let testMode: Bool
     public let adFrequency: AdFrequency
@@ -11,10 +12,11 @@ public struct AdConfiguration: Codable, Sendable {
     public let placementRules: [AdPlacementRule]
 
     public init(
-        bannerId: String = "ca-app-pub-3940256099942544/2435281174",
-        interstitialId: String = "ca-app-pub-3940256099942544/4411468910",
-        rewardedId: String = "ca-app-pub-3940256099942544/1712485313",
-        nativeId: String? = "ca-app-pub-3940256099942544/3986624511",
+        bannerId: String = "ca-app-pub-3940256099942544/6300978111",
+        interstitialId: String = "ca-app-pub-3940256099942544/1033173712",
+        rewardedId: String = "ca-app-pub-3940256099942544/5224354917",
+        rewardedInterstitialId: String? = "ca-app-pub-3940256099942544/5354046379",
+        nativeId: String? = nil,
         testMode: Bool = true,
         adFrequency: AdFrequency = .normal,
         rewardedAdReward: AdReward = .default,
@@ -23,6 +25,7 @@ public struct AdConfiguration: Codable, Sendable {
         self.bannerId = bannerId
         self.interstitialId = interstitialId
         self.rewardedId = rewardedId
+        self.rewardedInterstitialId = rewardedInterstitialId
         self.nativeId = nativeId
         self.testMode = testMode
         self.adFrequency = adFrequency
@@ -32,10 +35,11 @@ public struct AdConfiguration: Codable, Sendable {
 
     public static var production: AdConfiguration {
         return AdConfiguration(
-            bannerId: "ca-app-pub-YOUR-PRODUCTION-ID/banner",
-            interstitialId: "ca-app-pub-YOUR-PRODUCTION-ID/interstitial",
-            rewardedId: "ca-app-pub-YOUR-PRODUCTION-ID/rewarded",
-            nativeId: "ca-app-pub-YOUR-PRODUCTION-ID/native",
+            bannerId: "ca-app-pub-7853395118626839/5881765682",
+            interstitialId: "ca-app-pub-7853395118626839/8723551443",
+            rewardedId: "ca-app-pub-7853395118626839/5100001208",
+            rewardedInterstitialId: "ca-app-pub-7853395118626839/6221511185",
+            nativeId: nil,
             testMode: false
         )
     }

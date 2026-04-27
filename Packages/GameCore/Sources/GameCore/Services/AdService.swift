@@ -6,12 +6,15 @@ public protocol AdServiceProtocol: Sendable {
     func hideBanner() async
     func showInterstitial() async -> Bool
     func showRewarded(onReward: @MainActor @Sendable () -> Void) async -> Bool
+    func showRewardedInterstitial(onReward: @MainActor @Sendable () -> Void) async -> Bool
     func isAdFree() async -> Bool
     // Allow app to update ad-free state after purchases
     @MainActor func setAdFree(_ value: Bool)
 }
 
 public extension AdServiceProtocol {
+    func showRewardedInterstitial(onReward: @MainActor @Sendable () -> Void) async -> Bool { false }
+
     @MainActor func setAdFree(_ value: Bool) {}
 }
 
@@ -39,6 +42,14 @@ public final class DummyAdService: AdServiceProtocol {
     }
     
     public func showRewarded(onReward: @MainActor @Sendable () -> Void) async -> Bool {
+        guard !adFree else { return false }
+        try? await Task.sleep(for: .seconds(0.5))
+        onReward()
+        return true
+    }
+
+    public func showRewardedInterstitial(onReward: @MainActor @Sendable () -> Void) async -> Bool {
+        guard !adFree else { return false }
         try? await Task.sleep(for: .seconds(0.5))
         onReward()
         return true

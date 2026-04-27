@@ -16,20 +16,11 @@ import AppTrackingTransparency
 
 /// Production AdMob-backed ad service.
 ///
-/// **Setup checklist** (so this file actually serves real ads):
-/// 1. Register the production app/ad units in AdMob and replace the test app/ad unit IDs.
-/// 2. Keep `GADApplicationIdentifier` and `SKAdNetworkItems` current with AdMob's published list.
-/// 3. Complete consent/ATT before the first ad load in regions where that is required.
-/// 4. Set the three ad unit IDs below (or pass them via `init(...)`) — the defaults are
-///    Google's public TEST IDs so you can validate wiring without burning real impressions.
+/// Production and debug ad unit IDs are resolved from the app bundle's Info.plist,
+/// with package-test fallbacks supplied by `AdMobIDs`.
 @Observable
 @MainActor
 public final class LiveAdService: AdServiceProtocol {
-
-    // MARK: - Test Ad Unit IDs (replace with production IDs from your AdMob console)
-    public static let testBannerUnitID = "ca-app-pub-3940256099942544/2934735716"
-    public static let testInterstitialUnitID = "ca-app-pub-3940256099942544/4411468910"
-    public static let testRewardedUnitID = "ca-app-pub-3940256099942544/1712485313"
 
     public var isBannerVisible: Bool = false
     private var adFree: Bool = false
@@ -37,21 +28,20 @@ public final class LiveAdService: AdServiceProtocol {
     private let bannerUnitID: String
     private let interstitialUnitID: String
     private let rewardedUnitID: String
+    private let rewardedInterstitialUnitID: String
 
     #if canImport(GoogleMobileAds)
     private var interstitial: InterstitialAd?
     private var rewarded: RewardedAd?
+    private var rewardedInterstitial: RewardedInterstitialAd?
     private var didStart: Bool = false
     #endif
 
-    public init(
-        bannerUnitID: String = LiveAdService.testBannerUnitID,
-        interstitialUnitID: String = LiveAdService.testInterstitialUnitID,
-        rewardedUnitID: String = LiveAdService.testRewardedUnitID
-    ) {
-        self.bannerUnitID = bannerUnitID
-        self.interstitialUnitID = interstitialUnitID
-        self.rewardedUnitID = rewardedUnitID
+    public init(adMobIDs: AdMobIDs = .resolved()) {
+        self.bannerUnitID = adMobIDs.banner
+        self.interstitialUnitID = adMobIDs.interstitial
+        self.rewardedUnitID = adMobIDs.rewarded
+        self.rewardedInterstitialUnitID = adMobIDs.rewardedInterstitial
         adFree = UserDefaults.standard.bool(forKey: "isAdFreePurchased")
     }
 
@@ -106,6 +96,29 @@ public final class LiveAdService: AdServiceProtocol {
         if didReward { onReward() }
         self.rewarded = nil
         Task { await loadRewardedIfNeeded() }
+        return didReward
+        #else
+        try? await Task.sleep(for: .seconds(0.5))
+        onReward()
+        return true
+        #endif
+    }
+
+    public func showRewardedInterstitial(onReward: @MainActor @Sendable () -> Void) async -> Bool {
+        guard !adFree else { return false }
+        #if canImport(GoogleMobileAds)
+        await ensureStarted()
+        await loadRewardedInterstitialIfNeeded()
+        guard let rewardedInterstitial else { return false }
+        guard let root = rootViewController() else { return false }
+        let didReward: Bool = await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
+            rewardedInterstitial.present(from: root) {
+                cont.resume(returning: true)
+            }
+        }
+        if didReward { onReward() }
+        self.rewardedInterstitial = nil
+        Task { await loadRewardedInterstitialIfNeeded() }
         return didReward
         #else
         try? await Task.sleep(for: .seconds(0.5))
@@ -171,6 +184,21 @@ public final class LiveAdService: AdServiceProtocol {
         }
     }
 
+    private func loadRewardedInterstitialIfNeeded() async {
+        guard rewardedInterstitial == nil else { return }
+        let request = Request()
+        do {
+            rewardedInterstitial = try await RewardedInterstitialAd.load(
+                with: rewardedInterstitialUnitID,
+                request: request
+            )
+        } catch {
+            #if DEBUG
+            print("LiveAdService: rewarded interstitial load failed:", error)
+            #endif
+        }
+    }
+
     private func rootViewController() -> UIViewController? {
         #if canImport(UIKit)
         UIApplication.shared.connectedScenes
@@ -186,7 +214,7 @@ public final class LiveAdService: AdServiceProtocol {
 public struct LiveBannerAdView: View {
     private let adUnitID: String
 
-    public init(adUnitID: String = LiveAdService.testBannerUnitID) {
+    public init(adUnitID: String = AdMobIDs.resolved().banner) {
         self.adUnitID = adUnitID
     }
 

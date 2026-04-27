@@ -5,10 +5,11 @@
 - Game Center leaderboard IDs are centralized as `com.game2244.global` and `com.game2244.halloffame`. App launch now mirrors score submissions to Firebase and Game Center, and submits the saved infinity merge count to the Hall of Fame route when present.
 - `IAPProduct.allProducts` is the launch StoreKit catalog. The shop JSON uses `com.game2244.*` IDs, and `PurchaseService` loads the canonical catalog, processes verified StoreKit 2 transactions, stores entitlements, handles restore/revocation, and de-dupes reward delivery by transaction ID.
 - Shop rewards are granted only from verified transactions. Coin and power-up purchases are consumable; ad-free, premium music themes, starter pack, and mega bundle are treated as permanent entitlements.
-- `LiveAdService` is the app ad service. It uses Google Mobile Ads test ad unit IDs by default, initializes the SDK lazily, hides placements when ad-free is purchased, and grants rewarded ad callbacks only from the rewarded completion handler.
+- `LiveAdService` is the app ad service. It resolves Google Mobile Ads IDs from the app bundle, uses Google test IDs in Debug builds, uses the 2244 production IDs in Release builds, initializes the SDK lazily, hides placements when ad-free is purchased, and grants rewarded callbacks only from ad reward handlers.
+- AdMob production app/ad units are configured for banner (`ca-app-pub-7853395118626839/5881765682`), interstitial (`ca-app-pub-7853395118626839/8723551443`), rewarded (`ca-app-pub-7853395118626839/5100001208`), and rewarded interstitial (`ca-app-pub-7853395118626839/6221511185`). Rewarded interstitial is service-wired only; no gameplay placement uses it yet.
 - Tile/background visual picker surfaces remain free by catalog choice. Premium gating currently applies to the music themes backed by StoreKit products.
 
-Production console work still required: enable Game Center and achievements in App Store Connect, create matching IAP products, create the AdMob production app/ad units, replace test AdMob IDs, keep SKAdNetwork IDs current, and complete regional consent setup before release.
+Production console work still required: enable Game Center and achievements in App Store Connect, create matching IAP products, keep SKAdNetwork IDs current, complete regional consent setup before release, finish the AdMob payment profile, and link the app to its store listing to avoid limited ad serving.
 
 ## Current Status
 
