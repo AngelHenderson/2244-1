@@ -25,6 +25,7 @@ public struct HybridGameScreen: View {
     @Environment(\.gameStore) private var gameStore
     @Environment(\.adService) private var adService
     @Environment(\.hapticsService) private var haptics
+    @Environment(\.audio) private var audioService
     @Environment(\.gameCenter) private var gameCenter
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -284,11 +285,11 @@ public struct HybridGameScreen: View {
                 }
             }
             .alert("Low On Moves", isPresented: $isShowingLowOnMoves) {
+                Button("No", role: .cancel) { }
                 Button("Yes") {
                     powerUpOverlayContext = .lowOnMoves
                     isShowingPowerUpOverlay = true
                 }
-                Button("No", role: .cancel) { }
             } message: {
                 Text("You are low on moves. Want to use a powerup to free up moves?")
             }
@@ -312,6 +313,12 @@ public struct HybridGameScreen: View {
                     // Compute milestone directly from step to avoid UserDefaults delay
                     let milestone = TileStepLabelFormatter.labelForStep(newStep, start: 2)
                     tempHomeState.rank = UserLeaderboardData.globalRank(for: milestone)
+                }
+            }
+            .onChange(of: gameStore.didCreateFirstInfinity) { _, isFirst in
+                if isFirst {
+                    Task { await audioService.playSfx(name: "cheer") }
+                    gameStore.clearFirstInfinityEvent()
                 }
             }
         

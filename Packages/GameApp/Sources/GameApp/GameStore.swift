@@ -119,6 +119,8 @@ public final class GameStore {
     private var refillRevealTask: Task<Void, Never>? = nil
     private var mergeCleanupTask: Task<Void, Never>? = nil
     public private(set) var hammerAnimationState: HammerAnimationState? = nil
+    /// Fires once when the player creates their very first infinity tile (non-sandboxed only)
+    public private(set) var didCreateFirstInfinity: Bool = false
     // Milestone elimination ghost animation - shows tiles fading out after elimination
     public private(set) var milestoneEliminatedTiles: [GameEngine.EliminatedTileInfo] = []
     // Pending elimination tiles to animate after excluded notification is dismissed
@@ -1049,11 +1051,28 @@ public final class GameStore {
             state.isGameOver = true
         }
 
-        // Debug: Log significant changes
-        if oldCount > 0 {
-            let changePercent = abs(Double(newCount - oldCount) / Double(oldCount) * 100)
-            if changePercent > 50 {
-                print("⚠️ VALID MOVES: Large change detected: \(oldCount) → \(newCount) (\(Int(round(changePercent)))% change)")
+        // Log when moves are low (1–5) with percentage change
+        if newCount > 0 && newCount <= 5 && newCount != oldCount {
+            if oldCount > 0 {
+                let changePercent = Int(round(abs(Double(newCount - oldCount) / Double(oldCount) * 100)))
+                print("⚠️ VALID MOVES: Low moves — \(oldCount) → \(newCount) (\(changePercent)% change)")
+            } else {
+                print("⚠️ VALID MOVES: Low moves — \(oldCount) → \(newCount)")
+            }
+        } else if newCount > 5 && newCount != oldCount {
+            // Log large changes only when not already covered by low-moves log
+            let diff = newCount - oldCount
+            if oldCount > 0 {
+                let changePercent = Int(round(abs(Double(diff) / Double(oldCount) * 100)))
+                if changePercent > 50 {
+                    if diff > 0 {
+                        print("📈 VALID MOVES: Large increase — \(oldCount) → \(newCount) (+\(changePercent)% change, new milestone / board opened up)")
+                    } else {
+                        print("📉 VALID MOVES: Large decrease — \(oldCount) → \(newCount) (\(changePercent)% change, tile eliminated / board tightened)")
+                    }
+                }
+            } else if oldCount == 0 && newCount > 0 {
+                print("📈 VALID MOVES: Recovered from 0 → \(newCount)")
             }
         }
     }
@@ -1155,6 +1174,10 @@ public final class GameStore {
                let tile = state.board[lastPos],
                tile.isInfinity {
                 achievementEvaluator?.onInfinityCreated()
+                // Fire the first-infinity event once (non-sandboxed only)
+                if !sandboxed && !UserDefaults.standard.bool(forKey: "hasInfinityAchievement") {
+                    didCreateFirstInfinity = true
+                }
             }
             
             // Track infinity merges for Hall of Fame leaderboard
@@ -2100,7 +2123,20 @@ public final class GameStore {
             triggerEliminationAnimation()
         }
         currentNotification = nil
-        showNextNotification()
+        // Delay before showing next notification so SwiftUI can complete the
+        // sheet dismiss animation. Without this, the binding goes
+        // true→false→true in a single frame and SwiftUI won't re-present.
+        if !notificationQueue.isEmpty {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 400_000_000) // 0.4 seconds
+                showNextNotification()
+            }
+        }
+    }
+
+    /// Acknowledge the first-infinity event (called by UI after playing the cheer sound)
+    public func clearFirstInfinityEvent() {
+        didCreateFirstInfinity = false
     }
 
     /// Trigger the elimination ghost animation after excluded notification is dismissed
@@ -3312,7 +3348,7 @@ extension GameStore {
                 formattedMilestone = TileStepLabelFormatter.formatTileValue(currentHighest)
             }
             UserDefaults.standard.set(formattedMilestone, forKey: "leaderboard.milestone")
-            print("🏆 New all-time highest tile: \(currentHighest) (step \(currentHighestStep)) - milestone: \(formattedMilestone)")
+            print("🏆 New all-time highest tile: \(formattedMilestone) (step \(currentHighestStep))")
         }
 
         #if DEBUG

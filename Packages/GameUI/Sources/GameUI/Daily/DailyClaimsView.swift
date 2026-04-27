@@ -906,7 +906,18 @@ private struct YearlyRewardPageView: View {
                     .foregroundStyle(.secondary)
                 }
             } else {
-                // Locked state - hasn't reached target yet
+                // Locked state - show reward preview so users know what they're working toward
+                HStack(spacing: 12) {
+                    ForEach(claim.rewards.entries, id: \.self) { entry in
+                        HStack(spacing: 6) {
+                            RewardIconView(kind: entry.kind, font: .avenirNext(size: GameFonts.title2Size, weight: .regular))
+                            Text("\(entry.amount) \(entry.kind.displayName)")
+                        }
+                        .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
+                    }
+                }
+                .opacity(0.5)
+
                 Image(systemName: "lock.fill")
                     .font(.avenirNext(size: 48, weight: .regular))
                     .foregroundStyle(.secondary)

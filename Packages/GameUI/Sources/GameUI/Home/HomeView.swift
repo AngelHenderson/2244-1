@@ -104,16 +104,6 @@ public struct HomeView: View {
                             )
 
                             SideRailButton(
-                                systemImage: nil,
-                                customImage: "salesoffer",
-                                title: "SALE OFFER",
-                                badge: true,
-                                // Until a dedicated sale-offer flow exists (Batch C), reuse the
-                                // weekly offer sheet rather than dead-ending the tap.
-                                action: { isShowingWeeklyOffer = true }
-                            )
-
-                            SideRailButton(
                                 systemImage: "bolt.fill",
                                 customImage: nil,
                                 title: "BOOSTS",

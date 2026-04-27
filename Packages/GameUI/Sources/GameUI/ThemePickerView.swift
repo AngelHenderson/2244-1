@@ -193,7 +193,7 @@ private struct PlayButtonColorCard: View {
     let onSelect: () -> Void
     
     var body: some View {
-        Button(action: onSelect) {
+        Button(action: { onSelect() }) {
             VStack(spacing: 12) {
                 // Preview of play button with this color
                 Image(systemName: "play.fill")
@@ -420,7 +420,7 @@ private struct ThemeCard: View {
         let onSelect: () -> Void
         
         var body: some View {
-            Button(action: onSelect) {
+            Button(action: { onSelect() }) {
                 VStack(spacing: 8) {
                     BackgroundPreview(theme: theme)
                         .aspectRatio(9/16, contentMode: .fit)
@@ -487,7 +487,7 @@ private struct ThemeCard: View {
         let onSelect: () -> Void
         
         var body: some View {
-            Button(action: onSelect) {
+            Button(action: { onSelect() }) {
                 VStack(spacing: 8) {
                     WallpaperPreview(wallpaper: wallpaper)
                         .aspectRatio(9/16, contentMode: .fit)

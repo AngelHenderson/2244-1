@@ -99,6 +99,15 @@ public actor LiveAudioService: AudioServiceProtocol {
     private var sfxPlayerPool: [String: [AVAudioPlayer]] = [:]
     private var tickPlayers: [AVAudioPlayer] = []
     
+    // Circuit breaker: track URLs that fail to instantiate so we stop retrying
+    private var failedURLs: [String: (count: Int, lastAttempt: Date)] = [:]
+    private let maxFailuresBeforeCircuitBreak = 3
+    private let circuitBreakerCooldown: TimeInterval = 30  // Try again after 30 seconds
+    
+    // Log throttling: avoid spamming the same SFX log line
+    private var lastSfxLogTime: [String: Date] = [:]
+    private let sfxLogThrottleInterval: TimeInterval = 5
+    
     private var instrumentTapIndex: Int = 0
     private let storage = AudioSettingsStorage()
     private let maxConcurrentIdenticalSfx = 4  // Limit concurrent IDENTICAL sound effects
@@ -297,17 +306,18 @@ public actor LiveAudioService: AudioServiceProtocol {
         let sfxEnabled = _cachedSfxEnabled
         let currentTheme = _cachedTheme
         
-        print("🎧 playSfx('\(name)') called — sfxEnabled=\(sfxEnabled), theme='\(currentTheme)'")
-        
-        guard sfxEnabled else { 
-            print("🔇 SFX disabled, not playing: \(name)")
-            return 
+        // Throttle verbose SFX logging
+        let now = Date()
+        let logKey = "playSfx_\(name)"
+        if lastSfxLogTime[logKey] == nil || now.timeIntervalSince(lastSfxLogTime[logKey]!) > sfxLogThrottleInterval {
+            lastSfxLogTime[logKey] = now
+            print("🎧 playSfx('\(name)') — sfxEnabled=\(sfxEnabled), theme='\(currentTheme)'")
         }
+        
+        guard sfxEnabled else { return }
         
         // Periodic health check - ensure audio session is still active
         periodicAudioSessionCheck()
-        
-        print("🔊 Playing SFX: \(name), current theme: '\(currentTheme)'")
 
         // Handle merge sound - play single instrument tap sound
         if name == "merge" {
@@ -668,6 +678,20 @@ public actor LiveAudioService: AudioServiceProtocol {
     private func getPooledPlayer(for url: URL) -> AVAudioPlayer? {
         let key = url.path
         
+        // Circuit breaker: skip URLs that have failed too many times recently
+        if let failure = failedURLs[key] {
+            if failure.count >= maxFailuresBeforeCircuitBreak {
+                // Check if cooldown has passed
+                if Date().timeIntervalSince(failure.lastAttempt) < circuitBreakerCooldown {
+                    return nil  // Silently skip — circuit is open
+                } else {
+                    // Cooldown passed — reset and try again
+                    failedURLs.removeValue(forKey: key)
+                    print("🔄 Audio circuit breaker reset for: \(url.lastPathComponent)")
+                }
+            }
+        }
+        
         // 1. Try to find an idle player in the pool for this sound
         if let pool = sfxPlayerPool[key] {
             if let idlePlayer = pool.first(where: { !$0.isPlaying }) {
@@ -684,9 +708,20 @@ public actor LiveAudioService: AudioServiceProtocol {
                 let newPlayer = try AVAudioPlayer(contentsOf: url)
                 newPlayer.prepareToPlay()
                 sfxPlayerPool[key, default: []].append(newPlayer)
+                // Clear any previous failure record on success
+                failedURLs.removeValue(forKey: key)
                 return newPlayer
             } catch {
-                print("❌ Pooling failed to instantiate player: \(error)")
+                // Track the failure
+                let existing = failedURLs[key]
+                let newCount = (existing?.count ?? 0) + 1
+                failedURLs[key] = (count: newCount, lastAttempt: Date())
+                if newCount <= maxFailuresBeforeCircuitBreak {
+                    print("❌ Pooling failed (\(newCount)/\(maxFailuresBeforeCircuitBreak)) for \(url.lastPathComponent): \(error.localizedDescription)")
+                }
+                if newCount == maxFailuresBeforeCircuitBreak {
+                    print("🔇 Audio circuit breaker OPEN for \(url.lastPathComponent) — suppressing further attempts for \(Int(circuitBreakerCooldown))s")
+                }
                 return nil
             }
         }

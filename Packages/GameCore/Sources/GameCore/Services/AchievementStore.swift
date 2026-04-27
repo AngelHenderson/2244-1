@@ -749,39 +749,101 @@ public final class AchievementStore {
     ]
 
     private static let boost3xUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 1, categoryLabel: "1 use", rewards: .init(gems: 100)),
+        .init(milestone: 3, categoryLabel: "3 uses", rewards: .init(hammers: 1)),
         .init(milestone: 5, categoryLabel: "5 uses", rewards: .init(gems: 600)),
         .init(milestone: 10, categoryLabel: "10 uses", rewards: .init(gems: 750, magnets: 1)),
+        .init(milestone: 15, categoryLabel: "15 uses", rewards: .init(spins: 2)),
         .init(milestone: 20, categoryLabel: "20 uses", rewards: .init(gems: 1100, hammers: 1)),
+        .init(milestone: 35, categoryLabel: "35 uses", rewards: .init(hammers: 1)),
         .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1600, hammers: 1)),
+        .init(milestone: 75, categoryLabel: "75 uses", rewards: .init(spins: 2)),
         .init(milestone: 100, categoryLabel: "100 uses", rewards: .init(gems: 2300)),
         .init(milestone: 150, categoryLabel: "150 uses", rewards: .init(gems: 3125, spins: 1, boost3x: 1)),
         .init(milestone: 200, categoryLabel: "200 uses", rewards: .init(gems: 3000, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1)),
-        .init(milestone: 250, categoryLabel: "250 uses", rewards: .init(gems: 5000))
+        .init(milestone: 250, categoryLabel: "250 uses", rewards: .init(gems: 5000)),
+        .init(milestone: 375, categoryLabel: "375 uses", rewards: .init(gems: 4830, magnets: 1, boost3x: 1)),
+        .init(milestone: 500, categoryLabel: "500 uses", rewards: .init(gems: 5100)),
+        .init(milestone: 625, categoryLabel: "625 uses", rewards: .init(spins: 7)),
+        .init(milestone: 750, categoryLabel: "750 uses", rewards: .init(gems: 4750, magnets: 1, swaps: 1)),
+        .init(milestone: 875, categoryLabel: "875 uses", rewards: .init(gems: 5500)),
+        .init(milestone: 1000, categoryLabel: "1000 uses", rewards: .init(boost3x: 1, boost4x: 1)),
+        .init(milestone: 1250, categoryLabel: "1250 uses", rewards: .init()),
+        .init(milestone: 1500, categoryLabel: "1500 uses", rewards: .init(gems: 5340)),
+        .init(milestone: 2000, categoryLabel: "2000 uses", rewards: .init(gems: 5540)),
+        .init(milestone: 2500, categoryLabel: "2500 uses", rewards: .init(spins: 5, hammers: 1, magnets: 2)),
+        .init(milestone: 3000, categoryLabel: "3000 uses", rewards: .init(gems: 5800)),
+        .init(milestone: 4000, categoryLabel: "4000 uses", rewards: .init(gems: 6500)),
+        .init(milestone: 5000, categoryLabel: "5000 uses", rewards: .init(spins: 10)),
+        .init(milestone: 6250, categoryLabel: "6250 uses", rewards: .init(gems: 9800)),
+        .init(milestone: 7500, categoryLabel: "7500 uses", rewards: .init(magnets: 2)),
+        .init(milestone: 8750, categoryLabel: "8750 uses", rewards: .init(spins: 5, boost4x: 1)),
+        .init(milestone: 10000, categoryLabel: "10000 uses", rewards: .init(gems: 15000))
     ]
 
     private static let boost4xUseTiers: [ComboTierDefinition] = [
+        .init(milestone: 1, categoryLabel: "1 use", rewards: .init(gems: 100)),
+        .init(milestone: 3, categoryLabel: "3 uses", rewards: .init(hammers: 1)),
         .init(milestone: 5, categoryLabel: "5 uses", rewards: .init(gems: 400, spins: 1)),
-        .init(milestone: 15, categoryLabel: "15 uses", rewards: .init(gems: 900)),
+        .init(milestone: 15, categoryLabel: "15 uses", rewards: .init(gems: 900, spins: 2)),
         .init(milestone: 30, categoryLabel: "30 uses", rewards: .init(gems: 1150, magnets: 1)),
+        .init(milestone: 35, categoryLabel: "35 uses", rewards: .init(hammers: 1)),
         .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1800, hammers: 1)),
+        .init(milestone: 75, categoryLabel: "75 uses", rewards: .init(spins: 2)),
         .init(milestone: 100, categoryLabel: "100 uses", rewards: .init(gems: 2100, swaps: 1)),
-        .init(milestone: 200, categoryLabel: "200 uses", rewards: .init(gems: 2700)),
-        .init(milestone: 300, categoryLabel: "300 uses", rewards: .init(gems: 3210, spins: 1, boost3x: 1)),
-        .init(milestone: 400, categoryLabel: "400 uses", rewards: .init(gems: 3500, hammers: 2, magnets: 1))
+        .init(milestone: 150, categoryLabel: "150 uses", rewards: .init(gems: 2700)),
+        .init(milestone: 200, categoryLabel: "200 uses", rewards: .init(gems: 3210, spins: 1, boost3x: 1)),
+        .init(milestone: 250, categoryLabel: "250 uses", rewards: .init(gems: 3500, hammers: 2, magnets: 1)),
+        .init(milestone: 375, categoryLabel: "375 uses", rewards: .init(gems: 6038, magnets: 1, boost3x: 1)),
+        .init(milestone: 500, categoryLabel: "500 uses", rewards: .init(gems: 6375)),
+        .init(milestone: 625, categoryLabel: "625 uses", rewards: .init(spins: 7)),
+        .init(milestone: 750, categoryLabel: "750 uses", rewards: .init(gems: 5938, magnets: 1, swaps: 1)),
+        .init(milestone: 875, categoryLabel: "875 uses", rewards: .init(gems: 6875)),
+        .init(milestone: 1000, categoryLabel: "1000 uses", rewards: .init(boost3x: 1, boost4x: 1)),
+        .init(milestone: 1250, categoryLabel: "1250 uses", rewards: .init()),
+        .init(milestone: 1500, categoryLabel: "1500 uses", rewards: .init(gems: 6675)),
+        .init(milestone: 2000, categoryLabel: "2000 uses", rewards: .init(gems: 6925)),
+        .init(milestone: 2500, categoryLabel: "2500 uses", rewards: .init(spins: 5, hammers: 1, magnets: 2)),
+        .init(milestone: 3000, categoryLabel: "3000 uses", rewards: .init(gems: 7250)),
+        .init(milestone: 4000, categoryLabel: "4000 uses", rewards: .init(gems: 8125)),
+        .init(milestone: 5000, categoryLabel: "5000 uses", rewards: .init(spins: 10)),
+        .init(milestone: 6250, categoryLabel: "6250 uses", rewards: .init(gems: 12250)),
+        .init(milestone: 7500, categoryLabel: "7500 uses", rewards: .init(magnets: 2)),
+        .init(milestone: 8750, categoryLabel: "8750 uses", rewards: .init(spins: 5, boost4x: 1)),
+        .init(milestone: 9375, categoryLabel: "9375 uses", rewards: .init(spins: 10)),
+        .init(milestone: 10000, categoryLabel: "10000 uses", rewards: .init(gems: 18750))
     ]
 
     private static let spinPurchaseTiers: [ComboTierDefinition] = [
         .init(milestone: 1, categoryLabel: "1 purchase", rewards: .init(gems: 10)),
         .init(milestone: 3, categoryLabel: "3 purchases", rewards: .init(gems: 25, hammers: 1)),
         .init(milestone: 5, categoryLabel: "5 purchases", rewards: .init(gems: 50)),
+        .init(milestone: 7, categoryLabel: "7 purchases", rewards: .init(gems: 70)),
         .init(milestone: 10, categoryLabel: "10 purchases", rewards: .init(gems: 85, spins: 1)),
+        .init(milestone: 15, categoryLabel: "15 purchases", rewards: .init(hammers: 1)),
+        .init(milestone: 20, categoryLabel: "20 purchases", rewards: .init(spins: 2)),
         .init(milestone: 25, categoryLabel: "25 purchases", rewards: .init(gems: 150, swaps: 1)),
+        .init(milestone: 35, categoryLabel: "35 purchases", rewards: .init(hammers: 1)),
         .init(milestone: 50, categoryLabel: "50 purchases", rewards: .init(gems: 210, spins: 1, boost4x: 1)),
+        .init(milestone: 75, categoryLabel: "75 purchases", rewards: .init(spins: 2)),
         .init(milestone: 100, categoryLabel: "100 purchases", rewards: .init(gems: 350, magnets: 1)),
+        .init(milestone: 150, categoryLabel: "150 purchases", rewards: .init(gems: 180, magnets: 1, boost3x: 1)),
         .init(milestone: 200, categoryLabel: "200 purchases", rewards: .init(gems: 500)),
+        .init(milestone: 250, categoryLabel: "250 purchases", rewards: .init(gems: 310)),
+        .init(milestone: 375, categoryLabel: "375 purchases", rewards: .init(spins: 2, boost2x: 1)),
         .init(milestone: 500, categoryLabel: "500 purchases", rewards: .init(gems: 975, magnets: 1)),
+        .init(milestone: 625, categoryLabel: "625 purchases", rewards: .init(spins: 3)),
+        .init(milestone: 750, categoryLabel: "750 purchases", rewards: .init(gems: 750, magnets: 1, swaps: 1)),
         .init(milestone: 1000, categoryLabel: "1000 purchases", rewards: .init(swaps: 3, boost3x: 1)),
-        .init(milestone: 2000, categoryLabel: "2000 purchases", rewards: .init(gems: 2000, spins: 2, hammers: 1, magnets: 2))
+        .init(milestone: 1250, categoryLabel: "1250 purchases", rewards: .init(boost3x: 1, boost4x: 1)),
+        .init(milestone: 1500, categoryLabel: "1500 purchases", rewards: .init(gems: 1505)),
+        .init(milestone: 1750, categoryLabel: "1750 purchases", rewards: .init(gems: 1340, boost4x: 1)),
+        .init(milestone: 2000, categoryLabel: "2000 purchases", rewards: .init(gems: 4540, spins: 2, hammers: 1, magnets: 2)),
+        .init(milestone: 2500, categoryLabel: "2500 purchases", rewards: .init(spins: 5, hammers: 1, magnets: 2)),
+        .init(milestone: 3000, categoryLabel: "3000 purchases", rewards: .init(gems: 2800)),
+        .init(milestone: 3500, categoryLabel: "3500 purchases", rewards: .init(gems: 3500)),
+        .init(milestone: 4250, categoryLabel: "4250 purchases", rewards: .init(spins: 2, magnets: 10)),
+        .init(milestone: 5000, categoryLabel: "5000 purchases", rewards: .init(gems: 5000))
     ]
 
     private static let dailyClaimsTiers: [ComboTierDefinition] = [
@@ -824,8 +886,32 @@ public final class AchievementStore {
         .init(milestone: 3, categoryLabel: "3 uses", rewards: .init(gems: 750)),
         .init(milestone: 5, categoryLabel: "5 uses", rewards: .init(magnets: 1)),
         .init(milestone: 10, categoryLabel: "10 uses", rewards: .init(gems: 600, boost4x: 1)),
+        .init(milestone: 12, categoryLabel: "12 uses", rewards: .init(gems: 700)),
+        .init(milestone: 15, categoryLabel: "15 uses", rewards: .init(hammers: 1)),
+        .init(milestone: 20, categoryLabel: "20 uses", rewards: .init(spins: 2)),
         .init(milestone: 25, categoryLabel: "25 uses", rewards: .init(boost2x: 1, boost3x: 1, boost4x: 1)),
-        .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1500))
+        .init(milestone: 35, categoryLabel: "35 uses", rewards: .init(hammers: 1)),
+        .init(milestone: 50, categoryLabel: "50 uses", rewards: .init(gems: 1500)),
+        .init(milestone: 75, categoryLabel: "75 uses", rewards: .init(spins: 2)),
+        .init(milestone: 100, categoryLabel: "100 uses", rewards: .init(gems: 1830, magnets: 1, boost3x: 1)),
+        .init(milestone: 250, categoryLabel: "250 uses", rewards: .init(gems: 3100)),
+        .init(milestone: 430, categoryLabel: "430 uses", rewards: .init(spins: 4, boost2x: 1)),
+        .init(milestone: 625, categoryLabel: "625 uses", rewards: .init(spins: 7)),
+        .init(milestone: 810, categoryLabel: "810 uses", rewards: .init(gems: 4750, magnets: 1, swaps: 1)),
+        .init(milestone: 1000, categoryLabel: "1000 uses", rewards: .init(boost3x: 1, boost4x: 1)),
+        .init(milestone: 1250, categoryLabel: "1250 uses", rewards: .init()),
+        .init(milestone: 1500, categoryLabel: "1500 uses", rewards: .init(gems: 5340)),
+        .init(milestone: 2000, categoryLabel: "2000 uses", rewards: .init(gems: 5540)),
+        .init(milestone: 2500, categoryLabel: "2500 uses", rewards: .init(spins: 5, hammers: 1, magnets: 2)),
+        .init(milestone: 3000, categoryLabel: "3000 uses", rewards: .init(gems: 5800)),
+        .init(milestone: 4000, categoryLabel: "4000 uses", rewards: .init(gems: 6500)),
+        .init(milestone: 5000, categoryLabel: "5000 uses", rewards: .init(spins: 10)),
+        .init(milestone: 6250, categoryLabel: "6250 uses", rewards: .init(gems: 9800)),
+        .init(milestone: 7500, categoryLabel: "7500 uses", rewards: .init(magnets: 2)),
+        .init(milestone: 8750, categoryLabel: "8750 uses", rewards: .init(spins: 5, boost4x: 1)),
+        .init(milestone: 10000, categoryLabel: "10000 uses", rewards: .init(gems: 15000)),
+        .init(milestone: 15000, categoryLabel: "15000 uses", rewards: .init(gems: 25350)),
+        .init(milestone: 20000, categoryLabel: "20000 uses", rewards: .init(spins: 30))
     ]
 
     private static let boost20xUseTiers: [ComboTierDefinition] = [
@@ -835,15 +921,35 @@ public final class AchievementStore {
         .init(milestone: 5, categoryLabel: "5 uses", rewards: .init(gems: 1000, hammers: 1)),
         .init(milestone: 7, categoryLabel: "7 uses", rewards: .init(boost3x: 1)),
         .init(milestone: 10, categoryLabel: "10 uses", rewards: .init(spins: 1)),
-        .init(milestone: 15, categoryLabel: "15 uses", rewards: .init(swaps: 1)),
-        .init(milestone: 20, categoryLabel: "20 uses", rewards: .init(gems: 1000, magnets: 1, boost3x: 1)),
+        .init(milestone: 12, categoryLabel: "12 uses", rewards: .init(gems: 1050)),
+        .init(milestone: 15, categoryLabel: "15 uses", rewards: .init(hammers: 1, swaps: 1)),
+        .init(milestone: 20, categoryLabel: "20 uses", rewards: .init(gems: 1000, spins: 2, magnets: 1, boost3x: 1)),
         .init(milestone: 27, categoryLabel: "27 uses", rewards: .init(gems: 1100)),
-        .init(milestone: 35, categoryLabel: "35 uses", rewards: .init(magnets: 2)),
+        .init(milestone: 35, categoryLabel: "35 uses", rewards: .init(hammers: 1, magnets: 2)),
         .init(milestone: 45, categoryLabel: "45 uses", rewards: .init(gems: 1200)),
         .init(milestone: 55, categoryLabel: "55 uses", rewards: .init(gems: 1300)),
         .init(milestone: 70, categoryLabel: "70 uses", rewards: .init(gems: 1350, swaps: 1)),
+        .init(milestone: 75, categoryLabel: "75 uses", rewards: .init(spins: 2)),
         .init(milestone: 85, categoryLabel: "85 uses", rewards: .init(gems: 1450)),
-        .init(milestone: 100, categoryLabel: "100 uses", rewards: .init(spins: 4))
+        .init(milestone: 100, categoryLabel: "100 uses", rewards: .init(gems: 2745, spins: 4, magnets: 1, boost3x: 1)),
+        .init(milestone: 250, categoryLabel: "250 uses", rewards: .init(gems: 4650)),
+        .init(milestone: 430, categoryLabel: "430 uses", rewards: .init(spins: 4, boost2x: 1)),
+        .init(milestone: 625, categoryLabel: "625 uses", rewards: .init(spins: 7)),
+        .init(milestone: 810, categoryLabel: "810 uses", rewards: .init(gems: 7125, magnets: 1, swaps: 1)),
+        .init(milestone: 1000, categoryLabel: "1000 uses", rewards: .init(boost3x: 1, boost4x: 1)),
+        .init(milestone: 1250, categoryLabel: "1250 uses", rewards: .init()),
+        .init(milestone: 1500, categoryLabel: "1500 uses", rewards: .init(gems: 8010)),
+        .init(milestone: 2000, categoryLabel: "2000 uses", rewards: .init(gems: 8310)),
+        .init(milestone: 2500, categoryLabel: "2500 uses", rewards: .init(spins: 5, hammers: 1, magnets: 2)),
+        .init(milestone: 3000, categoryLabel: "3000 uses", rewards: .init(gems: 8700)),
+        .init(milestone: 4000, categoryLabel: "4000 uses", rewards: .init(gems: 9750)),
+        .init(milestone: 5000, categoryLabel: "5000 uses", rewards: .init(spins: 10)),
+        .init(milestone: 6250, categoryLabel: "6250 uses", rewards: .init(gems: 14700)),
+        .init(milestone: 7500, categoryLabel: "7500 uses", rewards: .init(magnets: 2)),
+        .init(milestone: 8750, categoryLabel: "8750 uses", rewards: .init(spins: 5, boost4x: 1)),
+        .init(milestone: 10000, categoryLabel: "10000 uses", rewards: .init(gems: 22500)),
+        .init(milestone: 15000, categoryLabel: "15000 uses", rewards: .init(gems: 38025)),
+        .init(milestone: 20000, categoryLabel: "20000 uses", rewards: .init(spins: 30))
     ]
 
     private static let wheelCollectsTiers: [ComboTierDefinition] = [
@@ -1302,8 +1408,8 @@ public final class AchievementStore {
         let isMaxed = isPlaytimeProgressionMaxed
         let description = isMaxed
             ? "You've mastered playtime. Claim your final reward."
-            : "Accumulate \(tier.milestone) minutes of total play to reach the next tier."
-        let title = "Level \(level): \(tier.milestone) min played"
+            : "Accumulate \(tier.milestone) minutes of total playtime to reach the next tier."
+        let title = "Level \(level): \(tier.milestone) mins played"
         return ProgressTierDisplay(
             milestone: tier.milestone,
             level: level,
@@ -1338,8 +1444,8 @@ public final class AchievementStore {
         let level = clampedIndex + 1
         let isMaxed = isInfinityProgressionMaxed
         let description = isMaxed
-            ? "You've mastered creating infinity tiles. Claim your final reward."
-            : "Create \(tier.milestone) infinity tiles to reach the next tier."
+            ? "You've mastered creating infinities. Claim your final reward."
+            : "Create \(tier.milestone) infinities to reach the next tier."
         let title = "Level \(level): \(tier.milestone) infinities"
         return ProgressTierDisplay(
             milestone: tier.milestone,
@@ -1867,7 +1973,7 @@ public final class AchievementStore {
     }
     
     private func step(forTileValue value: Double) -> Int {
-        return Int(max(0, round(log2(value)) - 1))
+        return Int(max(0, ceil(log2(value)) - 1))
     }
     
     public var highestEvaluatedTileStep: Int {

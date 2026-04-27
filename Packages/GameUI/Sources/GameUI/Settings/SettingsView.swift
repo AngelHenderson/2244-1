@@ -518,11 +518,15 @@ struct ReportPlayerSheet: View {
 
     @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
     
-    @State private var playerName: String = ""
+    @State private var playerName: String
     @State private var selectedReason: String = "• Cheating or memory editing"
     @State private var additionalDetails: String = ""
     
     @State private var showAreYouSure = false
+    
+    init(initialName: String = "") {
+        _playerName = State(initialValue: initialName)
+    }
     
     let reasons = [
         "• Cheating or memory editing",

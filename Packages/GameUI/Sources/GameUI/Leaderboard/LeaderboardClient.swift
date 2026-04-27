@@ -1128,7 +1128,7 @@ public enum MockLeaderboardData {
         var hasher = Hasher()
         hasher.combine(countryCode)
         let hash = abs(hasher.finalize())
-        return 5000 + (hash % 245_000)
+        return 5000 + (hash % 295_001)
     }
 
     static func totalCountryPlayers(for countryCode: String, on day: Int) -> Int {
@@ -1141,8 +1141,8 @@ public enum MockLeaderboardData {
     }
 
     static func totalGlobalPlayers(on day: Int) -> Int {
-        var sum = totalPlayers(on: day, isUS: true)
-        for (code, _) in baseCountryPlayerCounts where code != "US" {
+        var sum = 0
+        for code in MockLeaderboardData.allScalableCountryCodes {
             sum += totalCountryPlayers(for: code, on: day)
         }
         return sum
@@ -1541,11 +1541,12 @@ public enum MockLeaderboardData {
             var baseName: String
             if hasChanged {
                 // Name has changed - use a different gamertag
-                let newIndex = (index + day * 3) % names.count
+                let newIndex = (index + countrySeed + day * 3) % names.count
                 baseName = names[newIndex]
             } else {
                 // Base gamertag name
-                baseName = names[index % names.count]
+                let nameIndex = (index + countrySeed) % names.count
+                baseName = names[nameIndex]
             }
             
             // Strip any existing trailing digits from the base name
@@ -1595,11 +1596,13 @@ public enum MockLeaderboardData {
         
         // Group entries by first name (only for realistic names)
         var firstNameGroups: [String: [(index: Int, name: String)]] = [:]
+        var realisticFirstNamesIndices: [(index: Int, name: String)] = []
         
         for entry in entries {
             // Check if this is a realistic name (first name only, no spaces)
             if !entry.name.contains(" ") && isRealisticName(entry.name) {
                 firstNameGroups[entry.name, default: []].append(entry)
+                realisticFirstNamesIndices.append(entry)
             } else {
                 // Gamertag or already has last name - keep as is
                 result[entry.index] = entry.name
@@ -1621,6 +1624,33 @@ public enum MockLeaderboardData {
                     let lastNameIndex = regionStart + lastNameOffset
                     let lastName = lastNames[lastNameIndex % lastNames.count]
                     result[entry.index] = firstName + " " + lastName
+                    
+                    // Remove from realisticFirstNamesIndices
+                    if let removeIdx = realisticFirstNamesIndices.firstIndex(where: { $0.index == entry.index }) {
+                        realisticFirstNamesIndices.remove(at: removeIdx)
+                    }
+                }
+            }
+        }
+        
+        // --- Option to have two different first names share a last name ("family members") ---
+        let familyCount = Int(seededRandom(seed: countrySeed * 777 + 123, index: entries.count) * 3) + 1
+        
+        for f in 0..<familyCount {
+            if realisticFirstNamesIndices.count >= 2 {
+                let r1 = Int(seededRandom(seed: countrySeed * 888 + f, index: entries.count) * Double(realisticFirstNamesIndices.count))
+                let entry1 = realisticFirstNamesIndices.remove(at: r1)
+                
+                let r2 = Int(seededRandom(seed: countrySeed * 999 + f, index: entries.count) * Double(realisticFirstNamesIndices.count))
+                let entry2 = realisticFirstNamesIndices.remove(at: r2)
+                
+                if entry1.name != entry2.name {
+                    let regionStart = regionStartForFirstName(entry1.name)
+                    let lastNameOffset = Int(seededRandom(seed: countrySeed * 111 + f, index: entries.count) * 20)
+                    let lastName = lastNames[(regionStart + lastNameOffset) % lastNames.count]
+                    
+                    result[entry1.index] = entry1.name + " " + lastName
+                    result[entry2.index] = entry2.name + " " + lastName
                 }
             }
         }
@@ -1647,6 +1677,7 @@ public enum MockLeaderboardData {
     static func resolveEntryDuplicates(_ entries: [LeaderboardEntry], countrySeed: Int = 0) -> [LeaderboardEntry] {
         // Group entries by name (only for realistic first names)
         var firstNameGroups: [String: [Int]] = [:]  // firstName -> indices in entries array
+        var realisticFirstNamesIndices: [Int] = []
         
         for (idx, entry) in entries.enumerated() {
             // Skip user entries and entries that already have last names or are gamertags
@@ -1656,6 +1687,7 @@ public enum MockLeaderboardData {
             // Check if this is a realistic first name (no spaces, exists in realNames)
             if !name.contains(" ") && isRealisticName(name) {
                 firstNameGroups[name, default: []].append(idx)
+                realisticFirstNamesIndices.append(idx)
             }
         }
         
@@ -1696,6 +1728,47 @@ public enum MockLeaderboardData {
                         isMe: entry.isMe,
                         avatarURL: entry.avatarURL,
                         highestTile: entry.highestTile
+                    )
+                    
+                    // Remove from realisticFirstNamesIndices so we don't modify them again below
+                    if let removeIdx = realisticFirstNamesIndices.firstIndex(of: idx) {
+                        realisticFirstNamesIndices.remove(at: removeIdx)
+                    }
+                }
+            }
+        }
+        
+        // --- Option to have two different first names share a last name ("family members") ---
+        // We pick 1-3 pairs of players and assign them the same last name.
+        let familyCount = Int(seededRandom(seed: countrySeed * 777 + 123, index: entries.count) * 3) + 1
+        
+        for f in 0..<familyCount {
+            if realisticFirstNamesIndices.count >= 2 {
+                // Pick two random but deterministic available indices
+                let r1 = Int(seededRandom(seed: countrySeed * 888 + f, index: entries.count) * Double(realisticFirstNamesIndices.count))
+                let idx1 = realisticFirstNamesIndices.remove(at: r1)
+                
+                let r2 = Int(seededRandom(seed: countrySeed * 999 + f, index: entries.count) * Double(realisticFirstNamesIndices.count))
+                let idx2 = realisticFirstNamesIndices.remove(at: r2)
+                
+                let entry1 = result[idx1]
+                let entry2 = result[idx2]
+                
+                // Extra safety check that they have different first names
+                if entry1.name != entry2.name {
+                    // Give them the same last name based on the first person's region
+                    let regionStart = regionStartForFirstName(entry1.name)
+                    let lastNameOffset = Int(seededRandom(seed: countrySeed * 111 + f, index: entries.count) * 20)
+                    let lastName = lastNames[(regionStart + lastNameOffset) % lastNames.count]
+                    
+                    result[idx1] = LeaderboardEntry(
+                        id: entry1.id, rank: entry1.rank, name: entry1.name + " " + lastName, score: entry1.score,
+                        countryCode: entry1.countryCode, platform: entry1.platform, isMe: entry1.isMe, avatarURL: entry1.avatarURL, highestTile: entry1.highestTile
+                    )
+                    
+                    result[idx2] = LeaderboardEntry(
+                        id: entry2.id, rank: entry2.rank, name: entry2.name + " " + lastName, score: entry2.score,
+                        countryCode: entry2.countryCode, platform: entry2.platform, isMe: entry2.isMe, avatarURL: entry2.avatarURL, highestTile: entry2.highestTile
                     )
                 }
             }
@@ -1937,7 +2010,7 @@ public enum MockLeaderboardData {
 
         // Get country-specific data and seed
         let (milestones, extendedBrackets, totalPlayers) = countryData(for: countryCode, day: day)
-        let countrySeed = countryPlayerSeeds[countryCode] ?? 0
+        let countrySeed = MockLeaderboardData.countrySeed(for: countryCode)
 
         return countBetterInCountry(
             userMilestoneIdx: userMilestoneIdx,
@@ -2028,7 +2101,7 @@ public enum MockLeaderboardData {
     static func milestoneForExtendedRank(rank: Int, countryCode: String) -> String? {
         let day = daysSinceReference
         let (_, extendedBrackets, _) = countryData(for: countryCode, day: day)
-        let countrySeed = countryPlayerSeeds[countryCode] ?? 0
+        let countrySeed = MockLeaderboardData.countrySeed(for: countryCode)
 
         guard rank > 150 else {
             return nil
@@ -2152,17 +2225,37 @@ public enum MockLeaderboardData {
 
 
 
+    public static var allScalableCountryCodes: [String] {
+        let codes: [String]
+        if #available(iOS 16.0, *) {
+            codes = Locale.Region.isoRegions.compactMap { $0.identifier }
+        } else {
+            codes = Locale.isoRegionCodes
+        }
+        let excludedCodes: Set<String> = [
+            "EU", "EZ", "UN", "QO", "ZZ",
+            "AC", "CP", "DG", "EA", "IC", "TA",
+            "001", "002", "003", "005", "009", "011", "013", "014", "015", "017", "018", "019",
+            "021", "029", "030", "034", "035", "039", "053", "054", "057", "061",
+            "142", "143", "145", "150", "151", "154", "155", "202", "419"
+        ]
+        return codes.filter { code in
+            if excludedCodes.contains(code) { return false }
+            if code.count == 3 && code.allSatisfy({ $0.isNumber }) { return false }
+            if code.count != 2 { return false }
+            return true
+        }
+    }
+
     /// Returns all countries that have leaderboard data, sorted by player count (popularity) descending,
     /// followed by additional popular countries without leaderboard data yet
     public static func countriesWithLeaderboardsSortedByPopularity() -> [String] {
         let day = daysSinceReference
 
         // Countries with leaderboard data and their base player counts
-        var counts: [(code: String, players: Int)] = [
-            ("US", totalPlayers(on: day, isUS: true))
-        ]
+        var counts: [(code: String, players: Int)] = []
 
-        for (code, _) in MockLeaderboardData.baseCountryPlayerCounts {
+        for code in allScalableCountryCodes {
             counts.append((code, MockLeaderboardData.totalCountryPlayers(for: code, on: day)))
         }
 
@@ -2170,13 +2263,7 @@ public enum MockLeaderboardData {
             .sorted { $0.players > $1.players }
             .map { $0.code }
 
-        // Additional popular countries (no leaderboard data yet)
-        let additionalCountries = [
-            "SA", "IL", "TR",
-            "NG", "EG", "AR", "CL", "CO", "PE"
-        ]
-
-        return countriesWithLeaderboards + additionalCountries
+        return countriesWithLeaderboards
     }
 
     /// Helper to count better players in a single country
@@ -2288,17 +2375,8 @@ public enum MockLeaderboardData {
         let userMilestoneIdx = milestoneIndex(for: userMilestone)
         var total = 0
 
-        // Add US players
-        total += Self.countBetterInCountry(
-            userMilestoneIdx: userMilestoneIdx,
-            milestones: LeaderboardClient.usPlayerMilestones,
-            extendedBrackets: LeaderboardClient.usExtendedRankBrackets,
-            totalPlayers: totalPlayers(on: day, isUS: true),
-            countrySeed: countrySeed(for: "US")
-        )
-
-        // Add all base countries
-        for (code, _) in baseCountryPlayerCounts {
+        // Add all countries
+        for code in MockLeaderboardData.allScalableCountryCodes {
             let data = countryData(for: code, day: day)
             let seed = countrySeed(for: code)
             total += Self.countBetterInCountry(
@@ -2379,6 +2457,27 @@ public enum MockLeaderboardData {
     }
 
     // Get milestone index for sorting (higher index = better milestone)
+    /// Computes the true mathematical step (index - 1, plus tier scaling rules for aa-bz).
+    /// Use this strictly for step-based color assignments to accurately represent missing tiers.
+    static func milestoneStep(for milestone: String) -> Int {
+        var step = milestoneIndex(for: milestone)
+        // Adjust for "0" at the start of allMilestones
+        if step > 0 { step -= 1 }
+        
+        let normalized = normalizeMilestone(milestone).lowercased()
+        if let match = normalized.range(of: "[a-z]+", options: .regularExpression) {
+            let letters = String(normalized[match])
+            if letters.count == 2 {
+                if letters >= "aa" && letters <= "bb" {
+                    step -= 1
+                } else if letters >= "bd" && letters <= "bz" {
+                    step -= 2
+                }
+            }
+        }
+        return step
+    }
+
     static func milestoneIndex(for milestone: String) -> Int {
         // Infinity milestones always sort above all regular milestones
         if milestone.hasSuffix("∞") {
@@ -4796,6 +4895,36 @@ public extension LeaderboardClient {
             progressedData.append((player.id, progressedCount, player.country, player.nameIndex, player.playerIndex))
         }
 
+        // Add dynamic infinity players from scalable countries
+        let explicitHoFCountries: Set<String> = [
+            "US", "GB", "CA", "AU", "DE", "FR", "JP", "IN", "BR", "MX",
+            "AF", "AL", "DZ", "CN", "KR", "IT", "ES", "NL", "NO", "DK",
+            "FI", "PL", "BE", "FJ", "VN", "KZ", "IE", "ID", "CH", "AE",
+            "KG", "IS", "SK", "PK", "UZ", "MY", "AZ", "TJ", "NU", "AT",
+            "HU", "NZ", "UA", "MG", "IQ"
+        ]
+
+        var dynamicGlobalIndex = 1000000 // avoid collision with explicit name indices
+
+        for code in MockLeaderboardData.allScalableCountryCodes {
+            if explicitHoFCountries.contains(code) { continue }
+            
+            let data = MockLeaderboardData.countryData(for: code, day: day)
+            let milestones = data.milestones
+            let seed = MockLeaderboardData.countrySeed(for: code)
+            
+            for i in 0..<milestones.count {
+                let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: milestones[i], playerIndex: i + seed, day: day)
+                if progressedMilestone.hasSuffix("∞") {
+                    let countStr = progressedMilestone.dropLast()
+                    if let progressedCount = Int(countStr) {
+                        progressedData.append(("hof_\(code.lowercased())_\(i)", progressedCount, code, dynamicGlobalIndex, i + seed))
+                        dynamicGlobalIndex += 1
+                    }
+                }
+            }
+        }
+
         // Sort by progressed count (highest first)
         progressedData.sort { $0.progressedCount > $1.progressedCount }
 
@@ -6573,7 +6702,7 @@ public extension LeaderboardClient {
         var playerData: [(originalIndex: Int, playerIndex: Int, progressedMilestone: String, milestoneIdx: Int, name: String, country: String, platform: Platform, avatar: String, id: String)] = []
 
         // Iterate over all available countries to populate the global leaderboard dynamically
-        let allCountries = Array(MockLeaderboardData.baseCountryPlayerCounts.keys) + (MockLeaderboardData.baseCountryPlayerCounts.keys.contains("US") ? [] : ["US"])
+        let allCountries = MockLeaderboardData.allScalableCountryCodes
         
         for code in allCountries {
             let data = MockLeaderboardData.countryData(for: code, day: day)

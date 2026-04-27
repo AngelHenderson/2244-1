@@ -12,19 +12,19 @@ public struct PerksInfoView: View {
                 // Perks list
                 VStack(spacing: 20) {
                     PerkRow(
-                        icon: "hammer.fill",
+                        assetName: "hammer",
                         iconColor: .orange,
                         title: "Break Any Tile On The Board"
                     )
 
                     PerkRow(
-                        icon: "arrow.left.arrow.right",
+                        assetName: "swap",
                         iconColor: .green,
                         title: "Swap Any 2 Tiles With Each Other"
                     )
 
                     PerkRow(
-                        icon: "dot.radiowaves.left.and.right",
+                        assetName: "magnet",
                         iconColor: .purple,
                         title: "Merge Same Tiles On The Board"
                     )
@@ -55,16 +55,17 @@ public struct PerksInfoView: View {
 // MARK: - Perk Row
 
 private struct PerkRow: View {
-    let icon: String
+    let assetName: String
     let iconColor: Color
     let title: String
 
     var body: some View {
         HStack(spacing: 16) {
-            // Icon with gradient background
-            Image(systemName: icon)
-                .font(.avenirNext(size: 24, weight: .bold))
-                .foregroundStyle(.white)
+            // Icon using PNG asset
+            Image(assetName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 36, height: 36)
                 .frame(width: 56, height: 56)
                 .background(
                     LinearGradient(
