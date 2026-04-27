@@ -54,7 +54,10 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
             lofiThemeProduct,
             orchestralThemeProduct,
             starterPackProduct,
-            megaBundleProduct
+            megaBundleProduct,
+            autoClaimBoostsMonthlyProduct,
+            proMonthlyProduct,
+            proYearlyProduct
         ]
     }
 
@@ -75,6 +78,24 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
         }?.id
     }
 
+    public static var subscriptionProductIDs: Set<String> {
+        Set(allProducts.compactMap { product in
+            if case .subscription = product.type {
+                return product.id
+            }
+            return nil
+        })
+    }
+
+    public static var proSubscriptionProductIDs: Set<String> {
+        Set(allProducts.compactMap { product in
+            guard case .subscription(let kind) = product.type, kind.grantsPro else {
+                return nil
+            }
+            return product.id
+        })
+    }
+
     public var permanentEntitlementProductIDs: Set<String> {
         var ids: Set<String> = isConsumable ? [] : [id]
         for item in items {
@@ -85,7 +106,7 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
                 if let themeProductID = Self.productID(for: theme) {
                     ids.insert(themeProductID)
                 }
-            case .coins, .powerUp, .experience:
+            case .coins, .powerUp, .experience, .subscription:
                 continue
             }
         }
@@ -222,6 +243,59 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
         isConsumable: false,
         displayPriority: 3
     )
+
+    public static let autoClaimBoostsMonthlyProduct = IAPProduct(
+        id: "com.game2244.boosts.autoclaim.monthly",
+        type: .subscription(.autoClaimBoostsMonthly),
+        displayName: "Auto-Claim Boosts Monthly",
+        description: "Monthly auto-claim boosts for 2244",
+        price: 1.99,
+        items: [IAPProductItem(type: .subscription(.autoClaimBoosts), quantity: 1)],
+        isConsumable: false,
+        displayPriority: 40
+    )
+
+    public static let proMonthlyProduct = IAPProduct(
+        id: "com.game2244.pro.monthly",
+        type: .subscription(.proMonthly),
+        displayName: "2244 Pro Monthly",
+        description: "Monthly 2244 Pro access with premium benefits",
+        price: 4.99,
+        items: [IAPProductItem(type: .subscription(.pro), quantity: 1)],
+        isConsumable: false,
+        displayPriority: 41
+    )
+
+    public static let proYearlyProduct = IAPProduct(
+        id: "com.game2244.pro.yearly",
+        type: .subscription(.proYearly),
+        displayName: "2244 Pro Yearly",
+        description: "Yearly 2244 Pro access with premium benefits",
+        price: 39.99,
+        items: [IAPProductItem(type: .subscription(.pro), quantity: 1)],
+        isConsumable: false,
+        displayPriority: 42
+    )
+}
+
+public enum IAPSubscriptionKind: String, Codable, Sendable {
+    case autoClaimBoostsMonthly
+    case proMonthly
+    case proYearly
+
+    public var grantsPro: Bool {
+        switch self {
+        case .autoClaimBoostsMonthly:
+            return false
+        case .proMonthly, .proYearly:
+            return true
+        }
+    }
+}
+
+public enum IAPSubscriptionEntitlement: String, Codable, Sendable {
+    case autoClaimBoosts
+    case pro
 }
 
 public enum IAPProductType: Codable, Sendable {
@@ -230,11 +304,13 @@ public enum IAPProductType: Codable, Sendable {
     case powerUpBundle
     case theme(MusicTheme)
     case bundle
+    case subscription(IAPSubscriptionKind)
 
     private enum CodingKeys: String, CodingKey {
         case type
         case value
         case theme
+        case subscriptionKind
     }
 
     public init(from decoder: Decoder) throws {
@@ -254,6 +330,9 @@ public enum IAPProductType: Codable, Sendable {
             self = .theme(theme)
         case "bundle":
             self = .bundle
+        case "subscription":
+            let subscriptionKind = try container.decode(IAPSubscriptionKind.self, forKey: .subscriptionKind)
+            self = .subscription(subscriptionKind)
         default:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown IAP product type")
         }
@@ -275,6 +354,9 @@ public enum IAPProductType: Codable, Sendable {
             try container.encode(theme, forKey: .theme)
         case .bundle:
             try container.encode("bundle", forKey: .type)
+        case .subscription(let subscriptionKind):
+            try container.encode("subscription", forKey: .type)
+            try container.encode(subscriptionKind, forKey: .subscriptionKind)
         }
     }
 }
@@ -286,6 +368,7 @@ public struct IAPProductItem: Codable, Sendable {
         case theme(MusicTheme)
         case adFree
         case experience
+        case subscription(IAPSubscriptionEntitlement)
     }
 
     public let type: ItemType
@@ -302,6 +385,7 @@ extension IAPProductItem.ItemType {
         case type
         case powerUpType
         case theme
+        case subscriptionEntitlement
     }
 
     public init(from decoder: Decoder) throws {
@@ -321,6 +405,9 @@ extension IAPProductItem.ItemType {
             self = .adFree
         case "experience":
             self = .experience
+        case "subscription":
+            let entitlement = try container.decode(IAPSubscriptionEntitlement.self, forKey: .subscriptionEntitlement)
+            self = .subscription(entitlement)
         default:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown item type")
         }
@@ -342,6 +429,9 @@ extension IAPProductItem.ItemType {
             try container.encode("adFree", forKey: .type)
         case .experience:
             try container.encode("experience", forKey: .type)
+        case .subscription(let entitlement):
+            try container.encode("subscription", forKey: .type)
+            try container.encode(entitlement, forKey: .subscriptionEntitlement)
         }
     }
 }

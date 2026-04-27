@@ -294,7 +294,7 @@ public final class ShopStore {
                 grantPowerUp(type.rawValue, count: item.quantity)
             case .adFree:
                 UserDefaults.standard.set(true, forKey: "isAdFreePurchased")
-            case .theme, .experience:
+            case .theme, .experience, .subscription:
                 continue
             }
         }
@@ -388,6 +388,8 @@ private extension Array where Element == IAPProductItem {
             case (.powerUp(let lhs), .powerUp(let rhs)):
                 return lhs == rhs
             case (.theme(let lhs), .theme(let rhs)):
+                return lhs == rhs
+            case (.subscription(let lhs), .subscription(let rhs)):
                 return lhs == rhs
             default:
                 return false

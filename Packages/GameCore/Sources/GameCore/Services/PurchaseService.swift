@@ -19,6 +19,9 @@ public struct VerifiedPurchase: Sendable, Equatable {
 @MainActor
 public final class PurchaseService {
     public static let adFreeProductID = IAPProduct.adFreeProduct.id
+    public static let autoClaimBoostsMonthlyProductID = IAPProduct.autoClaimBoostsMonthlyProduct.id
+    public static let proMonthlyProductID = IAPProduct.proMonthlyProduct.id
+    public static let proYearlyProductID = IAPProduct.proYearlyProduct.id
 
     #if os(iOS)
     public private(set) var products: [Product] = []
@@ -28,6 +31,8 @@ public final class PurchaseService {
     #endif
 
     public private(set) var isAdFreePurchased = false
+    public private(set) var isAutoClaimBoostsPurchased = false
+    public private(set) var isProPurchased = false
     public private(set) var ownedProductIDs: Set<String> = []
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
@@ -49,7 +54,7 @@ public final class PurchaseService {
         if UserDefaults.standard.bool(forKey: "isAdFreePurchased") {
             ownedProductIDs.insert(Self.adFreeProductID)
         }
-        updateAdFreeFlag()
+        updateEntitlementFlags()
 
         #if os(iOS)
         Task { [weak self] in
@@ -218,11 +223,13 @@ public final class PurchaseService {
 
     private func persistOwnedProductIDs() {
         UserDefaults.standard.set(Array(ownedProductIDs), forKey: Self.ownedProductIDsKey)
-        updateAdFreeFlag()
+        updateEntitlementFlags()
     }
 
-    private func updateAdFreeFlag() {
-        isAdFreePurchased = ownedProductIDs.contains(Self.adFreeProductID)
+    private func updateEntitlementFlags() {
+        isProPurchased = ownedProductIDs.contains(where: { IAPProduct.proSubscriptionProductIDs.contains($0) })
+        isAutoClaimBoostsPurchased = isProPurchased || ownedProductIDs.contains(Self.autoClaimBoostsMonthlyProductID)
+        isAdFreePurchased = isProPurchased || ownedProductIDs.contains(Self.adFreeProductID)
         UserDefaults.standard.set(isAdFreePurchased, forKey: "isAdFreePurchased")
     }
 
@@ -249,9 +256,16 @@ public final class PurchaseService {
 
     #if os(iOS)
     private func checkPurchaseStatus(deliverNewTransactions: Bool, isRestored: Bool) async {
+        var activeSubscriptionProductIDs = Set<String>()
+
         for await result in Transaction.currentEntitlements {
             switch result {
             case .verified(let transaction):
+                if transaction.revocationDate == nil,
+                   IAPProduct.subscriptionProductIDs.contains(transaction.productID) {
+                    activeSubscriptionProductIDs.insert(transaction.productID)
+                }
+
                 let purchase = await processVerifiedTransaction(
                     transaction,
                     deliverReward: deliverNewTransactions,
@@ -264,6 +278,8 @@ public final class PurchaseService {
                 continue
             }
         }
+
+        reconcileSubscriptionOwnership(activeSubscriptionProductIDs: activeSubscriptionProductIDs)
     }
 
     private func observeTransactionUpdates() async {
@@ -308,6 +324,17 @@ public final class PurchaseService {
             transactionID: transactionID,
             isRestored: isRestored
         )
+    }
+
+    private func reconcileSubscriptionOwnership(activeSubscriptionProductIDs: Set<String>) {
+        let staleSubscriptionProductIDs = ownedProductIDs
+            .intersection(IAPProduct.subscriptionProductIDs)
+            .subtracting(activeSubscriptionProductIDs)
+        guard !staleSubscriptionProductIDs.isEmpty else { return }
+
+        for productID in staleSubscriptionProductIDs {
+            removeOwnership(for: productID)
+        }
     }
     #endif
 }

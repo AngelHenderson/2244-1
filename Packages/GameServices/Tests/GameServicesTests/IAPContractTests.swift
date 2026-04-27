@@ -18,7 +18,10 @@ struct IAPContractTests {
             "com.game2244.theme.lofi",
             "com.game2244.theme.orchestral",
             "com.game2244.starter.pack",
-            "com.game2244.mega.bundle"
+            "com.game2244.mega.bundle",
+            "com.game2244.boosts.autoclaim.monthly",
+            "com.game2244.pro.monthly",
+            "com.game2244.pro.yearly"
         ]))
     }
 
@@ -30,6 +33,9 @@ struct IAPContractTests {
         #expect(IAPProduct.orchestralThemeProduct.isConsumable == false)
         #expect(IAPProduct.starterPackProduct.isConsumable == false)
         #expect(IAPProduct.megaBundleProduct.isConsumable == false)
+        #expect(IAPProduct.autoClaimBoostsMonthlyProduct.isConsumable == false)
+        #expect(IAPProduct.proMonthlyProduct.isConsumable == false)
+        #expect(IAPProduct.proYearlyProduct.isConsumable == false)
 
         #expect(IAPProduct.smallCoinsProduct.isConsumable)
         #expect(IAPProduct.mediumCoinsProduct.isConsumable)
@@ -77,6 +83,28 @@ struct IAPContractTests {
         #expect(IAPProduct.productID(for: .cyberpunk) == "com.game2244.theme.cyberpunk")
         #expect(IAPProduct.productID(for: .lofi) == "com.game2244.theme.lofi")
         #expect(IAPProduct.productID(for: .orchestral) == "com.game2244.theme.orchestral")
+    }
+
+    @Test("Subscription products expose active entitlements")
+    func subscriptionProducts() {
+        #expect(IAPProduct.subscriptionProductIDs == Set([
+            "com.game2244.boosts.autoclaim.monthly",
+            "com.game2244.pro.monthly",
+            "com.game2244.pro.yearly"
+        ]))
+        #expect(IAPProduct.proSubscriptionProductIDs == Set([
+            "com.game2244.pro.monthly",
+            "com.game2244.pro.yearly"
+        ]))
+        #expect(IAPProduct.autoClaimBoostsMonthlyProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.boosts.autoclaim.monthly"
+        ]))
+        #expect(IAPProduct.proMonthlyProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.pro.monthly"
+        ]))
+        #expect(IAPProduct.proYearlyProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.pro.yearly"
+        ]))
     }
 }
 
