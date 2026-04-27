@@ -230,7 +230,7 @@ public struct RootGameView: View {
             watchAd: {
                 guard !purchaseService.isAdFreePurchased else { return 0 }
                 let reward = homeState.adReward
-                let didReward = await adService.showRewarded {
+                let didReward = await adService.showRewardedInterstitial {
                     homeState.addGems(reward)
                     saveProgress()
                 }

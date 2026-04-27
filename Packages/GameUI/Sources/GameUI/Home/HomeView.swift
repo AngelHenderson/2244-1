@@ -24,6 +24,7 @@ public struct HomeView: View {
     @State private var isShowingThemePicker: Bool = false
     @State private var isShowingBoosts: Bool = false
     @State private var isShowingWeeklyOffer: Bool = false
+    @State private var isShowingAdBonusIntro: Bool = false
     @State private var showLockedChallengeAlert: Bool = false
     @State private var centeredMilestone: Int? = nil
     // Measured overlay heights for proper centering of the journey scroller
@@ -146,16 +147,14 @@ public struct HomeView: View {
                                 SideRailButton(
                                     systemImage: nil,
                                     customImage: "ads",
-                                    title: "",
+                                    title: "BONUS",
                                     badge: true,
                                     banned: state.isBanned,
                                     specialLabel: "+\(state.adReward)",
                                     specialLabelInside: true,
                                     onBannedTap: { state.showBanAlert = true },
                                     action: {
-                                        Task {
-                                            _ = await actions.watchAd()
-                                        }
+                                        isShowingAdBonusIntro = true
                                     }
                                 )
                             }
@@ -317,6 +316,14 @@ public struct HomeView: View {
         // Weekly Offer Sheet
         .sheet(isPresented: $isShowingWeeklyOffer) {
             WeeklyOfferSheet()
+        }
+        .sheet(isPresented: $isShowingAdBonusIntro) {
+            RewardedInterstitialIntroSheet(
+                rewardGems: state.adReward,
+                onClaim: {
+                    await actions.watchAd()
+                }
+            )
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)
@@ -496,6 +503,68 @@ private struct ThemeButton: View {
         case "aqua": return "drop.fill"
         default: return "sparkle"
         }
+    }
+}
+
+private struct RewardedInterstitialIntroSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var isClaiming = false
+    @State private var message: String?
+
+    let rewardGems: Int
+    let onClaim: @MainActor @Sendable () async -> Int
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "gift.fill")
+                .font(.system(size: 44, weight: .bold))
+                .foregroundStyle(.yellow)
+
+            Text("Bonus Chest")
+                .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+
+            Text("Watch a short ad to claim +\(rewardGems) gems, or skip and keep playing without the bonus.")
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+
+            if let message {
+                Text(message)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+            }
+
+            Button {
+                Task { @MainActor in
+                    isClaiming = true
+                    let granted = await onClaim()
+                    isClaiming = false
+                    if granted > 0 {
+                        dismiss()
+                    } else {
+                        message = "The reward is not available yet. Please try again in a moment."
+                    }
+                }
+            } label: {
+                Text(isClaiming ? "Preparing Reward..." : "Claim +\(rewardGems) Gems")
+                    .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isClaiming)
+
+            Button(role: .cancel) {
+                dismiss()
+            } label: {
+                Text("Skip")
+                    .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(24)
+        .presentationDetents([.medium])
     }
 }
 

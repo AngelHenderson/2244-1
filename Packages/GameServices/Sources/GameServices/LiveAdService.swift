@@ -10,10 +10,6 @@ import GameCore
 import UIKit
 #endif
 
-#if canImport(AppTrackingTransparency)
-import AppTrackingTransparency
-#endif
-
 /// Production AdMob-backed ad service.
 ///
 /// Production and debug ad unit IDs are resolved from the app bundle's Info.plist,
@@ -34,7 +30,6 @@ public final class LiveAdService: AdServiceProtocol {
     private var interstitial: InterstitialAd?
     private var rewarded: RewardedAd?
     private var rewardedInterstitial: RewardedInterstitialAd?
-    private var didStart: Bool = false
     #endif
 
     public init(adMobIDs: AdMobIDs = .resolved()) {
@@ -47,11 +42,23 @@ public final class LiveAdService: AdServiceProtocol {
 
     // MARK: - AdServiceProtocol
 
+    public func prepareForAdRequests() async -> Bool {
+        guard !adFree else { return false }
+        #if canImport(GoogleMobileAds)
+        return await AdConsentManager.shared.prepareAndStartMobileAds()
+        #else
+        return true
+        #endif
+    }
+
     public func showBanner() async {
         guard !adFree else { return }
         isBannerVisible = true
         #if canImport(GoogleMobileAds)
-        await ensureStarted()
+        guard await AdConsentManager.shared.prepareAndStartMobileAds() else {
+            isBannerVisible = false
+            return
+        }
         // Banner UI is owned by the host (a SwiftUI representable would render
         // GADBannerView at the bottom). Keeping the flag here so the host can
         // observe and present its banner accordingly.
@@ -65,7 +72,7 @@ public final class LiveAdService: AdServiceProtocol {
     public func showInterstitial() async -> Bool {
         guard !adFree else { return false }
         #if canImport(GoogleMobileAds)
-        await ensureStarted()
+        guard await AdConsentManager.shared.prepareAndStartMobileAds() else { return false }
         await loadInterstitialIfNeeded()
         guard let interstitial else { return false }
         guard let root = rootViewController() else { return false }
@@ -82,7 +89,7 @@ public final class LiveAdService: AdServiceProtocol {
     public func showRewarded(onReward: @MainActor @Sendable () -> Void) async -> Bool {
         guard !adFree else { return false }
         #if canImport(GoogleMobileAds)
-        await ensureStarted()
+        guard await AdConsentManager.shared.prepareAndStartMobileAds() else { return false }
         await loadRewardedIfNeeded()
         guard let rewarded else { return false }
         guard let root = rootViewController() else { return false }
@@ -107,7 +114,7 @@ public final class LiveAdService: AdServiceProtocol {
     public func showRewardedInterstitial(onReward: @MainActor @Sendable () -> Void) async -> Bool {
         guard !adFree else { return false }
         #if canImport(GoogleMobileAds)
-        await ensureStarted()
+        guard await AdConsentManager.shared.prepareAndStartMobileAds() else { return false }
         await loadRewardedInterstitialIfNeeded()
         guard let rewardedInterstitial else { return false }
         guard let root = rootViewController() else { return false }
@@ -127,6 +134,23 @@ public final class LiveAdService: AdServiceProtocol {
         #endif
     }
 
+    public func isPrivacyOptionsRequired() async -> Bool {
+        #if canImport(GoogleMobileAds)
+        _ = await AdConsentManager.shared.prepareForAdRequests()
+        return AdConsentManager.shared.isPrivacyOptionsRequired
+        #else
+        return false
+        #endif
+    }
+
+    public func showPrivacyOptions() async -> Bool {
+        #if canImport(GoogleMobileAds)
+        return await AdConsentManager.shared.presentPrivacyOptions()
+        #else
+        return false
+        #endif
+    }
+
     public func isAdFree() async -> Bool { adFree }
 
     public func setAdFree(_ value: Bool) {
@@ -137,23 +161,6 @@ public final class LiveAdService: AdServiceProtocol {
     // MARK: - GoogleMobileAds glue (compiled out until SDK is added)
 
     #if canImport(GoogleMobileAds)
-    private func ensureStarted() async {
-        guard !didStart else { return }
-        didStart = true
-        await requestTrackingAuthorizationIfNeeded()
-        await MobileAds.shared.start()
-    }
-
-    private func requestTrackingAuthorizationIfNeeded() async {
-        #if canImport(AppTrackingTransparency)
-        guard #available(iOS 14.0, *) else { return }
-        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
-            ATTrackingManager.requestTrackingAuthorization { _ in cont.resume() }
-        }
-        #endif
-    }
-
     private func loadInterstitialIfNeeded() async {
         guard interstitial == nil else { return }
         let request = Request()
@@ -220,18 +227,7 @@ public struct LiveBannerAdView: View {
 
     public var body: some View {
         #if canImport(GoogleMobileAds) && canImport(UIKit)
-        GeometryReader { proxy in
-            let width = max(320, proxy.size.width)
-            let adSize = largeAnchoredAdaptiveBanner(width: width)
-            HStack {
-                Spacer(minLength: 0)
-                BannerRepresentable(adUnitID: adUnitID, adSize: adSize)
-                    .frame(width: adSize.size.width, height: adSize.size.height)
-                Spacer(minLength: 0)
-            }
-        }
-        .frame(height: 90)
-        .background(Color.clear)
+        BannerContent(adUnitID: adUnitID)
         #else
         EmptyView()
         #endif
@@ -239,6 +235,35 @@ public struct LiveBannerAdView: View {
 }
 
 #if canImport(GoogleMobileAds) && canImport(UIKit)
+private struct BannerContent: View {
+    let adUnitID: String
+    @State private var canLoadBanner = false
+
+    var body: some View {
+        Group {
+            if canLoadBanner {
+                GeometryReader { proxy in
+                    let width = max(320, proxy.size.width)
+                    let adSize = largeAnchoredAdaptiveBanner(width: width)
+                    HStack {
+                        Spacer(minLength: 0)
+                        BannerRepresentable(adUnitID: adUnitID, adSize: adSize)
+                            .frame(width: adSize.size.width, height: adSize.size.height)
+                        Spacer(minLength: 0)
+                    }
+                }
+                .frame(height: 90)
+                .background(Color.clear)
+            } else {
+                EmptyView()
+            }
+        }
+        .task(id: adUnitID) {
+            canLoadBanner = await AdConsentManager.shared.prepareAndStartMobileAds()
+        }
+    }
+}
+
 private struct BannerRepresentable: UIViewRepresentable {
     let adUnitID: String
     let adSize: AdSize

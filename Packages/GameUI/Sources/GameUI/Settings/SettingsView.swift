@@ -9,6 +9,7 @@ public struct SettingsView: View {
     @Environment(\.audio) private var audioService
     @Environment(\.hapticsService) private var hapticsService
     @Environment(\.purchaseService) private var purchaseService
+    @Environment(\.adService) private var adService
     
     @State private var sfxVolume: Double = 1.0
     @State private var musicVolume: Double = 1.0
@@ -30,6 +31,8 @@ public struct SettingsView: View {
     @State private var isShowingSlotPicker: Bool = false
     @State private var isShowingReplayExport: Bool = false
     @State private var isShowingReplayImport: Bool = false
+    @State private var isPrivacyOptionsRequired: Bool = false
+    @State private var privacyOptionsMessage: String?
     
     // Trail style toggle (shared with TileScrollerView via AppStorage)
     @AppStorage("useCurvedTrail") private var useCurvedTrail: Bool = false
@@ -266,6 +269,27 @@ public struct SettingsView: View {
                     .onChange(of: analyticsEnabled) { _, newValue in
                         UserDefaults.standard.set(newValue, forKey: "analyticsEnabled")
                     }
+
+                    if isPrivacyOptionsRequired {
+                        Button {
+                            Task {
+                                let didPresent = await adService.showPrivacyOptions()
+                                isPrivacyOptionsRequired = await adService.isPrivacyOptionsRequired()
+                                privacyOptionsMessage = didPresent
+                                    ? nil
+                                    : "Ad privacy options are unavailable right now."
+                            }
+                        } label: {
+                            Text("Ad Privacy Choices")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                        }
+                    }
+
+                    if let privacyOptionsMessage {
+                        Text(privacyOptionsMessage)
+                            .foregroundStyle(.secondary)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                    }
                 } header: {
                     Text("Privacy")
                         .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
@@ -410,6 +434,7 @@ public struct SettingsView: View {
             .task {
                 loadSettings()
                 await loadPurchaseInfo()
+                isPrivacyOptionsRequired = await adService.isPrivacyOptionsRequired()
                 // Check Game Center status directly
                 checkGameCenterStatus()
             }

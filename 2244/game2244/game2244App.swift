@@ -172,9 +172,12 @@ struct game2244App: App {
                         print("🧪 Running in iOS Simulator - some system warnings are expected")
                     }
                     
-                    // Honor ad-free state persisted
-                    if UserDefaults.standard.bool(forKey: "isAdFreePurchased") {
-                        adService.setAdFree(true)
+                    // Honor persisted ad-free state before any ad request or SDK startup.
+                    let isAdFree = purchaseService.isAdFreePurchased
+                        || UserDefaults.standard.bool(forKey: "isAdFreePurchased")
+                    adService.setAdFree(isAdFree)
+                    if !isAdFree {
+                        _ = await adService.prepareForAdRequests()
                     }
                     
                     // Load achievements
