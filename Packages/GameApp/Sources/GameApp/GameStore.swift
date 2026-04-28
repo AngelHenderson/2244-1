@@ -893,6 +893,19 @@ public final class GameStore {
         isInputLocked = false
         isExtendingToGift = false
     }
+
+    /// Reset input state when the game screen appears.
+    /// Clears any stale input lock or path state left over from a
+    /// previous merge animation that was interrupted by navigation.
+    public func resetInputState() {
+        mergeCleanupTask?.cancel()
+        mergeCleanupTask = nil
+        mergeAnimationState = nil
+        currentPath = []
+        pathValidation = .valid
+        isInputLocked = false
+        isExtendingToGift = false
+    }
     
     public func commitPath() {
         guard pathValidation.isValid else { return }

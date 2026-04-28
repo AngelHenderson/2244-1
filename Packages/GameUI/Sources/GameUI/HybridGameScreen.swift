@@ -317,6 +317,10 @@ public struct HybridGameScreen: View {
         
         let sessionTracking = changeHandlers
             .onAppear {
+                // Clear any stale input-lock / animation state from a previous
+                // session so the very first chain on this visit works correctly.
+                gameStore.resetInputState()
+
                 // Initialize tempHomeState with current values
                 tempHomeState.gems = gameStore.coins
                 tempHomeState.rank = UserLeaderboardData.globalRank
