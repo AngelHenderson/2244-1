@@ -1573,9 +1573,9 @@ public final class GameEngine {
         let highestStep = state.highestTileStep
         guard highestStep >= 0 else { return nil }
 
-        // After 131K+ (step 17+), make the game easier by spawning closer to highest
-        // Step 17 = 131072 (131K)
-        let stepsBelow = highestStep >= 17 ? 5 : 7
+        // After 131K+ (step 16+), make the game easier by spawning closer to highest
+        // Step 16 = 131072 (131K)
+        let stepsBelow = highestStep >= 16 ? 5 : 7
 
         // Maximum spawn is stepsBelow below highest
         let maxSpawnStep = highestStep - stepsBelow
@@ -1624,8 +1624,8 @@ public final class GameEngine {
     public func minAllowedSpawnStep() -> Int {
         let highestStep = state.highestTileStep
 
-        // After 131K+ (step 17), spawn only 5 tiles below highest instead of 7
-        let stepsBelow = highestStep >= 17 ? 5 : 7
+        // After 131K+ (step 16), spawn only 5 tiles below highest instead of 7
+        let stepsBelow = highestStep >= 16 ? 5 : 7
 
         // maxSpawn is stepsBelow below highest
         // minSpawn is 6 tiles below maxSpawn (7 candidates total)
@@ -1705,11 +1705,11 @@ public final class GameEngine {
         // For ALL other milestones, calculate what gets added.
         // The added tile is the max spawn step, which depends on the
         // spawn pool configuration:
-        //   - Below 131K (step < 17): max spawn = highestStep - 7  → added is 7 steps above eliminated
-        //   - At 131K+ (step >= 17): max spawn = highestStep - 5   → added is 9 steps above eliminated
+        //   - Below 131K (step < 16): max spawn = highestStep - 7  → added is 7 steps above eliminated
+        //   - At 131K+ (step >= 16): max spawn = highestStep - 5   → added is 9 steps above eliminated
         // (eliminated is always 14 steps below milestone → milestone >> 14)
         let milestoneStep = TileStepLabelFormatter.stepForValue(milestone, start: 2) ?? 0
-        let addedShift = milestoneStep >= 17 ? 9 : 7
+        let addedShift = milestoneStep >= 16 ? 9 : 7
 
         if let eliminated = milestoneExcludedValue(for: milestone) {
             let addedSpawnValue = eliminated <= (Int.max >> addedShift) ? eliminated << addedShift : Int.max
