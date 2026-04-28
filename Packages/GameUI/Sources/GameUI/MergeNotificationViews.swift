@@ -490,9 +490,9 @@ struct AddedNotificationView: View {
     private var displayStep: Int {
         if isHighValue {
             let highestStep = gameStore.state.highestTileStep
-            // Added = eliminated << 7, where eliminated = milestone >> 14
-            // So added step = (highestStep - 14) + 7 = highestStep - 7
-            return max(0, highestStep - 7)
+            // The actual spawn pool max is highestStep - 5
+            // (from spawnStepNearHighest: stepsBelow = 5 for step >= 17)
+            return max(0, highestStep - 5)
         }
         return TileStepLabelFormatter.stepForValue(value, start: 2) ?? 0
     }

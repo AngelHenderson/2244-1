@@ -897,6 +897,27 @@ public final class GameStore {
         isInputLocked = false
         isExtendingToGift = false
     }
+
+    /// Reset input state when the game screen appears.
+    /// Clears any stale input lock or path state left over from a
+    /// previous merge animation that was interrupted by navigation.
+    public func resetInputState() {
+        mergeCleanupTask?.cancel()
+        mergeCleanupTask = nil
+        mergeAnimationState = nil
+        currentPath = []
+        pathValidation = .valid
+        isInputLocked = false
+        isExtendingToGift = false
+
+        // Apply any pending deferred elimination so the board is consistent
+        if !pendingEliminationTiles.isEmpty {
+            let _ = engine.applyDeferredElimination()
+            state = engine.state
+            pendingEliminationTiles = []
+            milestoneEliminatedTiles = []
+        }
+    }
     
     public func commitPath() {
         guard pathValidation.isValid else { return }
@@ -968,16 +989,19 @@ public final class GameStore {
                 }
                 
                 // 3. Commit (Shatter/Fly complete, now apply logic)
+                // Defer elimination so tiles stay on the board until the
+                // excluded notification is dismissed.
                 print("[GameStore] Phase 3: Commit (Logic)")
+                self.engine.deferElimination = true
                 let (requiresGravityDrop, affectedColumns) = self.performCommit(positions: positions)
+                self.engine.deferElimination = false
 
-                // 3b. Check if milestone elimination happened (store for animation after notification)
+                // 3b. Check if milestone elimination was deferred
                 let eliminatedTiles = self.engine.lastMilestoneEliminatedTiles
                 if !eliminatedTiles.isEmpty {
-                    print("[GameStore] Phase 3b: Storing \(eliminatedTiles.count) tiles for elimination animation after notification")
-                    // Store eliminated tile info to animate after excluded notification is dismissed
+                    print("[GameStore] Phase 3b: Storing \(eliminatedTiles.count) tiles for deferred elimination after notification")
                     self.pendingEliminationTiles = eliminatedTiles
-                    self.engine.clearLastMilestoneElimination()
+                    // Don't clear yet — applyDeferredElimination will clear after actual removal
                 }
 
                 if requiresGravityDrop {
@@ -2054,10 +2078,20 @@ public final class GameStore {
 
         let previousBoard = state.board
         // Pass the base step to handle high-value tiles correctly
+        // Defer elimination so tiles stay until notifications complete
+        engine.deferElimination = true
         let newState = engine.applyDouble(to: position, from: base, baseStep: baseStep)
+        engine.deferElimination = false
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         pendingDoubleBase = nil
         pendingDoubleBaseStep = nil
+
+        // Store any deferred elimination tiles
+        let eliminatedTiles = engine.lastMilestoneEliminatedTiles
+        if !eliminatedTiles.isEmpty {
+            print("[GameStore] Double: Storing \(eliminatedTiles.count) tiles for deferred elimination")
+            pendingEliminationTiles = eliminatedTiles
+        }
 
         // Notify JourneyKit if we created a new highest tile
         // Use safe multiplication to prevent overflow
@@ -2131,6 +2165,10 @@ public final class GameStore {
                 try? await Task.sleep(nanoseconds: 400_000_000) // 0.4 seconds
                 showNextNotification()
             }
+        } else if !pendingEliminationTiles.isEmpty {
+            // All notifications are done but deferred elimination was never triggered
+            // (e.g., no excluded notification was queued). Apply now.
+            triggerEliminationAnimation()
         }
     }
 
@@ -2139,13 +2177,20 @@ public final class GameStore {
         didCreateFirstInfinity = false
     }
 
-    /// Trigger the elimination ghost animation after excluded notification is dismissed
+    /// Trigger the elimination ghost animation after excluded notification is dismissed,
+    /// then apply the deferred elimination to actually remove tiles from the board.
     private func triggerEliminationAnimation() {
         print("[GameStore] Triggering elimination animation for \(pendingEliminationTiles.count) tiles")
         milestoneEliminatedTiles = pendingEliminationTiles
         pendingEliminationTiles = []
 
-        // Clear animation after delay
+        // Apply the deferred elimination now — removes tiles from the board and refills.
+        // The ghost overlay is already showing, so the user sees the fade-out animation
+        // while the board updates underneath.
+        let _ = engine.applyDeferredElimination()
+        state = engine.state
+
+        // Clear ghost overlay after animation completes
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: Self.eliminationAnimationDelay)
             self.milestoneEliminatedTiles = []
@@ -2387,9 +2432,18 @@ public final class GameStore {
                 return
             }
 
+            self.engine.deferElimination = true
             let magnetResult = self.engine.magnetize(value: value, to: position)
+            self.engine.deferElimination = false
             self.state = magnetResult
             self.processPendingRewards()
+
+            // Store any deferred elimination tiles
+            let eliminatedTiles = self.engine.lastMilestoneEliminatedTiles
+            if !eliminatedTiles.isEmpty {
+                print("[GameStore] Magnet: Storing \(eliminatedTiles.count) tiles for deferred elimination")
+                self.pendingEliminationTiles = eliminatedTiles
+            }
 
             let mergedTile = magnetResult.board[position]
             let mergedValue = mergedTile?.value ?? {

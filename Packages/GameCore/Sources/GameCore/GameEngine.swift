@@ -159,9 +159,30 @@ public final class GameEngine {
     }
     public private(set) var lastMilestoneEliminatedTiles: [EliminatedTileInfo] = []
 
+    /// When true, milestone eliminations record which tiles should be removed
+    /// (in `lastMilestoneEliminatedTiles`) but do NOT modify the board.
+    /// Call `applyDeferredElimination()` later to perform the actual removal.
+    public var deferElimination: Bool = false
+
     /// Clears the last eliminated tiles tracking (call after animation completes)
     public func clearLastMilestoneElimination() {
         lastMilestoneEliminatedTiles = []
+    }
+
+    /// Apply the previously deferred elimination: remove tracked tiles from the board and refill.
+    @discardableResult
+    public func applyDeferredElimination() -> GameState {
+        guard !lastMilestoneEliminatedTiles.isEmpty else { return state }
+        print("[GameEngine] Applying deferred elimination for \(lastMilestoneEliminatedTiles.count) tiles")
+        for info in lastMilestoneEliminatedTiles {
+            if let tile = state.board[info.position],
+               tile.value == info.value {
+                state.board[info.position] = nil
+            }
+        }
+        refillAfterGravity()
+        lastMilestoneEliminatedTiles = []
+        return state
     }
     
     public init(config: GameConfig = GameConfig()) {
@@ -1552,9 +1573,9 @@ public final class GameEngine {
         let highestStep = state.highestTileStep
         guard highestStep >= 0 else { return nil }
 
-        // After 131K+ (step 17+), make the game easier by spawning closer to highest
-        // Step 17 = 131072 (131K)
-        let stepsBelow = highestStep >= 17 ? 5 : 7
+        // After 131K+ (step 16+), make the game easier by spawning closer to highest
+        // Step 16 = 131072 (131K)
+        let stepsBelow = highestStep >= 16 ? 5 : 7
 
         // Maximum spawn is stepsBelow below highest
         let maxSpawnStep = highestStep - stepsBelow
@@ -1603,8 +1624,8 @@ public final class GameEngine {
     public func minAllowedSpawnStep() -> Int {
         let highestStep = state.highestTileStep
 
-        // After 131K+ (step 17), spawn only 5 tiles below highest instead of 7
-        let stepsBelow = highestStep >= 17 ? 5 : 7
+        // After 131K+ (step 16), spawn only 5 tiles below highest instead of 7
+        let stepsBelow = highestStep >= 16 ? 5 : 7
 
         // maxSpawn is stepsBelow below highest
         // minSpawn is 6 tiles below maxSpawn (7 candidates total)
@@ -1681,25 +1702,26 @@ public final class GameEngine {
             }
         }
 
-        // For ALL other milestones, calculate what gets added
-        // If there's an explicit elimination, use that to calculate added value
+        // For ALL other milestones, calculate what gets added.
+        // The added tile is the max spawn step, which depends on the
+        // spawn pool configuration:
+        //   - Below 131K (step < 16): max spawn = highestStep - 7  → added is 7 steps above eliminated
+        //   - At 131K+ (step >= 16): max spawn = highestStep - 5   → added is 9 steps above eliminated
+        // (eliminated is always 14 steps below milestone → milestone >> 14)
+        let milestoneStep = TileStepLabelFormatter.stepForValue(milestone, start: 2) ?? 0
+        let addedShift = milestoneStep >= 16 ? 9 : 7
+
         if let eliminated = milestoneExcludedValue(for: milestone) {
-            // When we eliminate X, we add tiles 7 steps above X
-            let addedSpawnValue = eliminated <= (Int.max >> 7) ? eliminated << 7 : Int.max
+            let addedSpawnValue = eliminated <= (Int.max >> addedShift) ? eliminated << addedShift : Int.max
             return addedSpawnValue
         }
 
         // For milestones without explicit elimination (like 128, 256, 512, 1024)
         // They still add new tiles to the spawn pool
-        // The added value is typically the milestone divided by 16 then multiplied by 128
-        // This gives us a value 7 steps above what would be eliminated
         if milestone >= 128 {
-            // For these milestones, we add tiles based on the milestone value
-            // The pattern is: milestone/16 is roughly what gets "eliminated"
-            // And we add 7 steps above that
             let implicitEliminated = milestone / 16
             if implicitEliminated >= 1 {
-                let addedSpawnValue = implicitEliminated <= (Int.max >> 7) ? implicitEliminated << 7 : Int.max
+                let addedSpawnValue = implicitEliminated <= (Int.max >> addedShift) ? implicitEliminated << addedShift : Int.max
                 return addedSpawnValue
             }
         }
@@ -2133,12 +2155,16 @@ public final class GameEngine {
             }
             lastMilestoneEliminatedTiles.append(contentsOf: eliminatedInfo)
 
-            // Perform elimination
-            for pos in positionsToEliminate {
-                state.board[pos] = nil
+            // Perform elimination (unless deferred)
+            if !deferElimination {
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            } else {
+                print("   ⏳ Elimination deferred — \(removedCount) tiles recorded for later removal")
             }
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
         }
     }
 
@@ -2191,12 +2217,16 @@ public final class GameEngine {
             }
             lastMilestoneEliminatedTiles = eliminatedInfo
 
-            // Perform elimination
-            for pos in positionsToEliminate {
-                state.board[pos] = nil
+            // Perform elimination (unless deferred)
+            if !deferElimination {
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            } else {
+                print("   ⏳ Elimination deferred — \(removedCount) tiles recorded for later removal")
             }
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
         } else {
             print("   ℹ️ No tiles found at or below threshold \(threshold)")
         }
@@ -2340,12 +2370,16 @@ public final class GameEngine {
             }
             lastMilestoneEliminatedTiles = eliminatedInfo
 
-            // Perform elimination
-            for pos in positionsToEliminate {
-                state.board[pos] = nil
+            // Perform elimination (unless deferred)
+            if !deferElimination {
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            } else {
+                print("   ⏳ Elimination deferred — \(removedCount) tiles recorded for later removal")
             }
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
         } else {
             print("   ℹ️ No tiles found at or below step threshold \(thresholdStep)")
         }
