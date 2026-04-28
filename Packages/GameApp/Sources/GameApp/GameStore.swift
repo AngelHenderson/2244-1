@@ -2069,10 +2069,20 @@ public final class GameStore {
 
         let previousBoard = state.board
         // Pass the base step to handle high-value tiles correctly
+        // Defer elimination so tiles stay until notifications complete
+        engine.deferElimination = true
         let newState = engine.applyDouble(to: position, from: base, baseStep: baseStep)
+        engine.deferElimination = false
         applyStateUpdate(newState, previousBoard: previousBoard, refillProtectedPositions: Set([position]))
         pendingDoubleBase = nil
         pendingDoubleBaseStep = nil
+
+        // Store any deferred elimination tiles
+        let eliminatedTiles = engine.lastMilestoneEliminatedTiles
+        if !eliminatedTiles.isEmpty {
+            print("[GameStore] Double: Storing \(eliminatedTiles.count) tiles for deferred elimination")
+            pendingEliminationTiles = eliminatedTiles
+        }
 
         // Notify JourneyKit if we created a new highest tile
         // Use safe multiplication to prevent overflow
