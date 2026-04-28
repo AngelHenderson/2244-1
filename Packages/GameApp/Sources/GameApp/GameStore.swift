@@ -905,6 +905,14 @@ public final class GameStore {
         pathValidation = .valid
         isInputLocked = false
         isExtendingToGift = false
+
+        // Apply any pending deferred elimination so the board is consistent
+        if !pendingEliminationTiles.isEmpty {
+            let _ = engine.applyDeferredElimination()
+            state = engine.state
+            pendingEliminationTiles = []
+            milestoneEliminatedTiles = []
+        }
     }
     
     public func commitPath() {
