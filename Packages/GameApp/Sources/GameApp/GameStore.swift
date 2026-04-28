@@ -912,8 +912,7 @@ public final class GameStore {
 
         // Apply any pending deferred elimination so the board is consistent
         if !pendingEliminationTiles.isEmpty {
-            let _ = engine.applyDeferredElimination()
-            state = engine.state
+            state = engine.applyDeferredElimination()
             pendingEliminationTiles = []
             milestoneEliminatedTiles = []
         }
@@ -2187,8 +2186,7 @@ public final class GameStore {
         // Apply the deferred elimination now — removes tiles from the board and refills.
         // The ghost overlay is already showing, so the user sees the fade-out animation
         // while the board updates underneath.
-        let _ = engine.applyDeferredElimination()
-        state = engine.state
+        state = engine.applyDeferredElimination()
 
         // Clear ghost overlay after animation completes
         Task { @MainActor in
