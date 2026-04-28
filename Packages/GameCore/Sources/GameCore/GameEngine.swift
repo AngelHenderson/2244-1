@@ -159,9 +159,30 @@ public final class GameEngine {
     }
     public private(set) var lastMilestoneEliminatedTiles: [EliminatedTileInfo] = []
 
+    /// When true, milestone eliminations record which tiles should be removed
+    /// (in `lastMilestoneEliminatedTiles`) but do NOT modify the board.
+    /// Call `applyDeferredElimination()` later to perform the actual removal.
+    public var deferElimination: Bool = false
+
     /// Clears the last eliminated tiles tracking (call after animation completes)
     public func clearLastMilestoneElimination() {
         lastMilestoneEliminatedTiles = []
+    }
+
+    /// Apply the previously deferred elimination: remove tracked tiles from the board and refill.
+    @discardableResult
+    public func applyDeferredElimination() -> GameState {
+        guard !lastMilestoneEliminatedTiles.isEmpty else { return state }
+        print("[GameEngine] Applying deferred elimination for \(lastMilestoneEliminatedTiles.count) tiles")
+        for info in lastMilestoneEliminatedTiles {
+            if let tile = state.board[info.position],
+               tile.value == info.value {
+                state.board[info.position] = nil
+            }
+        }
+        refillAfterGravity()
+        lastMilestoneEliminatedTiles = []
+        return state
     }
     
     public init(config: GameConfig = GameConfig()) {
@@ -2133,12 +2154,16 @@ public final class GameEngine {
             }
             lastMilestoneEliminatedTiles.append(contentsOf: eliminatedInfo)
 
-            // Perform elimination
-            for pos in positionsToEliminate {
-                state.board[pos] = nil
+            // Perform elimination (unless deferred)
+            if !deferElimination {
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            } else {
+                print("   ⏳ Elimination deferred — \(removedCount) tiles recorded for later removal")
             }
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
         }
     }
 
@@ -2191,12 +2216,16 @@ public final class GameEngine {
             }
             lastMilestoneEliminatedTiles = eliminatedInfo
 
-            // Perform elimination
-            for pos in positionsToEliminate {
-                state.board[pos] = nil
+            // Perform elimination (unless deferred)
+            if !deferElimination {
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            } else {
+                print("   ⏳ Elimination deferred — \(removedCount) tiles recorded for later removal")
             }
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
         } else {
             print("   ℹ️ No tiles found at or below threshold \(threshold)")
         }
@@ -2340,12 +2369,16 @@ public final class GameEngine {
             }
             lastMilestoneEliminatedTiles = eliminatedInfo
 
-            // Perform elimination
-            for pos in positionsToEliminate {
-                state.board[pos] = nil
+            // Perform elimination (unless deferred)
+            if !deferElimination {
+                for pos in positionsToEliminate {
+                    state.board[pos] = nil
+                }
+                refillAfterGravity()
+                print("   ✅ Board refilled with higher-value tiles only")
+            } else {
+                print("   ⏳ Elimination deferred — \(removedCount) tiles recorded for later removal")
             }
-            refillAfterGravity()
-            print("   ✅ Board refilled with higher-value tiles only")
         } else {
             print("   ℹ️ No tiles found at or below step threshold \(thresholdStep)")
         }
