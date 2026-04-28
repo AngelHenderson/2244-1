@@ -51,12 +51,15 @@ func testMilestonesBetween() {
     let config = GameConfig()
     let engine = GameEngine(config: config)
 
-    // Test 1: Jump from 128 to 8192 should include 2048, 4096, and 8192
+    // Test 1: Jump from 128 to 8192 includes early spawn milestones plus 2048, 4096, and 8192
     let milestones1 = engine.milestonesBetween(128, and: 8192)
+    #expect(milestones1.contains(256), "Should include 256")
+    #expect(milestones1.contains(512), "Should include 512")
+    #expect(milestones1.contains(1024), "Should include 1024")
     #expect(milestones1.contains(2048), "Should include 2048")
     #expect(milestones1.contains(4096), "Should include 4096")
     #expect(milestones1.contains(8192), "Should include 8192")
-    #expect(milestones1.count == 3, "Should have exactly 3 milestones")
+    #expect(milestones1.count == 6, "Should have exactly 6 milestones")
 
     // Test 2: Jump from 4096 to 8192 should only include 8192
     let milestones2 = engine.milestonesBetween(4096, and: 8192)
@@ -77,8 +80,9 @@ func testSkipMilestoneNotifications() {
     let engine = GameEngine(config: config)
 
     // When jumping from 128 to 8192:
-    // - Pass 2048: eliminates 2s, adds 4s
-    // - Pass 4096: eliminates 4s, adds 8s
+    // - Early milestones eliminate implicit 1s and add 128s
+    // - Pass 2048: eliminates 2s, adds 256s
+    // - Pass 4096: eliminates 4s, adds 512s
     // - Reach 8192: skip milestone (no changes)
 
     let passedMilestones = engine.milestonesBetween(128, and: 8192)
@@ -95,15 +99,17 @@ func testSkipMilestoneNotifications() {
         }
     }
 
-    // Should have eliminated 2s and 4s
+    // Should have eliminated implicit 1s plus 2s and 4s
+    #expect(eliminatedValues.contains(1), "Early milestones should eliminate implicit 1s")
     #expect(eliminatedValues.contains(2), "Should eliminate 2s from 2048 milestone")
     #expect(eliminatedValues.contains(4), "Should eliminate 4s from 4096 milestone")
-    #expect(eliminatedValues.count == 2, "Should eliminate exactly 2 values")
+    #expect(eliminatedValues.count == 3, "Should eliminate exactly 3 values")
 
-    // Should have added 256s and 512s to spawn pool (7 steps above eliminated values)
+    // Should have added 128s, 256s, and 512s to spawn pool
+    #expect(addedValues.contains(128), "Should add 128s to spawn from early milestones")
     #expect(addedValues.contains(256), "Should add 256s to spawn from 2048 milestone (2 * 128)")
     #expect(addedValues.contains(512), "Should add 512s to spawn from 4096 milestone (4 * 128)")
-    #expect(addedValues.count == 2, "Should add exactly 2 values")
+    #expect(addedValues.count == 3, "Should add exactly 3 values")
 
     // 8192 itself should not contribute to eliminations or additions
     let direct8192Eliminated = engine.milestoneExcludedValue(for: 8192)

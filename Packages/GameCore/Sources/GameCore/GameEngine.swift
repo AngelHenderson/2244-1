@@ -2166,6 +2166,9 @@ public final class GameEngine {
                 print("   ⏳ Elimination deferred — \(removedCount) tiles recorded for later removal")
             }
         }
+        if !deferElimination {
+            cleanupTilesBelowThreshold()
+        }
     }
 
     private func eliminateAllTilesBelowThreshold(threshold: Int) {

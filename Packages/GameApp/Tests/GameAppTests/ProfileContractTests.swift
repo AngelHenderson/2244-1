@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import GameApp
 @testable import GameCore
 
@@ -70,6 +71,8 @@ enum PowerUpType: String, CaseIterable, Codable {
 }
 
 struct Profile: Codable {
+    private static let persistenceKey = "ProfileContractTests.Profile"
+
     var name: String = "Player"
     var isDefault: Bool = true
     var coins: Int = 305
@@ -93,10 +96,15 @@ struct Profile: Codable {
     init() {}
 
     func save() {
-
+        let data = try? JSONEncoder().encode(self)
+        UserDefaults.standard.set(data, forKey: Self.persistenceKey)
     }
 
     static func load() -> Profile {
-        return Profile()
+        guard let data = UserDefaults.standard.data(forKey: persistenceKey),
+              let profile = try? JSONDecoder().decode(Profile.self, from: data) else {
+            return Profile()
+        }
+        return profile
     }
 }

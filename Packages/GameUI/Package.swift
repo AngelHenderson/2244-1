@@ -22,6 +22,12 @@ let package = Package(
         .target(
             name: "GameUI",
             dependencies: ["GameCore", "GameApp", "GameServices"],
+            exclude: [
+                "Leaderboard/check_missing_brackets.py",
+                "Leaderboard/check_missing_countries.py",
+                "Leaderboard/check_missing_names.py",
+                "Leaderboard/generate_cases.py"
+            ],
             resources: [
                 .process("Resources")
             ],

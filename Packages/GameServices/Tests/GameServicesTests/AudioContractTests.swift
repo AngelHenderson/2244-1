@@ -9,8 +9,6 @@ struct AudioContractTests {
     @Test("Audio engine supports 6 themes")
     @MainActor
     func supportsSixThemes() async {
-        let audioEngine = AudioEngine()
-
         let themes = MusicTheme.allCases
         #expect(themes.count == 6)
         #expect(themes.contains(.classic))
@@ -50,7 +48,7 @@ struct AudioContractTests {
     func usesAVAudioEngine() async {
         let audioEngine = AudioEngine()
 
-        #expect(audioEngine.avEngine is AVAudioEngine)
+        #expect(ObjectIdentifier(type(of: audioEngine.avEngine)) == ObjectIdentifier(AVAudioEngine.self))
         #expect(audioEngine.avEngine.isRunning == false)
     }
 
@@ -119,7 +117,13 @@ class AudioEngine {
     }
 
     func preloadTheme(_ theme: MusicTheme) {
-
+        let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 2)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 512)
+        if currentThemeBuffer == nil {
+            currentThemeBuffer = buffer
+        } else {
+            nextThemeBuffer = buffer
+        }
     }
 
     func isThemeAvailable(_ theme: MusicTheme) -> Bool {
@@ -157,14 +161,23 @@ class SoundEffectsPlayer {
 }
 
 struct AudioSettings: Codable {
+    private static let storageKey = "AudioContractTests.AudioSettings"
+
     var musicVolume: Float = 1.0
     var effectsVolume: Float = 1.0
 
     func save() {
-
+        if let data = try? JSONEncoder().encode(self) {
+            UserDefaults.standard.set(data, forKey: Self.storageKey)
+        }
     }
 
     static func load() -> AudioSettings {
-        return AudioSettings()
+        guard let data = UserDefaults.standard.data(forKey: storageKey),
+              let settings = try? JSONDecoder().decode(AudioSettings.self, from: data)
+        else {
+            return AudioSettings()
+        }
+        return settings
     }
 }

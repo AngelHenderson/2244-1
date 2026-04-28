@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import GameCore
 
@@ -106,6 +107,53 @@ struct IAPContractTests {
             "com.game2244.pro.yearly"
         ]))
     }
+
+    @Test("Local StoreKit configuration contains every canonical product")
+    func localStoreKitConfigurationMatchesCatalog() throws {
+        let configURL = try storeKitConfigurationURL()
+        let data = try Data(contentsOf: configURL)
+        let json = try JSONSerialization.jsonObject(with: data)
+        let configuredIDs = collectProductIDs(from: json)
+
+        #expect(configuredIDs == Set(IAPProduct.allProductIDs))
+    }
+}
+
+private func storeKitConfigurationURL() throws -> URL {
+    var cursor = URL(fileURLWithPath: #filePath)
+    while cursor.path != "/" {
+        let candidate = cursor
+            .appendingPathComponent("2244")
+            .appendingPathComponent("game2244")
+            .appendingPathComponent("Configuration.storekit")
+        if FileManager.default.fileExists(atPath: candidate.path) {
+            return candidate
+        }
+        cursor.deleteLastPathComponent()
+    }
+
+    throw CocoaError(.fileNoSuchFile)
+}
+
+private func collectProductIDs(from value: Any) -> Set<String> {
+    if let dictionary = value as? [String: Any] {
+        var ids = Set<String>()
+        if let productID = dictionary["productID"] as? String {
+            ids.insert(productID)
+        }
+        for child in dictionary.values {
+            ids.formUnion(collectProductIDs(from: child))
+        }
+        return ids
+    }
+
+    if let array = value as? [Any] {
+        return array.reduce(into: Set<String>()) { result, child in
+            result.formUnion(collectProductIDs(from: child))
+        }
+    }
+
+    return []
 }
 
 private extension Array where Element == IAPProductItem {

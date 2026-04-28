@@ -4221,11 +4221,18 @@ extension GameStore {
 #if DEBUG
 extension GameStore {
     func _testTriggerUnlockReward(newHigh: Int, previousHigh: Int) {
+        state.highestTile = newHigh
+        if let step = TileStepLabelFormatter.stepForValue(newHigh, start: 2) {
+            state.highestTileStep = step
+        }
         setPendingUnlockRewardIfNeeded(for: newHigh, previousHigh: previousHigh)
     }
     
     func _setHighestTileForTesting(_ value: Int) {
         state.highestTile = value
+        if let step = TileStepLabelFormatter.stepForValue(value, start: 2) {
+            state.highestTileStep = step
+        }
     }
     
     func _forceScoreBoost(tier: ScoreBoostTierID, expiration: Date?) {

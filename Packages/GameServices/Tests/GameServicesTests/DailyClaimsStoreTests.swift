@@ -3,26 +3,27 @@ import XCTest
 
 @MainActor
 final class DailyClaimsStoreTests: XCTestCase {
-    func testWeeklyRewardsRepeatEverySevenDays() async throws {
+    func testYearlyRewardsRepeatAndScaleAfterDay365() async throws {
         let suite = "DailyClaimsStoreTests.repeat"
         let store = makeStore(suite: suite)
         defer { clearStore(for: suite) }
         
         await store.loadCatalogs()
+        store.ensureClaimsCovering(pageIndex: 53)
         store.updateAvailability()
         
         guard
             let day1 = store.dailyClaims.first(where: { $0.day == 1 })?.rewards,
-            let day8 = store.dailyClaims.first(where: { $0.day == 8 })?.rewards
+            let day366 = store.dailyClaims.first(where: { $0.day == 366 })?.rewards
         else {
             XCTFail("Rewards unavailable for comparison")
             return
         }
         
-        XCTAssertEqual(rewardKinds(day1), rewardKinds(day8), "Reward composition should repeat weekly")
+        XCTAssertEqual(rewardKinds(day1), rewardKinds(day366), "Reward composition should repeat yearly")
         
         for entry in day1.entries {
-            let nextAmount = amount(of: entry.kind, in: day8) ?? 0
+            let nextAmount = amount(of: entry.kind, in: day366) ?? 0
             XCTAssertGreaterThanOrEqual(nextAmount, entry.amount, "Amounts should grow over time for \(entry.kind)")
         }
     }
@@ -80,21 +81,21 @@ final class DailyClaimsStoreTests: XCTestCase {
         defer { clearStore(for: suite) }
         
         await store.loadCatalogs()
-        store.ensureClaimsCovering(pageIndex: 20)
+        store.ensureClaimsCovering(pageIndex: 53)
         
         guard
             let day1 = store.dailyClaims.first(where: { $0.day == 1 }),
-            let day50 = store.dailyClaims.first(where: { $0.day == 50 })
+            let day366 = store.dailyClaims.first(where: { $0.day == 366 })
         else {
             XCTFail("Failed to load comparison claims")
             return
         }
         
-        XCTAssertGreaterThan(day50.rewards.gems ?? 0, day1.rewards.gems ?? 0)
-        if let startHammers = day1.rewards.hammers, let endHammers = day50.rewards.hammers {
+        XCTAssertGreaterThan(day366.rewards.gems ?? 0, day1.rewards.gems ?? 0)
+        if let startHammers = day1.rewards.hammers, let endHammers = day366.rewards.hammers {
             XCTAssertGreaterThanOrEqual(endHammers, startHammers)
         }
-        if let startSpins = day1.rewards.spins, let endSpins = day50.rewards.spins {
+        if let startSpins = day1.rewards.spins, let endSpins = day366.rewards.spins {
             XCTAssertGreaterThanOrEqual(endSpins, startSpins)
         }
     }

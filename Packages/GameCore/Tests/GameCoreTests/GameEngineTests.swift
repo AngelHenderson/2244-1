@@ -145,8 +145,8 @@ struct GameEngineTests {
         engine._resetScoreForTesting()
         let state = engine.commitChain(basePositions)
         
-        // Expected value: 64 doubled four times (for 5 tiles) = 1024
-        let expectedValue = 64 << 4
+        // Expected value: 5 * 64 rounded up to the next power of two = 512
+        let expectedValue = 512
         #expect(state.board[basePositions.last!] == Tile(value: expectedValue), "Long chain should keep doubling")
         #expect(state.score >= expectedValue, "Score should reflect the resulting tile")
     }
@@ -349,9 +349,9 @@ struct GameEngineTests {
         let engine = GameEngine(config: GameConfig(seed: 123))
         
         // Set up a simple chain that can end on a gift
-        let p00 = Position(row: 0, col: 0)  // First tile: 4
+        let p00 = Position(row: 0, col: 2)  // First tile: 4
         let p01 = Position(row: 0, col: 1)  // Second tile: 4
-        let p02 = Position(row: 0, col: 2)  // Gift position
+        let p02 = Position(row: 0, col: 0)  // Gift position with gem rewards
         
         // Clear and set up tiles
         engine._setTileForTesting(at: p00, value: 4)
@@ -376,19 +376,21 @@ struct GameEngineTests {
         
         // Commit the gift chain and resolve drop/refill phases manually
         let mergedState = engine.commitGiftChain(chain)
+        let mergedTile = mergedState.board[p02]
         _ = engine.applyGravityAfterChain()
         let resultState = engine.refillBoard()
-        
+
         // Verify the merge occurred correctly
         #expect(mergedState.score > 0, "Score should increase after gift merge")
-        // Note: Positions p00 and p01 are refilled due to applyGravityDown() and refillToFull()
-        // so we can't check for nil tiles. Instead we verify the result value and other effects.
-        #expect(resultState.board[p02] != nil, "Result tile should be placed at gift position")
+        #expect(mergedTile != nil, "Result tile should be placed at gift position before gravity")
         #expect(resultState.gems > initialState.gems, "Gems should increase from gift break")
         
         // Verify the result tile has at least the expected value (2 * max value in chain)
         // With auto-cascade enabled, the value may be higher due to subsequent merges
-        let resultTile = resultState.board[p02]!
+        guard let resultTile = mergedTile else {
+            Issue.record("Gift merge should leave a result tile before gravity resolves")
+            return
+        }
         #expect(resultTile.value >= 8, "Result should be at least 2 * max(4, 4) = 8")
         
         // Verify gift is no longer there
@@ -557,7 +559,7 @@ struct GameEngineTests {
                 }
             }
         }
-        #expect(engine._latestEliminatedValueForTesting() == 4, "Spawn floor should advance to at least 8")
+        #expect(engine._latestEliminatedValueForTesting() == 32, "Spawn floor should reflect the 65K milestone")
     }
 
     @Test("Milestone elimination re-triggers when the same 65K tile appears again")

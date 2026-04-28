@@ -162,7 +162,87 @@
     "_storefront" : "USA",
     "_storeKitErrors" : []
   },
-  "subscriptionGroups" : [],
+  "subscriptionGroups" : [
+    {
+      "id" : "22055063",
+      "localizations" : [
+        {
+          "description" : "2244 premium memberships and boost subscriptions",
+          "displayName" : "2244 Memberships",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "2244 Memberships",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "1.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6764002271",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Monthly auto-claim boosts for 2244",
+              "displayName" : "Auto-Claim Boosts Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.game2244.boosts.autoclaim.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Auto-Claim Boosts Monthly",
+          "subscriptionGroupID" : "22055063",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6764002194",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Monthly 2244 Pro access with premium benefits",
+              "displayName" : "2244 Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.game2244.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "2244 Pro Monthly",
+          "subscriptionGroupID" : "22055063",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6764002542",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Yearly 2244 Pro access with premium benefits",
+              "displayName" : "2244 Pro Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.game2244.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "2244 Pro Yearly",
+          "subscriptionGroupID" : "22055063",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
+        }
+      ]
+    }
+  ],
   "version" : {
     "major" : 4,
     "minor" : 0

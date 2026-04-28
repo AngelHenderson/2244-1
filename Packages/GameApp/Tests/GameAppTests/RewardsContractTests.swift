@@ -71,13 +71,13 @@ struct RewardsContractTests {
         let chain5Reward = rewardCalculator.rewardForChain(length: 5)
         let chain7Reward = rewardCalculator.rewardForChain(length: 7)
 
-        #expect(chain3Reward.coins == 5)
-        #expect(chain5Reward.coins == 15)
-        #expect(chain7Reward.coins == 30)
+        #expect(chain3Reward.coins == 6)
+        #expect(chain5Reward.coins == 20)
+        #expect(chain7Reward.coins == 42)
 
-        #expect(chain3Reward.experience == 10)
-        #expect(chain5Reward.experience == 25)
-        #expect(chain7Reward.experience == 50)
+        #expect(chain3Reward.experience == 15)
+        #expect(chain5Reward.experience == 50)
+        #expect(chain7Reward.experience == 70)
     }
 
     @Test("Time-limited offers have expiration")

@@ -30,6 +30,9 @@ public final class LiveAdService: AdServiceProtocol {
     private var interstitial: InterstitialAd?
     private var rewarded: RewardedAd?
     private var rewardedInterstitial: RewardedInterstitialAd?
+    private var interstitialDelegate: LiveFullScreenAdDelegate?
+    private var rewardedDelegate: LiveFullScreenAdDelegate?
+    private var rewardedInterstitialDelegate: LiveFullScreenAdDelegate?
     #endif
 
     public init(adMobIDs: AdMobIDs = .resolved()) {
@@ -76,9 +79,21 @@ public final class LiveAdService: AdServiceProtocol {
         await loadInterstitialIfNeeded()
         guard let interstitial else { return false }
         guard let root = rootViewController() else { return false }
+        let delegate = LiveFullScreenAdDelegate(
+            onDismiss: { [weak self] in
+                self?.interstitial = nil
+                self?.interstitialDelegate = nil
+                Task { await self?.loadInterstitialIfNeeded() }
+            },
+            onFailToPresent: { [weak self] in
+                self?.interstitial = nil
+                self?.interstitialDelegate = nil
+                Task { await self?.loadInterstitialIfNeeded() }
+            }
+        )
+        interstitial.fullScreenContentDelegate = delegate
+        interstitialDelegate = delegate
         interstitial.present(from: root)
-        self.interstitial = nil
-        Task { await loadInterstitialIfNeeded() }
         return true
         #else
         try? await Task.sleep(for: .seconds(0.5))
@@ -93,16 +108,31 @@ public final class LiveAdService: AdServiceProtocol {
         await loadRewardedIfNeeded()
         guard let rewarded else { return false }
         guard let root = rootViewController() else { return false }
-        // Avoid capturing the non-escaping `onReward` inside the continuation
-        // closure; signal via the continuation, then call onReward after we resume.
         let didReward: Bool = await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
+            let resolver = LiveRewardResolver(continuation: cont)
+            let delegate = LiveFullScreenAdDelegate(
+                onDismiss: { [weak self, resolver] in
+                    self?.rewarded = nil
+                    self?.rewardedDelegate = nil
+                    resolver.finishOnDismiss()
+                    Task { await self?.loadRewardedIfNeeded() }
+                },
+                onFailToPresent: { [weak self, resolver] in
+                    self?.rewarded = nil
+                    self?.rewardedDelegate = nil
+                    resolver.finishFailed()
+                    Task { await self?.loadRewardedIfNeeded() }
+                }
+            )
+            rewarded.fullScreenContentDelegate = delegate
+            rewardedDelegate = delegate
             rewarded.present(from: root) {
-                cont.resume(returning: true)
+                Task { @MainActor in
+                    resolver.markEarned()
+                }
             }
         }
         if didReward { onReward() }
-        self.rewarded = nil
-        Task { await loadRewardedIfNeeded() }
         return didReward
         #else
         try? await Task.sleep(for: .seconds(0.5))
@@ -119,13 +149,30 @@ public final class LiveAdService: AdServiceProtocol {
         guard let rewardedInterstitial else { return false }
         guard let root = rootViewController() else { return false }
         let didReward: Bool = await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
+            let resolver = LiveRewardResolver(continuation: cont)
+            let delegate = LiveFullScreenAdDelegate(
+                onDismiss: { [weak self, resolver] in
+                    self?.rewardedInterstitial = nil
+                    self?.rewardedInterstitialDelegate = nil
+                    resolver.finishOnDismiss()
+                    Task { await self?.loadRewardedInterstitialIfNeeded() }
+                },
+                onFailToPresent: { [weak self, resolver] in
+                    self?.rewardedInterstitial = nil
+                    self?.rewardedInterstitialDelegate = nil
+                    resolver.finishFailed()
+                    Task { await self?.loadRewardedInterstitialIfNeeded() }
+                }
+            )
+            rewardedInterstitial.fullScreenContentDelegate = delegate
+            rewardedInterstitialDelegate = delegate
             rewardedInterstitial.present(from: root) {
-                cont.resume(returning: true)
+                Task { @MainActor in
+                    resolver.markEarned()
+                }
             }
         }
         if didReward { onReward() }
-        self.rewardedInterstitial = nil
-        Task { await loadRewardedInterstitialIfNeeded() }
         return didReward
         #else
         try? await Task.sleep(for: .seconds(0.5))
@@ -235,6 +282,57 @@ public struct LiveBannerAdView: View {
 }
 
 #if canImport(GoogleMobileAds) && canImport(UIKit)
+@MainActor
+private final class LiveRewardResolver {
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private var didEarnReward = false
+
+    init(continuation: CheckedContinuation<Bool, Never>) {
+        self.continuation = continuation
+    }
+
+    func markEarned() {
+        didEarnReward = true
+    }
+
+    func finishOnDismiss() {
+        guard let continuation else { return }
+        self.continuation = nil
+        continuation.resume(returning: didEarnReward)
+    }
+
+    func finishFailed() {
+        guard let continuation else { return }
+        self.continuation = nil
+        continuation.resume(returning: false)
+    }
+}
+
+@MainActor
+private final class LiveFullScreenAdDelegate: NSObject, FullScreenContentDelegate {
+    private let onDismiss: @MainActor @Sendable () -> Void
+    private let onFailToPresent: @MainActor @Sendable () -> Void
+
+    init(
+        onDismiss: @escaping @MainActor @Sendable () -> Void,
+        onFailToPresent: @escaping @MainActor @Sendable () -> Void
+    ) {
+        self.onDismiss = onDismiss
+        self.onFailToPresent = onFailToPresent
+    }
+
+    func adDidDismissFullScreenContent(_ ad: any FullScreenPresentingAd) {
+        onDismiss()
+    }
+
+    func ad(
+        _ ad: any FullScreenPresentingAd,
+        didFailToPresentFullScreenContentWithError error: Error
+    ) {
+        onFailToPresent()
+    }
+}
+
 private struct BannerContent: View {
     let adUnitID: String
     @State private var canLoadBanner = false

@@ -25,13 +25,15 @@ struct ThemeTests {
     
     @Test
     @MainActor
-    func testJourneyMilestoneOverrides() {
-        let expectedColor = Color(hex: "C275FF")
-        let journeyValues = [274_000_000_000, 549_000_000_000]
+    func testJourneyMilestonesUsePaletteCycling() {
+        let expectations: [(value: Int, color: Color, textColor: Color)] = [
+            (274_000_000_000, Color(hex: "FFFFEB"), .black),
+            (549_000_000_000, Color(hex: "8849D1"), .white)
+        ]
         
-        for value in journeyValues {
-            #expect(Theme.color(for: value) == expectedColor)
-            #expect(Theme.textColor(for: value) == .black)
+        for item in expectations {
+            #expect(Theme.color(for: item.value) == item.color)
+            #expect(Theme.textColor(for: item.value) == item.textColor)
         }
     }
     
@@ -89,8 +91,8 @@ struct ThemeTests {
     
     @Test
     @MainActor
-    func testJourneyMilestonesRepeatEvery25Orders() {
-        let labels = ["35a", "70a", "140a", "281a", "562a", "1b", "1c"]
+    func testJourneyMilestonesRepeatEvery25Steps() {
+        let labels = ["1M", "1B", "1a", "1b", "1c"]
         let cycleLength = 25
         
         for label in labels {
@@ -100,17 +102,10 @@ struct ThemeTests {
                 continue
             }
             
-            let referenceOrder = tier.order % cycleLength
-            guard let referenceTier = GameCore.JourneyAbbreviationTiers.tiers.first(where: { $0.order == referenceOrder }),
-                  let referenceStep = referenceTier.step else {
-                Issue.record("Missing reference tier for order \(referenceOrder)")
-                continue
-            }
-            
             let color = Theme.colorForStep(step)
             let textColor = Theme.textColorForStep(step)
-            let referenceColor = Theme.colorForStep(referenceStep)
-            let referenceTextColor = Theme.textColorForStep(referenceStep)
+            let referenceColor = Theme.colorForStep(step + cycleLength)
+            let referenceTextColor = Theme.textColorForStep(step + cycleLength)
             
             #expect(color == referenceColor)
             #expect(textColor == referenceTextColor)
