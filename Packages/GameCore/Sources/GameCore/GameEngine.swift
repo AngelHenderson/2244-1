@@ -1702,25 +1702,26 @@ public final class GameEngine {
             }
         }
 
-        // For ALL other milestones, calculate what gets added
-        // If there's an explicit elimination, use that to calculate added value
+        // For ALL other milestones, calculate what gets added.
+        // The added tile is the max spawn step, which depends on the
+        // spawn pool configuration:
+        //   - Below 131K (step < 17): max spawn = highestStep - 7  → added is 7 steps above eliminated
+        //   - At 131K+ (step >= 17): max spawn = highestStep - 5   → added is 9 steps above eliminated
+        // (eliminated is always 14 steps below milestone → milestone >> 14)
+        let milestoneStep = TileStepLabelFormatter.stepForValue(milestone, start: 2) ?? 0
+        let addedShift = milestoneStep >= 17 ? 9 : 7
+
         if let eliminated = milestoneExcludedValue(for: milestone) {
-            // When we eliminate X, we add tiles 7 steps above X
-            let addedSpawnValue = eliminated <= (Int.max >> 7) ? eliminated << 7 : Int.max
+            let addedSpawnValue = eliminated <= (Int.max >> addedShift) ? eliminated << addedShift : Int.max
             return addedSpawnValue
         }
 
         // For milestones without explicit elimination (like 128, 256, 512, 1024)
         // They still add new tiles to the spawn pool
-        // The added value is typically the milestone divided by 16 then multiplied by 128
-        // This gives us a value 7 steps above what would be eliminated
         if milestone >= 128 {
-            // For these milestones, we add tiles based on the milestone value
-            // The pattern is: milestone/16 is roughly what gets "eliminated"
-            // And we add 7 steps above that
             let implicitEliminated = milestone / 16
             if implicitEliminated >= 1 {
-                let addedSpawnValue = implicitEliminated <= (Int.max >> 7) ? implicitEliminated << 7 : Int.max
+                let addedSpawnValue = implicitEliminated <= (Int.max >> addedShift) ? implicitEliminated << addedShift : Int.max
                 return addedSpawnValue
             }
         }
