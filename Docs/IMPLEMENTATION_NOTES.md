@@ -299,3 +299,9 @@ Responsiveness: use a fixed design width reference of 390 pt (iPhone 15 Pro). Sc
 - Exact color hexes for each tile and HUD chip.
 - Whether milestone chips are functional or cosmetic.
 - Final sizes/positions for right-toolbar price bubbles and count badges.
+
+## GameCore Milestone And Journey Notes
+
+- Value-based milestone eliminations now raise the refill spawn floor from the latest eliminated value, so removed low tiles such as 2s and 4s are not immediately respawned after 2048/4096 milestones.
+- Re-triggering an already reached milestone also runs cleanup for tiles below the current threshold when elimination is not deferred.
+- The final finite journey tile is step 816, formatted as `873bz`; step 817 and above are treated as infinity.

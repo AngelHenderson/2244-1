@@ -15,7 +15,7 @@ struct AutoCascadeTests {
             }
         }
         
-        // Place three matching tiles in a row at the bottom
+        // Place a connected group of four matching tiles near the bottom
         engine._setTileForTesting(at: Position(row: 4, col: 0), value: 32)
         engine._setTileForTesting(at: Position(row: 4, col: 1), value: 32)
         engine._setTileForTesting(at: Position(row: 4, col: 2), value: 32)
@@ -32,7 +32,7 @@ struct AutoCascadeTests {
                 }
             }
         }
-        #expect(initialCount32 == 3, "Should start with exactly 3 tiles of value 32")
+        #expect(initialCount32 == 4, "Should start with exactly 4 tiles of value 32")
         
         // Run cascade
         let score = engine.runAutoCascade()
@@ -134,8 +134,8 @@ struct AutoCascadeTests {
         #expect(found256OrHigher, "Should have created a 256 tile (or higher from cascading)")
     }
     
-    @Test("Swap triggers auto-cascade")
-    func testSwapTriggersAutoCascade() {
+    @Test("Swap only moves the selected tiles")
+    func testSwapOnlyMovesSelectedTiles() {
         let config = GameConfig(boardWidth: 5, boardHeight: 5, seed: 12345, fillMode: .alwaysFull)
         let engine = GameEngine(config: config)
         
@@ -153,25 +153,14 @@ struct AutoCascadeTests {
         
         let scoreBefore = engine.currentState().score
         
-        // Swap the middle tile with something else to bring the 32s together
+        // Swap the middle tile with something else. Swap intentionally does not run
+        // gravity, refill, or auto-cascade.
         _ = engine.swap(Position(row: 4, col: 1), Position(row: 3, col: 1))
         
         let scoreAfter = engine.currentState().score
         
-        // Check that score increased (indicating a merge happened)
-        #expect(scoreAfter > scoreBefore, "Score should increase after swap triggers cascade")
-        
-        // Check that a 64 tile exists (from merging two 32s)
-        var found64OrHigher = false
-        for row in 0..<5 {
-            for col in 0..<5 {
-                if let tile = engine.currentState().board[Position(row: row, col: col)], tile.value >= 64 {
-                    found64OrHigher = true
-                    break
-                }
-            }
-        }
-        
-        #expect(found64OrHigher, "Should have created a 64+ tile from merging 32s")
+        #expect(scoreAfter == scoreBefore, "Swap should not score or cascade by itself")
+        #expect(engine.currentState().board[Position(row: 4, col: 1)]?.value == 2048)
+        #expect(engine.currentState().board[Position(row: 3, col: 1)]?.value == 8)
     }
 }

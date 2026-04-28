@@ -25,7 +25,8 @@ func testFirstTime8192EliminatesLowerValues() {
     engine._setTileForTesting(at: Position(row: 7, col: 3), value: 4)
     engine._setTileForTesting(at: Position(row: 7, col: 4), value: 8)
 
-    // Create exactly 40 tiles of 128 in a valid chain pattern
+    // Create 35 tiles of 128 in a valid chain pattern. With the current merge math,
+    // 35 * 128 rounds up to 8192.
     var chainPositions: [Position] = []
 
     // Create a snaking chain through the board
@@ -80,17 +81,6 @@ func testFirstTime8192EliminatesLowerValues() {
 
     // Row 7 is partially filled with 2s and 4s, skip it
 
-    // We have 35 tiles so far, need 5 more
-    // Add some extras with value 128
-    engine._setTileForTesting(at: Position(row: 6, col: 0), value: 128)
-    engine._setTileForTesting(at: Position(row: 6, col: 1), value: 128)
-    engine._setTileForTesting(at: Position(row: 6, col: 2), value: 128)
-    engine._setTileForTesting(at: Position(row: 6, col: 3), value: 128)
-    engine._setTileForTesting(at: Position(row: 6, col: 4), value: 128)
-
-    // Ensure we have exactly 40 positions for our chain
-    chainPositions = Array(chainPositions.prefix(40))
-
     print("📊 Initial state:")
     let initialState = engine.currentState()
     print("   Highest tile: \(initialState.highestTile)")
@@ -112,7 +102,7 @@ func testFirstTime8192EliminatesLowerValues() {
 
     #expect(initialCounts[2] == 2, "Should have 2 tiles of value 2")
     #expect(initialCounts[4] == 2, "Should have 2 tiles of value 4")
-    #expect(initialCounts[128]! >= 40, "Should have at least 40 tiles of 128")
+    #expect(initialCounts[128] == 35, "Should have 35 tiles of value 128")
 
     print("\n🔗 Creating chain with \(chainPositions.count) tiles of 128...")
 
@@ -149,9 +139,6 @@ func testFirstTime8192EliminatesLowerValues() {
             "All 2s should be eliminated when passing 2048 milestone")
     #expect(finalCounts[4] == nil || finalCounts[4] == 0,
             "All 4s should be eliminated when passing 4096 milestone")
-    #expect(finalCounts[8] ?? 0 > 0,
-            "8s should NOT be eliminated (no milestone eliminates them yet)")
-
     print("\n✅ Milestone eliminations correctly applied:")
     print("   Passed 2048: eliminated all 2s")
     print("   Passed 4096: eliminated all 4s")

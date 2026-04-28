@@ -1633,8 +1633,15 @@ public final class GameEngine {
 
         // But never go below the elimination threshold
         let eliminationThreshold = getEliminationThresholdStep()
+        let eliminatedFloorStep: Int
+        if let removed = latestEliminatedValue(),
+           let removedStep = TileStepLabelFormatter.stepForValue(removed, start: 2) {
+            eliminatedFloorStep = removedStep + 1
+        } else {
+            eliminatedFloorStep = 0
+        }
 
-        return max(0, max(calculatedMinStep, eliminationThreshold + 1))
+        return max(0, calculatedMinStep, eliminationThreshold + 1, eliminatedFloorStep)
     }
 
     /// Returns the elimination threshold as a step

@@ -19,7 +19,7 @@ public struct JourneyAbbreviationTier: Identifiable, Hashable, Codable, Sendable
 
 /// Generates and exposes the ordered tier list used by both the game logic and UI.
 public enum JourneyAbbreviationTiers {
-    public static let maxSupportedStep = 817
+    public static let maxSupportedStep = 816
     public static let startStep = 19 // 1M (2^20)
     
     public static let tiers: [JourneyAbbreviationTier] = Self.buildTiers()
@@ -133,7 +133,6 @@ public enum JourneyAbbreviationTiers {
         label.lowercased() == target.lowercased()
     }
 }
-
 
 
 
