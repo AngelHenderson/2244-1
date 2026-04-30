@@ -6,6 +6,103 @@ Use this as the final engineering and App Store checklist for release
 candidates. It is intentionally limited to launch blockers, trust/privacy,
 monetization, Firebase, IAP, first-launch UX, and external console work.
 
+## Current State Snapshot (2026-04-30)
+
+What is verified done from this machine:
+
+- Repo HEAD: `381945ab` (Address remaining Focus, Trust, And Launch Readiness gaps).
+- Firebase project pinned via `firebase/.firebaserc` to
+  `project-7513530591038917977`. `firebase use` from `firebase/` resolves to
+  that project; root no longer relies on global state for the Firebase project
+  directory.
+- `firebase/functions/` TypeScript build passes (`npm install` + `npm run build`
+  produces `lib/index.js` and `lib/submitScore.js`). One pre-existing source
+  bug fixed: `firebase-functions/v2/https` does not export `logger` in
+  `firebase-functions@^5`; replaced `functions.logger` with `import { logger }
+  from "firebase-functions"`.
+- Firestore rules deployed to `project-7513530591038917977` (`released rules
+  firestore.rules to cloud.firestore`). Default Firestore database was
+  bootstrapped during this deploy.
+- `validate-launch-readiness.mjs` passes. Root `firestore.rules` and
+  `firebase/firestore.rules` are byte-identical.
+
+Still blocked from this machine:
+
+- Cloud Functions deploy. `project-7513530591038917977` is on the Spark plan,
+  but `cloudfunctions.googleapis.com`, `cloudbuild.googleapis.com`, and
+  `artifactregistry.googleapis.com` require Blaze. Until the project is
+  upgraded, `submitScore` is not deployed and direct client writes to
+  `/leaderboards/{boardId}/scores/{uid}` will be denied (which matches rules,
+  but means no leaderboard data lands in Firestore).
+- Live game-end smoke writes: cannot run until `submitScore` deploys.
+- Live `/players/{uid}/progress/blocked` smoke write: requires a real device
+  session and Firebase Console observation; not runnable from this CLI.
+- Leaked Firebase Web API key. `2244/game2244/GoogleService-Info.plist` was
+  un-tracked in commit `148eaa07`, but the key
+  `AIzaSyC6wRiQH9L50oNcnVazu0tFsFkAnDeof7M` (project number 1032642468174)
+  remains in git history and is still valid until rotated in the GCP console.
+
+## Required External Actions Before Submission
+
+The numbered items below must be completed in App Store Connect, GCP, AdMob,
+or on a device — they cannot be finished from this CLI session.
+
+1. **Upgrade Firebase plan.** Open
+   <https://console.firebase.google.com/project/project-7513530591038917977/usage/details>
+   and switch the project to Blaze (pay-as-you-go). Set a budget alert.
+2. **Deploy Cloud Functions** once Blaze is active:
+   ```bash
+   cd firebase
+   firebase deploy --only functions --project project-7513530591038917977
+   ```
+   Expect a callable `submitScore` to appear in
+   `https://console.firebase.google.com/project/project-7513530591038917977/functions`.
+3. **Rotate the leaked Web API key** in the GCP Console under APIs & Services →
+   Credentials. The current value in git history is
+   `AIzaSyC6wRiQH9L50oNcnVazu0tFsFkAnDeof7M`. After rotating, regenerate
+   `GoogleService-Info.plist` from the Firebase Console (Project Settings →
+   Your apps → iOS app), drop the new file at
+   `2244/game2244/GoogleService-Info.plist` (still gitignored), and add API key
+   restrictions (iOS bundle identifier `com.ideabloomlabs.game2244`, allowed
+   APIs limited to Firebase services).
+4. **App Store Connect IAP SKUs.** Confirm all 13 SKUs from
+   `Docs/IAP_CATALOG.md` exist with matching type, localization, pricing, and
+   review screenshots, and are attached to the submitted version.
+5. **Sandbox consumables.** Purchase each consumable bundle (Coin Pouch, Gem
+   Pack, Power-Up bundles) in TestFlight Sandbox. After purchase, force a
+   restore (`SKPaymentQueue.restoreCompletedTransactions`) and confirm the
+   ledger key `tx-<id>:<productId>:<index>:<itemType>` blocks a second grant —
+   gem balance and inventory must not change.
+6. **Sandbox non-consumables / subscription.** Purchase Remove Ads, the Theme
+   Pack, and the monthly subscription. Confirm entitlements gate the
+   appropriate features (no ads, themes unlocked, subscription perks active),
+   and that a restore on a clean install re-grants without double-counting.
+7. **UMP regional check.** With the device region set to an EU/EEA country,
+   launch a clean install and confirm Google UMP shows the consent form before
+   any ad request and that Settings shows “Ad Privacy Choices.” Switch to a
+   non-EU region (e.g. US) and confirm the form does not block launch or
+   rewards. If UMP fails to load, Settings should surface an inline
+   "unavailable" message.
+8. **Release .ipa first-launch tutorial.** Build a Release archive, install
+   on a device with no prior install of `com.ideabloomlabs.game2244`, launch,
+   and confirm How to Play presents automatically. Complete the tutorial,
+   finish one run, force-quit, and relaunch — the tutorial must not reappear.
+9. **Live Firestore smoke (post-Blaze).** With the Release build:
+   - Complete a non-sandbox run; confirm
+     `/leaderboards/global/scores/{uid}` is written and contains
+     `highestTileStep`, `composite`, `score`, `seed`.
+   - Block a leaderboard player; confirm
+     `/players/{uid}/progress/blocked` mirrors the change. Force-quit and
+     relaunch; confirm the blocked list still filters that player.
+   - Submit a report; confirm `/reports/{id}` lands with `reporterId ==
+     request.auth.uid` and that direct client writes to
+     `/leaderboards/global/scores/{uid}` are rejected from the Firestore Rules
+     Playground.
+10. **App Store Connect agreements.** Paid Applications agreement, tax, and
+    banking must be signed and active.
+11. **AdMob.** Payment profile, store-listing linkage, consent messages, and
+    limited-ad-serving status must be set before review.
+
 ## Automated Local Gate
 
 Run before archiving:

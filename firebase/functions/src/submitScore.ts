@@ -1,4 +1,5 @@
 import * as functions from "firebase-functions/v2/https";
+import { logger } from "firebase-functions";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 
@@ -206,14 +207,14 @@ export const submitScore = functions.onCall(
             { merge: true }
           );
 
-          functions.logger.info("Score submitted successfully", {
+          logger.info("Score submitted successfully", {
             uid,
             boardId,
             highestTile: scoreData.highestTile,
             compositeScore: compositeValue.toString(),
           });
         } else {
-          functions.logger.info("Score not submitted - not better than existing", {
+          logger.info("Score not submitted - not better than existing", {
             uid,
             boardId,
             newScore: compositeValue.toString(),
@@ -228,7 +229,7 @@ export const submitScore = functions.onCall(
       };
 
     } catch (error) {
-      functions.logger.error("Error submitting score", {
+      logger.error("Error submitting score", {
         uid,
         boardId,
         error: error instanceof Error ? error.message : String(error),
