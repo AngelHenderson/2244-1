@@ -56,16 +56,17 @@ The implementation provides:
 # 1. Create Firebase project at console.firebase.google.com
 # 2. Enable Authentication (Anonymous)
 # 3. Create Firestore database
-# 4. Add iOS app with bundle ID: com.game2244.app
+# 4. Add iOS app with bundle ID: com.ideabloomlabs.game2244
 ```
 
 ### 2. Configuration Files
 ```bash
-# Copy your GoogleService-Info.plist to main app target
-cp ~/Downloads/GoogleService-Info.plist game2244/GoogleService-Info.plist
+# Copy your GoogleService-Info.plist to the local app target folder.
+# This file is intentionally ignored and must not be committed.
+cp ~/Downloads/GoogleService-Info.plist 2244/game2244/GoogleService-Info.plist
 
 # Or use the template and fill in your values
-cp firebase/GoogleService-Info-template.plist game2244/GoogleService-Info.plist
+cp firebase/GoogleService-Info-template.plist 2244/game2244/GoogleService-Info.plist
 ```
 
 ### 3. Deploy Backend
@@ -89,7 +90,10 @@ firebase deploy
 ```
 
 ### 4. iOS Project Setup
-The iOS integration is already complete. Just add GoogleService-Info.plist to your main app target.
+The iOS integration is already complete. Keep the real
+`GoogleService-Info.plist` local at `2244/game2244/GoogleService-Info.plist`;
+`.gitignore` and `scripts/validate-launch-readiness.mjs` enforce that it is not
+tracked.
 
 ## How It Works
 
@@ -225,6 +229,7 @@ rules cover the launch paths:
 - `/players/{uid}/leaderboards/{board=**}` covers per-player leaderboard metadata;
 - `/players/{uid}/purchases/{txnId}` covers purchase receipt mirrors;
 - `/reports/{id}` is append-only and requires `reporterId == request.auth.uid`.
+- the real `2244/game2244/GoogleService-Info.plist` is ignored and not tracked.
 
 ### Production Testing
 - Test with anonymous authentication
@@ -301,7 +306,8 @@ Both files require:
 ## Troubleshooting
 
 ### Common Issues
-1. **GoogleService-Info.plist missing**: Copy from Firebase Console
+1. **GoogleService-Info.plist missing**: Copy from Firebase Console to
+   `2244/game2244/GoogleService-Info.plist` and keep it out of git.
 2. **Authentication fails**: Check bundle ID matches Firebase config
 3. **Function errors**: Check logs in Firebase Console
 4. **Permission errors**: Verify Firestore rules are deployed
@@ -325,4 +331,6 @@ FirebaseConfiguration.shared.setLoggerLevel(.debug)
 
 **Implementation Status**: ✅ Complete and Ready for Production
 
-The Firebase leaderboard system is fully integrated and ready to use. Simply add your GoogleService-Info.plist and deploy the Cloud Functions to go live!
+The Firebase leaderboard system is fully integrated and ready to use. Add the
+local `GoogleService-Info.plist`, deploy the Cloud Functions and rules, then run
+the smoke checklist above before submission.

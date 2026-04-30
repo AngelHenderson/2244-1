@@ -734,7 +734,7 @@ These surfaces still exist in the repo and are screen-like, but they are not par
 - State / Services: preview/demo store setup
 - Status: `legacy`
 
-## 7. Known Gaps / TODO / Partial Wiring
+## 7. Launch Notes / External Dependencies
 
 - Runtime leaderboard injection starts as `.empty`, then switches to Firebase +
   Game Center mirroring after Firebase auth succeeds, or Game Center-only when
@@ -746,7 +746,6 @@ These surfaces still exist in the repo and are screen-like, but they are not par
   StoreKit-backed `ThemePaywallSheet` / `PurchaseService` path.
 - `ProgressSyncCoordinator` attaches `FirestoreProgressStore` when Firebase is
   configured; otherwise it degrades to local-only progress.
-- `GameCenterView` wraps `GKGameCenterViewController`, which is deprecated relative to the repo's Apple-platform baseline.
 - `ReportPlayerSheet` submits to `ReportService` and can optionally hide the
   reported player locally; backend de-dupe/ban enforcement remains an external
   Cloud Functions concern.

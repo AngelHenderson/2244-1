@@ -11,7 +11,7 @@
 - Google Mobile Ads is pinned from v13.0.0 and currently resolves to 13.2.0. Google User Messaging Platform is included through Swift Package Manager for consent and privacy options. Debug builds use Google's current iOS demo ad unit IDs: banner (`ca-app-pub-3940256099942544/2435281174`), interstitial (`ca-app-pub-3940256099942544/4411468910`), rewarded (`ca-app-pub-3940256099942544/1712485313`), and rewarded interstitial (`ca-app-pub-3940256099942544/6978759866`).
 - `Info.plist` includes Google's current AdMob SKAdNetworkItems quick-start list. Re-check this list before each release because Google updates it over time.
 - Tile/background visual picker surfaces remain free by catalog choice. Premium gating currently applies to the music themes backed by StoreKit products.
-- The app target bundle identifier is aligned to the App Store Connect 2244 record: `2244.ideabloomlabs.com`.
+- The app target bundle identifier is aligned to the App Store Connect 2244 record: `com.ideabloomlabs.game2244`.
 
 Production console progress: App Store Connect now has the matching `com.game2244.*` IAP draft records, English (U.S.) localizations, all-country availability saved for `Remove Ads` and `Mega Bundle`, and Game Center draft leaderboards for `com.game2244.global` and `com.game2244.halloffame`. Subscription group `2244 Memberships` is also created (`22055063`) with draft subscriptions for `com.game2244.boosts.autoclaim.monthly` (`6764002271`, 1 month), `com.game2244.pro.monthly` (`6764002194`, 1 month), and `com.game2244.pro.yearly` (`6764002542`, 1 year); each has English (U.S.) localization and all-country availability saved, but remains `Missing Metadata` until pricing and review screenshots are added. App Store Connect does not currently expose the app-version IAP/subscription attachment controls on the iOS 1.0 version or App Review page, so attachment appears blocked until the products can move past missing metadata. Production console work still required: complete the Paid Application agreement/payment setup so pricing and the remaining IAP availability can be added, upload IAP/subscription review screenshots, attach the IAPs/subscriptions and Game Center leaderboards to the app version, complete App Privacy, create/publish the AdMob Privacy & messaging forms for required regions, finish the AdMob payment profile, and link the app to its store listing to avoid limited ad serving once the App Store listing is available.
 
@@ -95,9 +95,10 @@ swift test --package-path Packages/GameCore
    tested with anonymous auth.
 3. AdMob payment setup, store-listing link, and consent-region console
    validation must be completed before release.
-4. `GoogleService-Info.plist` is ignored for future commits, but the currently
-   tracked credential file should be rotated and removed from git history before
-   any public release.
+4. `GoogleService-Info.plist` is ignored and removed from the current git index.
+   If the repository will ever be public or shared outside the release team,
+   rotate the Firebase app credentials and purge historical copies before
+   publishing.
 
 ## Development Workflow
 

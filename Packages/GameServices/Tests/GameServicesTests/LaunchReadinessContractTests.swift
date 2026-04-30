@@ -58,10 +58,13 @@ struct LaunchReadinessContractTests {
         #expect(reasons.contains("CA92.1"))
     }
 
-    @Test("Firebase credential file is ignored for future commits")
+    @Test("Firebase credential file is ignored and untracked")
     func googleServiceInfoIsIgnored() throws {
         let gitignore = try String(contentsOf: repositoryFileURL(".gitignore"), encoding: .utf8)
         #expect(gitignore.contains("GoogleService-Info.plist"))
+
+        let tracked = try gitOutput(["ls-files", "--", "2244/game2244/GoogleService-Info.plist"])
+        #expect(tracked.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 }
 
@@ -86,4 +89,21 @@ private func readPlist(_ relativePath: String) throws -> [String: Any] {
     let data = try Data(contentsOf: repositoryFileURL(relativePath))
     let object = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
     return try #require(object as? [String: Any])
+}
+
+private func gitOutput(_ arguments: [String]) throws -> String {
+    let root = try repositoryFileURL(".gitignore").deletingLastPathComponent()
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+    process.arguments = arguments
+    process.currentDirectoryURL = root
+
+    let pipe = Pipe()
+    process.standardOutput = pipe
+    process.standardError = Pipe()
+    try process.run()
+    process.waitUntilExit()
+    #expect(process.terminationStatus == 0)
+
+    return String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
 }

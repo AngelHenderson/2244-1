@@ -92,5 +92,5 @@ node scripts/validate-launch-readiness.mjs
 ```
 
 The script checks Firestore rules sync/coverage, StoreKit catalog consistency,
-privacy manifest presence, release bundle settings, and whether
-`GoogleService-Info.plist` is ignored for future commits.
+privacy manifest presence, release bundle settings, and that the real
+`GoogleService-Info.plist` is ignored and untracked.

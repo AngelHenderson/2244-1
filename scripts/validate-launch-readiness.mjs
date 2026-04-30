@@ -119,7 +119,7 @@ try {
     encoding: 'utf8',
   }).trim();
   if (tracked) {
-    warn('2244/game2244/GoogleService-Info.plist is currently tracked. Rotate/remove from git history before public release.');
+    fail('2244/game2244/GoogleService-Info.plist is tracked. Remove it with git rm --cached before release.');
   }
 } catch {
   warn('Could not check whether GoogleService-Info.plist is tracked by git.');

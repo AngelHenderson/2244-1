@@ -52,8 +52,9 @@ xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Relea
 - Enable anonymous auth.
 - Confirm `GoogleService-Info.plist` exists locally in `2244/game2244/` and
   matches `com.ideabloomlabs.game2244`.
-- Rotate and remove any committed Firebase credentials before public release;
-  `.gitignore` prevents future accidental additions.
+- The release credential file is removed from the current git index and ignored.
+  If the repo is shared outside the release team, rotate Firebase credentials
+  and purge any historical committed copies before publishing.
 - Run the Firebase smoke checklist in `Docs/FIREBASE_INTEGRATION_GUIDE.md`.
 
 ## IAP / StoreKit
