@@ -471,8 +471,8 @@ flowchart TD
 - Main Components: title/header, horizontal pager, instrument artwork, preview playback logic, select button
 - Primary Actions: page through instruments, preview sound, select current music theme
 - Outbound Pathways: dismiss to `HomeView`
-- State / Services: audio service, `currentMusicTheme` `AppStorage`, placeholder try/purchase callbacks
-- Status: `partial`
+- State / Services: audio service, `currentMusicTheme` `AppStorage`, `PurchaseService` premium theme ownership
+- Status: `live`
 
 ### Social, identity, and moderation surfaces
 
@@ -736,16 +736,30 @@ These surfaces still exist in the repo and are screen-like, but they are not par
 
 ## 7. Known Gaps / TODO / Partial Wiring
 
-- `game2244App` injects `leaderboardClient` as `.noop`, even though Firebase/Game Center leaderboard-related code exists elsewhere in the repo. The leaderboard UI is rich, but the default runtime client is not clearly wired to a live backend.
-- `RootGameView` still contains TODO host handlers for `openProfile`, `openAchievements`, `openLeaderboard`, `openSettings`, theme actions, and `openSaleOffer`. Most of these are bypassed by `HomeView`'s own sheet state, but the `SALE OFFER` left-rail button still routes through the unfinished `openSaleOffer` action.
-- `MusicThemesView` is reachable and can select the current music theme, but the host closures used from `HomeView` are still placeholder `print` hooks for try/purchase behavior.
-- `ProgressSyncCoordinator` is instantiated with `remoteStore: nil`, so remote progress sync is explicitly unfinished at the root level.
+- Runtime leaderboard injection starts as `.empty`, then switches to Firebase +
+  Game Center mirroring after Firebase auth succeeds, or Game Center-only when
+  Firebase is unavailable. Mock leaderboard rows are preview/test-only.
+- `HomeView` owns Profile, Achievements, Leaderboard, Settings, Music, Shop,
+  and Theme Picker presentation through `HomeSheetDestination`; `RootGameView`
+  only wires actions it actually owns.
+- `MusicThemesView` is reachable and premium theme unlocks route through the
+  StoreKit-backed `ThemePaywallSheet` / `PurchaseService` path.
+- `ProgressSyncCoordinator` attaches `FirestoreProgressStore` when Firebase is
+  configured; otherwise it degrades to local-only progress.
 - `GameCenterView` wraps `GKGameCenterViewController`, which is deprecated relative to the repo's Apple-platform baseline.
-- `ReportPlayerSheet` uses local/randomized evaluation helpers plus a `mailto:` handoff rather than a real moderation backend.
-- `PlayerHistoryView` generates synthetic event history from leaderboard entries instead of showing a persisted server-backed moderation feed.
-- `SeasonHistoryView` and large parts of `CompareView` are synthetic/mock-driven rather than clearly tied to live profile services.
-- `StoreView` buys gem packs by directly adding currency in code, which strongly suggests it is an obsolete placeholder store rather than production commerce UI.
-- The first-launch tutorial gate only auto-presents in non-debug builds because it is wrapped in `#if !DEBUG`.
+- `ReportPlayerSheet` submits to `ReportService` and can optionally hide the
+  reported player locally; backend de-dupe/ban enforcement remains an external
+  Cloud Functions concern.
+- `PlayerHistoryView` still derives activity history from leaderboard entries;
+  treat it as an engagement/history visualization, not a server-backed
+  moderation audit log.
+- `SeasonHistoryView` shows recorded seasons in Release builds; deterministic
+  backfill is Debug-only.
+- `CompareView` uses synthetic players and is Debug-only.
+- `StoreView` routes product IDs through `ShopStore.purchase(_:)`, which
+  requires verified StoreKit transactions before rewards are granted.
+- The first-launch tutorial gate still suppresses auto-presentation in Debug,
+  but the release branch is covered by the `FirstLaunchTutorialGate` test seam.
 - `useGlassPreview` is stored in app state, but the canonical boot path always renders `RootGameView`; the flag does not currently switch the user into a glass-preview route.
 
 ## Notes

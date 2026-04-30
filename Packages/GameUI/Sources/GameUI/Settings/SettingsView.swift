@@ -352,13 +352,17 @@ public struct SettingsView: View {
                             .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
                     }
 
-                    Link(destination: URL(string: "https://game2244.com/privacy")!) {
-                        Text("Privacy Policy")
-                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    if let privacyURL = URL(string: "https://game2244.com/privacy") {
+                        Link(destination: privacyURL) {
+                            Text("Privacy Policy")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                        }
                     }
-                    Link(destination: URL(string: "https://game2244.com/terms")!) {
-                        Text("Terms of Service")
-                            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    if let termsURL = URL(string: "https://game2244.com/terms") {
+                        Link(destination: termsURL) {
+                            Text("Terms of Service")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                        }
                     }
                 } header: {
                     Text("Support")
@@ -516,131 +520,139 @@ struct ReportPlayerSheet: View {
     @Environment(HomeState.self) private var homeState
     @Environment(\.reportService) private var reportService
 
-    @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
-    
     @State private var playerName: String
-    @State private var selectedReason: String = "• Cheating or memory editing"
+    private let playerID: String?
+    private let onSubmitted: (() -> Void)?
+
+    @State private var selectedReason: String = "Cheating or memory editing"
     @State private var additionalDetails: String = ""
-    
     @State private var showAreYouSure = false
-    
-    init(initialName: String = "") {
+    @State private var isSubmitting = false
+    @State private var didSubmit = false
+    @State private var submitError: String?
+    @State private var blockAfterSubmit: Bool = false
+
+    init(
+        initialName: String = "",
+        playerID: String? = nil,
+        onSubmitted: (() -> Void)? = nil
+    ) {
         _playerName = State(initialValue: initialName)
+        self.playerID = playerID
+        self.onSubmitted = onSubmitted
     }
-    
-    let reasons = [
-        "• Cheating or memory editing",
-        "• Fake currency/gem generation",
-        "• Impossible scores or impossible progression",
-        "• Speed hacks or timer manipulation",
-        "• He is ahead of me on the leaderboard!",
-        "• Bots, macros, or auto-play",
-        "• Exploiting bugs repeatedly for unfair gain",
-        "• Refund or payment abuse",
-        "• Account selling, sharing, or ban evasion",
-        "• Other"
+
+    private let reasons: [String] = [
+        "Cheating or memory editing",
+        "Fake currency/gem generation",
+        "Impossible scores or progression",
+        "Speed hacks or timer manipulation",
+        "Bots, macros, or auto-play",
+        "Exploiting bugs repeatedly for unfair gain",
+        "Refund or payment abuse",
+        "Account selling, sharing, or ban evasion",
+        "Other"
     ]
-    
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("Player Information") {
+                Section("Player") {
                     TextField("Player Name", text: $playerName)
                 }
-                
-                Section("Report Details") {
+
+                Section("Why are you reporting them?") {
                     Picker("Reason", selection: $selectedReason) {
                         ForEach(reasons, id: \.self) { reason in
                             Text(reason).tag(reason)
                         }
                     }
-                    
+
                     TextField("Additional details (optional)", text: $additionalDetails, axis: .vertical)
                         .lineLimit(4...8)
                 }
-                
+
+                if let pid = playerID, !pid.isEmpty {
+                    Section("Hide this player") {
+                        Toggle("Also hide them from my leaderboard", isOn: $blockAfterSubmit)
+                            .accessibilityHint("Hides this player from your leaderboard view; does not affect other players.")
+                    }
+                }
+
+                if let submitError {
+                    Section {
+                        Text(submitError)
+                            .foregroundStyle(.red)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                    }
+                }
+
                 Section {
                     Button(action: { showAreYouSure = true }) {
-                        Text("Report")
-                            .frame(maxWidth: .infinity)
-                            .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
-                            .foregroundStyle(Color.accentColor)
+                        HStack {
+                            if isSubmitting {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Submitting...")
+                            } else if didSubmit {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("Report submitted")
+                            } else {
+                                Text("Submit report")
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
                     }
+                    .disabled(isSubmitting || didSubmit || playerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
             .navigationTitle("Report Player")
             .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(didSubmit ? "Done" : "Cancel") { dismiss() }
                 }
             }
-            .alert("Are you sure?", isPresented: $showAreYouSure) {
-                Button("Yes", role: .destructive) {
-                    evaluateAndSubmitReport()
-                }
-                Button("No", role: .cancel) { }
+            .alert("Submit this report?", isPresented: $showAreYouSure) {
+                Button("Submit", role: .destructive) { Task { await submitReport() } }
+                Button("Cancel", role: .cancel) { }
             } message: {
-                Text("Are you sure this player did something that violates the rules? False reports will count against you.")
+                Text("Our team will review this report. You can also hide this player from your view at any time.")
             }
         }
     }
-    
-    private func evaluateAndSubmitReport() {
-        let nameField = playerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
-            ? "[enter player name]" 
-            : playerName.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-        let isTrapReason = (selectedReason == "• He is ahead of me on the leaderboard!")
-        let isTrueReport = isTrapReason ? false : Bool.random()
-        
-        let detailsFilled = !additionalDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        let areDetailsFalse = detailsFilled ? Bool.random() : false
-        
-        let subject = "Player Report"
-        let bodyText = """
-        I would like to report a player for the following reason:
 
-        Player name: \(nameField)
-        Reason: \(selectedReason)
+    @MainActor
+    private func submitReport() async {
+        let trimmedName = playerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
 
-        Additional details:
-        \(additionalDetails.isEmpty ? "[None provided]" : additionalDetails)
-        """
-        // .urlQueryAllowed doesn't encode `&` or `+` properly for mailto links
-        var customAllowed = CharacterSet.urlQueryAllowed
-        customAllowed.remove(charactersIn: "+&")
-        
-        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? subject
-        let encodedBody = bodyText.addingPercentEncoding(withAllowedCharacters: customAllowed) ?? bodyText
-        
-        // Queue the investigation alert task over 1-2 minutes asynchronously
-        homeState.queueReportEvaluation(
-            isTrueReport: isTrueReport,
-            isTrapReason: isTrapReason,
-            areDetailsFalse: areDetailsFalse,
-            nameField: nameField,
-            delaySeconds: Double.random(in: 60...120)
-        )
-
-        // Fire-and-forget cloud submission. Local evaluation above drives UX
-        // immediately so the user isn't waiting on the network.
+        let trimmedDetails = additionalDetails.trimmingCharacters(in: .whitespacesAndNewlines)
         let report = PlayerReport(
-            reportedPlayerName: nameField,
+            reportedPlayerName: trimmedName,
+            reportedPlayerId: playerID,
             reason: selectedReason,
-            additionalDetails: additionalDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                ? nil : additionalDetails
+            additionalDetails: trimmedDetails.isEmpty ? nil : trimmedDetails
         )
-        let service = reportService
-        Task.detached {
-            try? await service.submit(report)
-        }
 
-        if let url = URL(string: "mailto:support@game2244.com?subject=\(encodedSubject)&body=\(encodedBody)") {
-            openPlatformURL(url)
+        isSubmitting = true
+        submitError = nil
+        do {
+            try await reportService.submit(report)
+            didSubmit = true
+            if blockAfterSubmit, let pid = playerID, !pid.isEmpty {
+                homeState.block(playerID: pid)
+            }
+            onSubmitted?()
+            // Brief delay so the player sees the green checkmark before dismissal.
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            dismiss()
+        } catch {
+            submitError = "Could not send the report. Please try again."
         }
-
-        dismiss()
+        isSubmitting = false
     }
 }
 

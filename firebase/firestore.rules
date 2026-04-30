@@ -1,71 +1,132 @@
 rules_version = '2';
+
+// Security rules for the 2244 app's Firestore data.
+// Mirror of firebase/firestore.rules. The deployable copy under
+// firebase/firestore.rules is the source of truth used by `firebase deploy`;
+// this file exists at the repo root so editor tooling and tests can pick up
+// the same shape. Keep them in sync.
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper functions
+
+    // ------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
     function isOwner(uid) {
       return isAuthenticated() && request.auth.uid == uid;
     }
-    
+
     function isValidBoardId(boardId) {
-      // Allow global, daily:YYYY-MM-DD, and mode:modeName formats
       return boardId.matches('^(global|daily:[0-9]{4}-[0-9]{2}-[0-9]{2}|mode:[a-zA-Z0-9_]+)$');
     }
-    
-    // Leaderboards collection
+
+    function validGemPayload(data) {
+      // Sanity bound on gem balance — prevents trivial inflation.
+      // Tighten further with a Cloud Function that validates deltas.
+      return data.gems is number
+        && data.gems >= 0
+        && data.gems <= 100000000;
+    }
+
+    function validReport(data) {
+      return data.reportedPlayerName is string
+        && data.reportedPlayerName.size() <= 100
+        && data.reason is string
+        && data.reason.size() <= 200
+        && (!('additionalDetails' in data) || data.additionalDetails.size() <= 2000);
+    }
+
+    function isValidUserProfile() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['displayName', 'createdAt'])
+        && data.displayName is string
+        && data.displayName.size() <= 50
+        && data.displayName.size() > 0;
+    }
+
+    // ------------------------------------------------------------
+    // /players/{uid} — gem balance + per-player progress + IAP mirror.
+    // Player documents are keyed by Firebase Auth UID.
+    // ------------------------------------------------------------
+    match /players/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && validGemPayload(request.resource.data);
+      allow delete: if false;
+
+      match /progress/{document=**} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // Per-player leaderboard metadata (NOT the public leaderboard entries).
+      match /leaderboards/{board=**} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(uid);
+      }
+
+      // Receipt mirror written by PurchaseService.onVerifiedPurchase.
+      match /purchases/{txnId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid);
+        allow delete: if false;
+      }
+    }
+
+    // ------------------------------------------------------------
+    // /reports/{id} — player abuse reports written by FirestoreReportService.
+    // Append-only from clients; reads are server-only (admin SDK / Cloud
+    // Functions can read freely).
+    // ------------------------------------------------------------
+    match /reports/{id} {
+      allow create: if isAuthenticated()
+        && request.resource.data.reporterId == request.auth.uid
+        && validReport(request.resource.data);
+      allow read, update, delete: if false;
+    }
+
+    // ------------------------------------------------------------
+    // /leaderboards/{boardId} — public board metadata. Boards themselves
+    // are bootstrapped by Cloud Functions; clients can only read.
+    // ------------------------------------------------------------
     match /leaderboards/{boardId} {
-      // Board documents are readable by all users
       allow read: if true;
-      
-      // Board documents can only be created/updated by Cloud Functions (service account)
       allow write: if false;
-      
-      // Scores subcollection
+
+      // /leaderboards/{boardId}/scores/{uid}:
+      // Public read so the leaderboard UI can list. Writes are gated to the
+      // submitScore Cloud Function — clients cannot bypass server-side
+      // validation by writing here directly.
       match /scores/{uid} {
-        // Anyone can read leaderboard scores
         allow read: if true;
-        
-        // Only Cloud Functions can write scores (prevents client tampering)
-        // This forces all score submissions to go through the server-authoritative function
         allow write: if false;
       }
     }
-    
-    // User profiles (optional - for storing additional user data)
+
+    // ------------------------------------------------------------
+    // /users/{uid} — optional public profile (display name, avatar).
+    // ------------------------------------------------------------
     match /users/{uid} {
-      // Users can read their own profile and others (for display names, etc.)
       allow read: if true;
-      
-      // Users can only update their own profile
       allow write: if isOwner(uid) && isValidUserProfile();
     }
-    
-    // Validate user profile data
-    function isValidUserProfile() {
-      let data = request.resource.data;
-      return data.keys().hasAll(['displayName', 'createdAt']) &&
-             data.displayName is string &&
-             data.displayName.size() <= 50 &&
-             data.displayName.size() > 0;
-    }
-    
-    // Global app settings (read-only for clients)
+
+    // ------------------------------------------------------------
+    // Read-only client-visible config & curated content.
+    // ------------------------------------------------------------
     match /settings/{document} {
       allow read: if true;
-      allow write: if false; // Only admins via Cloud Functions
+      allow write: if false;
     }
-    
-    // Daily challenges or special events (optional)
+
     match /dailyChallenges/{date} {
       allow read: if true;
-      allow write: if false; // Only Cloud Functions can create daily challenges
+      allow write: if false;
     }
-    
-    // Default deny all other paths
+
+    // Default-deny.
     match /{document=**} {
       allow read, write: if false;
     }

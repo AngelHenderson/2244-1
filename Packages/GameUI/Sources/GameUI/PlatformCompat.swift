@@ -168,17 +168,14 @@ func openPlatformURL(_ url: URL) {
 
 @MainActor
 func requestPlatformReview() {
-    #if os(macOS)
-    SKStoreReviewController.requestReview()
-    #elseif os(iOS)
+    #if os(iOS)
     guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
         return
     }
 
-    if #available(iOS 18.0, *) {
-        AppStore.requestReview(in: scene)
-    } else {
-        SKStoreReviewController.requestReview(in: scene)
-    }
+    AppStore.requestReview(in: scene)
+    #else
+    // Non-iOS builds (Mac Catalyst preview, Mac unit-test host) do not present
+    // a review prompt. The iOS device is the only shipping platform.
     #endif
 }

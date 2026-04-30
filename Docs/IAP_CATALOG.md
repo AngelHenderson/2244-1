@@ -40,15 +40,26 @@ For each product:
 
 ## StoreKit configuration file (for local testing without ASC)
 
-Until the SKUs are live in ASC, you can simulate them with a `Configuration.storekit`
-file in the app target:
-
-1. Xcode → File → New → File → StoreKit Configuration File.
-2. Name it `Configuration.storekit`, save under `2244/game2244/`.
-3. Add each product from the table above with the same product ID and duration for subscription rows.
-4. Edit the active scheme → Run → Options → StoreKit Configuration → pick the file.
+The app target includes `2244/game2244/Configuration.storekit` with all 13
+products from the table above, including the three auto-renewable subscriptions.
+The shared `game2244` scheme points at this file for local simulator purchases.
 
 This lets the paywall flow round-trip in the simulator before ASC is provisioned.
+
+## Automated consistency check
+
+Run this credential-free check before every release candidate:
+
+```bash
+node scripts/validate-launch-readiness.mjs
+```
+
+It verifies:
+
+- every ID in this doc exists in `IAPProduct.allProducts`;
+- every code product ID is documented here;
+- `Configuration.storekit` contains exactly the canonical product set;
+- shop JSON IDs are a subset of the canonical StoreKit catalog.
 
 ## Bundle entitlements
 
@@ -75,3 +86,43 @@ production hardening, consider deploying a Firebase Cloud Function that validate
 the transaction's JWS signature server-side and writes `players/{uid}/purchases/{txn}`
 on success. The `PurchaseService.onVerifiedPurchase` callback is the natural hook —
 fire-and-forget the JWS to your function from there.
+
+## Reward ledger & idempotency
+
+Every IAP grant routes through `RewardLedgerStore.grant(...)`. The idempotency
+key is `"\(transactionID):\(productID):\(itemIndex):\(itemType)"`, so retrying a
+verified transaction (StoreKit will replay finished transactions on launch and
+on `appStoreSync()`) cannot double-grant gems, power-ups, or the ad-free
+entitlement. See `Packages/GameApp/Sources/GameApp/ShopStore.swift:284` for the
+grant path.
+
+## Sandbox purchase checklist
+
+Manual App Store Connect validation still requires sandbox accounts:
+
+1. Sign into a sandbox Apple ID on a simulator or device.
+2. Run the `game2244` scheme with `Configuration.storekit` disabled when testing
+   real sandbox products.
+3. Buy each consumable: Coin Pouch, Coin Bag, Coin Chest, and Power-Up Pack.
+   Confirm the reward appears exactly once after purchase and exactly once after
+   a StoreKit transaction replay.
+4. Buy Starter Pack and Mega Bundle. Confirm ad-free state, included fixed
+   rewards, and premium music theme ownership.
+5. Buy each music theme SKU from the paywall. Confirm ownership persists across
+   force quit and restore.
+6. Buy Auto-Claim Boosts Monthly, Pro Monthly, and Pro Yearly. Confirm active
+   entitlements set the expected flags and expired/canceled subscriptions are
+   removed after restore.
+7. Tap Restore Purchases from Settings. Confirm non-consumable/subscription
+   entitlements restore and consumable rewards are not duplicated locally.
+
+## Paid bundles must remain deterministic
+
+App Review treats randomized rewards behind a paid path as a "loot box" and
+requires pre-purchase odds disclosure. None of the SKUs in this catalog are
+randomized — every line item in `IAPProduct.allProducts` is a fixed quantity
+(see `IAPProduct.swift`). If a future paid SKU adds randomized contents, either:
+
+1. Remove the random component (preferred), or
+2. Surface odds in the paywall before the purchase action, and document them
+   here.

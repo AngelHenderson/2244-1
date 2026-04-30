@@ -59,6 +59,27 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
     }
 }
 
+public extension ChallengeTarget {
+    func isSatisfied(
+        score: Int,
+        highestTile: Int,
+        highestTileStep: Int,
+        containsInfinityTile: Bool,
+        longestChainLength: Int
+    ) -> Bool {
+        switch self {
+        case .score(let target):
+            score >= target
+        case .tile(let target):
+            highestTile >= target
+        case .tileStep(let targetStep):
+            targetStep == Int.max ? containsInfinityTile : highestTileStep >= targetStep
+        case .chain(let length):
+            longestChainLength >= length
+        }
+    }
+}
+
 public enum DifficultyEstimator {
     public static func estimateReward(
         target: ChallengeTarget,

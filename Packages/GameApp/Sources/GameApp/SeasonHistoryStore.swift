@@ -55,9 +55,8 @@ public final class SeasonHistoryStore {
         defaults.removeObject(forKey: Self.backfillSeedKey)
     }
 
-    /// Populate empty history with deterministic mock seasons so the UI is
-    /// non-random on first launch. Real recorded seasons override these on
-    /// subsequent calls to `record(_:)`.
+    /// Populate empty history with deterministic preview seasons. Release UI
+    /// should show only recorded season data.
     public func backfillIfEmpty(currentSeasonNumber: Int = 7,
                                 playerSeed: String? = nil,
                                 referenceDate: Date = Date()) {

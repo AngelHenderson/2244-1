@@ -20,6 +20,9 @@ public extension LeaderboardClient {
             submitScore: { score in
                 try await submitFirebaseScore(score, service: service)
             },
+            submitRun: { summary in
+                try await submitFirebaseRun(summary, service: service)
+            },
             fetchPage: { period, filter, cursor, pageSize in
                 try await fetchFirebasePage(
                     period: period,
@@ -78,6 +81,17 @@ private func submitFirebaseScore(_ score: Int, service: LeaderboardService) asyn
     let displayName = Auth.auth().currentUser?.displayName ?? "Anonymous Player"
     
     try await service.submit(to: board, runData: runData, displayName: displayName)
+}
+
+@MainActor
+private func submitFirebaseRun(_ summary: GameRunSummary, service: LeaderboardService) async throws {
+    let board = LeaderboardBoard.global
+    let displayName = Auth.auth().currentUser?.displayName ?? UserLeaderboardData.playerName
+    try await service.submit(
+        to: board,
+        runData: GameRunData(summary: summary),
+        displayName: displayName
+    )
 }
 
 @MainActor
@@ -192,18 +206,18 @@ private func convertFirebaseEntryToUI(
     let currentUserId = Auth.auth().currentUser?.uid
     let isCurrentUser = firebaseEntry.uid == currentUserId
     
-    // Decode composite score to get actual game score
     let compositeScore = Int64(firebaseEntry.value) ?? 0
     let decoded = CompositeScore.decode(compositeScore)
-    
-    // Format highest tile for display
-    let highestTileDisplay = formatTileForDisplay(decoded.tile)
+    let highestTileDisplay = formatTileForDisplay(
+        tile: firebaseEntry.highestTile,
+        step: firebaseEntry.highestTileStep
+    )
     
     return LeaderboardEntry(
         id: firebaseEntry.uid,
         rank: rank ?? 1,
         name: firebaseEntry.displayName,
-        score: decoded.score, // Use the original game score
+        score: firebaseEntry.runScore > 0 ? firebaseEntry.runScore : decoded.score,
         countryCode: nil, // Firebase doesn't store country code by default
         platform: .ios, // Assume iOS for now
         isMe: isCurrentUser,
@@ -212,25 +226,16 @@ private func convertFirebaseEntryToUI(
     )
 }
 
-private func formatTileForDisplay(_ tile: Int) -> String {
-    // Convert tile value to display format
-    // This matches the format used in the existing UI ("1an", "873bz", etc.)
-    
-    if tile >= 1024 {
-        let k = tile / 1024
-        if k >= 1024 {
-            let m = k / 1024
-            return "\(m)an" // "million" abbreviated
-        }
-        return "\(k)bz" // Custom abbreviation
+private func formatTileForDisplay(tile: Int, step: Int?) -> String {
+    if let step {
+        return TileStepLabelFormatter.labelForStep(step, start: 2)
     }
-    
-    return "\(tile)"
+    return TileStepLabelFormatter.formatTileValue(tile)
 }
 
 private func estimateHighestTileFromScore(_ score: Int) -> Int {
-    // Rough estimation of highest tile based on score
-    // This is a placeholder - in a real implementation, you'd track this properly
+    // Legacy fallback for score-only leaderboard rows written before
+    // `highestTileStep` was included in the Cloud Function payload.
     
     switch score {
     case 0..<1000: return 64

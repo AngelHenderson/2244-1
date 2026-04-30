@@ -11,53 +11,66 @@ const BASE_MOVES = 1_000;
 const BASE_TIME = 10_000;
 const FACTOR = BigInt(BASE_SCORE) * BigInt(BASE_MOVES) * BigInt(BASE_TIME); // 10^13
 
+// Maximum tile step the server will accept. The Swift side uses
+// `TileStepLabelFormatter` which supports alpha/infinity steps far beyond 2^62.
+// We keep a generous cap to avoid pathological values while still allowing the
+// alpha/infinity progression the gameplay produces in long sessions.
+const MAX_TILE_STEP = 2000;
+const MAX_RUN_SECONDS = 24 * 60 * 60; // 24h
+const MAX_RUN_MOVES = 1_000_000;
+const MAX_RUN_SCORE = 1_000_000_000_000; // 1 trillion
+
 /**
  * Encodes a composite score that prioritizes:
- * 1. Highest tile achieved (exponential weight)
- * 2. Speed (less time is better) 
+ * 1. Highest tile achieved (exponential weight via step index)
+ * 2. Speed (less time is better)
  * 3. Efficiency (fewer moves is better)
  * 4. Raw score (tie-breaker)
+ *
+ * `tileStep` should be the step index the client computed (`highestTileStep`).
+ * Falling back to `Math.log2(highestTile)` produces nonsense for tiles whose
+ * value overflowed to `Number.POSITIVE_INFINITY` on the wire — we no longer do
+ * that.
  */
 function encodeComposite(
-  highestTile: number,
+  tileStep: number,
   seconds: number,
   moves: number,
   runScore: number
 ): bigint {
-  const p = BigInt(Math.max(2, Math.floor(Math.log2(Math.max(2, highestTile)))));
+  const p = BigInt(Math.max(2, Math.floor(tileStep)));
   const t = BigInt(Math.max(0, Math.min(BASE_TIME - seconds, BASE_TIME)));
   const m = BigInt(Math.max(0, Math.min(BASE_MOVES - moves, BASE_MOVES)));
   const rs = BigInt(Math.max(0, Math.min(runScore, BASE_SCORE - 1)));
-  
+
   return p * FACTOR + t * BigInt(1_000_000_000) + m * BigInt(1_000_000) + rs;
 }
 
 /**
- * Validates that the submitted score is reasonable
- * This is a basic validation - you can add more sophisticated checks
+ * Validates that the submitted score is reasonable. Accepts alpha/infinity
+ * progression by reading `highestTileStep` rather than re-deriving it from
+ * a numeric tile value (which overflows in JS for very large steps).
  */
 function validateScore(data: {
   highestTile: number;
+  highestTileStep: number;
   secondsToHighest: number;
   movesToHighest: number;
   runScore: number;
 }): boolean {
-  const { highestTile, secondsToHighest, movesToHighest, runScore } = data;
-  
-  // Basic sanity checks
-  if (highestTile < 4 || highestTile > 131072) return false; // 2^2 to 2^17
-  if (secondsToHighest < 0 || secondsToHighest > 86400) return false; // 0 to 24 hours
-  if (movesToHighest < 0 || movesToHighest > 10000) return false; // reasonable move count
-  if (runScore < 0 || runScore > 10000000) return false; // reasonable score
-  
-  // Check that highest tile is a power of 2
-  const log2 = Math.log2(highestTile);
-  if (log2 !== Math.floor(log2)) return false;
-  
-  // Basic relationship check: higher tiles should generally require more moves
-  const expectedMinMoves = Math.log2(highestTile) * 10; // rough estimate
-  if (movesToHighest < expectedMinMoves * 0.5) return false; // too few moves for tile
-  
+  const { highestTile, highestTileStep, secondsToHighest, movesToHighest, runScore } = data;
+
+  if (!Number.isFinite(highestTileStep) || highestTileStep < 1 || highestTileStep > MAX_TILE_STEP) return false;
+  if (highestTile < 4 && highestTileStep < 2) return false;
+  if (secondsToHighest < 0 || secondsToHighest > MAX_RUN_SECONDS) return false;
+  if (movesToHighest < 0 || movesToHighest > MAX_RUN_MOVES) return false;
+  if (runScore < 0 || runScore > MAX_RUN_SCORE) return false;
+
+  // Loose minimum-move sanity check. The 0.5x factor leaves headroom for the
+  // 8-direction merge gameplay where one chain can collapse many tiles at once.
+  const expectedMinMoves = highestTileStep * 5;
+  if (movesToHighest < expectedMinMoves * 0.5) return false;
+
   return true;
 }
 
@@ -87,16 +100,17 @@ export const submitScore = functions.onCall(
     const {
       boardId,
       highestTile,
+      highestTileStep,
       secondsToHighest = 0,
       movesToHighest = 0,
       runScore = 0,
       displayName = "Anonymous Player",
     } = data || {};
 
-    if (!boardId || !highestTile) {
+    if (!boardId || (!highestTile && !highestTileStep)) {
       throw new functions.HttpsError(
         "invalid-argument",
-        "Missing required fields: boardId and highestTile"
+        "Missing required fields: boardId and either highestTile or highestTileStep"
       );
     }
 
@@ -109,9 +123,16 @@ export const submitScore = functions.onCall(
       );
     }
 
+    const numericTile = Number(highestTile ?? 0);
+    const stepFromValue = numericTile > 0 && Number.isFinite(numericTile)
+      ? Math.floor(Math.log2(Math.max(2, numericTile)))
+      : 0;
+    const tileStep = Number(highestTileStep ?? stepFromValue);
+
     // Validate score data
     const scoreData = {
-      highestTile: Number(highestTile),
+      highestTile: numericTile,
+      highestTileStep: tileStep,
       secondsToHighest: Number(secondsToHighest),
       movesToHighest: Number(movesToHighest),
       runScore: Number(runScore),
@@ -127,7 +148,7 @@ export const submitScore = functions.onCall(
     try {
       // Calculate composite score on server
       const compositeValue = encodeComposite(
-        scoreData.highestTile,
+        scoreData.highestTileStep,
         scoreData.secondsToHighest,
         scoreData.movesToHighest,
         scoreData.runScore
@@ -175,6 +196,7 @@ export const submitScore = functions.onCall(
               displayName: finalDisplayName.substring(0, 50), // Limit display name length
               value: compositeValue.toString(), // Store as string to avoid int64 limits
               highestTile: scoreData.highestTile,
+              highestTileStep: scoreData.highestTileStep,
               movesToHighest: scoreData.movesToHighest,
               secondsToHighest: scoreData.secondsToHighest,
               runScore: scoreData.runScore,

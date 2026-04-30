@@ -70,7 +70,7 @@ public actor ThemeServiceMock: ThemeService {
             return true // Already unlocked
         }
         
-        // TODO: Check if user has enough gems and deduct cost
+        // Preview/test service: production purchases route through StoreKit.
         unlockedThemeIds.insert(theme.id)
         return true
     }

@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import GameCore
 
 // MARK: - User Milestone Storage (for mock leaderboard)
 public enum UserLeaderboardData {
@@ -53,6 +54,8 @@ public struct LeaderboardClient: Sendable {
     public var authenticate: @Sendable () async throws -> Bool
     /// Submit high score to global leaderboard
     public var submitScore: @Sendable (_ score: Int) async throws -> Void
+    /// Submit a full run summary when the game engine has real run metrics.
+    public var submitRun: @Sendable (_ summary: GameRunSummary) async throws -> Void
     /// Submit infinity count to Hall of Fame leaderboard
     public var submitInfinityCount: @Sendable (_ infinityCount: Int) async throws -> Void
     public var fetchPage: @Sendable (
@@ -73,6 +76,7 @@ public struct LeaderboardClient: Sendable {
     public init(
         authenticate: @escaping @Sendable () async throws -> Bool,
         submitScore: @escaping @Sendable (Int) async throws -> Void,
+        submitRun: (@Sendable (GameRunSummary) async throws -> Void)? = nil,
         submitInfinityCount: @escaping @Sendable (Int) async throws -> Void = { _ in },
         fetchPage: @escaping @Sendable (LeaderboardPeriod, LeaderboardFilter, String?, Int) async throws -> LeaderboardPage,
         fetchMyRank: @escaping @Sendable (LeaderboardPeriod, LeaderboardFilter) async throws -> LeaderboardEntry?,
@@ -81,6 +85,9 @@ public struct LeaderboardClient: Sendable {
     ) {
         self.authenticate = authenticate
         self.submitScore = submitScore
+        self.submitRun = submitRun ?? { summary in
+            try await submitScore(summary.score)
+        }
         self.submitInfinityCount = submitInfinityCount
         self.fetchPage = fetchPage
         self.fetchMyRank = fetchMyRank
@@ -107,6 +114,26 @@ public extension LeaderboardClient {
 
                 do {
                     try await secondary.submitScore(score)
+                } catch {
+                    if firstError == nil {
+                        firstError = error
+                    }
+                }
+
+                if let firstError {
+                    throw firstError
+                }
+            },
+            submitRun: { summary in
+                var firstError: Error?
+                do {
+                    try await primary.submitRun(summary)
+                } catch {
+                    firstError = error
+                }
+
+                do {
+                    try await secondary.submitRun(summary)
                 } catch {
                     if firstError == nil {
                         firstError = error
@@ -4468,10 +4495,9 @@ public extension LeaderboardClient {
     nonisolated(unsafe) private static var pageCacheCountry: String = ""
     nonisolated(unsafe) private static var pageCache: [LeaderboardFilter: LeaderboardPage] = [:]
 
-    /// Deprecated alias. Kept for source-compat; forwards to ``mock``.
-    /// Prefer ``mock`` when synthetic demo data is intended, or ``empty`` for a true no-backend state.
-    @available(*, deprecated, renamed: "mock", message: "Use .mock to acknowledge this returns synthetic data, or .empty for a true no-backend client.")
-    static var noop: LeaderboardClient { mock }
+    /// Deprecated alias. Kept for source compatibility; forwards to ``empty``.
+    @available(*, deprecated, renamed: "empty", message: "Use .empty for a true no-backend client, or .mock only in previews/tests.")
+    static var noop: LeaderboardClient { empty }
 
     /// Truly empty client — no entries, no mock data, no fake submissions.
     /// Safe default for production contexts that haven't wired a real backend yet;
@@ -4491,9 +4517,9 @@ public extension LeaderboardClient {
         }
     )
 
-    /// Rich synthetic client used for previews and for shipping the app before a real
-    /// leaderboard backend is wired. Renders 150+ fake entries with country filters,
-    /// hall-of-fame ordering, and dynamic player counts. `submitScore` is a no-op.
+    /// Rich synthetic client used for previews and local UI tests only.
+    /// Renders 150+ fake entries with country filters, hall-of-fame ordering,
+    /// and dynamic player counts. `submitScore` is a no-op.
     static let mock = LeaderboardClient(
         authenticate: { true },
         submitScore: { _ in },
@@ -7990,10 +8016,9 @@ public extension LeaderboardClient {
 
 
 private struct LeaderboardClientKey: EnvironmentKey {
-    // Default stays on mock data so previews and un-injected views continue to render
-    // with the historical fake-data behavior. Production views should inject `.empty`
-    // or a real backend explicitly.
-    static let defaultValue: LeaderboardClient = .mock
+    // Safe production default: un-injected views render an empty state instead
+    // of synthetic players. Previews opt into `.mock` explicitly.
+    static let defaultValue: LeaderboardClient = .empty
 }
 
 public extension EnvironmentValues {

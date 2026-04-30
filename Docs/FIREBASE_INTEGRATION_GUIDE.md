@@ -102,14 +102,31 @@ The iOS integration is already complete. Just add GoogleService-Info.plist to yo
 
 ### Composite Scoring Algorithm
 ```swift
-// Encodes: highest_tile_power * 10^13 + time_bonus * 10^9 + move_bonus * 10^6 + score
-let p = log2(highestTile)  // Exponential weight for higher tiles
+// Encodes: tile_step * 10^13 + time_bonus * 10^9 + move_bonus * 10^6 + score
+// `highestTileStep` is the AlphaMag step index. The Swift client and the
+// Cloud Function both prefer the explicit step over `log2(highestTile)`
+// because tiles past 2^62 overflow to Int.max on the wire.
+let p = max(2, highestTileStep)
 let t = max(0, 10000 - seconds)  // Speed bonus (less time = better)
 let m = max(0, 1000 - moves)     // Efficiency bonus (fewer moves = better)
 let s = min(score, 999999)       // Raw score (tie-breaker)
 
 composite = p * 10^13 + t * 10^9 + m * 10^6 + s
 ```
+
+### Run-summary submission
+
+The client now submits a full `GameRunSummary` rather than a score-only
+estimate. `LeaderboardClient.submitRun(_:)` is called from
+`game2244App.submitGameEndProgress(summary:)` when a non-sandboxed run ends; it
+forwards `score`, `scoreAlpha`, `highestTile`, `highestTileStep`, `moves`,
+`duration`, `seed`, and `infinityMergeCount`. Mirroring clients (Game Center +
+Firebase) call `submitRun` on each backend; the default `submitRun` falls back
+to `submitScore(summary.score)` for backends that have not implemented run
+submission.
+
+The infinity-tile (Hall of Fame) submission still goes through
+`submitInfinityCount(_:)` separately.
 
 ### Leaderboard Types
 - **Global**: `boardId = "global"`
@@ -125,13 +142,20 @@ composite = p * 10^13 + t * 10^9 + m * 10^6 + s
 
 ### Validation Checks
 ```typescript
-// Basic sanity checks in submitScore function:
-- Highest tile must be power of 2 (4 to 131072)
-- Time must be reasonable (0 to 24 hours)
-- Moves must be reasonable (0 to 10,000)
-- Score must be reasonable (0 to 10M)
-- Move/tile relationship validation
+// Sanity checks in submitScore (firebase/functions/src/submitScore.ts):
+- highestTileStep is provided (or derived from highestTile when small enough)
+- highestTileStep in [1, MAX_TILE_STEP] (currently 2000)
+- Time in [0, 86400]
+- Moves in [0, 1_000_000]
+- Score in [0, 1e12]
+- Loose move/step relationship: moves >= step * 2.5 (lower bound)
+- Composite score recomputed server-side from validated inputs
 ```
+
+The previous power-of-2 ceiling at 131072 has been removed so alpha/infinity
+progression (`1a`, `1b`, `∞`) can land on the leaderboard. The client sends
+both `highestTile` and `highestTileStep`; the function prefers `highestTileStep`
+because the numeric tile value overflows in JavaScript at very high steps.
 
 ### Anti-Cheat Measures
 1. **Server validation**: All scores validated on server
@@ -182,11 +206,48 @@ firebase emulators:start --only auth,firestore,functions
 export USE_FIREBASE_EMULATORS=true
 ```
 
+### Credential-free launch validation
+
+Run this from the repo root:
+
+```bash
+node scripts/validate-launch-readiness.mjs
+```
+
+The script does not require Firebase credentials. It checks that
+`firestore.rules` and `firebase/firestore.rules` are synchronized and that the
+rules cover the launch paths:
+
+- `/leaderboards/{boardId}/scores/{uid}` is public-read and client-write denied;
+- `/players/{uid}` requires the Firebase Auth UID as the document key;
+- `/players/{uid}/progress/{document=**}` covers user-owned progress documents;
+- `/players/{uid}/progress/blocked` is covered by the progress mirror rule;
+- `/players/{uid}/leaderboards/{board=**}` covers per-player leaderboard metadata;
+- `/players/{uid}/purchases/{txnId}` covers purchase receipt mirrors;
+- `/reports/{id}` is append-only and requires `reporterId == request.auth.uid`.
+
 ### Production Testing
 - Test with anonymous authentication
 - Verify score submissions appear in Firebase Console
 - Check leaderboard display in app
 - Validate composite scoring is working
+
+### Release smoke-test checklist
+
+These checks require a Firebase project but no production data mutation beyond a
+sandbox/test user:
+
+1. Install a fresh build with the release `GoogleService-Info.plist`.
+2. Confirm anonymous auth succeeds and the app receives a Firebase Auth UID.
+3. Complete or end a non-sandbox run; confirm the Cloud Function writes or
+   updates `/leaderboards/global/scores/{uid}`.
+4. Confirm `/players/{uid}/progress/state` writes after app background/foreground.
+5. Block a leaderboard player, force quit, relaunch, and confirm
+   `/players/{uid}/progress/blocked` round-trips and still filters the player.
+6. Submit a report from the leaderboard and confirm a new `/reports/{id}` doc
+   contains `reporterId`, `reportedPlayerName`, `reason`, and timestamps.
+7. Attempt a direct client write to `/leaderboards/global/scores/{uid}` from the
+   emulator or Firebase console rules playground and confirm it is denied.
 
 ## Monitoring
 
@@ -216,6 +277,26 @@ export USE_FIREBASE_EMULATORS=true
 3. **Real-time updates**: Firebase realtime listeners for live leaderboards
 4. **Advanced anti-cheat**: Integrate App Attest and Play Integrity
 5. **Analytics**: Custom events for leaderboard interactions
+
+## Firestore Rules Source-of-Truth
+
+The deployable rules live at `firebase/firestore.rules` and are picked up by
+`firebase deploy --only firestore:rules` via `firebase/firebase.json`. The
+root-level `firestore.rules` mirrors that file exactly — keep both in sync.
+
+Both files require:
+
+- `/players/{uid}` — `isOwner(uid)` for read/write. The document key MUST be the
+  Firebase Auth UID. `GemWallet.startCloudSync()` now refuses to run when no
+  Auth UID is available, since the rule would reject every write.
+- `/players/{uid}/progress/{document=**}` — `isOwner(uid)`.
+- `/players/{uid}/leaderboards/{board=**}` — read for authed users, write for
+  the owner only.
+- `/players/{uid}/purchases/{txnId}` — append-only by owner.
+- `/reports/{id}` — append-only, must include `reporterId == request.auth.uid`.
+- `/leaderboards/{boardId}/scores/{uid}` — public read, **Cloud Function-only
+  write**. Direct client writes are rejected; the `submitScore` callable is the
+  only legitimate write path.
 
 ## Troubleshooting
 

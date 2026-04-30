@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-2244 is a puzzle game for iOS 18+ built with Swift 6, SwiftUI, and modular architecture. Players connect adjacent tiles to create chains and merge them for higher scores.
+2244 is a puzzle game for iOS 26+ built with Swift 6.2+, SwiftUI, and modular architecture. Players connect adjacent tiles to create chains and merge them for higher scores.
 
 ## Build and Test Commands
 
@@ -47,11 +47,11 @@ swift test --package-path Packages/GameCore
 
 **Deterministic RNG**: Engine uses seeded RNG for replay support. Daily mode uses SHA256(salt + date).
 
-**StoreKit Integration**: Uses StoreKit 2 with placeholder product ID `com.game2244.adfree`
+**StoreKit Integration**: Uses StoreKit 2 with the canonical 13-SKU catalog in `IAPProduct.allProducts`.
 
 ### Development Guidelines
 - Swift 6 strict concurrency enabled
-- iOS 18+ minimum deployment
+- iOS 26+ minimum deployment
 - Swift Testing framework (not XCTest)
 - No @AppStorage inside @Observable classes
 

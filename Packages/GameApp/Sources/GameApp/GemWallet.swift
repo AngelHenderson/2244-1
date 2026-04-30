@@ -5,6 +5,9 @@ import FirebaseCore
 #if canImport(FirebaseFirestore)
 import FirebaseFirestore
 #endif
+#if canImport(FirebaseAuth)
+import FirebaseAuth
+#endif
 
 @MainActor
 public final class GemWallet {
@@ -70,8 +73,17 @@ public final class GemWallet {
     public func startCloudSync() async {
         #if canImport(FirebaseFirestore)
         guard FirebaseApp.app() != nil else { return }
+        // The deployed Firestore rules gate /players/{uid} on `isOwner(uid)` —
+        // i.e. the document key MUST equal the Firebase Auth UID. Without an
+        // auth UID we'd fail every write, so refuse to sync until sign-in lands.
+        guard let uid = currentAuthUID(), !uid.isEmpty else {
+            #if DEBUG
+            print("⚠️ GemWallet.startCloudSync skipped — no Firebase Auth UID available yet")
+            #endif
+            return
+        }
         let firestore = Firestore.firestore()
-        let doc = firestore.collection("players").document(playerId)
+        let doc = firestore.collection("players").document(uid)
         document = doc
         do {
             let snapshot = try await doc.getDocument()
@@ -88,6 +100,14 @@ public final class GemWallet {
             print("❌ Failed to sync gem balance: \(error.localizedDescription)")
             #endif
         }
+        #endif
+    }
+
+    private func currentAuthUID() -> String? {
+        #if canImport(FirebaseAuth)
+        return Auth.auth().currentUser?.uid
+        #else
+        return nil
         #endif
     }
     

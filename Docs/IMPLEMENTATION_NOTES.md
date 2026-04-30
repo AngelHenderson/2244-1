@@ -51,16 +51,15 @@ The project has been successfully bootstrapped with a modular architecture follo
 
 ## Next Steps
 
-To fully integrate the packages with the Xcode project, you'll need to:
+The workspace already links the local packages. For release validation:
 
 1. **Open in Xcode**
    - Open `game2244.xcworkspace` in Xcode
-   - Add package dependencies to the main app target:
-     - File > Add Package Dependencies > Add Local
-     - Select each package from the Packages folder
+   - Confirm the app target still depends on `GameCore`, `GameApp`, `GameUI`,
+     and `GameServices`.
 
 2. **Configure Build Settings**
-   - Ensure iOS 18.0 minimum deployment target
+   - Ensure iOS 26.0 minimum deployment target
    - Enable Swift 6 language mode
 
 3. **Test the App**
@@ -90,9 +89,15 @@ swift test --package-path Packages/GameCore
 
 ## Known Limitations
 
-1. The workspace needs manual package linking in Xcode
-2. StoreKit products need configuration in App Store Connect
-3. AdMob payment setup, store-listing link, and consent-region console validation must be completed before release
+1. StoreKit products, subscriptions, pricing, and review screenshots must be
+   completed in App Store Connect before submission.
+2. Firebase rules/functions must be deployed to the release project and smoke
+   tested with anonymous auth.
+3. AdMob payment setup, store-listing link, and consent-region console
+   validation must be completed before release.
+4. `GoogleService-Info.plist` is ignored for future commits, but the currently
+   tracked credential file should be rotated and removed from git history before
+   any public release.
 
 ## Development Workflow
 
@@ -246,8 +251,8 @@ Responsiveness: use a fixed design width reference of 390 pt (iPhone 15 Pro). Sc
 ### Interaction spec
 - Drag to select chain; backtracking supported; commit on lift if valid length ≥ 2.
 - Toolbars:
-  - Pause: opens Pause menu (stub ok initially).
-  - Shop: opens store (stub ok initially).
+  - Pause: opens Pause menu.
+  - Shop: opens store.
   - Ad gift: triggers rewarded ad that adds gems.
   - Boosters: tap to arm (hammer/swap) or immediate (shuffle); show insufficient-gems toast if needed.
 - Progress track chips are non-interactive (display only).
@@ -283,7 +288,7 @@ Responsiveness: use a fixed design width reference of 390 pt (iPhone 15 Pro). Sc
 1. Introduce `GameScreen` and slot into `GameView` replacing ad-hoc header/controls.
 2. Build `TopHUD` with progress rail and wallet.
 3. Wrap current `BoardView` with `BoardFrame` and layer `LeftToolbar` + `RightToolbar` in a ZStack.
-4. Add `BottomRail` with crowned `ReserveTile` (uses theme color; stub behavior).
+4. Add `BottomRail` with crowned `ReserveTile` (uses theme color; display behavior).
 5. Upgrade `TileView` to 3D raised style variant and suffix-aware formatting.
 6. Replace current overlay stroke with gradient glow path.
 7. Wire boosters to existing `GameStore` actions; add insufficient-gems feedback.

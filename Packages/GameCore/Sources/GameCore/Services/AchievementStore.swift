@@ -2022,6 +2022,17 @@ public final class AchievementStore {
     
     private let gc = GameCenterManager.shared
     public var onReward: (@MainActor (AchievementDef.Rewards) -> Void)?
+    /// Stable identifier for the claim that produced the most recent `onReward`
+    /// invocation. Reward-ledger callers read this to derive an idempotency key
+    /// that survives across process launches. The format is
+    /// `"achievement:<definition.id>:<claimSequence>"` for normal claims and
+    /// `"achievement:<definition.id>:t<tier>:<claimSequence>"` for tiered ones.
+    public private(set) var lastClaimedRewardContext: String?
+    /// Monotonically-increasing claim counter. Persisted so each claim — even
+    /// across launches and across achievements with the same id (tiered ones
+    /// can be re-claimed) — gets a unique suffix in the ledger context key.
+    private var claimSequence: Int
+    private static let claimSequenceKey = "achievement.claimSequence.v1"
     private let defaults: UserDefaults
     
     private enum SnapshotDefaultsKey {
@@ -2030,6 +2041,7 @@ public final class AchievementStore {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        self.claimSequence = defaults.integer(forKey: Self.claimSequenceKey)
         self.tileProgressionTier = defaults.integer(forKey: "tileProgressionTier")
         self.movesProgressionTier = defaults.integer(forKey: "movesProgressionTier")
         self.combo610Tier = defaults.integer(forKey: "combo610Tier")
@@ -2387,7 +2399,14 @@ public final class AchievementStore {
     
     public func claim(definition: AchievementDef) {
         guard var state = unlocks[definition.id], state.isClaimable else { return }
-        
+
+        // Publish a stable, persisted context for the upcoming reward delivery
+        // so RewardLedgerStore can dedup retries with a key that survives
+        // process restarts (e.g. an in-flight onReward replay after relaunch).
+        claimSequence += 1
+        defaults.set(claimSequence, forKey: Self.claimSequenceKey)
+        lastClaimedRewardContext = makeClaimContext(for: definition)
+
         // Special handling for tile progression achievement
         if definition.id == "tile_progression" {
             // Grant tier-specific rewards (fallback to definition if unspecified)
@@ -2849,6 +2868,29 @@ public final class AchievementStore {
         
         // Call reward callback for power-ups, spins, etc.
         onReward?(rewards)
+    }
+
+    /// Build a stable, persisted context string identifying the current claim.
+    /// Tiered achievements include their tier number so re-claiming the same
+    /// definition produces a distinct ledger key.
+    private func makeClaimContext(for definition: AchievementDef) -> String {
+        let tier: Int?
+        switch definition.id {
+        case "tile_progression": tier = tileProgressionTier
+        case "moves_progression": tier = movesProgressionTier
+        case "combo_6_10": tier = combo610Tier
+        case "combo_11_15": tier = combo1115Tier
+        case "combo_16_20": tier = combo1620Tier
+        case "combo_21_30": tier = combo2130Tier
+        case "merge_progression": tier = mergeProgressionTier
+        case "swap_usage_progression": tier = swapUsesProgressionTier
+        case "hammer_usage_progression": tier = hammerUsesProgressionTier
+        default: tier = nil
+        }
+        if let tier {
+            return "achievement:\(definition.id):t\(tier):seq\(claimSequence)"
+        }
+        return "achievement:\(definition.id):seq\(claimSequence)"
     }
 
     /// Re-evaluates a specific achievement after claiming to check if the next tier is already met.

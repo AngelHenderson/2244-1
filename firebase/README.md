@@ -11,11 +11,11 @@ This directory contains Firebase configuration files and setup instructions.
 
 2. **iOS App Configuration**
    - Add an iOS app to your Firebase project
-   - Use bundle ID: `com.game2244.app` (or match your actual bundle ID)
+   - Use bundle ID: `com.ideabloomlabs.game2244` (the app target's current release bundle identifier)
    - Download `GoogleService-Info.plist`
-   - Replace the template file with the actual configuration:
+   - Keep the actual configuration local and out of commits:
      ```bash
-     cp ~/Downloads/GoogleService-Info.plist /Users/angelhenderson/Developer/Personal/2244/game2244/GoogleService-Info.plist
+     cp ~/Downloads/GoogleService-Info.plist /Users/angelhenderson/Developer/Personal/2244/2244/game2244/GoogleService-Info.plist
      ```
 
 3. **Authentication Setup**
@@ -84,3 +84,13 @@ firebase emulators:start --only firestore,functions,auth
 ```
 
 Configure your iOS app to use emulators in debug mode.
+
+You can run the credential-free launch validation at any time:
+
+```bash
+node scripts/validate-launch-readiness.mjs
+```
+
+The script checks Firestore rules sync/coverage, StoreKit catalog consistency,
+privacy manifest presence, release bundle settings, and whether
+`GoogleService-Info.plist` is ignored for future commits.

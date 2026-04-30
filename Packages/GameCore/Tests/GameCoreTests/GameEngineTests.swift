@@ -419,8 +419,7 @@ struct GameEngineTests {
         #expect(!validation2.isValid, "Gift must be adjacent to previous tile")
     }
     
-    // TODO: Fix test setup - the core functionality works but test environment needs adjustment
-    // @Test
+    @Test("Gravity with gift merge consumes gift and refills")
     func testGravityWithGiftMerge() {
         let engine = GameEngine(config: GameConfig(seed: 456))
         

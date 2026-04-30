@@ -8,6 +8,7 @@ public struct LeaderboardServiceEntry: Codable, Hashable, Sendable {
     public let displayName: String
     public let value: String // Composite score as string to avoid int64 limits
     public let highestTile: Int
+    public let highestTileStep: Int?
     public let movesToHighest: Int
     public let secondsToHighest: Int
     public let runScore: Int
@@ -18,6 +19,7 @@ public struct LeaderboardServiceEntry: Codable, Hashable, Sendable {
         displayName: String,
         value: String,
         highestTile: Int,
+        highestTileStep: Int? = nil,
         movesToHighest: Int,
         secondsToHighest: Int,
         runScore: Int,
@@ -27,6 +29,7 @@ public struct LeaderboardServiceEntry: Codable, Hashable, Sendable {
         self.displayName = displayName
         self.value = value
         self.highestTile = highestTile
+        self.highestTileStep = highestTileStep
         self.movesToHighest = movesToHighest
         self.secondsToHighest = secondsToHighest
         self.runScore = runScore
@@ -72,11 +75,13 @@ public struct CompositeScore: Sendable {
     /// 4. Raw score (tie-breaker)
     public static func encode(
         highestTile: Int,
+        highestTileStep: Int? = nil,
         seconds: Int,
         moves: Int,
         score: Int
     ) -> Int64 {
-        let p = Int64(max(2, Int(floor(log2(Double(max(2, highestTile)))))))
+        let tileStep = highestTileStep ?? Int(floor(log2(Double(max(2, highestTile)))))
+        let p = Int64(max(2, tileStep))
         let t = Int64(max(0, min(BASE_TIME - seconds, BASE_TIME)))
         let m = Int64(max(0, min(BASE_MOVES - moves, BASE_MOVES)))
         let s = Int64(max(0, min(score, BASE_SCORE - 1)))
@@ -107,17 +112,20 @@ public struct CompositeScore: Sendable {
 /// Game run data for leaderboard submission
 public struct GameRunData: Sendable {
     public let highestTile: Int
+    public let highestTileStep: Int?
     public let secondsToHighest: Int
     public let movesToHighest: Int
     public let runScore: Int
     
     public init(
         highestTile: Int,
+        highestTileStep: Int? = nil,
         secondsToHighest: Int,
         movesToHighest: Int,
         runScore: Int
     ) {
         self.highestTile = highestTile
+        self.highestTileStep = highestTileStep
         self.secondsToHighest = secondsToHighest
         self.movesToHighest = movesToHighest
         self.runScore = runScore
@@ -126,6 +134,7 @@ public struct GameRunData: Sendable {
     public var compositeScore: Int64 {
         CompositeScore.encode(
             highestTile: highestTile,
+            highestTileStep: highestTileStep,
             seconds: secondsToHighest,
             moves: movesToHighest,
             score: runScore
@@ -143,5 +152,17 @@ public struct LeaderboardSubmission: Sendable {
         self.boardId = boardId
         self.runData = runData
         self.displayName = displayName
+    }
+}
+
+public extension GameRunData {
+    init(summary: GameRunSummary) {
+        self.init(
+            highestTile: summary.highestTile,
+            highestTileStep: summary.highestTileStep,
+            secondsToHighest: Int(summary.duration.rounded()),
+            movesToHighest: summary.moves,
+            runScore: summary.score
+        )
     }
 }

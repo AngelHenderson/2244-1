@@ -40,15 +40,16 @@ The app boots from `game2244App`. On launch it creates long-lived state and serv
 
 Launch flow:
 
-1. `game2244App` creates the main stores and services: `GameStore`, `HomeState`, `PurchaseService`, `LiveAdService`, `LiveAudioService`, `DefaultGameCenterService`, `AchievementStore`, `DailyClaimsStore`, `DailyQuestStore`, `ChallengeStore`, `ChallengeDesignerStore`, `SpinWheelState`, `SeasonHistoryStore`, and leaderboard/report clients.
+1. `game2244App` creates the main stores and services: `GameStore`, `HomeState`, `PlayerReadinessStore`, `RewardLedgerStore`, `PurchaseService`, `LiveAdService`, `LiveAudioService`, `DefaultGameCenterService`, `AchievementStore`, `DailyClaimsStore`, `DailyQuestStore`, `ChallengeStore`, `ChallengeDesignerStore`, `SpinWheelState`, `SeasonHistoryStore`, and leaderboard/report clients.
 2. It configures navigation appearance and selected themes from `AppStorage`.
-3. It attaches the gem wallet to `GameStore` and `HomeState`.
+3. It attaches the gem wallet to `GameStore` and `HomeState`, and wires `GameStore.rewardLedger` so gift / challenge / IAP grants route through the ledger.
 4. It loads achievement and daily reward catalogs.
-5. It wires achievement reward delivery so achievements and quests can grant gems, power-ups, spins, and boost multipliers.
+5. It wires achievement reward delivery (`applyRewards`) so achievements and quests can grant gems, power-ups, spins, and boost multipliers — every grant goes through `RewardLedgerStore` with an idempotency key.
 6. It restores local progress, initializes Firebase if configured, signs in anonymously for Firebase-backed features, and sets up Game Center.
 7. It prepares ads if the player is not ad-free.
-8. It shows the first-launch `HowToPlayView` tutorial in non-debug builds when needed.
-9. `RootGameView` decides whether the player is on the home hub, standard gameplay, or custom challenge gameplay.
+8. It records `playerReadiness.recordSessionStarted()`. The first-launch tutorial gate now lives inside `RootGameView`, driven by `PlayerReadinessStore.hasCompletedTutorial`.
+9. When a non-sandboxed run ends, `gameStore.onGameEnded` fires with a full `GameRunSummary` — that triggers `playerReadiness.recordRunCompleted(...)` and `leaderboardClient.submitRun(...)` against the active backend(s).
+10. `RootGameView` decides whether the player is on the home hub, standard gameplay, or custom challenge gameplay.
 
 ## Main Navigation Model
 
@@ -74,7 +75,145 @@ Launch flow:
 - Leaderboard
 - Settings
 
+Sheets that legitimately layer (Boosts, Best Offer, Ad Bonus intro) keep
+their own `@State` flags. The remaining seven destinations — Leaderboard,
+Achievements, Music, Shop, Profile, Settings, Theme Picker — are now driven by
+a single `HomeSheetDestination` enum so only one is ever on screen at a time
+(`Packages/GameUI/Sources/GameUI/Home/HomeSheetDestination.swift`).
+
 The detailed route inventory is maintained in `Docs/MASTER_APP_MAP.md`.
+
+### Progressive Disclosure & Recommendations
+
+`HomeView` no longer renders every side-rail button unconditionally. It now
+checks `PlayerReadinessStore.isVisible(_:)` per `HomeFeature` so the home
+screen starts focused on Play / Journey / Settings and reveals more as the
+player progresses:
+
+| Feature                | Reveal trigger                                     |
+| ---------------------- | -------------------------------------------------- |
+| Daily                  | First completed run                                |
+| Shop / Free Spin / Music / Theme / Profile / Ad Bonus | First earned reward |
+| Achievements / Leaderboard / Boosts | 10 merges OR `highestTileStep >= 10`  |
+| Create (locked guidance / unlocked) | step 15 visible / step 19 unlocked    |
+| Challenge (locked / unlocked) | step 25 visible / step 29 unlocked          |
+| Best Offer             | session 3+ AND first earned reward                 |
+
+A single `NextBestActionCard` sits above the journey panel and surfaces one
+recommendation, computed by `PlayerReadinessStore.nextBestAction(...)`. The
+priority order is: tutorial → first run → settings/privacy → daily → free spin
+→ unlock create / challenge → low-inventory shop → milestone fallback.
+Players can dismiss a recommendation; dismissals persist via
+`PlayerReadinessStore`.
+
+### Tutorial Gate
+
+The first-launch tutorial gate has moved out of `game2244App` and now lives
+inside `RootGameView`. On appear it checks
+`PlayerReadinessStore.hasCompletedTutorial` and presents `HowToPlayView` via
+`platformFullScreenCover`. `HowToPlayView.onComplete` calls
+`PlayerReadinessStore.markTutorialCompleted()` so the gate doesn't re-trigger
+across launches. `HowToPlayView` itself is unchanged — its existing pages
+already include interactive mini-board demos for connect, 8-direction, merge,
+hammer, swap, megaMerge, and "valid moves" warnings.
+
+`HowToPlayView` is still reachable from Settings as the full reference flow
+for returning players.
+
+### Board Feedback (T2)
+
+When `GameStore.extendPath(to:)` rejects an extension it now stores a
+human-readable string on `lastInvalidChainReason` ("Tiles must touch, including
+diagonals", "You already used that tile", "Claim the gift before chaining
+through it", or the underlying chain rule from `ChainValidation.reason`). A
+short `InvalidChainBanner` overlays the top of `HybridGameScreen` while the
+reason is set; the banner respects `accessibilityReduceMotion` and clears
+itself after about 1.15 seconds. A throttled `haptics.warning()` fires on
+each new reason via `onChange`.
+
+`recordMerge(...)` is wired through `gameStore.lastChainLength` so every
+successful chain commit pings `PlayerReadinessStore` with the current
+highest-tile context, allowing the merge-count gates above to unlock at the
+right time.
+
+Animation locks for shatter / fly / gravity / refill have been tightened
+(240–260 ms) so quick chains don't feel sticky.
+
+### Trust & Report UX (T3)
+
+The previous local "investigation" simulation that randomly decided whether a
+report was true/false has been removed, along with the false-report
+punishment that issued bans for reporting too many players. Reports now go
+straight through `ReportService.submit(_:)` with a clean state machine:
+
+- The submit button shows a progress indicator while in flight.
+- On success it shows a green checkmark and dismisses after 600 ms.
+- On failure it surfaces a single inline error and lets the player retry.
+- An optional toggle in the report sheet (when invoked from the leaderboard)
+  blocks the reported player locally — see below.
+
+`HomeState` now exposes a `blockedPlayerIDs` set that is persisted to
+`UserDefaults`. The leaderboard's context menu offers Report → and Block /
+Hide ↔ Unhide, and `LeaderboardView.buildDisplayEntries(_:)` filters blocked
+IDs out of the rendered list. `ReportService` submission and local block list
+are now independent — reports do not auto-mute, and muting does not auto-report.
+
+### Reward Ledger (T4)
+
+`RewardLedgerStore` records every meaningful reward grant with an idempotency
+key. The store is injected via the `\.rewardLedgerOptional` environment
+value and accepted by:
+
+- `ShopStore` — IAP grants keyed by `transactionID:productID:itemIndex`.
+- `GameStore.claimGiftReward()` — gift box and journey-tier rewards.
+- `GameStore.grantChallengeReward(_:challengeID:)` — challenge completions.
+- `SpinWheelView` — wheel spins and gift-box subrewards (per-spin UUID).
+- `HybridGameScreen.grantAdGems(_:)` — gameplay ad rewards.
+- `RootGameView.makeHomeActions().watchAd` — home-screen bonus ad rewards.
+- `applyRewards` (achievements + daily quests + daily claims) — gem / power-up
+  / spin / multiplier deliveries.
+
+Duplicate keys are rejected before mutation, so rapid retries can't double
+grant. See `Packages/GameApp/Sources/GameApp/RewardLedgerStore.swift` and
+`RewardLedgerHelpers.swift` for the API.
+
+### Backend & Leaderboard (T5)
+
+The `gameStore.onGameEnded` callback now hands a `GameRunSummary` to
+`leaderboardClient.submitRun(_:)` instead of a bare score. Mirrored backends
+(Firebase + Game Center) each get the run summary; backends that only
+implemented `submitScore` get a default `submitRun` that falls back to
+`submitScore(summary.score)`. Leaderboard payloads include `highestTileStep`
+so alpha and infinity progression no longer collapse to overflowed numeric
+tile values on the wire.
+
+`firestore.rules` now mirrors the deployable rules under
+`firebase/firestore.rules`. Score writes are gated to Cloud Functions
+(`/leaderboards/{boardId}/scores/{uid}: allow write: if false`), player docs
+must be keyed by Firebase Auth UID (`isOwner(uid)`), and reports are
+append-only. `GemWallet.startCloudSync()` refuses to run without an Auth UID
+so it can't get rejected by the rules. The server `submitScore` Cloud Function
+prefers `highestTileStep` over re-deriving `log2(highestTile)` and accepts
+steps up to 2000 to allow alpha/infinity progression.
+
+The local moderation block list now mirrors to
+`/players/{uid}/progress/blocked` (covered by the existing
+`progress/{document=**}` rule). On launch, after Firebase Auth signs in,
+`HomeState.startBlockedPlayersCloudSync()` does a union-merge with the cloud
+copy and pushes the merged set back; subsequent `block(playerID:)` /
+`unblock(playerID:)` calls write through. Without an Auth UID the cloud
+mirror is silently disabled and the list stays local-only.
+
+### UMP Consent Hook
+
+`HomeView` now reads `adService.isPrivacyOptionsRequired()` once per home
+appearance and feeds the result into
+`PlayerReadinessStore.nextBestAction(...)`, so the
+`.settingsPrivacy` recommendation surfaces in jurisdictions that require
+the UMP form. Tapping the recommendation calls
+`adService.showPrivacyOptions()` first; if the consent form can't present
+(e.g. on a build without UMP linked), the flow falls back to opening the
+Settings sheet so the player can find the privacy controls there.
 
 ## Core Gameplay
 
@@ -317,8 +456,11 @@ Reporting and moderation:
 
 - Players can report other players from leaderboard/settings flows.
 - Reports can be submitted to Firestore through `FirestoreReportService`.
-- Local UX simulates investigation results and warns or bans the reporting user for false/abusive reports.
-- The Firestore report service includes notes that server-side rules and Cloud Functions are still required for production moderation enforcement.
+- The client no longer simulates false-report investigations or punishes
+  reporters locally; submitted reports use a simple pending/success/error state.
+- Firestore rules accept append-only report payloads from the authenticated
+  reporter. Server-side de-dupe and enforcement can be added with Cloud
+  Functions without changing the client payload.
 
 Ban state affects the app broadly. Banned users are blocked from gameplay entry points such as play, daily rewards, challenges, boosts, spins, and some reward flows. Ban durations use exact timestamps and escalate by offense count.
 
@@ -340,7 +482,9 @@ Profile features include:
 - profile sharing;
 - comparison with selected players.
 
-Profile data is loaded through a `ProfileClient`, with local/mock-friendly defaults when needed. Avatar assets are bundled in the app asset catalog.
+Profile data is loaded through a `ProfileClient`, with local defaults for the
+current player when remote profile data is unavailable. Avatar assets are
+bundled in the app asset catalog.
 
 ## Shop, In-App Purchases, Offers, and Ads
 
@@ -495,7 +639,8 @@ Some features require external setup to work fully in production:
 - Firebase requires `GoogleService-Info.plist`, anonymous auth, Firestore, and Cloud Functions/security rules for server-authoritative leaderboard and reporting behavior.
 - StoreKit products must exist in App Store Connect with the exact IDs listed in `Docs/IAP_CATALOG.md`.
 - AdMob requires production app/ad units, payment profile, privacy messaging, consent configuration, and App Store linkage.
-- Report moderation has local UX and Firestore writes, but server-side de-dupe and ban escalation are expected to be enforced by backend functions.
+- Report moderation has local submission UX and Firestore writes; server-side
+  de-dupe and ban escalation are external backend enforcement tasks.
 - Older README roadmap sections are partly stale compared with the current implementation. `Docs/MASTER_APP_MAP.md` and the live Swift files are more reliable for current behavior.
 
 ## Feature Inventory
@@ -513,7 +658,7 @@ Current feature set by area:
 | Challenges | sequential milestone challenges, one-hour unlock delay, replay completed challenges, sandboxed challenge game, custom challenge designer |
 | Social/profile | player name, avatar, country, friend code, profile share, comparison, season history, tier mastery |
 | Leaderboards | global, country-aware filters, Hall of Fame/infinity count, top 150, rank context, player history, Game Center/Firebase clients |
-| Moderation | report player sheet, Firestore report submission, warning/ban local UX, false-report abuse handling |
+| Moderation | report player sheet, Firestore report submission, optional local block/hide, ban-aware reward/gameplay gates |
 | Economy | gems, power-up purchases, shop catalog, bundles, perks, weekly offers, StoreKit verified purchases, subscriptions |
 | Ads | banner, interstitial, rewarded, rewarded interstitial, consent preparation, ad-free suppression |
 | Customization | tile themes, background themes, wallpapers, play button colors, music themes, color blind mode |

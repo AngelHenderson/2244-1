@@ -32,6 +32,9 @@ public struct HybridGameScreen: View {
     @Environment(\.leaderboardClient) private var leaderboardClient
     @Environment(\.currentTheme) private var currentTheme
     @Environment(\.purchaseService) private var purchaseService
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(PlayerReadinessStore.self) private var playerReadiness
+    @Environment(\.rewardLedgerOptional) private var rewardLedger
 
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
@@ -163,6 +166,16 @@ public struct HybridGameScreen: View {
                     if isShowingTopMergeTile, let v = topMergeTileValue {
                         TopMergeTileView(value: v)
                     }
+                }
+            }
+            .overlay(alignment: .top) {
+                if let reason = gameStore.lastInvalidChainReason {
+                    InvalidChainBanner(message: reason, reduceMotion: reduceMotion)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 4)
+                        .accessibilityAddTraits(.isStaticText)
+                        .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+                        .id(reason)
                 }
             }
 
@@ -319,6 +332,21 @@ public struct HybridGameScreen: View {
                 if isFirst {
                     Task { await audioService.playSfx(name: "cheer") }
                     gameStore.clearFirstInfinityEvent()
+                }
+            }
+            .onChange(of: gameStore.lastChainLength) { _, newLength in
+                // Each commit produces a chain of at least 2 tiles; treat that as one merge event.
+                guard newLength >= 2 else { return }
+                playerReadiness.recordMerge(
+                    count: 1,
+                    highestTile: gameStore.state.highestTile,
+                    highestTileStep: gameStore.state.highestTileStep
+                )
+            }
+            .onChange(of: gameStore.lastInvalidChainReason) { _, newValue in
+                // Light tap when the player tries an invalid extension; throttled to once per appearance.
+                if newValue != nil {
+                    haptics.warning()
                 }
             }
         
@@ -629,7 +657,7 @@ public struct HybridGameScreen: View {
                 Button {
                     Task {
                         let _ = await adService.showRewarded {
-                            gameStore.addCoins(135)
+                            grantAdGems(135)
                             haptics.success()
                         }
                         isShowingPowerUpOverlay = false
@@ -824,8 +852,6 @@ public struct HybridGameScreen: View {
             isSwapMode = true
             firstSwapPosition = nil
             haptics.lightImpact()
-            // Track power-up selection for analytics
-            gameStore.trackPowerUpAnalytics(action: .swap(Position(row: 0, col: 0), Position(row: 0, col: 1))) // Placeholder positions
         } else {
             haptics.error()
         }
@@ -844,8 +870,6 @@ public struct HybridGameScreen: View {
         cancelAllModes()
         isMagnetMode = true
         haptics.lightImpact()
-        // Track power-up selection for analytics
-        gameStore.trackPowerUpAnalytics(action: .shuffle) // Use shuffle as placeholder for magnet
     }
     
     private func handleTileTap(at position: Position) {
@@ -921,6 +945,24 @@ public struct HybridGameScreen: View {
         isMagnetMode = false
         firstSwapPosition = nil
         magnetTargetValue = nil
+    }
+
+    @MainActor
+    private func grantAdGems(_ amount: Int) {
+        guard amount > 0 else { return }
+        let key = "ad:gameplay:\(amount):\(Int(Date().timeIntervalSince1970))"
+        if let rewardLedger {
+            rewardLedger.grant(
+                source: .ad,
+                itemType: .gems,
+                amount: amount,
+                idempotencyKey: key
+            ) {
+                gameStore.addCoins(amount)
+            }
+        } else {
+            gameStore.addCoins(amount)
+        }
     }
 }
 
@@ -1254,6 +1296,37 @@ struct ScaleButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
             .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Invalid Chain Banner
+
+struct InvalidChainBanner: View {
+    let message: String
+    let reduceMotion: Bool
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.circle.fill")
+                .foregroundStyle(.orange)
+            Text(message)
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .accessibilityLabel(Text("Invalid chain: \(message)"))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.black.opacity(0.78))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.orange.opacity(0.55), lineWidth: 1)
+        )
+        .shadow(radius: reduceMotion ? 0 : 4)
     }
 }
 
@@ -1659,7 +1732,7 @@ extension HybridGameScreen {
                 Button {
                     Task {
                         let _ = await adService.showRewarded {
-                            gameStore.addCoins(120)
+                            grantAdGems(120)
                             haptics.success()
                         }
                     }

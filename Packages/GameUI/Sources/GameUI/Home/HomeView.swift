@@ -8,25 +8,22 @@ public struct HomeView: View {
     @Environment(HomeState.self) private var state
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(AchievementStore.self) private var achievementStore
+    @Environment(PlayerReadinessStore.self) private var playerReadiness
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
     @Environment(\.toastManager) private var toastManager
     @Environment(\.spinWheelState) private var spinState
     @Environment(\.leaderboardClient) private var leaderboardClient
     @Environment(\.purchaseService) private var purchaseService
-    @State private var isShowingJourney: Bool = false
-    @State private var isShowingLeaderboard: Bool = false
-    @State private var isShowingAchievements: Bool = false
-    @State private var isShowingMusic: Bool = false
-    @State private var isShowingShop: Bool = false
-    @State private var isShowingProfile: Bool = false
-    @State private var isShowingSettings: Bool = false
-    @State private var isShowingThemePicker: Bool = false
+    @Environment(\.gameStore) private var gameStore
+    @Environment(\.adService) private var adService
+    @State private var presentedSheet: HomeSheetDestination?
     @State private var isShowingBoosts: Bool = false
     @State private var isShowingWeeklyOffer: Bool = false
     @State private var isShowingAdBonusIntro: Bool = false
     @State private var showLockedChallengeAlert: Bool = false
     @State private var centeredMilestone: Int? = nil
+    @State private var isPrivacyOptionsRequired: Bool = false
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
     @State private var playButtonHeight: CGFloat = 0
@@ -61,56 +58,78 @@ public struct HomeView: View {
             // Foreground layer: Main UI
             VStack(spacing: 0) {
                 // Top HUD
-                HUDTopBar(onLeaderboardTap: { isShowingLeaderboard = true })
+                HUDTopBar(onLeaderboardTap: { presentedSheet = .leaderboard })
+
+                // Single contextual recommendation
+                if let action = currentRecommendation {
+                    NextBestActionCard(action: action) {
+                        applyRecommendation(action)
+                    } onDismiss: {
+                        playerReadiness.dismissRecommendation(action)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
 
                 // Main content with side rails and center progression
                 GeometryReader { geo in
                     HStack(alignment: .center, spacing: 16) {
-                        // Left rail
+                        // Left rail (Daily / Free Spin / Shop / Music / Boosts)
                         VStack(spacing: 20) {
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "dailypic",
-                                title: "DAILY",
-                                badge: dailyClaimsStore.canClaimToday,
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { actions.openDaily() }
-                            )
+                            if playerReadiness.isVisible(.daily) {
+                                SideRailButton(
+                                    systemImage: nil,
+                                    customImage: "dailypic",
+                                    title: "DAILY",
+                                    badge: dailyClaimsStore.canClaimToday,
+                                    banned: state.isBanned,
+                                    onBannedTap: { state.showBanAlert = true },
+                                    action: { actions.openDaily() }
+                                )
+                            }
 
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "spinthewheel",
-                                title: "FREE SPIN",
-                                badgeCount: spinState.bonusSpins,
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { actions.openFreeSpin() }
-                            )
+                            if playerReadiness.isVisible(.freeSpin) {
+                                SideRailButton(
+                                    systemImage: nil,
+                                    customImage: "spinthewheel",
+                                    title: "FREE SPIN",
+                                    badgeCount: spinState.bonusSpins,
+                                    banned: state.isBanned,
+                                    onBannedTap: { state.showBanAlert = true },
+                                    action: { actions.openFreeSpin() }
+                                )
+                            }
 
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "mysterybox",
-                                title: "SHOP",
-                                badge: state.hasShopBadge,
-                                action: { isShowingShop = true }
-                            )
+                            if playerReadiness.isVisible(.shop) {
+                                SideRailButton(
+                                    systemImage: nil,
+                                    customImage: "mysterybox",
+                                    title: "SHOP",
+                                    badge: state.hasShopBadge,
+                                    action: { presentedSheet = .shop }
+                                )
+                            }
 
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "soundeffect",
-                                title: "MUSIC",
-                                action: { isShowingMusic = true }
-                            )
+                            if playerReadiness.isVisible(.music) {
+                                SideRailButton(
+                                    systemImage: nil,
+                                    customImage: "soundeffect",
+                                    title: "MUSIC",
+                                    action: { presentedSheet = .music }
+                                )
+                            }
 
-                            SideRailButton(
-                                systemImage: "bolt.fill",
-                                customImage: nil,
-                                title: "BOOSTS",
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { isShowingBoosts = true }
-                            )
+                            if playerReadiness.isVisible(.boosts) {
+                                SideRailButton(
+                                    systemImage: "bolt.fill",
+                                    customImage: nil,
+                                    title: "BOOSTS",
+                                    banned: state.isBanned,
+                                    onBannedTap: { state.showBanAlert = true },
+                                    action: { isShowingBoosts = true }
+                                )
+                            }
 
                             Spacer(minLength: 0)
                         }
@@ -121,19 +140,22 @@ public struct HomeView: View {
                         Spacer()
                             .frame(maxWidth: .infinity)
 
-                        // Right rail
+                        // Right rail (Create / Bonus Ad / Challenge / Best Offer / Theme)
                         VStack(spacing: 20) {
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "createagame",
-                                title: "CREATE",
-                                locked: state.isCreateLocked,
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { actions.openCreate() }
-                            )
-                            
-                            if !purchaseService.isAdFreePurchased {
+                            if playerReadiness.isVisible(.create) || isCreateNearUnlock {
+                                SideRailButton(
+                                    systemImage: nil,
+                                    customImage: "createagame",
+                                    title: "CREATE",
+                                    locked: state.isCreateLocked,
+                                    banned: state.isBanned,
+                                    onLockedTap: { /* surfaced via NextBestAction */ },
+                                    onBannedTap: { state.showBanAlert = true },
+                                    action: { actions.openCreate() }
+                                )
+                            }
+
+                            if !purchaseService.isAdFreePurchased && playerReadiness.isVisible(.adBonus) {
                                 SideRailButton(
                                     systemImage: nil,
                                     customImage: "ads",
@@ -148,46 +170,51 @@ public struct HomeView: View {
                                     }
                                 )
                             }
-                            
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "challenge",
-                                title: "CHALLENGE",
-                                locked: state.isChallengeLocked,
-                                banned: state.isBanned,
-                                onLockedTap: {
-                                    showLockedChallengeAlert = true
-                                },
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { actions.openChallenge() }
-                            )
 
-                            // Best Offer with countdown
-                            if let deadline = state.bestOfferDeadline {
-                                VStack(spacing: 6) {
+                            if playerReadiness.isVisible(.challenge) || isChallengeNearUnlock {
+                                SideRailButton(
+                                    systemImage: nil,
+                                    customImage: "challenge",
+                                    title: "CHALLENGE",
+                                    locked: state.isChallengeLocked,
+                                    banned: state.isBanned,
+                                    onLockedTap: {
+                                        showLockedChallengeAlert = true
+                                    },
+                                    onBannedTap: { state.showBanAlert = true },
+                                    action: { actions.openChallenge() }
+                                )
+                            }
+
+                            if playerReadiness.isVisible(.bestOffer) {
+                                if let deadline = state.bestOfferDeadline {
+                                    VStack(spacing: 6) {
+                                        SideRailButton(
+                                            systemImage: nil,
+                                            customImage: "gift",
+                                            title: "BEST OFFER",
+                                            action: { isShowingWeeklyOffer = true }
+                                        )
+                                        CountdownView(deadline: deadline)
+                                    }
+                                } else {
                                     SideRailButton(
                                         systemImage: nil,
                                         customImage: "gift",
                                         title: "BEST OFFER",
                                         action: { isShowingWeeklyOffer = true }
                                     )
-                                    CountdownView(deadline: deadline)
                                 }
-                            } else {
-                                SideRailButton(
-                                    systemImage: nil,
-                                    customImage: "gift",
-                                    title: "BEST OFFER",
-                                    action: { isShowingWeeklyOffer = true }
-                                )
                             }
 
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "themedefault",
-                                title: "THEME",
-                                action: { isShowingThemePicker = true }
-                            )
+                            if playerReadiness.isVisible(.theme) {
+                                SideRailButton(
+                                    systemImage: nil,
+                                    customImage: "themedefault",
+                                    title: "THEME",
+                                    action: { presentedSheet = .themePicker }
+                                )
+                            }
 
                             Spacer(minLength: 0)
                         }
@@ -218,36 +245,42 @@ public struct HomeView: View {
 
                 // Bottom dock
                 HStack(spacing: 22) {
-                    dockItem(
-                        system: "person.circle.fill",
-                        title: "Profile",
-                        badge: state.hasProfileBadge,
-                        action: {
-                            isShowingProfile = true
-                        }
-                    )
-                    dockItem(
-                        system: "star.circle.fill",
-                        title: "Achievements",
-                        badgeCount: state.achievementsBadgeCount,
-                        banned: state.isBanned,
-                        action: {
-                            if state.isBanned { state.showBanAlert = true }
-                            else { isShowingAchievements = true }
-                        }
-                    )
-                    dockItem(
-                        system: "trophy.circle.fill",
-                        title: "Leaderboard",
-                        action: {
-                            isShowingLeaderboard = true
-                        }
-                    )
+                    if playerReadiness.isVisible(.profile) {
+                        dockItem(
+                            system: "person.circle.fill",
+                            title: "Profile",
+                            badge: state.hasProfileBadge,
+                            action: {
+                                presentedSheet = .profile
+                            }
+                        )
+                    }
+                    if playerReadiness.isVisible(.achievements) {
+                        dockItem(
+                            system: "star.circle.fill",
+                            title: "Achievements",
+                            badgeCount: state.achievementsBadgeCount,
+                            banned: state.isBanned,
+                            action: {
+                                if state.isBanned { state.showBanAlert = true }
+                                else { presentedSheet = .achievements }
+                            }
+                        )
+                    }
+                    if playerReadiness.isVisible(.leaderboard) {
+                        dockItem(
+                            system: "trophy.circle.fill",
+                            title: "Leaderboard",
+                            action: {
+                                presentedSheet = .leaderboard
+                            }
+                        )
+                    }
                     dockItem(
                         system: "gearshape.fill",
                         title: "Settings",
                         action: {
-                            isShowingSettings = true
+                            presentedSheet = .settings
                         }
                     )
                 }
@@ -262,42 +295,32 @@ public struct HomeView: View {
             }
             .zIndex(1)
         }
-        // Leaderboard (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingLeaderboard) {
-            LeaderboardView(client: leaderboardClient)
-        }
-        // Achievements (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingAchievements) {
-            AchievementsView()
-        }
-        // Music Themes (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingMusic) {
-            MusicThemesView(
-                onTry: { instrument in
-                    // Placeholder: ad presentation to be implemented by host later
-                    print("Try instrument: \(instrument.id)")
-                },
-                onPurchase: { instrument in
-                    print("Purchase tapped for: \(instrument.id)")
-                }
-            )
-        }
-        // Shop (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingShop) {
-            ShopView()
-        }
-        // Profile (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingProfile) {
-            PlayerProfileView()
-        }
-        // Settings (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingSettings) {
-            SettingsView()
-                .environment(state)
-        }
-        // Theme Picker (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingThemePicker) {
-            ThemePickerView()
+        // Unified destination sheet (full screen on iPad)
+        .adaptiveSheet(item: $presentedSheet) { destination in
+            switch destination {
+            case .leaderboard:
+                LeaderboardView(client: leaderboardClient)
+            case .achievements:
+                AchievementsView()
+            case .music:
+                MusicThemesView(
+                    onTry: { instrument in
+                        print("Try instrument: \(instrument.id)")
+                    },
+                    onPurchase: { instrument in
+                        print("Purchase tapped for: \(instrument.id)")
+                    }
+                )
+            case .shop:
+                ShopView()
+            case .profile:
+                PlayerProfileView()
+            case .settings:
+                SettingsView()
+                    .environment(state)
+            case .themePicker:
+                ThemePickerView()
+            }
         }
         // Boosts Sheet
         .sheet(isPresented: $isShowingBoosts) {
@@ -325,6 +348,12 @@ public struct HomeView: View {
                 isShowingWeeklyOffer = true
             }
         }
+        .task {
+            // Refresh consent state once per home appearance so the
+            // privacy recommendation surfaces in EU regions where UMP
+            // requires it.
+            isPrivacyOptionsRequired = await adService.isPrivacyOptionsRequired()
+        }
         .onChange(of: achievementStore.claimableCount) { _, newCount in
             state.achievementsBadgeCount = newCount
         }
@@ -342,11 +371,6 @@ public struct HomeView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("You have \(state.warningsRemaining) chances left! After that, you are banned!")
-        }
-        .alert(state.evaluationTitle, isPresented: Bindable(state).showEvaluationAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(state.evaluationMessage)
         }
     }
 
@@ -437,6 +461,138 @@ public struct HomeView: View {
         case "settings": return "settings"
         case "theme": return "themedefault"
         default: return ""
+        }
+    }
+
+    // MARK: - Recommendation / readiness helpers
+
+    /// Build the single recommendation to highlight, gated by readiness state.
+    private var currentRecommendation: NextBestAction? {
+        let action = playerReadiness.nextBestAction(
+            highestTile: gameStore.state.highestTile,
+            highestTileStep: gameStore.state.highestTileStep,
+            gems: state.gems,
+            canClaimDaily: dailyClaimsStore.canClaimToday,
+            bonusSpins: spinState.bonusSpins,
+            isPrivacyOptionsRequired: isPrivacyOptionsRequired
+        )
+        // .play and .nextMilestone are surfaced via the main Play button rather than a banner.
+        if action == .play || action == .nextMilestone { return nil }
+        return action
+    }
+
+    private var isCreateNearUnlock: Bool {
+        gameStore.state.highestTileStep >= 15 || gameStore.state.highestTile >= 65_536
+    }
+
+    private var isChallengeNearUnlock: Bool {
+        gameStore.state.highestTileStep >= 25 || gameStore.state.highestTile >= 67_108_864
+    }
+
+    private func applyRecommendation(_ action: NextBestAction) {
+        switch action {
+        case .tutorial, .play, .nextMilestone:
+            actions.play()
+        case .claimDaily:
+            actions.openDaily()
+        case .freeSpin:
+            actions.openFreeSpin()
+        case .unlockCreate:
+            if !state.isCreateLocked { actions.openCreate() }
+        case .unlockChallenge:
+            if !state.isChallengeLocked { actions.openChallenge() }
+        case .lowInventoryShop:
+            presentedSheet = .shop
+        case .settingsPrivacy:
+            // Surface the UMP privacy form directly when available; otherwise
+            // open Settings so the player can find the privacy controls.
+            Task {
+                let didPresent = await adService.showPrivacyOptions()
+                if !didPresent {
+                    await MainActor.run { presentedSheet = .settings }
+                }
+                isPrivacyOptionsRequired = await adService.isPrivacyOptionsRequired()
+            }
+        }
+    }
+}
+
+// MARK: - Recommendation Card
+
+private struct NextBestActionCard: View {
+    let action: NextBestAction
+    let onAct: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: iconName)
+                .font(.title3)
+                .frame(width: 36, height: 36)
+                .background(Color.accentColor.opacity(0.18), in: Circle())
+                .foregroundStyle(Color.accentColor)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(action.title)
+                    .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
+                    .lineLimit(1)
+                Text(action.subtitle)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 8)
+
+            Button(action: onAct) {
+                Text(ctaText)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.secondary)
+                    .padding(6)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Dismiss recommendation")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .glassEffectCompat(cornerRadius: 14)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text("Recommended next action"))
+    }
+
+    private var iconName: String {
+        switch action {
+        case .tutorial: return "graduationcap.fill"
+        case .play: return "play.fill"
+        case .claimDaily: return "calendar.badge.checkmark"
+        case .freeSpin: return "arrow.triangle.2.circlepath"
+        case .nextMilestone: return "crown.fill"
+        case .unlockCreate: return "lock.open.fill"
+        case .unlockChallenge: return "flag.checkered"
+        case .lowInventoryShop: return "cart.fill"
+        case .settingsPrivacy: return "lock.shield.fill"
+        }
+    }
+
+    private var ctaText: String {
+        switch action {
+        case .tutorial: return "Learn"
+        case .play, .nextMilestone: return "Play"
+        case .claimDaily: return "Claim"
+        case .freeSpin: return "Spin"
+        case .unlockCreate, .unlockChallenge: return "Open"
+        case .lowInventoryShop: return "Shop"
+        case .settingsPrivacy: return "Open"
         }
     }
 }
@@ -625,6 +781,7 @@ public extension View {
         .environment(\.leaderboardClient, .mock)
         .environment(\.toastManager, toastManager)
         .environment(DailyQuestStore())
+        .environment(PlayerReadinessStore())
 }
 
 #Preview("Home - Best Offer") {
@@ -680,4 +837,5 @@ public extension View {
         .environment(\.leaderboardClient, .mock)
         .environment(\.toastManager, toastManager)
         .environment(DailyQuestStore())
+        .environment(PlayerReadinessStore())
 }

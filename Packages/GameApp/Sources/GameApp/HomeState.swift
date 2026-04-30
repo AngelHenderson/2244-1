@@ -1,5 +1,14 @@
 import Foundation
 import Observation
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
+#if canImport(FirebaseFirestore)
+import FirebaseFirestore
+#endif
+#if canImport(FirebaseAuth)
+import FirebaseAuth
+#endif
 
 private let kCreateUnlockedKey = "com.game2244.createUnlocked"
 private let kChallengeUnlockedKey = "com.game2244.challengeUnlocked"
@@ -40,67 +49,110 @@ public final class HomeState {
     /// Ban/unban uses exact time — banned at 8:34 AM means unbanned at exactly 8:34 AM.
     public var banEndDate: Date? = nil
 
-    // Report evaluation state
-    public var showEvaluationAlert: Bool = false
-    public var evaluationTitle: String = ""
-    public var evaluationMessage: String = ""
-    
-    /// Queues a simulated investigation of a player report that takes time to complete
-    public func queueReportEvaluation(
-        isTrueReport: Bool,
-        isTrapReason: Bool,
-        areDetailsFalse: Bool,
-        nameField: String,
-        delaySeconds: Double
-    ) {
+    // MARK: - Local moderation (block/hide list)
+    /// IDs of players the local user has chosen to hide. Persisted via UserDefaults
+    /// so the list survives between sessions. Reports go to the cloud through
+    /// `ReportService`; the block list is a separate purely-local affordance.
+    public private(set) var blockedPlayerIDs: Set<String> = HomeState.loadBlockedIDs()
+
+    public func block(playerID: String) {
+        guard !playerID.isEmpty else { return }
+        blockedPlayerIDs.insert(playerID)
+        Self.persistBlockedIDs(blockedPlayerIDs)
+        pushBlockedToCloud()
+    }
+
+    public func unblock(playerID: String) {
+        blockedPlayerIDs.remove(playerID)
+        Self.persistBlockedIDs(blockedPlayerIDs)
+        pushBlockedToCloud()
+    }
+
+    public func isBlocked(playerID: String) -> Bool {
+        blockedPlayerIDs.contains(playerID)
+    }
+
+    /// Bootstrap block-list cloud sync. Call after Firebase Auth has signed
+    /// the user in. The first run merges the remote set into the local set
+    /// (union semantics) and pushes the merged result back; subsequent
+    /// `block` / `unblock` calls write through.
+    public func startBlockedPlayersCloudSync() async {
+        #if canImport(FirebaseFirestore)
+        guard FirebaseApp.app() != nil,
+              let uid = currentAuthUID(),
+              !uid.isEmpty
+        else { return }
+        let firestore = Firestore.firestore()
+        let doc = firestore.collection("players")
+            .document(uid)
+            .collection("progress")
+            .document("blocked")
+        blockedPlayersDoc = doc
+        do {
+            let snapshot = try await doc.getDocument()
+            let remote: [String]
+            if let array = snapshot.data()?["ids"] as? [String] {
+                remote = array
+            } else {
+                remote = []
+            }
+            let merged = blockedPlayerIDs.union(remote)
+            if merged != blockedPlayerIDs {
+                blockedPlayerIDs = merged
+                Self.persistBlockedIDs(blockedPlayerIDs)
+            }
+            try await doc.setData([
+                "ids": Array(merged).sorted(),
+                "updatedAt": FieldValue.serverTimestamp()
+            ], merge: true)
+        } catch {
+            #if DEBUG
+            print("⚠️ HomeState block-list cloud sync failed: \(error.localizedDescription)")
+            #endif
+        }
+        #endif
+    }
+
+    private func pushBlockedToCloud() {
+        #if canImport(FirebaseFirestore)
+        guard let doc = blockedPlayersDoc else { return }
+        let snapshot = Array(blockedPlayerIDs).sorted()
         Task {
-            // Wait the randomized delay
-            try? await Task.sleep(nanoseconds: UInt64(delaySeconds * 1_000_000_000))
-            
-            await MainActor.run {
-                var pts = 0
-                if !isTrueReport {
-                    pts += isTrapReason ? 2 : 1
-                }
-                if areDetailsFalse {
-                    pts += 1
-                }
-                
-                if pts == 0 {
-                    let randomDays = [7, 14, 21, 30, 60, 180, 365].randomElement() ?? 30
-                    let dayLabel: String
-                    switch randomDays {
-                    case 7: dayLabel = "1 week"
-                    case 14: dayLabel = "2 weeks"
-                    case 21: dayLabel = "3 weeks"
-                    case 30: dayLabel = "1 month"
-                    case 60: dayLabel = "2 months"
-                    case 180: dayLabel = "6 months"
-                    case 365: dayLabel = "1 year"
-                    default: dayLabel = "\(randomDays) days"
-                    }
-                    
-                    let unbanDate = Calendar.current.date(byAdding: .day, value: randomDays, to: Date()) ?? Date()
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "MMM d"
-                    let dateString = formatter.string(from: unbanDate)
-                    
-                    self.evaluationTitle = "Player Banned"
-                    self.evaluationMessage = "Thank you for your report! After investigation, \(nameField) has been banned for \(dayLabel) and will be unbanned on \(dateString)."
-                } else {
-                    let currentPts = UserDefaults.standard.integer(forKey: "totalUniqueReports")
-                    let newTotal = currentPts + pts
-                    UserDefaults.standard.set(newTotal, forKey: "totalUniqueReports")
-                    
-                    let remaining = max(0, 5 - newTotal)
-                    let remainingText = remaining == 1 ? "1 abuse point left" : "\(remaining) abuse points left"
-                    
-                    self.evaluationTitle = "False Report / Untrue Details"
-                    self.evaluationMessage = "Your report or the provided details were evaluated and found to be false. You have accumulated \(pts) abuse point\(pts == 1 ? "" : "s"). You have \(remainingText) until your account is banned."
-                }
-                self.showEvaluationAlert = true
+            do {
+                try await doc.setData([
+                    "ids": snapshot,
+                    "updatedAt": FieldValue.serverTimestamp()
+                ], merge: true)
+            } catch {
+                #if DEBUG
+                print("⚠️ HomeState block-list cloud push failed: \(error.localizedDescription)")
+                #endif
             }
         }
+        #endif
+    }
+
+    #if canImport(FirebaseFirestore)
+    private var blockedPlayersDoc: DocumentReference?
+    #endif
+
+    private func currentAuthUID() -> String? {
+        #if canImport(FirebaseAuth)
+        return Auth.auth().currentUser?.uid
+        #else
+        return nil
+        #endif
+    }
+
+    private static let blockedPlayersKey = "com.game2244.blockedPlayerIDs"
+
+    private static func loadBlockedIDs() -> Set<String> {
+        let array = UserDefaults.standard.stringArray(forKey: blockedPlayersKey) ?? []
+        return Set(array)
+    }
+
+    private static func persistBlockedIDs(_ ids: Set<String>) {
+        UserDefaults.standard.set(Array(ids), forKey: blockedPlayersKey)
     }
 
     // Pre-ban warning system (first offense only — 3 chances before first ban)

@@ -159,7 +159,9 @@ struct SeasonHistoryView: View {
                 }
             }
             .onAppear {
+                #if DEBUG
                 historyStore.backfillIfEmpty(currentSeasonNumber: currentSeasonNumber, playerSeed: playerSeed)
+                #endif
             }
         }
     }

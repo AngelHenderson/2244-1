@@ -84,10 +84,8 @@ public extension LeaderboardClient {
             },
             
             fetchPage: { period, filter, cursor, pageSize in
-                // Country filters use mock data since Game Center doesn't have
-                // country-specific leaderboards
                 if filter != .global && filter != .hallOfFame {
-                    return try await LeaderboardClient.mock.fetchPage(period, filter, cursor, pageSize)
+                    return try await LeaderboardClient.empty.fetchPage(period, filter, cursor, pageSize)
                 }
 
                 guard GKLocalPlayer.local.isAuthenticated else {
@@ -157,9 +155,8 @@ public extension LeaderboardClient {
             },
             
             fetchMyRank: { period, filter in
-                // Country filters use mock data
                 if filter != .global && filter != .hallOfFame {
-                    return try await LeaderboardClient.mock.fetchMyRank(period, filter)
+                    return try await LeaderboardClient.empty.fetchMyRank(period, filter)
                 }
 
                 guard GKLocalPlayer.local.isAuthenticated else { return nil }
@@ -201,7 +198,7 @@ public extension LeaderboardClient {
 // Fallback for platforms without GameKit
 public extension LeaderboardClient {
     static func gameCenter(config: GameCenterLeaderboardConfig = .init()) -> LeaderboardClient {
-        .mock
+        .empty
     }
 }
 #endif

@@ -18,6 +18,7 @@ public struct CustomChallengeGameScreen: View {
     @State private var challengeWon = false
     @State private var challengeEnded = false
     @State private var frozenTimeRemaining: Int?
+    @State private var longestChainLength = 0
 
     // Use start time + duration for reliable timer that doesn't stop during merges
     @State private var startTime: Date = Date()
@@ -140,7 +141,11 @@ public struct CustomChallengeGameScreen: View {
         .onChange(of: challengeGameStore.lastChainLength) { _, chainLength in
             // Track merged tiles for achievements using main game store
             if chainLength > 0 {
+                longestChainLength = max(longestChainLength, chainLength)
                 mainGameStore.achievementEvaluator?.onTilesMerged(count: chainLength)
+                if checkWinCondition() {
+                    endChallenge(won: true)
+                }
             }
         }
         .onChange(of: challengeGameStore.state.isGameOver) { _, isGameOver in
@@ -957,27 +962,20 @@ public struct CustomChallengeGameScreen: View {
         // Start the timer
         startTime = Date()
         challengeEnded = false
+        longestChainLength = 0
     }
 
     private func checkWinCondition() -> Bool {
-        switch config.target {
-        case .score(let target):
-            return challengeGameStore.state.scoreValue.toInt() >= target
-        case .tile(let target):
-            return challengeGameStore.state.highestTile >= target
-        case .tileStep(let targetStep):
-            // Special case: infinity target — check if any infinity tile exists on the board
-            if targetStep == Int.max {
-                return challengeGameStore.state.board.cells.contains { row in 
-                    row.contains { $0.tile?.isInfinity == true } 
-                }
-            }
-            // Compare using step values
-            return challengeGameStore.state.highestTileStep >= targetStep
-        case .chain:
-            // Check if any chain of required length was made
-            return false // TODO: Track chain lengths
+        let containsInfinityTile = challengeGameStore.state.board.cells.contains { row in
+            row.contains { $0.tile?.isInfinity == true }
         }
+        return config.target.isSatisfied(
+            score: challengeGameStore.state.scoreValue.toInt(),
+            highestTile: challengeGameStore.state.highestTile,
+            highestTileStep: challengeGameStore.state.highestTileStep,
+            containsInfinityTile: containsInfinityTile,
+            longestChainLength: longestChainLength
+        )
     }
 
 

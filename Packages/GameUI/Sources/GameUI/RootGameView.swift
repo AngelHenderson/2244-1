@@ -9,10 +9,12 @@ import FirebaseCore
 public struct RootGameView: View {
     private let managesBackground: Bool
     @Environment(HomeState.self) private var homeState
+    @Environment(PlayerReadinessStore.self) private var playerReadiness
     @Environment(\.gameStore) private var gameStore
     @Environment(\.tileJourney) private var journey
     @Environment(\.adService) private var adService
     @Environment(\.purchaseService) private var purchaseService
+    @Environment(\.rewardLedgerOptional) private var rewardLedger
     @State private var isPlaying = false
     @State private var hasLoadedInitialState = false
     @State private var showDailyClaims = false
@@ -27,6 +29,7 @@ public struct RootGameView: View {
     @State private var wheelEngine = WheelEngine()
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
+    @State private var isShowingTutorial = false
 
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(DailyQuestStore.self) private var dailyQuestStore
@@ -200,6 +203,19 @@ public struct RootGameView: View {
                     }
             }
         }
+        .task {
+            if FirstLaunchTutorialGate.shouldPresentInCurrentBuild(
+                hasCompletedTutorial: playerReadiness.hasCompletedTutorial
+            ) {
+                isShowingTutorial = true
+            }
+        }
+        .platformFullScreenCover(isPresented: $isShowingTutorial) {
+            HowToPlayView(onComplete: {
+                playerReadiness.markTutorialCompleted()
+                isShowingTutorial = false
+            })
+        }
     }
     
 
@@ -230,9 +246,22 @@ public struct RootGameView: View {
             watchAd: {
                 guard !purchaseService.isAdFreePurchased else { return 0 }
                 let reward = homeState.adReward
-                let didReward = await adService.showRewardedInterstitial {
-                    homeState.addGems(reward)
-                    saveProgress()
+                let key = "ad:home:\(reward):\(Int(Date().timeIntervalSince1970))"
+                let didReward = await adService.showRewardedInterstitial { [reward] in
+                    if let rewardLedger {
+                        rewardLedger.grant(
+                            source: .ad,
+                            itemType: .gems,
+                            amount: reward,
+                            idempotencyKey: key
+                        ) {
+                            homeState.addGems(reward)
+                            saveProgress()
+                        }
+                    } else {
+                        homeState.addGems(reward)
+                        saveProgress()
+                    }
                 }
                 return didReward ? reward : 0
             },

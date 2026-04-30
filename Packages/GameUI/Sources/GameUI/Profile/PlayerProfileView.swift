@@ -182,7 +182,8 @@ public struct PlayerProfileView: View {
                 
                 Spacer(minLength: 0)
                 
-                // Compare button on far right
+                #if DEBUG
+                // Preview/debug comparison uses synthetic players and is not shipped.
                 Button {
                     model.showCompare = true
                 } label: {
@@ -196,6 +197,7 @@ public struct PlayerProfileView: View {
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("Compare with friends")
+                #endif
             }
             .frame(maxWidth: .infinity)
         }

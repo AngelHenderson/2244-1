@@ -73,7 +73,7 @@ public enum MonetizationError: Error {
     case networkError
 }
 
-// MARK: - Live Implementation (Stub)
+// MARK: - Fail-Closed Implementation
 public actor LiveMonetizationService: MonetizationService {
     private let defaults = UserDefaults.standard
     
@@ -84,39 +84,22 @@ public actor LiveMonetizationService: MonetizationService {
     }
     
     public func buySmallPack() async throws -> Int {
-        // TODO: Implement with StoreKit 2
-        // For now, just add gems locally
-        let current = defaults.integer(forKey: "coins")
-        let added = 120
-        defaults.set(current + added, forKey: "coins")
-        return added
+        throw MonetizationError.purchaseFailed
     }
     
     public func buyMediumPack() async throws -> Int {
-        let current = defaults.integer(forKey: "coins")
-        let added = 500
-        defaults.set(current + added, forKey: "coins")
-        return added
+        throw MonetizationError.purchaseFailed
     }
     
     public func buyLargePack() async throws -> Int {
-        let current = defaults.integer(forKey: "coins")
-        let added = 1200
-        defaults.set(current + added, forKey: "coins")
-        return added
+        throw MonetizationError.purchaseFailed
     }
     
     public func watchAd() async throws -> Int {
         guard !defaults.bool(forKey: "isAdFreePurchased") else {
             throw MonetizationError.adFreeUser
         }
-        // TODO: Implement with AdMob or similar
-        // For now, simulate
-        try await Task.sleep(nanoseconds: 1_000_000_000)
-        let current = defaults.integer(forKey: "coins")
-        let reward = 68
-        defaults.set(current + reward, forKey: "coins")
-        return reward
+        throw MonetizationError.networkError
     }
     
     public func isAdFree() async -> Bool {

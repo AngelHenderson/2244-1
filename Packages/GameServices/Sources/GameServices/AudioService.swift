@@ -64,7 +64,7 @@ public struct DefaultAudioService: AudioServiceProtocol, Sendable {
 
 // Storage adapter to avoid @AppStorage inside @Observable
 @MainActor
-final class AudioSettingsStorage: ObservableObject {
+final class AudioSettingsStorage {
     @AppStorage("musicEnabled") var musicEnabled: Bool = true
     @AppStorage("sfxEnabled") var sfxEnabled: Bool = true
     @AppStorage("currentMusicTheme") var currentMusicTheme: String = "piano"
@@ -803,5 +803,4 @@ public actor LiveAudioService: AudioServiceProtocol {
         #endif
     }
 }
-
 
