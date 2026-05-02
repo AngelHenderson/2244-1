@@ -6,6 +6,7 @@ public struct HomeActions: Sendable {
     public var buyGems: @Sendable @MainActor () -> Void = {}
     public var watchAd: @Sendable @MainActor () async -> Int = { 0 }
     public var openDaily: @Sendable @MainActor () -> Void = {}
+    public var openDailyStreaks: @Sendable @MainActor () -> Void = {}
     public var openFreeSpin: @Sendable @MainActor () -> Void = {}
     public var openMusic: @Sendable @MainActor () -> Void = {}
     public var openChallenge: @Sendable @MainActor () -> Void = {}
@@ -25,6 +26,7 @@ public struct HomeActions: Sendable {
         buyGems: @escaping @Sendable @MainActor () -> Void = {},
         watchAd: @escaping @Sendable @MainActor () async -> Int = { 0 },
         openDaily: @escaping @Sendable @MainActor () -> Void = {},
+        openDailyStreaks: @escaping @Sendable @MainActor () -> Void = {},
         openFreeSpin: @escaping @Sendable @MainActor () -> Void = {},
         openMusic: @escaping @Sendable @MainActor () -> Void = {},
         openChallenge: @escaping @Sendable @MainActor () -> Void = {},
@@ -43,6 +45,7 @@ public struct HomeActions: Sendable {
         self.buyGems = buyGems
         self.watchAd = watchAd
         self.openDaily = openDaily
+        self.openDailyStreaks = openDailyStreaks
         self.openFreeSpin = openFreeSpin
         self.openMusic = openMusic
         self.openChallenge = openChallenge

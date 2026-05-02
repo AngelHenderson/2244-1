@@ -1,5 +1,20 @@
 import SwiftUI
 
+// MARK: - Surface ownership
+//
+// `ToastManager` (consumed via `\.toastManager`) is the canonical
+// transient-feedback surface for the home shell. New non-modal,
+// auto-dismissing user feedback should route through it.
+//
+// In-game tile events (`unlocked`, `added`, `excluded`) own a separate
+// path: `gameStore.currentNotification` drives a `.sheet` inside
+// `HybridGameScreen` — these are intentionally separate because they
+// require a tap to dismiss and may layer with auto-fired gift / unlock
+// reward sheets. They never share state with the toast manager.
+//
+// `EventBannerHost` exists as legacy infrastructure with no live
+// consumer; do not adopt it for new feedback. Use `ToastManager`.
+
 /// A floating toast notification that appears over the entire view
 public struct ToastNotification: View {
     let message: String

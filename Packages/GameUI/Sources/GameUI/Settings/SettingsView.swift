@@ -28,6 +28,7 @@ public struct SettingsView: View {
     @State private var gameCenterEnabled: Bool = false
     @State private var gameCenterDisplayName: String = ""
     @State private var isShowingReportPrompt: Bool = false
+    @State private var showReportSubmittedToast: Bool = false
     @State private var isShowingSlotPicker: Bool = false
     @State private var isShowingReplayExport: Bool = false
     @State private var isShowingReplayImport: Bool = false
@@ -455,7 +456,7 @@ public struct SettingsView: View {
                 ValidMovesInfoView()
             }
             .sheet(isPresented: $isShowingReportPrompt) {
-                ReportPlayerSheet()
+                ReportPlayerSheet(onSubmitted: { showReportSubmittedToast = true })
             }
             .sheet(isPresented: $isShowingSlotPicker) {
                 SlotPickerView()
@@ -466,7 +467,13 @@ public struct SettingsView: View {
             .sheet(isPresented: $isShowingReplayImport) {
                 ReplayImportSheet()
             }
+            .alert("Report submitted", isPresented: $showReportSubmittedToast) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Thank you. Our team will review the report.")
+            }
         }
+        .trackScreen(.settings)
     }
 
     private func checkGameCenterStatus() {

@@ -17,6 +17,7 @@ public struct HomeView: View {
     @Environment(\.purchaseService) private var purchaseService
     @Environment(\.gameStore) private var gameStore
     @Environment(\.adService) private var adService
+    @Environment(\.deepLinkRouter) private var deepLinkRouter
     @State private var presentedSheet: HomeSheetDestination?
     @State private var isShowingBoosts: Bool = false
     @State private var isShowingWeeklyOffer: Bool = false
@@ -340,6 +341,9 @@ public struct HomeView: View {
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)
+        .onChange(of: deepLinkRouter.pendingRoute) { _, route in
+            consumeHomeOwnedRoute(route)
+        }
         // Update achievements badge count + auto-present weekly offer once per ISO week
         .onAppear {
             state.achievementsBadgeCount = achievementStore.claimableCount
@@ -347,6 +351,9 @@ public struct HomeView: View {
                 WeeklyOfferManager.markAutoPresented()
                 isShowingWeeklyOffer = true
             }
+            // Consume any pending route that arrived before HomeView was on
+            // screen (e.g., cold launch via deep link).
+            consumeHomeOwnedRoute(deepLinkRouter.pendingRoute)
         }
         .task {
             // Refresh consent state once per home appearance so the
@@ -372,6 +379,7 @@ public struct HomeView: View {
         } message: {
             Text("You have \(state.warningsRemaining) chances left! After that, you are banned!")
         }
+        .trackScreen(.home)
     }
 
     private func dockItem(system: String, title: String, badge: Bool = false, badgeCount: Int = 0, banned: Bool = false, action: @escaping () -> Void) -> some View {
@@ -514,6 +522,15 @@ public struct HomeView: View {
                 isPrivacyOptionsRequired = await adService.isPrivacyOptionsRequired()
             }
         }
+    }
+
+    /// Routes that HomeView's `presentedSheet` owns. RootGameView handles
+    /// the rest (shop, daily, spin, challenge, gameplay, tutorial).
+    @MainActor
+    private func consumeHomeOwnedRoute(_ route: AppRoute?) {
+        guard route == .settings else { return }
+        presentedSheet = .settings
+        deepLinkRouter.consume()
     }
 }
 

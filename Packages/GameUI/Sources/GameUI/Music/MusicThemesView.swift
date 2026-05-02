@@ -86,6 +86,7 @@ struct MusicThemesView: View {
             )
         }
         .accessibilityElement(children: .contain)
+        .trackScreen(.music)
     }
 
     private var header: some View {

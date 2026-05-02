@@ -203,6 +203,7 @@ public struct CustomChallengeGameScreen: View {
             let needed = timeRecoveryCost - homeState.gems
             Text("You need \(timeRecoveryCost) gems to recover time, but you only have \(homeState.gems). You need \(needed) more gems.")
         }
+        .trackScreen(.customChallengeGameplay)
 
     }
 

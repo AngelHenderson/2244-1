@@ -204,6 +204,7 @@ public struct HowToPlayView: View {
                 .padding(.bottom, 40)
             }
         }
+        .trackScreen(.howToPlay)
     }
 }
 

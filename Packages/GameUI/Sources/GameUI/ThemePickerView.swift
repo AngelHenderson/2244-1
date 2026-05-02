@@ -82,6 +82,7 @@ public struct ThemePickerView: View {
                 }
             }
         }
+        .trackScreen(.themePicker)
     }
 
     private var tileThemesContent: some View {

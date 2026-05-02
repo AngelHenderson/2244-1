@@ -144,6 +144,7 @@ public struct LeaderboardView: View {
                 Task { await model.refresh() }
             }
         }
+        .trackScreen(.leaderboard)
     }
     
     // MARK: - Milestone-Based View (Default)
