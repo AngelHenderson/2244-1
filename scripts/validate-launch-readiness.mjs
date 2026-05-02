@@ -12,6 +12,10 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
+function readJSON(relativePath) {
+  return JSON.parse(read(relativePath));
+}
+
 function fail(message) {
   failures.push(message);
 }
@@ -22,6 +26,10 @@ function warn(message) {
 
 function assert(condition, message) {
   if (!condition) fail(message);
+}
+
+function assertExists(relativePath, message) {
+  assert(fs.existsSync(path.join(root, relativePath)), message);
 }
 
 function setEquals(a, b) {
@@ -53,8 +61,25 @@ const codeIDs = new Set([...iapSwift.matchAll(/id:\s*"([^"]+)"/g)].map((match) =
 const docsIDs = new Set([...read('Docs/IAP_CATALOG.md').matchAll(/`(com\.game2244\.[^`]+)`/g)].map((match) => match[1]));
 const storeKitIDs = recursiveProductIDs(JSON.parse(read('2244/game2244/Configuration.storekit')));
 const shopIDs = shopCatalogIDs(JSON.parse(read('2244/game2244/JSON/2244_shop_catalog.json')));
+const workspace = read('game2244.xcworkspace/contents.xcworkspacedata');
 const scheme = read('2244/game2244.xcodeproj/xcshareddata/xcschemes/game2244.xcscheme');
 const storeKitSchemeReference = scheme.match(/<StoreKitConfigurationFileReference\s+identifier = "([^"]+)"/);
+
+assert(workspace.includes('location = "group:2244/game2244.xcodeproj"'), 'Workspace does not reference the active 2244/game2244.xcodeproj project.');
+assert(!fs.existsSync(path.join(root, 'game2244')), 'Stale root-level game2244 directory exists. The active app target is 2244/game2244.');
+for (const lockfile of [
+  'game2244.xcworkspace/xcshareddata/swiftpm/Package.resolved',
+  '2244/game2244.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved',
+]) {
+  assertExists(lockfile, `${lockfile} is missing.`);
+  const pins = new Set((readJSON(lockfile).pins ?? []).map((pin) => pin.identity));
+  for (const identity of ['abseil-cpp-swiftpm', 'boringssl-swiftpm', 'grpc-ios']) {
+    assert(pins.has(identity), `${lockfile} is missing the Firebase source-Firestore pin: ${identity}.`);
+  }
+  for (const identity of ['abseil-cpp-binary', 'grpc-binary']) {
+    assert(!pins.has(identity), `${lockfile} was resolved without FIREBASE_SOURCE_FIRESTORE=1 and contains ${identity}.`);
+  }
+}
 
 assert(codeIDs.size === 13, `Expected 13 IAP products in code, found ${codeIDs.size}.`);
 assert(setEquals(codeIDs, docsIDs), 'Docs/IAP_CATALOG.md product IDs differ from IAPProduct.allProducts.');

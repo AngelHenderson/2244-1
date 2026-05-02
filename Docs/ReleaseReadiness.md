@@ -114,8 +114,8 @@ swift test --package-path Packages/GameApp
 swift test --package-path Packages/GameServices
 swift test --package-path Packages/GameUI
 swift build --package-path Packages/GameUI
-xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' build
-xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
 
 ## App Store Metadata

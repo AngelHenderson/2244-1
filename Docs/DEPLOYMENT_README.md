@@ -101,8 +101,12 @@ Then clean and rebuild:
 rm -rf ~/Library/Developer/Xcode/DerivedData/game2244*
 
 # Rebuild in Xcode or command line
-xcodebuild -workspace game2244.xcworkspace -scheme game2244 clean build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 clean build
 ```
+
+Use `FIREBASE_SOURCE_FIRESTORE=1` for app-target package resolution and
+archives so the checked-in Xcode lockfiles match Xcode Cloud's `grpc-ios`
+Firestore graph.
 
 ## 🔧 Configuration Options
 

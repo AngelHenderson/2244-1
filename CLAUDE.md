@@ -11,10 +11,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Building the Project
 ```bash
 # Build workspace for iOS Simulator
-xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -quiet clean build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -quiet clean build
 
 # Run tests
-xcodebuild test -workspace game2248.xcworkspace -scheme game2248 -destination 'platform=iOS Simulator,name=iPhone 16' -quiet
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild test -workspace game2244.xcworkspace -scheme game2244 -destination 'platform=iOS Simulator,name=iPhone 16' -quiet
 
 # Test individual packages
 swift test --package-path Packages/GameCore
