@@ -55,7 +55,7 @@ public class LeaderboardService: LeaderboardServiceProtocol, @unchecked Sendable
         
         do {
             let callable = functions.httpsCallable("submitScore")
-            var data: [String: Sendable] = [
+            let data: [String: Sendable] = [
                 "boardId": submission.boardId,
                 "highestTile": submission.runData.highestTile,
                 "secondsToHighest": submission.runData.secondsToHighest,
@@ -63,11 +63,6 @@ public class LeaderboardService: LeaderboardServiceProtocol, @unchecked Sendable
                 "runScore": submission.runData.runScore,
                 "displayName": submission.displayName
             ]
-            if let step = submission.runData.highestTileStep {
-                data["highestTileStep"] = step
-            } else {
-                data["highestTileStep"] = NSNull()
-            }
             
             _ = try await callable.call(data)
             
