@@ -39,9 +39,7 @@ public struct HybridGameScreen: View {
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
     @State private var isShowingDoublePrompt: Bool = false
-    @State private var isShowingPause = false
-    @State private var isShowingShop = false
-    @State private var isShowingLeaderboard = false
+    @State private var presentedSheet: GameplaySheetDestination?
     @State private var isShowingUnlockReward = false
 
     enum PowerUpOverlayContext {
@@ -193,7 +191,7 @@ public struct HybridGameScreen: View {
 
                         // Shop button below power-ups
                         Button {
-                            isShowingShop = true
+                            presentedSheet = .shop
                         } label: {
                             shopIcon
                                 .resizable()
@@ -217,28 +215,30 @@ public struct HybridGameScreen: View {
             }
         }
         
-        let pauseSheet = baseView
-            .adaptiveSheet(isPresented: $isShowingPause) {
-                PauseSheet(
-                    onResume: { isShowingPause = false },
-                    onRestart: {
-                        gameStore.resetGame()
-                        isShowingPause = false
-                    }
-                )
+        // Single host for the three mutually-exclusive user-triggered
+        // sheets (pause, shop, leaderboard). Auto-triggered sheets below
+        // (giftReward, unlockReward, notification) keep their own
+        // bindings because they can fire mid-gameplay independent of
+        // the user destination and use distinct presentation rules.
+        let userSheetHost = baseView
+            .adaptiveSheet(item: $presentedSheet) { destination in
+                switch destination {
+                case .pause:
+                    PauseSheet(
+                        onResume: { presentedSheet = nil },
+                        onRestart: {
+                            gameStore.resetGame()
+                            presentedSheet = nil
+                        }
+                    )
+                case .shop:
+                    ShopView(initialTab: .gems)
+                case .leaderboard:
+                    LeaderboardView(client: leaderboardClient)
+                }
             }
 
-        let shopSheet = pauseSheet
-            .adaptiveSheet(isPresented: $isShowingShop) {
-                ShopView(initialTab: .gems)
-            }
-
-        let leaderboardSheet = shopSheet
-            .adaptiveSheet(isPresented: $isShowingLeaderboard) {
-                LeaderboardView(client: leaderboardClient)
-            }
-
-        let giftSheet = leaderboardSheet
+        let giftSheet = userSheetHost
             .adaptiveSheet(isPresented: giftRewardBinding) {
                 if let giftReward = gameStore.pendingGiftReward {
                     GiftRewardView(giftReward: giftReward) {
@@ -461,6 +461,7 @@ public struct HybridGameScreen: View {
                 powerUpOverlay
             }
         }
+        .trackScreen(.gameplay)
     }
 
     // MARK: - Game Over Views
@@ -732,7 +733,7 @@ public struct HybridGameScreen: View {
     private func makeGameActions() -> HomeActions {
         HomeActions(
             play: { },
-            openShop: { isShowingShop = true },
+            openShop: { presentedSheet = .shop },
             buyGems: { },
             watchAd: { 50 },
             openDaily: { },
@@ -742,7 +743,7 @@ public struct HybridGameScreen: View {
             openCreate: { },
             openProfile: { },
             openAchievements: { },
-            openLeaderboard: { isShowingLeaderboard = true },
+            openLeaderboard: { presentedSheet = .leaderboard },
             openSettings: { },
             openThemeLeft: { },
             openThemeRight: { },

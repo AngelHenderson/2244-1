@@ -44,8 +44,9 @@ public struct ChallengeDesignerView: View {
                 bottomBar
             }
         }
+        .trackScreen(.challengeDesigner)
     }
-    
+
     private var targetSection: some View {
         let buttonColor = Color.purple.opacity(0.7)
 

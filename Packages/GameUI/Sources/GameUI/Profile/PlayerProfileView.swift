@@ -108,6 +108,7 @@ public struct PlayerProfileView: View {
                 updateTierStatsFromStore()
             }
         }
+        .trackScreen(.profile)
     }
 
     private func updateTierStatsFromStore() {

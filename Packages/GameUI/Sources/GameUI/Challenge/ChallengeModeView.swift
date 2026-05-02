@@ -82,6 +82,7 @@ public struct ChallengeModeView: View {
                 Text("You are still banned. Your ban is over in \(homeState.banTimeRemainingText ?? "never (permanent)").")
             }
         }
+        .trackScreen(.challengeMode)
     }
 
     @ViewBuilder

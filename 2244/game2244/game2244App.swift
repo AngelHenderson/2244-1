@@ -53,7 +53,6 @@ struct game2244App: App {
     @State private var backgroundThemeRegistry = BackgroundThemeRegistry.Default
     @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
     @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundThemeId: String = "city_1"
-    @AppStorage("useGlassPreview") private var useGlassPreview: Bool = true
     @State private var isPlaying: Bool = false
     @State private var storageService = UserDefaultsStorageService()
     @State private var achievementStore = AchievementStore()
@@ -69,6 +68,7 @@ struct game2244App: App {
     @State private var seasonHistoryStore = SeasonHistoryStore()
     @State private var leaderboardClient: LeaderboardClient = .empty
     @State private var reportService: any ReportServiceProtocol = NoopReportService()
+    @State private var deepLinkRouter = DeepLinkRouter()
 
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
@@ -85,6 +85,9 @@ struct game2244App: App {
                     .zIndex(0)
 
                 RootGameView(managesBackground: false)
+            }
+            .onOpenURL { url in
+                deepLinkRouter.handle(url)
             }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("GemsDidChange"))) { notification in
                 if let newBalance = notification.userInfo?["newBalance"] as? Int {
@@ -128,6 +131,7 @@ struct game2244App: App {
                 .environment(\.challengeStore, challengeStore)
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
                 .environment(\.spinWheelState, spinWheelState)
+                .environment(\.deepLinkRouter, deepLinkRouter)
                 .onChange(of: purchaseService.isAdFreePurchased) { _, isAdFree in
                     adService.setAdFree(isAdFree)
                 }

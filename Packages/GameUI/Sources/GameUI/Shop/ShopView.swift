@@ -154,6 +154,7 @@ public struct WeeklyOfferSheet: View {
                     .background(.ultraThinMaterial)
             }
         }
+        .trackScreen(.shop)
     }
 
     private func offerRow(icon: String, text: String, color: Color) -> some View {

@@ -46,8 +46,9 @@ public struct DailyStreaksView: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
+        .trackScreen(.dailyStreaks)
     }
-    
+
     private var currentStreakSection: some View {
         VStack(spacing: 20) {
             // Main streak display

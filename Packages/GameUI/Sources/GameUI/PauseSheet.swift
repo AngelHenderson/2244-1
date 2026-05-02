@@ -45,6 +45,7 @@ struct PauseSheet: View {
             .navigationTitle("Paused")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
         }
+        .trackScreen(.pause)
     }
     
     private func backgroundIcon(for category: String) -> String {

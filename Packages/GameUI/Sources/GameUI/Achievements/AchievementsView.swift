@@ -270,8 +270,9 @@ public struct AchievementsView: View {
                 )
             }
         }
+        .trackScreen(.achievements)
     }
-    
+
 private func tierDisplay(for id: String) -> AchievementStore.ProgressTierDisplay? {
         switch id {
         case "combo_6_10":

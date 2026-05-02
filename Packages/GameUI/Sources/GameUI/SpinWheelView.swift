@@ -114,8 +114,9 @@ public struct SpinWheelView: View {
         } message: {
             Text("You are still banned. Your ban is over in \(homeState.banTimeRemainingText ?? "never (permanent)").")
         }
+        .trackScreen(.freeSpin)
     }
-    
+
     private var header: some View {
         ZStack {
             Text("SPIN")

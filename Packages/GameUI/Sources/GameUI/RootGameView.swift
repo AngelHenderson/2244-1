@@ -15,6 +15,7 @@ public struct RootGameView: View {
     @Environment(\.adService) private var adService
     @Environment(\.purchaseService) private var purchaseService
     @Environment(\.rewardLedgerOptional) private var rewardLedger
+    @Environment(\.deepLinkRouter) private var deepLinkRouter
     @State private var isPlaying = false
     @State private var hasLoadedInitialState = false
     @State private var showDailyClaims = false
@@ -216,6 +217,36 @@ public struct RootGameView: View {
                 isShowingTutorial = false
             })
         }
+        .onChange(of: deepLinkRouter.pendingRoute) { _, route in
+            consumeDeepLinkIfOwned(route)
+        }
+    }
+
+    /// Routes RootGameView owns. HomeView consumes the rest (settings,
+    /// profile, achievements, leaderboard, theme, music) via its own
+    /// observer.
+    @MainActor
+    private func consumeDeepLinkIfOwned(_ route: AppRoute?) {
+        guard let route else { return }
+        switch route {
+        case .shop:
+            showShop = true
+        case .daily:
+            showDailyClaims = true
+        case .spin:
+            showFreeSpin = true
+        case .challenge:
+            showChallenge = true
+        case .tutorial:
+            isShowingTutorial = true
+        case .gameplay:
+            if gameStore.state.isGameOver { gameStore.resetGame() }
+            withAnimation(.easeInOut(duration: 0.3)) { isPlaying = true }
+        case .settings:
+            // Owned by HomeView's presentedSheet; do not consume here.
+            return
+        }
+        deepLinkRouter.consume()
     }
     
 
@@ -267,6 +298,9 @@ public struct RootGameView: View {
             },
             openDaily: {
                 showDailyClaims = true
+            },
+            openDailyStreaks: {
+                showDailyStreaks = true
             },
             openFreeSpin: {
                 showFreeSpin = true

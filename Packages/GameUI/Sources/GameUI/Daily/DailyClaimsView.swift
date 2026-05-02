@@ -9,6 +9,7 @@ public struct DailyClaimsView: View {
     @Environment(HomeState.self) private var homeState
     @Environment(\.audio) private var audio
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.homeActions) private var homeActions
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
     @State private var claimedBaseRewards: AchievementDef.Rewards?
@@ -48,6 +49,15 @@ public struct DailyClaimsView: View {
                     HStack(spacing: 12) {
                         GemBalancePill()
                         Button {
+                            dismiss()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                homeActions.openDailyStreaks()
+                            }
+                        } label: {
+                            Image(systemName: "flame.fill")
+                        }
+                        .accessibilityLabel("View Streaks")
+                        Button {
                             showIconLegend = true
                         } label: {
                             Image(systemName: "info.circle")
@@ -81,6 +91,7 @@ public struct DailyClaimsView: View {
                     .zIndex(100)
             }
         }
+        .trackScreen(.dailyClaims)
     }
     
     private var headerSection: some View {
