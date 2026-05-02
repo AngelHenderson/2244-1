@@ -5,7 +5,14 @@
       "Bash(git add *)",
       "Bash(xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -quiet clean build)",
       "Bash(git fetch *)",
-      "Bash(git rev-list *)"
+      "Bash(git rev-list *)",
+      "Bash(xcodebuild -resolvePackageDependencies -workspace game2244.xcworkspace -scheme game2244)",
+      "Bash(xcodebuild -resolvePackageDependencies -project /Users/angelhenderson/Development/Personal/2244/2244/game2244.xcodeproj -scheme game2244)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)"
     ]
   }
 }
