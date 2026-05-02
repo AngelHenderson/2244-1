@@ -11,7 +11,7 @@ struct PauseSheet: View {
     let onRestart: () -> Void
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section {
                     Button("Resume", action: onResume)
