@@ -4,9 +4,9 @@ This directory contains Firebase configuration files and setup instructions.
 
 ## Setup Instructions
 
-1. **Create Firebase Project**
+1. **Use the Faith Firebase Project**
    - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Create a new project named "game2244-firebase" (or your preferred name)
+   - Open the existing project named "Faith" (`faith-a5d4c`)
    - Enable Authentication, Firestore, and Cloud Functions
 
 2. **iOS App Configuration**
@@ -20,9 +20,11 @@ This directory contains Firebase configuration files and setup instructions.
 
 3. **Authentication Setup**
    - Enable Sign-in methods in Firebase Console:
+     - Email/Password (for account creation and sign-in)
      - Anonymous (for guest users)
      - Apple Sign-In (for iOS users)
      - Google Sign-In (optional)
+     - Phone (for phone verification, if you want SMS verification live)
 
 4. **Firestore Database**
    - Create Firestore database in production mode

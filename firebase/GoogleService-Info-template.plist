@@ -9,7 +9,7 @@
 	<key>CLIENT_ID</key>
 	<string>YOUR_CLIENT_ID.googleusercontent.com</string>
 	<key>DATABASE_URL</key>
-	<string>https://game2244-firebase-default-rtdb.firebaseio.com</string>
+	<string>https://faith-a5d4c-default-rtdb.firebaseio.com</string>
 	<key>GCM_SENDER_ID</key>
 	<string>YOUR_GCM_SENDER_ID</string>
 	<key>GOOGLE_APP_ID</key>
@@ -27,10 +27,10 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>PROJECT_ID</key>
-	<string>game2244-firebase</string>
+	<string>faith-a5d4c</string>
 	<key>REVERSED_CLIENT_ID</key>
 	<string>com.googleusercontent.apps.YOUR_REVERSED_CLIENT_ID</string>
 	<key>STORAGE_BUCKET</key>
-	<string>game2244-firebase.appspot.com</string>
+	<string>faith-a5d4c.appspot.com</string>
 </dict>
 </plist>
