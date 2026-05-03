@@ -25,6 +25,9 @@ public struct HybridGameScreen: View {
     @Environment(\.audio) private var audioService
     @Environment(\.gameCenter) private var gameCenter
     @Environment(\.scenePhase) private var scenePhase
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
     @Environment(\.leaderboardClient) private var leaderboardClient
     @Environment(\.currentTheme) private var currentTheme
     @Environment(\.purchaseService) private var purchaseService
@@ -345,29 +348,76 @@ public struct HybridGameScreen: View {
 
 
         // Wrap everything with full-screen wallpaper background
-        return ZStack {
-            wallpaperBackground
-                .ignoresSafeArea()
-            sessionTracking
+        return NavigationStack {
+            ZStack {
+                wallpaperBackground
+                    .ignoresSafeArea()
+                sessionTracking
 
+                // Game over text overlay
+                if isShowingGameOverText {
+                    gameOverTextOverlay
+                }
 
+                // Milestone start picker overlay
+                if isShowingMilestoneStart {
+                    milestoneStartOverlay
+                }
 
-            // Game over text overlay
-            if isShowingGameOverText {
-                gameOverTextOverlay
+                // Power-up recovery overlay (for out of moves / low on moves)
+                if isShowingPowerUpOverlay {
+                    powerUpOverlay
+                }
             }
-
-            // Milestone start picker overlay
-            if isShowingMilestoneStart {
-                milestoneStartOverlay
-            }
-
-            // Power-up recovery overlay (for out of moves / low on moves)
-            if isShowingPowerUpOverlay {
-                powerUpOverlay
-            }
+            .navigationTitle("")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar { gameplayNavigationToolbar }
+            .gameplayNavigationBarBackground()
         }
         .trackScreen(.gameplay)
+    }
+
+    @ToolbarContentBuilder
+    private var gameplayNavigationToolbar: some ToolbarContent {
+        #if os(macOS)
+        ToolbarItem(placement: .navigation) {
+            GameplayNavigationLeading(
+                rank: tempHomeState.rank,
+                showsRank: showsNavigationRank,
+                onPause: { presentedSheet = .pause },
+                onLeaderboard: { presentedSheet = .leaderboard }
+            )
+        }
+        ToolbarItem(placement: .principal) {
+            GameplayNavigationStatus(scoreText: gameStore.state.scoreValue.formattedWithCommas())
+        }
+        ToolbarItem(placement: .primaryAction) {
+            GameplayNavigationGemButton(onShop: { presentedSheet = .shop })
+        }
+        #else
+        ToolbarItem(placement: .topBarLeading) {
+            GameplayNavigationLeading(
+                rank: tempHomeState.rank,
+                showsRank: showsNavigationRank,
+                onPause: { presentedSheet = .pause },
+                onLeaderboard: { presentedSheet = .leaderboard }
+            )
+        }
+        ToolbarItem(placement: .principal) {
+            GameplayNavigationStatus(scoreText: gameStore.state.scoreValue.formattedWithCommas())
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            GameplayNavigationGemButton(onShop: { presentedSheet = .shop })
+        }
+        #endif
+    }
+
+    private var showsNavigationRank: Bool {
+        #if os(iOS)
+        horizontalSizeClass == .regular
+        #else
+        true
+        #endif
     }
 
     // MARK: - Game Over Views
@@ -679,17 +729,6 @@ public struct HybridGameScreen: View {
 
         case .compact, .compactCompressed, .centered:
             VStack(spacing: metrics.sectionSpacing) {
-                GameplayCompactHUD(
-                    scoreText: gameStore.state.scoreValue.formattedWithCommas(),
-                    rank: tempHomeState.rank,
-                    showsMetadata: metrics.placement == .centered && metrics.compression == .expanded,
-                    isCompressed: metrics.compression != .expanded,
-                    onPause: { presentedSheet = .pause },
-                    onShop: { presentedSheet = .shop },
-                    onLeaderboard: { presentedSheet = .leaderboard }
-                )
-                .frame(height: metrics.hudHeight)
-
                 ObjectiveProgressBand(isCompact: metrics.compression == .collapsed)
                     .frame(height: metrics.objectiveHeight)
 
@@ -962,86 +1001,73 @@ private func hybridGameScreenPreview(size: CGSize) -> some View {
 }
 
 
-// MARK: - Gameplay Layout Chrome
+// MARK: - Gameplay Navigation Bar
 
-private struct GameplayCompactHUD: View {
-    @Environment(\.gameStore) private var gameStore
-
-    let scoreText: String
+private struct GameplayNavigationLeading: View {
     let rank: Int
-    let showsMetadata: Bool
-    let isCompressed: Bool
+    let showsRank: Bool
     let onPause: () -> Void
-    let onShop: () -> Void
     let onLeaderboard: () -> Void
 
     var body: some View {
-        HStack(spacing: isCompressed ? 6 : 8) {
+        HStack(spacing: 6) {
             Button(action: onPause) {
                 Image(systemName: "pause.fill")
-                    .font(.system(size: isCompressed ? 14 : 16, weight: .bold))
-                    .frame(width: isCompressed ? 34 : 38, height: isCompressed ? 34 : 38)
+                    .font(.system(size: 15, weight: .bold))
+                    .frame(width: 34, height: 34)
             }
             .buttonStyle(.plain)
             .glassEffectCompat(cornerRadius: 10)
             .accessibilityLabel("Pause")
 
-            if showsMetadata {
+            if showsRank {
                 Button(action: onLeaderboard) {
                     Text("#\(rank)")
                         .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                         .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .padding(.horizontal, 8)
+                        .minimumScaleFactor(0.65)
+                        .padding(.horizontal, 9)
                         .frame(height: 34)
                 }
                 .buttonStyle(.plain)
                 .glassEffectCompat(cornerRadius: 10)
                 .accessibilityLabel("Rank \(rank). Open leaderboard.")
             }
+        }
+        .foregroundStyle(.white)
+    }
+}
 
-            Spacer(minLength: 4)
+private struct GameplayNavigationStatus: View {
+    @Environment(\.gameStore) private var gameStore
+    let scoreText: String
 
-            TimelineView(.periodic(from: .now, by: 1)) { context in
-                HStack(spacing: 6) {
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 7) {
                     Text(playtimeText(at: context.date))
                         .monospacedDigit()
                     Text("Score \(scoreText)")
                         .lineLimit(1)
-                        .minimumScaleFactor(0.62)
+                        .minimumScaleFactor(0.65)
                 }
-                .font(.avenirNext(size: isCompressed ? GameFonts.caption1Size : GameFonts.subheadlineSize, weight: .bold))
-                .foregroundStyle(.white)
-                .accessibilityLabel("Time \(playtimeText(at: context.date)), score \(scoreText)")
-            }
-            .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 4)
-
-            Button(action: onShop) {
-                HStack(spacing: 4) {
-                    Image("gem")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: isCompressed ? 18 : 21, height: isCompressed ? 18 : 21)
-                    Text("\(gameStore.coins)")
-                        .font(.avenirNext(size: isCompressed ? GameFonts.caption1Size : GameFonts.subheadlineSize, weight: .bold))
+                VStack(spacing: 0) {
+                    Text(scoreText)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.6)
+                        .minimumScaleFactor(0.65)
+                    Text(playtimeText(at: context.date))
+                        .monospacedDigit()
                 }
-                .padding(.horizontal, isCompressed ? 7 : 9)
-                .frame(height: isCompressed ? 34 : 38)
             }
-            .buttonStyle(.plain)
+            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .frame(height: 34)
             .glassEffectCompat(cornerRadius: 10)
-            .accessibilityLabel("Gems \(gameStore.coins). Open shop.")
+            .accessibilityLabel("Time \(playtimeText(at: context.date)), score \(scoreText)")
         }
-        .padding(.horizontal, isCompressed ? 8 : 10)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.black.opacity(0.22))
-        )
     }
 
     private func playtimeText(at date: Date) -> String {
@@ -1051,6 +1077,48 @@ private struct GameplayCompactHUD: View {
         return String(format: "%d:%02d", totalSeconds / 60, totalSeconds % 60)
     }
 }
+
+private struct GameplayNavigationGemButton: View {
+    @Environment(\.gameStore) private var gameStore
+    let onShop: () -> Void
+
+    var body: some View {
+        Button(action: onShop) {
+            HStack(spacing: 4) {
+                Image("gem")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                Text("\(gameStore.coins)")
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            }
+            .padding(.horizontal, 8)
+            .frame(height: 34)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.white)
+        .glassEffectCompat(cornerRadius: 10)
+        .accessibilityLabel("Gems \(gameStore.coins). Open shop.")
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func gameplayNavigationBarBackground() -> some View {
+        #if os(iOS)
+        self
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+        #else
+        self
+        #endif
+    }
+}
+
+
+// MARK: - Gameplay Layout Chrome
 
 private struct ObjectiveProgressBand: View {
     @Environment(\.gameStore) private var gameStore

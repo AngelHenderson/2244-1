@@ -78,7 +78,7 @@ struct PuzzleScreenMetrics: Equatable {
             gridSpacing = 7
         }
 
-        let hudHeight: CGFloat = usesSidebar ? 0 : (compression == .collapsed ? 44 : 56)
+        let hudHeight: CGFloat = 0
         let objectiveHeight: CGFloat
         switch (usesSidebar, compression) {
         case (true, _):
@@ -113,10 +113,9 @@ struct PuzzleScreenMetrics: Equatable {
             } else {
                 heightBudget = usableHeight
                     - margin * 2
-                    - hudHeight
                     - objectiveHeight
                     - toolHeight
-                    - sectionSpacing * 3
+                    - sectionSpacing * 2
             }
 
             return PuzzleBoardSizing.tileSize(
