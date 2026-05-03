@@ -150,8 +150,8 @@ struct IAPContractTests {
         #expect(!scheme.contains("storeKitConfigurationFileReference ="))
 
         let match = try #require(scheme.firstMatch(of: /<StoreKitConfigurationFileReference\s+identifier = "([^"]+)"/))
-        let projectURL = try repositoryFileURL("2244/game2244.xcodeproj")
-        let resolvedURL = URL(fileURLWithPath: String(match.1), relativeTo: projectURL)
+        let projectDirectoryURL = try repositoryFileURL("2244")
+        let resolvedURL = URL(fileURLWithPath: String(match.1), relativeTo: projectDirectoryURL)
             .standardizedFileURL
         let expectedURL = try repositoryFileURL("2244/game2244/Configuration.storekit")
             .standardizedFileURL

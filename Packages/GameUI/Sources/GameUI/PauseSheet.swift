@@ -9,12 +9,22 @@ struct PauseSheet: View {
     @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundId: String = "city_1"
     let onResume: () -> Void
     let onRestart: () -> Void
+    let onHome: (() -> Void)?
+
+    init(onResume: @escaping () -> Void, onRestart: @escaping () -> Void, onHome: (() -> Void)? = nil) {
+        self.onResume = onResume
+        self.onRestart = onRestart
+        self.onHome = onHome
+    }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     Button("Resume", action: onResume)
+                    if let onHome {
+                        Button("Home", action: onHome)
+                    }
                     Button("Restart", role: .destructive, action: onRestart)
                 }
                 Section("Accessibility") {
@@ -69,5 +79,3 @@ struct PauseSheet: View {
         )
     }
 }
-
-

@@ -2,9 +2,6 @@ import SwiftUI
 import GameApp
 import GameCore
 import GameServices
-#if os(macOS)
-import AppKit
-#endif
 
 // MARK: - Modern Theme Tokens
 
@@ -28,7 +25,6 @@ public struct HybridGameScreen: View {
     @Environment(\.audio) private var audioService
     @Environment(\.gameCenter) private var gameCenter
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.leaderboardClient) private var leaderboardClient
     @Environment(\.currentTheme) private var currentTheme
     @Environment(\.purchaseService) private var purchaseService
@@ -79,21 +75,6 @@ public struct HybridGameScreen: View {
         WallpaperThemeRegistry.Default.wallpaper(for: selectedWallpaperId)
     }
 
-    private var shopIcon: Image {
-        #if canImport(UIKit)
-        if let path = Bundle.module.path(forResource: "ShopIcon", ofType: "png"),
-           let uiImage = UIImage(contentsOfFile: path) {
-            return Image(uiImage: uiImage)
-        }
-        #elseif canImport(AppKit)
-        if let path = Bundle.module.path(forResource: "ShopIcon", ofType: "png"),
-           let nsImage = NSImage(contentsOfFile: path) {
-            return Image(nsImage: nsImage)
-        }
-        #endif
-        return Image(systemName: "cart.fill")
-    }
-    
     // Closure injected by parent to dismiss gameplay (return to Home)
     public var isPlayingDismiss: (() -> Void)? = nil
     
@@ -102,26 +83,6 @@ public struct HybridGameScreen: View {
     }
     
     public var body: some View {
-        let topHUD = HUDTopBar(scoreText: gameStore.state.scoreValue.formattedWithCommas())
-            .environment(tempHomeState)
-            .environment(\.homeActions, makeGameActions())
-
-        let horizontalDock = HorizontalPowerupDock(
-            onHammer: handleHammer,
-            onSwap: handleSwap,
-            onMagnet: handleMagnet,
-            onUndo: handleUndo,
-            onHome: { isPlayingDismiss?() }
-        )
-
-        let verticalDock = SimplePowerupDock(
-            onHammer: handleHammer,
-            onSwap: handleSwap,
-            onMagnet: handleMagnet,
-            onUndo: handleUndo,
-            onHome: { isPlayingDismiss?() }
-        )
-
         let giftRewardBinding = Binding(
             get: { gameStore.pendingGiftReward != nil },
             set: { newValue in if !newValue { gameStore.dismissGiftReward() } }
@@ -132,28 +93,7 @@ public struct HybridGameScreen: View {
             set: { newValue in if !newValue { gameStore.dismissCurrentNotification() } }
         )
 
-        // Break down the complex expression into smaller parts
-        // iPhone (compact): horizontal dock below HUD
-        // iPad (regular): vertical dock on trailing edge (using HStack)
-        let isCompact = horizontalSizeClass == .compact
-
-        let gameContent = mainGameView
-            .safeAreaInset(edge: .top) {
-                Group {
-                    if isCompact {
-                        VStack(spacing: 8) {
-                            topHUD
-                            MilestoneProgressBar()
-                            horizontalDock
-                        }
-                    } else {
-                        VStack(spacing: 8) {
-                            topHUD
-                            MilestoneProgressBar()
-                        }
-                    }
-                }
-            }
+        let baseView = gameplayLayout
             .safeAreaInset(edge: .bottom) {
                 if !purchaseService.isAdFreePurchased {
                     LiveBannerAdView()
@@ -176,44 +116,6 @@ public struct HybridGameScreen: View {
                         .id(reason)
                 }
             }
-
-        // iPad: Use HStack to place dock on the right without overlapping
-        let baseView: some View = Group {
-            if isCompact {
-                gameContent
-            } else {
-                HStack(spacing: 0) {
-                    gameContent
-                    VStack {
-                        Spacer()
-                            .frame(height: 120)
-                        verticalDock
-
-                        // Shop button below power-ups
-                        Button {
-                            presentedSheet = .shop
-                        } label: {
-                            shopIcon
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .frame(width: 44, height: 44)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(.ultraThinMaterial)
-                                .shadow(radius: 4)
-                        )
-                        .padding(.trailing, 8)
-
-                        Spacer()
-                    }
-                }
-            }
-        }
         
         // Single host for the three mutually-exclusive user-triggered
         // sheets (pause, shop, leaderboard). Auto-triggered sheets below
@@ -229,6 +131,10 @@ public struct HybridGameScreen: View {
                         onRestart: {
                             gameStore.resetGame()
                             presentedSheet = nil
+                        },
+                        onHome: {
+                            presentedSheet = nil
+                            isPlayingDismiss?()
                         }
                     )
                 case .shop:
@@ -403,7 +309,7 @@ public struct HybridGameScreen: View {
             }
             .onChange(of: scenePhase) { _, newPhase in
                 // Comprehensive auto-save when app goes to background
-                if newPhase != .active {
+                if newPhase != ScenePhase.active {
                     gameStore.saveProgressImmediately(newTile: nil)
                 }
             }
@@ -730,37 +636,92 @@ public struct HybridGameScreen: View {
         }
     }
 
-    private func makeGameActions() -> HomeActions {
-        HomeActions(
-            play: { },
-            openShop: { presentedSheet = .shop },
-            buyGems: { },
-            watchAd: { 50 },
-            openDaily: { },
-            openFreeSpin: { },
-            openMusic: { },
-            openChallenge: { },
-            openCreate: { },
-            openProfile: { },
-            openAchievements: { },
-            openLeaderboard: { presentedSheet = .leaderboard },
-            openSettings: { },
-            openThemeLeft: { },
-            openThemeRight: { },
-            openSaleOffer: { }
-        )
-    }
-    
     @ViewBuilder
-    private var mainGameView: some View {
+    private var gameplayLayout: some View {
+        GeometryReader { proxy in
+            let metrics = PuzzleScreenMetrics(
+                container: proxy.size,
+                safeArea: proxy.safeAreaInsets,
+                rows: gameStore.state.board.height,
+                columns: gameStore.state.board.width
+            )
+
+            gameplayContent(metrics: metrics)
+                .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+    }
+
+    @ViewBuilder
+    private func gameplayContent(metrics: PuzzleScreenMetrics) -> some View {
+        switch metrics.placement {
+        case .sidebar:
+            HStack(alignment: .center, spacing: PuzzleScreenMetrics.sidebarGap) {
+                gameBoard(metrics: metrics)
+                    .frame(width: metrics.boardSize.width, height: metrics.boardSize.height)
+                    .layoutPriority(10)
+
+                GameplaySidePanel(
+                    scoreText: gameStore.state.scoreValue.formattedWithCommas(),
+                    rank: tempHomeState.rank,
+                    isCompact: metrics.compression != .expanded,
+                    onPause: { presentedSheet = .pause },
+                    onShop: { presentedSheet = .shop },
+                    onLeaderboard: { presentedSheet = .leaderboard },
+                    onHammer: handleHammer,
+                    onSwap: handleSwap,
+                    onMagnet: handleMagnet,
+                    onUndo: handleUndo
+                )
+                .frame(width: metrics.sidePanelWidth)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(metrics.margin)
+
+        case .compact, .compactCompressed, .centered:
+            VStack(spacing: metrics.sectionSpacing) {
+                GameplayCompactHUD(
+                    scoreText: gameStore.state.scoreValue.formattedWithCommas(),
+                    rank: tempHomeState.rank,
+                    showsMetadata: metrics.placement == .centered && metrics.compression == .expanded,
+                    isCompressed: metrics.compression != .expanded,
+                    onPause: { presentedSheet = .pause },
+                    onShop: { presentedSheet = .shop },
+                    onLeaderboard: { presentedSheet = .leaderboard }
+                )
+                .frame(height: metrics.hudHeight)
+
+                ObjectiveProgressBand(isCompact: metrics.compression == .collapsed)
+                    .frame(height: metrics.objectiveHeight)
+
+                gameBoard(metrics: metrics)
+                    .frame(width: metrics.boardSize.width, height: metrics.boardSize.height)
+                    .layoutPriority(10)
+
+                HorizontalPowerupDock(
+                    isCollapsed: metrics.shouldCollapseTools,
+                    onHammer: handleHammer,
+                    onSwap: handleSwap,
+                    onMagnet: handleMagnet,
+                    onUndo: handleUndo
+                )
+                .frame(height: metrics.toolTrayHeight)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .padding(.horizontal, metrics.margin)
+            .padding(.vertical, metrics.margin)
+        }
+    }
+
+    @ViewBuilder
+    private func gameBoard(metrics: PuzzleScreenMetrics) -> some View {
         ZStack {
             // Board container with glass preview (clear background)
             SimplifiedGlassBoardView(
                 onTileTap: { position in handleTileTap(at: position) },
-                isPowerUpActive: isHammerMode || isSwapMode || isMagnetMode
+                isPowerUpActive: isHammerMode || isSwapMode || isMagnetMode,
+                maxTileSize: metrics.maxTileSize,
+                gridSpacing: metrics.gridSpacing
             )
-            .padding(.horizontal, ModernTheme.gutter)
-            .padding(.bottom, 8)
             .accessibilityLabel("Game board with glass preview")
 
             // Mode overlay indicators
@@ -967,65 +928,519 @@ public struct HybridGameScreen: View {
     }
 }
 
+#Preview("Gameplay - iPhone SE") {
+    hybridGameScreenPreview(size: CGSize(width: 375, height: 667))
+}
 
-// MARK: - Horizontal Power-up Dock (for iPhone)
+#Preview("Gameplay - iPhone Pro Max") {
+    hybridGameScreenPreview(size: CGSize(width: 430, height: 932))
+}
 
-struct HorizontalPowerupDock: View {
+#Preview("Gameplay - iPad Portrait") {
+    hybridGameScreenPreview(size: CGSize(width: 820, height: 1180))
+}
+
+#Preview("Gameplay - iPad Landscape") {
+    hybridGameScreenPreview(size: CGSize(width: 1180, height: 820))
+}
+
+#Preview("Gameplay - Split View") {
+    hybridGameScreenPreview(size: CGSize(width: 650, height: 900))
+}
+
+@MainActor
+@ViewBuilder
+private func hybridGameScreenPreview(size: CGSize) -> some View {
+    let gameStore = GameStore()
+    let readiness = PlayerReadinessStore()
+
+    HybridGameScreen(isPlayingDismiss: {})
+        .environment(\.gameStore, gameStore)
+        .environment(\.currentTheme, ThemeRegistry.Default.descriptor(for: "raised-3d-square"))
+        .environment(readiness)
+        .frame(width: size.width, height: size.height)
+}
+
+
+// MARK: - Gameplay Layout Chrome
+
+private struct GameplayCompactHUD: View {
     @Environment(\.gameStore) private var gameStore
+
+    let scoreText: String
+    let rank: Int
+    let showsMetadata: Bool
+    let isCompressed: Bool
+    let onPause: () -> Void
+    let onShop: () -> Void
+    let onLeaderboard: () -> Void
+
+    var body: some View {
+        HStack(spacing: isCompressed ? 6 : 8) {
+            Button(action: onPause) {
+                Image(systemName: "pause.fill")
+                    .font(.system(size: isCompressed ? 14 : 16, weight: .bold))
+                    .frame(width: isCompressed ? 34 : 38, height: isCompressed ? 34 : 38)
+            }
+            .buttonStyle(.plain)
+            .glassEffectCompat(cornerRadius: 10)
+            .accessibilityLabel("Pause")
+
+            if showsMetadata {
+                Button(action: onLeaderboard) {
+                    Text("#\(rank)")
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .padding(.horizontal, 8)
+                        .frame(height: 34)
+                }
+                .buttonStyle(.plain)
+                .glassEffectCompat(cornerRadius: 10)
+                .accessibilityLabel("Rank \(rank). Open leaderboard.")
+            }
+
+            Spacer(minLength: 4)
+
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                HStack(spacing: 6) {
+                    Text(playtimeText(at: context.date))
+                        .monospacedDigit()
+                    Text("Score \(scoreText)")
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.62)
+                }
+                .font(.avenirNext(size: isCompressed ? GameFonts.caption1Size : GameFonts.subheadlineSize, weight: .bold))
+                .foregroundStyle(.white)
+                .accessibilityLabel("Time \(playtimeText(at: context.date)), score \(scoreText)")
+            }
+            .frame(maxWidth: .infinity)
+
+            Spacer(minLength: 4)
+
+            Button(action: onShop) {
+                HStack(spacing: 4) {
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: isCompressed ? 18 : 21, height: isCompressed ? 18 : 21)
+                    Text("\(gameStore.coins)")
+                        .font(.avenirNext(size: isCompressed ? GameFonts.caption1Size : GameFonts.subheadlineSize, weight: .bold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                }
+                .padding(.horizontal, isCompressed ? 7 : 9)
+                .frame(height: isCompressed ? 34 : 38)
+            }
+            .buttonStyle(.plain)
+            .glassEffectCompat(cornerRadius: 10)
+            .accessibilityLabel("Gems \(gameStore.coins). Open shop.")
+        }
+        .padding(.horizontal, isCompressed ? 8 : 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.black.opacity(0.22))
+        )
+    }
+
+    private func playtimeText(at date: Date) -> String {
+        let savedSeconds = UserDefaults.standard.integer(forKey: "playtime.totalSeconds")
+        let sessionStart = gameStore.achievementEvaluator?.sessionStartTime ?? date
+        let totalSeconds = savedSeconds + Int(date.timeIntervalSince(sessionStart))
+        return String(format: "%d:%02d", totalSeconds / 60, totalSeconds % 60)
+    }
+}
+
+private struct ObjectiveProgressBand: View {
+    @Environment(\.gameStore) private var gameStore
+    @Environment(\.currentTheme) private var currentTheme
+
+    let isCompact: Bool
+
+    private var bestStep: Int {
+        max(0, gameStore.state.highestTileStep)
+    }
+
+    private var goalStep: Int {
+        bestStep + 1
+    }
+
+    private var bestLabel: String {
+        JourneyTileGenerator.formatTileAtStep(bestStep)
+    }
+
+    private var goalLabel: String {
+        JourneyTileGenerator.formatTileAtStep(goalStep)
+    }
+
+    var body: some View {
+        VStack(spacing: isCompact ? 3 : 5) {
+            HStack {
+                Text("Best \(bestLabel)")
+                Spacer(minLength: 12)
+                Text("Goal \(goalLabel)")
+            }
+            .font(.avenirNext(size: isCompact ? GameFonts.caption2Size : GameFonts.caption1Size, weight: .bold))
+            .foregroundStyle(.white.opacity(0.92))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.18))
+                    Capsule()
+                        .fill(currentTheme?.colorForStep(bestStep) ?? .green)
+                        .frame(width: max(isCompact ? 4 : 5, geometry.size.width * 0.5))
+                }
+            }
+            .frame(height: isCompact ? 4 : 6)
+        }
+        .padding(.horizontal, isCompact ? 10 : 12)
+        .padding(.vertical, isCompact ? 4 : 6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.black.opacity(0.18))
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Best \(bestLabel), goal \(goalLabel)")
+    }
+}
+
+private struct GameplaySidePanel: View {
+    @Environment(\.gameStore) private var gameStore
+
+    let scoreText: String
+    let rank: Int
+    let isCompact: Bool
+    let onPause: () -> Void
+    let onShop: () -> Void
+    let onLeaderboard: () -> Void
     let onHammer: () -> Void
     let onSwap: () -> Void
     let onMagnet: () -> Void
     let onUndo: () -> Void
-    let onHome: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Home button
-            powerupItem(
-                icon: "house.fill",
-                action: onHome
+        VStack(alignment: .leading, spacing: isCompact ? 12 : 16) {
+            HStack(spacing: 10) {
+                Button(action: onPause) {
+                    Image(systemName: "pause.fill")
+                        .font(.system(size: 16, weight: .bold))
+                        .frame(width: 38, height: 38)
+                }
+                .buttonStyle(.plain)
+                .glassEffectCompat(cornerRadius: 10)
+                .accessibilityLabel("Pause")
+
+                Button(action: onLeaderboard) {
+                    Text("#\(rank)")
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
+                        .padding(.horizontal, 10)
+                        .frame(height: 38)
+                }
+                .buttonStyle(.plain)
+                .glassEffectCompat(cornerRadius: 10)
+
+                Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    SidePanelStat(
+                        title: "Timer",
+                        value: playtimeText(at: context.date),
+                        systemImage: "timer"
+                    )
+                }
+                SidePanelStat(title: "Score", value: scoreText, systemImage: "number")
+                SidePanelStat(title: "Moves", value: "\(gameStore.validMovesCount)", systemImage: "point.3.connected.trianglepath.dotted")
+            }
+
+            ObjectiveProgressBand(isCompact: false)
+                .frame(height: 58)
+
+            SidebarPowerupPanel(
+                onHammer: onHammer,
+                onSwap: onSwap,
+                onMagnet: onMagnet,
+                onUndo: onUndo
             )
 
-            Divider()
-                .frame(height: 30)
-                .opacity(0.3)
+            Spacer(minLength: 0)
 
-            // Hammer
-            powerupItem(
+            Button(action: onShop) {
+                HStack(spacing: 8) {
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
+                    Text("\(gameStore.coins)")
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .heavy))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    Spacer()
+                    Image(systemName: "cart.fill")
+                        .imageScale(.medium)
+                }
+                .padding(.horizontal, 12)
+                .frame(height: 44)
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain)
+            .glassEffectCompat(cornerRadius: 12)
+            .accessibilityLabel("Gems \(gameStore.coins). Open shop.")
+        }
+        .padding(16)
+        .frame(maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.black.opacity(0.2))
+        )
+    }
+
+    private func playtimeText(at date: Date) -> String {
+        let savedSeconds = UserDefaults.standard.integer(forKey: "playtime.totalSeconds")
+        let sessionStart = gameStore.achievementEvaluator?.sessionStartTime ?? date
+        let totalSeconds = savedSeconds + Int(date.timeIntervalSince(sessionStart))
+        return String(format: "%d:%02d", totalSeconds / 60, totalSeconds % 60)
+    }
+}
+
+private struct SidePanelStat: View {
+    let title: String
+    let value: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .frame(width: 24)
+                .foregroundStyle(.white.opacity(0.75))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.62))
+                Text(value)
+                    .font(.avenirNext(size: GameFonts.headlineSize, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+        )
+    }
+}
+
+private struct SidebarPowerupPanel: View {
+    @Environment(\.gameStore) private var gameStore
+
+    let onHammer: () -> Void
+    let onSwap: () -> Void
+    let onMagnet: () -> Void
+    let onUndo: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Powerups")
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                .foregroundStyle(.white.opacity(0.75))
+
+            SidebarPowerupCard(
+                title: "Hammer",
                 assetName: "hammer",
-                badge: gameStore.powerUpInventory["hammer", default: 0],
+                count: gameStore.powerUpInventory["hammer", default: 0],
                 price: gameStore.powerUpPrice("hammer"),
                 isEnabled: gameStore.isPowerUpAvailable("hammer"),
                 action: onHammer
             )
 
-            // Swap
-            powerupItem(
+            SidebarPowerupCard(
+                title: "Swap",
                 assetName: "swap",
-                badge: gameStore.powerUpInventory["swap", default: 0],
+                count: gameStore.powerUpInventory["swap", default: 0],
                 price: gameStore.powerUpPrice("swap"),
                 isEnabled: gameStore.isPowerUpAvailable("swap"),
                 action: onSwap
             )
 
-            // Magnet
-            powerupItem(
+            SidebarPowerupCard(
+                title: "Magnet",
                 assetName: "magnet",
-                badge: gameStore.powerUpInventory["magnet", default: 0],
+                count: gameStore.powerUpInventory["magnet", default: 0],
                 price: gameStore.powerUpPrice("magnet"),
                 isEnabled: gameStore.isPowerUpAvailable("magnet"),
                 action: onMagnet
             )
 
-            // Undo
-            powerupItem(
-                icon: "arrow.uturn.backward",
+            SidebarPowerupCard(
+                title: "Undo",
+                systemImage: "arrow.uturn.backward",
+                count: gameStore.state.undoAvailable ? 1 : 0,
+                price: nil,
                 isEnabled: gameStore.state.undoAvailable,
                 action: onUndo
             )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+    }
+}
+
+private struct SidebarPowerupCard: View {
+    let title: String
+    var assetName: String? = nil
+    var systemImage: String? = nil
+    let count: Int
+    let price: Int?
+    let isEnabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                icon
+                    .frame(width: 30, height: 30)
+
+                Text(title)
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Spacer(minLength: 8)
+
+                inventoryLabel
+            }
+            .padding(.horizontal, 10)
+            .frame(height: 44)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.48)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+        )
+    }
+
+    @ViewBuilder
+    private var icon: some View {
+        if let assetName {
+            Image(assetName)
+                .resizable()
+                .scaledToFit()
+        } else if let systemImage {
+            Image(systemName: systemImage)
+                .font(.system(size: 21, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.9))
+        }
+    }
+
+    @ViewBuilder
+    private var inventoryLabel: some View {
+        if count > 0 {
+            Text("x\(count)")
+                .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(Color.blue, in: Capsule())
+        } else if let price {
+            HStack(spacing: 3) {
+                Image("gem")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 12, height: 12)
+                Text("\(price)")
+                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
+            }
+            .foregroundStyle(.white)
+        }
+    }
+}
+
+
+// MARK: - Horizontal Power-up Dock (for iPhone)
+
+struct HorizontalPowerupDock: View {
+    @Environment(\.gameStore) private var gameStore
+    let isCollapsed: Bool
+    let onHammer: () -> Void
+    let onSwap: () -> Void
+    let onMagnet: () -> Void
+    let onUndo: () -> Void
+
+    var body: some View {
+        HStack(spacing: isCollapsed ? 10 : 12) {
+            if isCollapsed {
+                Menu {
+                    Button("Hammer", action: onHammer)
+                        .disabled(!gameStore.isPowerUpAvailable("hammer"))
+                    Button("Swap", action: onSwap)
+                        .disabled(!gameStore.isPowerUpAvailable("swap"))
+                    Button("Magnet", action: onMagnet)
+                        .disabled(!gameStore.isPowerUpAvailable("magnet"))
+                } label: {
+                    Label("Powerups", systemImage: "bolt.fill")
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .padding(.horizontal, 14)
+                        .frame(height: 38)
+                }
+                .buttonStyle(.plain)
+                .glassEffectCompat(cornerRadius: 12)
+
+                powerupItem(
+                    icon: "arrow.uturn.backward",
+                    isEnabled: gameStore.state.undoAvailable,
+                    action: onUndo
+                )
+            } else {
+                powerupItem(
+                    assetName: "hammer",
+                    badge: gameStore.powerUpInventory["hammer", default: 0],
+                    price: gameStore.powerUpPrice("hammer"),
+                    isEnabled: gameStore.isPowerUpAvailable("hammer"),
+                    action: onHammer
+                )
+
+                powerupItem(
+                    assetName: "swap",
+                    badge: gameStore.powerUpInventory["swap", default: 0],
+                    price: gameStore.powerUpPrice("swap"),
+                    isEnabled: gameStore.isPowerUpAvailable("swap"),
+                    action: onSwap
+                )
+
+                powerupItem(
+                    assetName: "magnet",
+                    badge: gameStore.powerUpInventory["magnet", default: 0],
+                    price: gameStore.powerUpPrice("magnet"),
+                    isEnabled: gameStore.isPowerUpAvailable("magnet"),
+                    action: onMagnet
+                )
+
+                powerupItem(
+                    icon: "arrow.uturn.backward",
+                    isEnabled: gameStore.state.undoAvailable,
+                    action: onUndo
+                )
+            }
+        }
+        .padding(.horizontal, isCollapsed ? 10 : 16)
+        .padding(.vertical, isCollapsed ? 5 : 8)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)
@@ -1107,156 +1522,6 @@ struct HorizontalPowerupDock: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 5)
             .padding(.vertical, 2)
-            .background(Color.blue, in: Capsule())
-            .lineLimit(1)
-            .minimumScaleFactor(0.6)
-    }
-}
-
-// MARK: - Simple Power-up Dock (vertical, for reference)
-
-struct SimplePowerupDock: View {
-    @Environment(\.gameStore) private var gameStore
-    let onHammer: () -> Void
-    let onSwap: () -> Void
-    let onMagnet: () -> Void
-    let onUndo: () -> Void
-    let onHome: () -> Void
-
-    var body: some View {
-        VStack(spacing: 12) {
-            // Home button
-            powerupDockItem(
-                icon: "house.fill",
-                action: onHome
-            )
-
-            Divider()
-                .frame(width: 30)
-                .opacity(0.3)
-
-            // Break Any Tile On The Board (Hammer)
-            powerupDockItem(
-                assetName: "hammer",
-                badge: gameStore.powerUpInventory["hammer", default: 0],
-                price: gameStore.powerUpPrice("hammer"),
-                isEnabled: gameStore.isPowerUpAvailable("hammer"),
-                action: onHammer
-            )
-
-            // Swap Any 2 Tiles With Each Other (Restart/Swap)
-            powerupDockItem(
-                assetName: "swap",
-                badge: gameStore.powerUpInventory["swap", default: 0],
-                price: gameStore.powerUpPrice("swap"),
-                isEnabled: gameStore.isPowerUpAvailable("swap"),
-                action: onSwap
-            )
-
-            // Merge Same Tiles On The Board (Magnet)
-            powerupDockItem(
-                assetName: "magnet",
-                badge: gameStore.powerUpInventory["magnet", default: 0],
-                price: gameStore.powerUpPrice("magnet"),
-                isEnabled: gameStore.isPowerUpAvailable("magnet"),
-                action: onMagnet
-            )
-
-            // Undo button
-            powerupDockItem(
-                icon: "arrow.uturn.backward",
-                isEnabled: gameStore.state.undoAvailable,
-                action: onUndo
-            )
-        }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
-                .shadow(radius: 4)
-        )
-        .padding(.trailing, 8)
-    }
-    
-    private func powerupDockItem(
-        icon: String,
-        badge: Int = 0,
-        isEnabled: Bool = true,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: icon)
-                    .font(.avenirNext(size: 22, weight: .regular))
-                    .frame(width: 44, height: 44)
-                    .foregroundStyle(isEnabled ? .primary : .tertiary)
-
-                // Badge for inventory count
-                if badge > 0 {
-                    badgeLabel(for: badge)
-                        .offset(x: 4, y: -4)
-                }
-            }
-            .padding(3)
-        }
-        .buttonStyle(.plain)
-        .glassEffectCompat(cornerRadius: 10)
-        .disabled(!isEnabled)
-        .opacity(isEnabled ? 1.0 : 0.6)
-    }
-
-    private func powerupDockItem(
-        assetName: String,
-        badge: Int = 0,
-        price: Int? = nil,
-        isEnabled: Bool = true,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                Image(assetName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 22, height: 22)
-                    .frame(width: 44, height: 44)
-                    .opacity(isEnabled ? 1.0 : 0.4)
-
-                // Badge for inventory count or Price
-                if badge > 0 {
-                    badgeLabel(for: badge)
-                        .offset(x: 4, y: -4)
-                } else if let price = price {
-                    HStack(spacing: 1) {
-                        Image("gem")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 9, height: 9)
-                        Text("\(price)")
-                            .font(.avenirNext(size: 9, weight: .bold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 2)
-                    .background(Color.black.opacity(0.6), in: Capsule())
-                    .offset(x: 12, y: -8)
-                }
-            }
-            .padding(3)
-        }
-        .buttonStyle(.plain)
-        .glassEffectCompat(cornerRadius: 10)
-        .disabled(!isEnabled)
-        .opacity(isEnabled ? 1.0 : 0.6)
-    }
-
-    private func badgeLabel(for count: Int) -> some View {
-        Text("\(count)")
-            .font(.avenirNext(size: 11, weight: .bold))
-            .monospacedDigit()
-            .foregroundStyle(.white)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
             .background(Color.blue, in: Capsule())
             .lineLimit(1)
             .minimumScaleFactor(0.6)

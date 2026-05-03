@@ -88,7 +88,7 @@ assert([...shopIDs].every((id) => codeIDs.has(id)), 'Shop JSON contains an ID th
 assert(!scheme.includes('storeKitConfigurationFileReference ='), 'Xcode scheme uses the obsolete inline StoreKit configuration attribute.');
 assert(Boolean(storeKitSchemeReference), 'Xcode scheme does not enable the local StoreKit configuration file.');
 if (storeKitSchemeReference) {
-  const resolvedStoreKitPath = path.resolve(root, '2244/game2244.xcodeproj', storeKitSchemeReference[1]);
+  const resolvedStoreKitPath = path.resolve(root, '2244', storeKitSchemeReference[1]);
   const expectedStoreKitPath = path.resolve(root, '2244/game2244/Configuration.storekit');
   assert(resolvedStoreKitPath === expectedStoreKitPath, 'Xcode scheme StoreKit configuration path does not resolve to Configuration.storekit.');
   assert(fs.existsSync(resolvedStoreKitPath), 'Xcode scheme StoreKit configuration path does not exist.');
