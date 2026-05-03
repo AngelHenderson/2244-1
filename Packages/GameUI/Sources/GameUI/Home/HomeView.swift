@@ -223,10 +223,15 @@ public struct HomeView: View {
     @ViewBuilder
     private func header(recommendation: NextBestAction?, horizontalPadding: CGFloat) -> some View {
         VStack(spacing: 0) {
-            HUDTopBar(onLeaderboardTap: { presentedSheet = .leaderboard })
+            HomeTopHUDView(
+                streakDays: dailyClaimsStore.currentStreak,
+                gems: state.gems,
+                onStreakTap: { presentedSheet = .dailyStreaks },
+                onShopTap: { actions.openShop() }
+            )
 
             if let recommendation {
-                NextBestActionCard(action: recommendation) {
+                HomeRecommendationBanner(action: recommendation) {
                     applyRecommendation(recommendation)
                 } onDismiss: {
                     playerReadiness.dismissRecommendation(recommendation)
@@ -307,60 +312,7 @@ public struct HomeView: View {
     }
 
     private func bottomDock(items: [HomeDockItem], metrics: HomeLayoutMetrics.DockMetrics) -> some View {
-        HStack(spacing: metrics.itemSpacing) {
-            ForEach(items) { item in
-                dockItem(item, metrics: metrics)
-                    .frame(width: metrics.slotWidth, height: metrics.buttonSize)
-            }
-        }
-        .padding(.horizontal, metrics.horizontalPadding)
-        .padding(.bottom, metrics.bottomPadding)
-        .frame(maxWidth: .infinity)
-    }
-
-    private func dockItem(_ item: HomeDockItem, metrics: HomeLayoutMetrics.DockMetrics) -> some View {
-        Button(action: item.action) {
-            ZStack(alignment: .topTrailing) {
-                Group {
-                    let asset = assetName(for: item.title)
-                    if !asset.isEmpty {
-                        Image(asset)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: metrics.iconSize, height: metrics.iconSize)
-                    } else {
-                        Image(systemName: item.system)
-                            .font(.system(size: metrics.iconSize * 0.58, weight: .semibold))
-                    }
-                }
-                .frame(width: metrics.buttonSize, height: metrics.buttonSize)
-                .glassEffectCompat(cornerRadius: metrics.cornerRadius)
-
-                if item.banned {
-                    Image(systemName: "exclamationmark.octagon.fill")
-                        .font(.system(size: max(14, metrics.buttonSize * 0.28)))
-                        .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
-                        .offset(x: 4, y: -4)
-                } else if item.badgeCount > 0 {
-                    Text("\(item.badgeCount)")
-                        .font(.avenirNext(size: metrics.badgeFontSize, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.red, in: Capsule())
-                        .offset(x: 4, y: -4)
-                } else if item.badge {
-                    Circle()
-                        .fill(.red)
-                        .frame(width: max(8, metrics.buttonSize * 0.16), height: max(8, metrics.buttonSize * 0.16))
-                        .offset(x: 4, y: -4)
-                }
-            }
-            .frame(width: metrics.buttonSize, height: metrics.buttonSize)
-            .contentShape(RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(item.title)
+        HomeCustomTabBar(items: items, metrics: metrics)
     }
 
     private var leftRailItems: [HomeRailItem] {
@@ -618,19 +570,6 @@ public struct HomeView: View {
         return items
     }
 
-    private func assetName(for title: String) -> String {
-        switch title.lowercased() {
-        case "profile": return "profile"
-        case "achievements": return "achievement"
-        case "leaderboard": return "leaderboard"
-        case "feed": return ""
-        case "friends": return ""
-        case "settings": return "settings"
-        case "theme": return "themedefault"
-        default: return ""
-        }
-    }
-
     private func closeSheetAndRun(_ action: @escaping @MainActor () -> Void) {
         presentedSheet = nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
@@ -756,16 +695,6 @@ private struct HomeRailItem: Identifiable {
     let action: () -> Void
 }
 
-private struct HomeDockItem: Identifiable {
-    let id: String
-    let system: String
-    let title: String
-    var badge: Bool = false
-    var badgeCount: Int = 0
-    var banned: Bool = false
-    let action: () -> Void
-}
-
 private struct HeightReader: View {
     @Binding var height: CGFloat
 
@@ -778,141 +707,6 @@ private struct HeightReader: View {
                 .onChange(of: geo.size.height) { _, newHeight in
                     height = newHeight
                 }
-        }
-    }
-}
-
-// MARK: - Recommendation Card
-
-private struct NextBestActionCard: View {
-    let action: NextBestAction
-    let onAct: () -> Void
-    let onDismiss: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: iconName)
-                .font(.title3)
-                .frame(width: 36, height: 36)
-                .background(Color.accentColor.opacity(0.18), in: Circle())
-                .foregroundStyle(Color.accentColor)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(action.title)
-                    .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
-                    .lineLimit(1)
-                Text(action.subtitle)
-                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-
-            Spacer(minLength: 8)
-
-            Button(action: onAct) {
-                Text(ctaText)
-                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
-
-            Button(action: onDismiss) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.secondary)
-                    .padding(6)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Dismiss recommendation")
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .glassEffectCompat(cornerRadius: 14)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint(Text("Recommended next action"))
-    }
-
-    private var iconName: String {
-        switch action {
-        case .tutorial: return "graduationcap.fill"
-        case .play: return "play.fill"
-        case .claimDaily: return "calendar.badge.checkmark"
-        case .freeSpin: return "arrow.triangle.2.circlepath"
-        case .nextMilestone: return "crown.fill"
-        case .unlockCreate: return "lock.open.fill"
-        case .unlockChallenge: return "flag.checkered"
-        case .lowInventoryShop: return "cart.fill"
-        case .settingsPrivacy: return "lock.shield.fill"
-        }
-    }
-
-    private var ctaText: String {
-        switch action {
-        case .tutorial: return "Learn"
-        case .play, .nextMilestone: return "Play"
-        case .claimDaily: return "Claim"
-        case .freeSpin: return "Spin"
-        case .unlockCreate, .unlockChallenge: return "Open"
-        case .lowInventoryShop: return "Shop"
-        case .settingsPrivacy: return "Open"
-        }
-    }
-}
-
-// (Removed inline daily rewards card; daily rewards are accessed via the Daily button.)
-
-private struct ThemeButton: View {
-    let name: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(themeGradient)
-                    .frame(width: 56, height: 56)
-                    .overlay {
-                        Image(systemName: themeIcon)
-                            .font(.title2)
-                    }
-                Text(name)
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.8))
-            }
-        }
-    }
-    
-    private var themeGradient: LinearGradient {
-        switch name.lowercased() {
-        case "beach":
-            return LinearGradient(
-                colors: [Color.orange, Color.yellow],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        case "aqua":
-            return LinearGradient(
-                colors: [Color.init(hex: "EBEBEB")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        default:
-            return LinearGradient(
-                colors: [Color.purple, Color.pink],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-    }
-    
-    private var themeIcon: String {
-        switch name.lowercased() {
-        case "beach": return "sun.max.fill"
-        case "aqua": return "drop.fill"
-        default: return "sparkle"
         }
     }
 }

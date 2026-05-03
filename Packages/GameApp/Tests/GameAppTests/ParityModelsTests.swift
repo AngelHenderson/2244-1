@@ -1,4 +1,5 @@
 import Foundation
+import GameServices
 import Testing
 @testable import GameApp
 
@@ -87,6 +88,34 @@ struct ParityModelsTests {
 
         #expect(!feed.isEmpty)
         #expect(results.contains { $0.displayName.contains("Sam") })
+    }
+
+    @Test("Firebase-backed account service uses local fallback when Firebase is unavailable")
+    func firebaseBackedAccountServiceFallsBackWithoutFirebaseConfiguration() async throws {
+        guard !FirebaseService.shared.isConfigured else { return }
+
+        let suiteName = "FirebaseBackedAccountServiceFallsBackWithoutFirebaseConfiguration"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let service = FirebaseBackedAccountService(
+            fallback: LocalAccountService(defaults: defaults)
+        )
+
+        let initialState = await service.currentState()
+        #expect(initialState == .signedOut)
+
+        let profile = try await service.createAccount(
+            email: "player@example.com",
+            password: "secret",
+            displayName: "Test Player"
+        )
+        let persistedState = await service.currentState()
+
+        #expect(profile.email == "player@example.com")
+        #expect(profile.displayName == "Test Player")
+        #expect(persistedState == .signedIn(profile))
     }
 }
 
