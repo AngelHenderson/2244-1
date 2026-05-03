@@ -22,6 +22,8 @@ public final class PurchaseService {
     public static let autoClaimBoostsMonthlyProductID = IAPProduct.autoClaimBoostsMonthlyProduct.id
     public static let proMonthlyProductID = IAPProduct.proMonthlyProduct.id
     public static let proYearlyProductID = IAPProduct.proYearlyProduct.id
+    public static let proFamilyMonthlyProductID = IAPProduct.proFamilyMonthlyProduct.id
+    public static let proFamilyYearlyProductID = IAPProduct.proFamilyYearlyProduct.id
 
     #if os(iOS)
     public private(set) var products: [Product] = []

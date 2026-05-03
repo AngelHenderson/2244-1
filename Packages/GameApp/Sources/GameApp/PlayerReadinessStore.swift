@@ -6,6 +6,8 @@ public enum HomeFeature: String, CaseIterable, Codable, Sendable {
     case play
     case journey
     case daily
+    case dailyQuests
+    case dailyStreaks
     case freeSpin
     case shop
     case music
@@ -19,6 +21,16 @@ public enum HomeFeature: String, CaseIterable, Codable, Sendable {
     case leaderboard
     case settings
     case adBonus
+    case practice
+    case modes
+    case feed
+    case friends
+    case account
+    case subscription
+    case reminders
+    case widgetPromo
+    case yearReview
+    case proCoach
 }
 
 public enum NextBestAction: String, Codable, Sendable, Identifiable, Equatable {
@@ -81,6 +93,10 @@ public struct PlayerReadinessSnapshot: Codable, Equatable, Sendable {
     public var visibleFeatures: Set<HomeFeature>
     public var dismissedRecommendations: Set<NextBestAction>
     public var lastRecordedRunID: String?
+    public var onboardingPreferences: OnboardingPreferences
+    public var reminderPreferences: ReminderPreferences
+    public var seenPromptIDs: Set<String>
+    public var dismissedPromptIDs: Set<String>
 
     public init(
         hasCompletedTutorial: Bool = false,
@@ -90,7 +106,11 @@ public struct PlayerReadinessSnapshot: Codable, Equatable, Sendable {
         hasEarnedFirstReward: Bool = false,
         visibleFeatures: Set<HomeFeature> = [.play, .journey, .settings],
         dismissedRecommendations: Set<NextBestAction> = [],
-        lastRecordedRunID: String? = nil
+        lastRecordedRunID: String? = nil,
+        onboardingPreferences: OnboardingPreferences = OnboardingPreferences(),
+        reminderPreferences: ReminderPreferences = ReminderPreferences(),
+        seenPromptIDs: Set<String> = [],
+        dismissedPromptIDs: Set<String> = []
     ) {
         self.hasCompletedTutorial = hasCompletedTutorial
         self.sessionsStarted = sessionsStarted
@@ -100,6 +120,57 @@ public struct PlayerReadinessSnapshot: Codable, Equatable, Sendable {
         self.visibleFeatures = visibleFeatures
         self.dismissedRecommendations = dismissedRecommendations
         self.lastRecordedRunID = lastRecordedRunID
+        self.onboardingPreferences = onboardingPreferences
+        self.reminderPreferences = reminderPreferences
+        self.seenPromptIDs = seenPromptIDs
+        self.dismissedPromptIDs = dismissedPromptIDs
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case hasCompletedTutorial
+        case sessionsStarted
+        case completedRuns
+        case totalMerges
+        case hasEarnedFirstReward
+        case visibleFeatures
+        case dismissedRecommendations
+        case lastRecordedRunID
+        case onboardingPreferences
+        case reminderPreferences
+        case seenPromptIDs
+        case dismissedPromptIDs
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        hasCompletedTutorial = try container.decodeIfPresent(Bool.self, forKey: .hasCompletedTutorial) ?? false
+        sessionsStarted = try container.decodeIfPresent(Int.self, forKey: .sessionsStarted) ?? 0
+        completedRuns = try container.decodeIfPresent(Int.self, forKey: .completedRuns) ?? 0
+        totalMerges = try container.decodeIfPresent(Int.self, forKey: .totalMerges) ?? 0
+        hasEarnedFirstReward = try container.decodeIfPresent(Bool.self, forKey: .hasEarnedFirstReward) ?? false
+        visibleFeatures = try container.decodeIfPresent(Set<HomeFeature>.self, forKey: .visibleFeatures) ?? [.play, .journey, .settings]
+        dismissedRecommendations = try container.decodeIfPresent(Set<NextBestAction>.self, forKey: .dismissedRecommendations) ?? []
+        lastRecordedRunID = try container.decodeIfPresent(String.self, forKey: .lastRecordedRunID)
+        onboardingPreferences = try container.decodeIfPresent(OnboardingPreferences.self, forKey: .onboardingPreferences) ?? OnboardingPreferences()
+        reminderPreferences = try container.decodeIfPresent(ReminderPreferences.self, forKey: .reminderPreferences) ?? ReminderPreferences()
+        seenPromptIDs = try container.decodeIfPresent(Set<String>.self, forKey: .seenPromptIDs) ?? []
+        dismissedPromptIDs = try container.decodeIfPresent(Set<String>.self, forKey: .dismissedPromptIDs) ?? []
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(hasCompletedTutorial, forKey: .hasCompletedTutorial)
+        try container.encode(sessionsStarted, forKey: .sessionsStarted)
+        try container.encode(completedRuns, forKey: .completedRuns)
+        try container.encode(totalMerges, forKey: .totalMerges)
+        try container.encode(hasEarnedFirstReward, forKey: .hasEarnedFirstReward)
+        try container.encode(visibleFeatures, forKey: .visibleFeatures)
+        try container.encode(dismissedRecommendations, forKey: .dismissedRecommendations)
+        try container.encodeIfPresent(lastRecordedRunID, forKey: .lastRecordedRunID)
+        try container.encode(onboardingPreferences, forKey: .onboardingPreferences)
+        try container.encode(reminderPreferences, forKey: .reminderPreferences)
+        try container.encode(seenPromptIDs, forKey: .seenPromptIDs)
+        try container.encode(dismissedPromptIDs, forKey: .dismissedPromptIDs)
     }
 }
 
@@ -175,6 +246,8 @@ public final class PlayerReadinessStore {
     public var completedRuns: Int { snapshot.completedRuns }
     public var totalMerges: Int { snapshot.totalMerges }
     public var hasEarnedFirstReward: Bool { snapshot.hasEarnedFirstReward }
+    public var onboardingPreferences: OnboardingPreferences { snapshot.onboardingPreferences }
+    public var reminderPreferences: ReminderPreferences { snapshot.reminderPreferences }
 
     public func isVisible(_ feature: HomeFeature) -> Bool {
         snapshot.visibleFeatures.contains(feature)
@@ -187,7 +260,31 @@ public final class PlayerReadinessStore {
 
     public func markTutorialCompleted() {
         snapshot.hasCompletedTutorial = true
+        snapshot.onboardingPreferences.completedAt = Date()
         recomputeVisibleFeatures(highestTile: 2, highestTileStep: 0)
+    }
+
+    public func updateOnboardingPreferences(_ preferences: OnboardingPreferences) {
+        snapshot.onboardingPreferences = preferences
+        if preferences.completedAt != nil {
+            snapshot.hasCompletedTutorial = true
+        }
+        persist()
+    }
+
+    public func updateReminderPreferences(_ preferences: ReminderPreferences) {
+        snapshot.reminderPreferences = preferences
+        persist()
+    }
+
+    public func markPromptSeen(_ id: String) {
+        snapshot.seenPromptIDs.insert(id)
+        persist()
+    }
+
+    public func dismissPrompt(_ id: String) {
+        snapshot.dismissedPromptIDs.insert(id)
+        persist()
     }
 
     public func recordMerge(count: Int = 1, highestTile: Int, highestTileStep: Int) {
@@ -253,16 +350,20 @@ public final class PlayerReadinessStore {
     public func recomputeVisibleFeatures(highestTile: Int, highestTileStep: Int) {
         var features: Set<HomeFeature> = [.play, .journey, .settings]
 
+        if snapshot.hasCompletedTutorial {
+            features.formUnion([.modes, .practice, .account, .reminders, .widgetPromo])
+        }
+
         if snapshot.completedRuns > 0 {
-            features.insert(.daily)
+            features.formUnion([.daily, .dailyQuests, .dailyStreaks])
         }
 
         if snapshot.hasEarnedFirstReward {
-            features.formUnion([.shop, .freeSpin, .music, .theme, .profile, .adBonus])
+            features.formUnion([.shop, .freeSpin, .music, .theme, .profile, .adBonus, .subscription, .yearReview])
         }
 
         if snapshot.totalMerges >= 10 || highestTileStep >= 10 {
-            features.formUnion([.achievements, .leaderboard, .boosts])
+            features.formUnion([.achievements, .leaderboard, .boosts, .feed, .friends, .proCoach])
         }
 
         if highestTileStep >= 15 || highestTile >= 65_536 {

@@ -8,8 +8,25 @@ import Foundation
 public enum AppRoute: Hashable, Sendable {
     case shop
     case daily
+    case dailyQuests
+    case dailyStreaks
     case spin
     case challenge
+    case practice
+    case modes
+    case feed
+    case friends
+    case account
+    case subscription
+    case reminders
+    case widgetPromo
+    case yearReview
+    case proCoach
+    case profile
+    case achievements
+    case leaderboard
+    case theme
+    case music
     case settings
     case tutorial
     case gameplay
@@ -30,10 +47,44 @@ public extension AppRoute {
             self = .shop
         case "daily", "dailyclaims":
             self = .daily
+        case "dailyquests", "quests":
+            self = .dailyQuests
+        case "dailystreaks", "streaks":
+            self = .dailyStreaks
         case "spin", "freespin", "spinwheel":
             self = .spin
         case "challenge", "challenges":
             self = .challenge
+        case "practice", "review":
+            self = .practice
+        case "modes", "modelibrary":
+            self = .modes
+        case "feed", "social":
+            self = .feed
+        case "friends":
+            self = .friends
+        case "account", "signin", "login":
+            self = .account
+        case "subscription", "subscriptions", "pro":
+            self = .subscription
+        case "reminders", "notifications":
+            self = .reminders
+        case "widget", "widgetpromo":
+            self = .widgetPromo
+        case "yearreview", "wrapped":
+            self = .yearReview
+        case "procoach", "coach":
+            self = .proCoach
+        case "profile":
+            self = .profile
+        case "achievements":
+            self = .achievements
+        case "leaderboard", "rank":
+            self = .leaderboard
+        case "theme", "themes":
+            self = .theme
+        case "music", "sound":
+            self = .music
         case "settings":
             self = .settings
         case "tutorial", "howtoplay":

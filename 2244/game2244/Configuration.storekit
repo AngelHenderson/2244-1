@@ -239,6 +239,50 @@
           "subscriptionGroupID" : "22055063",
           "type" : "RecurringSubscription",
           "winbackOffers" : []
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "9.99",
+          "familyShareable" : true,
+          "groupNumber" : 1,
+          "internalID" : "6764003001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Monthly 2244 Pro Family access with premium benefits",
+              "displayName" : "2244 Pro Family Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.game2244.pro.family.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "2244 Pro Family Monthly",
+          "subscriptionGroupID" : "22055063",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "79.99",
+          "familyShareable" : true,
+          "groupNumber" : 1,
+          "internalID" : "6764003002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Yearly 2244 Pro Family access with premium benefits",
+              "displayName" : "2244 Pro Family Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.game2244.pro.family.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "2244 Pro Family Yearly",
+          "subscriptionGroupID" : "22055063",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
         }
       ]
     }

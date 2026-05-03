@@ -13,6 +13,18 @@ public enum HomeSheetDestination: Hashable, Identifiable, Sendable {
     case profile
     case settings
     case themePicker
+    case dailyQuests
+    case dailyStreaks
+    case practice
+    case modes
+    case feed
+    case friends
+    case account
+    case subscription
+    case reminders
+    case widgetPromo
+    case yearReview
+    case proCoach
 
     public var id: HomeSheetDestination { self }
 }

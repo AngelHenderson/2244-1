@@ -81,7 +81,7 @@ for (const lockfile of [
   }
 }
 
-assert(codeIDs.size === 13, `Expected 13 IAP products in code, found ${codeIDs.size}.`);
+assert(codeIDs.size === 15, `Expected 15 IAP products in code, found ${codeIDs.size}.`);
 assert(setEquals(codeIDs, docsIDs), 'Docs/IAP_CATALOG.md product IDs differ from IAPProduct.allProducts.');
 assert(setEquals(codeIDs, storeKitIDs), 'Configuration.storekit product IDs differ from IAPProduct.allProducts.');
 assert([...shopIDs].every((id) => codeIDs.has(id)), 'Shop JSON contains an ID that is not in IAPProduct.allProducts.');

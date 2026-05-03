@@ -65,7 +65,7 @@ or on a device — they cannot be finished from this CLI session.
    `2244/game2244/GoogleService-Info.plist` (still gitignored), and add API key
    restrictions (iOS bundle identifier `com.ideabloomlabs.game2244`, allowed
    APIs limited to Firebase services).
-4. **App Store Connect IAP SKUs.** Confirm all 13 SKUs from
+4. **App Store Connect IAP SKUs.** Confirm all 15 SKUs from
    `Docs/IAP_CATALOG.md` exist with matching type, localization, pricing, and
    review screenshots, and are attached to the submitted version.
 5. **Sandbox consumables.** Purchase each consumable bundle (Coin Pouch, Gem
@@ -74,9 +74,10 @@ or on a device — they cannot be finished from this CLI session.
    ledger key `tx-<id>:<productId>:<index>:<itemType>` blocks a second grant —
    gem balance and inventory must not change.
 6. **Sandbox non-consumables / subscription.** Purchase Remove Ads, the Theme
-   Pack, and the monthly subscription. Confirm entitlements gate the
-   appropriate features (no ads, themes unlocked, subscription perks active),
-   and that a restore on a clean install re-grants without double-counting.
+   Pack, Auto-Claim Boosts, individual Pro, and family Pro subscriptions.
+   Confirm entitlements gate the appropriate features (no ads, themes unlocked,
+   subscription perks active), and that a restore on a clean install re-grants
+   without double-counting.
 7. **UMP regional check.** With the device region set to an EU/EEA country,
    launch a clean install and confirm Google UMP shows the consent form before
    any ad request and that Settings shows “Ad Privacy Choices.” Switch to a
@@ -156,7 +157,7 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme g
 
 ## IAP / StoreKit
 
-- Confirm all 13 product IDs in `Docs/IAP_CATALOG.md` exist in App Store
+- Confirm all 15 product IDs in `Docs/IAP_CATALOG.md` exist in App Store
   Connect with matching type, localization, pricing, and review screenshots.
 - Attach all one-time IAPs, subscriptions, and Game Center leaderboards to the
   submitted app version.

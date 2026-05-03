@@ -212,8 +212,11 @@ public struct RootGameView: View {
             }
         }
         .platformFullScreenCover(isPresented: $isShowingTutorial) {
-            HowToPlayView(onComplete: {
-                playerReadiness.markTutorialCompleted()
+            OnboardingFlowView(onComplete: { preferences in
+                playerReadiness.updateOnboardingPreferences(preferences)
+                if preferences.completedAt == nil {
+                    playerReadiness.markTutorialCompleted()
+                }
                 isShowingTutorial = false
             })
         }
@@ -233,6 +236,8 @@ public struct RootGameView: View {
             showShop = true
         case .daily:
             showDailyClaims = true
+        case .dailyStreaks:
+            showDailyStreaks = true
         case .spin:
             showFreeSpin = true
         case .challenge:
@@ -243,6 +248,11 @@ public struct RootGameView: View {
             if gameStore.state.isGameOver { gameStore.resetGame() }
             withAnimation(.easeInOut(duration: 0.3)) { isPlaying = true }
         case .settings:
+            // Owned by HomeView's presentedSheet; do not consume here.
+            return
+        case .dailyQuests, .practice, .modes, .feed, .friends, .account, .subscription,
+             .reminders, .widgetPromo, .yearReview, .proCoach, .profile, .achievements,
+             .leaderboard, .theme, .music:
             // Owned by HomeView's presentedSheet; do not consume here.
             return
         }

@@ -22,7 +22,9 @@ struct IAPContractTests {
             "com.game2244.mega.bundle",
             "com.game2244.boosts.autoclaim.monthly",
             "com.game2244.pro.monthly",
-            "com.game2244.pro.yearly"
+            "com.game2244.pro.yearly",
+            "com.game2244.pro.family.monthly",
+            "com.game2244.pro.family.yearly"
         ]))
     }
 
@@ -37,6 +39,8 @@ struct IAPContractTests {
         #expect(IAPProduct.autoClaimBoostsMonthlyProduct.isConsumable == false)
         #expect(IAPProduct.proMonthlyProduct.isConsumable == false)
         #expect(IAPProduct.proYearlyProduct.isConsumable == false)
+        #expect(IAPProduct.proFamilyMonthlyProduct.isConsumable == false)
+        #expect(IAPProduct.proFamilyYearlyProduct.isConsumable == false)
 
         #expect(IAPProduct.smallCoinsProduct.isConsumable)
         #expect(IAPProduct.mediumCoinsProduct.isConsumable)
@@ -91,11 +95,15 @@ struct IAPContractTests {
         #expect(IAPProduct.subscriptionProductIDs == Set([
             "com.game2244.boosts.autoclaim.monthly",
             "com.game2244.pro.monthly",
-            "com.game2244.pro.yearly"
+            "com.game2244.pro.yearly",
+            "com.game2244.pro.family.monthly",
+            "com.game2244.pro.family.yearly"
         ]))
         #expect(IAPProduct.proSubscriptionProductIDs == Set([
             "com.game2244.pro.monthly",
-            "com.game2244.pro.yearly"
+            "com.game2244.pro.yearly",
+            "com.game2244.pro.family.monthly",
+            "com.game2244.pro.family.yearly"
         ]))
         #expect(IAPProduct.autoClaimBoostsMonthlyProduct.permanentEntitlementProductIDs == Set([
             "com.game2244.boosts.autoclaim.monthly"
@@ -105,6 +113,12 @@ struct IAPContractTests {
         ]))
         #expect(IAPProduct.proYearlyProduct.permanentEntitlementProductIDs == Set([
             "com.game2244.pro.yearly"
+        ]))
+        #expect(IAPProduct.proFamilyMonthlyProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.pro.family.monthly"
+        ]))
+        #expect(IAPProduct.proFamilyYearlyProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.pro.family.yearly"
         ]))
     }
 
@@ -116,6 +130,17 @@ struct IAPContractTests {
         let configuredIDs = collectProductIDs(from: json)
 
         #expect(configuredIDs == Set(IAPProduct.allProductIDs))
+    }
+
+    @Test("Family subscriptions are marked family-shareable locally")
+    func familySubscriptionsAreShareable() throws {
+        let configURL = try repositoryFileURL("2244/game2244/Configuration.storekit")
+        let data = try Data(contentsOf: configURL)
+        let json = try JSONSerialization.jsonObject(with: data)
+        let products = collectProductObjects(from: json)
+
+        #expect(products[IAPProduct.proFamilyMonthlyProduct.id]?["familyShareable"] as? Bool == true)
+        #expect(products[IAPProduct.proFamilyYearlyProduct.id]?["familyShareable"] as? Bool == true)
     }
 
     @Test("Xcode scheme enables the local StoreKit configuration")
@@ -206,6 +231,27 @@ private func collectProductIDs(from value: Any) -> Set<String> {
     }
 
     return []
+}
+
+private func collectProductObjects(from value: Any) -> [String: [String: Any]] {
+    if let dictionary = value as? [String: Any] {
+        var result: [String: [String: Any]] = [:]
+        if let productID = dictionary["productID"] as? String {
+            result[productID] = dictionary
+        }
+        for child in dictionary.values {
+            result.merge(collectProductObjects(from: child)) { current, _ in current }
+        }
+        return result
+    }
+
+    if let array = value as? [Any] {
+        return array.reduce(into: [:]) { result, child in
+            result.merge(collectProductObjects(from: child)) { current, _ in current }
+        }
+    }
+
+    return [:]
 }
 
 private extension Array where Element == IAPProductItem {

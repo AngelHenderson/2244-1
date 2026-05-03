@@ -11,6 +11,7 @@ public enum AnalyticsScreen: String, CaseIterable, Sendable {
     case customChallengeGameplay = "custom_challenge_gameplay"
 
     // Onboarding / tutorial
+    case onboarding
     case howToPlay = "how_to_play"
 
     // Hub sheets reachable from Home
@@ -27,6 +28,16 @@ public enum AnalyticsScreen: String, CaseIterable, Sendable {
     case settings
     case themePicker = "theme_picker"
     case music = "music_themes"
+    case practice
+    case modes
+    case socialFeed = "social_feed"
+    case friends
+    case account
+    case subscription
+    case reminders
+    case widgetPromo = "widget_promo"
+    case yearReview = "year_review"
+    case proCoach = "pro_coach"
 
     // Modal child surfaces
     case pause

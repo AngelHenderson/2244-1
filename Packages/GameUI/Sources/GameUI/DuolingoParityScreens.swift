@@ -1,0 +1,1199 @@
+import SwiftUI
+import GameApp
+import GameCore
+
+public struct OnboardingFlowView: View {
+    @Environment(\.accountService) private var accountService
+    @Environment(\.dismiss) private var dismiss
+    @State private var step = 0
+    @State private var preferences = OnboardingPreferences()
+    @State private var email = ""
+    @State private var password = ""
+    @State private var displayName = ""
+    @State private var accountStatus: String?
+    @State private var showGuidebook = false
+
+    private let onComplete: @MainActor (OnboardingPreferences) -> Void
+    private let totalSteps = 8
+
+    public init(onComplete: @escaping @MainActor (OnboardingPreferences) -> Void) {
+        self.onComplete = onComplete
+    }
+
+    public var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                ProgressView(value: Double(step + 1), total: Double(totalSteps))
+                    .tint(.green)
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+
+                TabView(selection: $step) {
+                    welcomeStep.tag(0)
+                    goalStep.tag(1)
+                    dailyGoalStep.tag(2)
+                    boardSetupStep.tag(3)
+                    tutorialStep.tag(4)
+                    accountStep.tag(5)
+                    reminderStep.tag(6)
+                    widgetStep.tag(7)
+                }
+                .platformPageTabViewStyle(indexDisplayMode: .never)
+
+                HStack(spacing: 12) {
+                    if step > 0 {
+                        Button("Back") { withAnimation { step -= 1 } }
+                            .buttonStyle(.bordered)
+                    }
+
+                    Button(step == totalSteps - 1 ? "Start playing" : "Continue") {
+                        advance()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
+                }
+                .padding()
+            }
+            .navigationTitle("2244")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Skip") {
+                        preferences.completedAt = Date()
+                        onComplete(preferences)
+                        dismiss()
+                    }
+                }
+            }
+            .sheet(isPresented: $showGuidebook) {
+                HowToPlayView()
+            }
+        }
+        .trackScreen(.onboarding)
+    }
+
+    private var welcomeStep: some View {
+        OnboardingStepLayout(
+            icon: "sparkles",
+            title: "Build bigger tiles every day",
+            subtitle: "2244 is a merge puzzle about planning chains, protecting open lanes, and chasing the next milestone."
+        ) {
+            Label("Endless runs, daily rewards, challenges, and leaderboards all unlock as you play.", systemImage: "square.grid.3x3.fill")
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
+        }
+    }
+
+    private var goalStep: some View {
+        OnboardingStepLayout(icon: "target", title: "What are you here for?", subtitle: "This helps the app choose useful prompts.") {
+            VStack(spacing: 10) {
+                ForEach(PlayerGoal.allCases) { goal in
+                    ChoiceRow(
+                        title: goal.title,
+                        systemImage: goal == preferences.goal ? "checkmark.circle.fill" : "circle",
+                        isSelected: goal == preferences.goal
+                    ) {
+                        preferences.goal = goal
+                    }
+                }
+            }
+        }
+    }
+
+    private var dailyGoalStep: some View {
+        OnboardingStepLayout(icon: "calendar.badge.clock", title: "Pick a daily play goal", subtitle: "You can change this later from reminders.") {
+            VStack(spacing: 10) {
+                ForEach([5, 10, 15, 20], id: \.self) { minutes in
+                    ChoiceRow(
+                        title: "\(minutes) min / day",
+                        detail: minutes == 10 ? "Recommended" : nil,
+                        systemImage: preferences.dailyPlayGoalMinutes == minutes ? "checkmark.circle.fill" : "circle",
+                        isSelected: preferences.dailyPlayGoalMinutes == minutes
+                    ) {
+                        preferences.dailyPlayGoalMinutes = minutes
+                    }
+                }
+            }
+        }
+    }
+
+    private var boardSetupStep: some View {
+        OnboardingStepLayout(icon: "paintpalette.fill", title: "Choose a board mood", subtitle: "This maps to 2244 backgrounds, not language courses.") {
+            VStack(spacing: 10) {
+                ForEach(["city_1", "jungle_1", "underwater_1", "desert_1"], id: \.self) { themeID in
+                    ChoiceRow(
+                        title: themeID.replacingOccurrences(of: "_", with: " ").capitalized,
+                        systemImage: preferences.preferredBoardThemeID == themeID ? "checkmark.circle.fill" : "circle",
+                        isSelected: preferences.preferredBoardThemeID == themeID
+                    ) {
+                        preferences.preferredBoardThemeID = themeID
+                    }
+                }
+            }
+        }
+    }
+
+    private var tutorialStep: some View {
+        OnboardingStepLayout(icon: "book.closed.fill", title: "Learn the merge", subtitle: "Review the full guidebook or continue straight into the app.") {
+            Button {
+                showGuidebook = true
+            } label: {
+                Label("Open guidebook", systemImage: "book.pages.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+    }
+
+    private var accountStep: some View {
+        OnboardingStepLayout(icon: "person.crop.circle.badge.plus", title: "Protect your progress", subtitle: "Create or sign in to an account when Firebase Auth is configured. Local fallback keeps this screen usable offline.") {
+            VStack(spacing: 10) {
+                TextField("Name", text: $displayName)
+                    .textFieldStyle(.roundedBorder)
+                    .platformTextInputAutocapitalizationWords()
+                TextField("Email", text: $email)
+                    .textFieldStyle(.roundedBorder)
+                    .platformTextInputAutocapitalizationNever()
+                SecureField("Password", text: $password)
+                    .textFieldStyle(.roundedBorder)
+                Button {
+                    Task { await createAccount() }
+                } label: {
+                    Label("Create account", systemImage: "person.badge.plus")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(email.isEmpty || password.isEmpty)
+                if let accountStatus {
+                    Text(accountStatus)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private var reminderStep: some View {
+        OnboardingStepLayout(icon: "bell.badge.fill", title: "Keep the streak alive", subtitle: "2244 uses in-app reminder preferences in this pass.") {
+            VStack(spacing: 10) {
+                Toggle("Streak reminders", isOn: $preferences.wantsReminders)
+                ChoiceRow(
+                    title: "Daily target: \(preferences.dailyPlayGoalMinutes) minutes",
+                    systemImage: "timer",
+                    isSelected: true
+                ) {}
+            }
+            .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
+        }
+    }
+
+    private var widgetStep: some View {
+        OnboardingStepLayout(icon: "rectangle.on.rectangle", title: "Add 2244 to your routine", subtitle: "Widget and lock-screen references become in-app CTAs for now.") {
+            VStack(spacing: 10) {
+                Toggle("Show widget and quick-start prompts", isOn: $preferences.hasSeenWidgetCTA)
+                Text("The app will surface daily claim, streak, and challenge shortcuts inside 2244.")
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+        }
+    }
+
+    private func advance() {
+        if step < totalSteps - 1 {
+            withAnimation { step += 1 }
+        } else {
+            preferences.completedAt = Date()
+            onComplete(preferences)
+            dismiss()
+        }
+    }
+
+    private func createAccount() async {
+        do {
+            let profile = try await accountService.createAccount(email: email, password: password, displayName: displayName)
+            preferences.wantsAccount = true
+            accountStatus = "Signed in as \(profile.displayName)."
+        } catch {
+            accountStatus = error.localizedDescription
+        }
+    }
+}
+
+public struct PracticeHubView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.gameStore) private var gameStore
+    @State private var moveStore = MoveReviewStore()
+    @State private var selectedEntry: MoveReviewEntry?
+    @State private var showGuidebook = false
+    private let onOpenDailyChallenge: @MainActor () -> Void
+    private let onOpenCreate: @MainActor () -> Void
+    private let onOpenProCoach: @MainActor () -> Void
+
+    public init(
+        onOpenDailyChallenge: @escaping @MainActor () -> Void = {},
+        onOpenCreate: @escaping @MainActor () -> Void = {},
+        onOpenProCoach: @escaping @MainActor () -> Void = {}
+    ) {
+        self.onOpenDailyChallenge = onOpenDailyChallenge
+        self.onOpenCreate = onOpenCreate
+        self.onOpenProCoach = onOpenProCoach
+    }
+
+    public var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    heroCard(
+                        title: "Today's review",
+                        subtitle: "Practice around your current highest tile: \(TileStepLabelFormatter.labelForStep(gameStore.state.highestTileStep)).",
+                        systemImage: "calendar.badge.clock"
+                    )
+
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
+                        ForEach(PracticeMode.allCases) { mode in
+                            Button {
+                                open(mode)
+                            } label: {
+                                ModeCard(title: mode.title, subtitle: mode.subtitle, systemImage: mode.systemImage)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    Text("Recent move reviews")
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+                    ForEach(moveStore.entries) { entry in
+                        Button {
+                            selectedEntry = entry
+                        } label: {
+                            ReviewEntryRow(entry: entry)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Practice")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .task {
+                moveStore.seedIfEmpty(highestTileStep: gameStore.state.highestTileStep)
+            }
+            .sheet(item: $selectedEntry) { entry in
+                MoveReviewDetailView(entry: entry)
+            }
+            .sheet(isPresented: $showGuidebook) {
+                HowToPlayView()
+            }
+        }
+        .trackScreen(.practice)
+    }
+
+    private func open(_ mode: PracticeMode) {
+        switch mode {
+        case .dailyChallenge:
+            onOpenDailyChallenge()
+        case .customChallenge:
+            onOpenCreate()
+        case .guidebook:
+            showGuidebook = true
+        case .proCoach:
+            onOpenProCoach()
+        default:
+            moveStore.record(MoveReviewEntry(
+                boardSummary: mode.title,
+                moveSummary: "Practice session started",
+                explanation: "This drill uses deterministic 2244 rules to review board shape, chain length, and recovery options.",
+                outcome: "Ready for a full run"
+            ))
+        }
+    }
+}
+
+public struct ModeLibraryView: View {
+    @Environment(\.dismiss) private var dismiss
+    private let onPlay: @MainActor () -> Void
+    private let onDaily: @MainActor () -> Void
+    private let onChallenge: @MainActor () -> Void
+    private let onCreate: @MainActor () -> Void
+    private let onPractice: @MainActor () -> Void
+    @State private var showGuidebook = false
+
+    public init(
+        onPlay: @escaping @MainActor () -> Void = {},
+        onDaily: @escaping @MainActor () -> Void = {},
+        onChallenge: @escaping @MainActor () -> Void = {},
+        onCreate: @escaping @MainActor () -> Void = {},
+        onPractice: @escaping @MainActor () -> Void = {}
+    ) {
+        self.onPlay = onPlay
+        self.onDaily = onDaily
+        self.onChallenge = onChallenge
+        self.onCreate = onCreate
+        self.onPractice = onPractice
+    }
+
+    public var body: some View {
+        NavigationStack {
+            List {
+                Section("Play") {
+                    ModeActionRow(title: "Endless", subtitle: "Resume your main 2244 run.", systemImage: "play.circle.fill", action: onPlay)
+                    ModeActionRow(title: "Daily Rewards", subtitle: "Claim today's reward and catch up missed days.", systemImage: "calendar.circle.fill", action: onDaily)
+                    ModeActionRow(title: "Challenge Mode", subtitle: "Play curated boards with specific targets.", systemImage: "flag.checkered.circle.fill", action: onChallenge)
+                    ModeActionRow(title: "Create a Game", subtitle: "Design a custom challenge and test it.", systemImage: "slider.horizontal.3", action: onCreate)
+                }
+                Section("Learn") {
+                    ModeActionRow(title: "Practice Hub", subtitle: "Review moves, mistakes, and timed drills.", systemImage: "target", action: onPractice)
+                    ModeActionRow(title: "Guidebook", subtitle: "Rules, tiles, valid moves, and perks.", systemImage: "book.closed.fill") {
+                        showGuidebook = true
+                    }
+                }
+            }
+            .navigationTitle("Modes")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .sheet(isPresented: $showGuidebook) {
+                HowToPlayView()
+            }
+        }
+        .trackScreen(.modes)
+    }
+}
+
+public struct SocialFeedView: View {
+    @Environment(\.socialService) private var socialService
+    @Environment(\.dismiss) private var dismiss
+    @State private var items: [SocialFeedItem] = []
+    @State private var selectedItem: SocialFeedItem?
+    @State private var isLoading = false
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            List {
+                if isLoading {
+                    ProgressView()
+                }
+                ForEach(items) { item in
+                    Button {
+                        selectedItem = item
+                    } label: {
+                        FeedItemRow(item: item)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .navigationTitle("Feed")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .task { await load() }
+            .refreshable { await load() }
+            .sheet(item: $selectedItem) { item in
+                FeedCommentsView(item: item)
+            }
+        }
+        .trackScreen(.socialFeed)
+    }
+
+    private func load() async {
+        isLoading = true
+        defer { isLoading = false }
+        items = (try? await socialService.feed()) ?? []
+    }
+}
+
+public struct FriendsView: View {
+    @Environment(\.socialService) private var socialService
+    @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+    @State private var results: [AccountProfile] = []
+    @State private var invites: [FamilyInvite] = []
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            List {
+                Section("Your friend code") {
+                    HStack {
+                        Image(systemName: "qrcode")
+                            .font(.largeTitle)
+                        VStack(alignment: .leading) {
+                            Text("2244-PLAYER")
+                                .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+                            Text("Share this code or profile link with friends.")
+                                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                Section("Search") {
+                    TextField("Name or friend code", text: $query)
+                        .platformTextInputAutocapitalizationNever()
+                    Button("Search") {
+                        Task { await search() }
+                    }
+                }
+                Section("Results") {
+                    ForEach(results, id: \.uid) { profile in
+                        FriendProfileRow(profile: profile)
+                    }
+                }
+                Section("Family invites") {
+                    ForEach(invites) { invite in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(invite.displayName)
+                                Text(invite.emailOrCode)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Text(invite.status)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Friends")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .task {
+                invites = (try? await socialService.invites()) ?? []
+                await search()
+            }
+        }
+        .trackScreen(.friends)
+    }
+
+    private func search() async {
+        results = (try? await socialService.searchFriends(query: query)) ?? []
+    }
+}
+
+public struct AccountCenterView: View {
+    @Environment(\.accountService) private var accountService
+    @Environment(\.dismiss) private var dismiss
+    @State private var state: AccountAuthState = .signedOut
+    @State private var email = ""
+    @State private var password = ""
+    @State private var displayName = ""
+    @State private var username = ""
+    @State private var phoneNumber = ""
+    @State private var statusMessage: String?
+    @State private var showDeleteConfirm = false
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            Form {
+                Section("Account") {
+                    if let profile = state.profile {
+                        HStack {
+                            Image(systemName: profile.isAnonymous ? "person.crop.circle.badge.questionmark" : "person.crop.circle.fill")
+                                .font(.title2)
+                            VStack(alignment: .leading) {
+                                Text(profile.displayName)
+                                    .font(.headline)
+                                Text(profile.isAnonymous ? "Anonymous progress" : profile.email ?? profile.username)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    } else {
+                        Text("Sign in or create an account to protect progress across devices.")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Section("Sign in / create") {
+                    TextField("Display name", text: $displayName)
+                        .platformTextInputAutocapitalizationWords()
+                    TextField("Email", text: $email)
+                        .platformTextInputAutocapitalizationNever()
+                    SecureField("Password", text: $password)
+                    HStack {
+                        Button("Sign in") { Task { await signIn() } }
+                        Button("Create") { Task { await create() } }
+                    }
+                }
+
+                Section("Profile") {
+                    TextField("Username", text: $username)
+                        .platformTextInputAutocapitalizationNever()
+                    TextField("Phone number", text: $phoneNumber)
+                    Button("Save profile") { Task { await saveProfile() } }
+                    Button("Send email verification") { Task { await sendEmailVerification() } }
+                }
+
+                Section("Recovery") {
+                    Button("Send password reset") { Task { await resetPassword() } }
+                    Button("Sign out") { Task { await signOut() } }
+                    Button("Delete account", role: .destructive) { showDeleteConfirm = true }
+                }
+
+                if let statusMessage {
+                    Section {
+                        Text(statusMessage)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("Account")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .task { await load() }
+            .confirmationDialog("Delete account?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+                Button("Delete account", role: .destructive) { Task { await deleteAccount() } }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This removes the current account profile from 2244. Cloud deletion requires Firebase Auth to be configured.")
+            }
+        }
+        .trackScreen(.account)
+    }
+
+    private func load() async {
+        state = await accountService.currentState()
+        if let profile = state.profile {
+            displayName = profile.displayName
+            username = profile.username
+            phoneNumber = profile.phoneNumber ?? ""
+            email = profile.email ?? ""
+        }
+    }
+
+    private func signIn() async {
+        do {
+            let profile = try await accountService.signIn(email: email, password: password)
+            state = .signedIn(profile)
+            statusMessage = "Signed in."
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+
+    private func create() async {
+        do {
+            let profile = try await accountService.createAccount(email: email, password: password, displayName: displayName)
+            state = .signedIn(profile)
+            statusMessage = "Account created."
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+
+    private func saveProfile() async {
+        guard var profile = state.profile else { return }
+        profile.displayName = displayName.isEmpty ? profile.displayName : displayName
+        profile.username = username.isEmpty ? profile.username : username
+        profile.phoneNumber = phoneNumber.isEmpty ? nil : phoneNumber
+        do {
+            let saved = try await accountService.updateProfile(profile)
+            state = saved.isAnonymous ? .anonymous(saved) : .signedIn(saved)
+            statusMessage = "Profile saved."
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+
+    private func sendEmailVerification() async {
+        do {
+            try await accountService.sendEmailVerification()
+            statusMessage = "Verification email sent."
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+
+    private func resetPassword() async {
+        do {
+            try await accountService.sendPasswordReset(email: email)
+            statusMessage = "Password reset email sent."
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+
+    private func signOut() async {
+        do {
+            try await accountService.signOut()
+            await load()
+            statusMessage = "Signed out."
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+
+    private func deleteAccount() async {
+        do {
+            try await accountService.deleteAccount()
+            await load()
+            statusMessage = "Account deleted."
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+}
+
+public struct SubscriptionCenterView: View {
+    @Environment(\.purchaseService) private var purchaseService
+    @Environment(\.socialService) private var socialService
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedPlanID = IAPProduct.proYearlyProduct.id
+    @State private var statusMessage: String?
+    @State private var invites: [FamilyInvite] = []
+    @State private var showCancelSurvey = false
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    heroCard(title: "2244 Pro", subtitle: "Premium practice, no ads, auto-claim boosts, and family plan options.", systemImage: "sparkles")
+
+                    ForEach(SubscriptionPlan.proPlans) { plan in
+                        Button {
+                            selectedPlanID = plan.id
+                        } label: {
+                            SubscriptionPlanCard(plan: plan, isSelected: selectedPlanID == plan.id)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Button {
+                        Task { await purchaseSelectedPlan() }
+                    } label: {
+                        Text("Start selected plan")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(purchaseService.isLoading)
+
+                    Button("Restore purchases") {
+                        Task { await purchaseService.restorePurchases() }
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button("Manage or cancel plan") {
+                        showCancelSurvey = true
+                    }
+                    .buttonStyle(.bordered)
+
+                    if let statusMessage {
+                        Text(statusMessage)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text("Family members")
+                        .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+                    ForEach(invites) { invite in
+                        HStack {
+                            Text(invite.displayName)
+                            Spacer()
+                            Text(invite.status)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding()
+                        .glassBackground(in: RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Subscription")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .task {
+                await purchaseService.loadProducts()
+                invites = (try? await socialService.invites()) ?? []
+            }
+            .confirmationDialog("Why are you canceling?", isPresented: $showCancelSurvey, titleVisibility: .visible) {
+                Button("Too expensive") { statusMessage = "Thanks for the feedback." }
+                Button("I do not use Pro enough") { statusMessage = "Thanks for the feedback." }
+                Button("I had a technical issue") { statusMessage = "Thanks for the feedback." }
+                Button("Keep Pro", role: .cancel) {}
+            }
+        }
+        .trackScreen(.subscription)
+    }
+
+    private func purchaseSelectedPlan() async {
+        let success = await purchaseService.purchase(productID: selectedPlanID)
+        statusMessage = success ? "Plan activated." : (purchaseService.errorMessage ?? "Purchase was not completed.")
+    }
+}
+
+public struct ReminderSettingsView: View {
+    @Environment(PlayerReadinessStore.self) private var readiness
+    @Environment(\.dismiss) private var dismiss
+    @State private var store = ReminderPreferenceStore()
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            Form {
+                Section("Reminders") {
+                    Toggle("Practice reminder", isOn: $store.preferences.practiceReminderEnabled)
+                    Toggle("Streak reminder", isOn: $store.preferences.streakReminderEnabled)
+                    Toggle("Quest reminder", isOn: $store.preferences.questReminderEnabled)
+                    Toggle("Smart scheduling", isOn: $store.preferences.smartSchedulingEnabled)
+                }
+                Section("Time") {
+                    Stepper("Hour: \(store.preferences.reminderHour)", value: $store.preferences.reminderHour, in: 0...23)
+                    Stepper("Minute: \(store.preferences.reminderMinute)", value: $store.preferences.reminderMinute, in: 0...59, step: 5)
+                    Text("Current reminder time: \(store.preferences.displayTime)")
+                        .foregroundStyle(.secondary)
+                }
+                Section {
+                    Button("Restore default reminders") { store.reset() }
+                }
+            }
+            .navigationTitle("Reminders")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .onDisappear {
+                readiness.updateReminderPreferences(store.preferences)
+            }
+        }
+        .trackScreen(.reminders)
+    }
+}
+
+public struct WidgetPromoView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    heroCard(title: "Quick-start 2244", subtitle: "Widget and lock-screen ideas are represented as in-app shortcuts for daily claims, streaks, and challenges.", systemImage: "rectangle.on.rectangle")
+                    ShortcutPreview(title: "Daily claim", subtitle: "Jump straight to today's reward.", systemImage: "calendar.badge.checkmark")
+                    ShortcutPreview(title: "Streak saver", subtitle: "See when your streak needs attention.", systemImage: "flame.fill")
+                    ShortcutPreview(title: "Challenge timer", subtitle: "Resume a timed run from the modes hub.", systemImage: "timer")
+                }
+                .padding()
+            }
+            .navigationTitle("Quick Start")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+        }
+        .trackScreen(.widgetPromo)
+    }
+}
+
+public struct YearReviewView: View {
+    @Environment(\.gameStore) private var gameStore
+    @Environment(DailyClaimsStore.self) private var dailyClaimsStore
+    @Environment(\.dismiss) private var dismiss
+
+    public init() {}
+
+    public var body: some View {
+        let summary = makeSummary()
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    heroCard(title: "\(summary.year) in 2244", subtitle: "A shareable look back at your board progress.", systemImage: "sparkles.rectangle.stack.fill")
+                    ReviewMetric(title: "Highest tile", value: summary.highestTileLabel, systemImage: "crown.fill")
+                    ReviewMetric(title: "Games played", value: "\(summary.gamesPlayed)", systemImage: "gamecontroller.fill")
+                    ReviewMetric(title: "Total merges", value: "\(summary.totalMerges)", systemImage: "square.stack.3d.up.fill")
+                    ReviewMetric(title: "Best streak", value: "\(summary.bestStreak) days", systemImage: "flame.fill")
+                    ReviewMetric(title: "Rank", value: summary.rankText, systemImage: "trophy.fill")
+                }
+                .padding()
+            }
+            .navigationTitle("Year Review")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+        }
+        .trackScreen(.yearReview)
+    }
+
+    private func makeSummary() -> YearReviewSummary {
+        YearReviewSummary(
+            gamesPlayed: UserDefaults.standard.integer(forKey: "gamesPlayed"),
+            highestTileLabel: TileStepLabelFormatter.labelForStep(gameStore.state.highestTileStep),
+            totalMerges: gameStore.state.moves,
+            dailyClaims: dailyClaimsStore.currentStreak,
+            bestStreak: dailyClaimsStore.currentStreak,
+            rankText: UserLeaderboardData.globalRank > 0 ? "#\(UserLeaderboardData.globalRank)" : "Unranked"
+        )
+    }
+}
+
+public struct ProCoachView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var moveStore = MoveReviewStore()
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            List {
+                Section("Coach") {
+                    Text("Pro Coach uses deterministic 2244 rules: valid path count, chain length, board space, and power-up value. It does not call an AI service.")
+                        .foregroundStyle(.secondary)
+                }
+                Section("Move explanations") {
+                    ForEach(moveStore.entries) { entry in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(entry.moveSummary)
+                                .font(.headline)
+                            Text(entry.explanation)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Pro Coach")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .task { moveStore.seedIfEmpty() }
+        }
+        .trackScreen(.proCoach)
+    }
+}
+
+private struct OnboardingStepLayout<Content: View>: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                Image(systemName: icon)
+                    .font(.system(size: 54, weight: .semibold))
+                    .foregroundStyle(.green)
+                    .frame(width: 92, height: 92)
+                    .background(Color.green.opacity(0.12), in: Circle())
+                Text(title)
+                    .font(.avenirNext(size: GameFonts.title1Size, weight: .bold))
+                    .multilineTextAlignment(.center)
+                Text(subtitle)
+                    .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                content
+            }
+            .padding(24)
+        }
+    }
+}
+
+private struct ChoiceRow: View {
+    let title: String
+    var detail: String?
+    let systemImage: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .foregroundStyle(isSelected ? .green : .secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                    if let detail {
+                        Text(detail)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+            }
+            .padding()
+            .background(isSelected ? Color.green.opacity(0.12) : Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct ModeCard: View {
+    let title: String
+    let subtitle: String
+    let systemImage: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .foregroundStyle(.blue)
+            Text(title)
+                .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+            Text(subtitle)
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                .foregroundStyle(.secondary)
+                .lineLimit(3)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
+        .padding()
+        .glassBackground(in: RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+private struct ModeActionRow: View {
+    let title: String
+    let subtitle: String
+    let systemImage: String
+    let action: @MainActor () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } icon: {
+                Image(systemName: systemImage)
+            }
+        }
+    }
+}
+
+private struct ReviewEntryRow: View {
+    let entry: MoveReviewEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(entry.moveSummary)
+                .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
+            Text(entry.outcome)
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassBackground(in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+private struct MoveReviewDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    let entry: MoveReviewEntry
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Move") { Text(entry.moveSummary) }
+                Section("Board") { Text(entry.boardSummary) }
+                Section("Explanation") { Text(entry.explanation) }
+                Section("Outcome") { Text(entry.outcome) }
+            }
+            .navigationTitle("Move Review")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+        }
+    }
+}
+
+private struct FeedItemRow: View {
+    let item: SocialFeedItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "person.crop.circle.fill")
+                    .font(.title2)
+                VStack(alignment: .leading) {
+                    Text(item.authorName)
+                        .font(.headline)
+                    Text(item.statText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            Text(item.message)
+            HStack {
+                Label("\(item.reactionCount)", systemImage: "heart")
+                Label("\(item.commentCount)", systemImage: "bubble.right")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 6)
+    }
+}
+
+private struct FeedCommentsView: View {
+    @Environment(\.dismiss) private var dismiss
+    let item: SocialFeedItem
+    @State private var comment = ""
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Post") {
+                    FeedItemRow(item: item)
+                }
+                Section("Comments") {
+                    Text("Nice run!")
+                    Text("That milestone path is clean.")
+                    TextField("Add a comment", text: $comment)
+                }
+            }
+            .navigationTitle("Comments")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+        }
+    }
+}
+
+private struct FriendProfileRow: View {
+    let profile: AccountProfile
+
+    var body: some View {
+        HStack {
+            Image(systemName: "person.crop.circle.fill")
+                .font(.title2)
+            VStack(alignment: .leading) {
+                Text(profile.displayName)
+                Text(profile.friendCode)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Follow") {}
+                .buttonStyle(.bordered)
+        }
+    }
+}
+
+private struct SubscriptionPlanCard: View {
+    let plan: SubscriptionPlan
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text(plan.displayName)
+                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
+                    Text("\(plan.priceText) · \(plan.periodText)")
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if plan.isRecommended {
+                    Text("Recommended")
+                        .font(.caption.bold())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.green.opacity(0.15), in: Capsule())
+                }
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? .green : .secondary)
+            }
+            ForEach(plan.benefits, id: \.self) { benefit in
+                Label(benefit, systemImage: "checkmark")
+                    .font(.caption)
+            }
+        }
+        .padding()
+        .background(isSelected ? Color.green.opacity(0.12) : Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+private struct ShortcutPreview: View {
+    let title: String
+    let subtitle: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .frame(width: 44, height: 44)
+                .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+            VStack(alignment: .leading) {
+                Text(title)
+                    .font(.headline)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+        .padding()
+        .glassBackground(in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+private struct ReviewMetric: View {
+    let title: String
+    let value: String
+    let systemImage: String
+
+    var body: some View {
+        HStack {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+            }
+            Spacer()
+        }
+        .padding()
+        .glassBackground(in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+@MainActor
+@ViewBuilder
+private func heroCard(title: String, subtitle: String, systemImage: String) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+        Image(systemName: systemImage)
+            .font(.largeTitle)
+            .foregroundStyle(.green)
+        Text(title)
+            .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+        Text(subtitle)
+            .font(.avenirNext(size: GameFonts.bodySize, weight: .regular))
+            .foregroundStyle(.secondary)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding()
+    .glassBackground(in: RoundedRectangle(cornerRadius: 16))
+}

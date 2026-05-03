@@ -8,7 +8,7 @@ If a product is missing from ASC, the app's purchase flow for that item silently
 fails (`PurchaseService.purchase(productID:)` returns `false` with `errorMessage =
 "Product unavailable"`). The paywall sheet falls back to the static price hint.
 
-## Product checklist (13 SKUs)
+## Product checklist (15 SKUs)
 
 | Display name | Product ID | Type | Reference price | Notes |
 |---|---|---|---|---|
@@ -25,6 +25,8 @@ fails (`PurchaseService.purchase(productID:)` returns `false` with `errorMessage
 | Auto-Claim Boosts Monthly | `com.game2244.boosts.autoclaim.monthly` | Auto-renewable subscription | $1.99/month | Active subscription unlocks the auto-claim boosts entitlement |
 | 2244 Pro Monthly | `com.game2244.pro.monthly` | Auto-renewable subscription | $4.99/month | Active subscription unlocks Pro and suppresses ads |
 | 2244 Pro Yearly | `com.game2244.pro.yearly` | Auto-renewable subscription | $39.99/year | Active subscription unlocks Pro and suppresses ads |
+| 2244 Pro Family Monthly | `com.game2244.pro.family.monthly` | Auto-renewable subscription | $9.99/month | Active subscription unlocks Pro, suppresses ads, and is family-shareable |
+| 2244 Pro Family Yearly | `com.game2244.pro.family.yearly` | Auto-renewable subscription | $79.99/year | Active subscription unlocks Pro, suppresses ads, and is family-shareable |
 
 ## Setup steps in App Store Connect
 
@@ -36,12 +38,12 @@ For each product:
 5. Price tier: pick the tier matching the reference price column (or the closest tier; `IAPProduct.formattedPrice` is just a UI hint, App Store reports the real price).
 6. App Store information → Display name and Description per the `IAPProduct` constants in `IAPProduct.swift`.
 7. **Status → Ready to Submit** once review screenshots are uploaded.
-8. Attach all 10 one-time IAP SKUs and all 3 subscription SKUs to the next app submission.
+8. Attach all 10 one-time IAP SKUs and all 5 subscription SKUs to the next app submission.
 
 ## StoreKit configuration file (for local testing without ASC)
 
-The app target includes `2244/game2244/Configuration.storekit` with all 13
-products from the table above, including the three auto-renewable subscriptions.
+The app target includes `2244/game2244/Configuration.storekit` with all 15
+products from the table above, including the five auto-renewable subscriptions.
 The shared `game2244` scheme points at this file for local simulator purchases.
 
 This lets the paywall flow round-trip in the simulator before ASC is provisioned.
@@ -70,14 +72,20 @@ It verifies:
 
 ## Subscription entitlements
 
-`PurchaseService` loads the three subscription IDs with the rest of the StoreKit
-catalog. Active Pro subscriptions (`com.game2244.pro.monthly` and
-`com.game2244.pro.yearly`) set `isProPurchased` and also make
+`PurchaseService` loads the five subscription IDs with the rest of the StoreKit
+catalog. Active Pro subscriptions (`com.game2244.pro.monthly`,
+`com.game2244.pro.yearly`, `com.game2244.pro.family.monthly`, and
+`com.game2244.pro.family.yearly`) set `isProPurchased` and also make
 `isAdFreePurchased` true while active. The auto-claim subscription
 (`com.game2244.boosts.autoclaim.monthly`) sets `isAutoClaimBoostsPurchased`;
 Pro also satisfies that flag. Subscription IDs are reconciled from
 `Transaction.currentEntitlements` so expired subscriptions are removed from the
 local active entitlement set.
+
+Family subscription products must be created in the same `2244 Memberships`
+subscription group and marked family-shareable in App Store Connect. In-app
+member and invite screens are social/account management surfaces; entitlement
+sharing itself relies on Apple's Family Sharing.
 
 ## Cloud receipt verification (optional, recommended)
 
@@ -110,7 +118,8 @@ Manual App Store Connect validation still requires sandbox accounts:
    rewards, and premium music theme ownership.
 5. Buy each music theme SKU from the paywall. Confirm ownership persists across
    force quit and restore.
-6. Buy Auto-Claim Boosts Monthly, Pro Monthly, and Pro Yearly. Confirm active
+6. Buy Auto-Claim Boosts Monthly, Pro Monthly, Pro Yearly, Pro Family Monthly,
+   and Pro Family Yearly. Confirm active
    entitlements set the expected flags and expired/canceled subscriptions are
    removed after restore.
 7. Tap Restore Purchases from Settings. Confirm non-consumable/subscription

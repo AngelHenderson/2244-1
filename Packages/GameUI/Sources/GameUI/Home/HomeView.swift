@@ -132,6 +132,15 @@ public struct HomeView: View {
                                 )
                             }
 
+                            if playerReadiness.isVisible(.practice) {
+                                SideRailButton(
+                                    systemImage: "target",
+                                    customImage: nil,
+                                    title: "PRACTICE",
+                                    action: { presentedSheet = .practice }
+                                )
+                            }
+
                             Spacer(minLength: 0)
                         }
                         .frame(width: 80)
@@ -217,6 +226,15 @@ public struct HomeView: View {
                                 )
                             }
 
+                            if playerReadiness.isVisible(.modes) {
+                                SideRailButton(
+                                    systemImage: "square.grid.2x2.fill",
+                                    customImage: nil,
+                                    title: "MODES",
+                                    action: { presentedSheet = .modes }
+                                )
+                            }
+
                             Spacer(minLength: 0)
                         }
                         .frame(width: 80)
@@ -277,6 +295,24 @@ public struct HomeView: View {
                             }
                         )
                     }
+                    if playerReadiness.isVisible(.feed) {
+                        dockItem(
+                            system: "bubble.left.and.bubble.right.fill",
+                            title: "Feed",
+                            action: {
+                                presentedSheet = .feed
+                            }
+                        )
+                    }
+                    if playerReadiness.isVisible(.friends) {
+                        dockItem(
+                            system: "person.2.circle.fill",
+                            title: "Friends",
+                            action: {
+                                presentedSheet = .friends
+                            }
+                        )
+                    }
                     dockItem(
                         system: "gearshape.fill",
                         title: "Settings",
@@ -321,6 +357,40 @@ public struct HomeView: View {
                     .environment(state)
             case .themePicker:
                 ThemePickerView()
+            case .dailyQuests:
+                DailyQuestsView()
+            case .dailyStreaks:
+                DailyStreaksView()
+            case .practice:
+                PracticeHubView(
+                    onOpenDailyChallenge: { closeSheetAndRun { actions.openChallenge() } },
+                    onOpenCreate: { closeSheetAndRun { actions.openCreate() } },
+                    onOpenProCoach: { presentedSheet = .proCoach }
+                )
+            case .modes:
+                ModeLibraryView(
+                    onPlay: { closeSheetAndRun { actions.play() } },
+                    onDaily: { closeSheetAndRun { actions.openDaily() } },
+                    onChallenge: { closeSheetAndRun { actions.openChallenge() } },
+                    onCreate: { closeSheetAndRun { actions.openCreate() } },
+                    onPractice: { presentedSheet = .practice }
+                )
+            case .feed:
+                SocialFeedView()
+            case .friends:
+                FriendsView()
+            case .account:
+                AccountCenterView()
+            case .subscription:
+                SubscriptionCenterView()
+            case .reminders:
+                ReminderSettingsView()
+            case .widgetPromo:
+                WidgetPromoView()
+            case .yearReview:
+                YearReviewView()
+            case .proCoach:
+                ProCoachView()
             }
         }
         // Boosts Sheet
@@ -466,9 +536,18 @@ public struct HomeView: View {
         case "profile": return "profile"
         case "achievements": return "achievement"
         case "leaderboard": return "leaderboard"
+        case "feed": return ""
+        case "friends": return ""
         case "settings": return "settings"
         case "theme": return "themedefault"
         default: return ""
+        }
+    }
+
+    private func closeSheetAndRun(_ action: @escaping @MainActor () -> Void) {
+        presentedSheet = nil
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            action()
         }
     }
 
@@ -528,8 +607,47 @@ public struct HomeView: View {
     /// the rest (shop, daily, spin, challenge, gameplay, tutorial).
     @MainActor
     private func consumeHomeOwnedRoute(_ route: AppRoute?) {
-        guard route == .settings else { return }
-        presentedSheet = .settings
+        guard let route else { return }
+        switch route {
+        case .settings:
+            presentedSheet = .settings
+        case .profile:
+            presentedSheet = .profile
+        case .achievements:
+            presentedSheet = .achievements
+        case .leaderboard:
+            presentedSheet = .leaderboard
+        case .theme:
+            presentedSheet = .themePicker
+        case .music:
+            presentedSheet = .music
+        case .dailyQuests:
+            presentedSheet = .dailyQuests
+        case .dailyStreaks:
+            presentedSheet = .dailyStreaks
+        case .practice:
+            presentedSheet = .practice
+        case .modes:
+            presentedSheet = .modes
+        case .feed:
+            presentedSheet = .feed
+        case .friends:
+            presentedSheet = .friends
+        case .account:
+            presentedSheet = .account
+        case .subscription:
+            presentedSheet = .subscription
+        case .reminders:
+            presentedSheet = .reminders
+        case .widgetPromo:
+            presentedSheet = .widgetPromo
+        case .yearReview:
+            presentedSheet = .yearReview
+        case .proCoach:
+            presentedSheet = .proCoach
+        case .shop, .daily, .spin, .challenge, .tutorial, .gameplay:
+            return
+        }
         deepLinkRouter.consume()
     }
 }

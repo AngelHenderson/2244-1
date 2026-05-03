@@ -43,6 +43,42 @@ public struct SettingsView: View {
     public var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    NavigationLink {
+                        AccountCenterView()
+                    } label: {
+                        Label("Account", systemImage: "person.crop.circle")
+                    }
+                    NavigationLink {
+                        SubscriptionCenterView()
+                    } label: {
+                        Label("Subscription", systemImage: "sparkles")
+                    }
+                    NavigationLink {
+                        ReminderSettingsView()
+                    } label: {
+                        Label("Notifications & Reminders", systemImage: "bell.badge")
+                    }
+                    NavigationLink {
+                        ModeLibraryView()
+                    } label: {
+                        Label("Courses & Modes", systemImage: "square.grid.2x2")
+                    }
+                    NavigationLink {
+                        PracticeHubView()
+                    } label: {
+                        Label("Practice Hub", systemImage: "target")
+                    }
+                    NavigationLink {
+                        WidgetPromoView()
+                    } label: {
+                        Label("Quick-start Prompts", systemImage: "rectangle.on.rectangle")
+                    }
+                } header: {
+                    Text("2244 Hub")
+                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
+                }
+
                 // MARK: Audio & Haptics
                 Section {
                     // Sound Effects

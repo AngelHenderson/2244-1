@@ -507,6 +507,8 @@ Canonical IAP products include:
 - Auto-Claim Boosts monthly subscription;
 - Pro monthly subscription;
 - Pro yearly subscription.
+- Pro Family monthly subscription;
+- Pro Family yearly subscription.
 
 Verified purchases can grant:
 
