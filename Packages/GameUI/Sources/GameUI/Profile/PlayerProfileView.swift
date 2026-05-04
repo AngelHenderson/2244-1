@@ -659,3 +659,11 @@ private struct CountryPickerView: View {
 private extension String {
     func trimmed() -> String { trimmingCharacters(in: .whitespacesAndNewlines) }
 }
+
+#if DEBUG
+#Preview("Player Profile") {
+    GameUIScreenPreviewHost {
+        PlayerProfileView()
+    }
+}
+#endif

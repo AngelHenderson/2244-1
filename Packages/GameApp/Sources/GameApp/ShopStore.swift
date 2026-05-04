@@ -499,3 +499,34 @@ public extension EnvironmentValues {
         set { self[ShopStoreKey.self] = newValue }
     }
 }
+
+#if DEBUG
+public extension ShopCatalog {
+    @MainActor
+    static let preview = ShopCatalog(
+        catalogVersion: "preview",
+        lastUpdated: "2026-05-04T00:00:00Z",
+        currency: "USD",
+        pricingModel: "one_time",
+        bundles: [
+            ShopBundle.canonical(IAPProduct.starterPackProduct, tags: ["Starter"]),
+            ShopBundle.canonical(IAPProduct.powerUpBundleProduct, tags: ["Tools"]),
+            ShopBundle.canonical(IAPProduct.megaBundleProduct, tags: ["Best Value"]),
+        ],
+        gemBundles: [
+            GemBundle(id: IAPProduct.smallCoinsProduct.id, gems: 500, price: 0.99, tags: nil),
+            GemBundle(id: IAPProduct.mediumCoinsProduct.id, gems: 2_500, price: 3.99, tags: ["Popular"]),
+            GemBundle(id: IAPProduct.largeCoinsProduct.id, gems: 10_000, price: 9.99, tags: ["Best Value"]),
+        ],
+        perkBundles: [
+            PerkBundle(id: "preview-hammer-3", item: "hammer", quantity: 3, price: 1.99),
+            PerkBundle(id: "preview-swap-3", item: "swap", quantity: 3, price: 1.99),
+            PerkBundle(id: "preview-magnet-2", item: "magnet", quantity: 2, price: 2.99),
+        ],
+        freePerks: [
+            PerkBundle(id: "preview-free-hammer", item: "hammer", quantity: 1, price: 0),
+            PerkBundle(id: "preview-free-swap", item: "swap", quantity: 1, price: 0),
+        ]
+    )
+}
+#endif

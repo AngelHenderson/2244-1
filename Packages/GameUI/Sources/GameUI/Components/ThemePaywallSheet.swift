@@ -133,3 +133,17 @@ struct ThemePaywallSheet: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Theme Paywall") {
+    GameUIScreenPreviewHost {
+        ThemePaywallSheet(
+            title: "Galaxy Theme",
+            tagline: "Unlock a premium board look for milestone chasing.",
+            assetName: "galaxy",
+            productID: IAPProduct.cyberpunkThemeProduct.id,
+            onUnlocked: {}
+        )
+    }
+}
+#endif

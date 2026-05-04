@@ -421,3 +421,11 @@ private extension AchievementDef.Rewards.Entry.Kind {
         }
     }
 }
+
+#if DEBUG
+#Preview("Daily Streaks") {
+    GameUIScreenPreviewHost {
+        DailyStreaksView()
+    }
+}
+#endif

@@ -1390,3 +1390,11 @@ private struct IconLegendView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Daily Claims") {
+    GameUIScreenPreviewHost {
+        DailyClaimsView()
+    }
+}
+#endif

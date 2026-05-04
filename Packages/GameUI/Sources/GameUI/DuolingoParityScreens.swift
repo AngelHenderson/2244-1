@@ -1197,3 +1197,71 @@ private func heroCard(title: String, subtitle: String, systemImage: String) -> s
     .padding()
     .glassBackground(in: RoundedRectangle(cornerRadius: 16))
 }
+
+#if DEBUG
+#Preview("Onboarding") {
+    GameUIScreenPreviewHost {
+        OnboardingFlowView(onComplete: { _ in })
+    }
+}
+
+#Preview("Practice Hub") {
+    GameUIScreenPreviewHost {
+        PracticeHubView()
+    }
+}
+
+#Preview("Mode Library") {
+    GameUIScreenPreviewHost {
+        ModeLibraryView()
+    }
+}
+
+#Preview("Social Feed") {
+    GameUIScreenPreviewHost {
+        SocialFeedView()
+    }
+}
+
+#Preview("Friends") {
+    GameUIScreenPreviewHost {
+        FriendsView()
+    }
+}
+
+#Preview("Account Center") {
+    GameUIScreenPreviewHost {
+        AccountCenterView()
+    }
+}
+
+#Preview("Subscription Center") {
+    GameUIScreenPreviewHost {
+        SubscriptionCenterView()
+    }
+}
+
+#Preview("Reminder Settings") {
+    GameUIScreenPreviewHost {
+        ReminderSettingsView()
+    }
+}
+
+#Preview("Widget Promo") {
+    GameUIScreenPreviewHost {
+        WidgetPromoView()
+    }
+}
+
+#Preview("Year Review") {
+    GameUIScreenPreviewHost {
+        YearReviewView()
+    }
+}
+
+#Preview("Pro Coach") {
+    GameUIScreenPreviewHost {
+        ProCoachView()
+    }
+}
+#endif

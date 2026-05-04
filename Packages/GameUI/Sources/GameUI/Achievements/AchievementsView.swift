@@ -1060,3 +1060,11 @@ private struct DailyQuestRewardRow: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Achievements") {
+    GameUIScreenPreviewHost {
+        AchievementsView()
+    }
+}
+#endif

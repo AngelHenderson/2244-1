@@ -458,3 +458,11 @@ public struct RootGameView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Root Game") {
+    GameUIScreenPreviewHost {
+        RootGameView()
+    }
+}
+#endif

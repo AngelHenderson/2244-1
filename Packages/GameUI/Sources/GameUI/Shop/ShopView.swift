@@ -1033,3 +1033,17 @@ struct NoAdsIcon: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Shop") {
+    GameUIScreenPreviewHost {
+        ShopView()
+    }
+}
+
+#Preview("Weekly Offer") {
+    GameUIScreenPreviewHost {
+        WeeklyOfferSheet()
+    }
+}
+#endif

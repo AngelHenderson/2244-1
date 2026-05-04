@@ -752,3 +752,35 @@ private struct ComparisonRow: View {
 private extension String {
     func trimmed() -> String { trimmingCharacters(in: .whitespacesAndNewlines) }
 }
+
+#if DEBUG
+#Preview("Rename Profile") {
+    RenameSheet(current: "Angel Junior711", onSave: { _ in true })
+}
+
+#Preview("Avatar Customize") {
+    AvatarCustomizeView(currentAvatar: AvatarCatalog.default.id, onSelect: { _ in })
+}
+
+#Preview("Season History") {
+    GameUIScreenPreviewHost {
+        SeasonHistoryView(
+            season: SeasonInfo(name: "Season 7", division: "Diamond"),
+            playerSeed: "AJ711-534"
+        )
+    }
+}
+
+#Preview("Compare Players") {
+    CompareView(
+        friendCode: "AJ711-534",
+        myProfile: CompareProfile(
+            name: "Angel Junior711",
+            score: "1,048,576",
+            milestone: "1M",
+            countryFlag: "US",
+            avatar: AvatarCatalog.default.id
+        )
+    )
+}
+#endif

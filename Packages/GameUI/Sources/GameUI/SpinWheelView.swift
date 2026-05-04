@@ -1034,7 +1034,6 @@ private struct ActiveMultiplierBadge: View {
     }
 }
 
-#Preview {
-    SpinWheelView()
-        .environment(\.wheelEngine, WheelEngine())
+#Preview("Spin Wheel") {
+    SpinWheelPreviewWrapper()
 }

@@ -1012,3 +1012,17 @@ public struct CustomChallengeGameScreen: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Custom Challenge Game") {
+    GameUIScreenPreviewHost {
+        CustomChallengeGameScreen(
+            config: ScreenPreviewFixtures.challengeConfig,
+            playerHighestTile: 1_048_576,
+            playerHighestTileStep: 19,
+            initialGems: 1_240,
+            onDismiss: {}
+        )
+    }
+}
+#endif
