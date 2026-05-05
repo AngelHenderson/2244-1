@@ -259,7 +259,7 @@ public actor LiveAudioService: AudioServiceProtocol {
             print("❌ Aggressive audio recovery failed: \(error)")
             
             // Last resort: try one more time after a brief delay
-            Task { [weak self] in
+            Task {
                 try? await Task.sleep(for: .milliseconds(200))
                 do {
                     try session.setActive(false, options: [.notifyOthersOnDeactivation])
