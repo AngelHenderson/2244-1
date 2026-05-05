@@ -163,3 +163,11 @@ public struct SlotPickerView: View {
         await reload()
     }
 }
+
+#if DEBUG
+#Preview("Save Slots") {
+    GameUIScreenPreviewHost {
+        SlotPickerView()
+    }
+}
+#endif

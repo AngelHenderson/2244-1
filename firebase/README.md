@@ -4,25 +4,27 @@ This directory contains Firebase configuration files and setup instructions.
 
 ## Setup Instructions
 
-1. **Create Firebase Project**
+1. **Use the Faith Firebase Project**
    - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Create a new project named "game2244-firebase" (or your preferred name)
+   - Open the existing project named "Faith" (`faith-a5d4c`)
    - Enable Authentication, Firestore, and Cloud Functions
 
 2. **iOS App Configuration**
    - Add an iOS app to your Firebase project
-   - Use bundle ID: `com.game2244.app` (or match your actual bundle ID)
+   - Use bundle ID: `com.ideabloomlabs.game2244` (the app target's current release bundle identifier)
    - Download `GoogleService-Info.plist`
-   - Replace the template file with the actual configuration:
+   - Keep the actual configuration local and out of commits:
      ```bash
-     cp ~/Downloads/GoogleService-Info.plist /Users/angelhenderson/Developer/Personal/2244/game2244/GoogleService-Info.plist
+     cp ~/Downloads/GoogleService-Info.plist /Users/angelhenderson/Developer/Personal/2244/2244/game2244/GoogleService-Info.plist
      ```
 
 3. **Authentication Setup**
    - Enable Sign-in methods in Firebase Console:
+     - Email/Password (for account creation and sign-in)
      - Anonymous (for guest users)
      - Apple Sign-In (for iOS users)
      - Google Sign-In (optional)
+     - Phone (for phone verification, if you want SMS verification live)
 
 4. **Firestore Database**
    - Create Firestore database in production mode
@@ -84,3 +86,13 @@ firebase emulators:start --only firestore,functions,auth
 ```
 
 Configure your iOS app to use emulators in debug mode.
+
+You can run the credential-free launch validation at any time:
+
+```bash
+node scripts/validate-launch-readiness.mjs
+```
+
+The script checks Firestore rules sync/coverage, StoreKit catalog consistency,
+privacy manifest presence, release bundle settings, and that the real
+`GoogleService-Info.plist` is ignored and untracked.

@@ -19,12 +19,15 @@ public struct SpinWheelView: View {
     @Environment(HomeState.self) private var homeState
     @Environment(\.spinWheelState) private var spinState
     @Environment(\.audio) private var audioService
+    @Environment(\.rewardLedgerOptional) private var rewardLedger
     @State private var showReward = false
     @State private var rewardMessage = ""
     @State private var purchaseFeedback: String?
     @State private var showShopFromGems = false
     @State private var showOutOfSpins = false
     @State private var now = Date()
+    @State private var currentSpinKey: String = ""
+    @State private var giftBoxGrantIndex: Int = 0
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -111,8 +114,9 @@ public struct SpinWheelView: View {
         } message: {
             Text("You are still banned. Your ban is over in \(homeState.banTimeRemainingText ?? "never (permanent)").")
         }
+        .trackScreen(.freeSpin)
     }
-    
+
     private var header: some View {
         ZStack {
             Text("SPIN")
@@ -336,6 +340,8 @@ public struct SpinWheelView: View {
     
     private func handleWinning(segment: WheelSegment) {
         Task { @MainActor in
+            currentSpinKey = "spin:\(UUID().uuidString)"
+            giftBoxGrantIndex = 0
             let (message, powerupCount) = applyReward(segment.reward)
             haptics.success()
             rewardMessage = message
@@ -347,43 +353,82 @@ public struct SpinWheelView: View {
         }
     }
 
+    private func ledgerGrant(
+        type: RewardLedgerEntry.ItemType,
+        amount: Int,
+        suffix: String,
+        apply: @escaping @MainActor () -> Void
+    ) {
+        guard amount > 0 else { return }
+        if let rewardLedger {
+            rewardLedger.grant(
+                source: .spinWheel,
+                itemType: type,
+                amount: amount,
+                idempotencyKey: "\(currentSpinKey):\(suffix):\(type.rawValue):\(amount)",
+                apply: apply
+            )
+        } else {
+            apply()
+        }
+    }
+
     /// Returns (message, powerupCount) - powerupCount is the number of powerups collected (excludes gems)
     private func applyReward(_ reward: WheelReward, isGiftBox: Bool = false) -> (String, Int) {
         let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
+        let suffix = isGiftBox ? "gift" : "primary"
 
         switch reward.type {
         case .gems:
             let amount = reward.amount * multiplier
-            grantGems(amount)
+            ledgerGrant(type: .gems, amount: amount, suffix: suffix) {
+                grantGems(amount)
+            }
             let message = isGiftBox ? "Gift Box surprise! You won \(amount) gems!" : "You won \(amount) gems!"
             return (message, 0) // Gems don't count as powerups
 
         case .hammers:
-            gameStore.addPowerUp("hammer", count: reward.amount)
+            ledgerGrant(type: .hammer, amount: reward.amount, suffix: suffix) {
+                gameStore.addPowerUp("hammer", count: reward.amount)
+            }
             let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))!"
                                     : "You won \(reward.amount) hammer\(pluralSuffix(for: reward.amount))!"
             return (message, reward.amount)
 
         case .magnets:
-            gameStore.addPowerUp("magnet", count: reward.amount)
+            ledgerGrant(type: .magnet, amount: reward.amount, suffix: suffix) {
+                gameStore.addPowerUp("magnet", count: reward.amount)
+            }
             let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))!"
                                     : "You won \(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))!"
             return (message, reward.amount)
 
         case .swap:
-            gameStore.addPowerUp("swap", count: reward.amount)
+            ledgerGrant(type: .swap, amount: reward.amount, suffix: suffix) {
+                gameStore.addPowerUp("swap", count: reward.amount)
+            }
             let message = isGiftBox ? "Gift Box surprise! You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))!"
                                     : "You won \(reward.amount) swap\(pluralSuffix(for: reward.amount))!"
             return (message, reward.amount)
 
         case .spin:
-            spinState.addBonusSpins(reward.amount)
+            ledgerGrant(type: .spin, amount: reward.amount, suffix: suffix) {
+                spinState.addBonusSpins(reward.amount)
+            }
             let base = reward.amount == 1 ? "Bonus spin added!" : "\(reward.amount) bonus spins added!"
             let message = isGiftBox ? "Gift Box surprise! \(base)" : base
             return (message, reward.amount) // Spins count as powerups
 
         case .multiplier(let tier):
-            spinState.addMultiplier(tier)
+            let multiplierType: RewardLedgerEntry.ItemType
+            switch tier {
+            case .twoX: multiplierType = .multiplier2x
+            case .threeX: multiplierType = .multiplier3x
+            case .fourX: multiplierType = .multiplier4x
+            }
+            ledgerGrant(type: multiplierType, amount: 1, suffix: suffix) {
+                spinState.addMultiplier(tier)
+            }
             let base = "You banked a \(tier.displayName) boost for 24 hours!"
             let message = isGiftBox ? "Gift Box surprise! \(base)" : base
             return (message, 1) // Multiplier counts as 1 powerup
@@ -420,26 +465,47 @@ public struct SpinWheelView: View {
 
     private func applySingleReward(_ reward: WheelReward) -> (String, Int) {
         let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
+        let index = giftBoxGrantIndex
+        giftBoxGrantIndex += 1
+        let suffix = "giftbox-\(index)"
 
         switch reward.type {
         case .gems:
             let amount = reward.amount * multiplier
-            grantGems(amount)
+            ledgerGrant(type: .gems, amount: amount, suffix: suffix) {
+                grantGems(amount)
+            }
             return ("\(amount) Gems", 0)
         case .hammers:
-            gameStore.addPowerUp("hammer", count: reward.amount)
+            ledgerGrant(type: .hammer, amount: reward.amount, suffix: suffix) {
+                gameStore.addPowerUp("hammer", count: reward.amount)
+            }
             return ("\(reward.amount) Hammer\(pluralSuffix(for: reward.amount))", reward.amount)
         case .magnets:
-            gameStore.addPowerUp("magnet", count: reward.amount)
+            ledgerGrant(type: .magnet, amount: reward.amount, suffix: suffix) {
+                gameStore.addPowerUp("magnet", count: reward.amount)
+            }
             return ("\(reward.amount) MegaMerge\(pluralSuffix(for: reward.amount))", reward.amount)
         case .swap:
-            gameStore.addPowerUp("swap", count: reward.amount)
+            ledgerGrant(type: .swap, amount: reward.amount, suffix: suffix) {
+                gameStore.addPowerUp("swap", count: reward.amount)
+            }
             return ("\(reward.amount) Swap\(pluralSuffix(for: reward.amount))", reward.amount)
         case .spin:
-            spinState.addBonusSpins(reward.amount)
+            ledgerGrant(type: .spin, amount: reward.amount, suffix: suffix) {
+                spinState.addBonusSpins(reward.amount)
+            }
             return ("\(reward.amount) Spin\(pluralSuffix(for: reward.amount))", reward.amount)
         case .multiplier(let tier):
-            spinState.addMultiplier(tier)
+            let multiplierType: RewardLedgerEntry.ItemType
+            switch tier {
+            case .twoX: multiplierType = .multiplier2x
+            case .threeX: multiplierType = .multiplier3x
+            case .fourX: multiplierType = .multiplier4x
+            }
+            ledgerGrant(type: multiplierType, amount: 1, suffix: suffix) {
+                spinState.addMultiplier(tier)
+            }
             return ("\(tier.displayName) Boost", 1)
         case .giftBox:
             return ("", 0)
@@ -968,7 +1034,6 @@ private struct ActiveMultiplierBadge: View {
     }
 }
 
-#Preview {
-    SpinWheelView()
-        .environment(\.wheelEngine, WheelEngine())
+#Preview("Spin Wheel") {
+    SpinWheelPreviewWrapper()
 }

@@ -510,6 +510,8 @@ private struct MilestoneTileView: View {
                         .offset(x: size * 0.28, y: size * 0.28)
                 }
             }
+            .scaleEffect(milestone.status == .current && glowAnimation ? 1.05 : 1.0)
+            .animation(.easeInOut(duration: 0.8), value: glowAnimation)
         }
         .onAppear {
             if milestone.status == .current {

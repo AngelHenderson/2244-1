@@ -147,23 +147,22 @@ struct GameEngineTests {
         
         // Expected value: 5 * 64 rounded up to the next power of two = 512
         let expectedValue = 512
-        #expect(state.board[basePositions.last!] == Tile(value: expectedValue), "Long chain should keep doubling")
+        #expect(state.board[basePositions.last!]?.value == expectedValue, "Long chain should keep doubling")
         #expect(state.score >= expectedValue, "Score should reflect the resulting tile")
     }
     
     @Test
     func testHighValueChainsAdvanceBeyond9c() {
-        guard let step9c = JourneyAbbreviationTiers.tier(forLabel: "9c")?.step,
-              let step18c = JourneyAbbreviationTiers.tier(forLabel: "18c")?.step else {
-            Issue.record("Unable to resolve steps for 9c or 18c")
-            return
-        }
+        let step9c = 62
+        let step18c = 63
+        #expect(TileStepLabelFormatter.labelForStep(step9c) == "9c")
+        #expect(TileStepLabelFormatter.labelForStep(step18c) == "18c")
         
-        let config = GameConfig(boardWidth: 1, boardHeight: 3, seed: 7, fillMode: .sparse)
+        let config = GameConfig(boardWidth: 1, boardHeight: 2, seed: 7, fillMode: .sparse)
         let engine = GameEngine(config: config)
         engine._setAllTilesForTesting(value: nil)
         
-        let positions = (0..<3).map { Position(row: $0, col: 0) }
+        let positions = (0..<2).map { Position(row: $0, col: 0) }
         positions.forEach { engine._setHighValueTileForTesting(at: $0, step: step9c) }
         
         let state = engine.commitChain(positions)
@@ -377,6 +376,7 @@ struct GameEngineTests {
         // Commit the gift chain and resolve drop/refill phases manually
         let mergedState = engine.commitGiftChain(chain)
         let mergedTile = mergedState.board[p02]
+        let giftPositionsAfterMerge = engine.giftPositions()
         _ = engine.applyGravityAfterChain()
         let resultState = engine.refillBoard()
 
@@ -393,9 +393,7 @@ struct GameEngineTests {
         }
         #expect(resultTile.value >= 8, "Result should be at least 2 * max(4, 4) = 8")
         
-        // Verify gift is no longer there
-        let finalGiftPositions = engine.giftPositions()
-        #expect(!finalGiftPositions.contains(p02), "Gift should be consumed after merge")
+        #expect(!giftPositionsAfterMerge.contains(p02), "Gift should be consumed after merge")
     }
     
     @Test
@@ -421,8 +419,7 @@ struct GameEngineTests {
         #expect(!validation2.isValid, "Gift must be adjacent to previous tile")
     }
     
-    // TODO: Fix test setup - the core functionality works but test environment needs adjustment
-    // @Test
+    @Test("Gravity with gift merge consumes gift and refills")
     func testGravityWithGiftMerge() {
         let engine = GameEngine(config: GameConfig(seed: 456))
         

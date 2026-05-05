@@ -149,11 +149,10 @@ struct MagnetPowerUpTests {
     
     @Test("Magnet merges high-value tiles (e.g. 9c -> 18c)")
     func testMagnetMergesHighValueTiles() {
-        guard let step9c = JourneyAbbreviationTiers.tier(forLabel: "9c")?.step,
-              let step18c = JourneyAbbreviationTiers.tier(forLabel: "18c")?.step else {
-            Issue.record("Unable to resolve steps for 9c/18c")
-            return
-        }
+        let step9c = 62
+        let step18c = 63
+        #expect(TileStepLabelFormatter.labelForStep(step9c) == "9c")
+        #expect(TileStepLabelFormatter.labelForStep(step18c) == "18c")
         
         let config = GameConfig(boardWidth: 3, boardHeight: 3, seed: 77, fillMode: .sparse)
         let engine = GameEngine(config: config)
@@ -161,8 +160,7 @@ struct MagnetPowerUpTests {
         
         let positions = [
             Position(row: 0, col: 0),
-            Position(row: 0, col: 1),
-            Position(row: 0, col: 2)
+            Position(row: 0, col: 1)
         ]
         positions.forEach { engine._setHighValueTileForTesting(at: $0, step: step9c) }
         

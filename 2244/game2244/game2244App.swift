@@ -53,24 +53,22 @@ struct game2244App: App {
     @State private var backgroundThemeRegistry = BackgroundThemeRegistry.Default
     @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
     @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundThemeId: String = "city_1"
-    @AppStorage("useGlassPreview") private var useGlassPreview: Bool = true
     @State private var isPlaying: Bool = false
     @State private var storageService = UserDefaultsStorageService()
     @State private var achievementStore = AchievementStore()
     @State private var dailyClaimsStore = DailyClaimsStore()
     @State private var gemWallet = GemWallet()
+    @State private var playerReadiness = PlayerReadinessStore()
+    @State private var rewardLedger = RewardLedgerStore()
     @State private var shopStore: ShopStore? = nil
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
     @State private var spinWheelState = SpinWheelState()
     @State private var dailyQuestStore = DailyQuestStore()
     @State private var seasonHistoryStore = SeasonHistoryStore()
-    @State private var leaderboardClient: LeaderboardClient = .mock
+    @State private var leaderboardClient: LeaderboardClient = .empty
     @State private var reportService: any ReportServiceProtocol = NoopReportService()
-
-    // First-launch tutorial tracking
-    @AppStorage("hasCompletedTutorial") private var hasCompletedTutorial: Bool = false
-    @State private var isShowingTutorial: Bool = false
+    @State private var deepLinkRouter = DeepLinkRouter()
 
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
     
@@ -87,6 +85,9 @@ struct game2244App: App {
                     .zIndex(0)
 
                 RootGameView(managesBackground: false)
+            }
+            .onOpenURL { url in
+                deepLinkRouter.handle(url)
             }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("GemsDidChange"))) { notification in
                 if let newBalance = notification.userInfo?["newBalance"] as? Int {
@@ -105,11 +106,14 @@ struct game2244App: App {
                 .environment(\.backgroundThemeRegistry, backgroundThemeRegistry)
                 .environment(\.currentBackgroundTheme, backgroundThemeRegistry.theme(for: selectedBackgroundThemeId))
                 .environment(\.tileJourney, gameStore.journey)
-                // Starts as `.mock` so previews and offline launches work; swapped to
-                // `.firebase(LeaderboardService())` inside the .task once Firebase init succeeds.
+                // Starts empty so release builds never show synthetic leaderboard rows
+                // before the real backend selection completes.
                 .environment(\.leaderboardClient, leaderboardClient)
                 .environment(\.reportService, reportService)
                 .environment(homeState)
+                .environment(playerReadiness)
+                .environment(rewardLedger)
+                .environment(\.rewardLedgerOptional, rewardLedger)
                 .environment(achievementStore)
                 .environment(dailyClaimsStore)
                 .environment(dailyQuestStore)
@@ -120,12 +124,14 @@ struct game2244App: App {
                         journeyStore: gameStore.journey,
                         purchaseService: purchaseService,
                         gemWallet: gemWallet,
-                        gameStore: gameStore
+                        gameStore: gameStore,
+                        rewardLedger: rewardLedger
                     )
                 )
                 .environment(\.challengeStore, challengeStore)
                 .environment(\.challengeDesignerStore, challengeDesignerStore)
                 .environment(\.spinWheelState, spinWheelState)
+                .environment(\.deepLinkRouter, deepLinkRouter)
                 .onChange(of: purchaseService.isAdFreePurchased) { _, isAdFree in
                     adService.setAdFree(isAdFree)
                 }
@@ -134,47 +140,132 @@ struct game2244App: App {
                     gemWallet.attach(gameStore: gameStore, homeState: homeState)
                     gemWallet.bootstrapFromLocal()
                     gameStore.spinWheelState = spinWheelState
+                    gameStore.rewardLedger = rewardLedger
 
                     // Initialize shop store
                     shopStore = ShopStore(
                         journeyStore: gameStore.journey,
                         purchaseService: purchaseService,
                         gemWallet: gemWallet,
-                        gameStore: gameStore
+                        gameStore: gameStore,
+                        rewardLedger: rewardLedger
                     )
 
                     // Load achievements synchronously
                     try? achievementStore.loadCatalogFromBundle(named: "2244_achievements")
                     
                     let applyRewards: @MainActor @Sendable (AchievementDef.Rewards) -> Void = { rewards in
+                        let markFirstReward: @MainActor () -> Void = {
+                            playerReadiness.recordRewardEarned(
+                                highestTile: gameStore.state.highestTile,
+                                highestTileStep: gameStore.state.highestTileStep
+                            )
+                        }
+
+                        // Prefer the achievement-claim context (stable across launches via
+                        // a persisted claim sequence). When this closure is invoked from
+                        // daily claims / quests / streak unlocks, fall back to a process-
+                        // unique UUID so the ledger still rejects accidental same-call
+                        // duplicates while not interfering with replay protection.
+                        let contextKey = achievementStore.lastClaimedRewardContext
+                            ?? "applyRewards:\(UUID().uuidString)"
+
+                        let key: @Sendable (RewardLedgerEntry.ItemType, Int) -> String = { item, amount in
+                            "\(contextKey):\(item.rawValue):\(amount)"
+                        }
+
                         // Gems (also granted directly via AchievementStore, but keep for wallet sync)
                         if let gems = rewards.gems, gems > 0 {
-                            gemWallet.deposit(gems, source: .achievement)
+                            rewardLedger.grant(
+                                source: .achievement,
+                                itemType: .gems,
+                                amount: gems,
+                                idempotencyKey: key(.gems, gems)
+                            ) {
+                                gemWallet.deposit(gems, source: .achievement)
+                            }
+                            markFirstReward()
                         }
                         
                         // Power-ups
                         if let hammers = rewards.hammers, hammers > 0 {
-                            gameStore.addPowerUp("hammer", count: hammers)
+                            rewardLedger.grant(
+                                source: .achievement,
+                                itemType: .hammer,
+                                amount: hammers,
+                                idempotencyKey: key(.hammer, hammers)
+                            ) {
+                                gameStore.addPowerUp("hammer", count: hammers)
+                            }
+                            markFirstReward()
                         }
                         if let magnets = rewards.magnets, magnets > 0 {
-                            gameStore.addPowerUp("magnet", count: magnets)
+                            rewardLedger.grant(
+                                source: .achievement,
+                                itemType: .magnet,
+                                amount: magnets,
+                                idempotencyKey: key(.magnet, magnets)
+                            ) {
+                                gameStore.addPowerUp("magnet", count: magnets)
+                            }
+                            markFirstReward()
                         }
                         if let swaps = rewards.swaps, swaps > 0 {
-                            gameStore.addPowerUp("swap", count: swaps)
+                            rewardLedger.grant(
+                                source: .achievement,
+                                itemType: .swap,
+                                amount: swaps,
+                                idempotencyKey: key(.swap, swaps)
+                            ) {
+                                gameStore.addPowerUp("swap", count: swaps)
+                            }
+                            markFirstReward()
                         }
                         
                         // Spins & multipliers
                         if let spins = rewards.spins, spins > 0 {
-                            spinWheelState.addBonusSpins(spins)
+                            rewardLedger.grant(
+                                source: .achievement,
+                                itemType: .spin,
+                                amount: spins,
+                                idempotencyKey: key(.spin, spins)
+                            ) {
+                                spinWheelState.addBonusSpins(spins)
+                            }
+                            markFirstReward()
                         }
                         if let boost2x = rewards.boost2x, boost2x > 0 {
-                            spinWheelState.addMultiplier(.twoX, count: boost2x)
+                            rewardLedger.grant(
+                                source: .achievement,
+                                itemType: .multiplier2x,
+                                amount: boost2x,
+                                idempotencyKey: key(.multiplier2x, boost2x)
+                            ) {
+                                spinWheelState.addMultiplier(.twoX, count: boost2x)
+                            }
+                            markFirstReward()
                         }
                         if let boost3x = rewards.boost3x, boost3x > 0 {
-                            spinWheelState.addMultiplier(.threeX, count: boost3x)
+                            rewardLedger.grant(
+                                source: .achievement,
+                                itemType: .multiplier3x,
+                                amount: boost3x,
+                                idempotencyKey: key(.multiplier3x, boost3x)
+                            ) {
+                                spinWheelState.addMultiplier(.threeX, count: boost3x)
+                            }
+                            markFirstReward()
                         }
                         if let boost4x = rewards.boost4x, boost4x > 0 {
-                            spinWheelState.addMultiplier(.fourX, count: boost4x)
+                            rewardLedger.grant(
+                                source: .achievement,
+                                itemType: .multiplier4x,
+                                amount: boost4x,
+                                idempotencyKey: key(.multiplier4x, boost4x)
+                            ) {
+                                spinWheelState.addMultiplier(.fourX, count: boost4x)
+                            }
+                            markFirstReward()
                         }
                     }
                     
@@ -214,6 +305,7 @@ struct game2244App: App {
                     if FirebaseApp.app() != nil {
                         try? await FirebaseService.shared.signInAnonymously()
                         await gemWallet.startCloudSync()
+                        await homeState.startBlockedPlayersCloudSync()
                         let firebaseClient = LeaderboardClient.firebase(LeaderboardService())
                         leaderboardClient = .mirroring(
                             primary: firebaseClient,
@@ -227,9 +319,10 @@ struct game2244App: App {
                         leaderboardClient = gameCenterClient
                     }
 
-                    gameStore.onGameEnded = { score in
+                    gameStore.onGameEnded = { summary in
+                        playerReadiness.recordRunCompleted(summary)
                         Task { @MainActor in
-                            await submitGameEndProgress(score: score)
+                            await submitGameEndProgress(summary: summary)
                         }
                     }
 
@@ -271,20 +364,7 @@ struct game2244App: App {
                     // Load daily claims catalogs
                     await dailyClaimsStore.loadCatalogs()
 
-                    // Show tutorial on first launch (skip for debug/Xcode builds)
-                    #if !DEBUG
-                    if !hasCompletedTutorial {
-                        await MainActor.run {
-                            isShowingTutorial = true
-                        }
-                    }
-                    #endif
-                }
-                .fullScreenCover(isPresented: $isShowingTutorial) {
-                    HowToPlayView(onComplete: {
-                        hasCompletedTutorial = true
-                        isShowingTutorial = false
-                    })
+                    playerReadiness.recordSessionStarted()
                 }
         }
     }
@@ -312,11 +392,11 @@ struct game2244App: App {
     }
 
     @MainActor
-    private func submitGameEndProgress(score: Int) async {
-        try? await leaderboardClient.submitScore(score)
+    private func submitGameEndProgress(summary: GameRunSummary) async {
+        try? await leaderboardClient.submitRun(summary)
 
         let storedInfinityCount = UserDefaults.standard.integer(forKey: "infinityMergeCount")
-        let sessionInfinityCount = gameStore.state.infinityMergeCount
+        let sessionInfinityCount = summary.infinityMergeCount
         let infinityCount = max(storedInfinityCount, sessionInfinityCount)
         if infinityCount > 0 {
             try? await leaderboardClient.submitInfinityCount(infinityCount)

@@ -4,12 +4,14 @@ struct SideRailButton: View {
     let systemImage: String?
     let customImage: String?
     let title: String
+    let metrics: HomeLayoutMetrics.RailMetrics
     var badge: Bool = false
     var badgeCount: Int? = nil  // If set, shows count instead of dot
     var locked: Bool = false
     var banned: Bool = false
     var specialLabel: String? = nil
     var specialLabelInside: Bool = false  // If true, show specialLabel inside the button
+    var countdownDeadline: Date? = nil
     var onLockedTap: (() -> Void)? = nil
     var onBannedTap: (() -> Void)? = nil
     var action: () -> Void
@@ -17,7 +19,7 @@ struct SideRailButton: View {
     @Environment(\.currentBackgroundTheme) private var backgroundTheme
 
     var body: some View {
-        VStack{
+        VStack(spacing: metrics.labelSpacing) {
             Button(action: {
                 if banned {
                     onBannedTap?()
@@ -27,29 +29,19 @@ struct SideRailButton: View {
                     action()
                 }
             }) {
-                VStack(spacing: 4) {
-                    ZStack(alignment: .topTrailing) {
+                ZStack(alignment: .topTrailing) {
+                    ZStack(alignment: .bottom) {
                         ZStack {
-                            if let systemImage = systemImage {
-                                Image(systemName: systemImage)
-                                    .font(.system(size: 24, weight: .semibold))
-                            } else if let customImage = customImage {
-                                Image(customImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 56, height: 56)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    .accessibilityHidden(true)
-                            }
+                            boundedIcon
                         }
-                        .frame(width: 56, height: 56)
+                        .frame(width: metrics.buttonSize, height: metrics.buttonSize)
                         .overlay {
                             if banned {
                                 ZStack {
                                     Color.black.opacity(0.4)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
                                     Image(systemName: "exclamationmark.octagon.fill")
-                                        .font(.system(size: 22))
+                                        .font(.system(size: max(18, metrics.buttonSize * 0.38)))
                                         .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
                                 }
                             } else if locked {
@@ -57,81 +49,109 @@ struct SideRailButton: View {
                                     Image("lockpic")
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 24, height: 24)
+                                        .frame(width: max(18, metrics.buttonSize * 0.42), height: max(18, metrics.buttonSize * 0.42))
                                 }
                             }
                         }
 
-                        if !locked {
-                            if let count = badgeCount, count > 0 {
-                                // Show count badge
-                                Text("\(count)")
-                                    .font(.avenirNext(size: 10, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .frame(minWidth: 16, minHeight: 16)
-                                    .background(Circle().fill(.red))
-                                    .offset(x: 6, y: -6)
-                                    .accessibilityHidden(true)
-                            } else if badge {
-                                // Show simple dot badge
-                                Circle()
-                                    .fill(.red)
-                                    .frame(width: 10, height: 10)
-                                    .offset(x: 6, y: -6)
-                                    .accessibilityHidden(true)
+                        if specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
+                            HStack(spacing: 2) {
+                                Image("gem")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: max(8, metrics.buttonSize * 0.18), height: max(8, metrics.buttonSize * 0.18))
+                                Text(specialLabel)
+                                    .font(.avenirNext(size: max(8, metrics.labelFontSize), weight: .heavy))
+                                    .foregroundStyle(backgroundTheme.textColor)
                             }
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
+                            .padding(.horizontal, 3)
+                            .padding(.vertical, 1)
+                            .background(.black.opacity(0.28), in: Capsule())
+                            .padding(.bottom, 2)
                         }
                     }
-                    
-                    // Special label inside the button (e.g., gem reward for ad button)
-                    if specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
-                        HStack(spacing: 2) {
-                            Image("gem")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 10, height: 10)
-                            Text(specialLabel)
-                                .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
-                                .foregroundStyle(backgroundTheme.textColor)
-                        }
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                    }
+                    .frame(width: metrics.buttonSize, height: metrics.buttonSize)
+                    .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                    .glassEffectCompat(cornerRadius: cornerRadius)
 
+                    if !locked {
+                        if let count = badgeCount, count > 0 {
+                            Text("\(count)")
+                                .font(.avenirNext(size: max(8, metrics.labelFontSize), weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(minWidth: max(14, metrics.buttonSize * 0.32), minHeight: max(14, metrics.buttonSize * 0.32))
+                                .background(Circle().fill(.red))
+                                .offset(x: 4, y: -4)
+                                .accessibilityHidden(true)
+                        } else if badge {
+                            Circle()
+                                .fill(.red)
+                                .frame(width: max(8, metrics.buttonSize * 0.18), height: max(8, metrics.buttonSize * 0.18))
+                                .offset(x: 4, y: -4)
+                                .accessibilityHidden(true)
+                        }
+                    }
                 }
             }
-            .modifier(GlassButtonCompat())
+            .buttonStyle(.plain)
+            .frame(width: metrics.buttonSize, height: metrics.buttonSize)
             .accessibilityLabel("\(title)\(locked ? ", locked" : "")")
 
-            // Display title or specialLabel below the button with consistent styling
-            if !specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
+            if let countdownDeadline {
+                CountdownView(deadline: countdownDeadline, fontSize: metrics.labelFontSize)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .frame(width: metrics.itemWidth, height: metrics.labelHeight)
+            } else if !specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
                 Text(specialLabel)
-                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                    .font(.avenirNext(size: metrics.labelFontSize, weight: .heavy))
                     .foregroundStyle(backgroundTheme.textColor)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.6)
+                    .frame(width: metrics.itemWidth, height: metrics.labelHeight)
             } else if !title.isEmpty {
-                Text(title)
-                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                Text(visualTitle)
+                    .font(.avenirNext(size: metrics.labelFontSize, weight: .heavy))
                     .foregroundStyle(backgroundTheme.textColor)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.6)
+                    .frame(width: metrics.itemWidth, height: metrics.labelHeight)
             }
         }
-
+        .frame(width: metrics.itemWidth, height: metrics.itemHeight)
     }
-}
 
-private struct GlassButtonCompat: ViewModifier {
-    @Environment(\.gameStore) private var gameStore
-    
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, macOS 26.0, *) {
-            content
-                .buttonStyle(.glass)
+    @ViewBuilder
+    private var boundedIcon: some View {
+        if let systemImage = systemImage {
+            Image(systemName: systemImage)
+                .font(.system(size: metrics.iconSize, weight: .semibold))
+        } else if let customImage = customImage {
+            Image(customImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: metrics.iconSize, height: metrics.iconSize)
+                .clipShape(RoundedRectangle(cornerRadius: max(6, metrics.buttonSize * 0.16)))
+                .accessibilityHidden(true)
         } else {
-            content.buttonStyle(.plain)
+            EmptyView()
         }
     }
-    
+
+    private var visualTitle: String {
+        guard metrics.usesCompactLabels else { return title }
+        switch title {
+        case "FREE SPIN": return "SPIN"
+        case "BEST OFFER": return "OFFER"
+        case "CHALLENGE": return "CHAL."
+        case "PRACTICE": return "PRAC."
+        default: return title
+        }
+    }
+
+    private var cornerRadius: CGFloat {
+        max(10, metrics.buttonSize * 0.22)
+    }
 }

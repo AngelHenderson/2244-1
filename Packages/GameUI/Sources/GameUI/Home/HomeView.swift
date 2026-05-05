@@ -8,25 +8,23 @@ public struct HomeView: View {
     @Environment(HomeState.self) private var state
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(AchievementStore.self) private var achievementStore
+    @Environment(PlayerReadinessStore.self) private var playerReadiness
     @Environment(\.homeActions) private var actions
     @Environment(\.tileJourney) private var journey
     @Environment(\.toastManager) private var toastManager
     @Environment(\.spinWheelState) private var spinState
     @Environment(\.leaderboardClient) private var leaderboardClient
     @Environment(\.purchaseService) private var purchaseService
-    @State private var isShowingJourney: Bool = false
-    @State private var isShowingLeaderboard: Bool = false
-    @State private var isShowingAchievements: Bool = false
-    @State private var isShowingMusic: Bool = false
-    @State private var isShowingShop: Bool = false
-    @State private var isShowingProfile: Bool = false
-    @State private var isShowingSettings: Bool = false
-    @State private var isShowingThemePicker: Bool = false
+    @Environment(\.gameStore) private var gameStore
+    @Environment(\.adService) private var adService
+    @Environment(\.deepLinkRouter) private var deepLinkRouter
+    @State private var presentedSheet: HomeSheetDestination?
     @State private var isShowingBoosts: Bool = false
     @State private var isShowingWeeklyOffer: Bool = false
     @State private var isShowingAdBonusIntro: Bool = false
     @State private var showLockedChallengeAlert: Bool = false
     @State private var centeredMilestone: Int? = nil
+    @State private var isPrivacyOptionsRequired: Bool = false
     // Measured overlay heights for proper centering of the journey scroller
     @State private var headerHeight: CGFloat = 0
     @State private var playButtonHeight: CGFloat = 0
@@ -39,265 +37,129 @@ public struct HomeView: View {
     private var currentBackgroundTheme: BackgroundTheme {
         backgroundThemeRegistry.theme(for: selectedBackgroundId)
     }
-    
-    private var bottomOverlayHeight: CGFloat { playButtonHeight + bottomDockHeight + 8 }
 
     public init(managesBackground: Bool = true) {
         self.managesBackground = managesBackground
     }
     
     public var body: some View {
-        ZStack(alignment: .top) {
-            if managesBackground {
-                HomeBackgroundLayer(theme: currentBackgroundTheme)
-                    .ignoresSafeArea()
-                    .zIndex(0)
+        GeometryReader { rootGeo in
+            let recommendation = currentRecommendation
+            let leftItems = leftRailItems
+            let rightItems = rightRailItems
+            let visibleDockItems = dockItems
+            let metrics = HomeLayoutMetrics(
+                availableSize: rootGeo.size,
+                safeAreaInsets: rootGeo.safeAreaInsets,
+                leftRailItemCount: leftItems.count,
+                rightRailItemCount: rightItems.count,
+                dockItemCount: visibleDockItems.count,
+                hasRecommendation: recommendation != nil
+            )
+
+            ZStack(alignment: .top) {
+                if managesBackground {
+                    HomeBackgroundLayer(theme: currentBackgroundTheme)
+                        .ignoresSafeArea()
+                        .zIndex(0)
+                }
+
+                JourneyPanel(
+                    topInset: metrics.journeyTopInset(measuredHeaderHeight: headerHeight),
+                    bottomInset: metrics.journeyBottomInset(
+                        measuredPlayHeight: playButtonHeight,
+                        measuredDockHeight: bottomDockHeight
+                    )
+                )
+
+                VStack(spacing: 0) {
+                    header(recommendation: recommendation, horizontalPadding: metrics.contentHorizontalPadding)
+                        .background(HeightReader(height: $headerHeight))
+
+                    GeometryReader { middleGeo in
+                        let leftMetrics = metrics.railMetrics(for: leftItems.count, availableHeight: middleGeo.size.height)
+                        let rightMetrics = metrics.railMetrics(for: rightItems.count, availableHeight: middleGeo.size.height)
+
+                        HStack(alignment: .top, spacing: metrics.middleHorizontalSpacing) {
+                            sideRail(items: leftItems, metrics: leftMetrics)
+
+                            Spacer(minLength: 0)
+
+                            sideRail(items: rightItems, metrics: rightMetrics)
+                        }
+                        .padding(.horizontal, metrics.contentHorizontalPadding)
+                        .frame(width: middleGeo.size.width, height: middleGeo.size.height, alignment: .top)
+                    }
+
+                    playButton(metrics: metrics.play)
+                        .background(HeightReader(height: $playButtonHeight))
+
+                    bottomDock(items: visibleDockItems, metrics: metrics.dock)
+                        .background(HeightReader(height: $bottomDockHeight))
+                }
+                .zIndex(1)
             }
-
-            // Background layer: Tile scroller. We pass measured header/footer insets so
-            // the current tile appears visually centered upon first appear.
-            JourneyPanel(topInset: headerHeight + 8, bottomInset: bottomOverlayHeight)
-
-            // Foreground layer: Main UI
-            VStack(spacing: 0) {
-                // Top HUD
-                HUDTopBar(onLeaderboardTap: { isShowingLeaderboard = true })
-
-                // Main content with side rails and center progression
-                GeometryReader { geo in
-                    HStack(alignment: .center, spacing: 16) {
-                        // Left rail
-                        VStack(spacing: 20) {
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "dailypic",
-                                title: "DAILY",
-                                badge: dailyClaimsStore.canClaimToday,
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { actions.openDaily() }
-                            )
-
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "spinthewheel",
-                                title: "FREE SPIN",
-                                badgeCount: spinState.bonusSpins,
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { actions.openFreeSpin() }
-                            )
-
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "mysterybox",
-                                title: "SHOP",
-                                badge: state.hasShopBadge,
-                                action: { isShowingShop = true }
-                            )
-
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "soundeffect",
-                                title: "MUSIC",
-                                action: { isShowingMusic = true }
-                            )
-
-                            SideRailButton(
-                                systemImage: "bolt.fill",
-                                customImage: nil,
-                                title: "BOOSTS",
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { isShowingBoosts = true }
-                            )
-
-                            Spacer(minLength: 0)
-                        }
-                        .frame(width: 80)
-                        .padding(.top, 20)
-
-                        // Center column: empty space, touches pass through to JourneyPanel
-                        Spacer()
-                            .frame(maxWidth: .infinity)
-
-                        // Right rail
-                        VStack(spacing: 20) {
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "createagame",
-                                title: "CREATE",
-                                locked: state.isCreateLocked,
-                                banned: state.isBanned,
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { actions.openCreate() }
-                            )
-                            
-                            if !purchaseService.isAdFreePurchased {
-                                SideRailButton(
-                                    systemImage: nil,
-                                    customImage: "ads",
-                                    title: "BONUS",
-                                    badge: true,
-                                    banned: state.isBanned,
-                                    specialLabel: "+\(state.adReward)",
-                                    specialLabelInside: true,
-                                    onBannedTap: { state.showBanAlert = true },
-                                    action: {
-                                        isShowingAdBonusIntro = true
-                                    }
-                                )
-                            }
-                            
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "challenge",
-                                title: "CHALLENGE",
-                                locked: state.isChallengeLocked,
-                                banned: state.isBanned,
-                                onLockedTap: {
-                                    showLockedChallengeAlert = true
-                                },
-                                onBannedTap: { state.showBanAlert = true },
-                                action: { actions.openChallenge() }
-                            )
-
-                            // Best Offer with countdown
-                            if let deadline = state.bestOfferDeadline {
-                                VStack(spacing: 6) {
-                                    SideRailButton(
-                                        systemImage: nil,
-                                        customImage: "gift",
-                                        title: "BEST OFFER",
-                                        action: { isShowingWeeklyOffer = true }
-                                    )
-                                    CountdownView(deadline: deadline)
-                                }
-                            } else {
-                                SideRailButton(
-                                    systemImage: nil,
-                                    customImage: "gift",
-                                    title: "BEST OFFER",
-                                    action: { isShowingWeeklyOffer = true }
-                                )
-                            }
-
-                            SideRailButton(
-                                systemImage: nil,
-                                customImage: "themedefault",
-                                title: "THEME",
-                                action: { isShowingThemePicker = true }
-                            )
-
-                            Spacer(minLength: 0)
-                        }
-                        .frame(width: 80)
-                        .padding(.top, 20)
-                    }
-                    .padding(.horizontal, 12)
-                }
-
-                // Play button
-                PillButton(title: "Play", icon: "play.fill") {
-                    if state.isBanned {
-                        state.showBanAlert = true
-                    } else {
-                        actions.play()
-                    }
-                }
-                .overlay(alignment: .topTrailing) {
-                    if state.isBanned {
-                        Image(systemName: "exclamationmark.octagon.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
-                            .offset(x: -8, y: -4)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical)
-
-                // Bottom dock
-                HStack(spacing: 22) {
-                    dockItem(
-                        system: "person.circle.fill",
-                        title: "Profile",
-                        badge: state.hasProfileBadge,
-                        action: {
-                            isShowingProfile = true
-                        }
-                    )
-                    dockItem(
-                        system: "star.circle.fill",
-                        title: "Achievements",
-                        badgeCount: state.achievementsBadgeCount,
-                        banned: state.isBanned,
-                        action: {
-                            if state.isBanned { state.showBanAlert = true }
-                            else { isShowingAchievements = true }
-                        }
-                    )
-                    dockItem(
-                        system: "trophy.circle.fill",
-                        title: "Leaderboard",
-                        action: {
-                            isShowingLeaderboard = true
-                        }
-                    )
-                    dockItem(
-                        system: "gearshape.fill",
-                        title: "Settings",
-                        action: {
-                            isShowingSettings = true
-                        }
-                    )
-                }
-                .padding(.bottom, 16)
-                .background(
-                    GeometryReader { geo in
-                        Color.clear
-                            .onAppear { bottomDockHeight = geo.size.height }
-                            .onChange(of: geo.size.height) { _, new in bottomDockHeight = new }
+        }
+        // Unified destination sheet (full screen on iPad)
+        .adaptiveSheet(item: $presentedSheet) { destination in
+            switch destination {
+            case .leaderboard:
+                LeaderboardView(client: leaderboardClient)
+            case .achievements:
+                AchievementsView()
+            case .music:
+                MusicThemesView(
+                    onTry: { instrument in
+                        print("Try instrument: \(instrument.id)")
+                    },
+                    onPurchase: { instrument in
+                        print("Purchase tapped for: \(instrument.id)")
                     }
                 )
+            case .shop:
+                ShopView()
+            case .profile:
+                PlayerProfileView()
+            case .settings:
+                SettingsView()
+                    .environment(state)
+            case .themePicker:
+                ThemePickerView()
+            case .dailyQuests:
+                DailyQuestsView()
+            case .dailyStreaks:
+                DailyStreaksView()
+            case .practice:
+                PracticeHubView(
+                    onOpenDailyChallenge: { closeSheetAndRun { actions.openChallenge() } },
+                    onOpenCreate: { closeSheetAndRun { actions.openCreate() } },
+                    onOpenProCoach: { presentedSheet = .proCoach }
+                )
+            case .modes:
+                ModeLibraryView(
+                    onPlay: { closeSheetAndRun { actions.play() } },
+                    onDaily: { closeSheetAndRun { actions.openDaily() } },
+                    onChallenge: { closeSheetAndRun { actions.openChallenge() } },
+                    onCreate: { closeSheetAndRun { actions.openCreate() } },
+                    onPractice: { presentedSheet = .practice }
+                )
+            case .feed:
+                SocialFeedView()
+            case .friends:
+                FriendsView()
+            case .account:
+                AccountCenterView()
+            case .subscription:
+                SubscriptionCenterView()
+            case .reminders:
+                ReminderSettingsView()
+            case .widgetPromo:
+                WidgetPromoView()
+            case .yearReview:
+                YearReviewView()
+            case .proCoach:
+                ProCoachView()
             }
-            .zIndex(1)
-        }
-        // Leaderboard (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingLeaderboard) {
-            LeaderboardView(client: leaderboardClient)
-        }
-        // Achievements (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingAchievements) {
-            AchievementsView()
-        }
-        // Music Themes (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingMusic) {
-            MusicThemesView(
-                onTry: { instrument in
-                    // Placeholder: ad presentation to be implemented by host later
-                    print("Try instrument: \(instrument.id)")
-                },
-                onPurchase: { instrument in
-                    print("Purchase tapped for: \(instrument.id)")
-                }
-            )
-        }
-        // Shop (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingShop) {
-            ShopView()
-        }
-        // Profile (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingProfile) {
-            PlayerProfileView()
-        }
-        // Settings (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingSettings) {
-            SettingsView()
-                .environment(state)
-        }
-        // Theme Picker (full screen on iPad)
-        .adaptiveSheet(isPresented: $isShowingThemePicker) {
-            ThemePickerView()
         }
         // Boosts Sheet
         .sheet(isPresented: $isShowingBoosts) {
@@ -317,6 +179,9 @@ public struct HomeView: View {
         }
         // Floating toast notification overlay
         .toastOverlay(manager: toastManager)
+        .onChange(of: deepLinkRouter.pendingRoute) { _, route in
+            consumeHomeOwnedRoute(route)
+        }
         // Update achievements badge count + auto-present weekly offer once per ISO week
         .onAppear {
             state.achievementsBadgeCount = achievementStore.claimableCount
@@ -324,6 +189,15 @@ public struct HomeView: View {
                 WeeklyOfferManager.markAutoPresented()
                 isShowingWeeklyOffer = true
             }
+            // Consume any pending route that arrived before HomeView was on
+            // screen (e.g., cold launch via deep link).
+            consumeHomeOwnedRoute(deepLinkRouter.pendingRoute)
+        }
+        .task {
+            // Refresh consent state once per home appearance so the
+            // privacy recommendation surfaces in EU regions where UMP
+            // requires it.
+            isPrivacyOptionsRequired = await adService.isPrivacyOptionsRequired()
         }
         .onChange(of: achievementStore.claimableCount) { _, newCount in
             state.achievementsBadgeCount = newCount
@@ -343,155 +217,496 @@ public struct HomeView: View {
         } message: {
             Text("You have \(state.warningsRemaining) chances left! After that, you are banned!")
         }
-        .alert(state.evaluationTitle, isPresented: Bindable(state).showEvaluationAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(state.evaluationMessage)
-        }
+        .trackScreen(.home)
     }
 
-    private func dockItem(system: String, title: String, badge: Bool = false, badgeCount: Int = 0, banned: Bool = false, action: @escaping () -> Void) -> some View {
-        if #available(iOS 26.0, macOS 26.0, *) {
-            return AnyView(
-                Button(action: action) {
-                    VStack(spacing: 4) {
-                        // Prefer asset with same semantic name if available
-                        let asset = assetName(for: title)
-                        if !asset.isEmpty {
-                            Image(asset)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 48, height: 48)
-                        } else {
-                            Image(systemName: system)
-                                .font(.system(size: 24))
-                        }
-                    }
-                    .frame(width: 56, height: 56)
-                    .padding(4)
-                    .overlay(alignment: .topTrailing) {
-                        if banned {
-                            Image(systemName: "exclamationmark.octagon.fill")
-                                .font(.system(size: 16))
-                                .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
-                                .offset(x: 6, y: -4)
-                        } else if badgeCount > 0 {
-                            Text("\(badgeCount)")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 2)
-                                .background(Color.red)
-                                .clipShape(Capsule())
-                                .offset(x: 6, y: -4)
-                        }
-                    }
-                }
-                .buttonStyle(.glass)
+    @ViewBuilder
+    private func header(recommendation: NextBestAction?, horizontalPadding: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            HomeTopHUDView(
+                streakDays: dailyClaimsStore.currentStreak,
+                gems: state.gems,
+                onStreakTap: { presentedSheet = .dailyStreaks },
+                onShopTap: { actions.openShop() }
             )
-        } else {
-            return AnyView(
-                Button(action: action) {
-                    VStack(spacing: 4) {
-                        let asset = assetName(for: title)
-                        if !asset.isEmpty {
-                            Image(asset)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 48, height: 48)
-                        } else {
-                            Image(systemName: system)
-                                .font(.system(size: 24))
-                        }
-                    }
-                    .frame(width: 56, height: 56)
-                    .padding(4)
-                    .overlay(alignment: .topTrailing) {
-                        if banned {
-                            Image(systemName: "exclamationmark.octagon.fill")
-                                .font(.system(size: 16))
-                                .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
-                                .offset(x: 6, y: -4)
-                        } else if badgeCount > 0 {
-                            Text("\(badgeCount)")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 2)
-                                .background(Color.red)
-                                .clipShape(Capsule())
-                                .offset(x: 6, y: -4)
-                        }
-                    }
+
+            if let recommendation {
+                HomeRecommendationBanner(action: recommendation) {
+                    applyRecommendation(recommendation)
+                } onDismiss: {
+                    playerReadiness.dismissRecommendation(recommendation)
                 }
-            )
-        }
-    }
-
-
-    private func assetName(for title: String) -> String {
-        switch title.lowercased() {
-        case "profile": return "profile"
-        case "achievements": return "achievement"
-        case "leaderboard": return "leaderboard"
-        case "settings": return "settings"
-        case "theme": return "themedefault"
-        default: return ""
-        }
-    }
-}
-
-// (Removed inline daily rewards card; daily rewards are accessed via the Daily button.)
-
-private struct ThemeButton: View {
-    let name: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(themeGradient)
-                    .frame(width: 56, height: 56)
-                    .overlay {
-                        Image(systemName: themeIcon)
-                            .font(.title2)
-                    }
-                Text(name)
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.8))
+                .padding(.horizontal, horizontalPadding)
+                .padding(.top, 8)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
-    
-    private var themeGradient: LinearGradient {
-        switch name.lowercased() {
-        case "beach":
-            return LinearGradient(
-                colors: [Color.orange, Color.yellow],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        case "aqua":
-            return LinearGradient(
-                colors: [Color.init(hex: "EBEBEB")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        default:
-            return LinearGradient(
-                colors: [Color.purple, Color.pink],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+
+    @ViewBuilder
+    private func sideRail(items: [HomeRailItem], metrics: HomeLayoutMetrics.RailMetrics) -> some View {
+        if metrics.columnCount == 1 {
+            VStack(spacing: metrics.rowSpacing) {
+                ForEach(items) { item in
+                    railButton(item, metrics: metrics)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.top, metrics.topPadding)
+            .frame(width: metrics.totalWidth)
+        } else {
+            VStack(spacing: 0) {
+                LazyVGrid(
+                    columns: Array(
+                        repeating: GridItem(.fixed(metrics.itemWidth), spacing: metrics.columnSpacing),
+                        count: metrics.columnCount
+                    ),
+                    spacing: metrics.rowSpacing
+                ) {
+                    ForEach(items) { item in
+                        railButton(item, metrics: metrics)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.top, metrics.topPadding)
+            .frame(width: metrics.totalWidth)
         }
     }
-    
-    private var themeIcon: String {
-        switch name.lowercased() {
-        case "beach": return "sun.max.fill"
-        case "aqua": return "drop.fill"
-        default: return "sparkle"
+
+    private func railButton(_ item: HomeRailItem, metrics: HomeLayoutMetrics.RailMetrics) -> some View {
+        SideRailButton(
+            systemImage: item.systemImage,
+            customImage: item.customImage,
+            title: item.title,
+            metrics: metrics,
+            badge: item.badge,
+            badgeCount: item.badgeCount,
+            locked: item.locked,
+            banned: item.banned,
+            specialLabel: item.specialLabel,
+            specialLabelInside: item.specialLabelInside,
+            countdownDeadline: item.countdownDeadline,
+            onLockedTap: item.onLockedTap,
+            onBannedTap: item.onBannedTap,
+            action: item.action
+        )
+    }
+
+    private func playButton(metrics: HomeLayoutMetrics.PlayButtonMetrics) -> some View {
+        PillButton(title: "Play", icon: "play.fill", metrics: metrics) {
+            if state.isBanned {
+                state.showBanAlert = true
+            } else {
+                actions.play()
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if state.isBanned {
+                Image(systemName: "exclamationmark.octagon.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
+                    .offset(x: -8, y: 2)
+            }
+        }
+    }
+
+    private func bottomDock(items: [HomeDockItem], metrics: HomeLayoutMetrics.DockMetrics) -> some View {
+        HomeCustomTabBar(items: items, metrics: metrics)
+    }
+
+    private var leftRailItems: [HomeRailItem] {
+        var items: [HomeRailItem] = []
+
+        if playerReadiness.isVisible(.daily) {
+            items.append(
+                HomeRailItem(
+                    id: "daily",
+                    systemImage: nil,
+                    customImage: "dailypic",
+                    title: "DAILY",
+                    badge: dailyClaimsStore.canClaimToday,
+                    banned: state.isBanned,
+                    onBannedTap: { state.showBanAlert = true },
+                    action: { actions.openDaily() }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.freeSpin) {
+            items.append(
+                HomeRailItem(
+                    id: "free-spin",
+                    systemImage: nil,
+                    customImage: "spinthewheel",
+                    title: "FREE SPIN",
+                    badgeCount: spinState.bonusSpins,
+                    banned: state.isBanned,
+                    onBannedTap: { state.showBanAlert = true },
+                    action: { actions.openFreeSpin() }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.shop) {
+            items.append(
+                HomeRailItem(
+                    id: "shop",
+                    systemImage: nil,
+                    customImage: "mysterybox",
+                    title: "SHOP",
+                    badge: state.hasShopBadge,
+                    action: { presentedSheet = .shop }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.music) {
+            items.append(
+                HomeRailItem(
+                    id: "music",
+                    systemImage: nil,
+                    customImage: "soundeffect",
+                    title: "MUSIC",
+                    action: { presentedSheet = .music }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.boosts) {
+            items.append(
+                HomeRailItem(
+                    id: "boosts",
+                    systemImage: "bolt.fill",
+                    customImage: nil,
+                    title: "BOOSTS",
+                    banned: state.isBanned,
+                    onBannedTap: { state.showBanAlert = true },
+                    action: { isShowingBoosts = true }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.practice) {
+            items.append(
+                HomeRailItem(
+                    id: "practice",
+                    systemImage: "target",
+                    customImage: nil,
+                    title: "PRACTICE",
+                    action: { presentedSheet = .practice }
+                )
+            )
+        }
+
+        return items
+    }
+
+    private var rightRailItems: [HomeRailItem] {
+        var items: [HomeRailItem] = []
+
+        if playerReadiness.isVisible(.create) || isCreateNearUnlock {
+            items.append(
+                HomeRailItem(
+                    id: "create",
+                    systemImage: nil,
+                    customImage: "createagame",
+                    title: "CREATE",
+                    locked: state.isCreateLocked,
+                    banned: state.isBanned,
+                    onLockedTap: {},
+                    onBannedTap: { state.showBanAlert = true },
+                    action: { actions.openCreate() }
+                )
+            )
+        }
+
+        if !purchaseService.isAdFreePurchased && playerReadiness.isVisible(.adBonus) {
+            items.append(
+                HomeRailItem(
+                    id: "ad-bonus",
+                    systemImage: nil,
+                    customImage: "ads",
+                    title: "BONUS",
+                    badge: true,
+                    banned: state.isBanned,
+                    specialLabel: "+\(state.adReward)",
+                    specialLabelInside: true,
+                    onBannedTap: { state.showBanAlert = true },
+                    action: { isShowingAdBonusIntro = true }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.challenge) || isChallengeNearUnlock {
+            items.append(
+                HomeRailItem(
+                    id: "challenge",
+                    systemImage: nil,
+                    customImage: "challenge",
+                    title: "CHALLENGE",
+                    locked: state.isChallengeLocked,
+                    banned: state.isBanned,
+                    onLockedTap: { showLockedChallengeAlert = true },
+                    onBannedTap: { state.showBanAlert = true },
+                    action: { actions.openChallenge() }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.bestOffer) {
+            items.append(
+                HomeRailItem(
+                    id: "best-offer",
+                    systemImage: nil,
+                    customImage: "gift",
+                    title: "BEST OFFER",
+                    countdownDeadline: state.bestOfferDeadline,
+                    action: { isShowingWeeklyOffer = true }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.theme) {
+            items.append(
+                HomeRailItem(
+                    id: "theme",
+                    systemImage: nil,
+                    customImage: "themedefault",
+                    title: "THEME",
+                    action: { presentedSheet = .themePicker }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.modes) {
+            items.append(
+                HomeRailItem(
+                    id: "modes",
+                    systemImage: "square.grid.2x2.fill",
+                    customImage: nil,
+                    title: "MODES",
+                    action: { presentedSheet = .modes }
+                )
+            )
+        }
+
+        return items
+    }
+
+    private var dockItems: [HomeDockItem] {
+        var items: [HomeDockItem] = []
+
+        if playerReadiness.isVisible(.profile) {
+            items.append(
+                HomeDockItem(
+                    id: "profile",
+                    system: "person.circle.fill",
+                    title: "Profile",
+                    badge: state.hasProfileBadge,
+                    action: { presentedSheet = .profile }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.achievements) {
+            items.append(
+                HomeDockItem(
+                    id: "achievements",
+                    system: "star.circle.fill",
+                    title: "Achievements",
+                    badgeCount: state.achievementsBadgeCount,
+                    banned: state.isBanned,
+                    action: {
+                        if state.isBanned { state.showBanAlert = true }
+                        else { presentedSheet = .achievements }
+                    }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.leaderboard) {
+            items.append(
+                HomeDockItem(
+                    id: "leaderboard",
+                    system: "trophy.circle.fill",
+                    title: "Leaderboard",
+                    action: { presentedSheet = .leaderboard }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.feed) {
+            items.append(
+                HomeDockItem(
+                    id: "feed",
+                    system: "bubble.left.and.bubble.right.fill",
+                    title: "Feed",
+                    action: { presentedSheet = .feed }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.friends) {
+            items.append(
+                HomeDockItem(
+                    id: "friends",
+                    system: "person.2.circle.fill",
+                    title: "Friends",
+                    action: { presentedSheet = .friends }
+                )
+            )
+        }
+
+        items.append(
+            HomeDockItem(
+                id: "settings",
+                system: "gearshape.fill",
+                title: "Settings",
+                action: { presentedSheet = .settings }
+            )
+        )
+
+        return items
+    }
+
+    private func closeSheetAndRun(_ action: @escaping @MainActor () -> Void) {
+        presentedSheet = nil
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            action()
+        }
+    }
+
+    // MARK: - Recommendation / readiness helpers
+
+    /// Build the single recommendation to highlight, gated by readiness state.
+    private var currentRecommendation: NextBestAction? {
+        let action = playerReadiness.nextBestAction(
+            highestTile: gameStore.state.highestTile,
+            highestTileStep: gameStore.state.highestTileStep,
+            gems: state.gems,
+            canClaimDaily: dailyClaimsStore.canClaimToday,
+            bonusSpins: spinState.bonusSpins,
+            isPrivacyOptionsRequired: isPrivacyOptionsRequired
+        )
+        // .play and .nextMilestone are surfaced via the main Play button rather than a banner.
+        if action == .play || action == .nextMilestone { return nil }
+        return action
+    }
+
+    private var isCreateNearUnlock: Bool {
+        gameStore.state.highestTileStep >= 15 || gameStore.state.highestTile >= 65_536
+    }
+
+    private var isChallengeNearUnlock: Bool {
+        gameStore.state.highestTileStep >= 25 || gameStore.state.highestTile >= 67_108_864
+    }
+
+    private func applyRecommendation(_ action: NextBestAction) {
+        switch action {
+        case .tutorial, .play, .nextMilestone:
+            actions.play()
+        case .claimDaily:
+            actions.openDaily()
+        case .freeSpin:
+            actions.openFreeSpin()
+        case .unlockCreate:
+            if !state.isCreateLocked { actions.openCreate() }
+        case .unlockChallenge:
+            if !state.isChallengeLocked { actions.openChallenge() }
+        case .lowInventoryShop:
+            presentedSheet = .shop
+        case .settingsPrivacy:
+            // Surface the UMP privacy form directly when available; otherwise
+            // open Settings so the player can find the privacy controls.
+            Task {
+                let didPresent = await adService.showPrivacyOptions()
+                if !didPresent {
+                    await MainActor.run { presentedSheet = .settings }
+                }
+                isPrivacyOptionsRequired = await adService.isPrivacyOptionsRequired()
+            }
+        }
+    }
+
+    /// Routes that HomeView's `presentedSheet` owns. RootGameView handles
+    /// the rest (shop, daily, spin, challenge, gameplay, tutorial).
+    @MainActor
+    private func consumeHomeOwnedRoute(_ route: AppRoute?) {
+        guard let route else { return }
+        switch route {
+        case .settings:
+            presentedSheet = .settings
+        case .profile:
+            presentedSheet = .profile
+        case .achievements:
+            presentedSheet = .achievements
+        case .leaderboard:
+            presentedSheet = .leaderboard
+        case .theme:
+            presentedSheet = .themePicker
+        case .music:
+            presentedSheet = .music
+        case .dailyQuests:
+            presentedSheet = .dailyQuests
+        case .dailyStreaks:
+            presentedSheet = .dailyStreaks
+        case .practice:
+            presentedSheet = .practice
+        case .modes:
+            presentedSheet = .modes
+        case .feed:
+            presentedSheet = .feed
+        case .friends:
+            presentedSheet = .friends
+        case .account:
+            presentedSheet = .account
+        case .subscription:
+            presentedSheet = .subscription
+        case .reminders:
+            presentedSheet = .reminders
+        case .widgetPromo:
+            presentedSheet = .widgetPromo
+        case .yearReview:
+            presentedSheet = .yearReview
+        case .proCoach:
+            presentedSheet = .proCoach
+        case .shop, .daily, .spin, .challenge, .tutorial, .gameplay:
+            return
+        }
+        deepLinkRouter.consume()
+    }
+}
+
+private struct HomeRailItem: Identifiable {
+    let id: String
+    let systemImage: String?
+    let customImage: String?
+    let title: String
+    var badge: Bool = false
+    var badgeCount: Int? = nil
+    var locked: Bool = false
+    var banned: Bool = false
+    var specialLabel: String? = nil
+    var specialLabelInside: Bool = false
+    var countdownDeadline: Date? = nil
+    var onLockedTap: (() -> Void)? = nil
+    var onBannedTap: (() -> Void)? = nil
+    let action: () -> Void
+}
+
+private struct HeightReader: View {
+    @Binding var height: CGFloat
+
+    var body: some View {
+        GeometryReader { geo in
+            Color.clear
+                .onAppear {
+                    height = geo.size.height
+                }
+                .onChange(of: geo.size.height) { _, newHeight in
+                    height = newHeight
+                }
         }
     }
 }
@@ -625,6 +840,7 @@ public extension View {
         .environment(\.leaderboardClient, .mock)
         .environment(\.toastManager, toastManager)
         .environment(DailyQuestStore())
+        .environment(PlayerReadinessStore())
 }
 
 #Preview("Home - Best Offer") {
@@ -680,4 +896,5 @@ public extension View {
         .environment(\.leaderboardClient, .mock)
         .environment(\.toastManager, toastManager)
         .environment(DailyQuestStore())
+        .environment(PlayerReadinessStore())
 }

@@ -9,15 +9,15 @@ struct JourneyProgressionTests {
     func testJourneyProgressionTo873bz() {
         let tiles = JourneyTileGenerator.generateFullJourney()
         
-        // Should have 817 tiles plus infinity
+        // Should have 817 finite tiles plus infinity
         #expect(tiles.count == 818)  // 817 doublings + 1 infinity tile
         
-        // Last tile before infinity should be step 817 (873bz)
+        // Last tile before infinity should be step 816 (873bz)
         let lastTile = tiles[tiles.count - 2]
         if case .highValue(let step) = lastTile.type {
-            #expect(step == 817)
+            #expect(step == 816)
             let formatted = JourneyTileGenerator.formatTileAtStep(step)
-            print("Step 817 formats as: \(formatted)")
+            print("Step 816 formats as: \(formatted)")
             #expect(formatted == "873bz")
         } else {
             Issue.record("Last tile before infinity should be highValue type")
@@ -39,7 +39,7 @@ struct JourneyProgressionTests {
             (40, "1a"),     // 2^40 ≈ 1.1 * 10^12 ≈ 1a
             (50, "1b"),     // 2^50 ≈ 1.1 * 10^15 ≈ 1b
             (60, "1c"),     // 2^60 ≈ 1.2 * 10^18 ≈ 1c
-            (817, "873bz")  // The target!
+            (816, "873bz")  // The target!
         ]
         
         for (step, expected) in testCases {

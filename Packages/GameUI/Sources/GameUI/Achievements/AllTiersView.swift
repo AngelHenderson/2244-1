@@ -224,3 +224,12 @@ private struct TierRewardSummary: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("All Achievement Tiers") {
+    AllTiersView(
+        achievementTitle: "Moves Progression",
+        tiers: ScreenPreviewFixtures.achievementTiers()
+    )
+}
+#endif

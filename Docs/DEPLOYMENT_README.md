@@ -101,8 +101,12 @@ Then clean and rebuild:
 rm -rf ~/Library/Developer/Xcode/DerivedData/game2244*
 
 # Rebuild in Xcode or command line
-xcodebuild -workspace game2244.xcworkspace -scheme game2244 clean build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 clean build
 ```
+
+Use `FIREBASE_SOURCE_FIRESTORE=1` for app-target package resolution and
+archives so the checked-in Xcode lockfiles match Xcode Cloud's `grpc-ios`
+Firestore graph.
 
 ## 🔧 Configuration Options
 
@@ -176,7 +180,8 @@ firebase emulators:start --only auth,firestore,functions
 ```
 
 ### Verification Checklist
-- [ ] GoogleService-Info.plist added to iOS target
+- [ ] `GoogleService-Info.plist` exists locally at
+      `2244/game2244/GoogleService-Info.plist` and is not tracked by git
 - [ ] Cloud Functions deployed
 - [ ] Firestore rules deployed
 - [ ] Anonymous authentication working
@@ -210,7 +215,8 @@ Solution: Clean build folder and resolve packages
 #### Authentication Fails
 ```
 Error: GoogleService-Info.plist not found
-Solution: Download from Firebase Console and add to iOS target
+Solution: Download from Firebase Console, place at
+2244/game2244/GoogleService-Info.plist, and keep it out of git
 ```
 
 #### Cloud Function Errors
@@ -268,7 +274,8 @@ firebase deploy --only firestore:rules
 
 1. **Test Implementation**: Use the existing code to verify everything works
 2. **Deploy Backend**: Set up Firebase project and deploy Cloud Functions
-3. **Add Configuration**: Include GoogleService-Info.plist in iOS project
+3. **Add Configuration**: Keep `GoogleService-Info.plist` locally in the iOS
+   target folder and verify `node scripts/validate-launch-readiness.mjs` passes
 4. **Switch Clients**: Change from Game Center to Firebase client
 5. **Monitor & Scale**: Use Firebase Console to track usage and performance
 

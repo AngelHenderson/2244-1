@@ -100,6 +100,7 @@ public final class ShopStore {
     private let purchaseService: PurchaseService?
     private weak var gemWallet: GemWallet?
     private weak var gameStore: GameStore?
+    private weak var rewardLedger: RewardLedgerStore?
     private var grantedTransactionIDs: Set<String>
     private static let grantedTransactionIDsKey = "shopGrantedTransactionIDs"
     
@@ -107,12 +108,14 @@ public final class ShopStore {
         journeyStore: JourneyKit.Store,
         purchaseService: PurchaseService? = nil,
         gemWallet: GemWallet? = nil,
-        gameStore: GameStore? = nil
+        gameStore: GameStore? = nil,
+        rewardLedger: RewardLedgerStore? = nil
     ) {
         self.journeyStore = journeyStore
         self.purchaseService = purchaseService
         self.gemWallet = gemWallet
         self.gameStore = gameStore
+        self.rewardLedger = rewardLedger
         self.grantedTransactionIDs = Set(
             UserDefaults.standard.stringArray(forKey: Self.grantedTransactionIDsKey) ?? []
         )
@@ -281,23 +284,73 @@ public final class ShopStore {
         UserDefaults.standard.set(Array(grantedTransactionIDs), forKey: Self.grantedTransactionIDsKey)
 
         guard let product = IAPProduct.product(for: purchase.productID) else { return }
-        grantProductRewards(product)
+        grantProductRewards(product, transactionID: purchase.transactionID)
         purchasedBundles.insert(product.id)
     }
 
-    private func grantProductRewards(_ product: IAPProduct) {
-        for item in product.items {
+    /// Test-only seam exposing the verified-purchase apply path. Hidden from
+    /// the public surface so production callers continue to flow through the
+    /// `PurchaseService.onVerifiedPurchase` callback.
+    internal func _applyVerifiedPurchaseForTesting(_ purchase: VerifiedPurchase) {
+        applyVerifiedPurchase(purchase)
+    }
+
+    private func grantProductRewards(_ product: IAPProduct, transactionID: String) {
+        for (index, item) in product.items.enumerated() {
+            let key = "\(transactionID):\(product.id):\(index):\(item.ledgerItemType.rawValue)"
             switch item.type {
             case .coins:
-                grantGems(item.quantity)
+                grantWithLedger(
+                    source: .purchase,
+                    itemType: .gems,
+                    amount: item.quantity,
+                    idempotencyKey: key
+                ) {
+                    grantGems(item.quantity)
+                }
             case .powerUp(let type):
-                grantPowerUp(type.rawValue, count: item.quantity)
+                grantWithLedger(
+                    source: .purchase,
+                    itemType: type.ledgerItemType,
+                    amount: item.quantity,
+                    idempotencyKey: key
+                ) {
+                    grantPowerUp(type.rawValue, count: item.quantity)
+                }
             case .adFree:
-                UserDefaults.standard.set(true, forKey: "isAdFreePurchased")
+                grantWithLedger(
+                    source: .purchase,
+                    itemType: .adFree,
+                    amount: item.quantity,
+                    idempotencyKey: key
+                ) {
+                    UserDefaults.standard.set(true, forKey: "isAdFreePurchased")
+                }
             case .theme, .experience, .subscription:
                 continue
             }
         }
+    }
+
+    private func grantWithLedger(
+        source: RewardLedgerEntry.Source,
+        itemType: RewardLedgerEntry.ItemType,
+        amount: Int,
+        idempotencyKey: String,
+        apply: @MainActor () -> Void
+    ) {
+        guard let rewardLedger else {
+            apply()
+            return
+        }
+
+        rewardLedger.grant(
+            source: source,
+            itemType: itemType,
+            amount: amount,
+            idempotencyKey: idempotencyKey,
+            apply: apply
+        )
     }
 
     private func grantPowerUp(_ type: String, count: Int) {
@@ -398,6 +451,38 @@ private extension Array where Element == IAPProductItem {
     }
 }
 
+private extension IAPProductItem {
+    var ledgerItemType: RewardLedgerEntry.ItemType {
+        switch type {
+        case .coins:
+            return .gems
+        case .powerUp(let powerUp):
+            return powerUp.ledgerItemType
+        case .theme:
+            return .theme
+        case .adFree:
+            return .adFree
+        case .experience:
+            return .gems
+        case .subscription:
+            return .subscription
+        }
+    }
+}
+
+private extension PowerUpType {
+    var ledgerItemType: RewardLedgerEntry.ItemType {
+        switch self {
+        case .hammer: return .hammer
+        case .swap: return .swap
+        case .magnet: return .magnet
+        case .undo: return .undo
+        case .shuffle: return .shuffle
+        case .double: return .double
+        }
+    }
+}
+
 // MARK: - Environment Key
 private struct ShopStoreKey: EnvironmentKey {
     nonisolated static var defaultValue: ShopStore {
@@ -414,3 +499,34 @@ public extension EnvironmentValues {
         set { self[ShopStoreKey.self] = newValue }
     }
 }
+
+#if DEBUG
+public extension ShopCatalog {
+    @MainActor
+    static let preview = ShopCatalog(
+        catalogVersion: "preview",
+        lastUpdated: "2026-05-04T00:00:00Z",
+        currency: "USD",
+        pricingModel: "one_time",
+        bundles: [
+            ShopBundle.canonical(IAPProduct.starterPackProduct, tags: ["Starter"]),
+            ShopBundle.canonical(IAPProduct.powerUpBundleProduct, tags: ["Tools"]),
+            ShopBundle.canonical(IAPProduct.megaBundleProduct, tags: ["Best Value"]),
+        ],
+        gemBundles: [
+            GemBundle(id: IAPProduct.smallCoinsProduct.id, gems: 500, price: 0.99, tags: nil),
+            GemBundle(id: IAPProduct.mediumCoinsProduct.id, gems: 2_500, price: 3.99, tags: ["Popular"]),
+            GemBundle(id: IAPProduct.largeCoinsProduct.id, gems: 10_000, price: 9.99, tags: ["Best Value"]),
+        ],
+        perkBundles: [
+            PerkBundle(id: "preview-hammer-3", item: "hammer", quantity: 3, price: 1.99),
+            PerkBundle(id: "preview-swap-3", item: "swap", quantity: 3, price: 1.99),
+            PerkBundle(id: "preview-magnet-2", item: "magnet", quantity: 2, price: 2.99),
+        ],
+        freePerks: [
+            PerkBundle(id: "preview-free-hammer", item: "hammer", quantity: 1, price: 0),
+            PerkBundle(id: "preview-free-swap", item: "swap", quantity: 1, price: 0),
+        ]
+    )
+}
+#endif

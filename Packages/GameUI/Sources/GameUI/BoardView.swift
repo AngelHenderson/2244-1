@@ -20,14 +20,22 @@ public struct BoardView: View {
     @State private var isDragging = false
     @State private var magnetAnimations: [MagnetAnimationModel] = []
     
-    private let spacing: CGFloat = 8
+    private let spacing: CGFloat
     private let cornerRadius: CGFloat = 12
     private let onTileTap: ((Position) -> Void)?
     private let isPowerUpActive: Bool
+    private let maxTileSize: CGFloat?
 
-    public init(onTileTap: ((Position) -> Void)? = nil, isPowerUpActive: Bool = false) {
+    public init(
+        onTileTap: ((Position) -> Void)? = nil,
+        isPowerUpActive: Bool = false,
+        maxTileSize: CGFloat? = nil,
+        gridSpacing: CGFloat = 8
+    ) {
         self.onTileTap = onTileTap
         self.isPowerUpActive = isPowerUpActive
+        self.maxTileSize = maxTileSize
+        self.spacing = gridSpacing
     }
     
     public var body: some View {
@@ -388,17 +396,14 @@ public struct BoardView: View {
     }
     
     private func calculateTileSize(in size: CGSize) -> CGFloat {
-        guard size.width.isFinite, size.height.isFinite, size.width > 0, size.height > 0 else { return 0 }
-        let widthCount = max(1, gameStore.state.board.width)
-        let heightCount = max(1, gameStore.state.board.height)
-        let totalSpacingW = spacing * CGFloat(widthCount + 1)
-        let totalSpacingH = spacing * CGFloat(heightCount + 1)
-        let availableWidth = max(0, size.width - totalSpacingW)
-        let availableHeight = max(0, size.height - totalSpacingH)
-        let tileWidth = availableWidth / CGFloat(widthCount)
-        let tileHeight = availableHeight / CGFloat(heightCount)
-        let candidate = min(tileWidth, tileHeight)
-        return candidate.isFinite ? max(0, candidate) : 0
+        PuzzleBoardSizing.tileSize(
+            availableWidth: size.width,
+            availableHeight: size.height,
+            rows: gameStore.state.board.height,
+            columns: gameStore.state.board.width,
+            spacing: spacing,
+            maxTileSize: maxTileSize
+        )
     }
     
     private func gridPosition(from location: CGPoint, tileSize: CGFloat, containerSize: CGSize) -> Position? {

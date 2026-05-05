@@ -1103,3 +1103,12 @@ struct HistoryEvent: Identifiable {
         }
     }
 }
+
+#if DEBUG
+#Preview("Player History") {
+    PlayerHistoryView(
+        entries: ScreenPreviewFixtures.leaderboardEntries,
+        filterId: "global"
+    )
+}
+#endif

@@ -207,20 +207,17 @@ public final class UserDefaultsProgressStore: ProgressStore, @unchecked Sendable
     }
 }
 
-// MARK: - Remote Store (Stub)
+// MARK: - In-Memory Remote Store
 public actor RemoteProgressStore: ProgressStore {
     private var cache: GameProgress?
     
     public init() {}
     
     public func load() async throws -> GameProgress? {
-        // TODO: Implement with CloudKit/Firebase
-        // For now, return cached value
         return cache
     }
     
     public func save(_ progress: GameProgress) async throws {
-        // TODO: Save to CloudKit/Firebase
         cache = progress
     }
     

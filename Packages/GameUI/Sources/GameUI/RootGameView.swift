@@ -9,10 +9,13 @@ import FirebaseCore
 public struct RootGameView: View {
     private let managesBackground: Bool
     @Environment(HomeState.self) private var homeState
+    @Environment(PlayerReadinessStore.self) private var playerReadiness
     @Environment(\.gameStore) private var gameStore
     @Environment(\.tileJourney) private var journey
     @Environment(\.adService) private var adService
     @Environment(\.purchaseService) private var purchaseService
+    @Environment(\.rewardLedgerOptional) private var rewardLedger
+    @Environment(\.deepLinkRouter) private var deepLinkRouter
     @State private var isPlaying = false
     @State private var hasLoadedInitialState = false
     @State private var showDailyClaims = false
@@ -27,6 +30,7 @@ public struct RootGameView: View {
     @State private var wheelEngine = WheelEngine()
     @State private var challengeStore = ChallengeStore()
     @State private var challengeDesignerStore = ChallengeDesignerStore()
+    @State private var isShowingTutorial = false
 
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
     @Environment(DailyQuestStore.self) private var dailyQuestStore
@@ -200,6 +204,59 @@ public struct RootGameView: View {
                     }
             }
         }
+        .task {
+            if FirstLaunchTutorialGate.shouldPresentInCurrentBuild(
+                hasCompletedTutorial: playerReadiness.hasCompletedTutorial
+            ) {
+                isShowingTutorial = true
+            }
+        }
+        .platformFullScreenCover(isPresented: $isShowingTutorial) {
+            OnboardingFlowView(onComplete: { preferences in
+                playerReadiness.updateOnboardingPreferences(preferences)
+                if preferences.completedAt == nil {
+                    playerReadiness.markTutorialCompleted()
+                }
+                isShowingTutorial = false
+            })
+        }
+        .onChange(of: deepLinkRouter.pendingRoute) { _, route in
+            consumeDeepLinkIfOwned(route)
+        }
+    }
+
+    /// Routes RootGameView owns. HomeView consumes the rest (settings,
+    /// profile, achievements, leaderboard, theme, music) via its own
+    /// observer.
+    @MainActor
+    private func consumeDeepLinkIfOwned(_ route: AppRoute?) {
+        guard let route else { return }
+        switch route {
+        case .shop:
+            showShop = true
+        case .daily:
+            showDailyClaims = true
+        case .dailyStreaks:
+            showDailyStreaks = true
+        case .spin:
+            showFreeSpin = true
+        case .challenge:
+            showChallenge = true
+        case .tutorial:
+            isShowingTutorial = true
+        case .gameplay:
+            if gameStore.state.isGameOver { gameStore.resetGame() }
+            withAnimation(.easeInOut(duration: 0.3)) { isPlaying = true }
+        case .settings:
+            // Owned by HomeView's presentedSheet; do not consume here.
+            return
+        case .dailyQuests, .practice, .modes, .feed, .friends, .account, .subscription,
+             .reminders, .widgetPromo, .yearReview, .proCoach, .profile, .achievements,
+             .leaderboard, .theme, .music:
+            // Owned by HomeView's presentedSheet; do not consume here.
+            return
+        }
+        deepLinkRouter.consume()
     }
     
 
@@ -230,14 +287,30 @@ public struct RootGameView: View {
             watchAd: {
                 guard !purchaseService.isAdFreePurchased else { return 0 }
                 let reward = homeState.adReward
-                let didReward = await adService.showRewardedInterstitial {
-                    homeState.addGems(reward)
-                    saveProgress()
+                let key = "ad:home:\(reward):\(Int(Date().timeIntervalSince1970))"
+                let didReward = await adService.showRewardedInterstitial { [reward] in
+                    if let rewardLedger {
+                        rewardLedger.grant(
+                            source: .ad,
+                            itemType: .gems,
+                            amount: reward,
+                            idempotencyKey: key
+                        ) {
+                            homeState.addGems(reward)
+                            saveProgress()
+                        }
+                    } else {
+                        homeState.addGems(reward)
+                        saveProgress()
+                    }
                 }
                 return didReward ? reward : 0
             },
             openDaily: {
                 showDailyClaims = true
+            },
+            openDailyStreaks: {
+                showDailyStreaks = true
             },
             openFreeSpin: {
                 showFreeSpin = true
@@ -385,3 +458,11 @@ public struct RootGameView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Root Game") {
+    GameUIScreenPreviewHost {
+        RootGameView()
+    }
+}
+#endif

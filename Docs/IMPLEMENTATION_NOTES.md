@@ -3,7 +3,7 @@
 ## Monetization and Game Center Update (2026-04-26)
 
 - Game Center leaderboard IDs are centralized as `com.game2244.global` and `com.game2244.halloffame`. App launch now mirrors score submissions to Firebase and Game Center, and submits the saved infinity merge count to the Hall of Fame route when present.
-- `IAPProduct.allProducts` is the launch StoreKit catalog. The shop JSON uses `com.game2244.*` IDs, and `PurchaseService` loads the canonical catalog, including the three subscription IDs, processes verified StoreKit 2 transactions, stores entitlements, handles restore/revocation, and de-dupes reward delivery by transaction ID.
+- `IAPProduct.allProducts` is the launch StoreKit catalog. The shop JSON uses `com.game2244.*` IDs, and `PurchaseService` loads the canonical catalog, including the five subscription IDs, processes verified StoreKit 2 transactions, stores entitlements, handles restore/revocation, and de-dupes reward delivery by transaction ID.
 - Shop rewards are granted only from verified transactions. Coin and power-up purchases are consumable; ad-free, premium music themes, starter pack, and mega bundle are treated as permanent entitlements. Active Pro subscriptions set `isProPurchased`, suppress ads through `isAdFreePurchased`, and satisfy the auto-claim boosts flag; expired subscriptions are reconciled from StoreKit current entitlements.
 - `LiveAdService` is the app ad service. It resolves Google Mobile Ads IDs from the app bundle, uses Google's current iOS demo IDs in Debug builds, uses the 2244 production IDs in Release builds, gathers UMP consent before ad requests, initializes the SDK lazily, hides placements when ad-free is purchased, and grants rewarded callbacks only from ad reward handlers.
 - AdMob production app/ad units are configured for banner (`ca-app-pub-7853395118626839/5881765682`), interstitial (`ca-app-pub-7853395118626839/8723551443`), rewarded (`ca-app-pub-7853395118626839/5100001208`), and rewarded interstitial (`ca-app-pub-7853395118626839/6221511185`). Rewarded interstitial is now used for the home Bonus Chest flow after an intro sheet with a skip option.
@@ -11,9 +11,9 @@
 - Google Mobile Ads is pinned from v13.0.0 and currently resolves to 13.2.0. Google User Messaging Platform is included through Swift Package Manager for consent and privacy options. Debug builds use Google's current iOS demo ad unit IDs: banner (`ca-app-pub-3940256099942544/2435281174`), interstitial (`ca-app-pub-3940256099942544/4411468910`), rewarded (`ca-app-pub-3940256099942544/1712485313`), and rewarded interstitial (`ca-app-pub-3940256099942544/6978759866`).
 - `Info.plist` includes Google's current AdMob SKAdNetworkItems quick-start list. Re-check this list before each release because Google updates it over time.
 - Tile/background visual picker surfaces remain free by catalog choice. Premium gating currently applies to the music themes backed by StoreKit products.
-- The app target bundle identifier is aligned to the App Store Connect 2244 record: `2244.ideabloomlabs.com`.
+- The app target bundle identifier is aligned to the App Store Connect 2244 record: `com.ideabloomlabs.game2244`.
 
-Production console progress: App Store Connect now has the matching `com.game2244.*` IAP draft records, English (U.S.) localizations, all-country availability saved for `Remove Ads` and `Mega Bundle`, and Game Center draft leaderboards for `com.game2244.global` and `com.game2244.halloffame`. Subscription group `2244 Memberships` is also created (`22055063`) with draft subscriptions for `com.game2244.boosts.autoclaim.monthly` (`6764002271`, 1 month), `com.game2244.pro.monthly` (`6764002194`, 1 month), and `com.game2244.pro.yearly` (`6764002542`, 1 year); each has English (U.S.) localization and all-country availability saved, but remains `Missing Metadata` until pricing and review screenshots are added. App Store Connect does not currently expose the app-version IAP/subscription attachment controls on the iOS 1.0 version or App Review page, so attachment appears blocked until the products can move past missing metadata. Production console work still required: complete the Paid Application agreement/payment setup so pricing and the remaining IAP availability can be added, upload IAP/subscription review screenshots, attach the IAPs/subscriptions and Game Center leaderboards to the app version, complete App Privacy, create/publish the AdMob Privacy & messaging forms for required regions, finish the AdMob payment profile, and link the app to its store listing to avoid limited ad serving once the App Store listing is available.
+Production console progress: App Store Connect now has the matching `com.game2244.*` IAP draft records, English (U.S.) localizations, all-country availability saved for `Remove Ads` and `Mega Bundle`, and Game Center draft leaderboards for `com.game2244.global` and `com.game2244.halloffame`. Subscription group `2244 Memberships` is also created (`22055063`) with draft subscriptions for `com.game2244.boosts.autoclaim.monthly` (`6764002271`, 1 month), `com.game2244.pro.monthly` (`6764002194`, 1 month), and `com.game2244.pro.yearly` (`6764002542`, 1 year). Add `com.game2244.pro.family.monthly` and `com.game2244.pro.family.yearly` to the same subscription group as family-shareable products. Each subscription needs English (U.S.) localization, pricing, availability, and review screenshots before it can move past `Missing Metadata`. App Store Connect does not currently expose the app-version IAP/subscription attachment controls on the iOS 1.0 version or App Review page, so attachment appears blocked until the products can move past missing metadata. Production console work still required: complete the Paid Application agreement/payment setup so pricing and the remaining IAP availability can be added, upload IAP/subscription review screenshots, attach the IAPs/subscriptions and Game Center leaderboards to the app version, complete App Privacy, create/publish the AdMob Privacy & messaging forms for required regions, finish the AdMob payment profile, and link the app to its store listing to avoid limited ad serving once the App Store listing is available.
 
 ## Current Status
 
@@ -51,16 +51,15 @@ The project has been successfully bootstrapped with a modular architecture follo
 
 ## Next Steps
 
-To fully integrate the packages with the Xcode project, you'll need to:
+The workspace already links the local packages. For release validation:
 
 1. **Open in Xcode**
    - Open `game2244.xcworkspace` in Xcode
-   - Add package dependencies to the main app target:
-     - File > Add Package Dependencies > Add Local
-     - Select each package from the Packages folder
+   - Confirm the app target still depends on `GameCore`, `GameApp`, `GameUI`,
+     and `GameServices`.
 
 2. **Configure Build Settings**
-   - Ensure iOS 18.0 minimum deployment target
+   - Ensure iOS 26.0 minimum deployment target
    - Enable Swift 6 language mode
 
 3. **Test the App**
@@ -90,9 +89,16 @@ swift test --package-path Packages/GameCore
 
 ## Known Limitations
 
-1. The workspace needs manual package linking in Xcode
-2. StoreKit products need configuration in App Store Connect
-3. AdMob payment setup, store-listing link, and consent-region console validation must be completed before release
+1. StoreKit products, subscriptions, pricing, and review screenshots must be
+   completed in App Store Connect before submission.
+2. Firebase rules/functions must be deployed to the release project and smoke
+   tested with anonymous auth.
+3. AdMob payment setup, store-listing link, and consent-region console
+   validation must be completed before release.
+4. `GoogleService-Info.plist` is ignored and removed from the current git index.
+   If the repository will ever be public or shared outside the release team,
+   rotate the Firebase app credentials and purge historical copies before
+   publishing.
 
 ## Development Workflow
 
@@ -246,8 +252,8 @@ Responsiveness: use a fixed design width reference of 390 pt (iPhone 15 Pro). Sc
 ### Interaction spec
 - Drag to select chain; backtracking supported; commit on lift if valid length ≥ 2.
 - Toolbars:
-  - Pause: opens Pause menu (stub ok initially).
-  - Shop: opens store (stub ok initially).
+  - Pause: opens Pause menu.
+  - Shop: opens store.
   - Ad gift: triggers rewarded ad that adds gems.
   - Boosters: tap to arm (hammer/swap) or immediate (shuffle); show insufficient-gems toast if needed.
 - Progress track chips are non-interactive (display only).
@@ -283,7 +289,7 @@ Responsiveness: use a fixed design width reference of 390 pt (iPhone 15 Pro). Sc
 1. Introduce `GameScreen` and slot into `GameView` replacing ad-hoc header/controls.
 2. Build `TopHUD` with progress rail and wallet.
 3. Wrap current `BoardView` with `BoardFrame` and layer `LeftToolbar` + `RightToolbar` in a ZStack.
-4. Add `BottomRail` with crowned `ReserveTile` (uses theme color; stub behavior).
+4. Add `BottomRail` with crowned `ReserveTile` (uses theme color; display behavior).
 5. Upgrade `TileView` to 3D raised style variant and suffix-aware formatting.
 6. Replace current overlay stroke with gradient glow path.
 7. Wire boosters to existing `GameStore` actions; add insufficient-gems feedback.
@@ -299,3 +305,9 @@ Responsiveness: use a fixed design width reference of 390 pt (iPhone 15 Pro). Sc
 - Exact color hexes for each tile and HUD chip.
 - Whether milestone chips are functional or cosmetic.
 - Final sizes/positions for right-toolbar price bubbles and count badges.
+
+## GameCore Milestone And Journey Notes
+
+- Value-based milestone eliminations now raise the refill spawn floor from the latest eliminated value, so removed low tiles such as 2s and 4s are not immediately respawned after 2048/4096 milestones.
+- Re-triggering an already reached milestone also runs cleanup for tiles below the current threshold when elimination is not deferred.
+- The final finite journey tile is step 816, formatted as `873bz`; step 817 and above are treated as infinity.

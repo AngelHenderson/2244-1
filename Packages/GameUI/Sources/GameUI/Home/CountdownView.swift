@@ -2,13 +2,14 @@ import SwiftUI
 
 struct CountdownView: View {
     let deadline: Date
+    var fontSize: CGFloat = GameFonts.caption2Size
     @State private var now = Date()
     @State private var timer: Timer?
 
     var body: some View {
         Text(timeString)
             .monospacedDigit()
-            .font(.caption.bold())
+            .font(.avenirNext(size: fontSize, weight: .bold))
             //.foregroundStyle(.white)
             .onAppear { startTimer() }
             .onDisappear { stopTimer() }

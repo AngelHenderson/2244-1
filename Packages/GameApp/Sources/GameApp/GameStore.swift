@@ -17,8 +17,10 @@ public final class GameStore {
     public private(set) var state: GameState
     public private(set) var currentPath: [Position] = []
     public private(set) var pathValidation: ChainValidation = .valid
+    public private(set) var lastInvalidChainReason: String?
     public var achievementEvaluator: AchievementEvaluator?
     public var spinWheelState: SpinWheelState?
+    public weak var rewardLedger: RewardLedgerStore?
 
     /// Count of valid move pairs (adjacent identical tiles) - stored for SwiftUI reactivity
     public private(set) var validMovesCount: Int = 0
@@ -35,7 +37,7 @@ public final class GameStore {
 
     /// Fires once per game session when the game ends. Wired by the app entry to
     /// submit the final score to the active leaderboard backend.
-    public var onGameEnded: (@MainActor (Int) -> Void)?
+    public var onGameEnded: (@MainActor (GameRunSummary) -> Void)?
 
     // Sandboxed mode for challenges - doesn't persist progress to main game
     public let sandboxed: Bool
@@ -118,7 +120,9 @@ public final class GameStore {
     public private(set) var pendingRefillPositions: Set<Position> = []
     private var refillRevealTask: Task<Void, Never>? = nil
     private var mergeCleanupTask: Task<Void, Never>? = nil
+    private var invalidFeedbackTask: Task<Void, Never>? = nil
     public private(set) var hammerAnimationState: HammerAnimationState? = nil
+    private var runStartedAt: Date = Date()
     /// Fires once when the player creates their very first infinity tile (non-sandboxed only)
     public private(set) var didCreateFirstInfinity: Bool = false
     // Milestone elimination ghost animation - shows tiles fading out after elimination
@@ -795,6 +799,7 @@ public final class GameStore {
             self?.scoreBoostTickerTask?.cancel()
             self?.powerDiscountTickerTask?.cancel()
             self?.achievementBoostTickerTask?.cancel()
+            self?.invalidFeedbackTask?.cancel()
         }
     }
     
@@ -810,6 +815,7 @@ public final class GameStore {
         
         currentPath = [position]
         pathValidation = .valid
+        clearInvalidChainReason()
         isExtendingToGift = false
     }
     
@@ -836,10 +842,17 @@ public final class GameStore {
     
     @discardableResult
     public func extendPath(to position: Position) -> Bool {
-        guard !currentPath.contains(position) else { return false }
-        guard pendingGiftBoxes[position] == nil else { return false }
+        guard !currentPath.contains(position) else {
+            showInvalidChainReason("You already used that tile")
+            return false
+        }
+        guard pendingGiftBoxes[position] == nil else {
+            showInvalidChainReason("Claim the gift before chaining through it")
+            return false
+        }
         
         if let last = currentPath.last, !last.isAdjacent(to: position) {
+            showInvalidChainReason("Tiles must touch, including diagonals")
             return false
         }
         
@@ -867,6 +880,7 @@ public final class GameStore {
             // over adjacent invalid tiles while tracing a U-shape.
             // The drag location will still cause the UI pipe to visually stretch
             // toward the finger without breaking the underlying valid path.
+            showInvalidChainReason(validation.reason ?? "That tile cannot continue this chain")
             return false
         }
     }
@@ -894,6 +908,7 @@ public final class GameStore {
     public func cancelPath() {
         currentPath = []
         pathValidation = .valid
+        clearInvalidChainReason()
         isInputLocked = false
         isExtendingToGift = false
     }
@@ -907,6 +922,7 @@ public final class GameStore {
         mergeAnimationState = nil
         currentPath = []
         pathValidation = .valid
+        clearInvalidChainReason()
         isInputLocked = false
         isExtendingToGift = false
 
@@ -916,6 +932,22 @@ public final class GameStore {
             pendingEliminationTiles = []
             milestoneEliminatedTiles = []
         }
+    }
+
+    private func showInvalidChainReason(_ reason: String) {
+        lastInvalidChainReason = reason
+        invalidFeedbackTask?.cancel()
+        invalidFeedbackTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_150_000_000)
+            guard !Task.isCancelled else { return }
+            self?.lastInvalidChainReason = nil
+        }
+    }
+
+    private func clearInvalidChainReason() {
+        invalidFeedbackTask?.cancel()
+        invalidFeedbackTask = nil
+        lastInvalidChainReason = nil
     }
     
     public func commitPath() {
@@ -936,6 +968,7 @@ public final class GameStore {
         // Clear the path immediately so the line disappears
         currentPath = []
         pathValidation = .valid
+        clearInvalidChainReason()
         
         mergeCleanupTask?.cancel()
         
@@ -959,8 +992,8 @@ public final class GameStore {
                     phase: .shatter
                 )
                 
-                // Wait 0.5s for shatter and delay
-                try await Task.sleep(nanoseconds: 500_000_000)
+                // Keep feedback crisp; long locks make quick chains feel sticky.
+                try await Task.sleep(nanoseconds: 240_000_000)
                 
                 if Task.isCancelled {
                     print("[GameStore] Task cancelled after shatter")
@@ -1298,16 +1331,30 @@ public final class GameStore {
         // Game ended - notify achievement evaluator to save playtime and other stats
         achievementEvaluator?.onGameEnd(state: state, won: state.highestTile >= 2244)
         if !sandboxed {
-            onGameEnded?(state.score)
+            onGameEnded?(currentRunSummary())
         }
         #if DEBUG
         print("🎮 Game over processed - playtime saved")
         #endif
     }
 
-    private static let mergeAnimationDelay: UInt64 = 400_000_000
-    private static let gravityAnimationDelay: UInt64 = 350_000_000
-    private static let refillRevealDelay: UInt64 = 350_000_000
+    public func currentRunSummary(endedAt: Date = Date()) -> GameRunSummary {
+        GameRunSummary(
+            score: state.score,
+            scoreAlpha: state.scoreValue,
+            highestTile: state.highestTile,
+            highestTileStep: state.highestTileStep,
+            moves: state.moves,
+            duration: endedAt.timeIntervalSince(runStartedAt),
+            seed: engine.seedUsed,
+            infinityMergeCount: state.infinityMergeCount,
+            endedAt: endedAt
+        )
+    }
+
+    private static let mergeAnimationDelay: UInt64 = 260_000_000
+    private static let gravityAnimationDelay: UInt64 = 260_000_000
+    private static let refillRevealDelay: UInt64 = 240_000_000
     private static let magnetSuckDelay: UInt64 = 400_000_000
     private static let hammerWindupDelay: UInt64 = 250_000_000
     private static let hammerImpactDelay: UInt64 = 250_000_000
@@ -1418,6 +1465,7 @@ public final class GameStore {
         persistPendingGiftBoxes()
         gameOverProcessed = false  // Reset for new game session
         gameOverConfirmed = false
+        runStartedAt = Date()
 
         // Notify achievement evaluator
         achievementEvaluator?.onGameStart(state: state)
@@ -1452,6 +1500,7 @@ public final class GameStore {
         persistPendingGiftBoxes()
         gameOverProcessed = false
         gameOverConfirmed = false
+        runStartedAt = Date()
 
         achievementEvaluator?.onGameStart(state: state)
     }
@@ -1479,6 +1528,7 @@ public final class GameStore {
         persistPendingGiftBoxes()
         gameOverProcessed = false
         gameOverConfirmed = false
+        runStartedAt = Date()
 
         achievementEvaluator?.onGameStart(state: state)
     }
@@ -1509,6 +1559,7 @@ public final class GameStore {
         persistPendingGiftBoxes()
         gameOverProcessed = false  // Reset for new game session
         gameOverConfirmed = false
+        runStartedAt = Date()
     }
 
 
@@ -2001,39 +2052,85 @@ public final class GameStore {
     
     public func claimGiftReward() {
         guard let reward = pendingGiftReward else { return }
-        
-        // Apply the rewards to the player's inventory
-        for item in reward.items {
-            switch item.type {
-            case .hammer:
-                addPowerUp("hammer", count: item.amount)
-            case .magnet:
-                addPowerUp("magnet", count: item.amount)
-            case .gems:
-                // Add gems to coins (assuming gems are stored as coins)
-                addCoins(item.amount)
-            case .swap:
-                addPowerUp("swap", count: item.amount)
-            case .undo:
-                addPowerUp("undo", count: item.amount)
-            case .bonusSpin:
-                addBonusSpins(item.amount)
-            case .boost2x:
-                addMultipliers(.twoX, count: item.amount)
-            case .boost3x:
-                addMultipliers(.threeX, count: item.amount)
-            case .boost4x:
-                addMultipliers(.fourX, count: item.amount)
-            }
+
+        let contextKey: String
+        if let tierID = pendingJourneyRewardTierID {
+            contextKey = "journey:\(tierID)"
+        } else {
+            contextKey = "gift:\(reward.message):\(reward.items.count):\(Int(Date().timeIntervalSince1970))"
         }
-        
+
+        // Apply the rewards to the player's inventory; route each through the
+        // ledger when one is wired so we get an idempotent audit trail.
+        for (index, item) in reward.items.enumerated() {
+            let key = "\(contextKey):\(index):\(item.type.rawValue):\(item.amount)"
+            applyGiftItem(item, source: pendingJourneyRewardTierID != nil ? .journey : .gift, key: key)
+        }
+
         // Clear the pending reward
         pendingGiftReward = nil
-        
+
         if let tierID = pendingJourneyRewardTierID {
             claimedJourneyAbbreviationRewards.insert(tierID)
             persistAbbreviationClaims()
             pendingJourneyRewardTierID = nil
+        }
+    }
+
+    private func applyGiftItem(
+        _ item: GiftRewardItem,
+        source: RewardLedgerEntry.Source,
+        key: String
+    ) {
+        let apply: @MainActor () -> Void = { [weak self] in
+            guard let self else { return }
+            switch item.type {
+            case .hammer:
+                self.addPowerUp("hammer", count: item.amount)
+            case .magnet:
+                self.addPowerUp("magnet", count: item.amount)
+            case .gems:
+                self.addCoins(item.amount)
+            case .swap:
+                self.addPowerUp("swap", count: item.amount)
+            case .undo:
+                self.addPowerUp("undo", count: item.amount)
+            case .bonusSpin:
+                self.addBonusSpins(item.amount)
+            case .boost2x:
+                self.addMultipliers(.twoX, count: item.amount)
+            case .boost3x:
+                self.addMultipliers(.threeX, count: item.amount)
+            case .boost4x:
+                self.addMultipliers(.fourX, count: item.amount)
+            }
+        }
+
+        guard let ledger = rewardLedger else {
+            apply()
+            return
+        }
+
+        ledger.grant(
+            source: source,
+            itemType: ledgerItemType(for: item.type),
+            amount: item.amount,
+            idempotencyKey: key,
+            apply: apply
+        )
+    }
+
+    private func ledgerItemType(for giftType: GiftRewardItem.GiftType) -> RewardLedgerEntry.ItemType {
+        switch giftType {
+        case .gems: return .gems
+        case .hammer: return .hammer
+        case .magnet: return .magnet
+        case .swap: return .swap
+        case .undo: return .undo
+        case .bonusSpin: return .spin
+        case .boost2x: return .multiplier2x
+        case .boost3x: return .multiplier3x
+        case .boost4x: return .multiplier4x
         }
     }
     
@@ -3913,35 +4010,75 @@ extension GameStore {
 
     // MARK: - Challenge Rewards
 
-    /// Grants a full challenge reward including gems, power-ups, spins, and score boosts
-    public func grantChallengeReward(_ reward: ChallengeReward) {
-        // Award gems
+    /// Grants a full challenge reward including gems, power-ups, spins, and score boosts.
+    /// `challengeID` should be a stable identifier (e.g. challenge slug, generated UUID per
+    /// completion) so the ledger can dedup retries. Pass nil if there is no stable ID;
+    /// a timestamp will be used and replays will be permitted within different seconds.
+    public func grantChallengeReward(_ reward: ChallengeReward, challengeID: String? = nil) {
+        let context = challengeID.map { "challenge:\($0)" }
+            ?? "challenge:run:\(Int(Date().timeIntervalSince1970))"
+
         if reward.coins > 0 {
-            addCoins(reward.coins)
-        }
-
-        // Award power-ups
-        for (powerUpType, count) in reward.powerUps {
-            addPowerUp(powerUpType.rawValue, count: count)
-        }
-
-        // Award spins
-        if reward.spins > 0 {
-            addBonusSpins(reward.spins)
-        }
-
-        // Award score boosts
-        for (multiplier, count) in reward.scoreBoosts {
-            switch multiplier {
-            case 2:
-                addMultipliers(.twoX, count: count)
-            case 3:
-                addMultipliers(.threeX, count: count)
-            case 4:
-                addMultipliers(.fourX, count: count)
-            default:
-                break
+            grantWithLedger(source: .challenge, type: .gems, amount: reward.coins, contextKey: context) {
+                self.addCoins(reward.coins)
             }
+        }
+
+        for (powerUpType, count) in reward.powerUps {
+            let item: RewardLedgerEntry.ItemType
+            switch powerUpType {
+            case .hammer: item = .hammer
+            case .swap: item = .swap
+            case .magnet: item = .magnet
+            case .undo: item = .undo
+            case .shuffle: item = .shuffle
+            case .double: item = .double
+            }
+            grantWithLedger(source: .challenge, type: item, amount: count, contextKey: context) {
+                self.addPowerUp(powerUpType.rawValue, count: count)
+            }
+        }
+
+        if reward.spins > 0 {
+            grantWithLedger(source: .challenge, type: .spin, amount: reward.spins, contextKey: context) {
+                self.addBonusSpins(reward.spins)
+            }
+        }
+
+        for (multiplier, count) in reward.scoreBoosts {
+            let tier: SpinWheelState.MultiplierTier?
+            let type: RewardLedgerEntry.ItemType
+            switch multiplier {
+            case 2: tier = .twoX; type = .multiplier2x
+            case 3: tier = .threeX; type = .multiplier3x
+            case 4: tier = .fourX; type = .multiplier4x
+            default: tier = nil; type = .multiplier2x
+            }
+            guard let tier else { continue }
+            grantWithLedger(source: .challenge, type: type, amount: count, contextKey: context) {
+                self.addMultipliers(tier, count: count)
+            }
+        }
+    }
+
+    private func grantWithLedger(
+        source: RewardLedgerEntry.Source,
+        type: RewardLedgerEntry.ItemType,
+        amount: Int,
+        contextKey: String,
+        apply: @MainActor () -> Void
+    ) {
+        guard amount > 0 else { return }
+        if let rewardLedger {
+            rewardLedger.grant(
+                source: source,
+                itemType: type,
+                amount: amount,
+                idempotencyKey: "\(contextKey):\(type.rawValue):\(amount)",
+                apply: apply
+            )
+        } else {
+            apply()
         }
     }
 

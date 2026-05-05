@@ -57,7 +57,9 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
             megaBundleProduct,
             autoClaimBoostsMonthlyProduct,
             proMonthlyProduct,
-            proYearlyProduct
+            proYearlyProduct,
+            proFamilyMonthlyProduct,
+            proFamilyYearlyProduct
         ]
     }
 
@@ -276,18 +278,42 @@ public struct IAPProduct: Identifiable, Codable, Sendable {
         isConsumable: false,
         displayPriority: 42
     )
+
+    public static let proFamilyMonthlyProduct = IAPProduct(
+        id: "com.game2244.pro.family.monthly",
+        type: .subscription(.proFamilyMonthly),
+        displayName: "2244 Pro Family Monthly",
+        description: "Monthly 2244 Pro Family access with premium benefits",
+        price: 9.99,
+        items: [IAPProductItem(type: .subscription(.pro), quantity: 1)],
+        isConsumable: false,
+        displayPriority: 43
+    )
+
+    public static let proFamilyYearlyProduct = IAPProduct(
+        id: "com.game2244.pro.family.yearly",
+        type: .subscription(.proFamilyYearly),
+        displayName: "2244 Pro Family Yearly",
+        description: "Yearly 2244 Pro Family access with premium benefits",
+        price: 79.99,
+        items: [IAPProductItem(type: .subscription(.pro), quantity: 1)],
+        isConsumable: false,
+        displayPriority: 44
+    )
 }
 
 public enum IAPSubscriptionKind: String, Codable, Sendable {
     case autoClaimBoostsMonthly
     case proMonthly
     case proYearly
+    case proFamilyMonthly
+    case proFamilyYearly
 
     public var grantsPro: Bool {
         switch self {
         case .autoClaimBoostsMonthly:
             return false
-        case .proMonthly, .proYearly:
+        case .proMonthly, .proYearly, .proFamilyMonthly, .proFamilyYearly:
             return true
         }
     }

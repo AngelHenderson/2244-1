@@ -108,6 +108,7 @@ public struct PlayerProfileView: View {
                 updateTierStatsFromStore()
             }
         }
+        .trackScreen(.profile)
     }
 
     private func updateTierStatsFromStore() {
@@ -182,7 +183,8 @@ public struct PlayerProfileView: View {
                 
                 Spacer(minLength: 0)
                 
-                // Compare button on far right
+                #if DEBUG
+                // Preview/debug comparison uses synthetic players and is not shipped.
                 Button {
                     model.showCompare = true
                 } label: {
@@ -196,6 +198,7 @@ public struct PlayerProfileView: View {
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("Compare with friends")
+                #endif
             }
             .frame(maxWidth: .infinity)
         }
@@ -656,3 +659,11 @@ private struct CountryPickerView: View {
 private extension String {
     func trimmed() -> String { trimmingCharacters(in: .whitespacesAndNewlines) }
 }
+
+#if DEBUG
+#Preview("Player Profile") {
+    GameUIScreenPreviewHost {
+        PlayerProfileView()
+    }
+}
+#endif

@@ -22,7 +22,9 @@ struct IAPContractTests {
             "com.game2244.mega.bundle",
             "com.game2244.boosts.autoclaim.monthly",
             "com.game2244.pro.monthly",
-            "com.game2244.pro.yearly"
+            "com.game2244.pro.yearly",
+            "com.game2244.pro.family.monthly",
+            "com.game2244.pro.family.yearly"
         ]))
     }
 
@@ -37,6 +39,8 @@ struct IAPContractTests {
         #expect(IAPProduct.autoClaimBoostsMonthlyProduct.isConsumable == false)
         #expect(IAPProduct.proMonthlyProduct.isConsumable == false)
         #expect(IAPProduct.proYearlyProduct.isConsumable == false)
+        #expect(IAPProduct.proFamilyMonthlyProduct.isConsumable == false)
+        #expect(IAPProduct.proFamilyYearlyProduct.isConsumable == false)
 
         #expect(IAPProduct.smallCoinsProduct.isConsumable)
         #expect(IAPProduct.mediumCoinsProduct.isConsumable)
@@ -91,11 +95,15 @@ struct IAPContractTests {
         #expect(IAPProduct.subscriptionProductIDs == Set([
             "com.game2244.boosts.autoclaim.monthly",
             "com.game2244.pro.monthly",
-            "com.game2244.pro.yearly"
+            "com.game2244.pro.yearly",
+            "com.game2244.pro.family.monthly",
+            "com.game2244.pro.family.yearly"
         ]))
         #expect(IAPProduct.proSubscriptionProductIDs == Set([
             "com.game2244.pro.monthly",
-            "com.game2244.pro.yearly"
+            "com.game2244.pro.yearly",
+            "com.game2244.pro.family.monthly",
+            "com.game2244.pro.family.yearly"
         ]))
         #expect(IAPProduct.autoClaimBoostsMonthlyProduct.permanentEntitlementProductIDs == Set([
             "com.game2244.boosts.autoclaim.monthly"
@@ -106,26 +114,85 @@ struct IAPContractTests {
         #expect(IAPProduct.proYearlyProduct.permanentEntitlementProductIDs == Set([
             "com.game2244.pro.yearly"
         ]))
+        #expect(IAPProduct.proFamilyMonthlyProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.pro.family.monthly"
+        ]))
+        #expect(IAPProduct.proFamilyYearlyProduct.permanentEntitlementProductIDs == Set([
+            "com.game2244.pro.family.yearly"
+        ]))
     }
 
     @Test("Local StoreKit configuration contains every canonical product")
     func localStoreKitConfigurationMatchesCatalog() throws {
-        let configURL = try storeKitConfigurationURL()
+        let configURL = try repositoryFileURL("2244/game2244/Configuration.storekit")
         let data = try Data(contentsOf: configURL)
         let json = try JSONSerialization.jsonObject(with: data)
         let configuredIDs = collectProductIDs(from: json)
 
         #expect(configuredIDs == Set(IAPProduct.allProductIDs))
     }
+
+    @Test("Family subscriptions are marked family-shareable locally")
+    func familySubscriptionsAreShareable() throws {
+        let configURL = try repositoryFileURL("2244/game2244/Configuration.storekit")
+        let data = try Data(contentsOf: configURL)
+        let json = try JSONSerialization.jsonObject(with: data)
+        let products = collectProductObjects(from: json)
+
+        #expect(products[IAPProduct.proFamilyMonthlyProduct.id]?["familyShareable"] as? Bool == true)
+        #expect(products[IAPProduct.proFamilyYearlyProduct.id]?["familyShareable"] as? Bool == true)
+    }
+
+    @Test("Xcode scheme enables the local StoreKit configuration")
+    func xcodeSchemeUsesLocalStoreKitConfiguration() throws {
+        let schemeURL = try repositoryFileURL("2244/game2244.xcodeproj/xcshareddata/xcschemes/game2244.xcscheme")
+        let scheme = try String(contentsOf: schemeURL, encoding: .utf8)
+        #expect(!scheme.contains("storeKitConfigurationFileReference ="))
+
+        let match = try #require(scheme.firstMatch(of: /<StoreKitConfigurationFileReference\s+identifier = "([^"]+)"/))
+        let projectDirectoryURL = try repositoryFileURL("2244")
+        let resolvedURL = URL(fileURLWithPath: String(match.1), relativeTo: projectDirectoryURL)
+            .standardizedFileURL
+        let expectedURL = try repositoryFileURL("2244/game2244/Configuration.storekit")
+            .standardizedFileURL
+        #expect(resolvedURL.path == expectedURL.path)
+        #expect(FileManager.default.fileExists(atPath: resolvedURL.path))
+    }
+
+    @Test("IAP docs and shop JSON stay aligned with the canonical catalog")
+    func docsAndShopCatalogMatchCode() throws {
+        let docsURL = try repositoryFileURL("Docs/IAP_CATALOG.md")
+        let docs = try String(contentsOf: docsURL, encoding: .utf8)
+        let documentedIDs = Set(
+            docs.matches(of: /`(com\.game2244\.[^`]+)`/)
+                .map { String($0.1) }
+        )
+        #expect(documentedIDs == Set(IAPProduct.allProductIDs))
+
+        let shopURL = try repositoryFileURL("2244/game2244/JSON/2244_shop_catalog.json")
+        let data = try Data(contentsOf: shopURL)
+        let json = try JSONSerialization.jsonObject(with: data)
+        let shopIDs = collectIDs(fromShopCatalog: json)
+        #expect(shopIDs.isSubset(of: Set(IAPProduct.allProductIDs)))
+        #expect(shopIDs == Set([
+            IAPProduct.starterPackProduct.id,
+            IAPProduct.powerUpBundleProduct.id,
+            IAPProduct.megaBundleProduct.id,
+            IAPProduct.smallCoinsProduct.id,
+            IAPProduct.mediumCoinsProduct.id,
+            IAPProduct.largeCoinsProduct.id
+        ]))
+    }
 }
 
-private func storeKitConfigurationURL() throws -> URL {
+private func repositoryFileURL(_ relativePath: String) throws -> URL {
     var cursor = URL(fileURLWithPath: #filePath)
     while cursor.path != "/" {
-        let candidate = cursor
-            .appendingPathComponent("2244")
-            .appendingPathComponent("game2244")
-            .appendingPathComponent("Configuration.storekit")
+        let candidate = relativePath
+            .split(separator: "/")
+            .reduce(cursor) { url, component in
+                url.appendingPathComponent(String(component))
+            }
         if FileManager.default.fileExists(atPath: candidate.path) {
             return candidate
         }
@@ -133,6 +200,16 @@ private func storeKitConfigurationURL() throws -> URL {
     }
 
     throw CocoaError(.fileNoSuchFile)
+}
+
+private func collectIDs(fromShopCatalog value: Any) -> Set<String> {
+    guard let dictionary = value as? [String: Any] else { return [] }
+    var ids = Set<String>()
+    for key in ["bundles", "gemBundles", "perkBundles", "freePerks"] {
+        guard let entries = dictionary[key] as? [[String: Any]] else { continue }
+        ids.formUnion(entries.compactMap { $0["id"] as? String })
+    }
+    return ids
 }
 
 private func collectProductIDs(from value: Any) -> Set<String> {
@@ -154,6 +231,27 @@ private func collectProductIDs(from value: Any) -> Set<String> {
     }
 
     return []
+}
+
+private func collectProductObjects(from value: Any) -> [String: [String: Any]] {
+    if let dictionary = value as? [String: Any] {
+        var result: [String: [String: Any]] = [:]
+        if let productID = dictionary["productID"] as? String {
+            result[productID] = dictionary
+        }
+        for child in dictionary.values {
+            result.merge(collectProductObjects(from: child)) { current, _ in current }
+        }
+        return result
+    }
+
+    if let array = value as? [Any] {
+        return array.reduce(into: [:]) { result, child in
+            result.merge(collectProductObjects(from: child)) { current, _ in current }
+        }
+    }
+
+    return [:]
 }
 
 private extension Array where Element == IAPProductItem {

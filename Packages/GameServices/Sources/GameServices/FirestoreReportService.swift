@@ -7,22 +7,9 @@ import GameCore
 
 /// Writes player reports to Firestore at `/reports/{auto-id}`.
 ///
-/// **Backend you (the project owner) need to deploy:**
-/// 1. **Security rules** for the `reports` collection. Recommended:
-///    ```
-///    match /reports/{id} {
-///      allow create: if request.auth != nil
-///        && request.resource.data.reporterId == request.auth.uid;
-///      allow read, update, delete: if false; // server-only
-///    }
-///    ```
-/// 2. **Cloud Function** triggered on document create. It should:
-///    - de-dupe (drop reports from the same reporter against the same target within N hours)
-///    - increment a per-target `abuse_points` counter on `/players/{reportedPlayerId}`
-///    - apply ban escalation when points exceed the configured threshold
-///
-/// Until the function is deployed, reports are still recorded in Firestore — the local
-/// `HomeState.queueReportEvaluation` provides immediate UX feedback regardless.
+/// Security rules for this collection live in `firebase/firestore.rules` and
+/// require `reporterId == request.auth.uid`. Server-side de-dupe and enforcement
+/// can be layered on with Cloud Functions without changing the client contract.
 public final class FirestoreReportService: ReportServiceProtocol, @unchecked Sendable {
     private let firestore: Firestore
     private let auth: Auth

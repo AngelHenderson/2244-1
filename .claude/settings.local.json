@@ -5,7 +5,22 @@
       "Bash(git add *)",
       "Bash(xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -quiet clean build)",
       "Bash(git fetch *)",
-      "Bash(git rev-list *)"
+      "Bash(git rev-list *)",
+      "Bash(xcodebuild -resolvePackageDependencies -workspace game2244.xcworkspace -scheme game2244)",
+      "Bash(xcodebuild -resolvePackageDependencies -project /Users/angelhenderson/Development/Personal/2244/2244/game2244.xcodeproj -scheme game2244)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)",
+      "Bash(xcodebuild -resolvePackageDependencies -workspace game2244.xcworkspace -scheme game2244 -clonedSourcePackagesDirPath /tmp/spm-resolve-2244)",
+      "Bash(xcodebuild -resolvePackageDependencies -project 2244/game2244.xcodeproj -scheme game2244 -clonedSourcePackagesDirPath /tmp/spm-resolve-proj)",
+      "Bash(cp /Users/angelhenderson/Development/Personal/2244/2244/game2244.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved /tmp/proj_resolved_before.json)",
+      "Bash(rm -rf /tmp/spm-resolve-proj-clean)",
+      "Bash(xcodebuild -resolvePackageDependencies -project 2244/game2244.xcodeproj -scheme game2244 -clonedSourcePackagesDirPath /tmp/spm-resolve-proj-clean)",
+      "Bash(cp /Users/angelhenderson/Development/Personal/2244/game2244.xcworkspace/xcshareddata/swiftpm/Package.resolved /tmp/ws_resolved_before.json)",
+      "Bash(rm -rf /tmp/spm-resolve-ws-clean)",
+      "Bash(xcodebuild -resolvePackageDependencies -workspace game2244.xcworkspace -scheme game2244 -clonedSourcePackagesDirPath /tmp/spm-resolve-ws-clean)"
     ]
   }
 }

@@ -450,14 +450,3 @@ public extension EnvironmentValues {
         }
     }
 }
-
-// MARK: - HomeState extension (file scope)
-
-public extension HomeState {
-    @MainActor
-    static func shared() async throws -> HomeState? {
-        // This is a placeholder - in a real app, you'd get the shared instance
-        // from your app's dependency injection or state management system
-        return nil
-    }
-}

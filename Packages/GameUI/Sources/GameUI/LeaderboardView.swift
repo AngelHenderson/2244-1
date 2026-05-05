@@ -10,27 +10,10 @@ public struct LeaderboardView: View {
     @State private var showError = false
     @State private var showingTop150 = false
 
-    // Report system state
-    @State private var reportCounts: [String: Int] = [:]  // player id -> report count
-    @State private var bannedPlayerIds: Set<String> = []   // banned player ids
-    @State private var showReportConfirmation = false
-    @State private var showPlayerBanned = false
-    @State private var lastReportedName: String = ""
-    @State private var lastReportedCount: Int = 0
-
-    // Report abuse protection
-    /// How many unique players the local user has reported
-    @AppStorage("totalUniqueReports") private var totalUniqueReports: Int = 0
-    /// Player IDs that were banned because of THIS user's reports
-    @State private var playersBannedByMe: Set<String> = []
-    /// Alert for when the user is caught abusing reports
-    @State private var showReportAbuseAlert = false
-    /// Threshold: if user reports more than this many unique players, they are abusing reports
-    private let reportAbuseThreshold = 5
-
-    // "Are you sure?" confirmation before reporting
+    // Local block list mirrors HomeState; reports go through ReportService.
     @State private var pendingReportEntry: LeaderboardEntry?
     @State private var showReportPlayerSheet = false
+    @State private var showReportSubmittedToast = false
     @State private var showPlayerHistory = false
 
     private let darkBackground = Color(red: 0.08, green: 0.09, blue: 0.14)
@@ -127,20 +110,15 @@ public struct LeaderboardView: View {
                     }
                 }
             }
-            .alert("Report Abuse Detected", isPresented: $showReportAbuseAlert) {
-                Button("OK", role: .cancel) {
-                    // Trigger the ban system — issues a warning (or ban if out of chances)
-                    homeState.issueWarning(reason: "Abusing the report system")
-                    dismiss()
-                }
-            } message: {
-                Text("You have been flagged for abusing the report system. All players you reported have been unbanned. Continued abuse will result in your account being suspended.")
-            }
             .sheet(isPresented: $showReportPlayerSheet) {
                 if let entry = pendingReportEntry {
-                    ReportPlayerSheet(initialName: entry.name)
+                    ReportPlayerSheet(
+                        initialName: entry.name,
+                        playerID: entry.id,
+                        onSubmitted: { showReportSubmittedToast = true }
+                    )
                 } else {
-                    ReportPlayerSheet()
+                    ReportPlayerSheet(onSubmitted: { showReportSubmittedToast = true })
                 }
             }
         }
@@ -152,16 +130,10 @@ public struct LeaderboardView: View {
         } message: {
             Text(model.error ?? "An error occurred")
         }
-        .alert("Report Received", isPresented: $showReportConfirmation) {
+        .alert("Report submitted", isPresented: $showReportSubmittedToast) {
             Button("OK", role: .cancel) { }
         } message: {
-            let remaining = 3 - lastReportedCount
-            Text("Your report for \(lastReportedName) has been received. \(remaining) more report\(remaining == 1 ? "" : "s") and this player will be banned.")
-        }
-        .alert("Player Banned", isPresented: $showPlayerBanned) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text("\(lastReportedName) has been banned and removed from the leaderboard due to multiple reports.")
+            Text("Thanks — our team will review the report. You can also block or hide this player to keep them off your view.")
         }
         .onChange(of: showingTop150) { _, isTop150 in
             // When switching to Top 150 view, force a refresh so the entries
@@ -172,6 +144,7 @@ public struct LeaderboardView: View {
                 Task { await model.refresh() }
             }
         }
+        .trackScreen(.leaderboard)
     }
     
     // MARK: - Milestone-Based View (Default)
@@ -824,8 +797,8 @@ public struct LeaderboardView: View {
             return m.entries
         }
 
-        // Filter out banned players
-        var result = m.entries.filter { !$0.isMe && !bannedPlayerIds.contains($0.id) }
+        // Hide entries the local user has chosen to block.
+        var result = m.entries.filter { !$0.isMe && !homeState.blockedPlayerIDs.contains($0.id) }
 
         // Check if user should be in the displayed range
         guard let lastEntry = result.last else {
@@ -947,6 +920,20 @@ public struct LeaderboardView: View {
                     showReportPlayerSheet = true
                 } label: {
                     Label("Report Player", systemImage: "exclamationmark.triangle.fill")
+                }
+
+                if homeState.isBlocked(playerID: entry.id) {
+                    Button {
+                        homeState.unblock(playerID: entry.id)
+                    } label: {
+                        Label("Unhide", systemImage: "eye.fill")
+                    }
+                } else {
+                    Button {
+                        homeState.block(playerID: entry.id)
+                    } label: {
+                        Label("Block / Hide", systemImage: "eye.slash.fill")
+                    }
                 }
             }
         }
@@ -1114,54 +1101,6 @@ public struct LeaderboardView: View {
         return emoji
     }
 
-    // MARK: - Report System
-
-    /// Report a player. After 3 reports, the player is banned and removed from the leaderboard.
-    /// If the local user reports too many unique players (abuse threshold), they get banned
-    /// and all victims are unbanned.
-    private func reportPlayer(_ entry: LeaderboardEntry) {
-        let isFirstReport = reportCounts[entry.id] == nil
-        let currentCount = (reportCounts[entry.id] ?? 0) + 1
-        reportCounts[entry.id] = currentCount
-        lastReportedName = entry.name
-        lastReportedCount = currentCount
-
-        // Track unique reports for abuse detection
-        // True reports always cost 1 abuse point
-        if isFirstReport {
-            totalUniqueReports += 1
-        }
-
-        if currentCount >= 3 {
-            // Ban threshold reached for this player
-            bannedPlayerIds.insert(entry.id)
-            playersBannedByMe.insert(entry.id)
-
-            // Check for report abuse AFTER banning
-            if totalUniqueReports > reportAbuseThreshold {
-                // Abusing reports — unban all victims and ban the reporter
-                for victimId in playersBannedByMe {
-                    bannedPlayerIds.remove(victimId)
-                }
-                playersBannedByMe.removeAll()
-                showReportAbuseAlert = true
-            } else {
-                showPlayerBanned = true
-            }
-        } else {
-            // Check for abuse even before any single player hits 3
-            if totalUniqueReports > reportAbuseThreshold {
-                // Unban all victims and flag the reporter
-                for victimId in playersBannedByMe {
-                    bannedPlayerIds.remove(victimId)
-                }
-                playersBannedByMe.removeAll()
-                showReportAbuseAlert = true
-            } else {
-                showReportConfirmation = true
-            }
-        }
-    }
 }
 
 #Preview("Leaderboard") {

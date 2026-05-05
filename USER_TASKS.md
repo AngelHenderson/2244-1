@@ -4,17 +4,18 @@ The complete Firebase leaderboard system has been implemented for your 2244 puzz
 
 ## 🔥 Firebase Project Setup (15 minutes)
 
-### 1. Create Firebase Project
+### 1. Use Firebase Project
 - [ ] Go to [Firebase Console](https://console.firebase.google.com/)
-- [ ] Click "Create a project" or "Add project"
-- [ ] Name it: `game2244-firebase` (or your preference)
-- [ ] **Disable** Google Analytics (not needed for leaderboards)
-- [ ] Click "Create project"
+- [ ] Open the existing `Faith` project (`faith-a5d4c`)
+- [ ] Use this project for 2244 backend deployment and Auth
 
 ### 2. Enable Required Services
 - [ ] **Authentication**: 
   - Go to Authentication → Sign-in method
+  - Enable "Email/Password" provider
   - Enable "Anonymous" provider
+  - Enable "Apple" provider
+  - Enable "Phone" provider if SMS verification should be live
   - Save
 - [ ] **Firestore Database**:
   - Go to Firestore Database → Create database  
@@ -25,8 +26,8 @@ The complete Firebase leaderboard system has been implemented for your 2244 puzz
 
 ### 3. Add iOS App
 - [ ] Click "Add app" → iOS
-- [ ] Bundle ID: `com.game2244.app` (or match your actual bundle ID)
-- [ ] App nickname: `Game 2244 iOS`
+- [ ] Bundle ID: `com.ideabloomlabs.game2244`
+- [ ] App nickname: `2244 iOS`
 - [ ] **Download GoogleService-Info.plist**
 - [ ] **Important**: Add this file to your iOS app target in Xcode
 

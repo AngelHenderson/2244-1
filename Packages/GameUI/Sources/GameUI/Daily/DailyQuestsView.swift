@@ -280,3 +280,11 @@ private struct QuestRewardSummary: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Daily Quests") {
+    GameUIScreenPreviewHost {
+        DailyQuestsView()
+    }
+}
+#endif

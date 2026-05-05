@@ -1,13 +1,13 @@
 {
-  "originHash" : "272fda0df3bf870d0f3152016aba176592913d203037ac5fb3b4311324023e91",
+  "originHash" : "a2362372227a609223c944a2cfb8feb8d9707e4f2cbde39210bc7ca6d388e947",
   "pins" : [
     {
-      "identity" : "abseil-cpp-binary",
+      "identity" : "abseil-cpp-swiftpm",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/google/abseil-cpp-binary.git",
+      "location" : "https://github.com/firebase/abseil-cpp-SwiftPM.git",
       "state" : {
-        "revision" : "bbe8b69694d7873315fd3a4ad41efe043e1c07c5",
-        "version" : "1.2024072200.0"
+        "revision" : "24832c3bb8d03f0bd8c35e52069ecb8d2166dfe9",
+        "version" : "0.20240722.2"
       }
     },
     {
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "61b85103a1aeed8218f17c794687781505fbbef5",
         "version" : "11.2.0"
+      }
+    },
+    {
+      "identity" : "boringssl-swiftpm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/firebase/boringssl-SwiftPM.git",
+      "state" : {
+        "revision" : "38b03401110f03bde32bc7e86ff4f815238ed2d3",
+        "version" : "0.32.1"
       }
     },
     {
@@ -65,12 +74,12 @@
       }
     },
     {
-      "identity" : "grpc-binary",
+      "identity" : "grpc-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/google/grpc-binary.git",
+      "location" : "https://github.com/grpc/grpc-ios.git",
       "state" : {
-        "revision" : "75b31c842f664a0f46a2e590a570e370249fd8f6",
-        "version" : "1.69.1"
+        "revision" : "93a0694c01ff51d7a897492aec9dc58f486e7cfd",
+        "version" : "1.69.0"
       }
     },
     {
@@ -116,6 +125,24 @@
       "state" : {
         "revision" : "540318ecedd63d883069ae7f1ed811a2df00b6ac",
         "version" : "2.4.0"
+      }
+    },
+    {
+      "identity" : "swift-package-manager-google-mobile-ads",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googleads/swift-package-manager-google-mobile-ads.git",
+      "state" : {
+        "revision" : "e2b1c31cdf11cb4b57b4e70ae4c313d4e48c444a",
+        "version" : "13.3.0"
+      }
+    },
+    {
+      "identity" : "swift-package-manager-google-user-messaging-platform",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git",
+      "state" : {
+        "revision" : "13b248eaa73b7826f0efb1bcf455e251d65ecb1b",
+        "version" : "3.1.0"
       }
     },
     {

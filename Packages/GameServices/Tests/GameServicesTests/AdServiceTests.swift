@@ -109,6 +109,15 @@ struct AdServiceTests {
 
     @Test
     @MainActor
+    func dummyAdServicePrivacyOptionsFailClosed() async {
+        let service = DummyAdService()
+
+        #expect(await service.isPrivacyOptionsRequired() == false)
+        #expect(await service.showPrivacyOptions() == false)
+    }
+
+    @Test
+    @MainActor
     func liveAdServiceRespectsAdFreeEntitlement() async {
         let service = LiveAdService()
         service.setAdFree(true)

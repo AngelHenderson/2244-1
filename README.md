@@ -13,8 +13,9 @@ A modern implementation of the 2244 puzzle game for iOS 18+, built with Swift 6,
 ```
 2244/
 ├── game2244.xcworkspace      # Main workspace
-├── game2244/                  # iOS app target
-│   └── game2244.xcodeproj
+├── 2244/
+│   ├── game2244.xcodeproj    # Active Xcode project
+│   └── game2244/             # iOS app target
 └── Packages/                  # Local Swift packages
     ├── GameCore/             # Game engine, logic, deterministic RNG
     ├── GameApp/              # Stores, state management, DI
@@ -44,25 +45,29 @@ A modern implementation of the 2244 puzzle game for iOS 18+, built with Swift 6,
 
 ```bash
 # Build for iOS Simulator
-xcodebuild -workspace game2244.xcworkspace \
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace \
            -scheme game2244 \
            -configuration Debug \
            -sdk iphonesimulator \
            -quiet clean build
 
 # Build for Device  
-xcodebuild -workspace game2244.xcworkspace \
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace \
            -scheme game2244 \
            -configuration Release \
            -sdk iphoneos \
            -quiet clean build
 ```
 
+The app-level Xcode lockfiles are resolved with `FIREBASE_SOURCE_FIRESTORE=1`.
+Keep that environment variable when resolving packages, building archives, or
+reproducing Xcode Cloud so Firebase uses the `grpc-ios` source-Firestore graph.
+
 ### Running Tests
 
 ```bash
 # Run all tests
-xcodebuild test -workspace game2244.xcworkspace \
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild test -workspace game2244.xcworkspace \
                 -scheme game2244 \
                 -destination 'platform=iOS Simulator,name=iPhone 16' \
                 -quiet

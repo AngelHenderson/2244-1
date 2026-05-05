@@ -63,7 +63,6 @@ struct MusicThemesView: View {
 //        .background(Color.black.opacity(0.9).ignoresSafeArea())
         .onChange(of: selectionIndex) {
             let instrument = instruments[selectionIndex]
-            print("[MusicThemesView] Selected instrument: \(instrument.id) – start preview sound here")
             startPreview(for: instrument.id)
         }
         .onAppear {
@@ -87,6 +86,7 @@ struct MusicThemesView: View {
             )
         }
         .accessibilityElement(children: .contain)
+        .trackScreen(.music)
     }
 
     private var header: some View {

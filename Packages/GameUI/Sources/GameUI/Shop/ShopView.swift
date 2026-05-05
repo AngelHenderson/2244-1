@@ -154,6 +154,7 @@ public struct WeeklyOfferSheet: View {
                     .background(.ultraThinMaterial)
             }
         }
+        .trackScreen(.shop)
     }
 
     private func offerRow(icon: String, text: String, color: Color) -> some View {
@@ -1032,3 +1033,17 @@ struct NoAdsIcon: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Shop") {
+    GameUIScreenPreviewHost {
+        ShopView()
+    }
+}
+
+#Preview("Weekly Offer") {
+    GameUIScreenPreviewHost {
+        WeeklyOfferSheet()
+    }
+}
+#endif

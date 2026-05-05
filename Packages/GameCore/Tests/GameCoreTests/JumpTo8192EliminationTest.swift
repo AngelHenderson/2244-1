@@ -23,24 +23,18 @@ func testJumpTo8192EliminatesPreviousMilestones() {
     engine._setTileForTesting(at: Position(row: 7, col: 3), value: 4)
     engine._setTileForTesting(at: Position(row: 7, col: 4), value: 4)
 
-    // Place 40 tiles of 128 for creating 8192
+    // Place 35 tiles of 128 for creating 8192 in a valid snake path.
     var chainPositions: [Position] = []
     for row in 0..<8 {
-        for col in 0..<5 {
+        let columns = row.isMultiple(of: 2) ? Array(0..<5) : Array((0..<5).reversed())
+        for col in columns {
             let pos = Position(row: row, col: col)
-            if row < 7 || (row == 7 && col >= 0 && col <= 4) {
-                // Skip the positions where we placed 2s and 4s
-                if row != 7 {
-                    engine._setTileForTesting(at: pos, value: 128)
-                    chainPositions.append(pos)
-                }
+            // Skip the bottom row where we placed 2s and 4s.
+            if row != 7 {
+                engine._setTileForTesting(at: pos, value: 128)
+                chainPositions.append(pos)
             }
         }
-    }
-
-    // Make sure we have exactly 40 positions with 128
-    while chainPositions.count > 40 {
-        chainPositions.removeLast()
     }
 
     print("📊 Initial board state:")
@@ -131,7 +125,7 @@ func testSequentialMilestoneEliminations() {
     }
 
     print("After 2048: 2s=\(counts[2] ?? 0), 4s=\(counts[4] ?? 0)")
-    #expect(counts[2] == 0, "2s should be eliminated after 2048")
+    #expect((counts[2] ?? 0) == 0, "2s should be eliminated after 2048")
     #expect((counts[4] ?? 0) > 0, "4s should still exist after 2048")
 
     // Now create 4096 - should eliminate 4s
@@ -148,8 +142,8 @@ func testSequentialMilestoneEliminations() {
     }
 
     print("After 4096: 2s=\(counts[2] ?? 0), 4s=\(counts[4] ?? 0)")
-    #expect(counts[2] == 0, "2s should remain eliminated")
-    #expect(counts[4] == 0, "4s should be eliminated after 4096")
+    #expect((counts[2] ?? 0) == 0, "2s should remain eliminated")
+    #expect((counts[4] ?? 0) == 0, "4s should be eliminated after 4096")
 
     // Create 8192 - should NOT eliminate anything (skip milestone)
     engine._applyMilestoneEliminationForTesting(createdValue: 8192)

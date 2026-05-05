@@ -60,6 +60,12 @@ public struct ReportServiceKey: EnvironmentKey {
     public static let defaultValue: any ReportServiceProtocol = NoopReportService()
 }
 
+/// Optional ledger reference. Views can use it to record reward grants;
+/// when nil (e.g. in previews) callers fall back to direct mutation.
+public struct RewardLedgerOptionalKey: EnvironmentKey {
+    public static let defaultValue: RewardLedgerStore? = nil
+}
+
 public extension EnvironmentValues {
     var gameStore: GameStore {
         get { self[GameStoreKey.self] }
@@ -84,6 +90,11 @@ public extension EnvironmentValues {
     var reportService: any ReportServiceProtocol {
         get { self[ReportServiceKey.self] }
         set { self[ReportServiceKey.self] = newValue }
+    }
+
+    var rewardLedgerOptional: RewardLedgerStore? {
+        get { self[RewardLedgerOptionalKey.self] }
+        set { self[RewardLedgerOptionalKey.self] = newValue }
     }
     
     // Theme toggles can be extended to remote config injection in future

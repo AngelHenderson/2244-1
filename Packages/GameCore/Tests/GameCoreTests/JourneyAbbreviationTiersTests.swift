@@ -23,7 +23,7 @@ struct JourneyAbbreviationTiersTests {
         #expect(JourneyAbbreviationTiers.tier(forStep: 19)?.label == "1M")
         #expect(JourneyAbbreviationTiers.tier(forStep: 29)?.label == "1B")
         #expect(JourneyAbbreviationTiers.tier(forStep: 39)?.label == "1a")
-        #expect(JourneyAbbreviationTiers.tier(forStep: 817)?.label == "873bz")
+        #expect(JourneyAbbreviationTiers.tier(forStep: 816)?.label == "873bz")
     }
     
     @Test("Tier lookup from tile values")
@@ -38,7 +38,6 @@ struct JourneyAbbreviationTiersTests {
         #expect(JourneyAbbreviationTiers.tier(for: infinityTile)?.isInfinity == true)
     }
 }
-
 
 
 

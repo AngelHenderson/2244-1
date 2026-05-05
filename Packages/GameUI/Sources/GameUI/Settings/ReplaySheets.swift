@@ -149,3 +149,17 @@ struct ReplayImportSheet: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Replay Export") {
+    GameUIScreenPreviewHost {
+        ReplayExportSheet()
+    }
+}
+
+#Preview("Replay Import") {
+    GameUIScreenPreviewHost {
+        ReplayImportSheet()
+    }
+}
+#endif
