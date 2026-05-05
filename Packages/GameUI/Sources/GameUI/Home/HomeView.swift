@@ -512,22 +512,6 @@ public struct HomeView: View {
             )
         }
 
-        if playerReadiness.isVisible(.freeSpin) {
-            items.append(
-                HomeDockItem(
-                    id: "free-spin",
-                    system: "arrow.triangle.2.circlepath",
-                    title: "Spin",
-                    badgeCount: spinState.bonusSpins,
-                    banned: state.isBanned,
-                    action: {
-                        if state.isBanned { state.showBanAlert = true }
-                        else { actions.openFreeSpin() }
-                    }
-                )
-            )
-        }
-
         if playerReadiness.isVisible(.leaderboard) {
             items.append(
                 HomeDockItem(
@@ -538,6 +522,20 @@ public struct HomeView: View {
                 )
             )
         }
+
+        items.append(
+            HomeDockItem(
+                id: "free-spin",
+                system: "arrow.triangle.2.circlepath",
+                title: "Spin",
+                badgeCount: spinState.bonusSpins,
+                banned: state.isBanned,
+                action: {
+                    if state.isBanned { state.showBanAlert = true }
+                    else { actions.openFreeSpin() }
+                }
+            )
+        )
 
         if playerReadiness.isVisible(.feed) {
             items.append(
