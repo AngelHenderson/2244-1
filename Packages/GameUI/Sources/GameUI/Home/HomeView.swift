@@ -333,20 +333,7 @@ public struct HomeView: View {
             )
         }
 
-        if playerReadiness.isVisible(.freeSpin) {
-            items.append(
-                HomeRailItem(
-                    id: "free-spin",
-                    systemImage: nil,
-                    customImage: "spinthewheel",
-                    title: "FREE SPIN",
-                    badgeCount: spinState.bonusSpins,
-                    banned: state.isBanned,
-                    onBannedTap: { state.showBanAlert = true },
-                    action: { actions.openFreeSpin() }
-                )
-            )
-        }
+
 
         if playerReadiness.isVisible(.shop) {
             items.append(
@@ -520,6 +507,22 @@ public struct HomeView: View {
                     action: {
                         if state.isBanned { state.showBanAlert = true }
                         else { presentedSheet = .achievements }
+                    }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.freeSpin) {
+            items.append(
+                HomeDockItem(
+                    id: "free-spin",
+                    system: "arrow.triangle.2.circlepath",
+                    title: "Spin",
+                    badgeCount: spinState.bonusSpins,
+                    banned: state.isBanned,
+                    action: {
+                        if state.isBanned { state.showBanAlert = true }
+                        else { actions.openFreeSpin() }
                     }
                 )
             )
