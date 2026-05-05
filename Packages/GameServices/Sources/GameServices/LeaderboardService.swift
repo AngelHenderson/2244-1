@@ -2,9 +2,9 @@ import Foundation
 import GameCore
 
 #if canImport(FirebaseAuth)
-import FirebaseAuth
-import FirebaseFirestore
-import FirebaseFunctions
+@preconcurrency import FirebaseAuth
+@preconcurrency import FirebaseFirestore
+@preconcurrency import FirebaseFunctions
 #endif
 
 /// Service for managing Firebase-based leaderboards
@@ -55,15 +55,19 @@ public class LeaderboardService: LeaderboardServiceProtocol, @unchecked Sendable
         
         do {
             let callable = functions.httpsCallable("submitScore")
-            let data: [String: Any] = [
+            var data: [String: Sendable] = [
                 "boardId": submission.boardId,
                 "highestTile": submission.runData.highestTile,
-                "highestTileStep": submission.runData.highestTileStep ?? NSNull(),
                 "secondsToHighest": submission.runData.secondsToHighest,
                 "movesToHighest": submission.runData.movesToHighest,
                 "runScore": submission.runData.runScore,
                 "displayName": submission.displayName
             ]
+            if let step = submission.runData.highestTileStep {
+                data["highestTileStep"] = step
+            } else {
+                data["highestTileStep"] = NSNull()
+            }
             
             _ = try await callable.call(data)
             
