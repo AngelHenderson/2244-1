@@ -153,6 +153,8 @@ public actor LiveAudioService: AudioServiceProtocol {
         #if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
+            // Aggressive init: deactivate first to clear any stale state from previous launches
+            try? session.setActive(false, options: [.notifyOthersOnDeactivation])
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true, options: [])
             print("🎵 Audio session configured successfully in init")
@@ -168,6 +170,13 @@ public actor LiveAudioService: AudioServiceProtocol {
         _cachedMusicEnabled = defaults.object(forKey: "musicEnabled") as? Bool ?? true
         _cachedTheme = defaults.string(forKey: "currentMusicTheme") ?? "piano"
         print("🎵 Initialized LiveAudioService — sfx=\(_cachedSfxEnabled), music=\(_cachedMusicEnabled), theme='\(_cachedTheme)'")
+        
+        // Schedule a startup probe to verify audio actually works
+        Task { [weak self] in
+            // Small delay to let the app finish launching
+            try? await Task.sleep(for: .milliseconds(500))
+            await self?.runStartupAudioProbe()
+        }
     }
 
     /// Called from init Task to push MainActor-read values into actor state
@@ -176,7 +185,161 @@ public actor LiveAudioService: AudioServiceProtocol {
         _cachedMusicEnabled = music
         _cachedTheme = theme
     }
+
+    /// Test whether the audio subsystem can actually instantiate and play a sound.
+    /// If it can't (common after simulator rebuild), run aggressive recovery.
+    private func runStartupAudioProbe() {
+        #if os(iOS)
+        // Try to create a tiny silent AVAudioPlayer as a probe
+        let probeURL = Bundle.main.url(forResource: "piano_tap_1", withExtension: "mp3")
+            ?? Bundle.main.url(forResource: "piano_tap_1", withExtension: "wav")
+        
+        guard let url = probeURL else {
+            print("🎵 Startup probe: no probe sound found (skipping)")
+            return
+        }
+        
+        do {
+            let probe = try AVAudioPlayer(contentsOf: url)
+            probe.volume = 0 // silent
+            probe.prepareToPlay()
+            if probe.play() {
+                probe.stop()
+                print("✅ Startup audio probe: PASSED — audio hardware is working")
+            } else {
+                print("⚠️ Startup audio probe: play() returned false — running recovery")
+                aggressiveAudioRecovery()
+            }
+        } catch {
+            print("⚠️ Startup audio probe: AVAudioPlayer init failed (\(error.localizedDescription)) — running recovery")
+            aggressiveAudioRecovery()
+        }
+        #endif
+    }
     
+    /// Nuclear recovery: deactivate session, nuke stale player pool, reactivate.
+    /// This handles the iOS Simulator bug where the virtual audio hardware disappears between builds.
+    private func aggressiveAudioRecovery() {
+        #if os(iOS)
+        print("🔄 Running aggressive audio recovery...")
+        
+        let session = AVAudioSession.sharedInstance()
+        
+        // 1. Stop all current players (they were created against a dead audio device)
+        for (_, players) in sfxPlayerPool {
+            for player in players {
+                player.stop()
+            }
+        }
+        sfxPlayerPool.removeAll()
+        for player in tickPlayers {
+            player.stop()
+        }
+        tickPlayers.removeAll()
+        musicPlayer?.stop()
+        musicPlayer = nil
+        musicPlayerDelegate = nil
+        
+        // 2. Clear circuit breaker state so sounds can be retried
+        failedURLs.removeAll()
+        
+        // 3. Full session teardown + rebuild
+        do {
+            // Deactivate with notification — this forces the system to re-scan audio devices
+            try session.setActive(false, options: [.notifyOthersOnDeactivation])
+            
+            // Re-set category from scratch
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            
+            // Reactivate
+            try session.setActive(true, options: [])
+            
+            print("✅ Aggressive audio recovery completed successfully")
+        } catch {
+            print("❌ Aggressive audio recovery failed: \(error)")
+            
+            // Last resort: try one more time after a brief delay
+            Task { [weak self] in
+                try? await Task.sleep(for: .milliseconds(200))
+                do {
+                    try session.setActive(false, options: [.notifyOthersOnDeactivation])
+                    try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+                    try session.setActive(true, options: [])
+                    print("✅ Delayed audio recovery succeeded")
+                } catch {
+                    print("❌ Delayed audio recovery also failed: \(error). Simulator restart may be needed.")
+                }
+            }
+        }
+        #endif
+    }
+
+    private struct PlayerWrapper: @unchecked Sendable {
+        let player: AVAudioPlayer
+        func stop() {
+            player.stop()
+        }
+    }
+
+    private func removeTickPlayer(_ player: AVAudioPlayer) async {
+        tickPlayers.removeAll { $0 === player }
+    }
+
+    /// We no longer destroy players in this method; we reuse them.
+    private func cleanupAndPrepareForNewSound() {
+        // Obsolete in pooling architecture, but kept blank so calls still resolve
+    }
+
+    /// Lightweight periodic check - runs every few seconds during active gameplay
+    private func periodicAudioSessionCheck() {
+        let now = Date()
+        // Only check every 3 seconds to avoid overhead
+        guard now.timeIntervalSince(lastSessionCheck) > 3.0 else { return }
+        lastSessionCheck = now
+        
+        #if os(iOS)
+        let session = AVAudioSession.sharedInstance()
+        
+        // Check if session category was changed (another app took over)
+        if session.category != .playback {
+            print("⚠️ Audio session category changed, restoring...")
+            aggressiveAudioRecovery()
+        }
+        
+        // Check if music should be playing but stopped
+        if let player = musicPlayer, !player.isPlaying, currentMusicFileName != nil {
+            print("⚠️ Music stopped unexpectedly, recovering...")
+            ensureAudioSessionActive()
+            player.prepareToPlay()
+            if !player.play() {
+                // Full restart needed
+                aggressiveAudioRecovery()
+                Task {
+                    if let fileName = self.currentMusicFileName {
+                        await self.playMusic(named: fileName, loop: self.currentMusicLoop)
+                    }
+                }
+            }
+        }
+        #endif
+    }
+    
+    /// Reactivate audio session after interruption
+    private func ensureAudioSessionActive() {
+        #if os(iOS)
+        let session = AVAudioSession.sharedInstance()
+        
+        do {
+            // Always re-set the category to ensure proper configuration
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true, options: [])
+        } catch {
+            print("⚠️ Simple reactivation failed, trying aggressive recovery...")
+            aggressiveAudioRecovery()
+        }
+        #endif
+    }
+
     public func setMusicEnabled(_ enabled: Bool) async {
         await MainActor.run { storage.musicEnabled = enabled }
         _cachedMusicEnabled = enabled
@@ -191,12 +354,11 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     public func playMusic(loop: Bool) async {
-        let enabled = await MainActor.run { storage.musicEnabled }
-        guard enabled else { return }
+        guard _cachedMusicEnabled else { return }
         // Default background music
         await playMusic(named: "background", loop: loop)
     }
-    
+
     /// Target volume for music playback. The crossfade helper ramps new players up to this value.
     private static let musicTargetVolume: Float = 0.6
 
@@ -205,8 +367,7 @@ public actor LiveAudioService: AudioServiceProtocol {
     private static let musicCrossfadeDuration: TimeInterval = 0.3
 
     public func playMusic(named fileName: String, loop: Bool) async {
-        let enabled = await MainActor.run { storage.musicEnabled }
-        guard enabled else { return }
+        guard _cachedMusicEnabled else { return }
 
         // Track current music for restart after interruption
         currentMusicFileName = fileName
@@ -738,70 +899,4 @@ public actor LiveAudioService: AudioServiceProtocol {
         
         return nil
     }
-
-    private struct PlayerWrapper: @unchecked Sendable {
-        let player: AVAudioPlayer
-        func stop() {
-            player.stop()
-        }
-    }
-
-    private func removeTickPlayer(_ player: AVAudioPlayer) async {
-        tickPlayers.removeAll { $0 === player }
-    }
-
-    /// We no longer destroy players in this method; we reuse them.
-    private func cleanupAndPrepareForNewSound() {
-        // Obsolete in pooling architecture, but kept blank so calls still resolve
-    }
-
-    /// Lightweight periodic check - runs every few seconds during active gameplay
-    private func periodicAudioSessionCheck() {
-        let now = Date()
-        // Only check every 3 seconds to avoid overhead
-        guard now.timeIntervalSince(lastSessionCheck) > 3.0 else { return }
-        lastSessionCheck = now
-        
-        #if os(iOS)
-        let session = AVAudioSession.sharedInstance()
-        
-        // Check if session category was changed (another app took over)
-        if session.category != .playback {
-            print("⚠️ Audio session category changed, restoring...")
-            ensureAudioSessionActive()
-        }
-        
-        // Check if music should be playing but stopped
-        if let player = musicPlayer, !player.isPlaying, currentMusicFileName != nil {
-            print("⚠️ Music stopped unexpectedly, recovering...")
-            ensureAudioSessionActive()
-            player.prepareToPlay()
-            if !player.play() {
-                // Full restart needed
-                Task {
-                    if let fileName = self.currentMusicFileName {
-                        await self.playMusic(named: fileName, loop: self.currentMusicLoop)
-                    }
-                }
-            }
-        }
-        #endif
-    }
-    
-    /// Reactivate audio session after interruption
-    private func ensureAudioSessionActive() {
-        #if os(iOS)
-        let session = AVAudioSession.sharedInstance()
-        
-        do {
-            // Always re-set the category to ensure proper configuration
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true, options: [])
-        } catch {
-            print("⚠️ Failed to reactivate audio session: \(error)")
-        }
-        #endif
-    }
 }
-
-
