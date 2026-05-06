@@ -94,6 +94,8 @@ private struct HomeTabBarButton: View {
             "achievement"
         case "leaderboard":
             "leaderboard"
+        case "spin":
+            "spinthewheel"
         case "settings":
             "settings"
         case "theme":

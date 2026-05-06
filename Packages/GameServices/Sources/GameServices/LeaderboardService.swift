@@ -55,7 +55,7 @@ public class LeaderboardService: LeaderboardServiceProtocol, @unchecked Sendable
         
         do {
             let callable = functions.httpsCallable("submitScore")
-            var data: [String: Sendable] = [
+            let data: [String: Sendable] = [
                 "boardId": submission.boardId,
                 "highestTile": submission.runData.highestTile,
                 "secondsToHighest": submission.runData.secondsToHighest,
@@ -63,11 +63,6 @@ public class LeaderboardService: LeaderboardServiceProtocol, @unchecked Sendable
                 "runScore": submission.runData.runScore,
                 "displayName": submission.displayName
             ]
-            if let step = submission.runData.highestTileStep {
-                data["highestTileStep"] = step
-            } else {
-                data["highestTileStep"] = NSNull()
-            }
             
             _ = try await callable.call(data)
             
@@ -196,7 +191,6 @@ public extension LeaderboardService {
         let decoded = CompositeScore.decode(score)
         let runData = GameRunData(
             highestTile: decoded.tile,
-            highestTileStep: decoded.tile > 0 ? Int(floor(log2(Double(decoded.tile)))) : nil,
             secondsToHighest: decoded.seconds,
             movesToHighest: decoded.moves,
             runScore: decoded.score
@@ -312,7 +306,6 @@ public final class MockLeaderboardService: @unchecked Sendable {
             displayName: displayName,
             value: String(runData.compositeScore),
             highestTile: runData.highestTile,
-            highestTileStep: runData.highestTileStep,
             movesToHighest: runData.movesToHighest,
             secondsToHighest: runData.secondsToHighest,
             runScore: runData.runScore,
@@ -367,7 +360,6 @@ public final class MockLeaderboardService: @unchecked Sendable {
                 displayName: "Player 1",
                 value: String(CompositeScore.encode(highestTile: 2048, seconds: 300, moves: 150, score: 25000)),
                 highestTile: 2048,
-                highestTileStep: 11,
                 movesToHighest: 150,
                 secondsToHighest: 300,
                 runScore: 25000
@@ -377,7 +369,6 @@ public final class MockLeaderboardService: @unchecked Sendable {
                 displayName: "Player 2",
                 value: String(CompositeScore.encode(highestTile: 1024, seconds: 250, moves: 120, score: 15000)),
                 highestTile: 1024,
-                highestTileStep: 10,
                 movesToHighest: 120,
                 secondsToHighest: 250,
                 runScore: 15000
@@ -387,7 +378,6 @@ public final class MockLeaderboardService: @unchecked Sendable {
                 displayName: "Player 3",
                 value: String(CompositeScore.encode(highestTile: 512, seconds: 200, moves: 100, score: 8000)),
                 highestTile: 512,
-                highestTileStep: 9,
                 movesToHighest: 100,
                 secondsToHighest: 200,
                 runScore: 8000

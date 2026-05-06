@@ -626,10 +626,11 @@ struct PlayerHistoryView: View {
                     let reason = directBanReasons[timeHash % directBanReasons.count]
                     
                     let banMessage: String
+                    let banWord = reportCount > 0 ? "re-banned" : "banned"
                     if totalSeconds == -1 {
-                        banMessage = "\(p.name) got permanently banned due to \(reason)."
+                        banMessage = "\(p.name) got permanently \(banWord) due to \(reason)."
                     } else {
-                        banMessage = "\(p.name) got banned for \(durationStr) due to \(reason)."
+                        banMessage = "\(p.name) got \(banWord) for \(durationStr) due to \(reason)."
                     }
                     
                     realBanNames.insert(p.name)
@@ -664,9 +665,9 @@ struct PlayerHistoryView: View {
 
         // Escalation ladder — each subsequent ban moves up from their starting tier
         let escalationLadder = [
-            "one day", "two days", "three days", "one week",
-            "two weeks", "one month", "two months",
-            "six months", "one year", "two years", "five years"
+            "1 day", "1 week", "2 weeks", "3 weeks",
+            "1 month", "2 months", "6 months",
+            "1 year", "2 years", "3 years", "4 years", "5 years"
         ]
 
         // Track starting ladder index per player (based on their first offense severity)
@@ -678,18 +679,18 @@ struct PlayerHistoryView: View {
         var pendingUnbans: [(name: String, unbanDate: Date)] = []
         
         func intervalForDuration(_ duration: String) -> TimeInterval? {
-            if duration == "one day" { return 86400 }
-            if duration == "two days" { return 86400 * 2 }
-            if duration == "three days" { return 86400 * 3 }
-            if duration == "one week" { return 86400 * 7 }
-            if duration == "two weeks" { return 86400 * 14 }
-            if duration == "three weeks" { return 86400 * 21 }
-            if duration == "one month" { return 86400 * 30 }
-            if duration == "two months" { return 86400 * 60 }
-            if duration == "six months" { return 86400 * 180 }
-            if duration == "one year" { return 86400 * 365 }
-            if duration == "two years" { return 86400 * 365 * 2 }
-            if duration == "five years" { return nil }
+            if duration == "1 day" { return 86400 }
+            if duration == "1 week" { return 86400 * 7 }
+            if duration == "2 weeks" { return 86400 * 14 }
+            if duration == "3 weeks" { return 86400 * 21 }
+            if duration == "1 month" { return 86400 * 30 }
+            if duration == "2 months" { return 86400 * 60 }
+            if duration == "6 months" { return 86400 * 180 }
+            if duration == "1 year" { return 86400 * 365 }
+            if duration == "2 years" { return 86400 * 365 * 2 }
+            if duration == "3 years" { return 86400 * 365 * 3 }
+            if duration == "4 years" { return 86400 * 365 * 4 }
+            if duration == "5 years" { return nil }
             if duration.hasSuffix(" days"), let daysStr = duration.components(separatedBy: " ").first, let days = Int(daysStr) {
                 return Double(days * 86400)
             }

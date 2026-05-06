@@ -50,7 +50,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AAA111222333444555666777 /* Exceptions for "game2244" folder in "game2244" target */ = {
+		9285FDEC2FAACE7B00245DC9 /* Exceptions for "game2244" folder in "game2244" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -63,7 +63,7 @@
 		5894B1002E4A9018007057AA /* game2244 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				AAA111222333444555666777 /* Exceptions for "game2244" folder in "game2244" target */,
+				9285FDEC2FAACE7B00245DC9 /* Exceptions for "game2244" folder in "game2244" target */,
 			);
 			path = game2244;
 			sourceTree = "<group>";
