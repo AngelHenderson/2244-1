@@ -145,8 +145,6 @@ public struct HomeView: View {
                 )
             case .feed:
                 SocialFeedView()
-            case .history:
-                PlayerHistoryView(entries: leaderboardClient.initialData?().entries ?? [], filterId: "global")
             case .friends:
                 FriendsView()
             case .account:
@@ -540,14 +538,6 @@ public struct HomeView: View {
         )
 
         if playerReadiness.isVisible(.feed) {
-            items.append(
-                HomeDockItem(
-                    id: "history",
-                    system: "list.bullet.rectangle.portrait.fill",
-                    title: "History",
-                    action: { presentedSheet = .history }
-                )
-            )
             items.append(
                 HomeDockItem(
                     id: "feed",
