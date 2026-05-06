@@ -15,12 +15,13 @@ public enum BanReason: String, CaseIterable, Sendable {
 
 /// Duration of a ban.
 public enum BanDuration: Sendable {
-    case temporary(days: Int)
+    case temporary(endDate: Date)
     case permanent
 
     public var displayText: String {
         switch self {
-        case .temporary(let days):
+        case .temporary(let endDate):
+            let days = Int(max(0, endDate.timeIntervalSinceNow) / 86400)
             if days == 1 { return "1 day" }
             if days < 7 { return "\(days) days" }
             if days == 7 { return "1 week" }
@@ -43,16 +44,7 @@ public enum BanDuration: Sendable {
 
 /// Builds the ban alert message string for use in a standard `.alert()`.
 public enum BanAlert {
-    /// Generates the subtitle message for a ban alert.
-    public static func message(reason: BanReason, duration: BanDuration) -> String {
-        let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
-        switch duration {
-        case .temporary:
-            return "You are banned for \(duration.displayText) due to \(reason.rawValue). \(disabledNote)"
-        case .permanent:
-            return "You are permanently banned due to \(reason.rawValue). \(disabledNote)"
-        }
-    }
+    // Moved message generation into the view modifier below using SwiftUI's Text interpolation for dates
 }
 
 // MARK: - View Modifier
@@ -76,7 +68,13 @@ public struct BanAlertModifier: ViewModifier {
             .alert(title, isPresented: $isPresented) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text(BanAlert.message(reason: reason, duration: duration))
+                let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
+                switch duration {
+                case .temporary(let endDate):
+                    Text("You are temporarily banned due to \(reason.rawValue). Ban expires in ") + Text(endDate, style: .timer) + Text(". \(disabledNote)")
+                case .permanent:
+                    Text("You are permanently banned due to \(reason.rawValue). \(disabledNote)")
+                }
             }
     }
 }
@@ -93,7 +91,7 @@ public extension View {
         .banAlert(
             isPresented: .constant(true),
             reason: .cheating,
-            duration: .temporary(days: 7)
+            duration: .temporary(endDate: Date().addingTimeInterval(7 * 86400 + 3600 + 45))
         )
 }
 
