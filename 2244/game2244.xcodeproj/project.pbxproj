@@ -49,9 +49,22 @@
 		5894B1172E4A901A007057AA /* game2244UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = game2244UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9285FDEC2FAACE7B00245DC9 /* Exceptions for "game2244" folder in "game2244" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5894B0FD2E4A9018007057AA /* game2244 */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5894B1002E4A9018007057AA /* game2244 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9285FDEC2FAACE7B00245DC9 /* Exceptions for "game2244" folder in "game2244" target */,
+			);
 			path = game2244;
 			sourceTree = "<group>";
 		};
