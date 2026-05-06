@@ -626,11 +626,10 @@ struct PlayerHistoryView: View {
                     let reason = directBanReasons[timeHash % directBanReasons.count]
                     
                     let banMessage: String
-                    let banWord = reportCount > 0 ? "re-banned" : "banned"
                     if totalSeconds == -1 {
-                        banMessage = "\(p.name) got permanently \(banWord) due to \(reason)."
+                        banMessage = "\(p.name) got permanently banned due to \(reason)."
                     } else {
-                        banMessage = "\(p.name) got \(banWord) for \(durationStr) due to \(reason)."
+                        banMessage = "\(p.name) got banned for \(durationStr) due to \(reason)."
                     }
                     
                     realBanNames.insert(p.name)
@@ -832,9 +831,10 @@ struct PlayerHistoryView: View {
                     if let interval = intervalForDuration(duration) {
                         pendingUnbans.append((targetName, event.eventDate.addingTimeInterval(interval)))
                     }
+                    let banWord = banNumber > 0 ? "re-banned" : "banned"
                     processed.append(HistoryEvent(
                         type: .banned,
-                        message: "\(targetName) got banned for \(duration) due to three reports.",
+                        message: "\(targetName) got \(banWord) for \(duration) due to three reports.",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
@@ -923,9 +923,10 @@ struct PlayerHistoryView: View {
                     if let interval = intervalForDuration(escalatedDuration) {
                         pendingUnbans.append((name, event.eventDate.addingTimeInterval(interval)))
                     }
+                    let banWord = banNumber > 0 ? "re-banned" : "banned"
                     processed.append(HistoryEvent(
                         type: .banned,
-                        message: "\(name) got banned for \(escalatedDuration) due to \(reason).",
+                        message: "\(name) got \(banWord) for \(escalatedDuration) due to \(reason).",
                         daysAgo: 0,
                         seed: 0,
                         overrideDate: event.eventDate
