@@ -18,6 +18,7 @@ public enum HomeSheetDestination: Hashable, Identifiable, Sendable {
     case practice
     case modes
     case feed
+    case history
     case friends
     case account
     case subscription
