@@ -71,7 +71,7 @@ public struct BanAlertModifier: ViewModifier {
                 let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
                 switch duration {
                 case .temporary(let endDate):
-                    Text("You are temporarily banned due to \(reason.rawValue). Ban expires in ") + Text(endDate, style: .timer) + Text(". \(disabledNote)")
+                    Text("You are temporarily banned due to \(reason.rawValue). Ban expires in \(endDate, style: .timer). \(disabledNote)")
                 case .permanent:
                     Text("You are permanently banned due to \(reason.rawValue). \(disabledNote)")
                 }
