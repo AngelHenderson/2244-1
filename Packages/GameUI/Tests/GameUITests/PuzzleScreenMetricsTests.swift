@@ -15,6 +15,8 @@ struct PuzzleScreenMetricsTests {
         #expect(metrics.placement == .compactCompressed)
         #expect(metrics.compression == .collapsed)
         #expect(metrics.shouldCollapseTools)
+        #expect(metrics.objectiveHeight == PuzzleScreenMetrics.collapsedObjectiveHeight)
+        #expect(metrics.toolTrayHeight == PuzzleScreenMetrics.collapsedToolTrayHeight)
     }
 
     @Test
@@ -29,6 +31,22 @@ struct PuzzleScreenMetricsTests {
         #expect(metrics.placement == .compact)
         #expect(metrics.compression == .expanded)
         #expect(!metrics.shouldCollapseTools)
+        #expect(metrics.objectiveHeight == PuzzleScreenMetrics.expandedObjectiveHeight)
+        #expect(metrics.toolTrayHeight == PuzzleScreenMetrics.expandedToolTrayHeight)
+    }
+
+    @Test
+    func CompactPhoneReservesSpaceForInfoPanel() {
+        let metrics = PuzzleScreenMetrics(
+            container: CGSize(width: 390, height: 760),
+            safeArea: EdgeInsets(top: 24, leading: 0, bottom: 20, trailing: 0),
+            rows: 8,
+            columns: 5
+        )
+
+        #expect(metrics.placement == .compact)
+        #expect(metrics.compression == .compact)
+        #expect(metrics.objectiveHeight == PuzzleScreenMetrics.compactObjectiveHeight)
     }
 
     @Test
