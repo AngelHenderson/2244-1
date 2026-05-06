@@ -144,8 +144,7 @@ public struct HomeView: View {
                     onPractice: { presentedSheet = .practice }
                 )
             case .feed:
-                let page = leaderboardClient.initialData?() ?? LeaderboardPage(entries: [], nextCursor: nil, totalCount: 0)
-                PlayerHistoryView(entries: page.entries, filterId: "global")
+                PlayerHistoryView(entries: leaderboardClient.initialData?()?.entries ?? [], filterId: "global")
             case .friends:
                 FriendsView()
             case .account:
