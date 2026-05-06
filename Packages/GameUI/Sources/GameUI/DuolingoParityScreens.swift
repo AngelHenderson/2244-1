@@ -1064,8 +1064,9 @@ private struct FeedCommentsView: View {
                     FeedItemRow(item: item)
                 }
                 Section("Comments") {
-                    Text("Nice run!")
-                    Text("That milestone path is clean.")
+                    ForEach(item.comments, id: \.self) { text in
+                        Text(text)
+                    }
                     TextField("Add a comment", text: $comment)
                 }
             }

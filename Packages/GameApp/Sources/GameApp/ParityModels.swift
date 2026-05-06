@@ -342,6 +342,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
     public var statText: String
     public var reactionCount: Int
     public var commentCount: Int
+    public var comments: [String]
 
     public init(
         id: UUID = UUID(),
@@ -351,7 +352,8 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
         message: String,
         statText: String,
         reactionCount: Int = 0,
-        commentCount: Int = 0
+        commentCount: Int = 0,
+        comments: [String] = []
     ) {
         self.id = id
         self.authorName = authorName
@@ -361,6 +363,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
         self.statText = statText
         self.reactionCount = reactionCount
         self.commentCount = commentCount
+        self.comments = comments
     }
 }
 
@@ -674,9 +677,9 @@ public struct MockSocialService: SocialService, Sendable {
 
     public func feed() async throws -> [SocialFeedItem] {
         [
-            SocialFeedItem(authorName: "Sam", message: "Reached a 1M tile in Endless.", statText: "New milestone", reactionCount: 12, commentCount: 3),
-            SocialFeedItem(authorName: "Alex", message: "Finished today's timed challenge.", statText: "Challenge complete", reactionCount: 7, commentCount: 1),
-            SocialFeedItem(authorName: "Taylor", message: "Protected a 9 day streak.", statText: "Streak saved", reactionCount: 5, commentCount: 0)
+            SocialFeedItem(authorName: "Sam", message: "Reached a 1M tile in Endless.", statText: "New milestone", reactionCount: 12, commentCount: 3, comments: ["Nice run!", "That milestone path is clean.", "Amazing strategy!"]),
+            SocialFeedItem(authorName: "Alex", message: "Finished today's timed challenge.", statText: "Challenge complete", reactionCount: 7, commentCount: 1, comments: ["Great job!"]),
+            SocialFeedItem(authorName: "Taylor", message: "Protected a 9 day streak.", statText: "Streak saved", reactionCount: 5, commentCount: 0, comments: [])
         ]
     }
 

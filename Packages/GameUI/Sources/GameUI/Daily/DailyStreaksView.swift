@@ -239,18 +239,22 @@ private struct MilestoneCard: View {
             }
 
             // Rewards preview
-            if let gems = streak.rewards.gems, gems > 0 {
-                Label {
-                    Text(verbatim: String(gems))
-                } icon: {
-                    Image("gem")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 14, height: 14)
+            HStack(spacing: 4) {
+                ForEach(streak.rewards.entries.prefix(2), id: \.self) { entry in
+                    HStack(spacing: 2) {
+                        Image(entry.kind.assetName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                        Text(verbatim: String(entry.amount))
+                    }
                 }
-                .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
-                .foregroundStyle(.cyan)
+                if streak.rewards.entries.count > 2 {
+                    Text("+\(streak.rewards.entries.count - 2)")
+                }
             }
+            .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
+            .foregroundStyle(.secondary)
         }
         .frame(width: 100, height: 140)
         .background(backgroundGradient, in: RoundedRectangle(cornerRadius: 12))
