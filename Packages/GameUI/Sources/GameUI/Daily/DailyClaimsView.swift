@@ -1180,17 +1180,10 @@ private struct ClaimAnimationOverlay: View {
     var font: Font = .body
 
     var body: some View {
-        if let assetName = kind.assetName {
-            Image(assetName)
-                .resizable()
-                .scaledToFit()
-                // Approximate size equivalent to .body font system image
-                .frame(width: 20, height: 20)
-        } else {
-            Image(systemName: kind.iconName)
-                .foregroundStyle(kind.iconColor)
-                .font(font)
-        }
+        Image(kind.assetName)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 20, height: 20)
     }
 }
 
@@ -1234,83 +1227,7 @@ private struct RewardChip: View {
     }
 }
 
-private extension AchievementDef.Rewards.Entry.Kind {
-    var assetName: String? {
-        switch self {
-        case .gems: return "gem"
-        case .spins: return "spinthewheel"
-        case .hammers: return "hammer"
-        case .magnets: return "magnet"
-        case .swaps: return "swap"
-        case .boost2x: return "boost2x"
-        case .boost3x: return "boost3x"
-        case .boost4x: return "boost4x"
-        }
-    }
 
-    var iconName: String {
-        switch self {
-        case .gems: return "gem"
-        case .spins: return "arrow.triangle.2.circlepath"
-        case .hammers: return "hammer.fill"
-        case .magnets: return "dot.radiowaves.left.and.right"
-        case .swaps: return "arrow.2.squarepath"
-        case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
-        }
-    }
-    
-    var iconColor: Color {
-        switch self {
-        case .gems: return .cyan
-        case .spins: return .purple
-        case .hammers: return .gray
-        case .magnets: return .red
-        case .swaps: return .green
-        case .boost2x: return .yellow
-        case .boost3x: return .pink
-        case .boost4x: return .red
-        }
-    }
-    
-    var displayName: String {
-        switch self {
-        case .gems: return "Gems"
-        case .spins: return "Spins"
-        case .hammers: return "Hammers"
-        case .magnets: return "MegaMerges"
-        case .swaps: return "Swaps"
-        case .boost2x: return "2× Boost"
-        case .boost3x: return "3× Boost"
-        case .boost4x: return "4× Boost"
-        }
-    }
-    
-    var subtitle: String {
-        switch self {
-        case .boost2x, .boost3x, .boost4x:
-            return "Bonus multiplier"
-        case .spins:
-            return "Bonus spin"
-        case .swaps:
-            return "Swap power"
-        case .hammers:
-            return "Smash a tile"
-        case .magnets:
-            return "Pull matches"
-        case .gems:
-            return "Spend in shop"
-        }
-    }
-    
-    var isMultiplier: Bool {
-        switch self {
-        case .boost2x, .boost3x, .boost4x:
-            return true
-        default:
-            return false
-        }
-    }
-}
 
 private extension Array {
     func chunked(into size: Int) -> [[Element]] {

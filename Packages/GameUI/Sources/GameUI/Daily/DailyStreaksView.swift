@@ -394,33 +394,6 @@ private struct RewardsDisplay: View {
     }
 }
 
-private extension AchievementDef.Rewards.Entry.Kind {
-    var assetName: String {
-        switch self {
-        case .gems: return "gem"
-        case .spins: return "spinthewheel"
-        case .hammers: return "hammer"
-        case .magnets: return "magnet"
-        case .swaps: return "swap"
-        case .boost2x: return "boost2x"
-        case .boost3x: return "boost3x"
-        case .boost4x: return "boost4x"
-        }
-    }
-
-    var displayName: String {
-        switch self {
-        case .gems: return "Gems"
-        case .spins: return "Spins"
-        case .hammers: return "Hammers"
-        case .magnets: return "MegaMerges"
-        case .swaps: return "Swaps"
-        case .boost2x: return "2× Boost"
-        case .boost3x: return "3× Boost"
-        case .boost4x: return "4× Boost"
-        }
-    }
-}
 
 #if DEBUG
 #Preview("Daily Streaks") {
