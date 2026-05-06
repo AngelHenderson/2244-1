@@ -889,7 +889,7 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(gems: 10000)
     ]
     
-    static func rewards(for day: Int) -> AchievementDef.Rewards {
+    public static func rewards(for day: Int) -> AchievementDef.Rewards {
         guard day > 0 else { return AchievementDef.Rewards() }
 
         // Pattern repeats every 365 days (yearly)
