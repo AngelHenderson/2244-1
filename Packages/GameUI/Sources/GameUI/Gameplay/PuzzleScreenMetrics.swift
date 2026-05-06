@@ -21,6 +21,12 @@ struct PuzzleScreenMetrics: Equatable {
     static let sidebarMaxBoardWidth: CGFloat = 680
     static let sidebarGap: CGFloat = 24
     static let minimumExpandedToolTileSize: CGFloat = 52
+    static let expandedObjectiveHeight: CGFloat = 124
+    static let compactObjectiveHeight: CGFloat = 112
+    static let collapsedObjectiveHeight: CGFloat = 30
+    static let expandedToolTrayHeight: CGFloat = 76
+    static let compactToolTrayHeight: CGFloat = 64
+    static let collapsedToolTrayHeight: CGFloat = 48
 
     let placement: PuzzleScreenPlacement
     let compression: PuzzleChromeCompression
@@ -84,11 +90,11 @@ struct PuzzleScreenMetrics: Equatable {
         case (true, _):
             objectiveHeight = 0
         case (_, .expanded):
-            objectiveHeight = 42
+            objectiveHeight = Self.expandedObjectiveHeight
         case (_, .compact):
-            objectiveHeight = 36
+            objectiveHeight = Self.compactObjectiveHeight
         case (_, .collapsed):
-            objectiveHeight = 30
+            objectiveHeight = Self.collapsedObjectiveHeight
         }
 
         let sidePanelWidth = usesSidebar ? min(max(usableWidth * 0.27, 260), 340) : 0
@@ -128,8 +134,10 @@ struct PuzzleScreenMetrics: Equatable {
             )
         }
 
-        let expandedToolsHeight: CGFloat = usesSidebar ? 0 : (compression == .expanded ? 64 : 56)
-        let compactToolsHeight: CGFloat = usesSidebar ? 0 : 48
+        let expandedToolsHeight: CGFloat = usesSidebar
+            ? 0
+            : (compression == .expanded ? Self.expandedToolTrayHeight : Self.compactToolTrayHeight)
+        let compactToolsHeight: CGFloat = usesSidebar ? 0 : Self.collapsedToolTrayHeight
         let initialToolsHeight = compression == .collapsed ? compactToolsHeight : expandedToolsHeight
         let initialTileSize = tileLength(toolHeight: initialToolsHeight)
         let shouldCollapseTools = !usesSidebar

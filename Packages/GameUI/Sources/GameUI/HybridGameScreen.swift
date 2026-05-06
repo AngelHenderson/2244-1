@@ -729,7 +729,7 @@ public struct HybridGameScreen: View {
 
         case .compact, .compactCompressed, .centered:
             VStack(spacing: metrics.sectionSpacing) {
-                ObjectiveProgressBand(isCompact: metrics.compression == .collapsed)
+                gameplayObjective(metrics: metrics)
                     .frame(height: metrics.objectiveHeight)
 
                 gameBoard(metrics: metrics)
@@ -743,11 +743,23 @@ public struct HybridGameScreen: View {
                     onMagnet: handleMagnet,
                     onUndo: handleUndo
                 )
-                .frame(height: metrics.toolTrayHeight)
+                .frame(
+                    width: metrics.shouldCollapseTools ? nil : metrics.boardSize.width,
+                    height: metrics.toolTrayHeight
+                )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .padding(.horizontal, metrics.margin)
             .padding(.vertical, metrics.margin)
+        }
+    }
+
+    @ViewBuilder
+    private func gameplayObjective(metrics: PuzzleScreenMetrics) -> some View {
+        if metrics.compression == .collapsed {
+            ObjectiveProgressBand(isCompact: true)
+        } else {
+            GameplayInfoPanel(isCompact: metrics.compression == .compact)
         }
     }
 
@@ -996,6 +1008,7 @@ private func hybridGameScreenPreview(size: CGSize) -> some View {
     HybridGameScreen(isPlayingDismiss: {})
         .environment(\.gameStore, gameStore)
         .environment(\.currentTheme, ThemeRegistry.Default.descriptor(for: "raised-3d-square"))
+        .environment(DailyQuestStore())
         .environment(readiness)
         .frame(width: size.width, height: size.height)
 }
@@ -1119,6 +1132,245 @@ private extension View {
 
 
 // MARK: - Gameplay Layout Chrome
+
+private struct GameplayInfoPanel: View {
+    @Environment(\.gameStore) private var gameStore
+    @Environment(\.currentTheme) private var currentTheme
+    @Environment(DailyQuestStore.self) private var dailyQuestStore
+
+    let isCompact: Bool
+
+    private var bestStep: Int {
+        max(0, gameStore.state.highestTileStep)
+    }
+
+    private var goalStep: Int {
+        bestStep + 1
+    }
+
+    private var bestLabel: String {
+        JourneyTileGenerator.formatTileAtStep(bestStep)
+    }
+
+    private var goalLabel: String {
+        JourneyTileGenerator.formatTileAtStep(goalStep)
+    }
+
+    private var featuredQuest: DailyQuestStore.Quest? {
+        dailyQuestStore.quests.first(where: { $0.isClaimable })
+        ?? dailyQuestStore.quests.first(where: { !$0.claimed && !$0.isComplete })
+        ?? dailyQuestStore.quests.first(where: { !$0.claimed })
+        ?? dailyQuestStore.quests.first
+    }
+
+    var body: some View {
+        VStack(spacing: isCompact ? 6 : 8) {
+            milestoneProgress
+            runStats
+            if let featuredQuest {
+                DailyQuestStatusRow(quest: featuredQuest, isCompact: isCompact)
+            }
+        }
+        .padding(.horizontal, isCompact ? 10 : 12)
+        .padding(.vertical, isCompact ? 8 : 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.black.opacity(0.2))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "Best \(bestLabel), goal \(goalLabel), \(gameStore.state.moves) moves, \(gameStore.validMovesCount) valid moves"
+        )
+    }
+
+    private var milestoneProgress: some View {
+        VStack(spacing: isCompact ? 4 : 5) {
+            HStack(spacing: 8) {
+                MilestoneValuePill(
+                    title: "Best",
+                    value: bestLabel,
+                    color: currentTheme?.colorForStep(bestStep) ?? .green
+                )
+
+                Spacer(minLength: 8)
+
+                MilestoneValuePill(
+                    title: "Goal",
+                    value: goalLabel,
+                    color: currentTheme?.colorForStep(goalStep) ?? .orange
+                )
+            }
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.16))
+                    Capsule()
+                        .fill(currentTheme?.colorForStep(bestStep) ?? .green)
+                        .frame(width: max(5, geometry.size.width * 0.5))
+                }
+            }
+            .frame(height: isCompact ? 4 : 5)
+        }
+    }
+
+    private var runStats: some View {
+        HStack(spacing: isCompact ? 6 : 8) {
+            GameplayInfoStat(
+                title: "Moves",
+                value: "\(gameStore.state.moves)",
+                systemImage: "arrow.triangle.2.circlepath",
+                isCompact: isCompact
+            )
+            GameplayInfoStat(
+                title: "Valid",
+                value: "\(gameStore.validMovesCount)",
+                systemImage: "point.3.connected.trianglepath.dotted",
+                isCompact: isCompact
+            )
+            GameplayInfoStat(
+                title: "Highest",
+                value: bestLabel,
+                systemImage: "crown.fill",
+                isCompact: isCompact
+            )
+        }
+    }
+}
+
+private struct MilestoneValuePill: View {
+    let title: String
+    let value: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(color)
+                .frame(width: 7, height: 7)
+            Text(title)
+                .foregroundStyle(.white.opacity(0.62))
+            Text(value)
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+        }
+        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+    }
+}
+
+private struct GameplayInfoStat: View {
+    let title: String
+    let value: String
+    let systemImage: String
+    let isCompact: Bool
+
+    var body: some View {
+        HStack(spacing: isCompact ? 5 : 6) {
+            Image(systemName: systemImage)
+                .font(.system(size: isCompact ? 12 : 13, weight: .semibold))
+                .frame(width: isCompact ? 14 : 16)
+                .foregroundStyle(.white.opacity(0.68))
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title)
+                    .font(.avenirNext(size: GameFonts.caption2Size, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.58))
+                    .lineLimit(1)
+                Text(value)
+                    .font(.avenirNext(size: isCompact ? GameFonts.caption1Size : GameFonts.subheadlineSize, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.55)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, isCompact ? 7 : 8)
+        .frame(height: isCompact ? 30 : 34)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+        )
+    }
+}
+
+private struct DailyQuestStatusRow: View {
+    let quest: DailyQuestStore.Quest
+    let isCompact: Bool
+
+    private var accentColor: Color {
+        if quest.isClaimable {
+            return .green
+        }
+        if quest.isComplete {
+            return .blue
+        }
+        return .cyan
+    }
+
+    private var progressText: String {
+        if quest.claimed {
+            return "Claimed"
+        }
+        if quest.isClaimable {
+            return "Ready"
+        }
+        let current = CompactNumberFormatter.format(min(quest.current, quest.target))
+        let target = CompactNumberFormatter.format(quest.target)
+        return "\(current)/\(target)"
+    }
+
+    var body: some View {
+        HStack(spacing: isCompact ? 7 : 9) {
+            Image(systemName: quest.isClaimable ? "gift.fill" : "checklist")
+                .font(.system(size: isCompact ? 13 : 14, weight: .semibold))
+                .foregroundStyle(accentColor)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text("Daily")
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                        .foregroundStyle(.white.opacity(0.54))
+                    Text(quest.title)
+                        .font(.avenirNext(size: isCompact ? GameFonts.caption2Size : GameFonts.caption1Size, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
+                    Spacer(minLength: 4)
+                    Text(progressText)
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                        .foregroundStyle(quest.isClaimable ? .green : .white.opacity(0.74))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
+                }
+
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.white.opacity(0.12))
+                        Capsule()
+                            .fill(accentColor)
+                            .frame(width: max(4, geometry.size.width * quest.progress))
+                    }
+                }
+                .frame(height: isCompact ? 3 : 4)
+            }
+        }
+        .padding(.horizontal, isCompact ? 8 : 10)
+        .frame(height: isCompact ? 28 : 32)
+        .background(
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+        )
+    }
+}
 
 private struct ObjectiveProgressBand: View {
     @Environment(\.gameStore) private var gameStore
@@ -1450,33 +1702,61 @@ struct HorizontalPowerupDock: View {
     let onUndo: () -> Void
 
     var body: some View {
-        HStack(spacing: isCollapsed ? 10 : 12) {
+        Group {
             if isCollapsed {
-                Menu {
-                    Button("Hammer", action: onHammer)
-                        .disabled(!gameStore.isPowerUpAvailable("hammer"))
-                    Button("Swap", action: onSwap)
-                        .disabled(!gameStore.isPowerUpAvailable("swap"))
-                    Button("Magnet", action: onMagnet)
-                        .disabled(!gameStore.isPowerUpAvailable("magnet"))
-                } label: {
-                    Label("Powerups", systemImage: "bolt.fill")
-                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .padding(.horizontal, 14)
-                        .frame(height: 38)
-                }
-                .buttonStyle(.plain)
-                .glassEffectCompat(cornerRadius: 12)
-
-                powerupItem(
-                    icon: "arrow.uturn.backward",
-                    isEnabled: gameStore.state.undoAvailable,
-                    action: onUndo
-                )
+                collapsedContent
             } else {
-                powerupItem(
+                expandedContent
+            }
+        }
+        .padding(.horizontal, isCollapsed ? 10 : 16)
+        .padding(.vertical, isCollapsed ? 5 : 8)
+        .frame(maxWidth: isCollapsed ? nil : .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .shadow(radius: 4)
+        )
+    }
+
+    private var collapsedContent: some View {
+        HStack(spacing: 10) {
+            Menu {
+                Button("Hammer", action: onHammer)
+                    .disabled(!gameStore.isPowerUpAvailable("hammer"))
+                Button("Swap", action: onSwap)
+                    .disabled(!gameStore.isPowerUpAvailable("swap"))
+                Button("Magnet", action: onMagnet)
+                    .disabled(!gameStore.isPowerUpAvailable("magnet"))
+            } label: {
+                Label("Powerups", systemImage: "bolt.fill")
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.horizontal, 14)
+                    .frame(height: 38)
+            }
+            .buttonStyle(.plain)
+            .glassEffectCompat(cornerRadius: 12)
+
+            powerupItem(
+                icon: "arrow.uturn.backward",
+                isEnabled: gameStore.state.undoAvailable,
+                action: onUndo
+            )
+        }
+    }
+
+    private var expandedContent: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label("Powerups", systemImage: "bolt.fill")
+                .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                .foregroundStyle(.white.opacity(0.72))
+                .lineLimit(1)
+
+            HStack(spacing: 8) {
+                expandedPowerupButton(
+                    title: "Hammer",
                     assetName: "hammer",
                     badge: gameStore.powerUpInventory["hammer", default: 0],
                     price: gameStore.powerUpPrice("hammer"),
@@ -1484,7 +1764,8 @@ struct HorizontalPowerupDock: View {
                     action: onHammer
                 )
 
-                powerupItem(
+                expandedPowerupButton(
+                    title: "Swap",
                     assetName: "swap",
                     badge: gameStore.powerUpInventory["swap", default: 0],
                     price: gameStore.powerUpPrice("swap"),
@@ -1492,7 +1773,8 @@ struct HorizontalPowerupDock: View {
                     action: onSwap
                 )
 
-                powerupItem(
+                expandedPowerupButton(
+                    title: "Magnet",
                     assetName: "magnet",
                     badge: gameStore.powerUpInventory["magnet", default: 0],
                     price: gameStore.powerUpPrice("magnet"),
@@ -1500,20 +1782,96 @@ struct HorizontalPowerupDock: View {
                     action: onMagnet
                 )
 
-                powerupItem(
-                    icon: "arrow.uturn.backward",
+                expandedPowerupButton(
+                    title: "Undo",
+                    systemImage: "arrow.uturn.backward",
+                    badge: gameStore.state.undoAvailable ? 1 : 0,
+                    price: nil,
                     isEnabled: gameStore.state.undoAvailable,
                     action: onUndo
                 )
             }
         }
-        .padding(.horizontal, isCollapsed ? 10 : 16)
-        .padding(.vertical, isCollapsed ? 5 : 8)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
-                .shadow(radius: 4)
-        )
+    }
+
+    private func expandedPowerupButton(
+        title: String,
+        assetName: String? = nil,
+        systemImage: String? = nil,
+        badge: Int,
+        price: Int?,
+        isEnabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                powerupIcon(assetName: assetName, systemImage: systemImage, isEnabled: isEnabled)
+                    .frame(width: 22, height: 22)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
+                    statusBadge(badge: badge, price: price)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 8)
+            .frame(height: 38)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    .fill(Color.white.opacity(isEnabled ? 0.1 : 0.05))
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.5)
+        .accessibilityLabel("\(title) powerup")
+    }
+
+    @ViewBuilder
+    private func powerupIcon(assetName: String?, systemImage: String?, isEnabled: Bool) -> some View {
+        if let assetName {
+            Image(assetName)
+                .resizable()
+                .scaledToFit()
+                .opacity(isEnabled ? 1.0 : 0.45)
+        } else if let systemImage {
+            Image(systemName: systemImage)
+                .font(.system(size: 19, weight: .semibold))
+                .foregroundStyle(isEnabled ? .white : .white.opacity(0.45))
+        }
+    }
+
+    @ViewBuilder
+    private func statusBadge(badge: Int, price: Int?) -> some View {
+        if badge > 0 {
+            Text("x\(badge)")
+                .font(.avenirNext(size: 10, weight: .heavy))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 1)
+                .background(Color.blue, in: Capsule())
+                .lineLimit(1)
+        } else if let price {
+            HStack(spacing: 2) {
+                Image("gem")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 9, height: 9)
+                Text("\(price)")
+                    .font(.avenirNext(size: 10, weight: .bold))
+                    .monospacedDigit()
+            }
+            .foregroundStyle(.white.opacity(0.84))
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+        }
     }
 
     private func powerupItem(
