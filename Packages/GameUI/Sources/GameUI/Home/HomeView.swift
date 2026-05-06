@@ -226,7 +226,7 @@ public struct HomeView: View {
             HomeTopHUDView(
                 streakDays: dailyClaimsStore.currentStreak,
                 gems: state.gems,
-                nextReward: dailyClaimsStore.getNextClaimableDay().map { DailyClaimsStore.rewards(for: $0) },
+                nextReward: dailyClaimsStore.getNextClaimableDay().flatMap { day in dailyClaimsStore.dailyClaims.first(where: { $0.day == day })?.rewards },
                 canClaim: dailyClaimsStore.canClaimToday,
                 onStreakTap: { presentedSheet = .dailyStreaks },
                 onShopTap: { actions.openShop() }
