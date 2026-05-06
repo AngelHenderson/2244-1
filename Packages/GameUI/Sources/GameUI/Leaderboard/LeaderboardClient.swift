@@ -1817,7 +1817,6 @@ public enum MockLeaderboardData {
         extendedBrackets: [(milestone: String, startRank: Int)]
     ) -> [LeaderboardEntry] {
         var entries: [LeaderboardEntry] = []
-        print("DEBUG: playerData count = \(playerData.count)")
 
         // Helper: compute milestone for a rank using the provided brackets
         func milestoneFromBrackets(rank: Int) -> String? {
@@ -4957,7 +4956,6 @@ public extension LeaderboardClient {
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
-        print("DEBUG: playerData count = \(playerData.count)")
         for (rank, player) in progressedData.enumerated() {
             // Use unique name from hallOfFameNames with daily variation (HoF seed: 999999)
             let name = MockLeaderboardData.nameForPlayer(index: rank, names: MockLeaderboardData.hallOfFameNames, countrySeed: 999999, day: day)
@@ -6795,7 +6793,6 @@ public extension LeaderboardClient {
         // Build entries with ranks based on sorted order (top 150 only)
         // User is already in playerData and sorted, so they'll appear at correct position
         var entries: [LeaderboardEntry] = []
-        print("DEBUG: playerData count = \(playerData.count)")
         var userInTop150 = false
 
         for (rank, player) in playerData.prefix(150).enumerated() {
@@ -6893,7 +6890,6 @@ public extension LeaderboardClient {
         }
 
         var entries: [LeaderboardEntry] = []
-        print("DEBUG: playerData count = \(playerData.count)")
         var userInTop150 = false
 
         for (rank, player) in playerData.prefix(150).enumerated() {
