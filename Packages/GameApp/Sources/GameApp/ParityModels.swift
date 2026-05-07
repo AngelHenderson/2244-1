@@ -806,6 +806,12 @@ public struct MockSocialService: SocialService, Sendable {
             if !emoji.isEmpty {
                 comment += " \(emoji)"
             }
+        } else if Double.random(in: 0...1) < 0.4 {
+            let symbols = ["!!", "...", "?!", " :)", " :D", " xD", " ~", "!!?", " :P", " <3", " :O", " =)", " ^_^", " -_-", " >_<"]
+            let symbol = symbols.randomElement()!
+            if !symbol.isEmpty {
+                comment += symbol
+            }
         }
         
         return comment.trimmingCharacters(in: .whitespaces)
