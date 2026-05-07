@@ -694,10 +694,94 @@ public protocol SocialService: Sendable {
 public struct MockSocialService: SocialService, Sendable {
     public init() {}
 
+    static let allMilestones: [String] = [
+        "0", "2", "4", "8", "16", "32", "64", "128", "256", "512",
+        "1024", "2048", "4096", "8192", "16K", "32K", "65K", "131K", "262K", "524K",
+        "1M", "2M", "4M", "8M", "16M", "33M", "67M", "134M", "268M", "536M",
+        "1B", "2B", "4B", "8B", "17B", "34B", "68B", "137B", "274B", "549B",
+        "1a", "2a", "4a", "8a", "17a", "35a", "70a", "140a", "281a", "562a",
+        "1b", "2b", "4b", "9b", "18b", "36b", "72b", "144b", "288b", "576b",
+        "1c", "2c", "4c", "9c", "18c", "36c", "73c", "147c", "295c", "590c",
+        "1d", "2d", "4d", "9d", "18d", "37d", "75d", "151d", "302d", "604d",
+        "1e", "2e", "4e", "9e", "19e", "38e", "77e", "154e", "309e", "618e",
+        "1f", "2f", "4f", "9f", "19f", "39f", "79f", "158f", "316f", "633f",
+        "1g", "2g", "5g", "10g", "20g", "40g", "81g", "162g", "324g", "649g",
+        "1h", "2h", "5h", "10h", "20h", "41h", "83h", "166h", "332h", "664h",
+        "1i", "2i", "5i", "10i", "21i", "42i", "85i", "170i", "340i", "680i",
+        "1j", "2j", "5j", "10j", "21j", "43j", "87j", "174j", "348j", "696j",
+        "1k", "2k", "5k", "11k", "22k", "44k", "89k", "178k", "356k", "713k",
+        "1l", "2l", "5l", "11l", "22l", "45l", "91l", "182l", "365l", "730l",
+        "1m", "2m", "5m", "11m", "23m", "46m", "93m", "187m", "374m", "748m",
+        "1n", "2n", "5n", "11n", "23n", "47n", "95n", "191n", "383n", "766n",
+        "1o", "3o", "6o", "12o", "24o", "49o", "98o", "196o", "392o", "784o",
+        "1p", "3p", "6p", "12p", "25p", "50p", "100p", "200p", "401p", "803p",
+        "1q", "3q", "6q", "12q", "25q", "51q", "102q", "205q", "411q", "822q",
+        "1r", "3r", "6r", "13r", "26r", "52r", "105r", "210r", "421r", "842r",
+        "1s", "3s", "6s", "13s", "26s", "53s", "107s", "215s", "431s", "862s",
+        "1t", "3t", "6t", "13t", "27t", "55t", "110t", "220t", "441t", "883t",
+        "1u", "3u", "7u", "14u", "28u", "56u", "113u", "226u", "452u", "904u",
+        "1v", "3v", "7v", "14v", "28v", "57v", "115v", "231v", "463v", "926v",
+        "1w", "3w", "7w", "14w", "29w", "59w", "118w", "237w", "474w", "948w",
+        "1x", "3x", "7x", "15x", "30x", "60x", "121x", "242x", "485x", "971x",
+        "1y", "3y", "7y", "15y", "31y", "62y", "124y", "248y", "497y", "994y",
+        "1z", "3z", "7z", "15z", "31z", "63z", "127z", "254z", "509z", "1aa",
+        "2aa", "4aa", "8aa", "16aa", "32aa", "65aa", "130aa", "260aa", "521aa", "1ab",
+        "2ab", "4ab", "8ab", "16ab", "33ab", "66ab", "133ab", "266ab", "533ab", "1ac",
+        "2ac", "4ac", "8ac", "17ac", "34ac", "68ac", "136ac", "273ac", "546ac", "1ad",
+        "2ad", "4ad", "8ad", "17ad", "34ad", "69ad", "139ad", "279ad", "559ad", "1ae",
+        "2ae", "4ae", "8ae", "17ae", "35ae", "71ae", "143ae", "286ae", "573ae", "1af",
+        "2af", "4af", "9af", "18af", "36af", "73af", "146af", "293af", "587af", "1ag",
+        "2ag", "4ag", "9ag", "18ag", "37ag", "75ag", "150ag", "300ag", "601ag", "1ah",
+        "2ah", "4ah", "9ah", "19ah", "38ah", "76ah", "153ah", "307ah", "615ah", "1ai",
+        "2ai", "4ai", "9ai", "19ai", "39ai", "78ai", "157ai", "315ai", "630ai", "1aj",
+        "2aj", "5aj", "10aj", "20aj", "40aj", "80aj", "161aj", "322aj", "645aj", "1ak",
+        "2ak", "5ak", "10ak", "20ak", "41ak", "82ak", "165ak", "330ak", "661ak", "1al",
+        "2al", "5al", "10al", "21al", "42al", "84al", "169al", "338al", "676al", "1am",
+        "2am", "5am", "10am", "21am", "43am", "86am", "173am", "346am", "693am", "1an",
+        "2an", "5an", "11an", "22an", "44an", "88an", "177an", "354an", "709an", "1ao",
+        "2ao", "5ao", "11ao", "22ao", "45ao", "90ao", "181ao", "363ao", "726ao", "1ap",
+        "2ap", "5ap", "11ap", "23ap", "46ap", "93ap", "186ap", "372ap", "744ap", "1aq",
+        "2aq", "5aq", "11aq", "23aq", "47aq", "95aq", "190aq", "381aq", "762aq", "1ar",
+        "3ar", "6ar", "12ar", "24ar", "48ar", "97ar", "195ar", "390ar", "780ar", "1as",
+        "3as", "6as", "12as", "24as", "49as", "99as", "199as", "399as", "799as", "1at",
+        "3at", "6at", "12at", "25at", "51at", "102at", "204at", "409at", "818at", "1au",
+        "3au", "6au", "13au", "26au", "52au", "105au", "209au", "419au", "837au", "1av",
+        "3av", "6av", "13av", "27av", "54av", "107av", "214av", "429av", "858av", "1aw",
+        "3aw", "6aw", "13aw", "27aw", "55aw", "110aw", "220aw", "439aw", "878aw", "1ax",
+        "3ax", "7ax", "14ax", "28ax", "56ax", "112ax", "224ax", "449ax", "899ax", "1ay",
+        "3ay", "7ay", "14ay", "28ay", "57ay", "115ay", "230ay", "460ay", "921ay", "1az",
+        "3az", "7az", "14az", "29az", "58az", "117az", "235az", "471az", "943az", "1ba",
+        "3ba", "7ba", "15ba", "30ba", "60ba", "120ba", "241ba", "483ba", "966ba", "1bb",
+        "3bb", "7bb", "15bb", "30bb", "61bb", "123bb", "247bb", "494bb", "989bb", "1bc",
+        "3bc", "7bc", "15bc", "31bc", "63bc", "126bc", "253bc", "506bc", "1bd",
+        "2bd", "4bd", "8bd", "16bd", "32bd", "64bd", "129bd", "259bd", "518bd", "1be",
+        "2be", "4be", "8be", "16be", "33be", "66be", "132be", "265be", "531be", "1bf",
+        "2bf", "4bf", "8bf", "16bf", "33bf", "67bf", "135bf", "271bf", "543bf", "1bg",
+        "2bg", "4bg", "8bg", "17bg", "34bg", "69bg", "139bg", "278bg", "556bg", "1bh",
+        "2bh", "4bh", "8bh", "17bh", "35bh", "71bh", "142bh", "285bh", "570bh", "1bi",
+        "2bi", "4bi", "9bi", "18bi", "36bi", "72bi", "145bi", "291bi", "583bi", "1bj",
+        "2bj", "4bj", "9bj", "18bj", "37bj", "74bj", "149bj", "299bj", "598bj", "1bk",
+        "2bk", "4bk", "9bk", "19bk", "38bk", "76bk", "153bk", "306bk", "612bk", "1bl",
+        "2bl", "4bl", "9bl", "19bl", "39bl", "78bl", "156bl", "313bl", "627bl", "1bm",
+        "2bm", "5bm", "10bm", "20bm", "40bm", "80bm", "160bm", "321bm", "642bm", "1bn",
+        "2bn", "5bn", "10bn", "20bn", "41bn", "82bn", "164bn", "328bn", "657bn", "1bo",
+        "2bo", "5bo", "10bo", "21bo", "42bo", "84bo", "168bo", "336bo", "673bo", "1bp",
+        "2bp", "5bp", "10bp", "21bp", "43bp", "86bp", "172bp", "344bp", "689bp", "1bq",
+        "2bq", "5bq", "11bq", "22bq", "44bq", "88bq", "176bq", "353bq", "706bq", "1br",
+        "2br", "5br", "11br", "22br", "45br", "90br", "180br", "361br", "722br", "1bs",
+        "2bs", "5bs", "11bs", "23bs", "46bs", "92bs", "185bs", "370bs", "740bs", "1bt",
+        "2bt", "5bt", "11bt", "23bt", "47bt", "94bt", "189bt", "379bt", "758bt", "1bu",
+        "3bu", "6bu", "12bu", "24bu", "48bu", "97bu", "194bu", "388bu", "776bu", "1bv",
+        "3bv", "6bv", "12bv", "24bv", "49bv", "99bv", "198bv", "397bv", "794bv", "1bw",
+        "3bw", "6bw", "12bw", "25bw", "50bw", "101bw", "203bw", "406bw", "813bw", "1bx",
+        "3bx", "6bx", "13bx", "26bx", "52bx", "104bx", "208bx", "416bx", "833bx", "1by",
+        "3by", "6by", "13by", "26by", "53by", "106by", "213by", "426by", "853by", "1bz",
+        "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "873bz"
+    ]
+
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
         var items: [SocialFeedItem] = []
-        let milestones = ["16K", "32K", "65K", "131K", "262K", "524K", "1M", "2M", "4M", "8M"]
         let messages = [
             "Reached a NEW tile in Endless.",
             "Finished today's timed challenge.",
@@ -709,7 +793,16 @@ public struct MockSocialService: SocialService, Sendable {
         
         for _ in 0..<25 {
             let author = generateDynamicName()
-            let message = messages.randomElement()!.replacingOccurrences(of: "NEW", with: milestones.randomElement()!)
+            
+            // Bias towards milestones > 16K, but allow any from the massive allMilestones pool
+            let randomMilestone: String
+            if Double.random(in: 0...1) < 0.8 {
+                randomMilestone = Self.allMilestones[Int.random(in: 14..<Self.allMilestones.count)] // 16K+
+            } else {
+                randomMilestone = Self.allMilestones.randomElement()!
+            }
+            
+            let message = messages.randomElement()!.replacingOccurrences(of: "NEW", with: randomMilestone)
             let statText = "Update"
             let timeOffset = Double.random(in: -86400...0)
             let itemDate = now.addingTimeInterval(timeOffset)
@@ -720,7 +813,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let commentOffset = Double.random(in: timeOffset...0)
                 comments.append(SocialFeedComment(
                     authorName: generateDynamicName(),
-                    text: generateDynamicComment(),
+                    text: generateDynamicComment(milestone: randomMilestone),
                     createdAt: now.addingTimeInterval(commentOffset)
                 ))
             }
@@ -769,16 +862,28 @@ public struct MockSocialService: SocialService, Sendable {
         ]
     }
     
-    private func generateDynamicComment() -> String {
+    private func generateDynamicComment(milestone: String? = nil) -> String {
         let openers = ["Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,", ""]
-        let subjects = ["that run", "your board", "this milestone", "your progress", "that score", "this setup", "your grid", "the late game"]
+        var subjects = ["that run", "your board", "this milestone", "your progress", "that score", "this setup", "your grid", "the late game"]
+        
+        if let m = milestone, Double.random(in: 0...1) < 0.6 {
+            subjects.append(contentsOf: ["that \(m)", "hitting \(m)", "your \(m)", "this \(m) run"])
+        }
+        
         let verbs = ["is", "looks", "feels", "was"]
         let adjectives = ["insane", "amazing", "unreal", "so clean", "mind-blowing", "crazy", "perfect", "solid", "epic", "brilliant", "next level", "flawless"]
         
-        let positiveReactions = ["GG!", "Nice!", "Incredible!", "Keep it up!", "Let's go!", "Fire!", "Huge!", "Well deserved!", "Too good!", "Teach me!"]
-        let jealousReactions = ["So jealous", "I can't even get past 1M", "My board never looks like that", "How is that even possible", "You make it look so easy", "I'm stuck on the previous tier", "I always lose right here"]
-        let competitiveReactions = ["I am going to reach higher milestones than you!", "Watch your back, I'm catching up.", "Enjoy it while it lasts.", "My next run will beat that.", "I'm coming for your spot.", "You won't be ahead for long.", "Game on."]
-        let questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
+        var positiveReactions = ["GG!", "Nice!", "Incredible!", "Keep it up!", "Let's go!", "Fire!", "Huge!", "Well deserved!", "Too good!", "Teach me!"]
+        var jealousReactions = ["So jealous", "I can't even get past 1M", "My board never looks like that", "How is that even possible", "You make it look so easy", "I'm stuck on the previous tier", "I always lose right here"]
+        var competitiveReactions = ["I am going to reach higher milestones than you!", "Watch your back, I'm catching up.", "Enjoy it while it lasts.", "My next run will beat that.", "I'm coming for your spot.", "You won't be ahead for long.", "Game on."]
+        var questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
+        
+        if let m = milestone, Double.random(in: 0...1) < 0.6 {
+            positiveReactions.append(contentsOf: ["GG on \(m)!", "\(m) is huge!", "Congrats on \(m)!"])
+            jealousReactions.append(contentsOf: ["I can't even get to \(m)", "How did you get \(m) so fast?", "I always lose before \(m)"])
+            competitiveReactions.append(contentsOf: ["I'm getting past \(m) today.", "I'll beat your \(m)."])
+            questions.append(contentsOf: ["Any tips for getting \(m)?", "Was \(m) tough?"])
+        }
         
         // Symbols categorized by tone
         let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
