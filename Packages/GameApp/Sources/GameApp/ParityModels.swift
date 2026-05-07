@@ -802,7 +802,9 @@ public struct MockSocialService: SocialService, Sendable {
                 randomMilestone = Self.allMilestones.randomElement()!
             }
             
-            let message = messages.randomElement()!.replacingOccurrences(of: "NEW", with: randomMilestone)
+            let rawMessage = messages.randomElement()!
+            let isHallOfFame = rawMessage == "Joined the Hall of Fame!"
+            let message = rawMessage.replacingOccurrences(of: "NEW", with: randomMilestone)
             let statText = "Update"
             let timeOffset = Double.random(in: -86400...0)
             let itemDate = now.addingTimeInterval(timeOffset)
@@ -813,7 +815,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let commentOffset = Double.random(in: timeOffset...0)
                 comments.append(SocialFeedComment(
                     authorName: generateDynamicName(),
-                    text: generateDynamicComment(milestone: randomMilestone),
+                    text: generateDynamicComment(milestone: randomMilestone, isHallOfFame: isHallOfFame),
                     createdAt: now.addingTimeInterval(commentOffset)
                 ))
             }
@@ -862,7 +864,7 @@ public struct MockSocialService: SocialService, Sendable {
         ]
     }
     
-    private func generateDynamicComment(milestone: String? = nil) -> String {
+    private func generateDynamicComment(milestone: String? = nil, isHallOfFame: Bool = false) -> String {
         let openers = ["Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,", ""]
         var subjects = ["that run", "your board", "this milestone", "your progress", "that score", "this setup", "your grid", "the late game"]
         
@@ -883,6 +885,14 @@ public struct MockSocialService: SocialService, Sendable {
             jealousReactions.append(contentsOf: ["I can't even get to \(m)", "How did you get \(m) so fast?", "I always lose before \(m)"])
             competitiveReactions.append(contentsOf: ["I'm getting past \(m) today.", "I'll beat your \(m)."])
             questions.append(contentsOf: ["Any tips for getting \(m)?", "Was \(m) tough?"])
+        }
+        
+        if isHallOfFame {
+            subjects.append(contentsOf: ["that HoF entry", "joining the Hall of Fame", "this legendary status", "reaching the end", "that infinity rank"])
+            positiveReactions.append(contentsOf: ["Welcome to the Hall of Fame!", "HoF! That's massive.", "See you on the infinity leaderboard!", "Legendary!", "The ultimate achievement!"])
+            jealousReactions.append(contentsOf: ["I'll never reach the Hall of Fame", "How long did it take to get to HoF?", "I'm still grinding for HoF"])
+            competitiveReactions.append(contentsOf: ["I will join the Hall of Fame and have a higher infinity count than you!", "My infinity count will be bigger than yours.", "I'm coming for your HoF spot."])
+            questions.append(contentsOf: ["How many infinity counts do you have?", "Are you going for a high infinity count?", "What's the next goal after HoF?"])
         }
         
         // Symbols categorized by tone
