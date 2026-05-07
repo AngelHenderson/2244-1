@@ -513,18 +513,6 @@ public struct HomeView: View {
             )
         }
 
-        if playerReadiness.isVisible(.profile) {
-            items.append(
-                HomeDockItem(
-                    id: "profile",
-                    system: "person.circle.fill",
-                    title: "Profile",
-                    badge: state.hasProfileBadge,
-                    action: { presentedSheet = .profile }
-                )
-            )
-        }
-
         items.append(
             HomeDockItem(
                 id: "free-spin",
@@ -538,6 +526,18 @@ public struct HomeView: View {
                 }
             )
         )
+
+        if playerReadiness.isVisible(.profile) {
+            items.append(
+                HomeDockItem(
+                    id: "profile",
+                    system: "person.circle.fill",
+                    title: "Profile",
+                    badge: state.hasProfileBadge,
+                    action: { presentedSheet = .profile }
+                )
+            )
+        }
 
         if playerReadiness.isVisible(.feed) {
             items.append(
