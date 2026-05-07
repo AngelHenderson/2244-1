@@ -777,15 +777,17 @@ public struct MockSocialService: SocialService, Sendable {
         
         let positiveReactions = ["GG!", "Nice!", "Incredible!", "Keep it up!", "Let's go!", "Fire!", "Huge!", "Well deserved!", "Too good!", "Teach me!"]
         let jealousReactions = ["So jealous", "I can't even get past 1M", "My board never looks like that", "How is that even possible", "You make it look so easy", "I'm stuck on the previous tier", "I always lose right here"]
+        let competitiveReactions = ["I am going to reach higher milestones than you!", "Watch your back, I'm catching up.", "Enjoy it while it lasts.", "My next run will beat that.", "I'm coming for your spot.", "You won't be ahead for long.", "Game on."]
         let questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
         
         // Symbols categorized by tone
-        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", " >:)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
+        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
         let questionSymbols = ["?!", "...", "👀", "🤔", "??", "!!?"]
         let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", "😩", "😭", "💀", "🫠"]
+        let competitiveSymbols = [" >:)", " 👀", " 😈", " ⚔️", " 🎯", " 😏", " 🏁", " 💨"]
         let keyboardSymbols = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
 
-        let format = Int.random(in: 0...5)
+        let format = Int.random(in: 0...6)
         var comment = ""
         var tone = "positive"
         
@@ -810,6 +812,9 @@ public struct MockSocialService: SocialService, Sendable {
         case 4:
             comment = "\(jealousReactions.randomElement()!)"
             tone = "sad"
+        case 5:
+            comment = "\(competitiveReactions.randomElement()!)"
+            tone = "competitive"
         default:
             comment = "\(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
             tone = "positive"
@@ -821,6 +826,7 @@ public struct MockSocialService: SocialService, Sendable {
             case "positive": symbol = positiveSymbols.randomElement()!
             case "question": symbol = questionSymbols.randomElement()!
             case "sad": symbol = sadOrJealousSymbols.randomElement()!
+            case "competitive": symbol = competitiveSymbols.randomElement()!
             default: symbol = ""
             }
             comment += symbol
