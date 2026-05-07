@@ -720,7 +720,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let commentOffset = Double.random(in: timeOffset...0)
                 comments.append(SocialFeedComment(
                     authorName: generateDynamicName(),
-                    text: ["Nice run!", "Amazing!", "Great job!", "So close!", "I'm right behind you!", "Teach me!", "Wow, that's insane.", "Good luck on the next tier!"].randomElement()!,
+                    text: generateDynamicComment(),
                     createdAt: now.addingTimeInterval(commentOffset)
                 ))
             }
@@ -767,6 +767,48 @@ public struct MockSocialService: SocialService, Sendable {
             FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-2", status: "Can invite"),
             FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-3", status: "Can invite")
         ]
+    }
+    
+    private func generateDynamicComment() -> String {
+        let openers = ["Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,", ""]
+        let subjects = ["that run", "your board", "this milestone", "your progress", "that score", "this setup", "your grid", "the late game"]
+        let verbs = ["is", "looks", "feels", "was"]
+        let adjectives = ["insane", "amazing", "unreal", "so clean", "mind-blowing", "crazy", "perfect", "solid", "epic", "brilliant", "next level", "flawless"]
+        let shortReactions = ["GG!", "Nice!", "Incredible!", "Keep it up!", "So jealous!", "Teach me!", "Let's go!", "Fire!", "Huge!", "Well deserved!", "Too good!"]
+        let questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
+        let emojis = ["🔥", "🙌", "🤯", "🚀", "👏", "👀", "💪", "🏆", "✨", ""]
+        
+        let format = Int.random(in: 0...5)
+        var comment = ""
+        
+        switch format {
+        case 0:
+            let opener = openers.randomElement()!
+            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+            comment = opener.isEmpty ? core.capitalized + "!" : "\(opener) \(core)!"
+        case 1:
+            comment = "\(shortReactions.randomElement()!) \(questions.randomElement()!)"
+        case 2:
+            let opener = openers.randomElement()!
+            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+            let sentence = opener.isEmpty ? core.capitalized + "." : "\(opener) \(core)."
+            comment = "\(sentence) \(questions.randomElement()!)"
+        case 3:
+            comment = "\(shortReactions.randomElement()!)"
+        case 4:
+            comment = "\(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+        default:
+            comment = "\(shortReactions.randomElement()!)"
+        }
+        
+        if Double.random(in: 0...1) < 0.3 {
+            let emoji = emojis.randomElement()!
+            if !emoji.isEmpty {
+                comment += " \(emoji)"
+            }
+        }
+        
+        return comment.trimmingCharacters(in: .whitespaces)
     }
     
     private func generateDynamicName() -> String {
