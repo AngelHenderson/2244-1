@@ -66,7 +66,7 @@ public final class DailyClaimsStore {
                         return DailyStreak(
                             id: achievement.id,
                             day: day,
-                            rewards: Self.rewards(for: day),
+                            rewards: DailyRewardSchedule.rewards(for: day),
                             isUnlocked: unlockedStreaks.contains(day)
                         )
                     }

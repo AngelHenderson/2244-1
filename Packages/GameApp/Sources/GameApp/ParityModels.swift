@@ -333,6 +333,25 @@ public struct FamilyInvite: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+public struct SocialFeedComment: Codable, Equatable, Identifiable, Sendable {
+    public var id: UUID
+    public var authorName: String
+    public var text: String
+    public var createdAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        authorName: String = "Player",
+        text: String,
+        createdAt: Date = Date()
+    ) {
+        self.id = id
+        self.authorName = authorName
+        self.text = text
+        self.createdAt = createdAt
+    }
+}
+
 public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
     public var id: UUID
     public var authorName: String
@@ -342,7 +361,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
     public var statText: String
     public var reactionCount: Int
     public var commentCount: Int
-    public var comments: [String]
+    public var comments: [SocialFeedComment]
 
     public init(
         id: UUID = UUID(),
@@ -353,7 +372,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
         statText: String,
         reactionCount: Int = 0,
         commentCount: Int = 0,
-        comments: [String] = []
+        comments: [SocialFeedComment] = []
     ) {
         self.id = id
         self.authorName = authorName
@@ -676,9 +695,16 @@ public struct MockSocialService: SocialService, Sendable {
     public init() {}
 
     public func feed() async throws -> [SocialFeedItem] {
-        [
-            SocialFeedItem(authorName: "Sam", message: "Reached a 1M tile in Endless.", statText: "New milestone", reactionCount: 12, commentCount: 3, comments: ["Nice run!", "That milestone path is clean.", "Amazing strategy!"]),
-            SocialFeedItem(authorName: "Alex", message: "Finished today's timed challenge.", statText: "Challenge complete", reactionCount: 7, commentCount: 1, comments: ["Great job!"]),
+        let now = Date()
+        return [
+            SocialFeedItem(authorName: "Sam", message: "Reached a 1M tile in Endless.", statText: "New milestone", reactionCount: 12, commentCount: 3, comments: [
+                SocialFeedComment(authorName: "Alex", text: "Nice run!", createdAt: now.addingTimeInterval(-3600)),
+                SocialFeedComment(authorName: "Taylor", text: "That milestone path is clean.", createdAt: now.addingTimeInterval(-1800)),
+                SocialFeedComment(authorName: "Jordan", text: "Amazing strategy!", createdAt: now.addingTimeInterval(-600))
+            ]),
+            SocialFeedItem(authorName: "Alex", message: "Finished today's timed challenge.", statText: "Challenge complete", reactionCount: 7, commentCount: 1, comments: [
+                SocialFeedComment(authorName: "Sam", text: "Great job!", createdAt: now.addingTimeInterval(-300))
+            ]),
             SocialFeedItem(authorName: "Taylor", message: "Protected a 9 day streak.", statText: "Streak saved", reactionCount: 5, commentCount: 0, comments: [])
         ]
     }

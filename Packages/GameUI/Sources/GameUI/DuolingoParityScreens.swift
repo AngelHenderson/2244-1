@@ -1054,8 +1054,12 @@ private struct FeedItemRow: View {
 
 private struct FeedCommentsView: View {
     @Environment(\.dismiss) private var dismiss
-    let item: SocialFeedItem
+    @State private var item: SocialFeedItem
     @State private var comment = ""
+
+    init(item: SocialFeedItem) {
+        self._item = State(initialValue: item)
+    }
 
     var body: some View {
         NavigationStack {
@@ -1064,10 +1068,30 @@ private struct FeedCommentsView: View {
                     FeedItemRow(item: item)
                 }
                 Section("Comments") {
-                    ForEach(item.comments, id: \.self) { text in
-                        Text(text)
+                    ForEach(item.comments) { commentData in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(commentData.authorName)
+                                    .font(.caption)
+                                    .bold()
+                                Spacer()
+                                Text(formatDate(commentData.createdAt))
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Text(commentData.text)
+                                .font(.body)
+                        }
+                        .padding(.vertical, 4)
                     }
                     TextField("Add a comment", text: $comment)
+                        .onSubmit {
+                            guard !comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+                            let newComment = SocialFeedComment(authorName: "Player", text: comment, createdAt: Date())
+                            item.comments.append(newComment)
+                            item.commentCount += 1
+                            comment = ""
+                        }
                 }
             }
             .navigationTitle("Comments")
@@ -1075,6 +1099,12 @@ private struct FeedCommentsView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
             }
         }
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
 
