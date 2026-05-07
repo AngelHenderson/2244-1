@@ -84,10 +84,10 @@ struct ParityModelsTests {
     func mockSocialServiceReturnsData() async throws {
         let service = MockSocialService()
         let feed = try await service.feed()
-        let results = try await service.searchFriends(query: "Sam")
+        let results = try await service.searchFriends(query: "Neon")
 
         #expect(!feed.isEmpty)
-        #expect(results.contains { $0.displayName.contains("Sam") })
+        #expect(results.contains { $0.displayName.contains("Neon") })
     }
 
     @Test("Firebase-backed account service uses local fallback when Firebase is unavailable")

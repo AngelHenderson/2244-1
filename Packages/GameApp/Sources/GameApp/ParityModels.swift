@@ -697,20 +697,20 @@ public struct MockSocialService: SocialService, Sendable {
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
         return [
-            SocialFeedItem(authorName: "Sam", message: "Reached a 1M tile in Endless.", statText: "New milestone", reactionCount: 12, commentCount: 3, comments: [
-                SocialFeedComment(authorName: "Alex", text: "Nice run!", createdAt: now.addingTimeInterval(-3600)),
-                SocialFeedComment(authorName: "Taylor", text: "That milestone path is clean.", createdAt: now.addingTimeInterval(-1800)),
-                SocialFeedComment(authorName: "Jordan", text: "Amazing strategy!", createdAt: now.addingTimeInterval(-600))
+            SocialFeedItem(authorName: "NeonRacer607539", message: "Reached a 1M tile in Endless.", statText: "New milestone", reactionCount: 12, commentCount: 3, comments: [
+                SocialFeedComment(authorName: "StarGazer002024", text: "Nice run!", createdAt: now.addingTimeInterval(-3600)),
+                SocialFeedComment(authorName: "TokyoTiger778294", text: "That milestone path is clean.", createdAt: now.addingTimeInterval(-1800)),
+                SocialFeedComment(authorName: "LaserBeam193628", text: "Amazing strategy!", createdAt: now.addingTimeInterval(-600))
             ]),
-            SocialFeedItem(authorName: "Alex", message: "Finished today's timed challenge.", statText: "Challenge complete", reactionCount: 7, commentCount: 1, comments: [
-                SocialFeedComment(authorName: "Sam", text: "Great job!", createdAt: now.addingTimeInterval(-300))
+            SocialFeedItem(authorName: "StarGazer002024", message: "Finished today's timed challenge.", statText: "Challenge complete", reactionCount: 7, commentCount: 1, comments: [
+                SocialFeedComment(authorName: "NeonRacer607539", text: "Great job!", createdAt: now.addingTimeInterval(-300))
             ]),
-            SocialFeedItem(authorName: "Taylor", message: "Protected a 9 day streak.", statText: "Streak saved", reactionCount: 5, commentCount: 0, comments: [])
+            SocialFeedItem(authorName: "TokyoTiger778294", message: "Protected a 9 day streak.", statText: "Streak saved", reactionCount: 5, commentCount: 0, comments: [])
         ]
     }
 
     public func searchFriends(query: String) async throws -> [AccountProfile] {
-        let names = ["Sam Lee", "Alex Smith", "Taylor Kim", "Jordan Ray"]
+        let names = ["NeonRacer607539", "StarGazer002024", "TokyoTiger778294", "LaserBeam193628"]
         let filtered = names.filter { query.isEmpty || $0.localizedCaseInsensitiveContains(query) }
         return filtered.map {
             AccountProfile(
@@ -726,8 +726,8 @@ public struct MockSocialService: SocialService, Sendable {
 
     public func invites() async throws -> [FamilyInvite] {
         [
-            FamilyInvite(displayName: "Sam Lee", emailOrCode: "sam@example.com", status: "Invited"),
-            FamilyInvite(displayName: "Alex Smith", emailOrCode: "ALEX-2244", status: "Can invite")
+            FamilyInvite(displayName: "NeonRacer607539", emailOrCode: "NEO-2244", status: "Invited"),
+            FamilyInvite(displayName: "StarGazer002024", emailOrCode: "STA-2244", status: "Can invite")
         ]
     }
 }
