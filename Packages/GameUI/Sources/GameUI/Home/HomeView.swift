@@ -486,18 +486,6 @@ public struct HomeView: View {
     private var dockItems: [HomeDockItem] {
         var items: [HomeDockItem] = []
 
-        if playerReadiness.isVisible(.profile) {
-            items.append(
-                HomeDockItem(
-                    id: "profile",
-                    system: "person.circle.fill",
-                    title: "Profile",
-                    badge: state.hasProfileBadge,
-                    action: { presentedSheet = .profile }
-                )
-            )
-        }
-
         if playerReadiness.isVisible(.achievements) {
             items.append(
                 HomeDockItem(
@@ -521,6 +509,18 @@ public struct HomeView: View {
                     system: "trophy.circle.fill",
                     title: "Leaderboard",
                     action: { presentedSheet = .leaderboard }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.profile) {
+            items.append(
+                HomeDockItem(
+                    id: "profile",
+                    system: "person.circle.fill",
+                    title: "Profile",
+                    badge: state.hasProfileBadge,
+                    action: { presentedSheet = .profile }
                 )
             )
         }

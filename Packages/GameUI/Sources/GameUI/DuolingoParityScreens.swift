@@ -1110,6 +1110,7 @@ private struct FeedCommentsView: View {
 
 private struct FriendProfileRow: View {
     let profile: AccountProfile
+    @State private var isFollowing = false
 
     var body: some View {
         HStack {
@@ -1122,8 +1123,11 @@ private struct FriendProfileRow: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Button("Follow") {}
-                .buttonStyle(.bordered)
+            Button(isFollowing ? "Following" : "Follow") {
+                isFollowing.toggle()
+            }
+            .buttonStyle(.bordered)
+            .tint(isFollowing ? .secondary : .accentColor)
         }
     }
 }
