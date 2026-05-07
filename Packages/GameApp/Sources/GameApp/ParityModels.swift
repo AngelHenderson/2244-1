@@ -774,44 +774,59 @@ public struct MockSocialService: SocialService, Sendable {
         let subjects = ["that run", "your board", "this milestone", "your progress", "that score", "this setup", "your grid", "the late game"]
         let verbs = ["is", "looks", "feels", "was"]
         let adjectives = ["insane", "amazing", "unreal", "so clean", "mind-blowing", "crazy", "perfect", "solid", "epic", "brilliant", "next level", "flawless"]
-        let shortReactions = ["GG!", "Nice!", "Incredible!", "Keep it up!", "So jealous!", "Teach me!", "Let's go!", "Fire!", "Huge!", "Well deserved!", "Too good!"]
-        let questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
-        let emojis = ["🔥", "🙌", "🤯", "🚀", "👏", "👀", "💪", "🏆", "✨", ""]
         
+        let positiveReactions = ["GG!", "Nice!", "Incredible!", "Keep it up!", "Let's go!", "Fire!", "Huge!", "Well deserved!", "Too good!", "Teach me!"]
+        let jealousReactions = ["So jealous", "I can't even get past 1M", "My board never looks like that", "How is that even possible", "You make it look so easy", "I'm stuck on the previous tier", "I always lose right here"]
+        let questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
+        
+        // Symbols categorized by tone
+        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", " >:)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
+        let questionSymbols = ["?!", "...", "👀", "🤔", "??", "!!?"]
+        let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", "😩", "😭", "💀", "🫠"]
+        let keyboardSymbols = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
+
         let format = Int.random(in: 0...5)
         var comment = ""
+        var tone = "positive"
         
         switch format {
         case 0:
             let opener = openers.randomElement()!
             let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
             comment = opener.isEmpty ? core.capitalized + "!" : "\(opener) \(core)!"
+            tone = "positive"
         case 1:
-            comment = "\(shortReactions.randomElement()!) \(questions.randomElement()!)"
+            comment = "\(positiveReactions.randomElement()!) \(questions.randomElement()!)"
+            tone = "question"
         case 2:
             let opener = openers.randomElement()!
             let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
             let sentence = opener.isEmpty ? core.capitalized + "." : "\(opener) \(core)."
             comment = "\(sentence) \(questions.randomElement()!)"
+            tone = "question"
         case 3:
-            comment = "\(shortReactions.randomElement()!)"
+            comment = "\(positiveReactions.randomElement()!)"
+            tone = "positive"
         case 4:
-            comment = "\(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+            comment = "\(jealousReactions.randomElement()!)"
+            tone = "sad"
         default:
-            comment = "\(shortReactions.randomElement()!)"
+            comment = "\(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+            tone = "positive"
         }
         
-        if Double.random(in: 0...1) < 0.3 {
-            let emoji = emojis.randomElement()!
-            if !emoji.isEmpty {
-                comment += " \(emoji)"
+        if Double.random(in: 0...1) < 0.6 {
+            let symbol: String
+            switch tone {
+            case "positive": symbol = positiveSymbols.randomElement()!
+            case "question": symbol = questionSymbols.randomElement()!
+            case "sad": symbol = sadOrJealousSymbols.randomElement()!
+            default: symbol = ""
             }
-        } else if Double.random(in: 0...1) < 0.4 {
-            let symbols = ["!!", "...", "?!", " :)", " :D", " xD", " ~", "!!?", " :P", " <3", " :O", " =)", " ^_^", " -_-", " >_<", " >:)", " :-)", " :(", " :((", " >:(", " :/", " ;-)", " ;-(", "~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
-            let symbol = symbols.randomElement()!
-            if !symbol.isEmpty {
-                comment += symbol
-            }
+            comment += symbol
+        } else if Double.random(in: 0...1) < 0.1 {
+            // 4% chance for a random raw keyboard symbol (like a typo)
+            comment += keyboardSymbols.randomElement()!
         }
         
         return comment.trimmingCharacters(in: .whitespaces)
