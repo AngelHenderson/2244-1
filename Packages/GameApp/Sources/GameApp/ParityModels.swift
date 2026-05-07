@@ -696,21 +696,58 @@ public struct MockSocialService: SocialService, Sendable {
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
-        return [
-            SocialFeedItem(authorName: "NeonRacer607539", message: "Reached a 1M tile in Endless.", statText: "New milestone", reactionCount: 12, commentCount: 3, comments: [
-                SocialFeedComment(authorName: "StarGazer002024", text: "Nice run!", createdAt: now.addingTimeInterval(-3600)),
-                SocialFeedComment(authorName: "TokyoTiger778294", text: "That milestone path is clean.", createdAt: now.addingTimeInterval(-1800)),
-                SocialFeedComment(authorName: "LaserBeam193628", text: "Amazing strategy!", createdAt: now.addingTimeInterval(-600))
-            ]),
-            SocialFeedItem(authorName: "StarGazer002024", message: "Finished today's timed challenge.", statText: "Challenge complete", reactionCount: 7, commentCount: 1, comments: [
-                SocialFeedComment(authorName: "NeonRacer607539", text: "Great job!", createdAt: now.addingTimeInterval(-300))
-            ]),
-            SocialFeedItem(authorName: "TokyoTiger778294", message: "Protected a 9 day streak.", statText: "Streak saved", reactionCount: 5, commentCount: 0, comments: [])
+        var items: [SocialFeedItem] = []
+        let milestones = ["16K", "32K", "65K", "131K", "262K", "524K", "1M", "2M", "4M", "8M"]
+        let messages = [
+            "Reached a NEW tile in Endless.",
+            "Finished today's timed challenge.",
+            "Protected a streak.",
+            "Joined the Hall of Fame!",
+            "Unlocked a new theme.",
+            "Completed the Weekly Quest."
         ]
+        
+        for _ in 0..<25 {
+            let author = generateDynamicName()
+            let message = messages.randomElement()!.replacingOccurrences(of: "NEW", with: milestones.randomElement()!)
+            let statText = "Update"
+            let timeOffset = Double.random(in: -86400...0)
+            let itemDate = now.addingTimeInterval(timeOffset)
+            
+            var comments: [SocialFeedComment] = []
+            let numComments = Int.random(in: 0...5)
+            for _ in 0..<numComments {
+                let commentOffset = Double.random(in: timeOffset...0)
+                comments.append(SocialFeedComment(
+                    authorName: generateDynamicName(),
+                    text: ["Nice run!", "Amazing!", "Great job!", "So close!", "I'm right behind you!", "Teach me!", "Wow, that's insane.", "Good luck on the next tier!"].randomElement()!,
+                    createdAt: now.addingTimeInterval(commentOffset)
+                ))
+            }
+            
+            items.append(SocialFeedItem(
+                authorName: author,
+                createdAt: itemDate,
+                message: message,
+                statText: statText,
+                reactionCount: Int.random(in: 0...50),
+                commentCount: comments.count,
+                comments: comments.sorted(by: { $0.createdAt < $1.createdAt })
+            ))
+        }
+        
+        return items.sorted(by: { $0.createdAt > $1.createdAt })
     }
 
     public func searchFriends(query: String) async throws -> [AccountProfile] {
-        let names = ["NeonRacer607539", "StarGazer002024", "TokyoTiger778294", "LaserBeam193628"]
+        var names: [String] = []
+        for _ in 0..<20 {
+            names.append(generateDynamicName())
+        }
+        if !query.isEmpty {
+            names.append(query + String(format: "%04d", Int.random(in: 1000...9999)))
+            names.append(generateDynamicName() + query)
+        }
         let filtered = names.filter { query.isEmpty || $0.localizedCaseInsensitiveContains(query) }
         return filtered.map {
             AccountProfile(
@@ -726,9 +763,22 @@ public struct MockSocialService: SocialService, Sendable {
 
     public func invites() async throws -> [FamilyInvite] {
         [
-            FamilyInvite(displayName: "NeonRacer607539", emailOrCode: "NEO-2244", status: "Invited"),
-            FamilyInvite(displayName: "StarGazer002024", emailOrCode: "STA-2244", status: "Can invite")
+            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-1", status: "Invited"),
+            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-2", status: "Can invite"),
+            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-3", status: "Can invite")
         ]
+    }
+    
+    private func generateDynamicName() -> String {
+        if Double.random(in: 0...1) < 0.25 {
+            let realNames = ["James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel", "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George", "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail", "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael", "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila", "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich"]
+            let lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Anderson", "Taylor", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Thompson", "White", "Harris", "Clark", "Garcia", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Perez", "Sanchez", "Ramirez", "Torres", "Mueller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann"]
+            return realNames.randomElement()! + " " + lastNames.randomElement()!
+        } else {
+            let baseNames = ["DefenselessMetal", "LopingLemming", "DensePage", "BrittleBelly", "PerfectPirate", "CaramelStamp", "CulturalDerision", "KnownOwner", "SwiftCoder", "PixelMaster", "NeonRacer", "CloudJumper", "StarGazer", "ThunderBolt", "CryptoKing", "MidnightOwl", "SolarFlare", "OceanWave", "MountainPeak", "DesertStorm", "JungleCat", "ArcticFox", "TropicalBird", "CosmicDust", "QuantumLeap", "NebulaStar", "GalaxyRider", "AsteroidHunter", "CometChaser", "MeteorShower", "SaturnRing", "JupiterMoon", "MarsRover", "VenusFlyer", "MercuryDash", "PlutoExplorer", "NeptuneWave", "UranusOrbit", "EarthGuard", "SunBlaze", "MoonWalker", "StarDancer", "SpacePilot", "RocketMan", "LaserBeam", "PhotonBlast", "NeutronStar", "ProtonPower", "ElectronFlow", "AtomSmasher", "MoleculeMix", "CellDivider", "DNAHelix", "RNAStrand", "ProteinFold", "EnzymeCat", "VitaminBoost", "MineralRock", "CrystalClear", "DiamondEdge", "RubyGlow", "SapphireShine", "EmeraldDream", "AmethystMist", "TopazSun", "OpalMoon", "PearlOcean", "JadeForest", "OnyxShadow", "GarnetFire", "TurquoiseSky", "CoralReef", "IvoryTower", "BronzeAge", "SilverLining", "GoldRush", "PlatinumPro", "TitaniumStrong", "CopperGlow", "IronWill", "SteelNerve", "AluminumLight", "ZincShield", "NickelSpin", "CobaltBlue", "ChromeFinish", "TungstenTough", "MolybdenumMax", "VanadiumVibe", "ManganeseMight", "PalladiumPure", "RhodiumRare", "IridiumIntense", "OsmiumOdd", "RheniumRich", "TantalumTwist", "HafniumHigh", "ZirconiumZest", "NiobiumNova", "TokyoTiger", "LondonLion", "ParisPanther", "BerlinBear", "SydneySerpent", "TorontoTornado", "MadridMaverick", "RomeRaider", "SaoPauloStar", "MumbaiMaster", "ShanghaiShark", "MoscowMight", "DubaiDragon", "SingaporeSurge", "HongKongHero", "SeoulSniper", "BangkokBolt", "JakartaJet", "CairoChamp", "LagoosLegend", "NairobiNinja", "CapeTownCrush", "BuenosAiresBoss", "MexicoCityMaster", "LimaaLion", "SantiagoStorm", "BogotaBeast", "CaracasChamp", "HavannaHawk", "KingstonKing", "MontrealMaverick", "VancouverVictor", "MelbourneMight", "AucklandAce", "WellingtonWolf", "OsakaOracle", "KyotoKnight", "NagoyaNinja", "FukuokaaFury", "SapporoStrike", "MunichMaster", "HamburgHero", "FrankfurtFlash", "CologneCrusher", "DusseldorfDragon", "AmsterdamAce", "BrussellsBoss", "ViennaViking", "ZurichZealot", "GenevaGhost"]
+            let number = String(format: "%06d", Int.random(in: 100000...999999))
+            return baseNames.randomElement()! + number
+        }
     }
 }
 
