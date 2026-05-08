@@ -779,8 +779,37 @@ public struct MockSocialService: SocialService, Sendable {
         "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "873bz"
     ]
 
+    private static let feedCacheKey = "socialFeed.cache.v1"
+    private static let feedDateKey = "socialFeed.cacheDate.v1"
+
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
+        let cal = Calendar.current
+        let todayString = cal.dateComponents([.year, .month, .day], from: now)
+            .description // deterministic for the same day
+
+        // Return cached feed if it was generated today
+        let defaults = UserDefaults.standard
+        if let cachedDate = defaults.string(forKey: Self.feedDateKey),
+           cachedDate == todayString,
+           let data = defaults.data(forKey: Self.feedCacheKey),
+           let cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+            return cached
+        }
+
+        // Generate fresh feed
+        let items = generateFeedItems(now: now)
+
+        // Cache for the rest of the day
+        if let data = try? JSONEncoder().encode(items) {
+            defaults.set(data, forKey: Self.feedCacheKey)
+            defaults.set(todayString, forKey: Self.feedDateKey)
+        }
+
+        return items
+    }
+
+    private func generateFeedItems(now: Date) -> [SocialFeedItem] {
         var items: [SocialFeedItem] = []
         let messages = [
             "Reached a NEW tile in Endless.",
@@ -794,10 +823,9 @@ public struct MockSocialService: SocialService, Sendable {
         for _ in 0..<25 {
             let author = generateDynamicName()
             
-            // Bias towards milestones > 16K, but allow any from the massive allMilestones pool
             let randomMilestone: String
             if Double.random(in: 0...1) < 0.8 {
-                randomMilestone = Self.allMilestones[Int.random(in: 14..<Self.allMilestones.count)] // 16K+
+                randomMilestone = Self.allMilestones[Int.random(in: 14..<Self.allMilestones.count)]
             } else {
                 randomMilestone = Self.allMilestones.randomElement()!
             }
