@@ -807,8 +807,64 @@ public struct MockSocialService: SocialService, Sendable {
         "3bz", "6bz", "13bz", "27bz", "54bz", "109bz", "218bz", "436bz", "873bz"
     ]
 
-    private static let feedCacheKey = "socialFeed.cache.v1"
-    private static let feedDateKey = "socialFeed.cacheDate.v1"
+    static var daysSinceReference: Int {
+        var components = DateComponents()
+        components.year = 2026; components.month = 1; components.day = 20
+        let ref = Calendar.current.date(from: components) ?? Date()
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        let startOfReference = Calendar.current.startOfDay(for: ref)
+        return max(0, Calendar.current.dateComponents([.day], from: startOfReference, to: startOfToday).day ?? 0)
+    }
+
+    private static func seededRandom(seed: Int, index: Int) -> Double {
+        var hasher = Hasher()
+        hasher.combine(seed)
+        hasher.combine(index)
+        let hash = abs(hasher.finalize())
+        return Double(hash % 1000000) / 1000000.0
+    }
+
+    private static func countryPlayersChangingNameOrAvatar(on day: Int, countrySeed: Int) -> Double {
+        let random = seededRandom(seed: countrySeed + 5000, index: day)
+        return 0.05 + random * 0.35
+    }
+
+    private static func avatarForPlayer(index: Int, countrySeed: Int = 0) -> String {
+        let noAvatarRandom = seededRandom(seed: index * 251 + countrySeed * 43, index: index + countrySeed)
+        if noAvatarRandom < 0.15 { return "person.crop.circle.fill" } // placeholder
+        let seed = index * 131 + countrySeed * 17
+        let random = seededRandom(seed: seed, index: index)
+        let avatarIndex = Int(random * Double(allAvatars.count))
+        return allAvatars[avatarIndex % allAvatars.count]
+    }
+
+    static func avatarForPlayer(index: Int, countrySeed: Int, day: Int) -> String {
+        let noAvatarRandom = seededRandom(seed: index * 251 + countrySeed * 43, index: index + countrySeed)
+        if noAvatarRandom < 0.15 {
+            let delayDays = 0.125 + noAvatarRandom / 0.15 * 1.875
+            let playerJoinDay = Int(seededRandom(seed: index * 373 + countrySeed * 67, index: index) * Double(max(1, day)))
+            if Double(day - playerJoinDay) < delayDays { return "person.crop.circle.fill" }
+        }
+        var totalChanges: Double = 0
+        for d in 0...day { totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed) }
+        let changeThreshold = seededRandom(seed: index * 199 + countrySeed * 31, index: index)
+        let playerChangeDay = Int(changeThreshold * 200)
+        if index < 150 {
+            if seededRandom(seed: index * 317 + countrySeed * 59, index: index) > 0.15 {
+                return avatarForPlayer(index: index, countrySeed: countrySeed)
+            }
+        }
+        if day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1 {
+            let newSeed = index * 131 + countrySeed * 17 + day * 7
+            let random = seededRandom(seed: newSeed, index: day)
+            let avatarIndex = Int(random * Double(allAvatars.count))
+            return allAvatars[avatarIndex % allAvatars.count]
+        }
+        return avatarForPlayer(index: index, countrySeed: countrySeed)
+    }
+
+    private static let feedCacheKey = "socialFeed.cache.v2"
+    private static let feedDateKey = "socialFeed.cacheDate.v2"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -862,7 +918,8 @@ public struct MockSocialService: SocialService, Sendable {
             let responseTime = now.addingTimeInterval(delay)
             
             let responderName: String
-            let responderAvatar = MockSocialService.allAvatars.randomElement()!
+            let responderIndex = Int.random(in: 1...100000)
+            let responderAvatar = Self.avatarForPlayer(index: responderIndex, countrySeed: 0, day: Self.daysSinceReference)
             if text.hasPrefix("@") {
                 let parts = text.split(separator: " ")
                 if let first = parts.first {
@@ -896,9 +953,11 @@ public struct MockSocialService: SocialService, Sendable {
             "Completed the Daily Quest."
         ]
         
+        let currentDay = Self.daysSinceReference
         for _ in 0..<25 {
             let author = generateDynamicName()
-            let authorAvatar = MockSocialService.allAvatars.randomElement()!
+            let authorIndex = Int.random(in: 1...100000)
+            let authorAvatar = Self.avatarForPlayer(index: authorIndex, countrySeed: 0, day: currentDay)
             
             let randomMilestone: String
             if Double.random(in: 0...1) < 0.8 {
@@ -928,7 +987,8 @@ public struct MockSocialService: SocialService, Sendable {
             
             for offset in commentOffsets {
                 let commentAuthor = generateDynamicName()
-                let commentAvatar = MockSocialService.allAvatars.randomElement()!
+                let commentIndex = Int.random(in: 1...100000)
+                let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
                 var commentText = generateDynamicComment(message: message)
                 
                 // 30% chance to reply to someone else who has already participated
