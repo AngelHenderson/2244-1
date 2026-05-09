@@ -965,10 +965,10 @@ public struct MockSocialService: SocialService, Sendable {
         var questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
         
         // Symbols categorized by tone
-        var positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
-        var questionSymbols = ["?!", "...", "👀", "🤔", "??", "!!?"]
-        var sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", "😩", "😭", "💀", "🫠"]
-        var competitiveSymbols = [" >:)", " 👀", " 😈", " ⚔️", " 🎯", " 😏", " 🏁", " 💨"]
+        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
+        let questionSymbols = ["?!", "...", "👀", "🤔", "??", "!!?"]
+        let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", "😩", "😭", "💀", "🫠"]
+        let competitiveSymbols = [" >:)", " 👀", " 😈", " ⚔️", " 🎯", " 😏", " 🏁", " 💨"]
         let keyboardSymbols = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
         
         // Dynamically inject topic-specific terminology based on the feed item's message
@@ -978,42 +978,30 @@ public struct MockSocialService: SocialService, Sendable {
             jealousReactions.append(contentsOf: ["I'll never reach the Hall of Fame", "How long did it take to get to HoF?", "I'm still grinding for HoF"])
             competitiveReactions.append(contentsOf: ["I will join the Hall of Fame and have a higher infinity count than you!", "My infinity count will be bigger than yours.", "I'm coming for your HoF spot."])
             questions.append(contentsOf: ["How many infinity counts do you have?", "Are you going for a high infinity count?", "What's the next goal after HoF?"])
-            positiveSymbols.append(contentsOf: ["👑", "🌟", "♾️", "🌠", "🏆", "🥇"])
-            competitiveSymbols.append(contentsOf: ["👑", "😤", "⚡"])
         } else if message.contains("streak") {
             subjects.append(contentsOf: ["that streak", "your daily consistency", "keeping it alive"])
             positiveReactions.append(contentsOf: ["Nice streak!", "Don't lose it!", "Streak master!", "Way to keep the fire going."])
             jealousReactions.append(contentsOf: ["I lost my streak yesterday", "How do you remember every day?", "I can never keep a streak going"])
             competitiveReactions.append(contentsOf: ["My streak is longer than yours.", "I'm catching up to your streak."])
             questions.append(contentsOf: ["How long is your streak now?", "Did you ever use a streak freeze?"])
-            positiveSymbols.append(contentsOf: ["🔥", "📅", "💯", "❤️‍🔥", "🌟"])
-            sadOrJealousSymbols.append(contentsOf: ["🧊", "📉", "💔"])
-            competitiveSymbols.append(contentsOf: ["🔥", "🏃‍♂️"])
         } else if message.contains("timed challenge") {
             subjects.append(contentsOf: ["that time", "your speed", "the daily run"])
             positiveReactions.append(contentsOf: ["Fast hands!", "Speed demon!", "Nice clear time!"])
             jealousReactions.append(contentsOf: ["I ran out of time today", "I couldn't beat the clock", "You finished so fast"])
             competitiveReactions.append(contentsOf: ["I bet my time was faster.", "I'll beat your time tomorrow."])
             questions.append(contentsOf: ["What was your exact time?", "Did you pause at all?"])
-            positiveSymbols.append(contentsOf: ["⏱️", "⚡", "💨", "🏃", "🏎️"])
-            sadOrJealousSymbols.append(contentsOf: ["⏳", "🐢", "💤"])
-            competitiveSymbols.append(contentsOf: ["⏱️", "⚡"])
         } else if message.contains("theme") {
             subjects.append(contentsOf: ["that new theme", "your new aesthetic", "the customization"])
             positiveReactions.append(contentsOf: ["Love that theme!", "Looks so fresh.", "Best theme in the game.", "So pretty."])
             jealousReactions.append(contentsOf: ["I'm still trying to unlock that one", "I want that theme so bad", "I don't have enough gems for it"])
             competitiveReactions.append(contentsOf: ["My theme is better.", "I have all the themes unlocked."])
             questions.append(contentsOf: ["Which theme is that?", "How much did that cost?"])
-            positiveSymbols.append(contentsOf: ["🎨", "✨", "💅", "💎", "🖌️", "🌈"])
-            questionSymbols.append(contentsOf: ["🎨?", "💎?"])
         } else if message.contains("Quest") {
             subjects.append(contentsOf: ["that quest completion", "finishing the weeklies", "getting those rewards"])
             positiveReactions.append(contentsOf: ["Quest complete!", "Enjoy the rewards!", "Easy gems."])
             jealousReactions.append(contentsOf: ["I'm only halfway done with mine", "Those quests were so hard this week"])
             competitiveReactions.append(contentsOf: ["I finished mine on Tuesday.", "I always finish quests faster."])
             questions.append(contentsOf: ["What did you get from the chest?", "Were your quests hard?"])
-            positiveSymbols.append(contentsOf: ["📜", "⚔️", "🛡️", "🪙", "💎", "💰"])
-            sadOrJealousSymbols.append(contentsOf: ["📜", "⏳"])
         }
         
         // Detect specific milestones if present in the message
@@ -1026,7 +1014,6 @@ public struct MockSocialService: SocialService, Sendable {
                 jealousReactions.append(contentsOf: ["I can't even get to \(m)", "How did you get \(m) so fast?", "I always lose before \(m)"])
                 competitiveReactions.append(contentsOf: ["I'm getting past \(m) today.", "I'll beat your \(m)."])
                 questions.append(contentsOf: ["Any tips for getting \(m)?", "Was \(m) tough?"])
-                positiveSymbols.append(contentsOf: ["🎯", "🚀", "📈", "🎉", "🎊"])
             }
         }
         
