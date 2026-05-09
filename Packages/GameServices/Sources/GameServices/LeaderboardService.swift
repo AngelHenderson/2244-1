@@ -90,8 +90,13 @@ public class LeaderboardService: LeaderboardServiceProtocol, @unchecked Sendable
                 .limit(to: limit)
                 .getDocuments()
             
-            return try snapshot.documents.compactMap { document in
-                try document.data(as: LeaderboardServiceEntry.self)
+            return snapshot.documents.compactMap { document in
+                do {
+                    return try document.data(as: LeaderboardServiceEntry.self)
+                } catch {
+                    print("❌ Leaderboard decoding failed for document \(document.documentID): \(error)")
+                    return nil
+                }
             }
             
         } catch {
