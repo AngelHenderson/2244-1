@@ -379,11 +379,11 @@ public struct SocialFeedView: View {
                 if isLoading {
                     ProgressView()
                 }
-                ForEach(items) { item in
+                ForEach($items) { $item in
                     Button {
                         selectedItem = item
                     } label: {
-                        FeedItemRow(item: item)
+                        FeedItemRow(item: $item)
                     }
                     .buttonStyle(.plain)
                 }
@@ -1027,7 +1027,8 @@ private struct MoveReviewDetailView: View {
 }
 
 private struct FeedItemRow: View {
-    let item: SocialFeedItem
+    @Environment(\.socialService) private var socialService
+    @Binding var item: SocialFeedItem
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -1047,12 +1048,25 @@ private struct FeedItemRow: View {
                 Spacer()
             }
             Text(item.message)
-            HStack {
-                Label("\(item.reactionCount)", systemImage: "heart")
+            HStack(spacing: 16) {
+                Button {
+                    let wasHearted = item.isHearted ?? false
+                    item.isHearted = !wasHearted
+                    item.reactionCount += (wasHearted ? -1 : 1)
+                    
+                    Task {
+                        try? await socialService.toggleItemHeart(itemID: item.id)
+                    }
+                } label: {
+                    Label("\(item.reactionCount)", systemImage: (item.isHearted ?? false) ? "heart.fill" : "heart")
+                        .foregroundColor((item.isHearted ?? false) ? .red : .secondary)
+                }
+                .buttonStyle(.borderless)
+
                 Label("\(item.commentCount)", systemImage: "bubble.right")
+                    .foregroundColor(.secondary)
             }
             .font(.caption)
-            .foregroundStyle(.secondary)
         }
         .padding(.vertical, 6)
     }
@@ -1072,7 +1086,7 @@ private struct FeedCommentsView: View {
         NavigationStack {
             List {
                 Section("Post") {
-                    FeedItemRow(item: item)
+                    FeedItemRow(item: $item)
                 }
                 Section("Comments") {
                     ForEach($item.comments) { $commentData in
