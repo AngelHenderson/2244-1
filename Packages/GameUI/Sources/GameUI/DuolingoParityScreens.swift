@@ -1092,18 +1092,28 @@ private struct FeedCommentsView: View {
                             comment = "@\(commentData.authorName) "
                         }
                     }
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 0) {
+                    Divider()
                     HStack {
-                        TextField("Add a comment", text: $comment)
+                        TextField("Add a comment...", text: $comment)
+                            .textFieldStyle(.roundedBorder)
                             .onSubmit {
                                 submitComment()
                             }
                         
                         Button(action: submitComment) {
                             Image(systemName: "paperplane.fill")
+                                .font(.title2)
                                 .foregroundColor(comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .secondary : .accentColor)
                         }
                         .disabled(comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .buttonStyle(.borderless)
                     }
+                    .padding()
+                    .background(.regularMaterial)
                 }
             }
             .navigationTitle("Comments")
