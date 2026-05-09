@@ -1,0 +1,290 @@
+
+    // Calculate players changing name or avatar per day (0.05-0.4 per country)
+    static func playersChangingNameOrAvatar(on day: Int, isUS: Bool) -> Double {
+        let seed = isUS ? 33333 : 44444
+        let random = seededRandom(seed: seed, index: day)
+        return 0.05 + random * 0.35  // 0.05 to 0.4 players per day
+    }
+
+    // Country-specific players changing name or avatar per day (0.05-0.4 per country)
+    static func countryPlayersChangingNameOrAvatar(on day: Int, countrySeed: Int) -> Double {
+        let random = seededRandom(seed: countrySeed + 5000, index: day)
+        return 0.05 + random * 0.35  // 0.05 to 0.4 players per day
+    }
+
+
+    // Avatar IDs from AvatarCatalog (12 options)
+    static let avatarIDs = [
+        // Original avatars
+        "avatar-shiba-dog", "avatar-astronaut-cat", "avatar-robot-green", "avatar-phoenix-fire",
+        "avatar-shark-teeth", "avatar-paper-plane", "avatar-baseball-cap", "avatar-warrior-samurai",
+        "avatar-burger-food", "avatar-chicken-bird", "avatar-anchor-nautical", "avatar-bear-grizzly",
+        // New avatars
+        "avatar-ancient-scroll", "avatar-bubble-narwhal", "avatar-buddy-bot", "avatar-cosmic-sloth",
+        "avatar-crimson-wyrm", "avatar-dapper-ape", "avatar-ember-drake", "avatar-emerald-android",
+        "avatar-frosty-cupcake", "avatar-moonlight-wizard", "avatar-nordic-warrior", "avatar-professor-bee",
+        "avatar-sea-captain", "avatar-skull-crossbones", "avatar-sly-fox", "avatar-soccer-star",
+        "avatar-specimen-jar", "avatar-spooky-ghost", "avatar-starfighter", "avatar-storm-sword",
+        "avatar-sunny-sunflower", "avatar-toxic-tonic", "avatar-treasure-chest", "avatar-winter-doll"
+    ]
+
+    // Get a varied avatar for a player using seeded randomness
+    // This ensures each player has a consistent but varied avatar
+    static func avatarForPlayer(index: Int, countrySeed: Int = 0) -> String {
+        // ~15% of players haven't set an avatar yet (show letter-in-circle placeholder)
+        let noAvatarRandom = seededRandom(seed: index * 251 + countrySeed * 43, index: index + countrySeed)
+        if noAvatarRandom < 0.15 {
+            return ""  // No avatar - will show letter placeholder in UI
+        }
+
+        let seed = index * 131 + countrySeed * 17
+        let random = seededRandom(seed: seed, index: index)
+        let avatarIndex = Int(random * Double(avatarIDs.count))
+        return avatarIDs[avatarIndex % avatarIDs.count]
+    }
+
+    // Get avatar for a player with daily variation (some players change avatars over time)
+    // 85% of changes happen outside top 150, only 15% in top 150
+    static func avatarForPlayer(index: Int, countrySeed: Int, day: Int) -> String {
+        // ~15% of players haven't set an avatar yet (show letter-in-circle placeholder)
+        // New players add avatars between 3 hours and 2 days after joining
+        let noAvatarRandom = seededRandom(seed: index * 251 + countrySeed * 43, index: index + countrySeed)
+        if noAvatarRandom < 0.15 {
+            // This player hasn't set an avatar - they'll add one after a seeded delay
+            // Delay ranges from ~3 hours (0.125 days) to ~2 days
+            let delayDays = 0.125 + noAvatarRandom / 0.15 * 1.875  // Maps 0-0.15 to 0.125-2.0 days
+            let playerJoinDay = Int(seededRandom(seed: index * 373 + countrySeed * 67, index: index) * Double(max(1, day)))
+            let daysSinceJoin = day - playerJoinDay
+            if Double(daysSinceJoin) < delayDays {
+                return ""  // Still hasn't set avatar
+            }
+            // Player has now set their avatar - fall through to normal avatar logic
+        }
+
+        // Calculate cumulative name/avatar changes up to this day
+        var totalChanges: Double = 0
+        for d in 0...day {
+            totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+        }
+
+        // Determine which players have changed based on seeded randomness
+        let changeThreshold = seededRandom(seed: index * 199 + countrySeed * 31, index: index)
+        let playerChangeDay = Int(changeThreshold * 200)  // Spread changes over ~200 days
+
+        // Top 150 players are much less likely to change (only 15% of changes)
+        // Multiply their change day by ~5.67x to reduce probability
+        if index < 150 {
+            let top150Eligible = seededRandom(seed: index * 317 + countrySeed * 59, index: index)
+            if top150Eligible > 0.15 {
+                // This top-150 player is not in the 15% that changes
+                return avatarForPlayer(index: index, countrySeed: countrySeed)
+            }
+        }
+
+        if day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1 {
+            // This player has changed - use a different avatar
+            let newSeed = index * 131 + countrySeed * 17 + day * 7
+            let random = seededRandom(seed: newSeed, index: day)
+            let avatarIndex = Int(random * Double(avatarIDs.count))
+            return avatarIDs[avatarIndex % avatarIDs.count]
+        }
+
+        // No change - use base avatar
+        return avatarForPlayer(index: index, countrySeed: countrySeed)
+    }
+
+    // Get name for a player with daily variation (some players change names over time)
+    // Real name percentages: 15% for top 150, 30% for extended brackets (rank 151+)
+    // (Top 150: 85% gamertag, 15% realistic. Extended: 70% gamertag, 30% realistic)
+    // 85% of name changes happen outside top 150, only 15% in top 150
+    // 1/3 of players can switch between realistic and gamertag when they change
+    static func nameForPlayer(index: Int, names: [String], countrySeed: Int, day: Int) -> String {
+        // Determine initial name type (real vs gamertag) based on rank tier
+        let realNameThreshold: Double = index < 150 ? 0.15 : 0.30
+        let baseTypeRandom = seededRandom(seed: index * 401 + countrySeed * 83, index: index)
+        var useRealName = baseTypeRandom < realNameThreshold
+
+        // Calculate cumulative name/avatar changes up to this day
+        var totalChanges: Double = 0
+        for d in 0...day {
+            totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+        }
+
+        // Check if this player's name has changed
+        let changeThreshold = seededRandom(seed: index * 211 + countrySeed * 43, index: index)
+        let playerChangeDay = Int(changeThreshold * 200)
+
+        // 85% of changes happen outside top 150
+        var canChange = true
+        if index < 150 {
+            let top150Eligible = seededRandom(seed: index * 331 + countrySeed * 67, index: index)
+            canChange = top150Eligible <= 0.15
+        }
+
+        let hasChanged = canChange && day >= playerChangeDay && totalChanges > Double(index % 50) * 0.1
+
+        if hasChanged {
+            // 1/3 of players can switch name types when they change
+            let canSwitchType = seededRandom(seed: index * 503 + countrySeed * 97 + day, index: index)
+            if canSwitchType < 0.333 {
+                // Switch name type (real <-> gamertag)
+                useRealName = !useRealName
+            }
+        }
+
+        if useRealName {
+            // Distribution: 40% English, 14.5% Hispanic, 5% German, 3.5% French, 10% Italian, 1.5% Japanese, 0.75% Chinese, 15% Portuguese, 1.25% Indian, 1% Russian, 5% Arabic, 0.5% Korean, 2% Scandinavian
+            let nameTypeRandom = seededRandom(seed: index * 601 + countrySeed * 127, index: index)
+            let commonEnglishStart = 0
+            let commonEnglishCount = 40  // Indices 0-39: common English names
+            let hispanicStart = 40
+            let hispanicCount = 20  // Indices 40-59: Hispanic names
+            let germanStart = 60
+            let germanCount = 20  // Indices 60-79: German names
+            let frenchStart = 80
+            let frenchCount = 20  // Indices 80-99: French names
+            let italianStart = 100
+            let italianCount = 20  // Indices 100-119: Italian names
+            let japaneseStart = 120
+            let japaneseCount = 20  // Indices 120-139: Japanese names
+            let chineseStart = 160  // Indices 160-179: Chinese names
+            let chineseCount = 20
+            let portugueseStart = 200  // Indices 200-219: Brazilian/Portuguese names
+            let portugueseCount = 20
+            let indianStart = 180  // Indices 180-199: Indian names
+            let indianCount = 20
+            let russianStart = 220  // Indices 220-239: Russian names
+            let russianCount = 20
+            let arabicStart = 240  // Indices 240-259: Arabic names
+            let arabicCount = 20
+            let koreanStart = 140  // Indices 140-159: Korean names
+            let koreanCount = 20
+            let scandinavianStart = 260  // Indices 260-279: Scandinavian names
+            let scandinavianCount = 20
+            
+            let realNameIndex: Int
+            if nameTypeRandom < 0.40 {
+                // 40% common English
+                if hasChanged {
+                    realNameIndex = commonEnglishStart + ((index + countrySeed + day * 3) % commonEnglishCount)
+                } else {
+                    realNameIndex = commonEnglishStart + ((index + countrySeed) % commonEnglishCount)
+                }
+            } else if nameTypeRandom < 0.545 {
+                // 14.5% Hispanic (0.40 + 0.145 = 0.545)
+                if hasChanged {
+                    realNameIndex = hispanicStart + ((index + countrySeed + day * 3) % hispanicCount)
+                } else {
+                    realNameIndex = hispanicStart + ((index + countrySeed) % hispanicCount)
+                }
+            } else if nameTypeRandom < 0.595 {
+                // 5% German (0.545 + 0.05 = 0.595)
+                if hasChanged {
+                    realNameIndex = germanStart + ((index + countrySeed + day * 3) % germanCount)
+                } else {
+                    realNameIndex = germanStart + ((index + countrySeed) % germanCount)
+                }
+            } else if nameTypeRandom < 0.63 {
+                // 3.5% French (0.595 + 0.035 = 0.63)
+                if hasChanged {
+                    realNameIndex = frenchStart + ((index + countrySeed + day * 3) % frenchCount)
+                } else {
+                    realNameIndex = frenchStart + ((index + countrySeed) % frenchCount)
+                }
+            } else if nameTypeRandom < 0.73 {
+                // 10% Italian (0.63 + 0.10 = 0.73)
+                if hasChanged {
+                    realNameIndex = italianStart + ((index + countrySeed + day * 3) % italianCount)
+                } else {
+                    realNameIndex = italianStart + ((index + countrySeed) % italianCount)
+                }
+            } else if nameTypeRandom < 0.745 {
+                // 1.5% Japanese (0.73 + 0.015 = 0.745)
+                if hasChanged {
+                    realNameIndex = japaneseStart + ((index + countrySeed + day * 3) % japaneseCount)
+                } else {
+                    realNameIndex = japaneseStart + ((index + countrySeed) % japaneseCount)
+                }
+            } else if nameTypeRandom < 0.7525 {
+                // 0.75% Chinese (0.745 + 0.0075 = 0.7525)
+                if hasChanged {
+                    realNameIndex = chineseStart + ((index + countrySeed + day * 3) % chineseCount)
+                } else {
+                    realNameIndex = chineseStart + ((index + countrySeed) % chineseCount)
+                }
+            } else if nameTypeRandom < 0.9025 {
+                // 15% Portuguese (0.7525 + 0.15 = 0.9025)
+                if hasChanged {
+                    realNameIndex = portugueseStart + ((index + countrySeed + day * 3) % portugueseCount)
+                } else {
+                    realNameIndex = portugueseStart + ((index + countrySeed) % portugueseCount)
+                }
+            } else if nameTypeRandom < 0.915 {
+                // 1.25% Indian (0.9025 + 0.0125 = 0.915)
+                if hasChanged {
+                    realNameIndex = indianStart + ((index + countrySeed + day * 3) % indianCount)
+                } else {
+                    realNameIndex = indianStart + ((index + countrySeed) % indianCount)
+                }
+            } else if nameTypeRandom < 0.925 {
+                // 1% Russian (0.915 + 0.01 = 0.925)
+                if hasChanged {
+                    realNameIndex = russianStart + ((index + countrySeed + day * 3) % russianCount)
+                } else {
+                    realNameIndex = russianStart + ((index + countrySeed) % russianCount)
+                }
+            } else if nameTypeRandom < 0.975 {
+                // 5% Arabic (0.925 + 0.05 = 0.975)
+                if hasChanged {
+                    realNameIndex = arabicStart + ((index + countrySeed + day * 3) % arabicCount)
+                } else {
+                    realNameIndex = arabicStart + ((index + countrySeed) % arabicCount)
+                }
+            } else if nameTypeRandom < 0.98 {
+                // 0.5% Korean (0.975 + 0.005 = 0.98)
+                if hasChanged {
+                    realNameIndex = koreanStart + ((index + countrySeed + day * 3) % koreanCount)
+                } else {
+                    realNameIndex = koreanStart + ((index + countrySeed) % koreanCount)
+                }
+            } else {
+                // 2% Scandinavian (0.98 + 0.02 = 1.0)
+                if hasChanged {
+                    realNameIndex = scandinavianStart + ((index + countrySeed + day * 3) % scandinavianCount)
+                } else {
+                    realNameIndex = scandinavianStart + ((index + countrySeed) % scandinavianCount)
+                }
+            }
+            
+            // Return just the first name - last names are added by resolveRealisticNameDuplicates
+            return realNames[realNameIndex]
+        } else {
+            var baseName: String
+            if hasChanged {
+                // Name has changed - use a different gamertag
+                let newIndex = (index + countrySeed + day * 3) % names.count
+                baseName = names[newIndex]
+            } else {
+                // Base gamertag name
+                let nameIndex = (index + countrySeed) % names.count
+                baseName = names[nameIndex]
+            }
+            
+            // Strip any existing trailing digits from the base name
+            while let last = baseName.last, last.isNumber {
+                baseName.removeLast()
+            }
+            
+            // 55% of gamertag names have numbers at the end
+            let numberRandom = seededRandom(seed: index * 709 + countrySeed * 151, index: index)
+            if numberRandom < 0.55 {
+                // Generate a 6-digit number suffix (100000-999999), zero-padded
+                let numberSeed = seededRandom(seed: index * 823 + countrySeed * 179, index: index)
+                let number = 100000 + Int(numberSeed * 900000)
+                return baseName + String(format: "%06d", number)
+            }
+            return baseName
+        }
+    }
+    
+
