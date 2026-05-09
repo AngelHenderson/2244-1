@@ -888,7 +888,9 @@ public struct MockSocialService: SocialService, Sendable {
             var participants = [author]
             
             for _ in 0..<numComments {
-                let commentOffset = Double.random(in: timeOffset...0)
+                // Allow comments to be generated up to 24 hours into the future.
+                // Because feed() filters out future comments, they will appear naturally over time!
+                let commentOffset = Double.random(in: timeOffset...86400)
                 let commentAuthor = generateDynamicName()
                 var commentText = generateDynamicComment(message: message)
                 
