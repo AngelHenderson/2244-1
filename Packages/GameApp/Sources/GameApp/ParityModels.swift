@@ -884,13 +884,17 @@ public struct MockSocialService: SocialService, Sendable {
             var comments: [SocialFeedComment] = []
             let numComments = Int.random(in: 0...5)
             
+            // Generate and sort offsets so the conversation flows chronologically
+            var commentOffsets: [Double] = []
+            for _ in 0..<numComments {
+                commentOffsets.append(Double.random(in: timeOffset...86400))
+            }
+            commentOffsets.sort()
+            
             // Keep track of participants to allow for replies
             var participants = [author]
             
-            for _ in 0..<numComments {
-                // Allow comments to be generated up to 24 hours into the future.
-                // Because feed() filters out future comments, they will appear naturally over time!
-                let commentOffset = Double.random(in: timeOffset...86400)
+            for offset in commentOffsets {
                 let commentAuthor = generateDynamicName()
                 var commentText = generateDynamicComment(message: message)
                 
@@ -905,7 +909,7 @@ public struct MockSocialService: SocialService, Sendable {
                 comments.append(SocialFeedComment(
                     authorName: commentAuthor,
                     text: commentText,
-                    createdAt: now.addingTimeInterval(commentOffset)
+                    createdAt: now.addingTimeInterval(offset)
                 ))
                 
                 participants.append(commentAuthor)
