@@ -33,6 +33,7 @@ public final class DailyClaimsStore {
     private static let lastClaimKey = "lastClaimDate"
     private static let claimedDaysKey = "claimedDays"
     private static let unlockedStreaksKey = "unlockedStreaks"
+    private static let availableClaimsKey = "availableClaims"
     
     private var claimedDays: Set<Int> = []
     private var unlockedStreaks: Set<Int> = []
@@ -87,6 +88,7 @@ public final class DailyClaimsStore {
         
         claimedDays = Set(storage.array(forKey: Self.claimedDaysKey) as? [Int] ?? [])
         unlockedStreaks = Set(storage.array(forKey: Self.unlockedStreaksKey) as? [Int] ?? [])
+        availableClaims = storage.integer(forKey: Self.availableClaimsKey)
     }
     
     private func saveProgress() {
@@ -101,6 +103,9 @@ public final class DailyClaimsStore {
         
         // Save unlocked streaks
         storage.set(Array(unlockedStreaks).sorted(), forKey: Self.unlockedStreaksKey)
+        
+        // Save available claims count (for catch-up persistence)
+        storage.set(availableClaims, forKey: Self.availableClaimsKey)
     }
     
     @MainActor
