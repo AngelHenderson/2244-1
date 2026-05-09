@@ -1072,19 +1072,47 @@ private struct FeedCommentsView: View {
                     FeedItemRow(item: item)
                 }
                 Section("Comments") {
-                    ForEach(item.comments) { commentData in
+                    ForEach($item.comments) { $commentData in
                         VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(commentData.authorName)
-                                    .font(.caption)
-                                    .bold()
+                            HStack(alignment: .top) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(commentData.authorName)
+                                            .font(.caption)
+                                            .bold()
+                                        Spacer()
+                                        Text(formatDate(commentData.createdAt))
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Text(commentData.text)
+                                        .font(.body)
+                                }
+                                
                                 Spacer()
-                                Text(formatDate(commentData.createdAt))
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
+                                
+                                Button {
+                                    let wasHearted = commentData.isHearted ?? false
+                                    commentData.isHearted = !wasHearted
+                                    let currentLikes = commentData.likes ?? 0
+                                    commentData.likes = currentLikes + (wasHearted ? -1 : 1)
+                                } label: {
+                                    VStack(spacing: 2) {
+                                        Image(systemName: (commentData.isHearted ?? false) ? "heart.fill" : "heart")
+                                            .foregroundColor((commentData.isHearted ?? false) ? .red : .secondary)
+                                            .font(.footnote)
+                                        
+                                        if let likes = commentData.likes, likes > 0 {
+                                            Text("\(likes)")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.borderless)
+                                .padding(.leading, 8)
+                                .padding(.top, 2)
                             }
-                            Text(commentData.text)
-                                .font(.body)
                         }
                         .padding(.vertical, 4)
                         .contentShape(Rectangle())
