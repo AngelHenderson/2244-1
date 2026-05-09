@@ -314,9 +314,11 @@ struct game2244App: App {
                         reportService = FirestoreReportService()
                     } else {
                         #if DEBUG
-                        print("⚠️ Firebase not configured; leaderboard uses Game Center and gem cloud sync skipped.")
-                        #endif
+                        print("⚠️ Firebase not configured; leaderboard uses Mock data + Game Center and gem cloud sync skipped.")
+                        leaderboardClient = .mirroring(primary: .mock, secondary: gameCenterClient)
+                        #else
                         leaderboardClient = gameCenterClient
+                        #endif
                     }
 
                     gameStore.onGameEnded = { summary in
