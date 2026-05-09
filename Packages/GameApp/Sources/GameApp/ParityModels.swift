@@ -883,13 +883,30 @@ public struct MockSocialService: SocialService, Sendable {
             
             var comments: [SocialFeedComment] = []
             let numComments = Int.random(in: 0...5)
+            
+            // Keep track of participants to allow for replies
+            var participants = [author]
+            
             for _ in 0..<numComments {
                 let commentOffset = Double.random(in: timeOffset...0)
+                let commentAuthor = generateDynamicName()
+                var commentText = generateDynamicComment(message: message)
+                
+                // 30% chance to reply to someone else who has already participated
+                if !participants.isEmpty && Double.random(in: 0...1) < 0.3 {
+                    let replyingTo = participants.randomElement()!
+                    if replyingTo != commentAuthor {
+                        commentText = "@\(replyingTo) " + commentText
+                    }
+                }
+                
                 comments.append(SocialFeedComment(
-                    authorName: generateDynamicName(),
-                    text: generateDynamicComment(message: message),
+                    authorName: commentAuthor,
+                    text: commentText,
                     createdAt: now.addingTimeInterval(commentOffset)
                 ))
+                
+                participants.append(commentAuthor)
             }
             
             items.append(SocialFeedItem(
