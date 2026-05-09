@@ -915,7 +915,8 @@ public struct MockSocialService: SocialService, Sendable {
                 comments.append(SocialFeedComment(
                     authorName: commentAuthor,
                     text: commentText,
-                    createdAt: now.addingTimeInterval(offset)
+                    createdAt: now.addingTimeInterval(offset),
+                    likes: Int.random(in: 0...10)
                 ))
                 
                 participants.append(commentAuthor)
