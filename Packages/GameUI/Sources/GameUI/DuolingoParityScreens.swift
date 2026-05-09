@@ -1032,8 +1032,11 @@ private struct FeedItemRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(systemName: "person.crop.circle.fill")
-                    .font(.title2)
+                Image(item.avatarID)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .clipShape(Circle())
                 VStack(alignment: .leading) {
                     Text(item.authorName)
                         .font(.headline)
@@ -1077,6 +1080,11 @@ private struct FeedCommentsView: View {
                             HStack(alignment: .top) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
+                                        Image(commentData.avatarID)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 24, height: 24)
+                                            .clipShape(Circle())
                                         Text(commentData.authorName)
                                             .font(.caption)
                                             .bold()
