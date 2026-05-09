@@ -1092,26 +1092,38 @@ private struct FeedCommentsView: View {
                             comment = "@\(commentData.authorName) "
                         }
                     }
-                    TextField("Add a comment", text: $comment)
-                        .onSubmit {
-                            guard !comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-                            let text = comment
-                            comment = ""
-                            
-                            let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: Date())
-                            item.comments.append(newComment)
-                            item.commentCount += 1
-                            
-                            Task {
-                                try? await socialService.addComment(to: item.id, text: text)
+                    HStack {
+                        TextField("Add a comment", text: $comment)
+                            .onSubmit {
+                                submitComment()
                             }
+                        
+                        Button(action: submitComment) {
+                            Image(systemName: "paperplane.fill")
+                                .foregroundColor(comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .secondary : .accentColor)
                         }
+                        .disabled(comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
                 }
             }
             .navigationTitle("Comments")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
             }
+        }
+    }
+    
+    private func submitComment() {
+        guard !comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let text = comment
+        comment = ""
+        
+        let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: Date())
+        item.comments.append(newComment)
+        item.commentCount += 1
+        
+        Task {
+            try? await socialService.addComment(to: item.id, text: text)
         }
     }
 
