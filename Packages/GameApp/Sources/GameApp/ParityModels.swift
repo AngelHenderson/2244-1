@@ -707,6 +707,21 @@ public protocol SocialService: Sendable {
 public struct MockSocialService: SocialService, Sendable {
     public init() {}
 
+    static let allAvatars: [String] = [
+        "avatar_anchor_nautical", "avatar_ancient_scroll", "avatar_astronaut_cat",
+        "avatar_baseball_cap", "avatar_bear_grizzly", "avatar_bubble_narwhal",
+        "avatar_buddy_bot", "avatar_burger_food", "avatar_chicken_bird",
+        "avatar_cosmic_sloth", "avatar_crimson_wyrm", "avatar_dapper_ape",
+        "avatar_ember_drake", "avatar_emerald_android", "avatar_frosty_cupcake",
+        "avatar_moonlight_wizard", "avatar_nordic_warrior", "avatar_paper_plane",
+        "avatar_phoenix_fire", "avatar_professor_bee", "avatar_robot_green",
+        "avatar_sea_captain", "avatar_shark_teeth", "avatar_shiba_dog",
+        "avatar_skull_crossbones", "avatar_sly_fox", "avatar_soccer_star",
+        "avatar_specimen_jar", "avatar_spooky_ghost", "avatar_starfighter",
+        "avatar_storm_sword", "avatar_sunny_sunflower", "avatar_toxic_tonic",
+        "avatar_treasure_chest", "avatar_warrior_samurai", "avatar_winter_doll"
+    ]
+
     static let allMilestones: [String] = [
         "0", "2", "4", "8", "16", "32", "64", "128", "256", "512",
         "1024", "2048", "4096", "8192", "16K", "32K", "65K", "131K", "262K", "524K",
