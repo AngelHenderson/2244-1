@@ -323,53 +323,53 @@ private struct StreakDetailSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 16) {
-                    Image(systemName: "flame.circle.fill")
-                        .font(.avenirNext(size: 64, weight: .regular))
-                        .foregroundStyle(streak.isUnlocked ? .green : .orange)
-                        .symbolEffect(.pulse)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 16) {
+                        Image(systemName: "flame.circle.fill")
+                            .font(.avenirNext(size: 64, weight: .regular))
+                            .foregroundStyle(streak.isUnlocked ? .green : .orange)
+                            .symbolEffect(.pulse)
 
-                    Text("Day \(streak.day) Milestone")
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                        Text("Day \(streak.day) Milestone")
+                            .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
 
-                    if streak.isUnlocked {
-                        Label("Unlocked", systemImage: "checkmark.circle.fill")
-                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
-                            .foregroundStyle(.green)
-                    } else {
-                        Text("Keep your streak going!")
-                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                // Rewards
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Rewards")
-                        .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
-
-                    VStack(spacing: 12) {
-                        ForEach(streak.rewards.entries, id: \.self) { entry in
-                            HStack {
-                                Image(entry.kind.assetName)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                Text("\(entry.amount) \(entry.kind.displayName)")
-                                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
-                                Spacer()
-                            }
+                        if streak.isUnlocked {
+                            Label("Unlocked", systemImage: "checkmark.circle.fill")
+                                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
+                                .foregroundStyle(.green)
+                        } else {
+                            Text("Keep your streak going!")
+                                .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .padding()
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                }
 
-                Spacer()
+                    // Rewards
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Rewards")
+                            .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
+
+                        VStack(spacing: 12) {
+                            ForEach(streak.rewards.entries, id: \.self) { entry in
+                                HStack {
+                                    Image(entry.kind.assetName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 24, height: 24)
+                                    Text("\(entry.amount) \(entry.kind.displayName)")
+                                        .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+                                    Spacer()
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .padding()
             }
-            .padding()
             .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .platformTopBarTrailing) {
