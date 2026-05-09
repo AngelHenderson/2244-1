@@ -210,6 +210,10 @@ private func fetchFirebasePage(
         )
         
     } catch {
+        print("⚠️ Firebase fetch failed for board \(board.identifier): \(error). Falling back to mock data.")
+        if let mockPage = try? await LeaderboardClient.mock.fetchPage(period, filter, cursor, pageSize) {
+            return mockPage
+        }
         throw LeaderboardError.fetchFailed(error)
     }
 }
