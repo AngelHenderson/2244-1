@@ -338,17 +338,23 @@ public struct SocialFeedComment: Codable, Equatable, Identifiable, Sendable {
     public var authorName: String
     public var text: String
     public var createdAt: Date
+    public var likes: Int?
+    public var isHearted: Bool?
 
     public init(
         id: UUID = UUID(),
         authorName: String = "Player",
         text: String,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        likes: Int? = nil,
+        isHearted: Bool? = nil
     ) {
         self.id = id
         self.authorName = authorName
         self.text = text
         self.createdAt = createdAt
+        self.likes = likes
+        self.isHearted = isHearted
     }
 }
 
