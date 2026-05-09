@@ -1050,7 +1050,7 @@ public struct MockSocialService: SocialService, Sendable {
             tone = "positive"
         }
         
-        if Double.random(in: 0...1) < 0.6 {
+        if Double.random(in: 0...1) < 0.75 {
             let symbol: String
             switch tone {
             case "positive": symbol = positiveSymbols.randomElement()!
@@ -1061,7 +1061,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
             comment += symbol
         } else if Double.random(in: 0...1) < 0.1 {
-            // 4% chance for a random raw keyboard symbol (like a typo)
+            // 2.5% chance for a random raw keyboard symbol (like a typo)
             comment += keyboardSymbols.randomElement()!
         }
         
