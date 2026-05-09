@@ -532,7 +532,6 @@ public struct HomeView: View {
                 id: "profile",
                 system: "person.circle.fill",
                 title: "Profile",
-                badge: state.hasProfileBadge,
                 action: { presentedSheet = .profile }
             )
         )
