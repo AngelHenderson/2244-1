@@ -687,6 +687,7 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
 
 public protocol SocialService: Sendable {
     func feed() async throws -> [SocialFeedItem]
+    func addComment(to itemID: UUID, text: String) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
     func invites() async throws -> [FamilyInvite]
 }
@@ -807,6 +808,22 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         return items
+    }
+
+    public func addComment(to itemID: UUID, text: String) async throws {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: Self.feedCacheKey),
+              var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
+            return
+        }
+        if let index = cached.firstIndex(where: { $0.id == itemID }) {
+            let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: Date())
+            cached[index].comments.append(newComment)
+            cached[index].commentCount += 1
+            if let newData = try? JSONEncoder().encode(cached) {
+                defaults.set(newData, forKey: Self.feedCacheKey)
+            }
+        }
     }
 
     private func generateFeedItems(now: Date) -> [SocialFeedItem] {

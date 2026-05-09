@@ -397,6 +397,9 @@ public struct SocialFeedView: View {
             .refreshable { await load() }
             .sheet(item: $selectedItem) { item in
                 FeedCommentsView(item: item)
+                    .onDisappear {
+                        Task { await load() }
+                    }
             }
         }
         .trackScreen(.socialFeed)
@@ -1053,6 +1056,7 @@ private struct FeedItemRow: View {
 }
 
 private struct FeedCommentsView: View {
+    @Environment(\.socialService) private var socialService
     @Environment(\.dismiss) private var dismiss
     @State private var item: SocialFeedItem
     @State private var comment = ""
@@ -1083,14 +1087,24 @@ private struct FeedCommentsView: View {
                                 .font(.body)
                         }
                         .padding(.vertical, 4)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            comment = "@\(commentData.authorName) "
+                        }
                     }
                     TextField("Add a comment", text: $comment)
                         .onSubmit {
                             guard !comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-                            let newComment = SocialFeedComment(authorName: "Player", text: comment, createdAt: Date())
+                            let text = comment
+                            comment = ""
+                            
+                            let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: Date())
                             item.comments.append(newComment)
                             item.commentCount += 1
-                            comment = ""
+                            
+                            Task {
+                                try? await socialService.addComment(to: item.id, text: text)
+                            }
                         }
                 }
             }
