@@ -336,6 +336,7 @@ public struct FamilyInvite: Codable, Equatable, Identifiable, Sendable {
 public struct SocialFeedComment: Codable, Equatable, Identifiable, Sendable {
     public var id: UUID
     public var authorName: String
+    public var avatarID: String
     public var text: String
     public var createdAt: Date
     public var likes: Int?
@@ -344,6 +345,7 @@ public struct SocialFeedComment: Codable, Equatable, Identifiable, Sendable {
     public init(
         id: UUID = UUID(),
         authorName: String = "Player",
+        avatarID: String = "avatar_buddy_bot",
         text: String,
         createdAt: Date = Date(),
         likes: Int? = nil,
@@ -351,6 +353,7 @@ public struct SocialFeedComment: Codable, Equatable, Identifiable, Sendable {
     ) {
         self.id = id
         self.authorName = authorName
+        self.avatarID = avatarID
         self.text = text
         self.createdAt = createdAt
         self.likes = likes
@@ -836,7 +839,7 @@ public struct MockSocialService: SocialService, Sendable {
         }
         if let index = cached.firstIndex(where: { $0.id == itemID }) {
             let now = Date()
-            let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: now)
+            let newComment = SocialFeedComment(authorName: "Player", avatarID: "avatar_buddy_bot", text: text, createdAt: now)
             cached[index].comments.append(newComment)
             
             // Simulate a response from another player (30 mins to 24 hours later)
@@ -844,6 +847,7 @@ public struct MockSocialService: SocialService, Sendable {
             let responseTime = now.addingTimeInterval(delay)
             
             let responderName: String
+            let responderAvatar = MockSocialService.allAvatars.randomElement()!
             if text.hasPrefix("@") {
                 let parts = text.split(separator: " ")
                 if let first = parts.first {
@@ -856,7 +860,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
             
             let responseText = "@Player " + generateDynamicComment(message: cached[index].message)
-            let responseComment = SocialFeedComment(authorName: responderName, text: responseText, createdAt: responseTime)
+            let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
             cached[index].comments.append(responseComment)
             
             cached[index].commentCount = cached[index].comments.count
@@ -879,6 +883,7 @@ public struct MockSocialService: SocialService, Sendable {
         
         for _ in 0..<25 {
             let author = generateDynamicName()
+            let authorAvatar = MockSocialService.allAvatars.randomElement()!
             
             let randomMilestone: String
             if Double.random(in: 0...1) < 0.8 {
@@ -904,28 +909,30 @@ public struct MockSocialService: SocialService, Sendable {
             commentOffsets.sort()
             
             // Keep track of participants to allow for replies
-            var participants = [author]
+            var participants: [(name: String, avatar: String)] = [(author, authorAvatar)]
             
             for offset in commentOffsets {
                 let commentAuthor = generateDynamicName()
+                let commentAvatar = MockSocialService.allAvatars.randomElement()!
                 var commentText = generateDynamicComment(message: message)
                 
                 // 30% chance to reply to someone else who has already participated
                 if !participants.isEmpty && Double.random(in: 0...1) < 0.3 {
                     let replyingTo = participants.randomElement()!
-                    if replyingTo != commentAuthor {
-                        commentText = "@\(replyingTo) " + commentText
+                    if replyingTo.name != commentAuthor {
+                        commentText = "@\(replyingTo.name) " + commentText
                     }
                 }
                 
                 comments.append(SocialFeedComment(
                     authorName: commentAuthor,
+                    avatarID: commentAvatar,
                     text: commentText,
                     createdAt: now.addingTimeInterval(offset),
                     likes: Int.random(in: 0...10)
                 ))
                 
-                participants.append(commentAuthor)
+                participants.append((commentAuthor, commentAvatar))
             }
             
             let maxReactions = Int.random(in: 0...50)
@@ -937,6 +944,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             items.append(SocialFeedItem(
                 authorName: author,
+                avatarID: authorAvatar,
                 createdAt: itemDate,
                 message: message,
                 statText: statText,
