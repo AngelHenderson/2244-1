@@ -117,9 +117,15 @@ public final class DailyClaimsStore {
             let daysSinceLastClaim = calendar.dateComponents([.day], from: lastClaimDay, to: today).day ?? 0
 
             if daysSinceLastClaim == 0 {
-                // Already claimed today
-                canClaimToday = false
-                availableClaims = 0
+                // Already claimed today — but preserve any remaining catch-up claims
+                // When a user missed multiple days and claims one, lastClaimDate becomes today.
+                // On re-entry, daysSinceLastClaim == 0 but catch-up claims may remain.
+                if availableClaims > 0 {
+                    canClaimToday = true
+                } else {
+                    canClaimToday = false
+                    availableClaims = 0
+                }
             } else if daysSinceLastClaim == 1 {
                 // Consecutive day - continue streak
                 canClaimToday = true
