@@ -285,6 +285,24 @@ public final class DailyClaimsStore {
 
         // Mark as claimed
         claimedDays.insert(day)
+
+        // Completing all days in a year unlocks streak milestones up to that point.
+        // Even if the streak was broken along the way, having claimed every single day
+        // is an equivalent achievement.
+        if currentStreak < day {
+            currentStreak = day
+        }
+
+        // Unlock all streak milestones up to this yearly day
+        for i in 0..<dailyStreaks.count {
+            if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= day {
+                dailyStreaks[i].isUnlocked = true
+                unlockedStreaks.insert(dailyStreaks[i].day)
+                let bonus = BonusRewardGenerator.generateBonus(forStreakDay: dailyStreaks[i].day)
+                onReward?(bonus)
+            }
+        }
+
         saveProgress()
 
         // Rebuild states
