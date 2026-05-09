@@ -368,6 +368,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
     public var reactionCount: Int
     public var commentCount: Int
     public var comments: [SocialFeedComment]
+    public var reactionTimestamps: [Date]?
 
     public init(
         id: UUID = UUID(),
@@ -378,7 +379,8 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
         statText: String,
         reactionCount: Int = 0,
         commentCount: Int = 0,
-        comments: [SocialFeedComment] = []
+        comments: [SocialFeedComment] = [],
+        reactionTimestamps: [Date]? = nil
     ) {
         self.id = id
         self.authorName = authorName
@@ -389,6 +391,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
         self.reactionCount = reactionCount
         self.commentCount = commentCount
         self.comments = comments
+        self.reactionTimestamps = reactionTimestamps
     }
 }
 
@@ -806,6 +809,9 @@ public struct MockSocialService: SocialService, Sendable {
             for i in 0..<cached.count {
                 cached[i].comments = cached[i].comments.filter { $0.createdAt <= now }
                 cached[i].commentCount = cached[i].comments.count
+                if let rts = cached[i].reactionTimestamps {
+                    cached[i].reactionCount = rts.filter { $0 <= now }.count
+                }
             }
             return cached
         }
@@ -922,14 +928,22 @@ public struct MockSocialService: SocialService, Sendable {
                 participants.append(commentAuthor)
             }
             
+            let maxReactions = Int.random(in: 0...50)
+            var rTimestamps: [Date] = []
+            for _ in 0..<maxReactions {
+                let rOffset = Double.random(in: timeOffset...86400)
+                rTimestamps.append(now.addingTimeInterval(rOffset))
+            }
+            
             items.append(SocialFeedItem(
                 authorName: author,
                 createdAt: itemDate,
                 message: message,
                 statText: statText,
-                reactionCount: Int.random(in: 0...50),
+                reactionCount: rTimestamps.filter { $0 <= now }.count,
                 commentCount: comments.count,
-                comments: comments.sorted(by: { $0.createdAt < $1.createdAt })
+                comments: comments.sorted(by: { $0.createdAt < $1.createdAt }),
+                reactionTimestamps: rTimestamps
             ))
         }
         
