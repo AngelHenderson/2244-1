@@ -794,7 +794,13 @@ public struct MockSocialService: SocialService, Sendable {
         if let cachedDate = defaults.string(forKey: Self.feedDateKey),
            cachedDate == todayString,
            let data = defaults.data(forKey: Self.feedCacheKey),
-           let cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+            
+            // Filter out future comments so simulated responses arrive naturally
+            for i in 0..<cached.count {
+                cached[i].comments = cached[i].comments.filter { $0.createdAt <= now }
+                cached[i].commentCount = cached[i].comments.count
+            }
             return cached
         }
 
@@ -817,9 +823,31 @@ public struct MockSocialService: SocialService, Sendable {
             return
         }
         if let index = cached.firstIndex(where: { $0.id == itemID }) {
-            let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: Date())
+            let now = Date()
+            let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: now)
             cached[index].comments.append(newComment)
-            cached[index].commentCount += 1
+            
+            // Simulate a response from another player (30 mins to 24 hours later)
+            let delay = Double.random(in: 1800...86400)
+            let responseTime = now.addingTimeInterval(delay)
+            
+            let responderName: String
+            if text.hasPrefix("@") {
+                let parts = text.split(separator: " ")
+                if let first = parts.first {
+                    responderName = String(first.dropFirst()) // Reply as the mentioned user
+                } else {
+                    responderName = generateDynamicName()
+                }
+            } else {
+                responderName = cached[index].authorName // Reply as the post author
+            }
+            
+            let responseText = "@Player " + generateDynamicComment(message: cached[index].message)
+            let responseComment = SocialFeedComment(authorName: responderName, text: responseText, createdAt: responseTime)
+            cached[index].comments.append(responseComment)
+            
+            cached[index].commentCount = cached[index].comments.count
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
