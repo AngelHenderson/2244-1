@@ -862,7 +862,7 @@ public struct MockSocialService: SocialService, Sendable {
             "Protected a streak.",
             "Joined the Hall of Fame!",
             "Unlocked a new theme.",
-            "Completed the Weekly Quest."
+            "Completed the Daily Quest."
         ]
         
         for _ in 0..<25 {
@@ -1003,10 +1003,10 @@ public struct MockSocialService: SocialService, Sendable {
             competitiveReactions.append(contentsOf: ["My theme is better.", "I have all the themes unlocked."])
             questions.append(contentsOf: ["Which theme is that?", "How much did that cost?"])
         } else if message.contains("Quest") {
-            subjects.append(contentsOf: ["that quest completion", "finishing the weeklies", "getting those rewards"])
+            subjects.append(contentsOf: ["that quest completion", "finishing the dailies", "getting those rewards"])
             positiveReactions.append(contentsOf: ["Quest complete!", "Enjoy the rewards!", "Easy gems."])
-            jealousReactions.append(contentsOf: ["I'm only halfway done with mine", "Those quests were so hard this week"])
-            competitiveReactions.append(contentsOf: ["I finished mine on Tuesday.", "I always finish quests faster."])
+            jealousReactions.append(contentsOf: ["I'm only halfway done with mine", "Those quests were so hard today"])
+            competitiveReactions.append(contentsOf: ["I finished mine hours ago.", "I always finish quests faster."])
             questions.append(contentsOf: ["What did you get from the chest?", "Were your quests hard?"])
         }
         
