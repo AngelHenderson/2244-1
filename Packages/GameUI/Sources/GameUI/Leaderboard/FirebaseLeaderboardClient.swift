@@ -159,25 +159,54 @@ private func fetchFirebasePage(
         let firebaseEntries = try await service.fetchTopEntries(from: board, limit: pageSize)
         
         // Convert to UI model
-        let entries = try await convertFirebaseEntriesToUI(firebaseEntries, service: service)
+        let realEntries = try await convertFirebaseEntriesToUI(firebaseEntries, service: service)
         
-        // Fetch user's entry if authenticated
-        let myEntry: LeaderboardEntry?
-        if Auth.auth().currentUser != nil {
-            if let userFirebaseEntry = try? await service.fetchUserEntry(from: board) {
-                myEntry = try await convertFirebaseEntryToUI(userFirebaseEntry, service: service)
-            } else {
-                myEntry = nil
+        // Combine with Mock Data for scalable leaderboard feel
+        let mockPage = try? await LeaderboardClient.mock.fetchPage(period, filter, cursor, pageSize)
+        let mockEntries = mockPage?.entries ?? []
+        
+        var combinedEntries = realEntries + mockEntries
+        
+        // Deduplicate just in case
+        var uniqueEntries: [LeaderboardEntry] = []
+        var seenIDs = Set<String>()
+        for entry in combinedEntries.sorted(by: { $0.score > $1.score }) {
+            if !seenIDs.contains(entry.id) {
+                uniqueEntries.append(entry)
+                seenIDs.insert(entry.id)
             }
-        } else {
-            myEntry = nil
         }
         
+        // Re-sort and rank
+        combinedEntries = uniqueEntries.sorted { $0.score > $1.score }
+        for i in 0..<combinedEntries.count {
+            combinedEntries[i].rank = i + 1
+        }
+        
+        let finalEntries = Array(combinedEntries.prefix(pageSize))
+        
+        // Fetch user's entry if authenticated
+        var myEntry: LeaderboardEntry? = finalEntries.first(where: { $0.isMe })
+        if myEntry == nil, Auth.auth().currentUser != nil {
+            if let userFirebaseEntry = try? await service.fetchUserEntry(from: board) {
+                myEntry = try await convertFirebaseEntryToUI(userFirebaseEntry, service: service)
+            }
+        }
+        
+        // Fallback to mock myEntry if still nil
+        if myEntry == nil {
+            myEntry = mockPage?.myEntry
+        }
+        
+        // Adjust total players
+        let realCount = firebaseEntries.count // rough estimate
+        let mockCount = mockPage?.totalPlayers ?? 0
+        
         return LeaderboardPage(
-            entries: entries,
+            entries: finalEntries,
             myEntry: myEntry,
-            nextCursor: entries.count == pageSize ? "next" : nil, // Simple cursor implementation
-            totalPlayers: nil // Firebase doesn't provide total count easily
+            nextCursor: realEntries.count == pageSize ? "next" : nil,
+            totalPlayers: realCount + mockCount
         )
         
     } catch {
@@ -271,7 +300,7 @@ private func convertFirebaseEntryToUI(
         id: firebaseEntry.uid,
         rank: rank ?? 1,
         name: firebaseEntry.displayName,
-        score: firebaseEntry.runScore > 0 ? firebaseEntry.runScore : decoded.score,
+        score: (firebaseEntry.runScore ?? 0) > 0 ? firebaseEntry.runScore! : decoded.score,
         countryCode: nil, // Firebase doesn't store country code by default
         platform: .ios, // Assume iOS for now
         isMe: isCurrentUser,

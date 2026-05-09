@@ -9,9 +9,9 @@ public struct LeaderboardServiceEntry: Codable, Hashable, Sendable {
     public let value: String // Composite score as string to avoid int64 limits
     public let highestTile: Int
     public let highestTileStep: Int?
-    public let movesToHighest: Int
-    public let secondsToHighest: Int
-    public let runScore: Int
+    public let movesToHighest: Int?
+    public let secondsToHighest: Int?
+    public let runScore: Int?
     public let achievedAt: Date?
     
     public init(
@@ -20,9 +20,9 @@ public struct LeaderboardServiceEntry: Codable, Hashable, Sendable {
         value: String,
         highestTile: Int,
         highestTileStep: Int? = nil,
-        movesToHighest: Int,
-        secondsToHighest: Int,
-        runScore: Int,
+        movesToHighest: Int? = nil,
+        secondsToHighest: Int? = nil,
+        runScore: Int? = nil,
         achievedAt: Date? = nil
     ) {
         self.uid = uid
