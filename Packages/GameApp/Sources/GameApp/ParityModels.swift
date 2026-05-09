@@ -369,6 +369,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
     public var message: String
     public var statText: String
     public var reactionCount: Int
+    public var isHearted: Bool?
     public var commentCount: Int
     public var comments: [SocialFeedComment]
     public var reactionTimestamps: [Date]?
@@ -381,6 +382,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
         message: String,
         statText: String,
         reactionCount: Int = 0,
+        isHearted: Bool? = nil,
         commentCount: Int = 0,
         comments: [SocialFeedComment] = [],
         reactionTimestamps: [Date]? = nil
@@ -392,6 +394,7 @@ public struct SocialFeedItem: Codable, Equatable, Identifiable, Sendable {
         self.message = message
         self.statText = statText
         self.reactionCount = reactionCount
+        self.isHearted = isHearted
         self.commentCount = commentCount
         self.comments = comments
         self.reactionTimestamps = reactionTimestamps
@@ -700,6 +703,7 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
 public protocol SocialService: Sendable {
     func feed() async throws -> [SocialFeedItem]
     func addComment(to itemID: UUID, text: String) async throws
+    func toggleItemHeart(itemID: UUID) async throws
     func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
     func invites() async throws -> [FamilyInvite]
@@ -937,6 +941,22 @@ public struct MockSocialService: SocialService, Sendable {
             cached[index].comments.append(responseComment)
             
             cached[index].commentCount = cached[index].comments.count
+            if let newData = try? JSONEncoder().encode(cached) {
+                defaults.set(newData, forKey: Self.feedCacheKey)
+            }
+        }
+    }
+
+    public func toggleItemHeart(itemID: UUID) async throws {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: Self.feedCacheKey),
+              var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else { return }
+        
+        if let itemIndex = cached.firstIndex(where: { $0.id == itemID }) {
+            let wasHearted = cached[itemIndex].isHearted ?? false
+            cached[itemIndex].isHearted = !wasHearted
+            cached[itemIndex].reactionCount += (wasHearted ? -1 : 1)
+            
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
