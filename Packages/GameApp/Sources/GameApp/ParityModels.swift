@@ -700,6 +700,7 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
 public protocol SocialService: Sendable {
     func feed() async throws -> [SocialFeedItem]
     func addComment(to itemID: UUID, text: String) async throws
+    func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
     func invites() async throws -> [FamilyInvite]
 }
@@ -936,6 +937,25 @@ public struct MockSocialService: SocialService, Sendable {
             cached[index].comments.append(responseComment)
             
             cached[index].commentCount = cached[index].comments.count
+            if let newData = try? JSONEncoder().encode(cached) {
+                defaults.set(newData, forKey: Self.feedCacheKey)
+            }
+        }
+    }
+
+    public func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: Self.feedCacheKey),
+              var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else { return }
+        
+        if let itemIndex = cached.firstIndex(where: { $0.id == itemID }),
+           let commentIndex = cached[itemIndex].comments.firstIndex(where: { $0.id == commentID }) {
+            
+            let wasHearted = cached[itemIndex].comments[commentIndex].isHearted ?? false
+            cached[itemIndex].comments[commentIndex].isHearted = !wasHearted
+            let currentLikes = cached[itemIndex].comments[commentIndex].likes ?? 0
+            cached[itemIndex].comments[commentIndex].likes = currentLikes + (wasHearted ? -1 : 1)
+            
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }

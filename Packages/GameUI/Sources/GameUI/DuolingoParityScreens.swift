@@ -1104,6 +1104,10 @@ private struct FeedCommentsView: View {
                                     commentData.isHearted = !wasHearted
                                     let currentLikes = commentData.likes ?? 0
                                     commentData.likes = currentLikes + (wasHearted ? -1 : 1)
+                                    
+                                    Task {
+                                        try? await socialService.toggleCommentHeart(itemID: item.id, commentID: commentData.id)
+                                    }
                                 } label: {
                                     VStack(spacing: 2) {
                                         Image(systemName: (commentData.isHearted ?? false) ? "heart.fill" : "heart")
