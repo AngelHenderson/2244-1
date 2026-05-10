@@ -113,12 +113,12 @@ public struct DailyStreaksView: View {
             if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked }) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Day \(store.currentStreak)")
-                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                        Text("\(store.currentStreak)")
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text("Day \(nextMilestone.day)")
-                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                        Text("\(nextMilestone.day)")
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                             .foregroundStyle(.secondary)
                     }
 
