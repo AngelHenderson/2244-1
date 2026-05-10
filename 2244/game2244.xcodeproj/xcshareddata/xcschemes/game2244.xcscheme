@@ -87,7 +87,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "sudo killall coreaudiod 2&gt;/dev/null || true&#10;">
+               scriptText = "/usr/bin/sudo /usr/bin/killall coreaudiod 2&gt;/dev/null || true&#10;sleep 1&#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
