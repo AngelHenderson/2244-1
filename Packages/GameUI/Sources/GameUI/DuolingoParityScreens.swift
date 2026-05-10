@@ -1036,18 +1036,28 @@ private struct FeedItemRow: View {
                 Image(item.avatarID)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                     .clipShape(Circle())
-                VStack(alignment: .leading) {
-                    Text(item.authorName)
-                        .font(.headline)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(item.authorName)
+                            .font(.headline)
+                        Text(relativeTime(from: item.createdAt))
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
                     Text(item.statText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(eventColor.opacity(0.15))
+                        .foregroundStyle(eventColor)
+                        .clipShape(Capsule())
                 }
                 Spacer()
             }
             Text(item.message)
+                .font(.subheadline)
             HStack(spacing: 16) {
                 Button {
                     let wasHearted = item.isHearted ?? false
@@ -1069,6 +1079,35 @@ private struct FeedItemRow: View {
             .font(.caption)
         }
         .padding(.vertical, 6)
+    }
+
+    private var eventColor: Color {
+        let stat = item.statText.lowercased()
+        if stat.contains("tile") || stat.contains("endless") || stat.contains("milestone") || stat.contains("record") || stat.contains("personal") || stat.contains("breakthrough") {
+            return .blue
+        } else if stat.contains("challenge") || stat.contains("speed") || stat.contains("timed") {
+            return .orange
+        } else if stat.contains("streak") {
+            return .red
+        } else if stat.contains("hall of fame") || stat.contains("hof") || stat.contains("legendary") {
+            return .yellow
+        } else if stat.contains("theme") || stat.contains("style") || stat.contains("customization") {
+            return .purple
+        } else if stat.contains("quest") || stat.contains("chest") {
+            return .green
+        }
+        return .secondary
+    }
+
+    private func relativeTime(from date: Date) -> String {
+        let seconds = Int(-date.timeIntervalSinceNow)
+        if seconds < 60 { return "just now" }
+        let minutes = seconds / 60
+        if minutes < 60 { return "\(minutes)m ago" }
+        let hours = minutes / 60
+        if hours < 24 { return "\(hours)h ago" }
+        let days = hours / 24
+        return "\(days)d ago"
     }
 }
 
