@@ -308,6 +308,7 @@ public actor LiveAudioService: AudioServiceProtocol {
     /// Play a sound via AudioToolbox's SystemSoundID. This bypasses AVAudioPlayer's
     /// broken audio pipeline and uses a completely different CoreAudio code path.
     private func playViaSystemSound(url: URL) {
+        guard !_audioCompletelyDead else { return }
         let key = url.path
         
         if let existingID = _systemSoundCache[key] {
