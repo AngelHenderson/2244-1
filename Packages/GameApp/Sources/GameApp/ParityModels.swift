@@ -1013,29 +1013,39 @@ public struct MockSocialService: SocialService, Sendable {
             let itemDate = now.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
-            let numComments = Int.random(in: 2...8)
+            let numTopLevelComments = Int.random(in: 2...8)
+            let numResponses = Int.random(in: 3...10)
+            let totalComments = numTopLevelComments + numResponses
             
             // Generate and sort offsets so the conversation flows chronologically
             var commentOffsets: [Double] = []
-            for _ in 0..<numComments {
+            for _ in 0..<totalComments {
                 commentOffsets.append(Double.random(in: timeOffset...86400))
             }
             commentOffsets.sort()
             
-            // Keep track of participants to allow for replies
-            var participants: [(name: String, avatar: String)] = [(author, authorAvatar)]
+            var responseIndices = Set<Int>()
+            if totalComments > 1 {
+                var availableIndices = Array(1..<totalComments)
+                availableIndices.shuffle()
+                for i in 0..<min(numResponses, availableIndices.count) {
+                    responseIndices.insert(availableIndices[i])
+                }
+            }
             
-            for offset in commentOffsets {
+            var commentAuthors: [String] = []
+            
+            for (index, offset) in commentOffsets.enumerated() {
                 let commentAuthor = generateDynamicName()
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
                 var commentText = generateDynamicComment(message: message)
                 
-                // 30% chance to reply to someone else who has already participated
-                if !participants.isEmpty && Double.random(in: 0...1) < 0.3 {
-                    let replyingTo = participants.randomElement()!
-                    if replyingTo.name != commentAuthor {
-                        commentText = "@\(replyingTo.name) " + commentText
+                // If this index is marked as a response, reply to a previous comment
+                if responseIndices.contains(index) && !commentAuthors.isEmpty {
+                    let replyingTo = commentAuthors.randomElement()!
+                    if replyingTo != commentAuthor {
+                        commentText = "@\(replyingTo) " + commentText
                     }
                 }
                 
@@ -1047,7 +1057,7 @@ public struct MockSocialService: SocialService, Sendable {
                     likes: Int.random(in: 0...10)
                 ))
                 
-                participants.append((commentAuthor, commentAvatar))
+                commentAuthors.append(commentAuthor)
             }
             
             let maxReactions = Int.random(in: 10...50)
