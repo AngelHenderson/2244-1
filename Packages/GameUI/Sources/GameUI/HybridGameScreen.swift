@@ -1163,6 +1163,14 @@ private struct GameplayInfoPanel: View {
         ?? dailyQuestStore.quests.first
     }
 
+    private var validMovesColor: Color {
+        let count = gameStore.validMovesCount
+        if count <= 5 { return .red }
+        if count <= 15 { return .orange }
+        if count <= 25 { return .yellow }
+        return .green
+    }
+
     var body: some View {
         VStack(spacing: isCompact ? 6 : 8) {
             milestoneProgress
@@ -1231,7 +1239,8 @@ private struct GameplayInfoPanel: View {
                 title: "Valid",
                 value: "\(gameStore.validMovesCount)",
                 systemImage: "point.3.connected.trianglepath.dotted",
-                isCompact: isCompact
+                isCompact: isCompact,
+                valueColor: validMovesColor
             )
             GameplayInfoStat(
                 title: "Highest",
@@ -1269,6 +1278,7 @@ private struct GameplayInfoStat: View {
     let value: String
     let systemImage: String
     let isCompact: Bool
+    var valueColor: Color = .white
 
     var body: some View {
         HStack(spacing: isCompact ? 5 : 6) {
@@ -1284,7 +1294,7 @@ private struct GameplayInfoStat: View {
                     .lineLimit(1)
                 Text(value)
                     .font(.avenirNext(size: isCompact ? GameFonts.caption1Size : GameFonts.subheadlineSize, weight: .heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(valueColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.55)
             }
