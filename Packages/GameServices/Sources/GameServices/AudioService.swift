@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import AudioToolbox
 import SwiftUI
 import GameCore
 
@@ -123,6 +124,12 @@ public actor LiveAudioService: AudioServiceProtocol {
     private var _cachedMusicEnabled: Bool = true
     private var _cachedTheme: String = "piano"
 
+    // SystemSoundID fallback: when AVAudioPlayer is broken (common in Simulator),
+    // we fall back to AudioToolbox which uses a completely different CoreAudio path.
+    private var _avPlayerBroken: Bool = false
+    private var _systemSoundCache: [String: SystemSoundID] = [:]
+    private var _recoveryTask: Task<Void, Never>? = nil
+
     /// Maps theme IDs to their audio configuration
     /// Note: Files are at bundle root level (synchronized groups flatten directory structure)
     private struct InstrumentConfig {
@@ -187,10 +194,10 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
 
     /// Test whether the audio subsystem can actually instantiate and play a sound.
-    /// If it can't (common after simulator rebuild), run aggressive recovery.
+    /// If it can't (common after simulator rebuild), mark AVAudioPlayer as broken
+    /// and activate SystemSoundID fallback + start periodic recovery attempts.
     private func runStartupAudioProbe() {
         #if os(iOS)
-        // Try to create a tiny silent AVAudioPlayer as a probe
         let probeURL = Bundle.main.url(forResource: "piano_tap_1", withExtension: "mp3")
             ?? Bundle.main.url(forResource: "piano_tap_1", withExtension: "wav")
         
@@ -201,20 +208,146 @@ public actor LiveAudioService: AudioServiceProtocol {
         
         do {
             let probe = try AVAudioPlayer(contentsOf: url)
-            probe.volume = 0 // silent
+            probe.volume = 0
             probe.prepareToPlay()
             if probe.play() {
                 probe.stop()
-                print("✅ Startup audio probe: PASSED — audio hardware is working")
+                _avPlayerBroken = false
+                print("✅ Startup audio probe: PASSED — AVAudioPlayer working")
             } else {
-                print("⚠️ Startup audio probe: play() returned false — running recovery")
-                aggressiveAudioRecovery()
+                print("⚠️ Startup audio probe: play() returned false — switching to SystemSoundID fallback")
+                markAVPlayerBroken()
             }
         } catch {
-            print("⚠️ Startup audio probe: AVAudioPlayer init failed (\(error.localizedDescription)) — running recovery")
-            aggressiveAudioRecovery()
+            print("⚠️ Startup audio probe: init failed (\(error.localizedDescription)) — switching to SystemSoundID fallback")
+            markAVPlayerBroken()
         }
         #endif
+    }
+
+    /// Mark AVAudioPlayer as broken and start periodic recovery attempts.
+    private func markAVPlayerBroken() {
+        _avPlayerBroken = true
+        // Run aggressive recovery once in case it helps
+        aggressiveAudioRecovery()
+        // Start a background timer to periodically re-test AVAudioPlayer
+        startRecoveryTimer()
+    }
+
+    /// Periodically attempt to recover AVAudioPlayer (every 10 seconds).
+    /// If recovery succeeds, we switch back from SystemSoundID to AVAudioPlayer.
+    private func startRecoveryTimer() {
+        _recoveryTask?.cancel()
+        _recoveryTask = Task { [weak self] in
+            var attempt = 0
+            while !Task.isCancelled {
+                attempt += 1
+                try? await Task.sleep(for: .seconds(10))
+                guard !Task.isCancelled else { break }
+                guard let self else { break }
+                
+                let recovered = await self.attemptAVPlayerRecovery(attempt: attempt)
+                if recovered {
+                    break
+                }
+            }
+        }
+    }
+
+    /// Try to recover AVAudioPlayer. Returns true if recovered.
+    private func attemptAVPlayerRecovery(attempt: Int) -> Bool {
+        #if os(iOS)
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try? session.setActive(false, options: [.notifyOthersOnDeactivation])
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true, options: [])
+        } catch {
+            return false
+        }
+        
+        guard let url = Bundle.main.url(forResource: "piano_tap_1", withExtension: "mp3")
+                ?? Bundle.main.url(forResource: "piano_tap_1", withExtension: "wav") else {
+            return false
+        }
+        
+        do {
+            let probe = try AVAudioPlayer(contentsOf: url)
+            probe.volume = 0
+            probe.prepareToPlay()
+            if probe.play() {
+                probe.stop()
+                _avPlayerBroken = false
+                // Nuke stale pool so fresh players are created
+                sfxPlayerPool.removeAll()
+                failedURLs.removeAll()
+                print("✅ AVAudioPlayer recovery attempt #\(attempt): SUCCEEDED — switching back from SystemSoundID")
+                return true
+            }
+        } catch {}
+        
+        if attempt <= 3 {
+            print("🔄 AVAudioPlayer recovery attempt #\(attempt): still broken, using SystemSoundID fallback")
+        }
+        return false
+        #else
+        return true
+        #endif
+    }
+
+    // MARK: - SystemSoundID Fallback
+
+    /// Play a sound via AudioToolbox's SystemSoundID. This bypasses AVAudioPlayer's
+    /// broken audio pipeline and uses a completely different CoreAudio code path.
+    private func playViaSystemSound(url: URL) {
+        let key = url.path
+        
+        if let existingID = _systemSoundCache[key] {
+            AudioServicesPlaySystemSound(existingID)
+            return
+        }
+        
+        // Register a new SystemSoundID
+        var soundID: SystemSoundID = 0
+        let status = AudioServicesCreateSystemSoundID(url as CFURL, &soundID)
+        if status == kAudioServicesNoError {
+            _systemSoundCache[key] = soundID
+            AudioServicesPlaySystemSound(soundID)
+        } else {
+            print("❌ SystemSoundID fallback failed for \(url.lastPathComponent): OSStatus \(status)")
+        }
+    }
+
+    /// Try to play via AVAudioPlayer first; if broken, use SystemSoundID fallback.
+    /// Returns true if sound was played (via either path).
+    @discardableResult
+    private func playSound(url: URL, volume: Float = 0.7) -> Bool {
+        // If AVAudioPlayer is known-broken, skip straight to fallback
+        if _avPlayerBroken {
+            playViaSystemSound(url: url)
+            return true
+        }
+        
+        // Try AVAudioPlayer
+        if let player = getPooledPlayer(for: url) {
+            player.volume = volume
+            if player.play() {
+                return true
+            }
+            // play() failed — try session recovery + one retry
+            ensureAudioSessionActive()
+            if player.play() {
+                return true
+            }
+            // AVAudioPlayer is dead — mark broken and use fallback
+            print("⚠️ AVAudioPlayer.play() failed twice — switching to SystemSoundID fallback")
+            _avPlayerBroken = true
+            startRecoveryTimer()
+        }
+        
+        // Fallback
+        playViaSystemSound(url: url)
+        return true
     }
     
     /// Nuclear recovery: deactivate session, nuke stale player pool, reactivate.
@@ -535,16 +668,7 @@ public actor LiveAudioService: AudioServiceProtocol {
             print("SFX file not found: \(name)")
             return
         }
-        
-        do {
-            if let player = getPooledPlayer(for: audioUrl) {
-                player.volume = 0.8
-                if !player.play() {
-                    ensureAudioSessionActive()
-                    player.play()
-                }
-            }
-        }
+        playSound(url: audioUrl, volume: 0.8)
     }
     
     public func setCurrentMusicTheme(_ theme: String) async {
@@ -599,15 +723,7 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        do {
-            if let player = getPooledPlayer(for: audioUrl) {
-                player.volume = 0.7
-                if !player.play() {
-                    ensureAudioSessionActive()
-                    player.play()
-                }
-            }
-        }
+        playSound(url: audioUrl, volume: 0.7)
     }
 
     private func playHammerSound() async {
@@ -634,15 +750,7 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        do {
-            if let player = getPooledPlayer(for: audioUrl) {
-                player.volume = 0.8
-                if !player.play() {
-                    ensureAudioSessionActive()
-                    player.play()
-                }
-            }
-        }
+        playSound(url: audioUrl, volume: 0.8)
     }
 
     private func playChainTickSound() async {
@@ -660,15 +768,7 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        do {
-            if let player = getPooledPlayer(for: audioUrl) {
-                player.volume = 0.3  // Subtle volume for chain feedback
-                if !player.play() {
-                    ensureAudioSessionActive()
-                    player.play()
-                }
-            }
-        }
+        playSound(url: audioUrl, volume: 0.3)
     }
 
     private func playTickSound() async {
@@ -684,21 +784,20 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        do {
-            if let player = getPooledPlayer(for: audioUrl) {
-                player.volume = 0.5
-                if !player.play() {
-                    ensureAudioSessionActive()
-                    player.play()
-                }
+        // Tick sounds need player tracking for stopTickSound() — use AVAudioPlayer if available
+        if !_avPlayerBroken, let player = getPooledPlayer(for: audioUrl) {
+            player.volume = 0.5
+            if player.play() {
                 tickPlayers.append(player)
-
                 Task {
                     try? await Task.sleep(for: .seconds(player.duration + 0.1))
                     await removeTickPlayer(player)
                 }
+                return
             }
         }
+        // Fallback to SystemSoundID (no stop tracking, but at least sound plays)
+        playViaSystemSound(url: audioUrl)
     }
 
     private func playCheerSound() async {
@@ -716,15 +815,7 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        do {
-            if let player = getPooledPlayer(for: audioUrl) {
-                player.volume = 0.8
-                if !player.play() {
-                    ensureAudioSessionActive()
-                    player.play()
-                }
-            }
-        }
+        playSound(url: audioUrl, volume: 0.8)
     }
 
     private func playInstrumentTapSound(theme: String) async {
@@ -770,16 +861,7 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        do {
-            if let player = getPooledPlayer(for: audioUrl) {
-                player.volume = 0.7
-                if !player.play() {
-                    // Play failed — try reactivating audio session and retry once
-                    ensureAudioSessionActive()
-                    player.play()
-                }
-            }
-        }
+        playSound(url: audioUrl, volume: 0.7)
     }
 
     /// Play a specific note from a single audio file containing multiple notes
@@ -804,35 +886,45 @@ public actor LiveAudioService: AudioServiceProtocol {
             return
         }
 
-        do {
-            if let player = getPooledPlayer(for: audioUrl) {
-                player.volume = 0.7
-                
-                // Only do note slicing if this is the original instrument file (not piano fallback)
-                if !usingFallback && config.notesInSingleFile > 1 {
-                    let noteDuration = player.duration / Double(config.notesInSingleFile)
-                    let startTime = Double(noteIndex) * noteDuration
-                    player.currentTime = startTime
-                    if !player.play() {
-                        ensureAudioSessionActive()
-                        player.currentTime = startTime
-                        player.play()
-                    }
+        // If AVAudioPlayer is broken, use SystemSoundID (no note slicing, but sound still plays)
+        if _avPlayerBroken {
+            playViaSystemSound(url: audioUrl)
+            return
+        }
 
-                    // Stop after one note's duration
-                    let wrapper = PlayerWrapper(player: player)
-                    Task {
-                        try? await Task.sleep(for: .seconds(noteDuration))
-                        wrapper.stop()
-                    }
-                } else {
-                    // Piano fallback - play full sound
-                    if !player.play() {
-                        ensureAudioSessionActive()
-                        player.play()
-                    }
+        if let player = getPooledPlayer(for: audioUrl) {
+            player.volume = 0.7
+            
+            // Only do note slicing if this is the original instrument file (not piano fallback)
+            if !usingFallback && config.notesInSingleFile > 1 {
+                let noteDuration = player.duration / Double(config.notesInSingleFile)
+                let startTime = Double(noteIndex) * noteDuration
+                player.currentTime = startTime
+                if !player.play() {
+                    // AVAudioPlayer failed — switch to SystemSoundID
+                    _avPlayerBroken = true
+                    startRecoveryTimer()
+                    playViaSystemSound(url: audioUrl)
+                    return
+                }
+
+                // Stop after one note's duration
+                let wrapper = PlayerWrapper(player: player)
+                Task {
+                    try? await Task.sleep(for: .seconds(noteDuration))
+                    wrapper.stop()
+                }
+            } else {
+                // Piano fallback or simple playback
+                if !player.play() {
+                    _avPlayerBroken = true
+                    startRecoveryTimer()
+                    playViaSystemSound(url: audioUrl)
                 }
             }
+        } else {
+            // Couldn't get pooled player — use SystemSoundID
+            playViaSystemSound(url: audioUrl)
         }
     }
     
