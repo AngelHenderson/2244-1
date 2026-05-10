@@ -1013,7 +1013,7 @@ public struct MockSocialService: SocialService, Sendable {
             let itemDate = now.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
-            let numComments = Int.random(in: 0...5)
+            let numComments = Int.random(in: 2...8)
             
             // Generate and sort offsets so the conversation flows chronologically
             var commentOffsets: [Double] = []
@@ -1050,7 +1050,7 @@ public struct MockSocialService: SocialService, Sendable {
                 participants.append((commentAuthor, commentAvatar))
             }
             
-            let maxReactions = Int.random(in: 0...50)
+            let maxReactions = Int.random(in: 10...50)
             var rTimestamps: [Date] = []
             for _ in 0..<maxReactions {
                 let rOffset = Double.random(in: timeOffset...86400)
