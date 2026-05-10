@@ -513,6 +513,7 @@ public actor LiveAudioService: AudioServiceProtocol {
 
     public func playMusic(named fileName: String, loop: Bool) async {
         guard _cachedMusicEnabled else { return }
+        guard !_audioCompletelyDead else { return }
 
         // Track current music for restart after interruption
         currentMusicFileName = fileName
