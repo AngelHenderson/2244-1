@@ -127,6 +127,9 @@ public actor LiveAudioService: AudioServiceProtocol {
     // SystemSoundID fallback: when AVAudioPlayer is broken (common in Simulator),
     // we fall back to AudioToolbox which uses a completely different CoreAudio path.
     private var _avPlayerBroken: Bool = false
+    // When BOTH AVAudioPlayer AND SystemSoundID fail, the simulator's entire audio HAL
+    // is dead. Stop calling ANY audio API to prevent AQMEIO error spam in the console.
+    private var _audioCompletelyDead: Bool = false
     private var _systemSoundCache: [String: SystemSoundID] = [:]
     private var _recoveryTask: Task<Void, Never>? = nil
 
@@ -225,24 +228,27 @@ public actor LiveAudioService: AudioServiceProtocol {
         #endif
     }
 
-    /// Mark AVAudioPlayer as broken and start periodic recovery attempts.
+    /// Mark audio as completely dead and start periodic recovery attempts.
     private func markAVPlayerBroken() {
         _avPlayerBroken = true
+        _audioCompletelyDead = true  // SystemSoundID won't work either with a dead HAL
+        print("🔇 Audio HAL is dead — all audio disabled until coreaudiod restarts")
+        print("🔇 Run: sudo killall coreaudiod  (or rebuild with pre-build script)")
         // Run aggressive recovery once in case it helps
         aggressiveAudioRecovery()
-        // Start a background timer to periodically re-test AVAudioPlayer
+        // Start a background timer to periodically re-test
         startRecoveryTimer()
     }
 
-    /// Periodically attempt to recover AVAudioPlayer (every 10 seconds).
-    /// If recovery succeeds, we switch back from SystemSoundID to AVAudioPlayer.
+    /// Periodically attempt to recover audio (every 30 seconds).
+    /// If recovery succeeds, we re-enable all audio.
     private func startRecoveryTimer() {
         _recoveryTask?.cancel()
         _recoveryTask = Task { [weak self] in
             var attempt = 0
             while !Task.isCancelled {
                 attempt += 1
-                try? await Task.sleep(for: .seconds(10))
+                try? await Task.sleep(for: .seconds(30))
                 guard !Task.isCancelled else { break }
                 guard let self else { break }
                 
@@ -278,16 +284,18 @@ public actor LiveAudioService: AudioServiceProtocol {
             if probe.play() {
                 probe.stop()
                 _avPlayerBroken = false
+                _audioCompletelyDead = false
                 // Nuke stale pool so fresh players are created
                 sfxPlayerPool.removeAll()
                 failedURLs.removeAll()
-                print("✅ AVAudioPlayer recovery attempt #\(attempt): SUCCEEDED — switching back from SystemSoundID")
+                print("✅ Audio recovery attempt #\(attempt): SUCCEEDED — audio re-enabled!")
                 return true
             }
         } catch {}
         
-        if attempt <= 3 {
-            print("🔄 AVAudioPlayer recovery attempt #\(attempt): still broken, using SystemSoundID fallback")
+        // Only log the first 2 attempts to avoid spam
+        if attempt <= 2 {
+            print("🔇 Audio recovery attempt #\(attempt): HAL still dead, staying silent")
         }
         return false
         #else
@@ -322,6 +330,9 @@ public actor LiveAudioService: AudioServiceProtocol {
     /// Returns true if sound was played (via either path).
     @discardableResult
     private func playSound(url: URL, volume: Float = 0.7) -> Bool {
+        // Audio HAL is completely dead — don't touch any audio API
+        guard !_audioCompletelyDead else { return false }
+        
         // If AVAudioPlayer is known-broken, skip straight to fallback
         if _avPlayerBroken {
             playViaSystemSound(url: url)
@@ -783,8 +794,8 @@ public actor LiveAudioService: AudioServiceProtocol {
             print("❌ Tick sound not found")
             return
         }
-
         // Tick sounds need player tracking for stopTickSound() — use AVAudioPlayer if available
+        guard !_audioCompletelyDead else { return }
         if !_avPlayerBroken, let player = getPooledPlayer(for: audioUrl) {
             player.volume = 0.5
             if player.play() {
@@ -885,6 +896,9 @@ public actor LiveAudioService: AudioServiceProtocol {
             print("❌ No sound found for \(theme) or piano fallback")
             return
         }
+
+        // If audio HAL is completely dead, don't touch any audio API
+        if _audioCompletelyDead { return }
 
         // If AVAudioPlayer is broken, use SystemSoundID (no note slicing, but sound still plays)
         if _avPlayerBroken {
