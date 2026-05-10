@@ -984,15 +984,6 @@ public struct MockSocialService: SocialService, Sendable {
 
     private func generateFeedItems(now: Date) -> [SocialFeedItem] {
         var items: [SocialFeedItem] = []
-        let messages = [
-            "Reached a NEW tile in Endless.",
-            "Finished today's timed challenge.",
-            "Protected a streak.",
-            "Joined the Hall of Fame!",
-            "Unlocked a new theme.",
-            "Completed the Daily Quest."
-        ]
-        
         let currentDay = Self.daysSinceReference
         for _ in 0..<25 {
             let author = generateDynamicName()
@@ -1006,9 +997,7 @@ public struct MockSocialService: SocialService, Sendable {
                 randomMilestone = Self.allMilestones.randomElement()!
             }
             
-            let rawMessage = messages.randomElement()!
-            let message = rawMessage.replacingOccurrences(of: "NEW", with: randomMilestone)
-            let statText = "Update"
+            let (message, statText) = generateDynamicEvent(milestone: randomMilestone)
             let timeOffset = Double.random(in: -86400...0)
             let itemDate = now.addingTimeInterval(timeOffset)
             
@@ -1111,6 +1100,176 @@ public struct MockSocialService: SocialService, Sendable {
             FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-2", status: "Can invite"),
             FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-3", status: "Can invite")
         ]
+    }
+    
+    private func generateDynamicEvent(milestone: String) -> (message: String, statText: String) {
+        let eventType = Int.random(in: 0...5)
+        
+        let themeNames = ["Classic", "Simple Sage", "Mellow Yellow", "Relaxed Rust", "Cozy Coral"]
+        
+        switch eventType {
+        case 0:
+            // Reached a new tile in Endless
+            let templates = [
+                "Reached the \(milestone) tile in Endless!",
+                "Just hit \(milestone) for the first time! 🎯",
+                "NEW personal best — \(milestone) tile unlocked in Endless!",
+                "\(milestone) tile reached! The grind never stops.",
+                "Finally broke through to \(milestone) in Endless mode!",
+                "After so many attempts… \(milestone) is MINE! 🏆",
+                "Thought \(milestone) was impossible. Proved myself wrong.",
+                "\(milestone) achieved on an absolute marathon run.",
+            ]
+            let stats = [
+                "🧩 New tile · Endless",
+                "🏅 Milestone · \(milestone)",
+                "📈 Personal best · Endless",
+                "🔥 Breakthrough · \(milestone)",
+                "⭐ New record · Endless",
+                "💎 \(milestone) · First reach",
+            ]
+            return (templates.randomElement()!, stats.randomElement()!)
+            
+        case 1:
+            // Finished today's timed challenge
+            let minutes = Int.random(in: 1...8)
+            let seconds = Int.random(in: 0...59)
+            let timeStr = "\(minutes):\(String(format: "%02d", seconds))"
+            let templates = [
+                "Finished today's timed challenge in \(timeStr)!",
+                "Daily timed challenge crushed — \(timeStr) clear time ⏱️",
+                "Beat the clock! Timed challenge done in \(timeStr).",
+                "Today's timed challenge wasn't even close. \(timeStr).",
+                "Squeezed past the timed challenge with \(timeStr) on the clock!",
+                "Timed challenge complete. \(timeStr). New strategy worked perfectly.",
+                "That timed challenge was INTENSE. Barely made it at \(timeStr).",
+                "Speed run energy — timed challenge in \(timeStr) 🚀",
+            ]
+            let stats = [
+                "⏱️ Timed challenge · \(timeStr)",
+                "🏁 Daily challenge · Done",
+                "⚡ Speed clear · \(timeStr)",
+                "🎯 Challenge · \(timeStr) finish",
+                "🕐 Today's challenge · Complete",
+            ]
+            return (templates.randomElement()!, stats.randomElement()!)
+            
+        case 2:
+            // Protected a streak
+            let streakDays = Int.random(in: 3...365)
+            let templates = [
+                "Protected a \(streakDays)-day streak! 🔥",
+                "Streak saved! Day \(streakDays) is in the books.",
+                "\(streakDays) days and counting. Streak: protected.",
+                "Almost forgot today… but the \(streakDays)-day streak lives on!",
+                "Close call — used a streak freeze to save day \(streakDays).",
+                "Day \(streakDays) ✅ This streak isn't dying on my watch.",
+                "Played at 11:58 PM to keep the \(streakDays)-day streak alive 😅",
+                "Streak protection activated! \(streakDays) days strong 💪",
+            ]
+            let stats: [String]
+            if streakDays >= 100 {
+                stats = [
+                    "🔥 \(streakDays)-day streak · Legend",
+                    "🛡️ Streak protected · \(streakDays) days",
+                    "💎 Streak · \(streakDays) days",
+                    "👑 Streak royalty · \(streakDays)d",
+                ]
+            } else if streakDays >= 30 {
+                stats = [
+                    "🔥 \(streakDays)-day streak · Dedicated",
+                    "🛡️ Streak protected · \(streakDays) days",
+                    "⭐ Streak · \(streakDays) days",
+                ]
+            } else {
+                stats = [
+                    "🔥 \(streakDays)-day streak",
+                    "🛡️ Streak protected · Day \(streakDays)",
+                    "📅 Streak · \(streakDays) days",
+                ]
+            }
+            return (templates.randomElement()!, stats.randomElement()!)
+            
+        case 3:
+            // Joined the Hall of Fame
+            let infinityCount = Int.random(in: 1...50)
+            let templates = [
+                "Joined the Hall of Fame! 🏆",
+                "HALL OF FAME! I actually made it!",
+                "Infinity tile reached — officially in the Hall of Fame!",
+                "Hall of Fame, baby! Infinity count: \(infinityCount) 👑",
+                "After months of grinding… Hall of Fame unlocked!",
+                "Welcome to the Hall of Fame! This one's for the long-term players.",
+                "HoF entry #\(infinityCount). The journey was worth it.",
+                "They said it couldn't be done. Hall of Fame says otherwise! 🏅",
+            ]
+            let stats: [String]
+            if infinityCount > 10 {
+                stats = [
+                    "🏆 Hall of Fame · ∞×\(infinityCount)",
+                    "👑 HoF veteran · \(infinityCount) infinities",
+                    "🌟 Legendary · ∞×\(infinityCount)",
+                ]
+            } else if infinityCount > 1 {
+                stats = [
+                    "🏆 Hall of Fame · ∞×\(infinityCount)",
+                    "🏅 HoF · \(infinityCount) infinities",
+                    "⭐ Hall of Fame entry",
+                ]
+            } else {
+                stats = [
+                    "🏆 Hall of Fame · First entry!",
+                    "🏅 HoF · Welcome!",
+                    "🌟 Hall of Fame · ∞ achieved",
+                ]
+            }
+            return (templates.randomElement()!, stats.randomElement()!)
+            
+        case 4:
+            // Unlocked a new theme
+            let theme = themeNames.randomElement()!
+            let templates = [
+                "Unlocked the \(theme) theme! 🎨",
+                "New look, who dis? \(theme) theme activated.",
+                "Just grabbed the \(theme) theme — the board looks amazing!",
+                "\(theme) unlocked! Time to play in style.",
+                "Earned enough gems to unlock \(theme). Worth every one.",
+                "Swapped to \(theme) and it changes the whole vibe 🌈",
+                "The \(theme) theme is even better than I expected!",
+                "Fresh theme alert: \(theme) 🔔",
+            ]
+            let stats = [
+                "🎨 Theme unlocked · \(theme)",
+                "✨ New theme · \(theme)",
+                "🖌️ Customization · \(theme)",
+                "💫 \(theme) · Unlocked",
+                "🎭 New style · \(theme)",
+            ]
+            return (templates.randomElement()!, stats.randomElement()!)
+            
+        default:
+            // Completed the Daily Quest
+            let questTier = ["Bronze", "Silver", "Gold", "Diamond"].randomElement()!
+            let gemsEarned = [50, 100, 150, 200, 250, 300, 500].randomElement()!
+            let templates = [
+                "Completed the Daily Quest! \(questTier) chest earned 🎁",
+                "Daily Quest done — grabbed a \(questTier) reward chest.",
+                "All daily quests finished! +\(gemsEarned) gems 💎",
+                "\(questTier) Daily Quest complete. Easy gems today.",
+                "Knocked out today's quests before lunch! \(questTier) chest 🏆",
+                "Daily Quest speedrun — all objectives done!",
+                "Quest log: CLEARED. \(questTier) chest opened for \(gemsEarned) gems.",
+                "Today's quests were tough but that \(questTier) chest was worth it.",
+            ]
+            let stats = [
+                "📋 Daily Quest · \(questTier)",
+                "🎁 Quest complete · +\(gemsEarned) 💎",
+                "✅ Daily Quest · Done",
+                "🏅 \(questTier) quest · Complete",
+                "📦 Quest chest · \(questTier)",
+            ]
+            return (templates.randomElement()!, stats.randomElement()!)
+        }
     }
     
     private func generateDynamicComment(message: String) -> String {
