@@ -12,6 +12,7 @@ struct ThemePaywallSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.purchaseService) private var purchaseService
+    @Environment(\.analytics) private var analytics
     @State private var isPurchasing: Bool = false
     @State private var displayedPrice: String = ""
     @State private var errorText: String?
@@ -86,7 +87,13 @@ struct ThemePaywallSheet: View {
             .padding(.horizontal, 20)
 
             Button("Restore Purchases") {
-                Task { await purchaseService.restorePurchases() }
+                Task {
+                    await purchaseService.restorePurchases()
+                    await analytics.fire(
+                        event: LaunchAnalyticsEvent.restoreCompleted.rawValue,
+                        params: ["owned_product_count": purchaseService.ownedProductIDs.count]
+                    )
+                }
             }
             .font(.footnote)
             .foregroundStyle(.secondary)
@@ -123,14 +130,36 @@ struct ThemePaywallSheet: View {
     private func unlock() async {
         isPurchasing = true
         errorText = nil
+        await firePurchaseEvent(.purchaseStarted)
         let success = await purchaseService.purchase(productID: productID)
         isPurchasing = false
         if success {
+            await firePurchaseEvent(.purchaseCompleted)
             onUnlocked()
             dismiss()
         } else if let message = purchaseService.errorMessage {
             errorText = message
+            await analytics.fire(
+                event: LaunchAnalyticsEvent.majorFlowError.rawValue,
+                params: [
+                    "flow": "purchase",
+                    "error_category": "theme_unlock_failed",
+                    "product_id": productID,
+                    "product_kind": "theme",
+                ]
+            )
         }
+    }
+
+    private func firePurchaseEvent(_ event: LaunchAnalyticsEvent) async {
+        await analytics.fire(
+            event: event.rawValue,
+            params: [
+                "product_id": productID,
+                "product_kind": "theme",
+                "is_consumable": false,
+            ]
+        )
     }
 }
 

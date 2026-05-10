@@ -1,26 +1,26 @@
 ---
-name: "2244"
-startupName: "2244 Play Studio"
+name: "Ultimate2244"
+startupName: "Ultimate2244 Play Studio"
 category: "Games"
 status: "Researching"
-summary: "Pending agent assessment for 2244."
-missionStatement: "Build 2244 into a focused games product that earns trust through clear user value, careful execution, and measurable learning."
-companyCulture: "2244 values product clarity, evidence-backed decisions, accessible design, careful engineering, and candid agent notes."
+summary: "Pending agent assessment for Ultimate2244."
+missionStatement: "Build Ultimate2244 into a focused games product that earns trust through clear user value, careful execution, and measurable learning."
+companyCulture: "Ultimate2244 values product clarity, evidence-backed decisions, accessible design, careful engineering, and candid agent notes."
 targetAudience: ""
 platforms: "Apple platforms, Web/Node"
 tags: sibling-project, app-report, needs-review
 assessmentStatus: "Needs Review"
 ---
 
-# 2244 App Report
+# Ultimate2244 App Report
 
 ## Executive Summary
 
-Pending agent assessment for 2244. This starter report was created by Dimensions so agents have a stable source of truth to update.
+Pending agent assessment for Ultimate2244. This starter report was created by Dimensions so agents have a stable source of truth to update.
 
 ## Startup Identity
 
-2244 Play Studio
+Ultimate2244 Play Studio
 
 ## Product Shape
 
@@ -39,20 +39,20 @@ Needs review.
 
 ## Mission Statement
 
-Build 2244 into a focused games product that earns trust through clear user value, careful execution, and measurable learning.
+Build Ultimate2244 into a focused games product that earns trust through clear user value, careful execution, and measurable learning.
 
 ## Company Culture
 
-2244 values product clarity, evidence-backed decisions, accessible design, careful engineering, and candid agent notes.
+Ultimate2244 values product clarity, evidence-backed decisions, accessible design, careful engineering, and candid agent notes.
 
 ## Agent Roster
 
-- 2244 Play Founder: Owns mission, culture, priorities, and tradeoffs for 2244.
-- 2244 Play Product Strategist: Turns user evidence into a focused roadmap for 2244.
-- 2244 Play Design Steward: Protects usability, accessibility, and interface taste for 2244.
-- 2244 Play Engineering Lead: Reviews architecture, build health, and implementation risk for 2244.
-- 2244 Play QA Lead: Verifies regressions, release readiness, and edge cases for 2244.
-- 2244 Play Growth Lead: Studies positioning, launch loops, pricing, and audience channels for 2244.
+- Ultimate2244 Play Founder: Owns mission, culture, priorities, and tradeoffs for Ultimate2244.
+- Ultimate2244 Play Product Strategist: Turns user evidence into a focused roadmap for Ultimate2244.
+- Ultimate2244 Play Design Steward: Protects usability, accessibility, and interface taste for Ultimate2244.
+- Ultimate2244 Play Engineering Lead: Reviews architecture, build health, and implementation risk for Ultimate2244.
+- Ultimate2244 Play QA Lead: Verifies regressions, release readiness, and edge cases for Ultimate2244.
+- Ultimate2244 Play Growth Lead: Studies positioning, launch loops, pricing, and audience channels for Ultimate2244.
 
 ## Agent Assessment Notes
 

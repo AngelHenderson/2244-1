@@ -168,6 +168,52 @@ public final class FirebaseService: @unchecked Sendable {
         guard let user = Auth.auth().currentUser else { throw FirebaseAuthFlowError.notSignedIn }
         try await user.delete()
     }
+
+    public func upsertPublicUserProfile(
+        uid: String,
+        displayName: String,
+        username: String,
+        avatarID: String,
+        friendCode: String,
+        countryCode: String? = nil
+    ) async throws {
+        guard isConfigured else { throw FirebaseAuthFlowError.notConfigured }
+        guard let user = Auth.auth().currentUser, user.uid == uid else {
+            throw FirebaseAuthFlowError.notSignedIn
+        }
+
+        var data: [String: Any] = [
+            "displayName": displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Player" : displayName,
+            "username": Self.normalizedUsername(username, fallback: displayName),
+            "avatarID": avatarID,
+            "friendCode": friendCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
+            "createdAt": FieldValue.serverTimestamp(),
+            "updatedAt": FieldValue.serverTimestamp()
+        ]
+
+        if let countryCode, !countryCode.isEmpty {
+            data["countryCode"] = countryCode
+        }
+
+        try await Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .setData(data, merge: true)
+    }
+
+    private static func normalizedUsername(_ username: String, fallback: String) -> String {
+        let source = username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? fallback : username
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "._-"))
+        let scalars = source
+            .lowercased()
+            .unicodeScalars
+            .map { allowed.contains($0) ? $0 : UnicodeScalar("-") }
+        let normalized = String(String.UnicodeScalarView(scalars))
+            .trimmingCharacters(in: CharacterSet(charactersIn: ".-_"))
+        let fallbackName = normalized.isEmpty ? "player" : normalized
+        let minimumLengthName = fallbackName.count < 3 ? fallbackName.padding(toLength: 3, withPad: "0", startingAt: 0) : fallbackName
+        return String(minimumLengthName.prefix(32))
+    }
 }
 
 public struct FirebaseAuthUserSnapshot: Sendable, Equatable {

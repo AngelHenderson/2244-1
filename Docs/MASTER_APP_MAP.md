@@ -32,7 +32,7 @@ This document is the canonical product and navigation map for the app as impleme
 
 - `game2244App` boots the app, injects stores/services, paints the background, and presents `RootGameView`
 - `RootGameView` switches between `HomeView`, `HybridGameScreen`, and `CustomChallengeGameScreen`
-- `RootGameView` presents `HowToPlayView` as the first-launch full-screen tutorial gate
+- `RootGameView` presents `OnboardingFlowView` as the first-launch full-screen tutorial gate; the guidebook opens `HowToPlayView`
 - `HomeView` is the main app hub for play, progression, monetization, social, customization, and settings
 
 ## 2. Global Capability Matrix
@@ -42,13 +42,13 @@ This document is the canonical product and navigation map for the app as impleme
 | Core gameplay and scoring | Start or resume a run, build chains, merge tiles, score, detect game over, autosave progress | `HomeView`, `HybridGameScreen`, alternate `GameView` |
 | Power-ups and recovery | Use hammer, swap, magnet, undo, low-move recovery, out-of-moves recovery, challenge recovery | `HybridGameScreen`, `CustomChallengeGameScreen`, `BoostsSheet` |
 | Tile journey and milestones | Track highest tile, render the milestone road, claim journey rewards, unlock tiles, update spawn pools | `HomeView`, `JourneyPanel`, `GiftRewardView`, unlock notification sheets |
-| Daily rewards, streaks, and quests | Claim daily rewards, catch up claims, track streak milestones, complete daily quests | `DailyClaimsView`, `AchievementsView`, unwired `DailyStreaksView`, unwired `DailyQuestsView` |
+| Daily rewards, streaks, and quests | Claim daily rewards, catch up claims, track streak milestones, complete daily quests | `DailyClaimsView`, `DailyStreaksView`, `AchievementsView`, `DailyQuestsView` |
 | Achievements and tiering | View achievement progress, claim rewards, claim all, inspect tier ladders | `AchievementsView`, `AllTiersView` |
 | Challenges and custom challenges | Play premade challenges, unlock on timeline, replay completed ones, design custom challenges, run sandboxed challenge games | `ChallengeModeView`, `ChallengeDesignerView`, `CustomChallengeGameScreen` |
 | Leaderboard, reporting, and bans | View milestone leaderboard, top 150, history feed, report players, issue warnings/bans, track rank progress | `LeaderboardView`, `PlayerHistoryView`, `ReportPlayerSheet` |
 | Profile and social identity | View profile stats, choose avatar, rename, pick country, compare profiles, share profile data | `PlayerProfileView`, `AvatarCustomizeView`, `RenameSheet`, `CompareView`, `CountryPickerView` |
 | Shop, gems, offers, perks, remove ads | Buy bundles and gems, see weekly offer, buy boosts, restore purchases, remove ads | `ShopView`, `WeeklyOfferSheet`, `BoostsSheet`, `SettingsView`, legacy `StoreView` |
-| Theme, wallpaper, music, and UI customization | Change tile themes, backgrounds, wallpapers, play button colors, and music themes | `ThemePickerView`, `MusicThemesView`, `ThemePaywallSheet`, unwired `PauseSheet` |
+| Theme, wallpaper, music, and UI customization | Change tile themes, backgrounds, wallpapers, play button colors, and music themes | `ThemePickerView`, `MusicThemesView`, `ThemePaywallSheet`, `PauseSheet` |
 | Settings, support, accessibility | Control audio, haptics, reduced motion, hints, analytics, Game Center, report flow, save slots, replay import/export, support links | `SettingsView`, `HowToPlayView`, `TilesInfoView`, `PerksInfoView`, `ValidMovesInfoView`, `SlotPickerView`, replay sheets |
 | Game Center, Firebase, syncing, ads | Authenticate Game Center, initialize Firebase, sync gems, watch rewarded ads, restore progress | `game2244App`, `SettingsView`, `LeaderboardView`, `HomeView`, `RootGameView` |
 
@@ -59,7 +59,7 @@ flowchart TD
     Launch["Launch: game2244App"] --> Init["Global setup\nstores, services, Firebase,\nGame Center, achievements, claims"]
     Init --> Root["RootGameView"]
     Root --> TutorialGate{"Tutorial complete?"}
-    TutorialGate -- "No" --> Tutorial["HowToPlayView\nfull-screen tutorial"]
+    TutorialGate -- "No" --> Tutorial["OnboardingFlowView\nfull-screen tutorial"]
     TutorialGate -- "Yes" --> Home["HomeView"]
     Tutorial --> Root
 
@@ -99,9 +99,9 @@ flowchart TD
     Settings --> DataSheets["SlotPicker / ReplayExport /\nReplayImport"]
     Settings --> SettingsReport["ReportPlayerSheet"]
 
-    Root -.-> Streaks["DailyStreaksView\nunwired"]
-    Play -.-> Pause["PauseSheet\nunwired"]
-    Home -.-> DailyQuests["DailyQuestsView\nunwired standalone view"]
+    Root --> Streaks["DailyStreaksView"]
+    Play --> Pause["PauseSheet"]
+    Home -.-> DailyQuests["DailyQuestsView\nstandalone/deep-link view"]
 ```
 
 ### Gameplay and challenge branching
@@ -137,7 +137,7 @@ flowchart TD
 
 1. `game2244App` initializes global stores and services.
 2. `RootGameView` evaluates `FirstLaunchTutorialGate`.
-3. On non-debug first launch, `HowToPlayView` appears as a full-screen tutorial.
+3. On non-debug first launch, `OnboardingFlowView` appears as a full-screen tutorial.
 4. Completing or skipping the tutorial marks readiness and returns the user to `HomeView`.
 
 ### Regular play loop
@@ -152,7 +152,7 @@ flowchart TD
 1. User opens `DailyClaimsView` from the left rail.
 2. From daily rewards, the user can claim today, catch up missed claims, browse weekly/yearly reward pages, and inspect reward icons.
 3. `AchievementsView` contains the reachable daily quest tab.
-4. `DailyStreaksView` and standalone `DailyQuestsView` exist in code, but no current visible production action opens them directly.
+4. `DailyStreaksView` opens from the home streak HUD/root route; standalone `DailyQuestsView` is routed by deep link and quest content is also reachable through the `AchievementsView` daily quest tab.
 
 ### Challenge loop
 
@@ -166,7 +166,7 @@ flowchart TD
 1. `HomeView` routes to `ShopView`, `WeeklyOfferSheet`, `SpinWheelView`, `BoostsSheet`, `ThemePickerView`, and `MusicThemesView`.
 2. `SettingsView` also supports remove ads, restore purchases, Game Center, support, reporting, and quality-of-life toggles.
 3. `MusicThemesView` opens `ThemePaywallSheet` for premium instruments.
-4. `PauseSheet` is declared inside `HybridGameScreen`, but no current visible control sets its presentation state.
+4. `PauseSheet` opens from gameplay controls and returns to the active run.
 
 ### Social, identity, and moderation loop
 
@@ -237,7 +237,7 @@ flowchart TD
 - Purpose: Primary gameplay screen for the normal endless run
 - Main Components: top HUD, `MilestoneProgressBar`, main board view, compact/regular power-up docks, shop button, overlays for top merge tile and game over, power-up modes, milestone alerts, multiple sheet destinations
 - Primary Actions: play the board, use hammer/swap/magnet/undo, open shop, open leaderboard, claim gifts, trigger unlock reward spinner, dismiss back home, recover from low/out-of-moves states
-- Outbound Pathways: `ShopView`, `LeaderboardView`, `GiftRewardView`, `RewardSpinnerView`, unlock notification sheet views, recovery/game-over overlays, back to `HomeView`; `PauseSheet` is declared but not currently opened by a visible control
+- Outbound Pathways: `PauseSheet`, `ShopView`, `LeaderboardView`, `GiftRewardView`, `RewardSpinnerView`, unlock notification sheet views, recovery/game-over overlays, back to `HomeView`
 - State / Services: `GameStore`, ad service, haptics, Game Center, leaderboard client, theme, scene phase, size class
 - Status: `live`
 
@@ -245,13 +245,13 @@ flowchart TD
 
 - MainView: `PauseSheet`
 - Type: `sheet`
-- Entry From: declared by `HybridGameScreen`, but no current button sets `isShowingPause = true`
+- Entry From: gameplay controls in `HybridGameScreen`
 - Purpose: In-run pause and quick settings surface
 - Main Components: resume/restart actions, accessibility toggle, tile theme picker, background theme picker
 - Primary Actions: resume, restart, change color blind mode, change tile/background themes
 - Outbound Pathways: back to `HybridGameScreen`
 - State / Services: `GameStore`, color blind setting, selected tile/background theme `AppStorage`
-- Status: `unwired`
+- Status: `live`
 
 #### `GiftRewardView`
 
@@ -367,13 +367,13 @@ flowchart TD
 
 - MainView: `DailyStreaksView`
 - Type: `sheet`
-- Entry From: declared in `RootGameView`, but no current visible action sets `showDailyStreaks = true`
+- Entry From: home streak HUD, root route, and deep link
 - Purpose: Visualize the current daily streak and long-term streak milestones
 - Main Components: current streak hero, progress section, milestone cards, milestone grid, `StreakDetailSheet`
 - Primary Actions: review streak progress, tap milestone rewards for details
 - Outbound Pathways: `StreakDetailSheet`, dismiss to `HomeView`
 - State / Services: `DailyClaimsStore`
-- Status: `unwired`
+- Status: `live`
 
 #### `StreakDetailSheet`
 
@@ -385,19 +385,19 @@ flowchart TD
 - Primary Actions: inspect the milestone and dismiss
 - Outbound Pathways: back to `DailyStreaksView`
 - State / Services: one `DailyStreak` payload
-- Status: `unwired`
+- Status: `live secondary`
 
 #### `DailyQuestsView`
 
 - MainView: `DailyQuestsView`
 - Type: `screen`
-- Entry From: no current visible production route; quest functionality is reachable through the `AchievementsView` daily quest tab
+- Entry From: deep link/Home route; quest functionality is also reachable through the `AchievementsView` daily quest tab
 - Purpose: Show daily quests, reset countdown, progress bars, and claim actions in a quest-only layout
 - Main Components: reset countdown chip, quest cards, milestone progress bar for tile quests, claim buttons
 - Primary Actions: inspect quest progress, claim completed quest rewards
 - Outbound Pathways: dismiss
 - State / Services: `DailyQuestStore`, `HomeState`
-- Status: `unwired`
+- Status: `secondary`
 
 #### `AchievementsView`
 
@@ -826,8 +826,9 @@ These surfaces still exist in the repo and are screen-like, but they are not par
 - `SeasonHistoryView` shows recorded seasons in Release builds; deterministic
   backfill is Debug-only.
 - `CompareView` uses synthetic players and its profile entry button is Debug-only.
-- `DailyStreaksView`, standalone `DailyQuestsView`, and `PauseSheet` are implemented,
-  but no current visible production action opens them directly.
+- `DailyStreaksView` and `PauseSheet` are production-routed. Standalone
+  `DailyQuestsView` remains a secondary/deep-link route while quest content is
+  also exposed inside `AchievementsView`.
 - Legacy `StoreView` still adds placeholder gem packs directly through `GameStore`;
   the production purchase path is `ShopView` + `ShopStore` + `PurchaseService`.
 - The first-launch tutorial gate lives in `RootGameView`; it suppresses

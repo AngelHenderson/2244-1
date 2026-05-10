@@ -39,6 +39,98 @@ service cloud.firestore {
         && (!('additionalDetails' in data) || data.additionalDetails.size() <= 2000);
     }
 
+    function validSocialPost(data) {
+      return data.authorId is string
+        && data.authorId == request.auth.uid
+        && data.authorName is string
+        && data.authorName.size() > 0
+        && data.authorName.size() <= 80
+        && data.avatarID is string
+        && data.avatarID.size() <= 80
+        && data.message is string
+        && data.message.size() > 0
+        && data.message.size() <= 500
+        && data.statText is string
+        && data.statText.size() <= 80
+        && data.reactionCount is number
+        && data.reactionCount >= 0
+        && data.commentCount is number
+        && data.commentCount >= 0;
+    }
+
+    function validSocialComment(data) {
+      return data.authorId is string
+        && data.authorId == request.auth.uid
+        && data.authorName is string
+        && data.authorName.size() > 0
+        && data.authorName.size() <= 80
+        && data.avatarID is string
+        && data.avatarID.size() <= 80
+        && data.text is string
+        && data.text.size() > 0
+        && data.text.size() <= 500
+        && data.likes is number
+        && data.likes >= 0;
+    }
+
+    function validReaction(data) {
+      return data.uid is string
+        && data.uid == request.auth.uid;
+    }
+
+    function validFamilyInvite(data) {
+      return data.senderId is string
+        && data.senderId == request.auth.uid
+        && data.participantIds is list
+        && data.participantIds.hasAll([request.auth.uid])
+        && data.displayName is string
+        && data.displayName.size() <= 80
+        && data.emailOrCode is string
+        && data.emailOrCode.size() <= 120
+        && data.status is string
+        && data.status.size() <= 40;
+    }
+
+    function validPostReactionCountTransition(postId) {
+      let reactionPath = /databases/$(database)/documents/socialFeed/$(postId)/reactions/$(request.auth.uid);
+      return request.resource.data.commentCount == resource.data.commentCount
+        && (
+          (
+            request.resource.data.reactionCount == resource.data.reactionCount + 1
+            && !exists(reactionPath)
+            && existsAfter(reactionPath)
+          )
+          || (
+            request.resource.data.reactionCount == resource.data.reactionCount - 1
+            && exists(reactionPath)
+            && !existsAfter(reactionPath)
+          )
+        );
+    }
+
+    function validPostCommentCountTransition(postId) {
+      let commentPath = /databases/$(database)/documents/socialFeed/$(postId)/comments/$(request.resource.data.lastCommentId);
+      return request.resource.data.reactionCount == resource.data.reactionCount
+        && request.resource.data.commentCount == resource.data.commentCount + 1
+        && request.resource.data.lastCommentId is string
+        && existsAfter(commentPath)
+        && getAfter(commentPath).data.authorId == request.auth.uid;
+    }
+
+    function validCommentLikeCountTransition(postId, commentId) {
+      let reactionPath = /databases/$(database)/documents/socialFeed/$(postId)/comments/$(commentId)/reactions/$(request.auth.uid);
+      return (
+          request.resource.data.likes == resource.data.likes + 1
+          && !exists(reactionPath)
+          && existsAfter(reactionPath)
+        )
+        || (
+          request.resource.data.likes == resource.data.likes - 1
+          && exists(reactionPath)
+          && !existsAfter(reactionPath)
+        );
+    }
+
     function isValidUserProfile() {
       let data = request.resource.data;
       return data.keys().hasAll(['displayName', 'username', 'avatarID', 'friendCode', 'createdAt'])
@@ -121,6 +213,66 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if true;
       allow write: if isOwner(uid) && isValidUserProfile();
+    }
+
+    // ------------------------------------------------------------
+    // /socialFeed/{postId} — authenticated social feed posts.
+    // Reactions and comments are keyed by the acting user's auth UID.
+    // ------------------------------------------------------------
+    match /socialFeed/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && validSocialPost(request.resource.data);
+      allow update: if isAuthenticated()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'reactionCount',
+          'commentCount',
+          'lastCommentId',
+          'updatedAt'
+        ])
+        && request.resource.data.reactionCount is number
+        && request.resource.data.reactionCount >= 0
+        && request.resource.data.commentCount is number
+        && request.resource.data.commentCount >= 0
+        && (
+          validPostReactionCountTransition(postId)
+          || validPostCommentCountTransition(postId)
+        );
+      allow delete: if false;
+
+      match /reactions/{uid} {
+        allow read: if isAuthenticated();
+        allow create, update: if isOwner(uid) && validReaction(request.resource.data);
+        allow delete: if isOwner(uid);
+      }
+
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && validSocialComment(request.resource.data);
+        allow update: if isAuthenticated()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'updatedAt'])
+          && request.resource.data.likes is number
+          && request.resource.data.likes >= 0
+          && validCommentLikeCountTransition(postId, commentId);
+        allow delete: if false;
+
+        match /reactions/{uid} {
+          allow read: if isAuthenticated();
+          allow create, update: if isOwner(uid) && validReaction(request.resource.data);
+          allow delete: if isOwner(uid);
+        }
+      }
+    }
+
+    // ------------------------------------------------------------
+    // /familyInvites/{inviteId} — invite records visible only to
+    // sender/recipient participants.
+    // ------------------------------------------------------------
+    match /familyInvites/{inviteId} {
+      allow read: if isAuthenticated()
+        && resource.data.participantIds is list
+        && resource.data.participantIds.hasAny([request.auth.uid]);
+      allow create: if isAuthenticated() && validFamilyInvite(request.resource.data);
+      allow update, delete: if false;
     }
 
     // ------------------------------------------------------------

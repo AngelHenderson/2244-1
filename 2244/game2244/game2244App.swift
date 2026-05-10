@@ -68,9 +68,13 @@ struct game2244App: App {
     @State private var seasonHistoryStore = SeasonHistoryStore()
     @State private var leaderboardClient: LeaderboardClient = .empty
     @State private var reportService: any ReportServiceProtocol = NoopReportService()
+    @State private var socialService: any SocialService = FirestoreSocialService()
     @State private var deepLinkRouter = DeepLinkRouter()
 
     private let planner: MilestonePlanner = PowerOfTwoPlanner()
+    private let reminderNotificationScheduler = LocalReminderNotificationScheduler()
+    private let analyticsService = FirebaseAnalyticsService()
+    private static let lastLaunchAtKey = "analytics.lastLaunchAt"
     
     
     private var currentBackgroundTheme: BackgroundTheme {
@@ -110,6 +114,9 @@ struct game2244App: App {
                 // before the real backend selection completes.
                 .environment(\.leaderboardClient, leaderboardClient)
                 .environment(\.reportService, reportService)
+                .environment(\.socialService, socialService)
+                .environment(\.analytics, analyticsService)
+                .environment(\.reminderNotificationScheduler, reminderNotificationScheduler)
                 .environment(homeState)
                 .environment(playerReadiness)
                 .environment(rewardLedger)
@@ -125,7 +132,8 @@ struct game2244App: App {
                         purchaseService: purchaseService,
                         gemWallet: gemWallet,
                         gameStore: gameStore,
-                        rewardLedger: rewardLedger
+                        rewardLedger: rewardLedger,
+                        analytics: analyticsService
                     )
                 )
                 .environment(\.challengeStore, challengeStore)
@@ -148,8 +156,11 @@ struct game2244App: App {
                         purchaseService: purchaseService,
                         gemWallet: gemWallet,
                         gameStore: gameStore,
-                        rewardLedger: rewardLedger
+                        rewardLedger: rewardLedger,
+                        analytics: analyticsService
                     )
+
+                    await recordLaunchAnalytics()
 
                     // Load achievements synchronously
                     try? achievementStore.loadCatalogFromBundle(named: "2244_achievements")
@@ -304,6 +315,16 @@ struct game2244App: App {
                     let gameCenterClient = LeaderboardClient.gameCenter()
                     if FirebaseApp.app() != nil {
                         try? await FirebaseService.shared.signInAnonymously()
+                        if let snapshot = FirebaseService.shared.currentAuthUser {
+                            try? await FirebaseService.shared.upsertPublicUserProfile(
+                                uid: snapshot.uid,
+                                displayName: snapshot.displayName ?? "Player",
+                                username: snapshot.email?.split(separator: "@").first.map(String.init) ?? "player",
+                                avatarID: UserDefaults.standard.string(forKey: "profileAvatarId") ?? "avatar_buddy_bot",
+                                friendCode: String(snapshot.uid.prefix(6)).uppercased(),
+                                countryCode: UserDefaults.standard.string(forKey: "profileCountryCode")
+                            )
+                        }
                         await gemWallet.startCloudSync()
                         await homeState.startBlockedPlayersCloudSync()
                         let firebaseClient = LeaderboardClient.firebase(LeaderboardService())
@@ -315,6 +336,7 @@ struct game2244App: App {
                     } else {
                         #if DEBUG
                         print("⚠️ Firebase not configured; leaderboard uses Mock data + Game Center and gem cloud sync skipped.")
+                        socialService = MockSocialService()
                         leaderboardClient = .mirroring(primary: .mock, secondary: gameCenterClient)
                         #else
                         leaderboardClient = gameCenterClient
@@ -324,6 +346,7 @@ struct game2244App: App {
                     gameStore.onGameEnded = { summary in
                         playerReadiness.recordRunCompleted(summary)
                         Task { @MainActor in
+                            await recordCoreRunCompleted(summary: summary)
                             await submitGameEndProgress(summary: summary)
                         }
                     }
@@ -395,13 +418,124 @@ struct game2244App: App {
 
     @MainActor
     private func submitGameEndProgress(summary: GameRunSummary) async {
-        try? await leaderboardClient.submitRun(summary)
+        do {
+            try await leaderboardClient.submitRun(summary)
+        } catch {
+            await fireMajorFlowError(flow: "leaderboard_submit", category: "submit_failed")
+        }
 
         let storedInfinityCount = UserDefaults.standard.integer(forKey: "infinityMergeCount")
         let sessionInfinityCount = summary.infinityMergeCount
         let infinityCount = max(storedInfinityCount, sessionInfinityCount)
         if infinityCount > 0 {
-            try? await leaderboardClient.submitInfinityCount(infinityCount)
+            do {
+                try await leaderboardClient.submitInfinityCount(infinityCount)
+            } catch {
+                await fireMajorFlowError(flow: "leaderboard_submit", category: "infinity_submit_failed")
+            }
+        }
+    }
+
+    @MainActor
+    private func recordLaunchAnalytics() async {
+        let defaults = UserDefaults.standard
+        let now = Date()
+
+        var launchParams: [String: any Sendable] = ["platform": "ios"]
+        if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String {
+            launchParams["app_version"] = version
+        }
+        if let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
+            launchParams["build_number"] = build
+        }
+
+        await analyticsService.fire(
+            event: LaunchAnalyticsEvent.appLaunch.rawValue,
+            params: launchParams
+        )
+
+        if let lastLaunchAt = defaults.object(forKey: Self.lastLaunchAtKey) as? Date {
+            let daysSinceLastLaunch = max(0, now.timeIntervalSince(lastLaunchAt) / 86_400)
+            await analyticsService.fire(
+                event: LaunchAnalyticsEvent.returnSession.rawValue,
+                params: ["return_interval": returnIntervalBucket(daysSinceLastLaunch)]
+            )
+        }
+
+        defaults.set(now, forKey: Self.lastLaunchAtKey)
+    }
+
+    @MainActor
+    private func recordCoreRunCompleted(summary: GameRunSummary) async {
+        await analyticsService.fire(
+            event: LaunchAnalyticsEvent.coreRunCompleted.rawValue,
+            params: [
+                "score_tier": scoreTierBucket(score: summary.score, reachedInfinity: summary.infinityMergeCount > 0),
+                "highest_tile_step_bucket": highestTileStepBucket(summary.highestTileStep),
+                "moves_bucket": movesBucket(summary.moves),
+                "duration_bucket": durationBucket(summary.duration),
+                "reached_infinity": summary.infinityMergeCount > 0,
+            ]
+        )
+    }
+
+    @MainActor
+    private func fireMajorFlowError(flow: String, category: String) async {
+        await analyticsService.fire(
+            event: LaunchAnalyticsEvent.majorFlowError.rawValue,
+            params: [
+                "flow": flow,
+                "error_category": category,
+            ]
+        )
+    }
+
+    private func returnIntervalBucket(_ days: TimeInterval) -> String {
+        switch days {
+        case ..<1: return "same_day"
+        case ..<4: return "days_1_3"
+        case ..<8: return "days_4_7"
+        case ..<31: return "days_8_30"
+        default: return "days_31_plus"
+        }
+    }
+
+    private func scoreTierBucket(score: Int, reachedInfinity: Bool) -> String {
+        guard !reachedInfinity else { return "infinity" }
+        switch score {
+        case ..<10_000: return "under_10k"
+        case ..<1_000_000: return "10k_to_1m"
+        case ..<1_000_000_000: return "1m_to_1b"
+        default: return "1b_plus"
+        }
+    }
+
+    private func highestTileStepBucket(_ step: Int) -> String {
+        switch step {
+        case ..<10: return "starter"
+        case ..<20: return "thousands"
+        case ..<30: return "millions"
+        case ..<40: return "billions"
+        case ..<65: return "alpha_low"
+        default: return "alpha_high"
+        }
+    }
+
+    private func movesBucket(_ moves: Int) -> String {
+        switch moves {
+        case ..<25: return "under_25"
+        case ..<100: return "25_to_99"
+        case ..<250: return "100_to_249"
+        default: return "250_plus"
+        }
+    }
+
+    private func durationBucket(_ duration: TimeInterval) -> String {
+        switch duration {
+        case ..<60: return "under_1m"
+        case ..<300: return "1m_to_5m"
+        case ..<900: return "5m_to_15m"
+        default: return "15m_plus"
         }
     }
 }

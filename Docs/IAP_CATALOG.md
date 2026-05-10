@@ -23,10 +23,10 @@ fails (`PurchaseService.purchase(productID:)` returns `false` with `errorMessage
 | Starter Pack | `com.game2244.starter.pack` | Non-consumable | $4.99 | 1,000 coins + 5 hammer/swap, 10 undo, ad-free entitlement |
 | Mega Bundle | `com.game2244.mega.bundle` | Non-consumable | $19.99 | 5,000 coins + all powerups + all 3 themes + ad-free |
 | Auto-Claim Boosts Monthly | `com.game2244.boosts.autoclaim.monthly` | Auto-renewable subscription | $1.99/month | Active subscription unlocks the auto-claim boosts entitlement |
-| 2244 Pro Monthly | `com.game2244.pro.monthly` | Auto-renewable subscription | $4.99/month | Active subscription unlocks Pro and suppresses ads |
-| 2244 Pro Yearly | `com.game2244.pro.yearly` | Auto-renewable subscription | $39.99/year | Active subscription unlocks Pro and suppresses ads |
-| 2244 Pro Family Monthly | `com.game2244.pro.family.monthly` | Auto-renewable subscription | $9.99/month | Active subscription unlocks Pro, suppresses ads, and is family-shareable |
-| 2244 Pro Family Yearly | `com.game2244.pro.family.yearly` | Auto-renewable subscription | $79.99/year | Active subscription unlocks Pro, suppresses ads, and is family-shareable |
+| Ultimate2244 Pro Monthly | `com.game2244.pro.monthly` | Auto-renewable subscription | $4.99/month | Active subscription unlocks Pro and suppresses ads |
+| Ultimate2244 Pro Yearly | `com.game2244.pro.yearly` | Auto-renewable subscription | $39.99/year | Active subscription unlocks Pro and suppresses ads |
+| Ultimate2244 Pro Family Monthly | `com.game2244.pro.family.monthly` | Auto-renewable subscription | $9.99/month | Active subscription unlocks Pro, suppresses ads, and is family-shareable |
+| Ultimate2244 Pro Family Yearly | `com.game2244.pro.family.yearly` | Auto-renewable subscription | $79.99/year | Active subscription unlocks Pro, suppresses ads, and is family-shareable |
 
 ## Setup steps in App Store Connect
 

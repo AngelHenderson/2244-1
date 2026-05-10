@@ -56,6 +56,20 @@ public enum AnalyticsScreen: String, CaseIterable, Sendable {
     public var eventName: String { "screen_view" }
 }
 
+/// Minimal launch-learning events. Keep this list small and free of user
+/// content so analytics answers release questions without collecting sensitive
+/// gameplay, profile, purchase-account, or social data.
+public enum LaunchAnalyticsEvent: String, CaseIterable, Sendable {
+    case appLaunch = "app_launch"
+    case onboardingCompleted = "onboarding_completed"
+    case coreRunCompleted = "core_run_completed"
+    case purchaseStarted = "purchase_started"
+    case purchaseCompleted = "purchase_completed"
+    case restoreCompleted = "restore_completed"
+    case majorFlowError = "major_flow_error"
+    case returnSession = "return_session"
+}
+
 @MainActor
 public extension View {
     /// Fires a `screen_view` analytics event with `screen_name` set to

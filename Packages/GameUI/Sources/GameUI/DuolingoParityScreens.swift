@@ -54,7 +54,7 @@ public struct OnboardingFlowView: View {
                 }
                 .padding()
             }
-            .navigationTitle("2244")
+            .navigationTitle("Ultimate2244")
             .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -76,7 +76,7 @@ public struct OnboardingFlowView: View {
         OnboardingStepLayout(
             icon: "sparkles",
             title: "Build bigger tiles every day",
-            subtitle: "2244 is a merge puzzle about planning chains, protecting open lanes, and chasing the next milestone."
+            subtitle: "Ultimate2244 is a merge puzzle about planning chains, protecting open lanes, and chasing the next milestone."
         ) {
             Label("Endless runs, daily rewards, challenges, and leaderboards all unlock as you play.", systemImage: "square.grid.3x3.fill")
                 .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
@@ -117,7 +117,7 @@ public struct OnboardingFlowView: View {
     }
 
     private var boardSetupStep: some View {
-        OnboardingStepLayout(icon: "paintpalette.fill", title: "Choose a board mood", subtitle: "This maps to 2244 backgrounds, not language courses.") {
+        OnboardingStepLayout(icon: "paintpalette.fill", title: "Choose a board mood", subtitle: "This maps to Ultimate2244 backgrounds, not language courses.") {
             VStack(spacing: 10) {
                 ForEach(["city_1", "jungle_1", "underwater_1", "desert_1"], id: \.self) { themeID in
                     ChoiceRow(
@@ -173,7 +173,7 @@ public struct OnboardingFlowView: View {
     }
 
     private var reminderStep: some View {
-        OnboardingStepLayout(icon: "bell.badge.fill", title: "Keep the streak alive", subtitle: "2244 uses in-app reminder preferences in this pass.") {
+        OnboardingStepLayout(icon: "bell.badge.fill", title: "Keep the streak alive", subtitle: "Ultimate2244 can send local reminders for streaks and quests.") {
             VStack(spacing: 10) {
                 Toggle("Streak reminders", isOn: $preferences.wantsReminders)
                 ChoiceRow(
@@ -187,10 +187,10 @@ public struct OnboardingFlowView: View {
     }
 
     private var widgetStep: some View {
-        OnboardingStepLayout(icon: "rectangle.on.rectangle", title: "Add 2244 to your routine", subtitle: "Widget and lock-screen references become in-app CTAs for now.") {
+        OnboardingStepLayout(icon: "rectangle.on.rectangle", title: "Add Ultimate2244 to your routine", subtitle: "Widget and lock-screen references become in-app CTAs for now.") {
             VStack(spacing: 10) {
                 Toggle("Show widget and quick-start prompts", isOn: $preferences.hasSeenWidgetCTA)
-                Text("The app will surface daily claim, streak, and challenge shortcuts inside 2244.")
+                Text("The app will surface daily claim, streak, and challenge shortcuts inside Ultimate2244.")
                     .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -339,7 +339,7 @@ public struct ModeLibraryView: View {
         NavigationStack {
             List {
                 Section("Play") {
-                    ModeActionRow(title: "Endless", subtitle: "Resume your main 2244 run.", systemImage: "play.circle.fill", action: onPlay)
+                    ModeActionRow(title: "Endless", subtitle: "Resume your main Ultimate2244 run.", systemImage: "play.circle.fill", action: onPlay)
                     ModeActionRow(title: "Daily Rewards", subtitle: "Claim today's reward and catch up missed days.", systemImage: "calendar.circle.fill", action: onDaily)
                     ModeActionRow(title: "Challenge Mode", subtitle: "Play curated boards with specific targets.", systemImage: "flag.checkered.circle.fill", action: onChallenge)
                     ModeActionRow(title: "Create a Game", subtitle: "Design a custom challenge and test it.", systemImage: "slider.horizontal.3", action: onCreate)
@@ -370,6 +370,7 @@ public struct SocialFeedView: View {
     @State private var items: [SocialFeedItem] = []
     @State private var selectedItem: SocialFeedItem?
     @State private var isLoading = false
+    @State private var errorMessage: String?
 
     public init() {}
 
@@ -378,14 +379,27 @@ public struct SocialFeedView: View {
             List {
                 if isLoading {
                     ProgressView()
-                }
-                ForEach($items) { $item in
-                    Button {
-                        selectedItem = item
-                    } label: {
-                        FeedItemRow(item: $item)
+                } else if let errorMessage {
+                    ContentUnavailableView(
+                        "Feed unavailable",
+                        systemImage: "wifi.exclamationmark",
+                        description: Text(errorMessage)
+                    )
+                } else if items.isEmpty {
+                    ContentUnavailableView(
+                        "No feed updates yet",
+                        systemImage: "person.2.wave.2",
+                        description: Text("Ultimate2244 will show real friend and community updates here when they are available.")
+                    )
+                } else {
+                    ForEach($items) { $item in
+                        Button {
+                            selectedItem = item
+                        } label: {
+                            FeedItemRow(item: $item)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
             .navigationTitle("Feed")
@@ -408,16 +422,26 @@ public struct SocialFeedView: View {
     private func load() async {
         isLoading = true
         defer { isLoading = false }
-        items = (try? await socialService.feed()) ?? []
+        do {
+            items = try await socialService.feed()
+            errorMessage = nil
+        } catch {
+            items = []
+            errorMessage = error.localizedDescription
+        }
     }
 }
 
 public struct FriendsView: View {
     @Environment(\.socialService) private var socialService
+    @Environment(\.accountService) private var accountService
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var results: [AccountProfile] = []
     @State private var invites: [FamilyInvite] = []
+    @State private var currentProfile: AccountProfile?
+    @State private var isLoading = false
+    @State private var errorMessage: String?
 
     public init() {}
 
@@ -429,7 +453,7 @@ public struct FriendsView: View {
                         Image(systemName: "qrcode")
                             .font(.largeTitle)
                         VStack(alignment: .leading) {
-                            Text("2244-PLAYER")
+                            Text(currentProfile?.friendCode ?? "Sign in to create a code")
                                 .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                             Text("Share this code or profile link with friends.")
                                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
@@ -443,25 +467,48 @@ public struct FriendsView: View {
                     Button("Search") {
                         Task { await search() }
                     }
+                    .disabled(isLoading)
                 }
                 Section("Results") {
-                    ForEach(results, id: \.uid) { profile in
-                        FriendProfileRow(profile: profile)
+                    if isLoading {
+                        ProgressView()
+                    } else if let errorMessage {
+                        ContentUnavailableView(
+                            "Friends unavailable",
+                            systemImage: "person.crop.circle.badge.exclamationmark",
+                            description: Text(errorMessage)
+                        )
+                    } else if results.isEmpty {
+                        ContentUnavailableView(
+                            "No players found",
+                            systemImage: "magnifyingglass",
+                            description: Text("Search by exact friend code or the start of a username.")
+                        )
+                    } else {
+                        ForEach(results, id: \.uid) { profile in
+                            FriendProfileRow(profile: profile)
+                        }
                     }
                 }
                 Section("Family invites") {
-                    ForEach(invites) { invite in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(invite.displayName)
-                                Text(invite.emailOrCode)
+                    if invites.isEmpty {
+                        Text("No family invites yet.")
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(invites) { invite in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(invite.displayName)
+                                    Text(invite.emailOrCode)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Text(invite.status)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
-                            Spacer()
-                            Text(invite.status)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -472,15 +519,39 @@ public struct FriendsView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
             }
             .task {
-                invites = (try? await socialService.invites()) ?? []
-                await search()
+                await load()
             }
         }
         .trackScreen(.friends)
     }
 
+    private func load() async {
+        isLoading = true
+        defer { isLoading = false }
+
+        currentProfile = await accountService.currentState().profile
+        do {
+            invites = try await socialService.invites()
+            results = try await socialService.searchFriends(query: query)
+            errorMessage = nil
+        } catch {
+            invites = []
+            results = []
+            errorMessage = error.localizedDescription
+        }
+    }
+
     private func search() async {
-        results = (try? await socialService.searchFriends(query: query)) ?? []
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            results = try await socialService.searchFriends(query: query)
+            errorMessage = nil
+        } catch {
+            results = []
+            errorMessage = error.localizedDescription
+        }
     }
 }
 
@@ -563,7 +634,7 @@ public struct AccountCenterView: View {
                 Button("Delete account", role: .destructive) { Task { await deleteAccount() } }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This removes the current account profile from 2244. Cloud deletion requires Firebase Auth to be configured.")
+                Text("This removes the current account profile from Ultimate2244. Cloud deletion requires Firebase Auth to be configured.")
             }
         }
         .trackScreen(.account)
@@ -667,7 +738,7 @@ public struct SubscriptionCenterView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    heroCard(title: "2244 Pro", subtitle: "Premium practice, no ads, auto-claim boosts, and family plan options.", systemImage: "sparkles")
+                    heroCard(title: "Ultimate2244 Pro", subtitle: "Premium practice, no ads, auto-claim boosts, and family plan options.", systemImage: "sparkles")
 
                     ForEach(SubscriptionPlan.proPlans) { plan in
                         Button {
@@ -746,13 +817,41 @@ public struct SubscriptionCenterView: View {
 public struct ReminderSettingsView: View {
     @Environment(PlayerReadinessStore.self) private var readiness
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.reminderNotificationScheduler) private var reminderNotificationScheduler
     @State private var store = ReminderPreferenceStore()
+    @State private var authorizationStatus: ReminderNotificationAuthorizationStatus = .unavailable
+    @State private var statusMessage: String?
+    @State private var errorMessage: String?
+    @State private var isApplying = false
 
     public init() {}
 
     public var body: some View {
         NavigationStack {
             Form {
+                Section("Notification permission") {
+                    LabeledContent("Status", value: authorizationStatus.displayText)
+                    if authorizationStatus == .notDetermined {
+                        Button("Allow Notifications") {
+                            Task { await requestNotificationPermission() }
+                        }
+                    }
+                    if authorizationStatus == .denied {
+                        Text("Notifications are off in iOS Settings. Turn them on there to receive Ultimate2244 reminders.")
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                            .foregroundStyle(.secondary)
+                    }
+                    if let statusMessage {
+                        Text(statusMessage)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                            .foregroundStyle(.secondary)
+                    }
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                            .foregroundStyle(.red)
+                    }
+                }
                 Section("Reminders") {
                     Toggle("Practice reminder", isOn: $store.preferences.practiceReminderEnabled)
                     Toggle("Streak reminder", isOn: $store.preferences.streakReminderEnabled)
@@ -767,6 +866,9 @@ public struct ReminderSettingsView: View {
                 }
                 Section {
                     Button("Restore default reminders") { store.reset() }
+                    if isApplying {
+                        ProgressView("Updating reminders")
+                    }
                 }
             }
             .navigationTitle("Reminders")
@@ -774,11 +876,93 @@ public struct ReminderSettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
             }
+            .task {
+                await refreshNotificationStatus()
+                if authorizationStatus.allowsScheduling, store.preferences.hasEnabledReminder {
+                    await persistAndApplyReminders()
+                }
+            }
+            .onChange(of: store.preferences) { _, _ in
+                Task { await persistAndApplyReminders() }
+            }
             .onDisappear {
                 readiness.updateReminderPreferences(store.preferences)
             }
         }
         .trackScreen(.reminders)
+    }
+
+    @MainActor
+    private func refreshNotificationStatus() async {
+        authorizationStatus = await reminderNotificationScheduler.authorizationStatus()
+    }
+
+    @MainActor
+    private func requestNotificationPermission() async {
+        isApplying = true
+        errorMessage = nil
+        defer { isApplying = false }
+
+        do {
+            authorizationStatus = try await reminderNotificationScheduler.requestAuthorization()
+            if authorizationStatus.allowsScheduling {
+                try await reminderNotificationScheduler.apply(store.preferences)
+                statusMessage = scheduleSummary
+            } else {
+                statusMessage = nil
+                errorMessage = ReminderNotificationSchedulerError.permissionDenied.localizedDescription
+            }
+        } catch {
+            await refreshNotificationStatus()
+            statusMessage = nil
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func persistAndApplyReminders() async {
+        readiness.updateReminderPreferences(store.preferences)
+        isApplying = true
+        errorMessage = nil
+        defer { isApplying = false }
+
+        do {
+            if store.preferences.hasEnabledReminder {
+                try await reminderNotificationScheduler.apply(store.preferences)
+                statusMessage = scheduleSummary
+            } else {
+                await reminderNotificationScheduler.cancelAll()
+                statusMessage = "All notification reminders are off."
+            }
+            await refreshNotificationStatus()
+        } catch {
+            await refreshNotificationStatus()
+            statusMessage = nil
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private var scheduleSummary: String {
+        "Scheduled selected reminders for \(store.preferences.displayTime)."
+    }
+}
+
+private extension ReminderNotificationAuthorizationStatus {
+    var displayText: String {
+        switch self {
+        case .notDetermined:
+            "Not requested"
+        case .denied:
+            "Denied"
+        case .authorized:
+            "Allowed"
+        case .provisional:
+            "Provisionally allowed"
+        case .ephemeral:
+            "Temporarily allowed"
+        case .unavailable:
+            "Unavailable"
+        }
     }
 }
 
@@ -791,7 +975,7 @@ public struct WidgetPromoView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    heroCard(title: "Quick-start 2244", subtitle: "Widget and lock-screen ideas are represented as in-app shortcuts for daily claims, streaks, and challenges.", systemImage: "rectangle.on.rectangle")
+                    heroCard(title: "Quick-start Ultimate2244", subtitle: "Widget and lock-screen ideas are represented as in-app shortcuts for daily claims, streaks, and challenges.", systemImage: "rectangle.on.rectangle")
                     ShortcutPreview(title: "Daily claim", subtitle: "Jump straight to today's reward.", systemImage: "calendar.badge.checkmark")
                     ShortcutPreview(title: "Streak saver", subtitle: "See when your streak needs attention.", systemImage: "flame.fill")
                     ShortcutPreview(title: "Challenge timer", subtitle: "Resume a timed run from the modes hub.", systemImage: "timer")
@@ -820,7 +1004,7 @@ public struct YearReviewView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    heroCard(title: "\(summary.year) in 2244", subtitle: "A shareable look back at your board progress.", systemImage: "sparkles.rectangle.stack.fill")
+                    heroCard(title: "\(summary.year) in Ultimate2244", subtitle: "A shareable look back at your board progress.", systemImage: "sparkles.rectangle.stack.fill")
                     ReviewMetric(title: "Highest tile", value: summary.highestTileLabel, systemImage: "crown.fill")
                     ReviewMetric(title: "Games played", value: "\(summary.gamesPlayed)", systemImage: "gamecontroller.fill")
                     ReviewMetric(title: "Total merges", value: "\(summary.totalMerges)", systemImage: "square.stack.3d.up.fill")
