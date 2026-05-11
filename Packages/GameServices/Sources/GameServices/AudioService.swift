@@ -190,6 +190,17 @@ public actor LiveAudioService: AudioServiceProtocol {
     /// and activate SystemSoundID fallback + start periodic recovery attempts.
     private func runStartupAudioProbe() {
         #if os(iOS)
+        // Configure audio session (deferred from init to give coreaudiod time to restart)
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true, options: [])
+        } catch {
+            print("⚠️ Audio session setup failed — marking audio dead")
+            markAVPlayerBroken()
+            return
+        }
+        
         let probeURL = Bundle.main.url(forResource: "piano_tap_1", withExtension: "mp3")
             ?? Bundle.main.url(forResource: "piano_tap_1", withExtension: "wav")
         
@@ -205,13 +216,14 @@ public actor LiveAudioService: AudioServiceProtocol {
             if probe.play() {
                 probe.stop()
                 _avPlayerBroken = false
-                print("✅ Startup audio probe: PASSED — AVAudioPlayer working")
+                _audioCompletelyDead = false
+                print("✅ Startup audio probe: PASSED — audio working")
             } else {
-                print("⚠️ Startup audio probe: play() returned false — switching to SystemSoundID fallback")
+                print("⚠️ Startup audio probe: play() failed — audio dead")
                 markAVPlayerBroken()
             }
         } catch {
-            print("⚠️ Startup audio probe: init failed (\(error.localizedDescription)) — switching to SystemSoundID fallback")
+            print("⚠️ Startup audio probe: init failed — audio dead")
             markAVPlayerBroken()
         }
         #endif
