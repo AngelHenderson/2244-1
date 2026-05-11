@@ -159,19 +159,9 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     public init() {
-        // Configure audio session synchronously first (before any async work)
-        #if os(iOS)
-        do {
-            let session = AVAudioSession.sharedInstance()
-            // Aggressive init: deactivate first to clear any stale state from previous launches
-            try? session.setActive(false, options: [.notifyOthersOnDeactivation])
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true, options: [])
-            print("🎵 Audio session configured successfully in init")
-        } catch {
-            print("❌ Failed to configure audio session in init: \(error)")
-        }
-        #endif
+        // DO NOT touch AVAudioSession here — coreaudiod may still be restarting
+        // from the Xcode pre-action script. All audio setup is deferred to the
+        // startup probe which runs 2 seconds after init.
         
         // Seed actor-local caches from storage on init
         // Read directly from UserDefaults to avoid actor isolation issues
@@ -181,10 +171,9 @@ public actor LiveAudioService: AudioServiceProtocol {
         _cachedTheme = defaults.string(forKey: "currentMusicTheme") ?? "piano"
         print("🎵 Initialized LiveAudioService — sfx=\(_cachedSfxEnabled), music=\(_cachedMusicEnabled), theme='\(_cachedTheme)'")
         
-        // Schedule a startup probe to verify audio actually works
+        // Schedule a startup probe — delayed 2s to let coreaudiod fully restart
         Task { [weak self] in
-            // Small delay to let the app finish launching
-            try? await Task.sleep(for: .milliseconds(500))
+            try? await Task.sleep(for: .seconds(2))
             await self?.runStartupAudioProbe()
         }
     }
