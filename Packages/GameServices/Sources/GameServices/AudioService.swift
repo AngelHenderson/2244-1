@@ -623,6 +623,7 @@ public actor LiveAudioService: AudioServiceProtocol {
         }
         
         guard sfxEnabled else { return }
+        guard !_audioCompletelyDead else { return }
         
         // Periodic health check - ensure audio session is still active
         periodicAudioSessionCheck()
