@@ -1,4 +1,4 @@
-# 2244 - iOS Game
+# Ultimate2244 - iOS Game
 
 A modern implementation of the 2244 puzzle game for iOS 18+, built with Swift 6, SwiftUI, and modular architecture.
 

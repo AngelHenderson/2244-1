@@ -1,4 +1,4 @@
-# 2244 App Workings and Features Report
+# Ultimate2244 App Workings and Features Report
 
 Generated: 2026-04-30
 
@@ -23,7 +23,7 @@ Primary sources reviewed:
 
 ## Executive Summary
 
-2244 is a SwiftUI puzzle game built around connecting adjacent matching tiles, merging them into higher-value tiles, and progressing through an extremely long tile journey that eventually reaches alpha-suffix values and infinity. The app is no longer just a basic board prototype: the current code includes a home hub, standard gameplay, daily rewards, daily quests, achievements, challenges, a custom challenge designer, leaderboards, player profiles, themes, music themes, a shop, in-app purchases, ads, Game Center, Firebase integration, reporting, and comprehensive auto-save.
+Ultimate2244 is a SwiftUI puzzle game built around connecting adjacent matching tiles, merging them into higher-value tiles, and progressing through an extremely long tile journey that eventually reaches alpha-suffix values and infinity. The app is no longer just a basic board prototype: the current code includes a home hub, standard gameplay, daily rewards, daily quests, achievements, challenges, a custom challenge designer, leaderboards, player profiles, themes, music themes, a shop, in-app purchases, ads, Game Center, Firebase integration, reporting, local notifications, Firestore-backed social surfaces, and comprehensive auto-save.
 
 The app is organized into local Swift packages:
 
@@ -191,8 +191,11 @@ tile values on the wire.
 `firebase/firestore.rules`. Score writes are gated to Cloud Functions
 (`/leaderboards/{boardId}/scores/{uid}: allow write: if false`), player docs
 must be keyed by Firebase Auth UID (`isOwner(uid)`), and reports are
-append-only. `GemWallet.startCloudSync()` refuses to run without an Auth UID
-so it can't get rejected by the rules. The server `submitScore` Cloud Function
+append-only. Public `/users/{uid}` profile docs back friend search, while
+`/socialFeed`, nested comment/reaction collections, and `/familyInvites`
+support the Feed/Friends surfaces with authenticated reads and owner-keyed
+writes. `GemWallet.startCloudSync()` refuses to run without an Auth UID so it
+can't get rejected by the rules. The server `submitScore` Cloud Function
 prefers `highestTileStep` over re-deriving `log2(highestTile)` and accepts
 steps up to 2000 to allow alpha/infinity progression.
 

@@ -8,7 +8,7 @@
       "internalID" : "PROD0000001ADFREE",
       "localizations" : [
         {
-          "description" : "Enjoy 2244 without any advertisements",
+          "description" : "Enjoy Ultimate2244 without any advertisements",
           "displayName" : "Remove Ads",
           "locale" : "en_US"
         }
@@ -184,7 +184,7 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Monthly auto-claim boosts for 2244",
+              "description" : "Monthly auto-claim boosts for Ultimate2244",
               "displayName" : "Auto-Claim Boosts Monthly",
               "locale" : "en_US"
             }
@@ -206,14 +206,14 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Monthly 2244 Pro access with premium benefits",
-              "displayName" : "2244 Pro Monthly",
+              "description" : "Monthly Ultimate2244 Pro access with premium benefits",
+              "displayName" : "Ultimate2244 Pro Monthly",
               "locale" : "en_US"
             }
           ],
           "productID" : "com.game2244.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "2244 Pro Monthly",
+          "referenceName" : "Ultimate2244 Pro Monthly",
           "subscriptionGroupID" : "22055063",
           "type" : "RecurringSubscription",
           "winbackOffers" : []
@@ -228,14 +228,14 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Yearly 2244 Pro access with premium benefits",
-              "displayName" : "2244 Pro Yearly",
+              "description" : "Yearly Ultimate2244 Pro access with premium benefits",
+              "displayName" : "Ultimate2244 Pro Yearly",
               "locale" : "en_US"
             }
           ],
           "productID" : "com.game2244.pro.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "2244 Pro Yearly",
+          "referenceName" : "Ultimate2244 Pro Yearly",
           "subscriptionGroupID" : "22055063",
           "type" : "RecurringSubscription",
           "winbackOffers" : []
@@ -250,14 +250,14 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Monthly 2244 Pro Family access with premium benefits",
-              "displayName" : "2244 Pro Family Monthly",
+              "description" : "Monthly Ultimate2244 Pro Family access with premium benefits",
+              "displayName" : "Ultimate2244 Pro Family Monthly",
               "locale" : "en_US"
             }
           ],
           "productID" : "com.game2244.pro.family.monthly",
           "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "2244 Pro Family Monthly",
+          "referenceName" : "Ultimate2244 Pro Family Monthly",
           "subscriptionGroupID" : "22055063",
           "type" : "RecurringSubscription",
           "winbackOffers" : []
@@ -272,14 +272,14 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Yearly 2244 Pro Family access with premium benefits",
-              "displayName" : "2244 Pro Family Yearly",
+              "description" : "Yearly Ultimate2244 Pro Family access with premium benefits",
+              "displayName" : "Ultimate2244 Pro Family Yearly",
               "locale" : "en_US"
             }
           ],
           "productID" : "com.game2244.pro.family.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "2244 Pro Family Yearly",
+          "referenceName" : "Ultimate2244 Pro Family Yearly",
           "subscriptionGroupID" : "22055063",
           "type" : "RecurringSubscription",
           "winbackOffers" : []

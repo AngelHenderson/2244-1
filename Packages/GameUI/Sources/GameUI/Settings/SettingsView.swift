@@ -10,6 +10,7 @@ public struct SettingsView: View {
     @Environment(\.hapticsService) private var hapticsService
     @Environment(\.purchaseService) private var purchaseService
     @Environment(\.adService) private var adService
+    @Environment(\.analytics) private var analytics
     
     @State private var sfxVolume: Double = 1.0
     @State private var musicVolume: Double = 1.0
@@ -75,7 +76,7 @@ public struct SettingsView: View {
                         Label("Quick-start Prompts", systemImage: "rectangle.on.rectangle")
                     }
                 } header: {
-                    Text("2244 Hub")
+                    Text("Ultimate2244 Hub")
                         .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
                 }
 
@@ -218,6 +219,7 @@ public struct SettingsView: View {
                         Button {
                             Task {
                                 #if os(iOS)
+                                await firePurchaseEvent(.purchaseStarted, productID: PurchaseService.adFreeProductID)
                                 let success: Bool
                                 if let product = purchaseService.product(withID: PurchaseService.adFreeProductID) {
                                     success = await purchaseService.purchase(product)
@@ -226,6 +228,9 @@ public struct SettingsView: View {
                                 }
                                 if success {
                                     adsRemoved = true
+                                    await firePurchaseEvent(.purchaseCompleted, productID: PurchaseService.adFreeProductID)
+                                } else {
+                                    await fireMajorFlowError(flow: "purchase", category: "remove_ads_failed")
                                 }
                                 #endif
                             }
@@ -239,6 +244,10 @@ public struct SettingsView: View {
                     Button {
                         Task {
                             await purchaseService.restorePurchases()
+                            await analytics.fire(
+                                event: LaunchAnalyticsEvent.restoreCompleted.rawValue,
+                                params: ["owned_product_count": purchaseService.ownedProductIDs.count]
+                            )
                         }
                     } label: {
                         Text("Restore Purchases")
@@ -554,6 +563,28 @@ public struct SettingsView: View {
         removeAdsPrice = IAPProduct.adFreeProduct.formattedPrice
         #endif
     }
+
+    private func firePurchaseEvent(_ event: LaunchAnalyticsEvent, productID: String) async {
+        let product = IAPProduct.product(for: productID)
+        await analytics.fire(
+            event: event.rawValue,
+            params: [
+                "product_id": productID,
+                "product_kind": product?.analyticsKind ?? "unknown",
+                "is_consumable": product?.isConsumable ?? false,
+            ]
+        )
+    }
+
+    private func fireMajorFlowError(flow: String, category: String) async {
+        await analytics.fire(
+            event: LaunchAnalyticsEvent.majorFlowError.rawValue,
+            params: [
+                "flow": flow,
+                "error_category": category,
+            ]
+        )
+    }
 }
 
 // MARK: - Report Player Sheet
@@ -562,6 +593,7 @@ struct ReportPlayerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(HomeState.self) private var homeState
     @Environment(\.reportService) private var reportService
+    @Environment(\.analytics) private var analytics
 
     @State private var playerName: String
     private let playerID: String?
@@ -694,8 +726,34 @@ struct ReportPlayerSheet: View {
             dismiss()
         } catch {
             submitError = "Could not send the report. Please try again."
+            await analytics.fire(
+                event: LaunchAnalyticsEvent.majorFlowError.rawValue,
+                params: [
+                    "flow": "report_player",
+                    "error_category": "report_submit_failed",
+                ]
+            )
         }
         isSubmitting = false
+    }
+}
+
+private extension IAPProduct {
+    var analyticsKind: String {
+        switch type {
+        case .adFree:
+            return "ad_free"
+        case .coins:
+            return "coins"
+        case .powerUpBundle:
+            return "power_up_bundle"
+        case .theme:
+            return "theme"
+        case .bundle:
+            return "bundle"
+        case .subscription(let kind):
+            return kind.grantsPro ? "pro_subscription" : "subscription"
+        }
     }
 }
 

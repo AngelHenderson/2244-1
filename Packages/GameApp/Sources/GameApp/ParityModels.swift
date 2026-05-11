@@ -635,6 +635,7 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
     public func currentState() async -> AccountAuthState {
         if let snapshot = FirebaseService.shared.currentAuthUser {
             let profile = AccountProfile(snapshot: snapshot)
+            try? await mirrorPublicProfile(profile)
             return profile.isAnonymous ? .anonymous(profile) : .signedIn(profile)
         }
         return await fallback.currentState()
@@ -643,7 +644,9 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
     public func signIn(email: String, password: String) async throws -> AccountProfile {
         do {
             let snapshot = try await FirebaseService.shared.signIn(email: email, password: password)
-            return AccountProfile(snapshot: snapshot)
+            let profile = AccountProfile(snapshot: snapshot)
+            try? await mirrorPublicProfile(profile)
+            return profile
         } catch {
             return try await fallback.signIn(email: email, password: password)
         }
@@ -652,7 +655,9 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
     public func createAccount(email: String, password: String, displayName: String) async throws -> AccountProfile {
         do {
             let snapshot = try await FirebaseService.shared.createUser(email: email, password: password, displayName: displayName)
-            return AccountProfile(snapshot: snapshot)
+            let profile = AccountProfile(snapshot: snapshot)
+            try? await mirrorPublicProfile(profile)
+            return profile
         } catch {
             return try await fallback.createAccount(email: email, password: password, displayName: displayName)
         }
@@ -661,6 +666,7 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
     public func updateProfile(_ profile: AccountProfile) async throws -> AccountProfile {
         do {
             try await FirebaseService.shared.updateDisplayName(profile.displayName)
+            try? await mirrorPublicProfile(profile)
             return profile
         } catch {
             return try await fallback.updateProfile(profile)
@@ -698,6 +704,17 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
             try await fallback.deleteAccount()
         }
     }
+
+    private func mirrorPublicProfile(_ profile: AccountProfile) async throws {
+        try await FirebaseService.shared.upsertPublicUserProfile(
+            uid: profile.uid,
+            displayName: profile.displayName,
+            username: profile.username,
+            avatarID: profile.avatarID,
+            friendCode: profile.friendCode,
+            countryCode: profile.countryCode
+        )
+    }
 }
 
 public protocol SocialService: Sendable {
@@ -707,6 +724,45 @@ public protocol SocialService: Sendable {
     func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
     func invites() async throws -> [FamilyInvite]
+}
+
+public enum SocialServiceError: LocalizedError, Sendable {
+    case unavailable
+
+    public var errorDescription: String? {
+        switch self {
+        case .unavailable:
+            "Social features are unavailable right now."
+        }
+    }
+}
+
+public struct UnavailableSocialService: SocialService, Sendable {
+    public init() {}
+
+    public func feed() async throws -> [SocialFeedItem] {
+        throw SocialServiceError.unavailable
+    }
+
+    public func addComment(to itemID: UUID, text: String) async throws {
+        throw SocialServiceError.unavailable
+    }
+
+    public func toggleItemHeart(itemID: UUID) async throws {
+        throw SocialServiceError.unavailable
+    }
+
+    public func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws {
+        throw SocialServiceError.unavailable
+    }
+
+    public func searchFriends(query: String) async throws -> [AccountProfile] {
+        throw SocialServiceError.unavailable
+    }
+
+    public func invites() async throws -> [FamilyInvite] {
+        throw SocialServiceError.unavailable
+    }
 }
 
 public struct MockSocialService: SocialService, Sendable {
@@ -1420,7 +1476,7 @@ private struct AccountServiceKey: EnvironmentKey {
 }
 
 private struct SocialServiceKey: EnvironmentKey {
-    static let defaultValue: any SocialService = MockSocialService()
+    static let defaultValue: any SocialService = UnavailableSocialService()
 }
 
 public extension EnvironmentValues {

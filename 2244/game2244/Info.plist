@@ -46,7 +46,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.games</string>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>2244 uses tracking permission to show more relevant ads and keep optional ad rewards available.</string>
+	<string>Ultimate2244 uses tracking permission to show more relevant ads and keep optional ad rewards available.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>

@@ -16,6 +16,8 @@ public struct RootGameView: View {
     @Environment(\.purchaseService) private var purchaseService
     @Environment(\.rewardLedgerOptional) private var rewardLedger
     @Environment(\.deepLinkRouter) private var deepLinkRouter
+    @Environment(\.analytics) private var analytics
+    @Environment(\.reminderNotificationScheduler) private var reminderNotificationScheduler
     @State private var isPlaying = false
     @State private var hasLoadedInitialState = false
     @State private var showDailyClaims = false
@@ -214,8 +216,15 @@ public struct RootGameView: View {
         .platformFullScreenCover(isPresented: $isShowingTutorial) {
             OnboardingFlowView(onComplete: { preferences in
                 playerReadiness.updateOnboardingPreferences(preferences)
+                applyOnboardingReminderPreferences(preferences)
                 if preferences.completedAt == nil {
                     playerReadiness.markTutorialCompleted()
+                }
+                Task {
+                    await analytics.fire(
+                        event: LaunchAnalyticsEvent.onboardingCompleted.rawValue,
+                        params: ["wants_reminders": preferences.wantsReminders]
+                    )
                 }
                 isShowingTutorial = false
             })
@@ -257,6 +266,26 @@ public struct RootGameView: View {
             return
         }
         deepLinkRouter.consume()
+    }
+
+    private func applyOnboardingReminderPreferences(_ preferences: OnboardingPreferences) {
+        let reminderPreferences = preferences.wantsReminders
+            ? ReminderPreferences()
+            : ReminderPreferences(
+                practiceReminderEnabled: false,
+                streakReminderEnabled: false,
+                questReminderEnabled: false,
+                smartSchedulingEnabled: true
+            )
+        playerReadiness.updateReminderPreferences(reminderPreferences)
+
+        Task {
+            if preferences.wantsReminders {
+                try? await reminderNotificationScheduler.apply(reminderPreferences)
+            } else {
+                await reminderNotificationScheduler.cancelAll()
+            }
+        }
     }
     
 
@@ -419,6 +448,15 @@ public struct RootGameView: View {
             }
         } catch {
             print("Failed to load progress: \(error)")
+            Task {
+                await analytics.fire(
+                    event: LaunchAnalyticsEvent.majorFlowError.rawValue,
+                    params: [
+                        "flow": "progress_load",
+                        "error_category": "local_progress_unavailable",
+                    ]
+                )
+            }
             // Use defaults if loading fails
             await MainActor.run {
                 homeState.gems = 305

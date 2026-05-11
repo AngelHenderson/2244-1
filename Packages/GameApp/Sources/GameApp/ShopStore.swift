@@ -98,6 +98,7 @@ public final class ShopStore {
     
     private let journeyStore: JourneyKit.Store
     private let purchaseService: PurchaseService?
+    private let analytics: (any AnalyticsServiceProtocol)?
     private weak var gemWallet: GemWallet?
     private weak var gameStore: GameStore?
     private weak var rewardLedger: RewardLedgerStore?
@@ -109,10 +110,12 @@ public final class ShopStore {
         purchaseService: PurchaseService? = nil,
         gemWallet: GemWallet? = nil,
         gameStore: GameStore? = nil,
-        rewardLedger: RewardLedgerStore? = nil
+        rewardLedger: RewardLedgerStore? = nil,
+        analytics: (any AnalyticsServiceProtocol)? = nil
     ) {
         self.journeyStore = journeyStore
         self.purchaseService = purchaseService
+        self.analytics = analytics
         self.gemWallet = gemWallet
         self.gameStore = gameStore
         self.rewardLedger = rewardLedger
@@ -234,11 +237,14 @@ public final class ShopStore {
 
         guard let purchaseService else {
             error = "Purchases are unavailable"
+            await fireMajorFlowError(category: "purchase_service_unavailable")
             return
         }
 
+        await firePurchaseEvent(.purchaseStarted, product: product)
         guard let purchase = await purchaseService.purchaseVerified(productID: product.id) else {
             error = purchaseService.errorMessage ?? "Purchase failed. Please try again."
+            await fireMajorFlowError(category: "purchase_failed", product: product)
             return
         }
 
@@ -286,6 +292,13 @@ public final class ShopStore {
         guard let product = IAPProduct.product(for: purchase.productID) else { return }
         grantProductRewards(product, transactionID: purchase.transactionID)
         purchasedBundles.insert(product.id)
+        Task {
+            await firePurchaseEvent(
+                .purchaseCompleted,
+                product: product,
+                extraParams: ["is_restored": purchase.isRestored]
+            )
+        }
     }
 
     /// Test-only seam exposing the verified-purchase apply path. Hidden from
@@ -400,6 +413,36 @@ public final class ShopStore {
     public func isPurchased(_ bundleId: String) -> Bool {
         purchasedBundles.contains(bundleId) || purchaseService?.isOwned(bundleId) == true
     }
+
+    private func firePurchaseEvent(
+        _ event: LaunchAnalyticsEvent,
+        product: IAPProduct,
+        extraParams: [String: any Sendable] = [:]
+    ) async {
+        guard let analytics else { return }
+        var params: [String: any Sendable] = [
+            "product_id": product.id,
+            "product_kind": product.analyticsKind,
+            "is_consumable": product.isConsumable,
+        ]
+        for (key, value) in extraParams {
+            params[key] = value
+        }
+        await analytics.fire(event: event.rawValue, params: params)
+    }
+
+    private func fireMajorFlowError(category: String, product: IAPProduct? = nil) async {
+        guard let analytics else { return }
+        var params: [String: any Sendable] = [
+            "flow": "purchase",
+            "error_category": category,
+        ]
+        if let product {
+            params["product_id"] = product.id
+            params["product_kind"] = product.analyticsKind
+        }
+        await analytics.fire(event: LaunchAnalyticsEvent.majorFlowError.rawValue, params: params)
+    }
 }
 
 private extension ShopBundle {
@@ -466,6 +509,25 @@ private extension IAPProductItem {
             return .gems
         case .subscription:
             return .subscription
+        }
+    }
+}
+
+private extension IAPProduct {
+    var analyticsKind: String {
+        switch type {
+        case .adFree:
+            return "ad_free"
+        case .coins:
+            return "coins"
+        case .powerUpBundle:
+            return "power_up_bundle"
+        case .theme:
+            return "theme"
+        case .bundle:
+            return "bundle"
+        case .subscription(let kind):
+            return kind.grantsPro ? "pro_subscription" : "subscription"
         }
     }
 }

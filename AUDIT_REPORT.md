@@ -1,6 +1,12 @@
 # 2244 iOS — Completeness Audit
 
 **Audit date:** 2026-04-21
+**Status:** Historical snapshot. Several findings in this report have since
+been addressed or superseded by the live code and `Docs/MASTER_APP_MAP.md`,
+including deep-link registration, StoreKit product IDs, pause routing,
+daily-streak routing, Firebase/Game Center leaderboard wiring, Firestore
+report submission, Firebase Analytics injection, local reminder scheduling,
+and Firestore-backed social services.
 **Auditor:** Senior staff review (read-only)
 **Target under audit:** `game2244` scheme, workspace `game2244.xcworkspace`, source tree `/2244/game2244/`
 **Build result:** `xcodebuild ... iphonesimulator ... clean build` → exit 0, 2 warnings (both `GKGameCenterViewController` deprecated on iOS 26 — SettingsView.swift:425, SettingsView.swift:478)

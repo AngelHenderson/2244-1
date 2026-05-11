@@ -18,6 +18,14 @@ struct LaunchReadinessContractTests {
         #expect(rootRules.contains("request.resource.data.reporterId == request.auth.uid"))
         #expect(rootRules.contains("match /leaderboards/{boardId}"))
         #expect(rootRules.contains("match /scores/{uid}"))
+        #expect(rootRules.contains("match /socialFeed/{postId}"))
+        #expect(rootRules.contains("match /comments/{commentId}"))
+        #expect(rootRules.contains("match /familyInvites/{inviteId}"))
+        #expect(rootRules.contains("validReaction(request.resource.data)"))
+        #expect(rootRules.contains("validPostReactionCountTransition(postId)"))
+        #expect(rootRules.contains("validPostCommentCountTransition(postId)"))
+        #expect(rootRules.contains("validCommentLikeCountTransition(postId, commentId)"))
+        #expect(rootRules.contains("resource.data.participantIds.hasAny([request.auth.uid])"))
         #expect(rootRules.contains("allow write: if false"))
     }
 

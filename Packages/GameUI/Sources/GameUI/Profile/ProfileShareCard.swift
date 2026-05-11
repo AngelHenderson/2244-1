@@ -24,7 +24,7 @@ struct ProfileShareCard: View {
                 Image(systemName: "gamecontroller.fill")
                     .font(.title2)
                     .foregroundStyle(.tint)
-                Text("2244")
+                Text("Ultimate2244")
                     .font(.title2.weight(.bold))
                 Spacer()
             }

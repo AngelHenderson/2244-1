@@ -42,6 +42,54 @@ Still blocked from this machine:
   `AIzaSyC6wRiQH9L50oNcnVazu0tFsFkAnDeof7M` (project number 1032642468174)
   remains in git history and is still valid until rotated in the GCP console.
 
+## Last 2% Closeout Status (2026-05-10)
+
+Release decision target: **App Store submission**.
+
+Current engineering status:
+
+- **Ready for TestFlight validation** from local gates.
+- **Not ready for App Store submission** until external-console blockers below
+  are completed.
+- Confidence: **Medium**. Local build/tests pass, but device, sandbox,
+  Firebase, AdMob, and App Store Connect checks still require real accounts and
+  console access.
+
+Local gates verified on 2026-05-10:
+
+```bash
+node scripts/validate-launch-readiness.mjs
+swift test --package-path Packages/GameCore
+swift test --package-path Packages/GameServices
+swift test --package-path Packages/GameApp
+swift test --package-path Packages/GameUI
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1' build
+```
+
+Non-blocking local build warnings:
+
+- Source-Firestore `abseil` package emits "no rule to process file" warnings
+  for included non-source files.
+- App Intents metadata extraction is skipped because the app has no
+  AppIntents.framework dependency.
+
+Minimal launch-learning analytics are wired through the existing
+`AnalyticsServiceProtocol` / `FirebaseAnalyticsService` path:
+
+| Event | Fires when | Properties | Excludes |
+| --- | --- | --- | --- |
+| `app_launch` | App session starts | platform, app version, build number | user content, profile data |
+| `return_session` | App opens after a previous launch | return interval bucket | exact activity history |
+| `onboarding_completed` | Tutorial completes | reminder opt-in boolean | tutorial answers beyond opt-in |
+| `core_run_completed` | A run ends | score tier, tile-step bucket, moves bucket, duration bucket, infinity boolean | exact board, path, score details |
+| `purchase_started` | StoreKit purchase starts | product ID, product kind, consumable flag | account/payment details |
+| `purchase_completed` | Verified purchase is applied | product ID, product kind, consumable/restored flags | transaction payload, receipt data |
+| `restore_completed` | Restore flow completes | owned product count | product history details |
+| `major_flow_error` | A release-critical flow fails | flow name, safe error category | raw error text or user content |
+
+`FirebaseAnalyticsService` respects the Settings → Share Analytics toggle
+(`analyticsEnabled`) before sending events.
+
 ## Required External Actions Before Submission
 
 The numbered items below must be completed in App Store Connect, GCP, AdMob,
@@ -123,8 +171,8 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme g
 ## App Store Metadata
 
 - App icon: `AppIcon` is configured in the app target.
-- Display name: `Ultimate2244` is set in `Info.plist`; confirm this is the
-  intended public name.
+- Display name: `Ultimate2244` is set in `Info.plist` and is the intended
+  public name.
 - Bundle identifier: `com.ideabloomlabs.game2244`; App Store Connect,
   Firebase, AdMob, Game Center, and provisioning profiles must match it.
 - Version/build: `MARKETING_VERSION = 1.0`, `CURRENT_PROJECT_VERSION = 1`.
@@ -139,6 +187,8 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme g
 ## No Mock Leakage
 
 - Runtime leaderboard default is `.empty`, not `.mock`.
+- Feed/Friends use `FirestoreSocialService` in the app target; `MockSocialService`
+  is limited to previews, tests, and DEBUG fallback when Firebase is absent.
 - Game Center country filters return an empty state instead of synthetic rows.
 - Profile compare is debug-only because it uses synthetic players.
 - Season history only backfills preview data in Debug builds.
