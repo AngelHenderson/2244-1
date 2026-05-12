@@ -435,11 +435,13 @@ public struct SocialFeedView: View {
 public struct FriendsView: View {
     @Environment(\.socialService) private var socialService
     @Environment(\.accountService) private var accountService
+    @Environment(\.profileClient) private var profileClient
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var results: [AccountProfile] = []
     @State private var invites: [FamilyInvite] = []
     @State private var currentProfile: AccountProfile?
+    @State private var localFriendCode: String?
     @State private var isLoading = false
     @State private var errorMessage: String?
 
@@ -453,7 +455,7 @@ public struct FriendsView: View {
                         Image(systemName: "qrcode")
                             .font(.largeTitle)
                         VStack(alignment: .leading) {
-                            Text(currentProfile?.friendCode ?? "Sign in to create a code")
+                            Text(currentProfile?.friendCode ?? localFriendCode ?? "...")
                                 .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                             Text("Share this code or profile link with friends.")
                                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
@@ -530,6 +532,12 @@ public struct FriendsView: View {
         defer { isLoading = false }
 
         currentProfile = await accountService.currentState().profile
+
+        // Always have a friend code available, even without auth
+        if currentProfile?.friendCode == nil {
+            localFriendCode = (try? await profileClient.fetchProfile())?.friendCode
+        }
+
         do {
             invites = try await socialService.invites()
             results = try await socialService.searchFriends(query: query)

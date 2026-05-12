@@ -323,7 +323,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "touch /private/tmp/fix-sim-audio-trigger\nsleep 2\n\n\n\n";
+			shellScript = "# Auto-fix simulator audio: if previous run detected broken audio, restart the sim device\nif [ -f /private/tmp/sim-audio-broken ]; then\n    echo \"🔄 Audio was broken last run — restarting simulator device...\"\n    DEVICE_UDID=$(xcrun simctl list devices booted | grep -oE '[A-F0-9-]{36}' | head -1)\n    if [ -n \"$DEVICE_UDID\" ]; then\n        xcrun simctl shutdown \"$DEVICE_UDID\" 2>/dev/null || true\n        sleep 1\n        xcrun simctl boot \"$DEVICE_UDID\" 2>/dev/null || true\n        sleep 3\n        echo \"✅ Simulator device restarted — audio should work\"\n    fi\n    rm -f /private/tmp/sim-audio-broken\nfi\n\n\n\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
