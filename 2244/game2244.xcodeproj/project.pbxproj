@@ -323,7 +323,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo \"=== Audio Fix ===\" > /tmp/sim-audio-fix.log\necho \"Date: $(date)\" >> /tmp/sim-audio-fix.log\necho \"User: $(whoami)\" >> /tmp/sim-audio-fix.log\necho \"coreaudiod PID before: $(pgrep coreaudiod)\" >> /tmp/sim-audio-fix.log\n/usr/bin/sudo -n /usr/bin/killall coreaudiod 2>> /tmp/sim-audio-fix.log\necho \"Kill exit code: $?\" >> /tmp/sim-audio-fix.log\nsleep 2\necho \"coreaudiod PID after: $(pgrep coreaudiod)\" >> /tmp/sim-audio-fix.log\n\n\n";
+			shellScript = "touch /private/tmp/fix-sim-audio-trigger\nsleep 2\n\n\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
