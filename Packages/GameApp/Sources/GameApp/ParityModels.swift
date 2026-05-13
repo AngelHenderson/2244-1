@@ -1741,37 +1741,76 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
         
-        let format = Int.random(in: 0...6)
+        let format = Int.random(in: 0...13)
         var comment = ""
         var tone = "positive"
         
         switch format {
         case 0:
+            // opener + subject verb adjective!
             let opener = openers.randomElement()!
             let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
             comment = opener.isEmpty ? core.capitalized + "!" : "\(opener) \(core)!"
             tone = "positive"
         case 1:
+            // positive reaction + question
             comment = "\(positiveReactions.randomElement()!) \(questions.randomElement()!)"
             tone = "question"
         case 2:
+            // opener + subject verb adjective. question
             let opener = openers.randomElement()!
             let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
             let sentence = opener.isEmpty ? core.capitalized + "." : "\(opener) \(core)."
             comment = "\(sentence) \(questions.randomElement()!)"
             tone = "question"
         case 3:
+            // standalone positive reaction
             comment = "\(positiveReactions.randomElement()!)"
             tone = "positive"
         case 4:
+            // standalone jealous reaction
             comment = "\(jealousReactions.randomElement()!)"
             tone = "sad"
         case 5:
+            // standalone competitive reaction
             comment = "\(competitiveReactions.randomElement()!)"
             tone = "competitive"
-        default:
+        case 6:
+            // subject verb adjective (no opener)
             comment = "\(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
             tone = "positive"
+        case 7:
+            // jealous reaction + question
+            comment = "\(jealousReactions.randomElement()!). \(questions.randomElement()!)"
+            tone = "question"
+        case 8:
+            // competitive reaction + adjective subject
+            comment = "\(competitiveReactions.randomElement()!) \(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!) though."
+            tone = "competitive"
+        case 9:
+            // opener + positive reaction
+            let opener = openers.randomElement()!
+            let reaction = positiveReactions.randomElement()!
+            comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
+            tone = "positive"
+        case 10:
+            // standalone question
+            comment = "\(questions.randomElement()!)"
+            tone = "question"
+        case 11:
+            // opener + jealous reaction
+            let opener = openers.randomElement()!
+            let reaction = jealousReactions.randomElement()!
+            comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
+            tone = "sad"
+        case 12:
+            // positive reaction + subject verb adjective
+            comment = "\(positiveReactions.randomElement()!) \(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!)."
+            tone = "positive"
+        default:
+            // competitive + question
+            comment = "\(competitiveReactions.randomElement()!) \(questions.randomElement()!)"
+            tone = "competitive"
         }
         
         if Double.random(in: 0...1) < 0.75 {
