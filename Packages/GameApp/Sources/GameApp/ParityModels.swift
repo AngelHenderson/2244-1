@@ -1149,21 +1149,46 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public func searchFriends(query: String) async throws -> [AccountProfile] {
-        var names: [String] = []
-        for _ in 0..<20 {
-            names.append(generateDynamicName())
+        // Build a pool of names exclusively from leaderboard data
+        let codeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        
+        // Full pool: all gamertags + some real name combos
+        var fullPool: [String] = Array(Self.leaderboardGamertags)
+        for firstName in Self.leaderboardRealNames {
+            let lastName = Self.leaderboardLastNames[
+                abs(firstName.hashValue) % Self.leaderboardLastNames.count
+            ]
+            fullPool.append("\(firstName) \(lastName)")
         }
-        if !query.isEmpty {
-            names.append(query + String(format: "%04d", Int.random(in: 1000...9999)))
-            names.append(generateDynamicName() + query)
+
+        let filtered: [String]
+        if query.isEmpty {
+            // Browse mode: show a random sample
+            filtered = Array(fullPool.shuffled().prefix(20))
+        } else {
+            // Search mode: search the full pool
+            filtered = fullPool.filter { $0.localizedCaseInsensitiveContains(query) }
         }
-        let filtered = names.filter { query.isEmpty || $0.localizedCaseInsensitiveContains(query) }
-        return filtered.map {
-            AccountProfile(
-                uid: $0.replacingOccurrences(of: " ", with: ".").lowercased(),
-                displayName: $0,
-                username: $0.replacingOccurrences(of: " ", with: "").lowercased(),
-                friendCode: String($0.prefix(3)).uppercased() + "-2244",
+
+        return filtered.map { name in
+            // Deterministic code based on name so the same player always has the same code
+            var hash = name.hashValue
+            let left = String((0..<3).map { _ -> Character in
+                let idx = abs(hash) % codeChars.count
+                hash = hash &* 31 &+ 7
+                return codeChars[codeChars.index(codeChars.startIndex, offsetBy: idx)]
+            })
+            hash = name.hashValue &* 17
+            let right = String((0..<3).map { _ -> Character in
+                let idx = abs(hash) % codeChars.count
+                hash = hash &* 31 &+ 13
+                return codeChars[codeChars.index(codeChars.startIndex, offsetBy: idx)]
+            })
+            return AccountProfile(
+                uid: name.replacingOccurrences(of: " ", with: ".").lowercased(),
+                displayName: name,
+                username: name.replacingOccurrences(of: " ", with: "").lowercased(),
+                friendCode: "\(left)-\(right)",
                 isAnonymous: false,
                 isEmailVerified: true
             )
