@@ -1732,6 +1732,8 @@ public struct MockSocialService: SocialService, Sendable {
         }
         
         // Weighted category roll: 55% competitive, 25% positive, 15% question, 5% jealous
+        var comment = ""
+        var tone = "positive"
         let roll = Double.random(in: 0..<1)
         
         if roll < 0.55 {
