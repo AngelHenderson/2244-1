@@ -1206,140 +1206,256 @@ public struct MockSocialService: SocialService, Sendable {
             let minutes = Int.random(in: 1...8)
             let seconds = Int.random(in: 0...59)
             let timeStr = "\(minutes):\(String(format: "%02d", seconds))"
-            let templates = [
-                "Finished today's timed challenge in \(timeStr)!",
-                "Daily timed challenge crushed — \(timeStr) clear time ⏱️",
-                "Beat the clock! Timed challenge done in \(timeStr).",
-                "Today's timed challenge wasn't even close. \(timeStr).",
-                "Squeezed past the timed challenge with \(timeStr) on the clock!",
-                "Timed challenge complete. \(timeStr). New strategy worked perfectly.",
-                "That timed challenge was INTENSE. Barely made it at \(timeStr).",
-                "Speed run energy — timed challenge in \(timeStr) 🚀",
+            
+            let openers = [
+                "Finished", "Crushed", "Beat", "Cleared", "Completed",
+                "Conquered", "Smashed", "Survived", "Dominated", "Nailed",
             ]
-            let stats = [
-                "⏱️ Timed challenge · \(timeStr)",
-                "🏁 Daily challenge · Done",
-                "⚡ Speed clear · \(timeStr)",
-                "🎯 Challenge · \(timeStr) finish",
-                "🕐 Today's challenge · Complete",
+            let subjects = [
+                "today's timed challenge", "the daily timed challenge",
+                "the timed challenge", "this morning's timed run",
+                "today's speed challenge", "the daily speed run",
+                "the clock challenge", "today's timed board",
+                "the timed gauntlet", "this session's challenge",
             ]
-            return (templates.randomElement()!, stats.randomElement()!)
+            let details = [
+                "in \(timeStr)", "with \(timeStr) clear time",
+                "at \(timeStr)", "— \(timeStr) flat",
+                "with \(timeStr) on the clock", "clocking \(timeStr)",
+                "in just \(timeStr)", "with a \(timeStr) finish",
+                "\(timeStr) total", "in \(timeStr) sharp",
+            ]
+            let closers = [
+                "!", " ⏱️", " 🚀", ". New strategy worked perfectly.",
+                ". That was INTENSE.", " 💨", ". Clean run.",
+                ". Not even close.", " — feels good!", ". Let's go!",
+            ]
+            
+            let message = "\(openers.randomElement()!) \(subjects.randomElement()!) \(details.randomElement()!)\(closers.randomElement()!)"
+            
+            let statEmojis = ["⏱️", "🏁", "⚡", "🎯", "🕐", "💨", "🔥"]
+            let statLabels = [
+                "Timed challenge · \(timeStr)", "Daily challenge · Done",
+                "Speed clear · \(timeStr)", "Challenge · \(timeStr) finish",
+                "Today's challenge · Complete", "Timed run · \(timeStr)",
+                "Challenge clear · \(timeStr)", "Speed run · Done",
+                "Daily timed · \(timeStr)", "Clock beaten · \(timeStr)",
+            ]
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
             
         case 2:
             // Protected a streak
             let streakDays = Int.random(in: 3...365)
-            let templates = [
-                "Protected a \(streakDays)-day streak! 🔥",
-                "Streak saved! Day \(streakDays) is in the books.",
-                "\(streakDays) days and counting. Streak: protected.",
-                "Almost forgot today… but the \(streakDays)-day streak lives on!",
-                "Close call — used a streak freeze to save day \(streakDays).",
-                "Day \(streakDays) ✅ This streak isn't dying on my watch.",
-                "Played at 11:58 PM to keep the \(streakDays)-day streak alive 😅",
-                "Streak protection activated! \(streakDays) days strong 💪",
+            
+            let openers = [
+                "Protected", "Saved", "Kept alive", "Defended",
+                "Extended", "Preserved", "Secured", "Maintained",
+                "Continued", "Locked in",
             ]
-            let stats: [String]
+            let streakPhrase = [
+                "a \(streakDays)-day streak", "the \(streakDays)-day streak",
+                "my \(streakDays)-day streak", "day \(streakDays) of the streak",
+                "streak day \(streakDays)", "a \(streakDays)d streak",
+                "\(streakDays) days straight", "\(streakDays) consecutive days",
+                "the streak at \(streakDays) days", "\(streakDays) days running",
+            ]
+            let closers: [String]
             if streakDays >= 100 {
-                stats = [
-                    "🔥 \(streakDays)-day streak · Legend",
-                    "🛡️ Streak protected · \(streakDays) days",
-                    "💎 Streak · \(streakDays) days",
-                    "👑 Streak royalty · \(streakDays)d",
+                closers = [
+                    "! 🔥", " — legendary status! 👑",
+                    ". Triple digits and counting!", ". This streak is untouchable.",
+                    " 💎 Can't stop now.", ". \(streakDays) days deep!",
+                    ". Built different.", " — no breaks, no excuses.",
+                    ". The grind never stops 🔥", ". Still going strong 💪",
                 ]
             } else if streakDays >= 30 {
-                stats = [
-                    "🔥 \(streakDays)-day streak · Dedicated",
-                    "🛡️ Streak protected · \(streakDays) days",
-                    "⭐ Streak · \(streakDays) days",
+                closers = [
+                    "! 🔥", ". Dedicated! 💪",
+                    ". A whole month and beyond!", ". Consistency pays off.",
+                    " — keeping the fire alive!", ". Not stopping now.",
+                    ". This streak means everything.", " ✅ Locked in.",
+                    ". Steady progress!", ". Day by day 🛡️",
                 ]
             } else {
-                stats = [
-                    "🔥 \(streakDays)-day streak",
-                    "🛡️ Streak protected · Day \(streakDays)",
-                    "📅 Streak · \(streakDays) days",
+                closers = [
+                    "! 🔥", ". Every day counts!",
+                    ". Almost forgot today 😅", " — close call!",
+                    ". Building momentum!", ". Played at 11:58 PM to save it 😅",
+                    " ✅", ". Not losing this one.",
+                    ". The habit is forming!", ". Streak: protected.",
                 ]
             }
-            return (templates.randomElement()!, stats.randomElement()!)
+            
+            let message = "\(openers.randomElement()!) \(streakPhrase.randomElement()!)\(closers.randomElement()!)"
+            
+            let statEmojis = ["🔥", "🛡️", "📅", "💎", "⭐", "👑", "✅"]
+            let statLabels: [String]
+            if streakDays >= 100 {
+                statLabels = [
+                    "\(streakDays)-day streak · Legend", "Streak protected · \(streakDays) days",
+                    "Streak · \(streakDays) days", "Streak royalty · \(streakDays)d",
+                    "\(streakDays)d streak · Untouchable", "Streak milestone · \(streakDays)",
+                ]
+            } else if streakDays >= 30 {
+                statLabels = [
+                    "\(streakDays)-day streak · Dedicated", "Streak protected · \(streakDays) days",
+                    "Streak · \(streakDays) days", "\(streakDays)d streak · Committed",
+                    "Streak milestone · \(streakDays)", "Daily streak · \(streakDays)d",
+                ]
+            } else {
+                statLabels = [
+                    "\(streakDays)-day streak", "Streak protected · Day \(streakDays)",
+                    "Streak · \(streakDays) days", "Day \(streakDays) · Saved",
+                    "Streak alive · \(streakDays)d", "Daily streak · \(streakDays)",
+                ]
+            }
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
             
         case 3:
             // Joined the Hall of Fame
             let infinityCount = Int.random(in: 1...50)
-            let templates = [
-                "Joined the Hall of Fame! 🏆",
-                "HALL OF FAME! I actually made it!",
-                "Infinity tile reached — officially in the Hall of Fame!",
-                "Hall of Fame, baby! Infinity count: \(infinityCount) 👑",
-                "After months of grinding… Hall of Fame unlocked!",
-                "Welcome to the Hall of Fame! This one's for the long-term players.",
-                "HoF entry #\(infinityCount). The journey was worth it.",
-                "They said it couldn't be done. Hall of Fame says otherwise! 🏅",
+            
+            let openers = [
+                "Joined", "Entered", "Made it into", "Reached",
+                "Unlocked", "Earned a spot in", "Broke into",
+                "Officially in", "Finally reached", "Achieved",
             ]
-            let stats: [String]
+            let subject = [
+                "the Hall of Fame", "HoF", "the Hall of Fame leaderboard",
+                "Hall of Fame status", "the infinity club",
+                "the Hall of Fame ranks", "HoF glory",
+                "the elite Hall of Fame", "the legends board",
+                "the Hall of Fame tier",
+            ]
+            let details: [String]
             if infinityCount > 10 {
-                stats = [
-                    "🏆 Hall of Fame · ∞×\(infinityCount)",
-                    "👑 HoF veteran · \(infinityCount) infinities",
-                    "🌟 Legendary · ∞×\(infinityCount)",
+                details = [
+                    "! Infinity count: \(infinityCount) 👑", " with \(infinityCount) infinities!",
+                    "! ∞×\(infinityCount) and climbing!", ". Entry #\(infinityCount) 🏆",
+                    "! \(infinityCount) infinity tiles deep.", " — \(infinityCount) infinities strong.",
+                    ". Veteran status with \(infinityCount) runs.", "! Can't stop at \(infinityCount).",
+                    " with ∞×\(infinityCount). Legendary!", ". \(infinityCount) and counting 🌟",
                 ]
             } else if infinityCount > 1 {
-                stats = [
-                    "🏆 Hall of Fame · ∞×\(infinityCount)",
-                    "🏅 HoF · \(infinityCount) infinities",
-                    "⭐ Hall of Fame entry",
+                details = [
+                    "! 🏆", "! Infinity count: \(infinityCount) 👑",
+                    " with \(infinityCount) infinities!", ". The journey was worth it.",
+                    "! Entry #\(infinityCount).", " — ∞×\(infinityCount)!",
+                    ". \(infinityCount) infinity tiles reached!", ". Still pushing for more.",
+                    "! Grinding paid off 🏅", ". \(infinityCount) down, more to go.",
                 ]
             } else {
-                stats = [
-                    "🏆 Hall of Fame · First entry!",
-                    "🏅 HoF · Welcome!",
-                    "🌟 Hall of Fame · ∞ achieved",
+                details = [
+                    "! 🏆", "! I actually made it!",
+                    " for the first time!", ". The grind paid off!",
+                    "! After months of grinding…", " — this one's for the long-term players.",
+                    "! They said it couldn't be done 🏅", ". First infinity tile!",
+                    "! Welcome to the club!", ". Dream achieved ✨",
                 ]
             }
-            return (templates.randomElement()!, stats.randomElement()!)
+            
+            let message = "\(openers.randomElement()!) \(subject.randomElement()!)\(details.randomElement()!)"
+            
+            let statEmojis = ["🏆", "🏅", "🌟", "👑", "⭐", "💎", "✨"]
+            let statLabels: [String]
+            if infinityCount > 10 {
+                statLabels = [
+                    "Hall of Fame · ∞×\(infinityCount)", "HoF veteran · \(infinityCount) infinities",
+                    "Legendary · ∞×\(infinityCount)", "HoF · \(infinityCount) runs",
+                    "Infinity club · ×\(infinityCount)", "Hall of Fame · \(infinityCount) entries",
+                ]
+            } else if infinityCount > 1 {
+                statLabels = [
+                    "Hall of Fame · ∞×\(infinityCount)", "HoF · \(infinityCount) infinities",
+                    "Hall of Fame entry", "HoF · ×\(infinityCount)",
+                    "Infinity reached · ×\(infinityCount)", "Hall of Fame · Active",
+                ]
+            } else {
+                statLabels = [
+                    "Hall of Fame · First entry!", "HoF · Welcome!",
+                    "Hall of Fame · ∞ achieved", "First infinity · HoF",
+                    "Hall of Fame · Debut", "HoF · Entry #1",
+                ]
+            }
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
             
         case 4:
             // Unlocked a new theme
             let theme = themeNames.randomElement()!
-            let templates = [
-                "Unlocked the \(theme) theme! 🎨",
-                "New look, who dis? \(theme) theme activated.",
-                "Just grabbed the \(theme) theme — the board looks amazing!",
-                "\(theme) unlocked! Time to play in style.",
-                "Earned enough gems to unlock \(theme). Worth every one.",
-                "Swapped to \(theme) and it changes the whole vibe 🌈",
-                "The \(theme) theme is even better than I expected!",
-                "Fresh theme alert: \(theme) 🔔",
+            
+            let openers = [
+                "Unlocked", "Grabbed", "Activated", "Equipped",
+                "Switched to", "Just got", "Earned", "Picked up",
+                "Finally unlocked", "Snagged",
             ]
-            let stats = [
-                "🎨 Theme unlocked · \(theme)",
-                "✨ New theme · \(theme)",
-                "🖌️ Customization · \(theme)",
-                "💫 \(theme) · Unlocked",
-                "🎭 New style · \(theme)",
+            let subjects = [
+                "the \(theme) theme", "\(theme)", "the \(theme) board theme",
+                "the \(theme) look", "the \(theme) style",
+                "the \(theme) aesthetic", "\(theme) vibes",
+                "the \(theme) board", "a fresh \(theme) theme",
+                "the \(theme) color palette",
             ]
-            return (templates.randomElement()!, stats.randomElement()!)
+            let closers = [
+                "! 🎨", ". The board looks amazing!",
+                " — time to play in style.", "! Worth every gem.",
+                " and it changes the whole vibe 🌈", ". Even better than I expected!",
+                " 🔔 Fresh look alert!", ". New look, who dis?",
+                ". So clean!", " — best theme in the game.",
+            ]
+            
+            let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(closers.randomElement()!)"
+            
+            let statEmojis = ["🎨", "✨", "🖌️", "💫", "🎭", "🌈", "🔔"]
+            let statLabels = [
+                "Theme unlocked · \(theme)", "New theme · \(theme)",
+                "Customization · \(theme)", "\(theme) · Unlocked",
+                "New style · \(theme)", "Board theme · \(theme)",
+                "Theme equipped · \(theme)", "Fresh look · \(theme)",
+                "\(theme) · Activated", "Style update · \(theme)",
+            ]
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
             
         default:
             // Completed the Daily Quest
             let questTier = ["Bronze", "Silver", "Gold", "Diamond"].randomElement()!
             let gemsEarned = [50, 100, 150, 200, 250, 300, 500].randomElement()!
-            let templates = [
-                "Completed the Daily Quest! \(questTier) chest earned 🎁",
-                "Daily Quest done — grabbed a \(questTier) reward chest.",
-                "All daily quests finished! +\(gemsEarned) gems 💎",
-                "\(questTier) Daily Quest complete. Easy gems today.",
-                "Knocked out today's quests before lunch! \(questTier) chest 🏆",
-                "Daily Quest speedrun — all objectives done!",
-                "Quest log: CLEARED. \(questTier) chest opened for \(gemsEarned) gems.",
-                "Today's quests were tough but that \(questTier) chest was worth it.",
+            
+            let openers = [
+                "Completed", "Finished", "Cleared", "Knocked out",
+                "Wrapped up", "Crushed", "Done with", "Conquered",
+                "Smashed through", "Swept",
             ]
-            let stats = [
-                "📋 Daily Quest · \(questTier)",
-                "🎁 Quest complete · +\(gemsEarned) 💎",
-                "✅ Daily Quest · Done",
-                "🏅 \(questTier) quest · Complete",
-                "📦 Quest chest · \(questTier)",
+            let subjects = [
+                "the Daily Quest", "today's quests", "all daily quests",
+                "today's Daily Quest", "every quest objective",
+                "the daily objectives", "today's quest log",
+                "the full quest line", "all three quests",
+                "the daily mission set",
             ]
-            return (templates.randomElement()!, stats.randomElement()!)
+            let details = [
+                "! \(questTier) chest earned 🎁",
+                " — \(questTier) reward chest grabbed.",
+                "! +\(gemsEarned) gems 💎",
+                ". \(questTier) tier. Easy gems today.",
+                " before lunch! \(questTier) chest 🏆",
+                " — all objectives done!",
+                ". \(questTier) chest opened for \(gemsEarned) gems.",
+                ". That \(questTier) chest was worth it.",
+                "! \(gemsEarned) gems richer now.",
+                ". \(questTier) chest in the bag!",
+            ]
+            
+            let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(details.randomElement()!)"
+            
+            let statEmojis = ["📋", "🎁", "✅", "🏅", "📦", "💎", "🎯"]
+            let statLabels = [
+                "Daily Quest · \(questTier)", "Quest complete · +\(gemsEarned) 💎",
+                "Daily Quest · Done", "\(questTier) quest · Complete",
+                "Quest chest · \(questTier)", "Quests cleared · \(questTier)",
+                "Daily objectives · Done", "Quest rewards · \(gemsEarned) 💎",
+                "\(questTier) chest · Opened", "Quest log · Cleared",
+            ]
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
         }
     }
     
