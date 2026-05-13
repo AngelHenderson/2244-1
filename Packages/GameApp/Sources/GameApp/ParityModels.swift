@@ -1591,141 +1591,159 @@ public struct MockSocialService: SocialService, Sendable {
             ])
         }
         
-        // All reaction and question variants are always available regardless of topic
-        positiveReactions.append(contentsOf: [
-            // Hall of Fame
-            "Welcome to the Hall of Fame!", "HoF! That's massive.",
-            "See you on the infinity leaderboard!", "Legendary!",
-            "The ultimate achievement!", "HoF gang!",
-            "You earned that spot.", "Top of the mountain!",
-            "That's endgame right there.", "Hall of Fame royalty!",
-            // Streak
-            "Nice streak!", "Don't lose it!", "Streak master!",
-            "Way to keep the fire going.", "Day by day!",
-            "Consistency is key!", "That's real dedication.",
-            "Streak warrior!", "Keep that flame alive!",
-            "Unbreakable streak energy!",
-            // Timed challenge
-            "Fast hands!", "Speed demon!", "Nice clear time!",
-            "Lightning fast!", "That's a blazing time!",
-            "Clock demolished!", "Speedrunner vibes!",
-            "Time is no obstacle for you!", "Built for speed!",
-            "That pace is unreal!",
-            // Theme
-            "Love that theme!", "Looks so fresh.", "Best theme in the game.",
-            "So pretty.", "That theme hits different.", "Clean aesthetic!",
-            "Your board looks amazing now!", "Perfect choice!",
-            "That theme is gorgeous.", "10/10 theme pick!",
-            // Quest
-            "Quest complete!", "Enjoy the rewards!", "Easy gems.",
-            "Clean sweep!", "Dailies crushed!", "Nice haul!",
-            "Quest master!", "That chest was earned!",
-            "Objectives demolished!", "Well played on the quests!",
-        ])
-        jealousReactions.append(contentsOf: [
-            // Hall of Fame
-            "I'll never reach the Hall of Fame", "How long did it take to get to HoF?",
-            "I'm still grinding for HoF", "HoF feels so far away for me",
-            "I dream about reaching HoF", "One day I'll join you there",
-            "Still so many tiles between me and HoF",
-            "I've been trying to reach HoF for months",
-            "That's literally my end goal", "HoF is my white whale",
-            // Streak
-            "I lost my streak yesterday", "How do you remember every day?",
-            "I can never keep a streak going", "My longest streak was like 5 days",
-            "I keep forgetting to log in", "Streaks stress me out",
-            "I lost a 30-day streak last week", "My streak always dies on weekends",
-            "I wish I had that consistency", "I'm so bad at maintaining streaks",
-            // Timed challenge
-            "I ran out of time today", "I couldn't beat the clock",
-            "You finished so fast", "I always choke under pressure",
-            "Timed challenges stress me out", "I need like double that time",
-            "My hands aren't fast enough", "I panic when the timer starts",
-            "I can never think that quickly", "Time pressure is my worst enemy",
-            // Theme
-            "I'm still trying to unlock that one", "I want that theme so bad",
-            "I don't have enough gems for it", "That's the theme I've been saving for",
-            "Why do the best themes cost so much", "I'm still on the default theme",
-            "Gem grind for that theme is real", "I need more gems for themes",
-            "Saving every gem for that exact theme", "I keep spending gems on perks instead",
-            // Quest
-            "I'm only halfway done with mine", "Those quests were so hard today",
-            "I never finish all the quests", "My quests are always impossible",
-            "I got stuck on the last objective", "I keep running out of time for quests",
-            "The quest RNG hates me", "I got the hardest quests today",
-            "I can never finish before reset", "Wish my quests were that easy",
-        ])
-        competitiveReactions.append(contentsOf: [
-            // Hall of Fame
-            "I will join the Hall of Fame and have a higher infinity count than you!",
-            "My infinity count will be bigger than yours.",
-            "I'm coming for your HoF spot.", "I'll have more infinities by next week.",
-            "Just wait until I get my HoF entry.",
-            "I'll be right behind you in the rankings.",
-            "My HoF push starts today.", "I'm going to pass your infinity count.",
-            "See you on the leaderboard soon.", "That HoF record won't last.",
-            // Streak
-            "My streak is longer than yours.", "I'm catching up to your streak.",
-            "I haven't missed a day in months.", "My streak will outlast yours.",
-            "That's cute, check mine.",
-            "My streak started before yours.", "I'm never breaking my streak.",
-            "Wait until you see my streak count.", "Streak vs streak, let's go.",
-            // Timed challenge
-            "I bet my time was faster.", "I'll beat your time tomorrow.",
-            "My PB is lower than that.", "I'm the real speed king.",
-            "That time is beatable.", "I'll sub that time easy.",
-            "Tomorrow I'm going for the record.", "My clear was cleaner.",
-            "I shaved 30 seconds off my best today.", "Speed challenge accepted.",
-            // Theme
-            "My theme is better.", "I have all the themes unlocked.",
-            "I had that theme ages ago.", "Wait until you see mine.",
-            "I unlocked every theme already.", "That's my second favorite theme.",
-            "I switch themes every week.", "My collection is complete.",
-            "I unlocked that one first day.", "Try collecting them all like me.",
-            // Quest
-            "I finished mine hours ago.", "I always finish quests faster.",
-            "I had those done by breakfast.", "My chest was better.",
-            "I got Diamond tier today.", "Quests are too easy honestly.",
-            "I speed-clear quests every day.", "I've finished every quest this month.",
-            "My quest streak is untouched.", "I finish dailies on my first game.",
-        ])
-        questions.append(contentsOf: [
-            // Hall of Fame
-            "How many infinity counts do you have?",
-            "Are you going for a high infinity count?",
-            "What's the next goal after HoF?",
-            "How many runs did it take to reach HoF?",
-            "What was the hardest part of the HoF grind?",
-            "Did you use any perks on the final push?",
-            "What tile were you stuck on the longest?",
-            "How long have you been playing to reach HoF?",
-            "Any advice for someone aiming for HoF?",
-            "What's your infinity count goal?",
-            // Streak
-            "How long is your streak now?", "Did you ever use a streak freeze?",
-            "Have you ever lost a long streak?", "What's your all-time best streak?",
-            "Do you set a reminder?", "What time do you usually play?",
-            "Has the streak ever been in danger?", "Do you play first thing in the morning?",
-            "What keeps you motivated for the streak?", "Ever almost forgot?",
-            // Timed challenge
-            "What was your exact time?", "Did you pause at all?",
-            "What's your fastest ever?", "Did you use a hammer during the run?",
-            "How do you plan moves so fast?", "Do you practice speed runs?",
-            "What's your average clear time?", "Any speed tips?",
-            "Do you go for speed or safety?", "Was that your first attempt today?",
-            // Theme
-            "Which theme is that?", "How much did that cost?",
-            "How many gems was it?", "Is that your favorite theme?",
-            "Do you switch themes often?", "Which theme do you use most?",
-            "How many themes have you unlocked?", "Was it worth the gems?",
-            "What's the rarest theme?", "Does it change the tile colors too?",
-            // Quest
-            "What did you get from the chest?", "Were your quests hard?",
-            "What tier chest was it?", "How long did the quests take?",
-            "Do you do quests first thing?", "Which quest was the hardest?",
-            "Did you get any good gems?", "What's the best chest you've ever pulled?",
-            "Do you always finish all three?", "Any quest tips for new players?",
-        ])
+        // Dynamically inject topic-specific reactions based on the feed item's message
+        if message.contains("Hall of Fame") {
+            positiveReactions.append(contentsOf: [
+                "Welcome to the Hall of Fame!", "HoF! That's massive.",
+                "See you on the infinity leaderboard!", "Legendary!",
+                "The ultimate achievement!", "HoF gang!",
+                "You earned that spot.", "Top of the mountain!",
+                "That's endgame right there.", "Hall of Fame royalty!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'll never reach the Hall of Fame", "How long did it take to get to HoF?",
+                "I'm still grinding for HoF", "HoF feels so far away for me",
+                "I dream about reaching HoF", "One day I'll join you there",
+                "Still so many tiles between me and HoF",
+                "I've been trying to reach HoF for months",
+                "That's literally my end goal", "HoF is my white whale",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I will join the Hall of Fame and have a higher infinity count than you!",
+                "My infinity count will be bigger than yours.",
+                "I'm coming for your HoF spot.", "I'll have more infinities by next week.",
+                "Just wait until I get my HoF entry.",
+                "I'll be right behind you in the rankings.",
+                "My HoF push starts today.", "I'm going to pass your infinity count.",
+                "See you on the leaderboard soon.", "That HoF record won't last.",
+            ])
+            questions.append(contentsOf: [
+                "How many infinity counts do you have?",
+                "Are you going for a high infinity count?",
+                "What's the next goal after HoF?",
+                "How many runs did it take to reach HoF?",
+                "What was the hardest part of the HoF grind?",
+                "Did you use any perks on the final push?",
+                "What tile were you stuck on the longest?",
+                "How long have you been playing to reach HoF?",
+                "Any advice for someone aiming for HoF?",
+                "What's your infinity count goal?",
+            ])
+        } else if message.contains("streak") {
+            positiveReactions.append(contentsOf: [
+                "Nice streak!", "Don't lose it!", "Streak master!",
+                "Way to keep the fire going.", "Day by day!",
+                "Consistency is key!", "That's real dedication.",
+                "Streak warrior!", "Keep that flame alive!",
+                "Unbreakable streak energy!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I lost my streak yesterday", "How do you remember every day?",
+                "I can never keep a streak going", "My longest streak was like 5 days",
+                "I keep forgetting to log in", "Streaks stress me out",
+                "I lost a 30-day streak last week", "My streak always dies on weekends",
+                "I wish I had that consistency", "I'm so bad at maintaining streaks",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "My streak is longer than yours.", "I'm catching up to your streak.",
+                "I haven't missed a day in months.", "My streak will outlast yours.",
+                "That's cute, check mine.",
+                "My streak started before yours.", "I'm never breaking my streak.",
+                "Wait until you see my streak count.", "Streak vs streak, let's go.",
+            ])
+            questions.append(contentsOf: [
+                "How long is your streak now?", "Did you ever use a streak freeze?",
+                "Have you ever lost a long streak?", "What's your all-time best streak?",
+                "Do you set a reminder?", "What time do you usually play?",
+                "Has the streak ever been in danger?", "Do you play first thing in the morning?",
+                "What keeps you motivated for the streak?", "Ever almost forgot?",
+            ])
+        } else if message.contains("timed challenge") {
+            positiveReactions.append(contentsOf: [
+                "Fast hands!", "Speed demon!", "Nice clear time!",
+                "Lightning fast!", "That's a blazing time!",
+                "Clock demolished!", "Speedrunner vibes!",
+                "Time is no obstacle for you!", "Built for speed!",
+                "That pace is unreal!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I ran out of time today", "I couldn't beat the clock",
+                "You finished so fast", "I always choke under pressure",
+                "Timed challenges stress me out", "I need like double that time",
+                "My hands aren't fast enough", "I panic when the timer starts",
+                "I can never think that quickly", "Time pressure is my worst enemy",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I bet my time was faster.", "I'll beat your time tomorrow.",
+                "My PB is lower than that.", "I'm the real speed king.",
+                "That time is beatable.", "I'll sub that time easy.",
+                "Tomorrow I'm going for the record.", "My clear was cleaner.",
+                "I shaved 30 seconds off my best today.", "Speed challenge accepted.",
+            ])
+            questions.append(contentsOf: [
+                "What was your exact time?", "Did you pause at all?",
+                "What's your fastest ever?", "Did you use a hammer during the run?",
+                "How do you plan moves so fast?", "Do you practice speed runs?",
+                "What's your average clear time?", "Any speed tips?",
+                "Do you go for speed or safety?", "Was that your first attempt today?",
+            ])
+        } else if message.contains("theme") {
+            positiveReactions.append(contentsOf: [
+                "Love that theme!", "Looks so fresh.", "Best theme in the game.",
+                "So pretty.", "That theme hits different.", "Clean aesthetic!",
+                "Your board looks amazing now!", "Perfect choice!",
+                "That theme is gorgeous.", "10/10 theme pick!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'm still trying to unlock that one", "I want that theme so bad",
+                "I don't have enough gems for it", "That's the theme I've been saving for",
+                "Why do the best themes cost so much", "I'm still on the default theme",
+                "Gem grind for that theme is real", "I need more gems for themes",
+                "Saving every gem for that exact theme", "I keep spending gems on perks instead",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "My theme is better.", "I have all the themes unlocked.",
+                "I had that theme ages ago.", "Wait until you see mine.",
+                "I unlocked every theme already.", "That's my second favorite theme.",
+                "I switch themes every week.", "My collection is complete.",
+                "I unlocked that one first day.", "Try collecting them all like me.",
+            ])
+            questions.append(contentsOf: [
+                "Which theme is that?", "How much did that cost?",
+                "How many gems was it?", "Is that your favorite theme?",
+                "Do you switch themes often?", "Which theme do you use most?",
+                "How many themes have you unlocked?", "Was it worth the gems?",
+                "What's the rarest theme?", "Does it change the tile colors too?",
+            ])
+        } else if message.contains("Quest") {
+            positiveReactions.append(contentsOf: [
+                "Quest complete!", "Enjoy the rewards!", "Easy gems.",
+                "Clean sweep!", "Dailies crushed!", "Nice haul!",
+                "Quest master!", "That chest was earned!",
+                "Objectives demolished!", "Well played on the quests!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'm only halfway done with mine", "Those quests were so hard today",
+                "I never finish all the quests", "My quests are always impossible",
+                "I got stuck on the last objective", "I keep running out of time for quests",
+                "The quest RNG hates me", "I got the hardest quests today",
+                "I can never finish before reset", "Wish my quests were that easy",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I finished mine hours ago.", "I always finish quests faster.",
+                "I had those done by breakfast.", "My chest was better.",
+                "I got Diamond tier today.", "Quests are too easy honestly.",
+                "I speed-clear quests every day.", "I've finished every quest this month.",
+                "My quest streak is untouched.", "I finish dailies on my first game.",
+            ])
+            questions.append(contentsOf: [
+                "What did you get from the chest?", "Were your quests hard?",
+                "What tier chest was it?", "How long did the quests take?",
+                "Do you do quests first thing?", "Which quest was the hardest?",
+                "Did you get any good gems?", "What's the best chest you've ever pulled?",
+                "Do you always finish all three?", "Any quest tips for new players?",
+            ])
+        }
         
         // Detect specific milestones if present in the message
         let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
