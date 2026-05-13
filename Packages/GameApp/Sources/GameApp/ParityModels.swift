@@ -992,7 +992,12 @@ public struct MockSocialService: SocialService, Sendable {
                 responderName = cached[index].authorName // Reply as the post author
             }
             
-            let responseText = "@Player " + generateDynamicComment(message: cached[index].message)
+            let responseText: String
+            if let answer = milestoneAnswer(for: text) {
+                responseText = "@Player " + answer
+            } else {
+                responseText = "@Player " + generateDynamicComment(message: cached[index].message)
+            }
             let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
             cached[index].comments.append(responseComment)
             
@@ -1090,7 +1095,13 @@ public struct MockSocialService: SocialService, Sendable {
                 if responseIndices.contains(index) && !commentAuthors.isEmpty {
                     let replyingTo = commentAuthors.randomElement()!
                     if replyingTo != commentAuthor {
-                        commentText = "@\(replyingTo) " + commentText
+                        // Check if the comment being replied to asks about the next milestone
+                        let previousComment = comments.last(where: { $0.authorName == replyingTo })
+                        if let prev = previousComment, let answer = milestoneAnswer(for: prev.text) {
+                            commentText = "@\(replyingTo) " + answer
+                        } else {
+                            commentText = "@\(replyingTo) " + commentText
+                        }
                     }
                 }
                 
@@ -1661,6 +1672,31 @@ public struct MockSocialService: SocialService, Sendable {
         return comment.trimmingCharacters(in: .whitespaces)
     }
     
+    /// Returns a milestone-aware answer if the text asks "what comes after [milestone]".
+    private func milestoneAnswer(for text: String) -> String? {
+        let lowered = text.lowercased()
+        guard lowered.contains("what comes after") || lowered.contains("what's after")
+              || lowered.contains("whats after") || lowered.contains("what is after") else {
+            return nil
+        }
+        // Search longest-first to avoid partial matches (e.g. "2" inside "262K")
+        let sorted = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
+        for (idx, milestone) in sorted {
+            if text.contains(milestone), idx + 1 < Self.allMilestones.count {
+                let next = Self.allMilestones[idx + 1]
+                let templates = [
+                    "\(next) comes after \(milestone).",
+                    "After \(milestone) it's \(next)!",
+                    "The next tile after \(milestone) is \(next).",
+                    "\(milestone) → \(next). Keep pushing!",
+                    "\(next)! That's what's after \(milestone).",
+                ]
+                return templates.randomElement()!
+            }
+        }
+        return nil
+    }
+
     private func generateDynamicName() -> String {
         if Double.random(in: 0...1) < 0.25 {
             let realNames = ["James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel", "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George", "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail", "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael", "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila", "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich"]
