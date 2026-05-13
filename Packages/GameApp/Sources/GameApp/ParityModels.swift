@@ -3,6 +3,7 @@ import SwiftUI
 import Observation
 import GameCore
 import GameServices
+import GameUI
 
 public enum PlayerGoal: String, Codable, CaseIterable, Identifiable, Sendable {
     case relax
