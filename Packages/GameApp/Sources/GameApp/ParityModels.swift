@@ -1022,25 +1022,61 @@ public struct MockSocialService: SocialService, Sendable {
         let playerName = defaults.string(forKey: "player.displayName") ?? "Player"
         let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
-        // Auto-generate mock comments reacting to the player's event
+        // Generate 5–30 comments matching the same pattern as mock feed items
+        let numTopLevel = Int.random(in: 3...15)
+        let numReplies = Int.random(in: 2...15)
+        let totalComments = numTopLevel + numReplies
+
+        // Sort offsets so conversation flows chronologically (30 min – 24 hr spread)
+        var commentOffsets: [Double] = []
+        for _ in 0..<totalComments {
+            commentOffsets.append(Double.random(in: 1800...86400))
+        }
+        commentOffsets.sort()
+
+        // Mark which indices are replies to previous comments
+        var replyIndices = Set<Int>()
+        if totalComments > 1 {
+            var available = Array(1..<totalComments)
+            available.shuffle()
+            for i in 0..<min(numReplies, available.count) {
+                replyIndices.insert(available[i])
+            }
+        }
+
         var comments: [SocialFeedComment] = []
-        let numComments = Int.random(in: 2...6)
-        for _ in 0..<numComments {
+        var commentAuthors: [String] = []
+
+        for (index, offset) in commentOffsets.enumerated() {
             let commenter = generateDynamicName()
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
-            let commentText = generateDynamicComment(message: message)
-            let delay = Double.random(in: 1800...86400) // 30 min – 24 hr
+            var commentText = generateDynamicComment(message: message)
+
+            // If this is a reply, reference a previous commenter
+            if replyIndices.contains(index), !commentAuthors.isEmpty {
+                let replyTo = commentAuthors.randomElement()!
+                if replyTo != commenter {
+                    let previousComment = comments.last(where: { $0.authorName == replyTo })
+                    if let prev = previousComment {
+                        commentText = "@\(replyTo) " + generateContextualReply(to: prev.text, message: message)
+                    } else {
+                        commentText = "@\(replyTo) " + commentText
+                    }
+                }
+            }
+
             comments.append(SocialFeedComment(
                 authorName: commenter,
                 avatarID: commenterAvatar,
                 text: commentText,
-                createdAt: now.addingTimeInterval(delay),
-                likes: Int.random(in: 0...8)
+                createdAt: now.addingTimeInterval(offset),
+                likes: Int.random(in: 0...10)
             ))
+            commentAuthors.append(commenter)
         }
 
-        // Reaction timestamps spread over the next 24 hours
+        // Heart/reaction timestamps spread over the next 24 hours
         let numReactions = Int.random(in: 5...30)
         var rTimestamps: [Date] = []
         for _ in 0..<numReactions {
