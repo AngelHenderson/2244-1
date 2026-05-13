@@ -1738,74 +1738,41 @@ public struct MockSocialService: SocialService, Sendable {
         
         if roll < 0.55 {
             // ── Competitive (55%) ──
-            let sub = Int.random(in: 0...2)
-            switch sub {
-            case 0:
-                // standalone competitive reaction
-                comment = "\(competitiveReactions.randomElement()!)"
-            case 1:
-                // competitive reaction + adjective subject
-                comment = "\(competitiveReactions.randomElement()!) \(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!) though."
-            default:
-                // competitive + question
-                comment = "\(competitiveReactions.randomElement()!) \(questions.randomElement()!)"
+            let opener = openers.randomElement()!
+            let reaction = competitiveReactions.randomElement()!
+            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+            if Bool.random() {
+                comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
+            } else {
+                comment = opener.isEmpty ? core.capitalized + ". \(reaction)" : "\(opener) \(core). \(reaction)"
             }
             tone = "competitive"
         } else if roll < 0.80 {
             // ── Positive (25%) ──
-            let sub = Int.random(in: 0...3)
-            switch sub {
-            case 0:
-                // opener + subject verb adjective!
-                let opener = openers.randomElement()!
-                let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+            let opener = openers.randomElement()!
+            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+            if Bool.random() {
                 comment = opener.isEmpty ? core.capitalized + "!" : "\(opener) \(core)!"
-            case 1:
-                // standalone positive reaction
-                comment = "\(positiveReactions.randomElement()!)"
-            case 2:
-                // opener + positive reaction
-                let opener = openers.randomElement()!
+            } else {
                 let reaction = positiveReactions.randomElement()!
                 comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
-            default:
-                // positive reaction + subject verb adjective
-                comment = "\(positiveReactions.randomElement()!) \(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!)."
             }
             tone = "positive"
         } else if roll < 0.95 {
             // ── Question (15%) ──
-            let sub = Int.random(in: 0...3)
-            switch sub {
-            case 0:
-                // positive reaction + question
-                comment = "\(positiveReactions.randomElement()!) \(questions.randomElement()!)"
-            case 1:
-                // opener + subject verb adjective. question
-                let opener = openers.randomElement()!
-                let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
-                let sentence = opener.isEmpty ? core.capitalized + "." : "\(opener) \(core)."
-                comment = "\(sentence) \(questions.randomElement()!)"
-            case 2:
-                // standalone question
-                comment = "\(questions.randomElement()!)"
-            default:
-                // jealous reaction + question
-                comment = "\(jealousReactions.randomElement()!). \(questions.randomElement()!)"
-            }
+            let opener = openers.randomElement()!
+            let question = questions.randomElement()!
+            comment = opener.isEmpty ? question : "\(opener) \(question.lowercased())"
             tone = "question"
         } else {
             // ── Jealous (5%) ──
-            let sub = Int.random(in: 0...1)
-            switch sub {
-            case 0:
-                // standalone jealous reaction
-                comment = "\(jealousReactions.randomElement()!)"
-            default:
-                // opener + jealous reaction
-                let opener = openers.randomElement()!
-                let reaction = jealousReactions.randomElement()!
+            let opener = openers.randomElement()!
+            let reaction = jealousReactions.randomElement()!
+            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+            if Bool.random() {
                 comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
+            } else {
+                comment = opener.isEmpty ? "\(core.capitalized)... \(reaction)" : "\(opener) \(core)... \(reaction)"
             }
             tone = "sad"
         }
@@ -1854,14 +1821,18 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private func generateDynamicName() -> String {
+        // Use the exact names from the leaderboard — gamertags and real names only
         if Double.random(in: 0...1) < 0.25 {
-            let realNames = ["James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel", "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George", "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail", "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael", "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila", "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich"]
-            let lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Anderson", "Taylor", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Thompson", "White", "Harris", "Clark", "Garcia", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Perez", "Sanchez", "Ramirez", "Torres", "Mueller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann"]
+            // 25% chance: real name + last name (matching leaderboard realNames/lastNames)
+            let realNames = LeaderboardClient.realNames
+            let lastNames = LeaderboardClient.lastNames
             return realNames.randomElement()! + " " + lastNames.randomElement()!
+        } else if Double.random(in: 0...1) < 0.5 {
+            // ~37.5%: Hall of Fame gamertags
+            return LeaderboardClient.hallOfFameNames.randomElement()!
         } else {
-            let baseNames = ["DefenselessMetal", "LopingLemming", "DensePage", "BrittleBelly", "PerfectPirate", "CaramelStamp", "CulturalDerision", "KnownOwner", "SwiftCoder", "PixelMaster", "NeonRacer", "CloudJumper", "StarGazer", "ThunderBolt", "CryptoKing", "MidnightOwl", "SolarFlare", "OceanWave", "MountainPeak", "DesertStorm", "JungleCat", "ArcticFox", "TropicalBird", "CosmicDust", "QuantumLeap", "NebulaStar", "GalaxyRider", "AsteroidHunter", "CometChaser", "MeteorShower", "SaturnRing", "JupiterMoon", "MarsRover", "VenusFlyer", "MercuryDash", "PlutoExplorer", "NeptuneWave", "UranusOrbit", "EarthGuard", "SunBlaze", "MoonWalker", "StarDancer", "SpacePilot", "RocketMan", "LaserBeam", "PhotonBlast", "NeutronStar", "ProtonPower", "ElectronFlow", "AtomSmasher", "MoleculeMix", "CellDivider", "DNAHelix", "RNAStrand", "ProteinFold", "EnzymeCat", "VitaminBoost", "MineralRock", "CrystalClear", "DiamondEdge", "RubyGlow", "SapphireShine", "EmeraldDream", "AmethystMist", "TopazSun", "OpalMoon", "PearlOcean", "JadeForest", "OnyxShadow", "GarnetFire", "TurquoiseSky", "CoralReef", "IvoryTower", "BronzeAge", "SilverLining", "GoldRush", "PlatinumPro", "TitaniumStrong", "CopperGlow", "IronWill", "SteelNerve", "AluminumLight", "ZincShield", "NickelSpin", "CobaltBlue", "ChromeFinish", "TungstenTough", "MolybdenumMax", "VanadiumVibe", "ManganeseMight", "PalladiumPure", "RhodiumRare", "IridiumIntense", "OsmiumOdd", "RheniumRich", "TantalumTwist", "HafniumHigh", "ZirconiumZest", "NiobiumNova", "TokyoTiger", "LondonLion", "ParisPanther", "BerlinBear", "SydneySerpent", "TorontoTornado", "MadridMaverick", "RomeRaider", "SaoPauloStar", "MumbaiMaster", "ShanghaiShark", "MoscowMight", "DubaiDragon", "SingaporeSurge", "HongKongHero", "SeoulSniper", "BangkokBolt", "JakartaJet", "CairoChamp", "LagoosLegend", "NairobiNinja", "CapeTownCrush", "BuenosAiresBoss", "MexicoCityMaster", "LimaaLion", "SantiagoStorm", "BogotaBeast", "CaracasChamp", "HavannaHawk", "KingstonKing", "MontrealMaverick", "VancouverVictor", "MelbourneMight", "AucklandAce", "WellingtonWolf", "OsakaOracle", "KyotoKnight", "NagoyaNinja", "FukuokaaFury", "SapporoStrike", "MunichMaster", "HamburgHero", "FrankfurtFlash", "CologneCrusher", "DusseldorfDragon", "AmsterdamAce", "BrussellsBoss", "ViennaViking", "ZurichZealot", "GenevaGhost"]
-            let number = String(format: "%06d", Int.random(in: 100000...999999))
-            return baseNames.randomElement()! + number
+            // ~37.5%: Global leaderboard gamertags
+            return LeaderboardClient.globalNames.randomElement()!
         }
     }
 }
