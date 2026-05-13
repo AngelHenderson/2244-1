@@ -1090,6 +1090,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
                 var commentText = generateDynamicComment(message: message)
+                var commentOffset = offset
                 
                 // If this index is marked as a response, reply to a previous comment
                 if responseIndices.contains(index) && !commentAuthors.isEmpty {
@@ -1099,6 +1100,9 @@ public struct MockSocialService: SocialService, Sendable {
                         let previousComment = comments.last(where: { $0.authorName == replyingTo })
                         if let prev = previousComment, let answer = milestoneAnswer(for: prev.text) {
                             commentText = "@\(replyingTo) " + answer
+                            // Use a 30 min – 24 hr delay after the question
+                            let questionOffset = prev.createdAt.timeIntervalSince(now)
+                            commentOffset = questionOffset + Double.random(in: 1800...86400)
                         } else {
                             commentText = "@\(replyingTo) " + commentText
                         }
@@ -1109,7 +1113,7 @@ public struct MockSocialService: SocialService, Sendable {
                     authorName: commentAuthor,
                     avatarID: commentAvatar,
                     text: commentText,
-                    createdAt: now.addingTimeInterval(offset),
+                    createdAt: now.addingTimeInterval(commentOffset),
                     likes: Int.random(in: 0...10)
                 ))
                 
