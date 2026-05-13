@@ -1329,15 +1329,55 @@ public struct MockSocialService: SocialService, Sendable {
     }
     
     private func generateDynamicComment(message: String) -> String {
-        let openers = ["Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,", ""]
-        var subjects = ["that run", "your board", "your progress", "that score", "this setup", "your grid", "the late game"]
-        let verbs = ["is", "looks", "feels", "was"]
-        let adjectives = ["insane", "amazing", "unreal", "so clean", "mind-blowing", "crazy", "perfect", "solid", "epic", "brilliant", "next level", "flawless"]
+        let openers = [
+            "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
+            "No way,", "Wait,", "Bruh,", "Sheesh,", "Yo,", "Ngl,", "Ayo,",
+            "",
+        ]
+        var subjects = [
+            "that run", "your board", "your progress", "that score", "this setup",
+            "your grid", "the late game", "your strategy", "that chain", "this result",
+            "your merge path", "this endgame", "your tile placement",
+        ]
+        let verbs = [
+            "is", "looks", "feels", "was", "seems", "hits different",
+            "sounds", "turned out", "ended up", "came out",
+        ]
+        let adjectives = [
+            "insane", "amazing", "unreal", "so clean", "mind-blowing", "crazy",
+            "perfect", "solid", "epic", "brilliant", "next level", "flawless",
+            "wild", "godly", "legendary", "nuts", "chef's kiss", "top tier",
+        ]
         
-        var positiveReactions = ["GG!", "Nice!", "Incredible!", "Keep it up!", "Let's go!", "Fire!", "Huge!", "Well deserved!", "Too good!", "Teach me!"]
-        var jealousReactions = ["So jealous", "I can't even get past 1M", "My board never looks like that", "How is that even possible", "You make it look so easy", "I'm stuck on the previous tier", "I always lose right here"]
-        var competitiveReactions = ["I am going to reach higher milestones than you!", "Watch your back, I'm catching up.", "Enjoy it while it lasts.", "My next run will beat that.", "I'm coming for your spot.", "You won't be ahead for long.", "Game on."]
-        var questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
+        var positiveReactions = [
+            "GG!", "Nice!", "Incredible!", "Keep it up!", "Let's go!", "Fire!",
+            "Huge!", "Well deserved!", "Too good!", "Teach me!", "What a play!",
+            "Respect!", "Built different.", "Massive W!", "That's elite!",
+        ]
+        var jealousReactions = [
+            "So jealous", "I can't even get past 1M", "My board never looks like that",
+            "How is that even possible", "You make it look so easy",
+            "I'm stuck on the previous tier", "I always lose right here",
+            "Meanwhile I'm still struggling", "Must be nice",
+            "I wish my runs went like that", "Pain. Just pain.",
+            "I keep choking at this point", "Why can't I do this",
+        ]
+        var competitiveReactions = [
+            "I am going to reach higher milestones than you!",
+            "Watch your back, I'm catching up.", "Enjoy it while it lasts.",
+            "My next run will beat that.", "I'm coming for your spot.",
+            "You won't be ahead for long.", "Game on.",
+            "Challenge accepted.", "That record is mine tomorrow.",
+            "I'll be posting my own soon.", "Not impressed, I'm right behind you.",
+            "Hold my tiles.", "Say less, I'm locking in.",
+        ]
+        var questions = [
+            "How long did that take?", "What's your secret?", "Any tips for this tier?",
+            "How many moves did it take?", "Did you use any swaps?", "Was it tough?",
+            "Can I add you?", "Do you play every day?", "What perks did you use?",
+            "How many attempts was that?", "Were you using a hammer?",
+            "What's your total playtime?", "Did you plan that chain or was it luck?",
+        ]
         
         // Symbols categorized by tone
         let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
@@ -1348,35 +1388,185 @@ public struct MockSocialService: SocialService, Sendable {
         
         // Dynamically inject topic-specific terminology based on the feed item's message
         if message.contains("Hall of Fame") {
-            subjects.append(contentsOf: ["that HoF entry", "joining the Hall of Fame", "this legendary status", "reaching the end", "that infinity rank"])
-            positiveReactions.append(contentsOf: ["Welcome to the Hall of Fame!", "HoF! That's massive.", "See you on the infinity leaderboard!", "Legendary!", "The ultimate achievement!"])
-            jealousReactions.append(contentsOf: ["I'll never reach the Hall of Fame", "How long did it take to get to HoF?", "I'm still grinding for HoF"])
-            competitiveReactions.append(contentsOf: ["I will join the Hall of Fame and have a higher infinity count than you!", "My infinity count will be bigger than yours.", "I'm coming for your HoF spot."])
-            questions.append(contentsOf: ["How many infinity counts do you have?", "Are you going for a high infinity count?", "What's the next goal after HoF?"])
+            subjects.append(contentsOf: [
+                "that HoF entry", "joining the Hall of Fame", "this legendary status",
+                "reaching the end", "that infinity rank", "your HoF grind",
+                "the infinity milestone", "that Hall of Fame badge", "becoming a legend",
+                "this HoF moment",
+            ])
+            positiveReactions.append(contentsOf: [
+                "Welcome to the Hall of Fame!", "HoF! That's massive.",
+                "See you on the infinity leaderboard!", "Legendary!",
+                "The ultimate achievement!", "HoF gang!",
+                "You earned that spot.", "Top of the mountain!",
+                "That's endgame right there.", "Hall of Fame royalty!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'll never reach the Hall of Fame", "How long did it take to get to HoF?",
+                "I'm still grinding for HoF", "HoF feels so far away for me",
+                "I dream about reaching HoF", "One day I'll join you there",
+                "Still so many tiles between me and HoF",
+                "I've been trying to reach HoF for months",
+                "That's literally my end goal", "HoF is my white whale",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I will join the Hall of Fame and have a higher infinity count than you!",
+                "My infinity count will be bigger than yours.",
+                "I'm coming for your HoF spot.", "I'll have more infinities by next week.",
+                "Just wait until I get my HoF entry.",
+                "I'll be right behind you in the rankings.",
+                "My HoF push starts today.", "I'm going to pass your infinity count.",
+                "See you on the leaderboard soon.", "That HoF record won't last.",
+            ])
+            questions.append(contentsOf: [
+                "How many infinity counts do you have?",
+                "Are you going for a high infinity count?",
+                "What's the next goal after HoF?",
+                "How many runs did it take to reach HoF?",
+                "What was the hardest part of the HoF grind?",
+                "Did you use any perks on the final push?",
+                "What tile were you stuck on the longest?",
+                "How long have you been playing to reach HoF?",
+                "Any advice for someone aiming for HoF?",
+                "What's your infinity count goal?",
+            ])
         } else if message.contains("streak") {
-            subjects.append(contentsOf: ["that streak", "your daily consistency", "keeping it alive"])
-            positiveReactions.append(contentsOf: ["Nice streak!", "Don't lose it!", "Streak master!", "Way to keep the fire going."])
-            jealousReactions.append(contentsOf: ["I lost my streak yesterday", "How do you remember every day?", "I can never keep a streak going"])
-            competitiveReactions.append(contentsOf: ["My streak is longer than yours.", "I'm catching up to your streak."])
-            questions.append(contentsOf: ["How long is your streak now?", "Did you ever use a streak freeze?"])
+            subjects.append(contentsOf: [
+                "that streak", "your daily consistency", "keeping it alive",
+                "that commitment", "your dedication", "the streak grind",
+                "never missing a day", "your login streak", "that daily discipline",
+                "showing up every day",
+            ])
+            positiveReactions.append(contentsOf: [
+                "Nice streak!", "Don't lose it!", "Streak master!",
+                "Way to keep the fire going.", "Day by day!",
+                "Consistency is key!", "That's real dedication.",
+                "Streak warrior!", "Keep that flame alive!",
+                "Unbreakable streak energy!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I lost my streak yesterday", "How do you remember every day?",
+                "I can never keep a streak going", "My longest streak was like 5 days",
+                "I keep forgetting to log in", "Streaks stress me out",
+                "I lost a 30-day streak last week", "My streak always dies on weekends",
+                "I wish I had that consistency", "I'm so bad at maintaining streaks",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "My streak is longer than yours.", "I'm catching up to your streak.",
+                "I haven't missed a day in months.", "My streak will outlast yours.",
+                "That's cute, check mine.", "I'll double that streak.",
+                "My streak started before yours.", "I'm never breaking my streak.",
+                "Wait until you see my streak count.", "Streak vs streak, let's go.",
+            ])
+            questions.append(contentsOf: [
+                "How long is your streak now?", "Did you ever use a streak freeze?",
+                "Have you ever lost a long streak?", "What's your all-time best streak?",
+                "Do you set a reminder?", "What time do you usually play?",
+                "Has the streak ever been in danger?", "Do you play first thing in the morning?",
+                "What keeps you motivated for the streak?", "Ever almost forgot?",
+            ])
         } else if message.contains("timed challenge") {
-            subjects.append(contentsOf: ["that time", "your speed", "the daily run"])
-            positiveReactions.append(contentsOf: ["Fast hands!", "Speed demon!", "Nice clear time!"])
-            jealousReactions.append(contentsOf: ["I ran out of time today", "I couldn't beat the clock", "You finished so fast"])
-            competitiveReactions.append(contentsOf: ["I bet my time was faster.", "I'll beat your time tomorrow."])
-            questions.append(contentsOf: ["What was your exact time?", "Did you pause at all?"])
+            subjects.append(contentsOf: [
+                "that time", "your speed", "the daily run", "that clear time",
+                "your reaction speed", "the clutch finish", "that speedrun",
+                "your timed performance", "beating the clock", "that pace",
+            ])
+            positiveReactions.append(contentsOf: [
+                "Fast hands!", "Speed demon!", "Nice clear time!",
+                "Lightning fast!", "That's a blazing time!",
+                "Clock demolished!", "Speedrunner vibes!",
+                "Time is no obstacle for you!", "Built for speed!",
+                "That pace is unreal!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I ran out of time today", "I couldn't beat the clock",
+                "You finished so fast", "I always choke under pressure",
+                "Timed challenges stress me out", "I need like double that time",
+                "My hands aren't fast enough", "I panic when the timer starts",
+                "I can never think that quickly", "Time pressure is my worst enemy",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I bet my time was faster.", "I'll beat your time tomorrow.",
+                "My PB is lower than that.", "I'm the real speed king.",
+                "That time is beatable.", "I'll sub that time easy.",
+                "Tomorrow I'm going for the record.", "My clear was cleaner.",
+                "I shaved 30 seconds off my best today.", "Speed challenge accepted.",
+            ])
+            questions.append(contentsOf: [
+                "What was your exact time?", "Did you pause at all?",
+                "What's your fastest ever?", "Did you use a hammer during the run?",
+                "How do you plan moves so fast?", "Do you practice speed runs?",
+                "What's your average clear time?", "Any speed tips?",
+                "Do you go for speed or safety?", "Was that your first attempt today?",
+            ])
         } else if message.contains("theme") {
-            subjects.append(contentsOf: ["that new theme", "your new aesthetic", "the customization"])
-            positiveReactions.append(contentsOf: ["Love that theme!", "Looks so fresh.", "Best theme in the game.", "So pretty."])
-            jealousReactions.append(contentsOf: ["I'm still trying to unlock that one", "I want that theme so bad", "I don't have enough gems for it"])
-            competitiveReactions.append(contentsOf: ["My theme is better.", "I have all the themes unlocked."])
-            questions.append(contentsOf: ["Which theme is that?", "How much did that cost?"])
+            subjects.append(contentsOf: [
+                "that new theme", "your new aesthetic", "the customization",
+                "the new board look", "your style choice", "that color palette",
+                "the fresh vibes", "that theme swap", "the new visual",
+                "your board makeover",
+            ])
+            positiveReactions.append(contentsOf: [
+                "Love that theme!", "Looks so fresh.", "Best theme in the game.",
+                "So pretty.", "That theme hits different.", "Clean aesthetic!",
+                "Your board looks amazing now!", "Perfect choice!",
+                "That theme is gorgeous.", "10/10 theme pick!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'm still trying to unlock that one", "I want that theme so bad",
+                "I don't have enough gems for it", "That's the theme I've been saving for",
+                "Why do the best themes cost so much", "I'm still on the default theme",
+                "Gem grind for that theme is real", "I need more gems for themes",
+                "Saving every gem for that exact theme", "I keep spending gems on perks instead",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "My theme is better.", "I have all the themes unlocked.",
+                "I had that theme ages ago.", "Wait until you see mine.",
+                "I unlocked every theme already.", "That's my second favorite theme.",
+                "I switch themes every week.", "My collection is complete.",
+                "I unlocked that one first day.", "Try collecting them all like me.",
+            ])
+            questions.append(contentsOf: [
+                "Which theme is that?", "How much did that cost?",
+                "How many gems was it?", "Is that your favorite theme?",
+                "Do you switch themes often?", "Which theme do you use most?",
+                "How many themes have you unlocked?", "Was it worth the gems?",
+                "What's the rarest theme?", "Does it change the tile colors too?",
+            ])
         } else if message.contains("Quest") {
-            subjects.append(contentsOf: ["that quest completion", "finishing the dailies", "getting those rewards"])
-            positiveReactions.append(contentsOf: ["Quest complete!", "Enjoy the rewards!", "Easy gems."])
-            jealousReactions.append(contentsOf: ["I'm only halfway done with mine", "Those quests were so hard today"])
-            competitiveReactions.append(contentsOf: ["I finished mine hours ago.", "I always finish quests faster."])
-            questions.append(contentsOf: ["What did you get from the chest?", "Were your quests hard?"])
+            subjects.append(contentsOf: [
+                "that quest completion", "finishing the dailies", "getting those rewards",
+                "clearing all objectives", "that quest grind", "the daily hustle",
+                "knocking out quests", "that chest pull", "completing every quest",
+                "the quest speedrun",
+            ])
+            positiveReactions.append(contentsOf: [
+                "Quest complete!", "Enjoy the rewards!", "Easy gems.",
+                "Clean sweep!", "Dailies crushed!", "Nice haul!",
+                "Quest master!", "That chest was earned!",
+                "Objectives demolished!", "Well played on the quests!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'm only halfway done with mine", "Those quests were so hard today",
+                "I never finish all the quests", "My quests are always impossible",
+                "I got stuck on the last objective", "I keep running out of time for quests",
+                "The quest RNG hates me", "I got the hardest quests today",
+                "I can never finish before reset", "Wish my quests were that easy",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I finished mine hours ago.", "I always finish quests faster.",
+                "I had those done by breakfast.", "My chest was better.",
+                "I got Diamond tier today.", "Quests are too easy honestly.",
+                "I speed-clear quests every day.", "I've finished every quest this month.",
+                "My quest streak is untouched.", "I finish dailies on my first game.",
+            ])
+            questions.append(contentsOf: [
+                "What did you get from the chest?", "Were your quests hard?",
+                "What tier chest was it?", "How long did the quests take?",
+                "Do you do quests first thing?", "Which quest was the hardest?",
+                "Did you get any good gems?", "What's the best chest you've ever pulled?",
+                "Do you always finish all three?", "Any quest tips for new players?",
+            ])
         }
         
         // Detect specific milestones if present in the message
@@ -1384,11 +1574,39 @@ public struct MockSocialService: SocialService, Sendable {
         if let foundMilestone = sortedMilestones.first(where: { message.contains(" \($0) ") }) {
             let m = foundMilestone
             if Double.random(in: 0...1) < 0.6 {
-                subjects.append(contentsOf: ["that \(m)", "hitting \(m)", "your \(m)", "this \(m) run"])
-                positiveReactions.append(contentsOf: ["GG on \(m)!", "\(m) is huge!", "Congrats on \(m)!"])
-                jealousReactions.append(contentsOf: ["I can't even get to \(m)", "How did you get \(m) so fast?", "I always lose before \(m)"])
-                competitiveReactions.append(contentsOf: ["I'm getting past \(m) today.", "I'll beat your \(m)."])
-                questions.append(contentsOf: ["Any tips for getting \(m)?", "Was \(m) tough?"])
+                subjects.append(contentsOf: [
+                    "that \(m)", "hitting \(m)", "your \(m)", "this \(m) run",
+                    "reaching \(m)", "the \(m) grind", "breaking into \(m)",
+                    "your \(m) push", "that \(m) breakthrough", "landing \(m)",
+                ])
+                positiveReactions.append(contentsOf: [
+                    "GG on \(m)!", "\(m) is huge!", "Congrats on \(m)!",
+                    "\(m)! Let's go!", "Massive \(m) hit!", "Big \(m) energy!",
+                    "\(m) club!", "Welcome to \(m)!", "\(m) earned!",
+                    "\(m) is no joke, well done!",
+                ])
+                jealousReactions.append(contentsOf: [
+                    "I can't even get to \(m)", "How did you get \(m) so fast?",
+                    "I always lose before \(m)", "I've been stuck before \(m) forever",
+                    "\(m) feels impossible for me", "I choke right before \(m)",
+                    "My board always falls apart near \(m)",
+                    "I keep dying one tile before \(m)",
+                    "\(m) is my wall right now", "Maybe someday I'll reach \(m)",
+                ])
+                competitiveReactions.append(contentsOf: [
+                    "I'm getting past \(m) today.", "I'll beat your \(m).",
+                    "I passed \(m) last week.", "My \(m) run was cleaner.",
+                    "\(m) is old news for me.", "I'll be past \(m) by tonight.",
+                    "Already beyond \(m) personally.", "My \(m) time was faster.",
+                    "I hit \(m) without any perks.", "\(m)? I'm aiming higher.",
+                ])
+                questions.append(contentsOf: [
+                    "Any tips for getting \(m)?", "Was \(m) tough?",
+                    "How many tries for \(m)?", "What's the strategy near \(m)?",
+                    "Did you use perks at \(m)?", "How long to reach \(m)?",
+                    "What comes after \(m)?", "Is \(m) a big wall?",
+                    "What tile was hardest before \(m)?", "Any perk recommendations for \(m)?",
+                ])
             }
         }
         
