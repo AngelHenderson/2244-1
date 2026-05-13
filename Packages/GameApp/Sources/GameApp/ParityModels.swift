@@ -1795,18 +1795,13 @@ public struct MockSocialService: SocialService, Sendable {
             // ── Competitive (55%) ──
             let opener = openers.randomElement()!
             let reaction = competitiveReactions.randomElement()!
-            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
-            if Bool.random() {
-                comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
-            } else {
-                comment = opener.isEmpty ? core.capitalized + ". \(reaction)" : "\(opener) \(core). \(reaction)"
-            }
+            comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
             tone = "competitive"
         } else if roll < 0.80 {
             // ── Positive (25%) ──
             let opener = openers.randomElement()!
-            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
             if Bool.random() {
+                let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
                 comment = opener.isEmpty ? core.capitalized + "!" : "\(opener) \(core)!"
             } else {
                 let reaction = positiveReactions.randomElement()!
@@ -1823,12 +1818,7 @@ public struct MockSocialService: SocialService, Sendable {
             // ── Jealous (5%) ──
             let opener = openers.randomElement()!
             let reaction = jealousReactions.randomElement()!
-            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
-            if Bool.random() {
-                comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
-            } else {
-                comment = opener.isEmpty ? "\(core.capitalized)... \(reaction)" : "\(opener) \(core)... \(reaction)"
-            }
+            comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
             tone = "sad"
         }
         
