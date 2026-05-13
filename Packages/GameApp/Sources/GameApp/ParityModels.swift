@@ -720,6 +720,7 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
 public protocol SocialService: Sendable {
     func feed() async throws -> [SocialFeedItem]
     func addComment(to itemID: UUID, text: String) async throws
+    func postEvent(message: String, statText: String) async throws
     func toggleItemHeart(itemID: UUID) async throws
     func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
@@ -745,6 +746,10 @@ public struct UnavailableSocialService: SocialService, Sendable {
     }
 
     public func addComment(to itemID: UUID, text: String) async throws {
+        throw SocialServiceError.unavailable
+    }
+
+    public func postEvent(message: String, statText: String) async throws {
         throw SocialServiceError.unavailable
     }
 
@@ -924,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v2"
-    private static let feedDateKey = "socialFeed.cacheDate.v2"
+    private static let feedCacheKey = "socialFeed.cache.v3"
+    private static let feedDateKey = "socialFeed.cacheDate.v3"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1003,6 +1008,67 @@ public struct MockSocialService: SocialService, Sendable {
             
             cached[index].commentCount = cached[index].comments.count
             if let newData = try? JSONEncoder().encode(cached) {
+                defaults.set(newData, forKey: Self.feedCacheKey)
+            }
+        }
+    }
+
+    public func postEvent(message: String, statText: String) async throws {
+        let defaults = UserDefaults.standard
+        let now = Date()
+        let currentDay = Self.daysSinceReference
+
+        // Build the player's post
+        let playerName = defaults.string(forKey: "player.displayName") ?? "Player"
+        let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
+
+        // Auto-generate mock comments reacting to the player's event
+        var comments: [SocialFeedComment] = []
+        let numComments = Int.random(in: 2...6)
+        for _ in 0..<numComments {
+            let commenter = generateDynamicName()
+            let commenterIndex = Int.random(in: 1...100000)
+            let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
+            let commentText = generateDynamicComment(message: message)
+            let delay = Double.random(in: 1800...86400) // 30 min – 24 hr
+            comments.append(SocialFeedComment(
+                authorName: commenter,
+                avatarID: commenterAvatar,
+                text: commentText,
+                createdAt: now.addingTimeInterval(delay),
+                likes: Int.random(in: 0...8)
+            ))
+        }
+
+        // Reaction timestamps spread over the next 24 hours
+        let numReactions = Int.random(in: 5...30)
+        var rTimestamps: [Date] = []
+        for _ in 0..<numReactions {
+            rTimestamps.append(now.addingTimeInterval(Double.random(in: 0...86400)))
+        }
+
+        let newItem = SocialFeedItem(
+            authorName: playerName,
+            avatarID: playerAvatar,
+            createdAt: now,
+            message: message,
+            statText: statText,
+            reactionCount: rTimestamps.filter { $0 <= now }.count,
+            commentCount: comments.filter { $0.createdAt <= now }.count,
+            comments: comments.sorted(by: { $0.createdAt < $1.createdAt }),
+            reactionTimestamps: rTimestamps
+        )
+
+        // Insert at the top of the cached feed
+        if let data = defaults.data(forKey: Self.feedCacheKey),
+           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+            cached.insert(newItem, at: 0)
+            if let newData = try? JSONEncoder().encode(cached) {
+                defaults.set(newData, forKey: Self.feedCacheKey)
+            }
+        } else {
+            // No existing cache — start a fresh one with just this item
+            if let newData = try? JSONEncoder().encode([newItem]) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
         }
@@ -1792,13 +1858,11 @@ public struct MockSocialService: SocialService, Sendable {
         let roll = Double.random(in: 0..<1)
         
         if roll < 0.55 {
-            // ── Competitive (55%) ──
-            let opener = openers.randomElement()!
-            let reaction = competitiveReactions.randomElement()!
-            comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
+            // ── Competitive (55%) — standalone, no opener ──
+            comment = competitiveReactions.randomElement()!
             tone = "competitive"
         } else if roll < 0.80 {
-            // ── Positive (25%) ──
+            // ── Positive (25%) — with opener + subject/verb/adj ──
             let opener = openers.randomElement()!
             if Bool.random() {
                 let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
@@ -1809,13 +1873,11 @@ public struct MockSocialService: SocialService, Sendable {
             }
             tone = "positive"
         } else if roll < 0.95 {
-            // ── Question (15%) ──
-            let opener = openers.randomElement()!
-            let question = questions.randomElement()!
-            comment = opener.isEmpty ? question : "\(opener) \(question.lowercased())"
+            // ── Question (15%) — standalone, no opener ──
+            comment = questions.randomElement()!
             tone = "question"
         } else {
-            // ── Jealous (5%) ──
+            // ── Jealous (5%) — with opener ──
             let opener = openers.randomElement()!
             let reaction = jealousReactions.randomElement()!
             comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
