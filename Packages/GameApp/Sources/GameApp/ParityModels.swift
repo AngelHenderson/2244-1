@@ -1196,10 +1196,17 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public func invites() async throws -> [FamilyInvite] {
-        [
-            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-1", status: "Invited"),
-            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-2", status: "Can invite"),
-            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-3", status: "Can invite")
+        let codeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        func makeCode() -> String {
+            let left = String((0..<3).map { _ in codeChars.randomElement()! })
+            let right = String((0..<3).map { _ in codeChars.randomElement()! })
+            return "\(left)-\(right)"
+        }
+        let names = Self.leaderboardGamertags.shuffled().prefix(3)
+        return [
+            FamilyInvite(displayName: String(names[names.startIndex]), emailOrCode: makeCode(), status: "Invited"),
+            FamilyInvite(displayName: String(names[names.index(names.startIndex, offsetBy: 1)]), emailOrCode: makeCode(), status: "Can invite"),
+            FamilyInvite(displayName: String(names[names.index(names.startIndex, offsetBy: 2)]), emailOrCode: makeCode(), status: "Can invite"),
         ]
     }
     
