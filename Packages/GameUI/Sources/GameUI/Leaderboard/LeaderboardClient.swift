@@ -4957,12 +4957,15 @@ public extension LeaderboardClient {
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
         for (rank, player) in progressedData.enumerated() {
-            // Use unique name from hallOfFameNames with daily variation (HoF seed: 999999)
-            let name = MockLeaderboardData.nameForPlayer(index: rank, names: MockLeaderboardData.hallOfFameNames, countrySeed: 999999, day: day)
+            // Use the player's stable nameIndex (assigned at creation, never changes)
+            // instead of the post-sort rank. This keeps explicit HoF players' names
+            // constant even when new dynamic scalable-country players enter the list
+            // and shift everyone's rank positions.
+            let name = MockLeaderboardData.nameForPlayer(index: player.nameIndex, names: MockLeaderboardData.hallOfFameNames, countrySeed: 999999, day: day)
 
-            let platform: Platform = rank % 2 == 0 ? .ios : .android
-            // Use seeded avatar selection with daily variation (HoF seed: 999999)
-            let avatar = MockLeaderboardData.avatarForPlayer(index: rank, countrySeed: 999999, day: day)
+            let platform: Platform = player.nameIndex % 2 == 0 ? .ios : .android
+            // Use stable nameIndex for avatar too, so it doesn't shift with rank changes
+            let avatar = MockLeaderboardData.avatarForPlayer(index: player.nameIndex, countrySeed: 999999, day: day)
             let score = MockLeaderboardData.scoreForMilestone("\(player.progressedCount)∞")
 
             entries.append(LeaderboardEntry(

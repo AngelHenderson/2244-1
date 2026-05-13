@@ -3,7 +3,6 @@ import SwiftUI
 import Observation
 import GameCore
 import GameServices
-import GameUI
 
 public enum PlayerGoal: String, Codable, CaseIterable, Identifiable, Sendable {
     case relax
@@ -997,7 +996,7 @@ public struct MockSocialService: SocialService, Sendable {
             if let answer = milestoneAnswer(for: text) {
                 responseText = "@Player " + answer
             } else {
-                responseText = "@Player " + generateDynamicComment(message: cached[index].message)
+                responseText = "@Player " + generateContextualReply(to: text, message: cached[index].message)
             }
             let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
             cached[index].comments.append(responseComment)
@@ -1104,6 +1103,11 @@ public struct MockSocialService: SocialService, Sendable {
                             // Use a 30 min – 24 hr delay after the question
                             let questionOffset = prev.createdAt.timeIntervalSince(now)
                             commentOffset = questionOffset + Double.random(in: 1800...86400)
+                        } else if let prev = previousComment {
+                            commentText = "@\(replyingTo) " + generateContextualReply(to: prev.text, message: message)
+                            // Respond sometime after the comment being replied to
+                            let prevOffset = prev.createdAt.timeIntervalSince(now)
+                            commentOffset = prevOffset + Double.random(in: 600...43200)
                         } else {
                             commentText = "@\(replyingTo) " + commentText
                         }
@@ -1821,19 +1825,280 @@ public struct MockSocialService: SocialService, Sendable {
         return nil
     }
 
+    /// Generates a contextual reply that responds to what the previous comment actually said.
+    private func generateContextualReply(to commentText: String, message: String) -> String {
+        let lowered = commentText.lowercased()
+
+        // Strip any leading @mention from the comment so we analyze the real content
+        let strippedText: String = {
+            if lowered.hasPrefix("@") {
+                let parts = commentText.split(separator: " ", maxSplits: 1)
+                return parts.count > 1 ? String(parts[1]) : commentText
+            }
+            return commentText
+        }()
+        let strippedLower = strippedText.lowercased()
+
+        // ── Detect the tone/intent of the comment being replied to ──
+
+        let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
+        let isQuestion = questionKeywords.contains(where: { strippedLower.contains($0) })
+
+        let competitiveKeywords = ["beat", "catching up", "coming for", "won't last", "watch your back", "game on", "challenge", "mine tomorrow", "i'll be", "i'm going to", "not impressed", "my time", "faster", "i passed", "old news", "hold my"]
+        let isCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
+
+        let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never"]
+        let isJealous = jealousKeywords.contains(where: { strippedLower.contains($0) })
+
+        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite"]
+        let isPositive = positiveKeywords.contains(where: { strippedLower.contains($0) })
+
+        let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
+        let isAddRequest = addFriendKeywords.contains(where: { strippedLower.contains($0) })
+
+        // ── Generate contextual replies based on detected intent ──
+
+        if isAddRequest {
+            let replies = [
+                "Sure! My code is in my profile 🤝",
+                "Absolutely, add me anytime!",
+                "Yeah let's link up! Check my profile.",
+                "Of course! Always looking for friends 😊",
+                "Go for it! More competition is always fun.",
+                "Yes! Send me a friend request 🎮",
+                "For sure — the more the merrier!",
+                "Definitely! Let's compete together.",
+            ]
+            return replies.randomElement()!
+        }
+
+        if isQuestion {
+            // Reply with an answer-style response
+            var answers = [
+                "Honestly, just keep grinding and it clicks.",
+                "Took me a while, but consistency helps a lot.",
+                "The trick is patience and keeping lanes open.",
+                "I usually plan 3-4 moves ahead. That helps.",
+                "Just practice! Everyone struggles at first.",
+                "No special trick, just played a LOT 😅",
+                "Focus on keeping one corner anchored.",
+                "Perks help but they're not required.",
+                "A few attempts honestly. Not gonna lie it was rough.",
+                "I watched some replays to figure out the pattern.",
+            ]
+            // Topic-specific answers
+            if message.contains("Hall of Fame") {
+                answers.append(contentsOf: [
+                    "Took about 3 months of daily play to get to HoF.",
+                    "The key is never giving up once you're past the 'a' tiers.",
+                    "Keep pushing through the alphabet tiers and you'll get there.",
+                    "Honestly the hardest part was the 'z' to 'aa' transition.",
+                ])
+            } else if message.contains("streak") {
+                answers.append(contentsOf: [
+                    "I set a phone reminder every evening.",
+                    "Play right after waking up — never miss!",
+                    "Almost lost it twice, but pulled through 😅",
+                    "The first week is the hardest, then it becomes habit.",
+                ])
+            } else if message.contains("timed") || message.contains("speed") {
+                answers.append(contentsOf: [
+                    "Speed comes from pattern recognition. Keep at it!",
+                    "I don't overthink — just go with instinct.",
+                    "Practice the daily challenge every day, times drop naturally.",
+                    "Quick swipes and no second-guessing. That's my style.",
+                ])
+            } else if message.contains("theme") {
+                answers.append(contentsOf: [
+                    "Worth every gem, honestly!",
+                    "I've been saving up for weeks for this one.",
+                    "It changes the whole feel of the game.",
+                    "The colors on this theme are so soothing.",
+                ])
+            } else if message.contains("Quest") || message.contains("quest") {
+                answers.append(contentsOf: [
+                    "I always start with the hardest quest first.",
+                    "Today's quests were actually pretty easy.",
+                    "The chest rewards are so worth it.",
+                    "I try to knock them out in my first session.",
+                ])
+            }
+            return answers.randomElement()!
+        }
+
+        if isCompetitive {
+            // Reply to competitive trash talk
+            let replies = [
+                "Bring it on 😏",
+                "We'll see about that 👀",
+                "Talk is cheap — show me the screenshot 📸",
+                "I'll be waiting at the top 🏔️",
+                "Lol good luck with that 😂",
+                "Respect the confidence! Let's see it.",
+                "Actions speak louder than comments 💪",
+                "Keep that same energy next week 😈",
+                "I love the competition honestly!",
+                "You're on. May the best player win.",
+                "Haha alright, consider this a rivalry.",
+                "Come find me on the leaderboard then 🎯",
+            ]
+            return replies.randomElement()!
+        }
+
+        if isJealous {
+            // Reply encouragingly to jealous/struggling comments
+            let replies = [
+                "You'll get there! Just keep playing 💪",
+                "I was in the same spot a few weeks ago. Don't give up!",
+                "Honestly, it took me forever too. Patience is key.",
+                "Everyone progresses at their own pace. You got this!",
+                "Trust the process — breakthroughs happen randomly.",
+                "I believe in you! Keep grinding 🔥",
+                "We all hit walls. The fun is breaking through them.",
+                "It'll click eventually. Happened to me too!",
+                "Keep at it! The struggle makes the win sweeter.",
+                "Don't worry, half the fun is the journey.",
+                "Seriously, I almost quit before my breakthrough. Stay with it.",
+                "You're closer than you think 🙌",
+            ]
+            return replies.randomElement()!
+        }
+
+        if isPositive {
+            // Reply to compliments/positive reactions
+            let replies = [
+                "Thanks! 🙌",
+                "Appreciate it! 😊",
+                "Right back at you!",
+                "Thanks, means a lot!",
+                "Haha thanks! Keep grinding too!",
+                "Thank you! We're all in this together 🔥",
+                "❤️ appreciate the love!",
+                "Thanks! Your turn next!",
+                "Cheers! Good luck on your runs!",
+                "Ty! See you on the leaderboard!",
+                "So kind! Thank you 😄",
+                "Aww thanks! This community is the best.",
+            ]
+            return replies.randomElement()!
+        }
+
+        // ── Fallback: generic but still conversational ──
+        let fallbacks = [
+            "Honestly, your grid was perfect. Can I add you? 🤝",
+            "Facts. That's exactly how I see it too.",
+            "Couldn't have said it better myself.",
+            "Haha right? This game is something else.",
+            "For real though! 💯",
+            "Completely agree with this.",
+            "Yo same energy over here 😄",
+            "That's what I'm saying!",
+            "Big facts! 🔥",
+            "We need more of this in the feed honestly.",
+            "Love seeing this kind of energy.",
+            "This right here. 👆",
+        ]
+        return fallbacks.randomElement()!
+    }
+
+    // Gamertags from the global leaderboard (exact match to LeaderboardClient.globalNames)
+    private static let leaderboardGamertags = [
+        "DefenselessMetal113090", "LopingLemming366775", "DensePage606454", "BrittleBelly378166", "PerfectPirate002198",
+        "CaramelStamp540035", "Player006362", "CulturalDerision125825", "KnownOwner816617", "SwiftCoder159607",
+        "PixelMaster748740", "NeonRacer607539", "CloudJumper689506", "StarGazer002024", "ThunderBolt507614",
+        "CryptoKing712740", "MidnightOwl188137", "SolarFlare036196", "OceanWave878869", "MountainPeak660972",
+        "DesertStorm875175", "JungleCat510460", "ArcticFox939275", "TropicalBird570541", "CosmicDust555331",
+        "QuantumLeap035256", "NebulaStar541366", "GalaxyRider213281", "AsteroidHunter307929", "CometChaser943999",
+        "MeteorShower490180", "SaturnRing106251", "JupiterMoon945882", "MarsRover652511", "VenusFlyer746976",
+        "MercuryDash434165", "PlutoExplorer378313", "NeptuneWave575300", "UranusOrbit060276", "EarthGuard724482",
+        "SunBlaze762087", "MoonWalker401411", "StarDancer746126", "SpacePilot446429", "RocketMan803508",
+        "LaserBeam193628", "PhotonBlast369925", "NeutronStar967846", "ProtonPower572084", "ElectronFlow288169",
+        "AtomSmasher302943", "MoleculeMix835494", "CellDivider926550", "DNAHelix431818", "RNAStrand123317",
+        "ProteinFold990603", "EnzymeCat244951", "VitaminBoost636173", "MineralRock121189", "CrystalClear873097",
+        "DiamondEdge628696", "RubyGlow895754", "SapphireShine479114", "EmeraldDream535535", "AmethystMist642606",
+        "TopazSun210254", "OpalMoon281552", "PearlOcean894781", "JadeForest723448", "OnyxShadow478670",
+        "GarnetFire754374", "TurquoiseSky641687", "CoralReef948207", "IvoryTower682707", "BronzeAge633030",
+        "SilverLining743365", "GoldRush682418", "PlatinumPro917381", "TitaniumStrong231738", "CopperGlow256951",
+        "IronWill317193", "SteelNerve121543", "AluminumLight184188", "ZincShield809081", "NickelSpin810647",
+        "CobaltBlue134447", "ChromeFinish771732", "TungstenTough258394", "MolybdenumMax376493", "VanadiumVibe172034",
+        "ManganeseMight774509", "PalladiumPure453084", "RhodiumRare101269", "IridiumIntense672277", "OsmiumOdd233561",
+        "RheniumRich695253", "TantalumTwist258498", "HafniumHigh509980", "ZirconiumZest230030", "NiobiumNova237940",
+        "TokyoTiger778294", "LondonLion245602", "ParisPanther498589", "BerlinBear008218", "SydneySerpent634772",
+        "TorontoTornado515976", "MadridMaverick983643", "RomeRaider184724", "SaoPauloStar483164", "MumbaiMaster482711",
+        "ShanghaiShark890139", "MoscowMight810148", "DubaiDragon354547", "SingaporeSurge500873", "HongKongHero351162",
+        "SeoulSniper578452", "BangkokBolt182848", "JakartaJet643384", "CairoChamp081350", "LagoosLegend866099",
+        "NairobiNinja892405", "CapeTownCrush621130", "BuenosAiresBoss725008", "MexicoCityMaster392481", "LimaaLion485983",
+        "SantiagoStorm444097", "BogotaBeast471443", "CaracasChamp147285", "HavannaHawk401550", "KingstonKing737312",
+        "MontrealMaverick378582", "VancouverVictor981419", "MelbourneMight815557", "AucklandAce491276", "WellingtonWolf315877",
+        "OsakaOracle255633", "KyotoKnight377863", "NagoyaNinja611040", "FukuokaaFury815070", "SapporoStrike777002",
+        "MunichMaster942913", "HamburgHero964803", "FrankfurtFlash676648", "CologneCrusher742603", "DusseldorfDragon908503",
+        "AmsterdamAce262368", "BrussellsBoss822873", "ViennaViking160358", "ZurichZealot419278", "GenevaGhost254315",
+        // Hall of Fame gamertags (exact match to LeaderboardClient.hallOfFameNames)
+        "InfinityMaster462572", "EndlessVoyager", "BeyondLimits422678", "EternalChamp", "UltimatePlayer",
+        "LegendaryGamer", "InfiniteWinner", "CosmicConqueror", "SupremeVictor", "DivinePlayer",
+        "MythicalHero", "TranscendentOne", "OmnipotentGamer", "CelestialKing", "ImmortalPlayer",
+        "UnstoppableForce", "PerfectScore571450", "FlawlessVictory", "AbsoluteChamp", "MaxLevelPro",
+        "GodTierPlayer", "EliteInfinity", "MasterOfAll", "ChampOfChamps", "NumberOneForever",
+        "SkillMaxed367578", "TopDogForever", "KingOfKings", "QueenSupreme", "UltimateVictory",
+        "BeyondPerfect", "EndgameBoss", "FinalFormPro", "MaxPowerUser", "InfiniteGlory",
+        "EternalVictory", "LimitBreaker661070", "BoundlessSkill", "NeverEndingWin", "ForeverFirst",
+        "AlphaOmega531681", "ZenithReached", "ApexPredator099366", "PinnaclePlayer", "SummitSeeker",
+        "VanguardVictor", "ParagonPrime", "SupremeSeeker", "TitanTamer", "OlympianOne",
+        "PhoenixRisen", "DragonSlayer864745", "ThunderGod795666", "StormBringer", "LightningLord",
+        "ShadowMaster", "VoidWalker214877", "CosmicRuler", "GalacticKing", "UniversalChamp",
+        "StarForger112263", "NebulaNinja", "QuantumKing911350", "DimensionLord", "RealityBender",
+        "SpeedStar545327", "FastFury575123", "QuickQueen", "RapidRuler", "SwiftStar",
+        "WolfWarrior218074", "FoxFury352370", "BearBoss", "TigerTitan", "LionLord",
+    ]
+
+    // Real names from the leaderboard (exact match to LeaderboardClient.realNames)
+    private static let leaderboardRealNames = [
+        "James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel",
+        "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George",
+        "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail",
+        "Emily", "Elizabeth", "Sofia", "Avery", "Ella", "Scarlett", "Grace", "Chloe", "Victoria", "Riley",
+        "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael",
+        "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila",
+        "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich", "Dieter", "Helmut", "Werner", "Gerhard", "Manfred",
+        "Pierre", "Jean", "Jacques", "François", "Michel", "Philippe", "Alain", "Bernard", "Christophe", "Thierry",
+        "Marco", "Giuseppe", "Giovanni", "Francesco", "Antonio", "Alessandro", "Andrea", "Luca", "Matteo", "Lorenzo",
+        "Hiroshi", "Takeshi", "Kenji", "Yuki", "Haruto", "Sota", "Ren", "Kaito", "Asahi", "Minato",
+        "Minho", "Jiwon", "Seojun", "Dohyun", "Hajun", "Junwoo", "Siwoo", "Yejun", "Jiho", "Junseo",
+        "Wei", "Fang", "Lei", "Jun", "Ming", "Tao", "Hao", "Chen", "Lin", "Jian",
+        "Raj", "Amit", "Vikram", "Rahul", "Arjun", "Aditya", "Rohan", "Karan", "Nikhil", "Sanjay",
+        "Pedro", "Lucas", "Gabriel", "Matheus", "Guilherme", "Bruno", "Felipe", "Gustavo", "Leonardo",
+        "Ivan", "Dmitri", "Alexei", "Sergei", "Nikolai", "Viktor", "Andrei", "Pavel", "Mikhail", "Oleg",
+        "Ahmed", "Mohamed", "Ali", "Omar", "Hassan", "Yusuf", "Ibrahim", "Khalid", "Tariq", "Nasser",
+        "Erik", "Lars", "Anders", "Magnus", "Olaf", "Bjorn", "Sven", "Gunnar", "Harald", "Leif",
+    ]
+
+    // Last names from the leaderboard (exact match to LeaderboardClient.lastNames)
+    private static let leaderboardLastNames = [
+        "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Anderson",
+        "Taylor", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Thompson", "White", "Harris", "Clark",
+        "Lewis", "Robinson", "Walker", "Hall", "Young", "King", "Wright", "Hill", "Scott", "Green",
+        "Garcia", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Perez", "Sanchez", "Ramirez", "Torres",
+        "Mueller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann",
+        "Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Moreau",
+        "Rossi", "Russo", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino", "Greco",
+        "Sato", "Suzuki", "Takahashi", "Tanaka", "Watanabe", "Ito", "Yamamoto", "Nakamura", "Kobayashi", "Kato",
+        "Kim", "Lee", "Park", "Choi", "Jung", "Kang", "Cho", "Yoon", "Jang", "Lim",
+        "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Wu", "Zhou",
+        "Sharma", "Patel", "Singh", "Kumar", "Gupta", "Verma", "Reddy", "Joshi", "Rao", "Mehta",
+        "Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes",
+        "Ivanov", "Smirnov", "Kuznetsov", "Popov", "Vasiliev", "Petrov", "Sokolov", "Mikhailov", "Fedorov", "Morozov",
+        "Al-Rashid", "Al-Farsi", "Al-Hassan", "Al-Mansour", "Al-Nasser", "Al-Hamad", "Al-Salem", "Al-Khalid",
+        "Andersen", "Hansen", "Johansen", "Larsen", "Olsen", "Pedersen", "Nilsen", "Kristiansen", "Jensen", "Karlsen",
+    ]
+
     private func generateDynamicName() -> String {
-        // Use the exact names from the leaderboard — gamertags and real names only
+        // Use only names from the leaderboard — no random or invented names
         if Double.random(in: 0...1) < 0.25 {
-            // 25% chance: real name + last name (matching leaderboard realNames/lastNames)
-            let realNames = LeaderboardClient.realNames
-            let lastNames = LeaderboardClient.lastNames
-            return realNames.randomElement()! + " " + lastNames.randomElement()!
-        } else if Double.random(in: 0...1) < 0.5 {
-            // ~37.5%: Hall of Fame gamertags
-            return LeaderboardClient.hallOfFameNames.randomElement()!
+            // 25%: real name + last name (matching leaderboard players)
+            return Self.leaderboardRealNames.randomElement()! + " " + Self.leaderboardLastNames.randomElement()!
         } else {
-            // ~37.5%: Global leaderboard gamertags
-            return LeaderboardClient.globalNames.randomElement()!
+            // 75%: leaderboard gamertags
+            return Self.leaderboardGamertags.randomElement()!
         }
     }
 }
