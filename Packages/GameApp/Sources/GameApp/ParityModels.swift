@@ -1454,7 +1454,7 @@ public struct MockSocialService: SocialService, Sendable {
             competitiveReactions.append(contentsOf: [
                 "My streak is longer than yours.", "I'm catching up to your streak.",
                 "I haven't missed a day in months.", "My streak will outlast yours.",
-                "That's cute, check mine.", "I'll double that streak.",
+                "That's cute, check mine.",
                 "My streak started before yours.", "I'm never breaking my streak.",
                 "Wait until you see my streak count.", "Streak vs streak, let's go.",
             ])
