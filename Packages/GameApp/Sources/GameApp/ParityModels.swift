@@ -1076,8 +1076,8 @@ public struct MockSocialService: SocialService, Sendable {
             commentAuthors.append(commenter)
         }
 
-        // Heart/reaction timestamps spread over the next 24 hours
-        let numReactions = Int.random(in: 5...30)
+        // Heart/reaction timestamps spread over the next 24 hours (10–50, same as mock feed)
+        let numReactions = Int.random(in: 10...50)
         var rTimestamps: [Date] = []
         for _ in 0..<numReactions {
             rTimestamps.append(now.addingTimeInterval(Double.random(in: 0...86400)))
