@@ -929,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v6"
-    private static let feedDateKey = "socialFeed.cacheDate.v6"
+    private static let feedCacheKey = "socialFeed.cache.v7"
+    private static let feedDateKey = "socialFeed.cacheDate.v7"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -2232,14 +2232,72 @@ public struct MockSocialService: SocialService, Sendable {
     ]
 
     private func generateDynamicName() -> String {
-        // Use only names from the leaderboard — no random or invented names
-        if Double.random(in: 0...1) < 0.25 {
-            // 25%: real name + last name (matching leaderboard players)
-            return Self.leaderboardRealNames.randomElement()! + " " + Self.leaderboardLastNames.randomElement()!
+        // Mirror LeaderboardClient.nameForPlayer deterministic logic so every
+        // name that appears in the feed also exists on the leaderboard.
+        let index = Int.random(in: 0..<1000)
+        let countrySeed = Int.random(in: 0..<50)
+        let day = Self.daysSinceReference
+
+        // Same threshold split as leaderboard: 15% real name for top 150
+        // indices, 30% for extended indices.
+        let realNameThreshold: Double = index < 150 ? 0.15 : 0.30
+        let typeRoll = Self.seededNameRandom(seed: index &* 401 &+ countrySeed &* 83, index: index)
+
+        if typeRoll < realNameThreshold {
+            // Real first name — pick deterministically from the pool
+            let nameIndex = (index &+ countrySeed) % Self.leaderboardRealNames.count
+            let firstName = Self.leaderboardRealNames[nameIndex]
+
+            // Region-matched last name (same pool offsets as leaderboard)
+            let regionStart: Int
+            if nameIndex < 40 { regionStart = 0 }         // English
+            else if nameIndex < 60 { regionStart = 40 }   // Hispanic
+            else if nameIndex < 80 { regionStart = 60 }   // German
+            else if nameIndex < 100 { regionStart = 80 }  // French
+            else if nameIndex < 120 { regionStart = 100 } // Italian
+            else { regionStart = 0 }                       // Fallback
+
+            // Last name arrays share similar region grouping
+            let lastIndex = (index &+ countrySeed &+ day) % Self.leaderboardLastNames.count
+            // Use a region-aware pick when possible
+            let regionSize = 10
+            let lastNameIndex: Int
+            if regionStart / 10 < Self.leaderboardLastNames.count / regionSize {
+                let base = (regionStart / 2) % Self.leaderboardLastNames.count
+                lastNameIndex = base + ((index &+ countrySeed) % min(regionSize, Self.leaderboardLastNames.count - base))
+            } else {
+                lastNameIndex = lastIndex
+            }
+            let lastName = Self.leaderboardLastNames[lastNameIndex % Self.leaderboardLastNames.count]
+            return firstName + " " + lastName
         } else {
-            // 75%: leaderboard gamertags
-            return Self.leaderboardGamertags.randomElement()!
+            // Gamertag — use the combined global + HoF pool
+            let pool = Self.leaderboardGamertags
+            let nameIdx = (index &+ countrySeed) % pool.count
+            var baseName = pool[nameIdx]
+
+            // Strip trailing digits (same as leaderboard)
+            while let last = baseName.last, last.isNumber {
+                baseName.removeLast()
+            }
+
+            // 55% of gamertags get a 6-digit suffix (same as leaderboard)
+            let numberRoll = Self.seededNameRandom(seed: index &* 709 &+ countrySeed &* 151, index: index)
+            if numberRoll < 0.55 {
+                let numSeed = Self.seededNameRandom(seed: index &* 823 &+ countrySeed &* 179, index: index)
+                let number = 100000 + Int(numSeed * 900000)
+                return baseName + String(format: "%06d", number)
+            }
+            return baseName
         }
+    }
+
+    /// Deterministic hash matching the leaderboard's seededRandom exactly.
+    private static func seededNameRandom(seed: Int, index: Int) -> Double {
+        var state = UInt64(seed &+ index &* 2654435761)
+        state = state &* 6364136223846793005 &+ 1442695040888963407
+        state = state &* 6364136223846793005 &+ 1442695040888963407
+        return Double(state & 0x7FFFFFFF) / Double(0x7FFFFFFF)
     }
 }
 
