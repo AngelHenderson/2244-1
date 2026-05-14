@@ -15,17 +15,6 @@ extension AchievementDef.Rewards.Entry.Kind {
         }
     }
 
-    var iconName: String {
-        switch self {
-        case .gems: return "gem"
-        case .spins: return "arrow.triangle.2.circlepath"
-        case .hammers: return "hammer.fill"
-        case .magnets: return "dot.radiowaves.left.and.right"
-        case .swaps: return "arrow.2.squarepath"
-        case .boost2x, .boost3x, .boost4x: return "bolt.circle.fill"
-        }
-    }
-
     var iconColor: Color {
         switch self {
         case .gems: return .cyan

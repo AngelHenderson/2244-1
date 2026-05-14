@@ -929,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v5"
-    private static let feedDateKey = "socialFeed.cacheDate.v5"
+    private static let feedCacheKey = "socialFeed.cache.v6"
+    private static let feedDateKey = "socialFeed.cacheDate.v6"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1030,7 +1030,7 @@ public struct MockSocialService: SocialService, Sendable {
         // Sort offsets so conversation flows chronologically (30 min – 24 hr spread)
         var commentOffsets: [Double] = []
         for _ in 0..<totalComments {
-            commentOffsets.append(Double.random(in: 1800...86400))
+            commentOffsets.append(Double.random(in: -86400...(-120)))
         }
         commentOffsets.sort()
 
@@ -1080,7 +1080,7 @@ public struct MockSocialService: SocialService, Sendable {
         let numReactions = Int.random(in: 10...50)
         var rTimestamps: [Date] = []
         for _ in 0..<numReactions {
-            rTimestamps.append(now.addingTimeInterval(Double.random(in: 0...86400)))
+            rTimestamps.append(now.addingTimeInterval(Double.random(in: -86400...0)))
         }
 
         let newItem = SocialFeedItem(
@@ -1172,7 +1172,7 @@ public struct MockSocialService: SocialService, Sendable {
             // Generate and sort offsets so the conversation flows chronologically
             var commentOffsets: [Double] = []
             for _ in 0..<totalComments {
-                commentOffsets.append(Double.random(in: timeOffset...86400))
+                commentOffsets.append(Double.random(in: timeOffset...0))
             }
             commentOffsets.sort()
             
@@ -1202,14 +1202,16 @@ public struct MockSocialService: SocialService, Sendable {
                         let previousComment = comments.last(where: { $0.authorName == replyingTo })
                         if let prev = previousComment, let answer = milestoneAnswer(for: prev.text) {
                             commentText = "@\(replyingTo) " + answer
-                            // Use a 30 min – 24 hr delay after the question
+                            // Reply sometime after the question but still in the past
                             let questionOffset = prev.createdAt.timeIntervalSince(now)
-                            commentOffset = questionOffset + Double.random(in: 1800...86400)
+                            let maxDelay = max(300, abs(questionOffset) * 0.8)
+                            commentOffset = min(questionOffset + Double.random(in: 300...maxDelay), 0)
                         } else if let prev = previousComment {
                             commentText = "@\(replyingTo) " + generateContextualReply(to: prev.text, message: message)
-                            // Respond sometime after the comment being replied to
+                            // Respond sometime after the comment being replied to, but still in the past
                             let prevOffset = prev.createdAt.timeIntervalSince(now)
-                            commentOffset = prevOffset + Double.random(in: 600...43200)
+                            let maxDelay = max(300, abs(prevOffset) * 0.7)
+                            commentOffset = min(prevOffset + Double.random(in: 120...maxDelay), 0)
                         } else {
                             commentText = "@\(replyingTo) " + commentText
                         }

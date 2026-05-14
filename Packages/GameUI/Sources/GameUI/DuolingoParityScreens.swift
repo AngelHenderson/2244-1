@@ -371,6 +371,7 @@ public struct SocialFeedView: View {
     @State private var selectedItem: SocialFeedItem?
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showAddEvent = false
 
     public init() {}
 
@@ -406,6 +407,15 @@ public struct SocialFeedView: View {
             .platformNavigationTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+                ToolbarItem(placement: .platformTopBarTrailing) {
+                    Button {
+                        showAddEvent = true
+                    } label: {
+                        Label("Add Event", systemImage: "plus")
+                            .labelStyle(.titleAndIcon)
+                            .font(.subheadline.weight(.semibold))
+                    }
+                }
             }
             .task { await load() }
             .refreshable { await load() }
@@ -414,6 +424,11 @@ public struct SocialFeedView: View {
                     .onDisappear {
                         Task { await load() }
                     }
+            }
+            .sheet(isPresented: $showAddEvent) {
+                AddEventSheet(socialService: socialService) {
+                    Task { await load() }
+                }
             }
         }
         .trackScreen(.socialFeed)
@@ -428,6 +443,82 @@ public struct SocialFeedView: View {
         } catch {
             items = []
             errorMessage = error.localizedDescription
+        }
+    }
+}
+
+// MARK: - Add Event Sheet
+
+private struct AddEventSheet: View {
+    let socialService: any SocialService
+    let onPosted: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var message = ""
+    @State private var statText = ""
+    @State private var isPosting = false
+    @State private var postError: String?
+
+    private var canPost: Bool {
+        !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isPosting
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("What's happening?", text: $message, axis: .vertical)
+                        .lineLimit(3...6)
+                } header: {
+                    Text("Message")
+                } footer: {
+                    Text("Share a milestone, achievement, or anything with the community.")
+                }
+
+                Section("Status Tag (optional)") {
+                    TextField("e.g. 🏅 New record · Endless", text: $statText)
+                }
+
+                if let postError {
+                    Section {
+                        Label(postError, systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .navigationTitle("Add Event")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Post") {
+                        Task { await post() }
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(!canPost)
+                }
+            }
+        }
+    }
+
+    private func post() async {
+        isPosting = true
+        defer { isPosting = false }
+        do {
+            let finalStat = statText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? "📝 Player update"
+                : statText.trimmingCharacters(in: .whitespacesAndNewlines)
+            try await socialService.postEvent(
+                message: message.trimmingCharacters(in: .whitespacesAndNewlines),
+                statText: finalStat
+            )
+            postError = nil
+            onPosted()
+            dismiss()
+        } catch {
+            postError = error.localizedDescription
         }
     }
 }
