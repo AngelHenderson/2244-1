@@ -929,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v3"
-    private static let feedDateKey = "socialFeed.cacheDate.v3"
+    private static let feedCacheKey = "socialFeed.cache.v4"
+    private static let feedDateKey = "socialFeed.cacheDate.v4"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()

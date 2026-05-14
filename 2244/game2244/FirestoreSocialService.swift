@@ -5,6 +5,10 @@ import GameServices
 @preconcurrency import FirebaseFirestore
 
 struct FirestoreSocialService: SocialService, Sendable {
+    func postEvent(message: String, statText: String) async throws {
+        <#code#>
+    }
+    
     private let feedLimit: Int
     private let commentLimit: Int
     private let friendLimit: Int
@@ -64,6 +68,26 @@ struct FirestoreSocialService: SocialService, Sendable {
         )
 
         try await batch.commit()
+    }
+
+    func postEvent(message: String, statText: String) async throws {
+        let currentUser = try await currentUser()
+        let firestore = Firestore.firestore()
+        let itemID = UUID()
+        let itemRef = firestore.collection("socialFeed").document(itemID.uuidString)
+
+        try await itemRef.setData([
+            "id": itemID.uuidString,
+            "authorId": currentUser.uid,
+            "authorName": currentUser.displayName,
+            "avatarID": currentUser.avatarID,
+            "message": String(message.prefix(1000)),
+            "statText": String(statText.prefix(200)),
+            "reactionCount": 0,
+            "commentCount": 0,
+            "createdAt": FieldValue.serverTimestamp(),
+            "updatedAt": FieldValue.serverTimestamp(),
+        ])
     }
 
     func toggleItemHeart(itemID: UUID) async throws {
