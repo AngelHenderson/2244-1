@@ -5,10 +5,6 @@ import GameServices
 @preconcurrency import FirebaseFirestore
 
 struct FirestoreSocialService: SocialService, Sendable {
-    func postEvent(message: String, statText: String) async throws {
-        <#code#>
-    }
-    
     private let feedLimit: Int
     private let commentLimit: Int
     private let friendLimit: Int
