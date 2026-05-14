@@ -115,6 +115,7 @@ struct game2244App: App {
                 .environment(\.leaderboardClient, leaderboardClient)
                 .environment(\.reportService, reportService)
                 .environment(\.socialService, socialService)
+                .environment(\.socialFeedPublisher, SocialFeedPublisher(socialService: socialService))
                 .environment(\.analytics, analyticsService)
                 .environment(\.reminderNotificationScheduler, reminderNotificationScheduler)
                 .environment(homeState)
