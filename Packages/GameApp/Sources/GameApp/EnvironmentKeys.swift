@@ -150,3 +150,25 @@ public struct SeasonHistoryStoreKey: EnvironmentKey {
         }
     }
 }
+
+private struct DefaultSocialFeedPublisher: Sendable {
+    @MainActor
+    static func make() -> SocialFeedPublisher {
+        SocialFeedPublisher(socialService: MockSocialService())
+    }
+}
+
+public struct SocialFeedPublisherKey: EnvironmentKey {
+    nonisolated public static var defaultValue: SocialFeedPublisher {
+        MainActor.assumeIsolated {
+            DefaultSocialFeedPublisher.make()
+        }
+    }
+}
+
+public extension EnvironmentValues {
+    var socialFeedPublisher: SocialFeedPublisher {
+        get { self[SocialFeedPublisherKey.self] }
+        set { self[SocialFeedPublisherKey.self] = newValue }
+    }
+}

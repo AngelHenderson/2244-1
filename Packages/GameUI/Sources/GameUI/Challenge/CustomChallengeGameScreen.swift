@@ -14,6 +14,7 @@ public struct CustomChallengeGameScreen: View {
     @Environment(\.challengeStore) private var challengeStore
     // Reference to main game store for achievement tracking
     @Environment(\.gameStore) private var mainGameStore
+    @Environment(\.socialFeedPublisher) private var socialFeedPublisher
     @State private var showResult = false
     @State private var challengeWon = false
     @State private var challengeEnded = false
@@ -988,6 +989,13 @@ public struct CustomChallengeGameScreen: View {
         challengeWon = won
 
         if won {
+            // Post to social feed
+            let elapsed = totalDuration - (frozenTimeRemaining ?? 0)
+            let mins = elapsed / 60
+            let secs = elapsed % 60
+            let timeStr = "\(mins):\(String(format: "%02d", secs))"
+            socialFeedPublisher.postTimedChallengeComplete(timeString: timeStr)
+
             // Grant the full challenge reward (gems, power-ups, spins, boosts)
             if let challengeId = config.challengeId,
                let reward = challengeStore.reward(for: challengeId) {
