@@ -929,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v4"
-    private static let feedDateKey = "socialFeed.cacheDate.v4"
+    private static let feedCacheKey = "socialFeed.cache.v5"
+    private static let feedDateKey = "socialFeed.cacheDate.v5"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1230,7 +1230,7 @@ public struct MockSocialService: SocialService, Sendable {
             let maxReactions = Int.random(in: 10...50)
             var rTimestamps: [Date] = []
             for _ in 0..<maxReactions {
-                let rOffset = Double.random(in: timeOffset...86400)
+                let rOffset = Double.random(in: timeOffset...0)
                 rTimestamps.append(now.addingTimeInterval(rOffset))
             }
             
