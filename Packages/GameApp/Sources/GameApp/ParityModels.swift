@@ -1022,10 +1022,9 @@ public struct MockSocialService: SocialService, Sendable {
         let playerName = defaults.string(forKey: "player.displayName") ?? "Player"
         let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
-        // Generate 5–30 comments matching the same pattern as mock feed items
-        let numTopLevel = Int.random(in: 3...15)
-        let numReplies = Int.random(in: 2...15)
-        let totalComments = numTopLevel + numReplies
+        // 70% top-level comments to the poster, 30% replies between commenters
+        let totalComments = Int.random(in: 5...30)
+        let numReplies = max(1, Int(Double(totalComments) * 0.3))
 
         // Sort offsets into the FUTURE so comments trickle in over time
         // Spread from 30 seconds to 4 hours after posting
@@ -1166,9 +1165,9 @@ public struct MockSocialService: SocialService, Sendable {
             let itemDate = now.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
-            let numTopLevelComments = Int.random(in: 2...8)
-            let numResponses = Int.random(in: 3...10)
-            let totalComments = numTopLevelComments + numResponses
+            // 70% top-level comments to the poster, 30% replies between commenters
+            let totalComments = Int.random(in: 5...18)
+            let numResponses = max(1, Int(Double(totalComments) * 0.3))
             
             // Generate and sort offsets so the conversation flows chronologically
             var commentOffsets: [Double] = []
