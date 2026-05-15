@@ -11,8 +11,8 @@ monetization, Firebase, IAP, first-launch UX, and external console work.
 What is verified done from this machine:
 
 - Repo HEAD: `381945ab` (Address remaining Focus, Trust, And Launch Readiness gaps).
-- Firebase project pinned via `firebase/.firebaserc` to the existing Faith
-  project, `faith-a5d4c`. `firebase use` from `firebase/` resolves to
+- Firebase project pinned via `firebase/.firebaserc` to the existing Puzzle Games
+  project, `project-7513530591038917977`. `firebase use` from `firebase/` resolves to
   that project; root no longer relies on global state for the Firebase project
   directory.
 - `firebase/functions/` TypeScript build passes (`npm install` + `npm run build`
@@ -20,15 +20,14 @@ What is verified done from this machine:
   bug fixed: `firebase-functions/v2/https` does not export `logger` in
   `firebase-functions@^5`; replaced `functions.logger` with `import { logger }
   from "firebase-functions"`.
-- Firestore rules must be deployed to Faith (`faith-a5d4c`). Previous
-  deployment notes against `project-7513530591038917977` no longer apply to
+- Firestore rules must be deployed to Puzzle Games (`project-7513530591038917977`),
   the active release project.
 - `validate-launch-readiness.mjs` passes. Root `firestore.rules` and
   `firebase/firestore.rules` are byte-identical.
 
 Still blocked from this machine:
 
-- Cloud Functions deploy. Confirm whether Faith (`faith-a5d4c`) is on Blaze.
+- Cloud Functions deploy. Confirm whether Puzzle Games (`project-7513530591038917977`) is on Blaze.
   `cloudfunctions.googleapis.com`, `cloudbuild.googleapis.com`, and
   `artifactregistry.googleapis.com` require Blaze. Until the project is
   upgraded, `submitScore` is not deployed and direct client writes to
@@ -96,16 +95,16 @@ The numbered items below must be completed in App Store Connect, GCP, AdMob,
 or on a device — they cannot be finished from this CLI session.
 
 1. **Upgrade Firebase plan.** Open
-   <https://console.firebase.google.com/project/faith-a5d4c/usage/details>
-   and confirm the Faith project is on Blaze (pay-as-you-go). Set a budget
+   <https://console.firebase.google.com/project/project-7513530591038917977/usage/details>
+   and confirm the Puzzle Games project is on Blaze (pay-as-you-go). Set a budget
    alert if it is not already configured.
 2. **Deploy Cloud Functions** once Blaze is active:
    ```bash
    cd firebase
-   firebase deploy --only functions --project faith-a5d4c
+   firebase deploy --only functions --project project-7513530591038917977
    ```
    Expect a callable `submitScore` to appear in
-   `https://console.firebase.google.com/project/faith-a5d4c/functions`.
+   `https://console.firebase.google.com/project/project-7513530591038917977/functions`.
 3. **Rotate the leaked Web API key** in the GCP Console under APIs & Services →
    Credentials. The current value in git history is
    `AIzaSyC6wRiQH9L50oNcnVazu0tFsFkAnDeof7M`. After rotating, regenerate

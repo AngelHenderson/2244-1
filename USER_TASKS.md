@@ -6,7 +6,7 @@ The complete Firebase leaderboard system has been implemented for your 2244 puzz
 
 ### 1. Use Firebase Project
 - [ ] Go to [Firebase Console](https://console.firebase.google.com/)
-- [ ] Open the existing `Faith` project (`faith-a5d4c`)
+- [ ] Open the existing `Puzzle Games` project (`project-7513530591038917977`)
 - [ ] Use this project for 2244 backend deployment and Auth
 
 ### 2. Enable Required Services

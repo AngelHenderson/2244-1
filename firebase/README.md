@@ -4,9 +4,9 @@ This directory contains Firebase configuration files and setup instructions.
 
 ## Setup Instructions
 
-1. **Use the Faith Firebase Project**
+1. **Use the Puzzle Games Firebase Project**
    - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Open the existing project named "Faith" (`faith-a5d4c`)
+   - Open the existing project named "Puzzle Games" (`project-7513530591038917977`)
    - Enable Authentication, Firestore, and Cloud Functions
 
 2. **iOS App Configuration**
@@ -15,7 +15,7 @@ This directory contains Firebase configuration files and setup instructions.
    - Download `GoogleService-Info.plist`
    - Keep the actual configuration local and out of commits:
      ```bash
-     cp ~/Downloads/GoogleService-Info.plist /Users/angelhenderson/Developer/Personal/2244/2244/game2244/GoogleService-Info.plist
+     cp ~/Downloads/GoogleService-Info.plist /Users/angelhenderson/Development/Personal/2244/2244/game2244/GoogleService-Info.plist
      ```
 
 3. **Authentication Setup**
