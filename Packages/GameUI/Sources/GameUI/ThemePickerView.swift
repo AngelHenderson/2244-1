@@ -6,6 +6,7 @@ import UIKit
 
 public struct ThemePickerView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.socialFeedPublisher) private var socialFeedPublisher
     @AppStorage("selectedThemeId") private var selectedThemeId: String = "raised-3d-square"
     @AppStorage("selectedBackgroundThemeId") private var selectedBackgroundId: String = "city_1"
     @AppStorage("selectedWallpaperId") private var selectedWallpaperId: String = "wallpaper_default"
@@ -83,6 +84,10 @@ public struct ThemePickerView: View {
             }
         }
         .trackScreen(.themePicker)
+        .onChange(of: selectedThemeId) { _, newThemeId in
+            let name = ThemeRegistry.Default.allDescriptors().first(where: { $0.id == newThemeId })?.name ?? newThemeId
+            socialFeedPublisher.postThemeEquipped(themeName: name)
+        }
     }
 
     private var tileThemesContent: some View {

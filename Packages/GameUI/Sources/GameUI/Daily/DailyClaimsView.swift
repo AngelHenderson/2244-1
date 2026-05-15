@@ -10,6 +10,7 @@ public struct DailyClaimsView: View {
     @Environment(\.audio) private var audio
     @Environment(\.dismiss) private var dismiss
     @Environment(\.homeActions) private var homeActions
+    @Environment(\.socialFeedPublisher) private var socialFeedPublisher
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
     @State private var claimedBaseRewards: AchievementDef.Rewards?
@@ -426,6 +427,7 @@ public struct DailyClaimsView: View {
 
         store.claimDailyReward()
         gameStore.achievementEvaluator?.onDailyClaimed()
+        socialFeedPublisher.postStreakMaintained(days: store.currentStreak)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation {
@@ -474,6 +476,7 @@ public struct DailyClaimsView: View {
         for _ in 0..<claimCount {
             gameStore.achievementEvaluator?.onDailyClaimed()
         }
+        socialFeedPublisher.postStreakMaintained(days: store.currentStreak)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation {

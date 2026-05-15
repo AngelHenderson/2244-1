@@ -4939,7 +4939,11 @@ public extension LeaderboardClient {
             let milestones = data.milestones
             let seed = MockLeaderboardData.countrySeed(for: code)
             
-            for i in 0..<milestones.count {
+            // Optimization: Only check the top 10 players per scalable country.
+            // Since the arrays are sorted best-first, no player below rank 10
+            // could possibly progress enough to hit the infinity threshold.
+            let maxMilestones = min(10, milestones.count)
+            for i in 0..<maxMilestones {
                 let progressedMilestone = MockLeaderboardData.milestoneWithProgression(baseMilestone: milestones[i], playerIndex: i + seed, day: day)
                 if progressedMilestone.hasSuffix("∞") {
                     let countStr = progressedMilestone.dropLast()
@@ -4957,12 +4961,15 @@ public extension LeaderboardClient {
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
         for (rank, player) in progressedData.enumerated() {
-            // Use unique name from hallOfFameNames with daily variation (HoF seed: 999999)
-            let name = MockLeaderboardData.nameForPlayer(index: rank, names: MockLeaderboardData.hallOfFameNames, countrySeed: 999999, day: day)
+            // Use the player's stable nameIndex (assigned at creation, never changes)
+            // instead of the post-sort rank. This keeps explicit HoF players' names
+            // constant even when new dynamic scalable-country players enter the list
+            // and shift everyone's rank positions.
+            let name = MockLeaderboardData.nameForPlayer(index: player.nameIndex, names: MockLeaderboardData.hallOfFameNames, countrySeed: 999999, day: day)
 
-            let platform: Platform = rank % 2 == 0 ? .ios : .android
-            // Use seeded avatar selection with daily variation (HoF seed: 999999)
-            let avatar = MockLeaderboardData.avatarForPlayer(index: rank, countrySeed: 999999, day: day)
+            let platform: Platform = player.nameIndex % 2 == 0 ? .ios : .android
+            // Use stable nameIndex for avatar too, so it doesn't shift with rank changes
+            let avatar = MockLeaderboardData.avatarForPlayer(index: player.nameIndex, countrySeed: 999999, day: day)
             let score = MockLeaderboardData.scoreForMilestone("\(player.progressedCount)∞")
 
             entries.append(LeaderboardEntry(
@@ -6736,7 +6743,12 @@ public extension LeaderboardClient {
             let seed = MockLeaderboardData.countrySeed(for: code)
             let names = MockLeaderboardData.names(for: code)
             
-            for i in 0..<milestones.count {
+            // Optimization: Only process the top 15 players per country for the global list.
+            // Since milestones are sorted best-first, players beyond rank 15 in any single
+            // country have no mathematical chance of making the Global Top 150.
+            // This reduces 67,000 iterations to ~3,000, fixing the extreme UI lag.
+            let maxMilestones = min(15, milestones.count)
+            for i in 0..<maxMilestones {
                 let baseMilestone = milestones[i]
                 let name = MockLeaderboardData.nameForPlayer(index: i, names: names, countrySeed: seed, day: day)
                 

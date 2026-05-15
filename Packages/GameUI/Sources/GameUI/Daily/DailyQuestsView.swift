@@ -6,6 +6,7 @@ public struct DailyQuestsView: View {
     @Environment(DailyQuestStore.self) private var questStore
     @Environment(HomeState.self) private var homeState
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.socialFeedPublisher) private var socialFeedPublisher
 
     @State private var countdown: String = ""
     @State private var timer: Timer?
@@ -39,6 +40,10 @@ public struct DailyQuestsView: View {
                             tileQuestTargetStep: questStore.tileQuestTargetStep
                         ) {
                             questStore.claim(questId: quest.id)
+                            // Post to social feed when all quests are now complete
+                            if questStore.quests.allSatisfy({ $0.claimed }) {
+                                socialFeedPublisher.postQuestsComplete()
+                            }
                         }
                     }
                 }

@@ -720,6 +720,7 @@ public struct FirebaseBackedAccountService: AccountService, Sendable {
 public protocol SocialService: Sendable {
     func feed() async throws -> [SocialFeedItem]
     func addComment(to itemID: UUID, text: String) async throws
+    func postEvent(message: String, statText: String) async throws
     func toggleItemHeart(itemID: UUID) async throws
     func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
@@ -745,6 +746,10 @@ public struct UnavailableSocialService: SocialService, Sendable {
     }
 
     public func addComment(to itemID: UUID, text: String) async throws {
+        throw SocialServiceError.unavailable
+    }
+
+    public func postEvent(message: String, statText: String) async throws {
         throw SocialServiceError.unavailable
     }
 
@@ -924,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v2"
-    private static let feedDateKey = "socialFeed.cacheDate.v2"
+    private static let feedCacheKey = "socialFeed.cache.v7"
+    private static let feedDateKey = "socialFeed.cacheDate.v7"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -992,12 +997,114 @@ public struct MockSocialService: SocialService, Sendable {
                 responderName = cached[index].authorName // Reply as the post author
             }
             
-            let responseText = "@Player " + generateDynamicComment(message: cached[index].message)
+            let responseText: String
+            if let answer = milestoneAnswer(for: text) {
+                responseText = "@Player " + answer
+            } else {
+                responseText = "@Player " + generateContextualReply(to: text, message: cached[index].message)
+            }
             let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
             cached[index].comments.append(responseComment)
             
             cached[index].commentCount = cached[index].comments.count
             if let newData = try? JSONEncoder().encode(cached) {
+                defaults.set(newData, forKey: Self.feedCacheKey)
+            }
+        }
+    }
+
+    public func postEvent(message: String, statText: String) async throws {
+        let defaults = UserDefaults.standard
+        let now = Date()
+        let currentDay = Self.daysSinceReference
+
+        // Build the player's post
+        let playerName = defaults.string(forKey: "player.displayName") ?? "Player"
+        let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
+
+        // Generate 5–30 comments matching the same pattern as mock feed items
+        let numTopLevel = Int.random(in: 3...15)
+        let numReplies = Int.random(in: 2...15)
+        let totalComments = numTopLevel + numReplies
+
+        // Sort offsets so conversation flows chronologically (30 min – 24 hr spread)
+        var commentOffsets: [Double] = []
+        for _ in 0..<totalComments {
+            commentOffsets.append(Double.random(in: -86400...(-120)))
+        }
+        commentOffsets.sort()
+
+        // Mark which indices are replies to previous comments
+        var replyIndices = Set<Int>()
+        if totalComments > 1 {
+            var available = Array(1..<totalComments)
+            available.shuffle()
+            for i in 0..<min(numReplies, available.count) {
+                replyIndices.insert(available[i])
+            }
+        }
+
+        var comments: [SocialFeedComment] = []
+        var commentAuthors: [String] = []
+
+        for (index, offset) in commentOffsets.enumerated() {
+            let commenter = generateDynamicName()
+            let commenterIndex = Int.random(in: 1...100000)
+            let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
+            var commentText = generateDynamicComment(message: message)
+
+            // If this is a reply, reference a previous commenter
+            if replyIndices.contains(index), !commentAuthors.isEmpty {
+                let replyTo = commentAuthors.randomElement()!
+                if replyTo != commenter {
+                    let previousComment = comments.last(where: { $0.authorName == replyTo })
+                    if let prev = previousComment {
+                        commentText = "@\(replyTo) " + generateContextualReply(to: prev.text, message: message)
+                    } else {
+                        commentText = "@\(replyTo) " + commentText
+                    }
+                }
+            }
+
+            comments.append(SocialFeedComment(
+                authorName: commenter,
+                avatarID: commenterAvatar,
+                text: commentText,
+                createdAt: now.addingTimeInterval(offset),
+                likes: Int.random(in: 0...10)
+            ))
+            commentAuthors.append(commenter)
+        }
+
+        // Heart/reaction timestamps spread over the next 24 hours (10–50, same as mock feed)
+        let numReactions = Int.random(in: 10...50)
+        var rTimestamps: [Date] = []
+        for _ in 0..<numReactions {
+            rTimestamps.append(now.addingTimeInterval(Double.random(in: -86400...0)))
+        }
+
+        let newItem = SocialFeedItem(
+            authorName: playerName,
+            avatarID: playerAvatar,
+            createdAt: now,
+            message: message,
+            statText: statText,
+            reactionCount: rTimestamps.filter { $0 <= now }.count,
+            commentCount: comments.filter { $0.createdAt <= now }.count,
+            comments: comments.sorted(by: { $0.createdAt < $1.createdAt }),
+            reactionTimestamps: rTimestamps
+        )
+
+        // Insert at the top of the cached feed
+        if let data = defaults.data(forKey: Self.feedCacheKey),
+           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+            cached.insert(newItem, at: 0)
+            if let newData = try? JSONEncoder().encode(cached) {
+                defaults.set(newData, forKey: Self.feedCacheKey)
+            }
+        } else {
+            // No existing cache — start a fresh one with just this item
+            if let newData = try? JSONEncoder().encode([newItem]) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
         }
@@ -1065,7 +1172,7 @@ public struct MockSocialService: SocialService, Sendable {
             // Generate and sort offsets so the conversation flows chronologically
             var commentOffsets: [Double] = []
             for _ in 0..<totalComments {
-                commentOffsets.append(Double.random(in: timeOffset...86400))
+                commentOffsets.append(Double.random(in: timeOffset...0))
             }
             commentOffsets.sort()
             
@@ -1085,12 +1192,29 @@ public struct MockSocialService: SocialService, Sendable {
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
                 var commentText = generateDynamicComment(message: message)
+                var commentOffset = offset
                 
                 // If this index is marked as a response, reply to a previous comment
                 if responseIndices.contains(index) && !commentAuthors.isEmpty {
                     let replyingTo = commentAuthors.randomElement()!
                     if replyingTo != commentAuthor {
-                        commentText = "@\(replyingTo) " + commentText
+                        // Check if the comment being replied to asks about the next milestone
+                        let previousComment = comments.last(where: { $0.authorName == replyingTo })
+                        if let prev = previousComment, let answer = milestoneAnswer(for: prev.text) {
+                            commentText = "@\(replyingTo) " + answer
+                            // Reply sometime after the question but still in the past
+                            let questionOffset = prev.createdAt.timeIntervalSince(now)
+                            let maxDelay = max(300, abs(questionOffset) * 0.8)
+                            commentOffset = min(questionOffset + Double.random(in: 300...maxDelay), 0)
+                        } else if let prev = previousComment {
+                            commentText = "@\(replyingTo) " + generateContextualReply(to: prev.text, message: message)
+                            // Respond sometime after the comment being replied to, but still in the past
+                            let prevOffset = prev.createdAt.timeIntervalSince(now)
+                            let maxDelay = max(300, abs(prevOffset) * 0.7)
+                            commentOffset = min(prevOffset + Double.random(in: 120...maxDelay), 0)
+                        } else {
+                            commentText = "@\(replyingTo) " + commentText
+                        }
                     }
                 }
                 
@@ -1098,7 +1222,7 @@ public struct MockSocialService: SocialService, Sendable {
                     authorName: commentAuthor,
                     avatarID: commentAvatar,
                     text: commentText,
-                    createdAt: now.addingTimeInterval(offset),
+                    createdAt: now.addingTimeInterval(commentOffset),
                     likes: Int.random(in: 0...10)
                 ))
                 
@@ -1108,7 +1232,7 @@ public struct MockSocialService: SocialService, Sendable {
             let maxReactions = Int.random(in: 10...50)
             var rTimestamps: [Date] = []
             for _ in 0..<maxReactions {
-                let rOffset = Double.random(in: timeOffset...86400)
+                let rOffset = Double.random(in: timeOffset...0)
                 rTimestamps.append(now.addingTimeInterval(rOffset))
             }
             
@@ -1129,21 +1253,46 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public func searchFriends(query: String) async throws -> [AccountProfile] {
-        var names: [String] = []
-        for _ in 0..<20 {
-            names.append(generateDynamicName())
+        // Build a pool of names exclusively from leaderboard data
+        let codeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        
+        // Full pool: all gamertags + some real name combos
+        var fullPool: [String] = Array(Self.leaderboardGamertags)
+        for firstName in Self.leaderboardRealNames {
+            let lastName = Self.leaderboardLastNames[
+                abs(firstName.hashValue) % Self.leaderboardLastNames.count
+            ]
+            fullPool.append("\(firstName) \(lastName)")
         }
-        if !query.isEmpty {
-            names.append(query + String(format: "%04d", Int.random(in: 1000...9999)))
-            names.append(generateDynamicName() + query)
+
+        let filtered: [String]
+        if query.isEmpty {
+            // Browse mode: show a random sample
+            filtered = Array(fullPool.shuffled().prefix(20))
+        } else {
+            // Search mode: search the full pool
+            filtered = fullPool.filter { $0.localizedCaseInsensitiveContains(query) }
         }
-        let filtered = names.filter { query.isEmpty || $0.localizedCaseInsensitiveContains(query) }
-        return filtered.map {
-            AccountProfile(
-                uid: $0.replacingOccurrences(of: " ", with: ".").lowercased(),
-                displayName: $0,
-                username: $0.replacingOccurrences(of: " ", with: "").lowercased(),
-                friendCode: String($0.prefix(3)).uppercased() + "-2244",
+
+        return filtered.map { name in
+            // Deterministic code based on name so the same player always has the same code
+            var hash = name.hashValue
+            let left = String((0..<3).map { _ -> Character in
+                let idx = abs(hash) % codeChars.count
+                hash = hash &* 31 &+ 7
+                return codeChars[codeChars.index(codeChars.startIndex, offsetBy: idx)]
+            })
+            hash = name.hashValue &* 17
+            let right = String((0..<3).map { _ -> Character in
+                let idx = abs(hash) % codeChars.count
+                hash = hash &* 31 &+ 13
+                return codeChars[codeChars.index(codeChars.startIndex, offsetBy: idx)]
+            })
+            return AccountProfile(
+                uid: name.replacingOccurrences(of: " ", with: ".").lowercased(),
+                displayName: name,
+                username: name.replacingOccurrences(of: " ", with: "").lowercased(),
+                friendCode: "\(left)-\(right)",
                 isAnonymous: false,
                 isEmailVerified: true
             )
@@ -1151,10 +1300,17 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public func invites() async throws -> [FamilyInvite] {
-        [
-            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-1", status: "Invited"),
-            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-2", status: "Can invite"),
-            FamilyInvite(displayName: generateDynamicName(), emailOrCode: "CODE-3", status: "Can invite")
+        let codeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        func makeCode() -> String {
+            let left = String((0..<3).map { _ in codeChars.randomElement()! })
+            let right = String((0..<3).map { _ in codeChars.randomElement()! })
+            return "\(left)-\(right)"
+        }
+        let names = Self.leaderboardGamertags.shuffled().prefix(3)
+        return [
+            FamilyInvite(displayName: String(names[names.startIndex]), emailOrCode: makeCode(), status: "Invited"),
+            FamilyInvite(displayName: String(names[names.index(names.startIndex, offsetBy: 1)]), emailOrCode: makeCode(), status: "Can invite"),
+            FamilyInvite(displayName: String(names[names.index(names.startIndex, offsetBy: 2)]), emailOrCode: makeCode(), status: "Can invite"),
         ]
     }
     
@@ -1191,153 +1347,309 @@ public struct MockSocialService: SocialService, Sendable {
             let minutes = Int.random(in: 1...8)
             let seconds = Int.random(in: 0...59)
             let timeStr = "\(minutes):\(String(format: "%02d", seconds))"
-            let templates = [
-                "Finished today's timed challenge in \(timeStr)!",
-                "Daily timed challenge crushed — \(timeStr) clear time ⏱️",
-                "Beat the clock! Timed challenge done in \(timeStr).",
-                "Today's timed challenge wasn't even close. \(timeStr).",
-                "Squeezed past the timed challenge with \(timeStr) on the clock!",
-                "Timed challenge complete. \(timeStr). New strategy worked perfectly.",
-                "That timed challenge was INTENSE. Barely made it at \(timeStr).",
-                "Speed run energy — timed challenge in \(timeStr) 🚀",
+            
+            let openers = [
+                "Finished", "Crushed", "Beat", "Cleared", "Completed",
+                "Conquered", "Smashed", "Survived", "Dominated", "Nailed",
             ]
-            let stats = [
-                "⏱️ Timed challenge · \(timeStr)",
-                "🏁 Daily challenge · Done",
-                "⚡ Speed clear · \(timeStr)",
-                "🎯 Challenge · \(timeStr) finish",
-                "🕐 Today's challenge · Complete",
+            let subjects = [
+                "today's timed challenge", "the daily timed challenge",
+                "the timed challenge", "this morning's timed run",
+                "today's speed challenge", "the daily speed run",
+                "the clock challenge", "today's timed board",
+                "the timed gauntlet", "this session's challenge",
             ]
-            return (templates.randomElement()!, stats.randomElement()!)
+            let details = [
+                "in \(timeStr)", "with \(timeStr) clear time",
+                "at \(timeStr)", "— \(timeStr) flat",
+                "with \(timeStr) on the clock", "clocking \(timeStr)",
+                "in just \(timeStr)", "with a \(timeStr) finish",
+                "\(timeStr) total", "in \(timeStr) sharp",
+            ]
+            let closers = [
+                "!", " ⏱️", " 🚀", ". New strategy worked perfectly.",
+                ". That was INTENSE.", " 💨", ". Clean run.",
+                ". Not even close.", " — feels good!", ". Let's go!",
+            ]
+            
+            let message = "\(openers.randomElement()!) \(subjects.randomElement()!) \(details.randomElement()!)\(closers.randomElement()!)"
+            
+            let statEmojis = ["⏱️", "🏁", "⚡", "🎯", "🕐", "💨", "🔥"]
+            let statLabels = [
+                "Timed challenge · \(timeStr)", "Daily challenge · Done",
+                "Speed clear · \(timeStr)", "Challenge · \(timeStr) finish",
+                "Today's challenge · Complete", "Timed run · \(timeStr)",
+                "Challenge clear · \(timeStr)", "Speed run · Done",
+                "Daily timed · \(timeStr)", "Clock beaten · \(timeStr)",
+            ]
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
             
         case 2:
             // Protected a streak
             let streakDays = Int.random(in: 3...365)
-            let templates = [
-                "Protected a \(streakDays)-day streak! 🔥",
-                "Streak saved! Day \(streakDays) is in the books.",
-                "\(streakDays) days and counting. Streak: protected.",
-                "Almost forgot today… but the \(streakDays)-day streak lives on!",
-                "Close call — used a streak freeze to save day \(streakDays).",
-                "Day \(streakDays) ✅ This streak isn't dying on my watch.",
-                "Played at 11:58 PM to keep the \(streakDays)-day streak alive 😅",
-                "Streak protection activated! \(streakDays) days strong 💪",
+            
+            let openers = [
+                "Protected", "Saved", "Kept alive", "Defended",
+                "Extended", "Preserved", "Secured", "Maintained",
+                "Continued", "Locked in",
             ]
-            let stats: [String]
+            let streakPhrase = [
+                "a \(streakDays)-day streak", "the \(streakDays)-day streak",
+                "my \(streakDays)-day streak", "day \(streakDays) of the streak",
+                "streak day \(streakDays)", "a \(streakDays)d streak",
+                "\(streakDays) days straight", "\(streakDays) consecutive days",
+                "the streak at \(streakDays) days", "\(streakDays) days running",
+            ]
+            let closers: [String]
             if streakDays >= 100 {
-                stats = [
-                    "🔥 \(streakDays)-day streak · Legend",
-                    "🛡️ Streak protected · \(streakDays) days",
-                    "💎 Streak · \(streakDays) days",
-                    "👑 Streak royalty · \(streakDays)d",
+                closers = [
+                    "! 🔥", " — legendary status! 👑",
+                    ". Triple digits and counting!", ". This streak is untouchable.",
+                    " 💎 Can't stop now.", ". \(streakDays) days deep!",
+                    ". Built different.", " — no breaks, no excuses.",
+                    ". The grind never stops 🔥", ". Still going strong 💪",
                 ]
             } else if streakDays >= 30 {
-                stats = [
-                    "🔥 \(streakDays)-day streak · Dedicated",
-                    "🛡️ Streak protected · \(streakDays) days",
-                    "⭐ Streak · \(streakDays) days",
+                closers = [
+                    "! 🔥", ". Dedicated! 💪",
+                    ". A whole month and beyond!", ". Consistency pays off.",
+                    " — keeping the fire alive!", ". Not stopping now.",
+                    ". This streak means everything.", " ✅ Locked in.",
+                    ". Steady progress!", ". Day by day 🛡️",
                 ]
             } else {
-                stats = [
-                    "🔥 \(streakDays)-day streak",
-                    "🛡️ Streak protected · Day \(streakDays)",
-                    "📅 Streak · \(streakDays) days",
+                closers = [
+                    "! 🔥", ". Every day counts!",
+                    ". Almost forgot today 😅", " — close call!",
+                    ". Building momentum!", ". Played at 11:58 PM to save it 😅",
+                    " ✅", ". Not losing this one.",
+                    ". The habit is forming!", ". Streak: protected.",
                 ]
             }
-            return (templates.randomElement()!, stats.randomElement()!)
+            
+            let message = "\(openers.randomElement()!) \(streakPhrase.randomElement()!)\(closers.randomElement()!)"
+            
+            let statEmojis = ["🔥", "🛡️", "📅", "💎", "⭐", "👑", "✅"]
+            let statLabels: [String]
+            if streakDays >= 100 {
+                statLabels = [
+                    "\(streakDays)-day streak · Legend", "Streak protected · \(streakDays) days",
+                    "Streak · \(streakDays) days", "Streak royalty · \(streakDays)d",
+                    "\(streakDays)d streak · Untouchable", "Streak milestone · \(streakDays)",
+                ]
+            } else if streakDays >= 30 {
+                statLabels = [
+                    "\(streakDays)-day streak · Dedicated", "Streak protected · \(streakDays) days",
+                    "Streak · \(streakDays) days", "\(streakDays)d streak · Committed",
+                    "Streak milestone · \(streakDays)", "Daily streak · \(streakDays)d",
+                ]
+            } else {
+                statLabels = [
+                    "\(streakDays)-day streak", "Streak protected · Day \(streakDays)",
+                    "Streak · \(streakDays) days", "Day \(streakDays) · Saved",
+                    "Streak alive · \(streakDays)d", "Daily streak · \(streakDays)",
+                ]
+            }
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
             
         case 3:
             // Joined the Hall of Fame
             let infinityCount = Int.random(in: 1...50)
-            let templates = [
-                "Joined the Hall of Fame! 🏆",
-                "HALL OF FAME! I actually made it!",
-                "Infinity tile reached — officially in the Hall of Fame!",
-                "Hall of Fame, baby! Infinity count: \(infinityCount) 👑",
-                "After months of grinding… Hall of Fame unlocked!",
-                "Welcome to the Hall of Fame! This one's for the long-term players.",
-                "HoF entry #\(infinityCount). The journey was worth it.",
-                "They said it couldn't be done. Hall of Fame says otherwise! 🏅",
+            
+            let openers = [
+                "Joined", "Entered", "Made it into", "Reached",
+                "Unlocked", "Earned a spot in", "Broke into",
+                "Officially in", "Finally reached", "Achieved",
             ]
-            let stats: [String]
+            let subject = [
+                "the Hall of Fame", "HoF", "the Hall of Fame leaderboard",
+                "Hall of Fame status", "the infinity club",
+                "the Hall of Fame ranks", "HoF glory",
+                "the elite Hall of Fame", "the legends board",
+                "the Hall of Fame tier",
+            ]
+            let details: [String]
             if infinityCount > 10 {
-                stats = [
-                    "🏆 Hall of Fame · ∞×\(infinityCount)",
-                    "👑 HoF veteran · \(infinityCount) infinities",
-                    "🌟 Legendary · ∞×\(infinityCount)",
+                details = [
+                    "! Infinity count: \(infinityCount) 👑", " with \(infinityCount) infinities!",
+                    "! ∞×\(infinityCount) and climbing!", ". Entry #\(infinityCount) 🏆",
+                    "! \(infinityCount) infinity tiles deep.", " — \(infinityCount) infinities strong.",
+                    ". Veteran status with \(infinityCount) runs.", "! Can't stop at \(infinityCount).",
+                    " with ∞×\(infinityCount). Legendary!", ". \(infinityCount) and counting 🌟",
                 ]
             } else if infinityCount > 1 {
-                stats = [
-                    "🏆 Hall of Fame · ∞×\(infinityCount)",
-                    "🏅 HoF · \(infinityCount) infinities",
-                    "⭐ Hall of Fame entry",
+                details = [
+                    "! 🏆", "! Infinity count: \(infinityCount) 👑",
+                    " with \(infinityCount) infinities!", ". The journey was worth it.",
+                    "! Entry #\(infinityCount).", " — ∞×\(infinityCount)!",
+                    ". \(infinityCount) infinity tiles reached!", ". Still pushing for more.",
+                    "! Grinding paid off 🏅", ". \(infinityCount) down, more to go.",
                 ]
             } else {
-                stats = [
-                    "🏆 Hall of Fame · First entry!",
-                    "🏅 HoF · Welcome!",
-                    "🌟 Hall of Fame · ∞ achieved",
+                details = [
+                    "! 🏆", "! I actually made it!",
+                    " for the first time!", ". The grind paid off!",
+                    "! After months of grinding…", " — this one's for the long-term players.",
+                    "! They said it couldn't be done 🏅", ". First infinity tile!",
+                    "! Welcome to the club!", ". Dream achieved ✨",
                 ]
             }
-            return (templates.randomElement()!, stats.randomElement()!)
+            
+            let message = "\(openers.randomElement()!) \(subject.randomElement()!)\(details.randomElement()!)"
+            
+            let statEmojis = ["🏆", "🏅", "🌟", "👑", "⭐", "💎", "✨"]
+            let statLabels: [String]
+            if infinityCount > 10 {
+                statLabels = [
+                    "Hall of Fame · ∞×\(infinityCount)", "HoF veteran · \(infinityCount) infinities",
+                    "Legendary · ∞×\(infinityCount)", "HoF · \(infinityCount) runs",
+                    "Infinity club · ×\(infinityCount)", "Hall of Fame · \(infinityCount) entries",
+                ]
+            } else if infinityCount > 1 {
+                statLabels = [
+                    "Hall of Fame · ∞×\(infinityCount)", "HoF · \(infinityCount) infinities",
+                    "Hall of Fame entry", "HoF · ×\(infinityCount)",
+                    "Infinity reached · ×\(infinityCount)", "Hall of Fame · Active",
+                ]
+            } else {
+                statLabels = [
+                    "Hall of Fame · First entry!", "HoF · Welcome!",
+                    "Hall of Fame · ∞ achieved", "First infinity · HoF",
+                    "Hall of Fame · Debut", "HoF · Entry #1",
+                ]
+            }
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
             
         case 4:
             // Unlocked a new theme
             let theme = themeNames.randomElement()!
-            let templates = [
-                "Unlocked the \(theme) theme! 🎨",
-                "New look, who dis? \(theme) theme activated.",
-                "Just grabbed the \(theme) theme — the board looks amazing!",
-                "\(theme) unlocked! Time to play in style.",
-                "Earned enough gems to unlock \(theme). Worth every one.",
-                "Swapped to \(theme) and it changes the whole vibe 🌈",
-                "The \(theme) theme is even better than I expected!",
-                "Fresh theme alert: \(theme) 🔔",
+            
+            let openers = [
+                "Unlocked", "Grabbed", "Activated", "Equipped",
+                "Switched to", "Just got", "Earned", "Picked up",
+                "Finally unlocked", "Snagged",
             ]
-            let stats = [
-                "🎨 Theme unlocked · \(theme)",
-                "✨ New theme · \(theme)",
-                "🖌️ Customization · \(theme)",
-                "💫 \(theme) · Unlocked",
-                "🎭 New style · \(theme)",
+            let subjects = [
+                "the \(theme) theme", "\(theme)", "the \(theme) board theme",
+                "the \(theme) look", "the \(theme) style",
+                "the \(theme) aesthetic", "\(theme) vibes",
+                "the \(theme) board", "a fresh \(theme) theme",
+                "the \(theme) color palette",
             ]
-            return (templates.randomElement()!, stats.randomElement()!)
+            let closers = [
+                "! 🎨", ". The board looks amazing!",
+                " — time to play in style.", "! Worth every gem.",
+                " and it changes the whole vibe 🌈", ". Even better than I expected!",
+                " 🔔 Fresh look alert!", ". New look, who dis?",
+                ". So clean!", " — best theme in the game.",
+            ]
+            
+            let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(closers.randomElement()!)"
+            
+            let statEmojis = ["🎨", "✨", "🖌️", "💫", "🎭", "🌈", "🔔"]
+            let statLabels = [
+                "Theme unlocked · \(theme)", "New theme · \(theme)",
+                "Customization · \(theme)", "\(theme) · Unlocked",
+                "New style · \(theme)", "Board theme · \(theme)",
+                "Theme equipped · \(theme)", "Fresh look · \(theme)",
+                "\(theme) · Activated", "Style update · \(theme)",
+            ]
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
             
         default:
             // Completed the Daily Quest
             let questTier = ["Bronze", "Silver", "Gold", "Diamond"].randomElement()!
             let gemsEarned = [50, 100, 150, 200, 250, 300, 500].randomElement()!
-            let templates = [
-                "Completed the Daily Quest! \(questTier) chest earned 🎁",
-                "Daily Quest done — grabbed a \(questTier) reward chest.",
-                "All daily quests finished! +\(gemsEarned) gems 💎",
-                "\(questTier) Daily Quest complete. Easy gems today.",
-                "Knocked out today's quests before lunch! \(questTier) chest 🏆",
-                "Daily Quest speedrun — all objectives done!",
-                "Quest log: CLEARED. \(questTier) chest opened for \(gemsEarned) gems.",
-                "Today's quests were tough but that \(questTier) chest was worth it.",
+            
+            let openers = [
+                "Completed", "Finished", "Cleared", "Knocked out",
+                "Wrapped up", "Crushed", "Done with", "Conquered",
+                "Smashed through", "Swept",
             ]
-            let stats = [
-                "📋 Daily Quest · \(questTier)",
-                "🎁 Quest complete · +\(gemsEarned) 💎",
-                "✅ Daily Quest · Done",
-                "🏅 \(questTier) quest · Complete",
-                "📦 Quest chest · \(questTier)",
+            let subjects = [
+                "the Daily Quest", "today's quests", "all daily quests",
+                "today's Daily Quest", "every quest objective",
+                "the daily objectives", "today's quest log",
+                "the full quest line", "all three quests",
+                "the daily mission set",
             ]
-            return (templates.randomElement()!, stats.randomElement()!)
+            let details = [
+                "! \(questTier) chest earned 🎁",
+                " — \(questTier) reward chest grabbed.",
+                "! +\(gemsEarned) gems 💎",
+                ". \(questTier) tier. Easy gems today.",
+                " before lunch! \(questTier) chest 🏆",
+                " — all objectives done!",
+                ". \(questTier) chest opened for \(gemsEarned) gems.",
+                ". That \(questTier) chest was worth it.",
+                "! \(gemsEarned) gems richer now.",
+                ". \(questTier) chest in the bag!",
+            ]
+            
+            let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(details.randomElement()!)"
+            
+            let statEmojis = ["📋", "🎁", "✅", "🏅", "📦", "💎", "🎯"]
+            let statLabels = [
+                "Daily Quest · \(questTier)", "Quest complete · +\(gemsEarned) 💎",
+                "Daily Quest · Done", "\(questTier) quest · Complete",
+                "Quest chest · \(questTier)", "Quests cleared · \(questTier)",
+                "Daily objectives · Done", "Quest rewards · \(gemsEarned) 💎",
+                "\(questTier) chest · Opened", "Quest log · Cleared",
+            ]
+            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
         }
     }
     
     private func generateDynamicComment(message: String) -> String {
-        let openers = ["Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,", ""]
-        var subjects = ["that run", "your board", "your progress", "that score", "this setup", "your grid", "the late game"]
-        let verbs = ["is", "looks", "feels", "was"]
-        let adjectives = ["insane", "amazing", "unreal", "so clean", "mind-blowing", "crazy", "perfect", "solid", "epic", "brilliant", "next level", "flawless"]
+        let openers = [
+            "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
+            "No way,", "Wait,", "Bruh,", "Sheesh,", "Yo,", "Ngl,", "Ayo,",
+            "",
+        ]
+        var subjects = [
+            "that run", "your board", "your progress", "that score", "this setup",
+            "your grid", "the late game", "your strategy", "that chain", "this result",
+            "your merge path", "this endgame", "your tile placement",
+        ]
+        let verbs = [
+            "is", "looks", "feels", "was", "seems", "hits different",
+            "sounds", "turned out", "ended up", "came out",
+        ]
+        let adjectives = [
+            "insane", "amazing", "unreal", "so clean", "mind-blowing", "crazy",
+            "perfect", "solid", "epic", "brilliant", "next level", "flawless",
+            "wild", "godly", "legendary", "nuts", "chef's kiss", "top tier",
+        ]
         
-        var positiveReactions = ["GG!", "Nice!", "Incredible!", "Keep it up!", "Let's go!", "Fire!", "Huge!", "Well deserved!", "Too good!", "Teach me!"]
-        var jealousReactions = ["So jealous", "I can't even get past 1M", "My board never looks like that", "How is that even possible", "You make it look so easy", "I'm stuck on the previous tier", "I always lose right here"]
-        var competitiveReactions = ["I am going to reach higher milestones than you!", "Watch your back, I'm catching up.", "Enjoy it while it lasts.", "My next run will beat that.", "I'm coming for your spot.", "You won't be ahead for long.", "Game on."]
-        var questions = ["How long did that take?", "What's your secret?", "Any tips for this tier?", "How many moves did it take?", "Did you use any swaps?", "Was it tough?", "Can I add you?"]
+        var positiveReactions = [
+            "GG!", "Nice!", "Incredible!", "Keep it up!", "Let's go!", "Fire!",
+            "Huge!", "Well deserved!", "Too good!", "Teach me!", "What a play!",
+            "Respect!", "Built different.", "Massive W!", "That's elite!",
+        ]
+        var jealousReactions = [
+            "So jealous", "I can't even get past 1M", "My board never looks like that",
+            "How is that even possible", "You make it look so easy",
+            "I'm stuck on the previous tier", "I always lose right here",
+            "Meanwhile I'm still struggling", "Must be nice",
+            "I wish my runs went like that", "Pain. Just pain.",
+            "I keep choking at this point", "Why can't I do this",
+        ]
+        var competitiveReactions = [
+            "I am going to reach higher milestones than you!",
+            "Watch your back, I'm catching up.", "Enjoy it while it lasts.",
+            "My next run will beat that.", "I'm coming for your spot.",
+            "You won't be ahead for long.", "Game on.",
+            "Challenge accepted.", "That record is mine tomorrow.",
+            "I'll be posting my own soon.", "Not impressed, I'm right behind you.",
+            "Hold my tiles.", "Say less, I'm locking in.",
+        ]
+        var questions = [
+            "How long did that take?", "What's your secret?", "Any tips for this tier?",
+            "How many moves did it take?", "Did you use any swaps?", "Was it tough?",
+            "Can I add you?", "Do you play every day?", "What perks did you use?",
+            "How many attempts was that?", "Were you using a hammer?",
+            "What's your total playtime?", "Did you plan that chain or was it luck?",
+        ]
         
         // Symbols categorized by tone
         let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
@@ -1346,37 +1658,195 @@ public struct MockSocialService: SocialService, Sendable {
         let competitiveSymbols = [" >:)", " 👀", " 😈", " ⚔️", " 🎯", " 😏", " 🏁", " 💨"]
         let keyboardSymbols = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
         
-        // Dynamically inject topic-specific terminology based on the feed item's message
+        // Dynamically inject topic-specific subjects based on the feed item's message
         if message.contains("Hall of Fame") {
-            subjects.append(contentsOf: ["that HoF entry", "joining the Hall of Fame", "this legendary status", "reaching the end", "that infinity rank"])
-            positiveReactions.append(contentsOf: ["Welcome to the Hall of Fame!", "HoF! That's massive.", "See you on the infinity leaderboard!", "Legendary!", "The ultimate achievement!"])
-            jealousReactions.append(contentsOf: ["I'll never reach the Hall of Fame", "How long did it take to get to HoF?", "I'm still grinding for HoF"])
-            competitiveReactions.append(contentsOf: ["I will join the Hall of Fame and have a higher infinity count than you!", "My infinity count will be bigger than yours.", "I'm coming for your HoF spot."])
-            questions.append(contentsOf: ["How many infinity counts do you have?", "Are you going for a high infinity count?", "What's the next goal after HoF?"])
+            subjects.append(contentsOf: [
+                "that HoF entry", "joining the Hall of Fame", "this legendary status",
+                "reaching the end", "that infinity rank", "your HoF grind",
+                "the infinity milestone", "that Hall of Fame badge", "becoming a legend",
+                "this HoF moment",
+            ])
         } else if message.contains("streak") {
-            subjects.append(contentsOf: ["that streak", "your daily consistency", "keeping it alive"])
-            positiveReactions.append(contentsOf: ["Nice streak!", "Don't lose it!", "Streak master!", "Way to keep the fire going."])
-            jealousReactions.append(contentsOf: ["I lost my streak yesterday", "How do you remember every day?", "I can never keep a streak going"])
-            competitiveReactions.append(contentsOf: ["My streak is longer than yours.", "I'm catching up to your streak."])
-            questions.append(contentsOf: ["How long is your streak now?", "Did you ever use a streak freeze?"])
+            subjects.append(contentsOf: [
+                "that streak", "your daily consistency", "keeping it alive",
+                "that commitment", "your dedication", "the streak grind",
+                "never missing a day", "your login streak", "that daily discipline",
+                "showing up every day",
+            ])
         } else if message.contains("timed challenge") {
-            subjects.append(contentsOf: ["that time", "your speed", "the daily run"])
-            positiveReactions.append(contentsOf: ["Fast hands!", "Speed demon!", "Nice clear time!"])
-            jealousReactions.append(contentsOf: ["I ran out of time today", "I couldn't beat the clock", "You finished so fast"])
-            competitiveReactions.append(contentsOf: ["I bet my time was faster.", "I'll beat your time tomorrow."])
-            questions.append(contentsOf: ["What was your exact time?", "Did you pause at all?"])
+            subjects.append(contentsOf: [
+                "that time", "your speed", "the daily run", "that clear time",
+                "your reaction speed", "the clutch finish", "that speedrun",
+                "your timed performance", "beating the clock", "that pace",
+            ])
         } else if message.contains("theme") {
-            subjects.append(contentsOf: ["that new theme", "your new aesthetic", "the customization"])
-            positiveReactions.append(contentsOf: ["Love that theme!", "Looks so fresh.", "Best theme in the game.", "So pretty."])
-            jealousReactions.append(contentsOf: ["I'm still trying to unlock that one", "I want that theme so bad", "I don't have enough gems for it"])
-            competitiveReactions.append(contentsOf: ["My theme is better.", "I have all the themes unlocked."])
-            questions.append(contentsOf: ["Which theme is that?", "How much did that cost?"])
+            subjects.append(contentsOf: [
+                "that new theme", "your new aesthetic", "the customization",
+                "the new board look", "your style choice", "that color palette",
+                "the fresh vibes", "that theme swap", "the new visual",
+                "your board makeover",
+            ])
         } else if message.contains("Quest") {
-            subjects.append(contentsOf: ["that quest completion", "finishing the dailies", "getting those rewards"])
-            positiveReactions.append(contentsOf: ["Quest complete!", "Enjoy the rewards!", "Easy gems."])
-            jealousReactions.append(contentsOf: ["I'm only halfway done with mine", "Those quests were so hard today"])
-            competitiveReactions.append(contentsOf: ["I finished mine hours ago.", "I always finish quests faster."])
-            questions.append(contentsOf: ["What did you get from the chest?", "Were your quests hard?"])
+            subjects.append(contentsOf: [
+                "that quest completion", "finishing the dailies", "getting those rewards",
+                "clearing all objectives", "that quest grind", "the daily hustle",
+                "knocking out quests", "that chest pull", "completing every quest",
+                "the quest speedrun",
+            ])
+        }
+        
+        // Dynamically inject topic-specific reactions based on the feed item's message
+        if message.contains("Hall of Fame") {
+            positiveReactions.append(contentsOf: [
+                "Welcome to the Hall of Fame!", "HoF! That's massive.",
+                "See you on the infinity leaderboard!", "Legendary!",
+                "The ultimate achievement!", "HoF gang!",
+                "You earned that spot.", "Top of the mountain!",
+                "That's endgame right there.", "Hall of Fame royalty!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'll never reach the Hall of Fame", "How long did it take to get to HoF?",
+                "I'm still grinding for HoF", "HoF feels so far away for me",
+                "I dream about reaching HoF", "One day I'll join you there",
+                "Still so many tiles between me and HoF",
+                "I've been trying to reach HoF for months",
+                "That's literally my end goal", "HoF is my white whale",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I will join the Hall of Fame and have a higher infinity count than you!",
+                "My infinity count will be bigger than yours.",
+                "I'm coming for your HoF spot.", "I'll have more infinities by next week.",
+                "Just wait until I get my HoF entry.",
+                "I'll be right behind you in the rankings.",
+                "My HoF push starts today.", "I'm going to pass your infinity count.",
+                "See you on the leaderboard soon.", "That HoF record won't last.",
+            ])
+            questions.append(contentsOf: [
+                "How many infinity counts do you have?",
+                "Are you going for a high infinity count?",
+                "What's the next goal after HoF?",
+                "How many runs did it take to reach HoF?",
+                "What was the hardest part of the HoF grind?",
+                "Did you use any perks on the final push?",
+                "What tile were you stuck on the longest?",
+                "How long have you been playing to reach HoF?",
+                "Any advice for someone aiming for HoF?",
+                "What's your infinity count goal?",
+            ])
+        } else if message.contains("streak") {
+            positiveReactions.append(contentsOf: [
+                "Nice streak!", "Don't lose it!", "Streak master!",
+                "Way to keep the fire going.", "Day by day!",
+                "Consistency is key!", "That's real dedication.",
+                "Streak warrior!", "Keep that flame alive!",
+                "Unbreakable streak energy!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I lost my streak yesterday", "How do you remember every day?",
+                "I can never keep a streak going", "My longest streak was like 5 days",
+                "I keep forgetting to log in", "Streaks stress me out",
+                "I lost a 30-day streak last week", "My streak always dies on weekends",
+                "I wish I had that consistency", "I'm so bad at maintaining streaks",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "My streak is longer than yours.", "I'm catching up to your streak.",
+                "I haven't missed a day in months.", "My streak will outlast yours.",
+                "That's cute, check mine.",
+                "My streak started before yours.", "I'm never breaking my streak.",
+                "Wait until you see my streak count.", "Streak vs streak, let's go.",
+            ])
+            questions.append(contentsOf: [
+                "How long is your streak now?", "Did you ever use a streak freeze?",
+                "Have you ever lost a long streak?", "What's your all-time best streak?",
+                "Do you set a reminder?", "What time do you usually play?",
+                "Has the streak ever been in danger?", "Do you play first thing in the morning?",
+                "What keeps you motivated for the streak?", "Ever almost forgot?",
+            ])
+        } else if message.contains("timed challenge") {
+            positiveReactions.append(contentsOf: [
+                "Fast hands!", "Speed demon!", "Nice clear time!",
+                "Lightning fast!", "That's a blazing time!",
+                "Clock demolished!", "Speedrunner vibes!",
+                "Time is no obstacle for you!", "Built for speed!",
+                "That pace is unreal!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I ran out of time today", "I couldn't beat the clock",
+                "You finished so fast", "I always choke under pressure",
+                "Timed challenges stress me out", "I need like double that time",
+                "My hands aren't fast enough", "I panic when the timer starts",
+                "I can never think that quickly", "Time pressure is my worst enemy",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I bet my time was faster.", "I'll beat your time tomorrow.",
+                "My PB is lower than that.", "I'm the real speed king.",
+                "That time is beatable.", "I'll sub that time easy.",
+                "Tomorrow I'm going for the record.", "My clear was cleaner.",
+                "I shaved 30 seconds off my best today.", "Speed challenge accepted.",
+            ])
+            questions.append(contentsOf: [
+                "What was your exact time?", "Did you pause at all?",
+                "What's your fastest ever?", "Did you use a hammer during the run?",
+                "How do you plan moves so fast?", "Do you practice speed runs?",
+                "What's your average clear time?", "Any speed tips?",
+                "Do you go for speed or safety?", "Was that your first attempt today?",
+            ])
+        } else if message.contains("theme") {
+            positiveReactions.append(contentsOf: [
+                "Love that theme!", "Looks so fresh.", "Best theme in the game.",
+                "So pretty.", "That theme hits different.", "Clean aesthetic!",
+                "Your board looks amazing now!", "Perfect choice!",
+                "That theme is gorgeous.", "10/10 theme pick!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'm still trying to unlock that one", "I want that theme so bad",
+                "I don't have enough gems for it", "That's the theme I've been saving for",
+                "Why do the best themes cost so much", "I'm still on the default theme",
+                "Gem grind for that theme is real", "I need more gems for themes",
+                "Saving every gem for that exact theme", "I keep spending gems on perks instead",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "My theme is better.", "I have all the themes unlocked.",
+                "I had that theme ages ago.", "Wait until you see mine.",
+                "I unlocked every theme already.", "That's my second favorite theme.",
+                "I switch themes every week.", "My collection is complete.",
+                "I unlocked that one first day.", "Try collecting them all like me.",
+            ])
+            questions.append(contentsOf: [
+                "Which theme is that?", "How much did that cost?",
+                "How many gems was it?", "Is that your favorite theme?",
+                "Do you switch themes often?", "Which theme do you use most?",
+                "How many themes have you unlocked?", "Was it worth the gems?",
+                "What's the rarest theme?", "Does it change the tile colors too?",
+            ])
+        } else if message.contains("Quest") {
+            positiveReactions.append(contentsOf: [
+                "Quest complete!", "Enjoy the rewards!", "Easy gems.",
+                "Clean sweep!", "Dailies crushed!", "Nice haul!",
+                "Quest master!", "That chest was earned!",
+                "Objectives demolished!", "Well played on the quests!",
+            ])
+            jealousReactions.append(contentsOf: [
+                "I'm only halfway done with mine", "Those quests were so hard today",
+                "I never finish all the quests", "My quests are always impossible",
+                "I got stuck on the last objective", "I keep running out of time for quests",
+                "The quest RNG hates me", "I got the hardest quests today",
+                "I can never finish before reset", "Wish my quests were that easy",
+            ])
+            competitiveReactions.append(contentsOf: [
+                "I finished mine hours ago.", "I always finish quests faster.",
+                "I had those done by breakfast.", "My chest was better.",
+                "I got Diamond tier today.", "Quests are too easy honestly.",
+                "I speed-clear quests every day.", "I've finished every quest this month.",
+                "My quest streak is untouched.", "I finish dailies on my first game.",
+            ])
+            questions.append(contentsOf: [
+                "What did you get from the chest?", "Were your quests hard?",
+                "What tier chest was it?", "How long did the quests take?",
+                "Do you do quests first thing?", "Which quest was the hardest?",
+                "Did you get any good gems?", "What's the best chest you've ever pulled?",
+                "Do you always finish all three?", "Any quest tips for new players?",
+            ])
         }
         
         // Detect specific milestones if present in the message
@@ -1384,45 +1854,72 @@ public struct MockSocialService: SocialService, Sendable {
         if let foundMilestone = sortedMilestones.first(where: { message.contains(" \($0) ") }) {
             let m = foundMilestone
             if Double.random(in: 0...1) < 0.6 {
-                subjects.append(contentsOf: ["that \(m)", "hitting \(m)", "your \(m)", "this \(m) run"])
-                positiveReactions.append(contentsOf: ["GG on \(m)!", "\(m) is huge!", "Congrats on \(m)!"])
-                jealousReactions.append(contentsOf: ["I can't even get to \(m)", "How did you get \(m) so fast?", "I always lose before \(m)"])
-                competitiveReactions.append(contentsOf: ["I'm getting past \(m) today.", "I'll beat your \(m)."])
-                questions.append(contentsOf: ["Any tips for getting \(m)?", "Was \(m) tough?"])
+                subjects.append(contentsOf: [
+                    "that \(m)", "hitting \(m)", "your \(m)", "this \(m) run",
+                    "reaching \(m)", "the \(m) grind", "breaking into \(m)",
+                    "your \(m) push", "that \(m) breakthrough", "landing \(m)",
+                ])
+                positiveReactions.append(contentsOf: [
+                    "GG on \(m)!", "\(m) is huge!", "Congrats on \(m)!",
+                    "\(m)! Let's go!", "Massive \(m) hit!", "Big \(m) energy!",
+                    "\(m) club!", "Welcome to \(m)!", "\(m) earned!",
+                    "\(m) is no joke, well done!",
+                ])
+                jealousReactions.append(contentsOf: [
+                    "I can't even get to \(m)", "How did you get \(m) so fast?",
+                    "I always lose before \(m)", "I've been stuck before \(m) forever",
+                    "\(m) feels impossible for me", "I choke right before \(m)",
+                    "My board always falls apart near \(m)",
+                    "I keep dying one tile before \(m)",
+                    "\(m) is my wall right now", "Maybe someday I'll reach \(m)",
+                ])
+                competitiveReactions.append(contentsOf: [
+                    "I'm getting past \(m) today.", "I'll beat your \(m).",
+                    "I passed \(m) last week.", "My \(m) run was cleaner.",
+                    "\(m) is old news for me.", "I'll be past \(m) by tonight.",
+                    "Already beyond \(m) personally.", "My \(m) time was faster.",
+                    "I hit \(m) without any perks.", "\(m)? I'm aiming higher.",
+                ])
+                questions.append(contentsOf: [
+                    "Any tips for getting \(m)?", "Was \(m) tough?",
+                    "How many tries for \(m)?", "What's the strategy near \(m)?",
+                    "Did you use perks at \(m)?", "How long to reach \(m)?",
+                    "What comes after \(m)?", "Is \(m) a big wall?",
+                    "What tile was hardest before \(m)?", "Any perk recommendations for \(m)?",
+                ])
             }
         }
         
-        let format = Int.random(in: 0...6)
+        // Weighted category roll: 55% competitive, 25% positive, 15% question, 5% jealous
         var comment = ""
         var tone = "positive"
+        let roll = Double.random(in: 0..<1)
         
-        switch format {
-        case 0:
-            let opener = openers.randomElement()!
-            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
-            comment = opener.isEmpty ? core.capitalized + "!" : "\(opener) \(core)!"
-            tone = "positive"
-        case 1:
-            comment = "\(positiveReactions.randomElement()!) \(questions.randomElement()!)"
-            tone = "question"
-        case 2:
-            let opener = openers.randomElement()!
-            let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
-            let sentence = opener.isEmpty ? core.capitalized + "." : "\(opener) \(core)."
-            comment = "\(sentence) \(questions.randomElement()!)"
-            tone = "question"
-        case 3:
-            comment = "\(positiveReactions.randomElement()!)"
-            tone = "positive"
-        case 4:
-            comment = "\(jealousReactions.randomElement()!)"
-            tone = "sad"
-        case 5:
-            comment = "\(competitiveReactions.randomElement()!)"
+        if roll < 0.55 {
+            // ── Competitive (55%) — standalone, no opener ──
+            comment = competitiveReactions.randomElement()!
             tone = "competitive"
-        default:
-            comment = "\(subjects.randomElement()!.capitalized) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+        } else if roll < 0.80 {
+            // ── Positive (25%) — with opener + subject/verb/adj ──
+            let opener = openers.randomElement()!
+            if Bool.random() {
+                let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+                comment = opener.isEmpty ? core.capitalized + "!" : "\(opener) \(core)!"
+            } else {
+                let reaction = positiveReactions.randomElement()!
+                comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
+            }
             tone = "positive"
+        } else if roll < 0.95 {
+            // ── Question (15%) — standalone, no opener ──
+            comment = questions.randomElement()!
+            tone = "question"
+        } else {
+            // ── Jealous (5%) — with opener ──
+            let opener = openers.randomElement()!
+            let reaction = jealousReactions.randomElement()!
+            comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
+            tone = "sad"
         }
         
         if Double.random(in: 0...1) < 0.75 {
@@ -1443,16 +1940,364 @@ public struct MockSocialService: SocialService, Sendable {
         return comment.trimmingCharacters(in: .whitespaces)
     }
     
-    private func generateDynamicName() -> String {
-        if Double.random(in: 0...1) < 0.25 {
-            let realNames = ["James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel", "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George", "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail", "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael", "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila", "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich"]
-            let lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Anderson", "Taylor", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Thompson", "White", "Harris", "Clark", "Garcia", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Perez", "Sanchez", "Ramirez", "Torres", "Mueller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann"]
-            return realNames.randomElement()! + " " + lastNames.randomElement()!
-        } else {
-            let baseNames = ["DefenselessMetal", "LopingLemming", "DensePage", "BrittleBelly", "PerfectPirate", "CaramelStamp", "CulturalDerision", "KnownOwner", "SwiftCoder", "PixelMaster", "NeonRacer", "CloudJumper", "StarGazer", "ThunderBolt", "CryptoKing", "MidnightOwl", "SolarFlare", "OceanWave", "MountainPeak", "DesertStorm", "JungleCat", "ArcticFox", "TropicalBird", "CosmicDust", "QuantumLeap", "NebulaStar", "GalaxyRider", "AsteroidHunter", "CometChaser", "MeteorShower", "SaturnRing", "JupiterMoon", "MarsRover", "VenusFlyer", "MercuryDash", "PlutoExplorer", "NeptuneWave", "UranusOrbit", "EarthGuard", "SunBlaze", "MoonWalker", "StarDancer", "SpacePilot", "RocketMan", "LaserBeam", "PhotonBlast", "NeutronStar", "ProtonPower", "ElectronFlow", "AtomSmasher", "MoleculeMix", "CellDivider", "DNAHelix", "RNAStrand", "ProteinFold", "EnzymeCat", "VitaminBoost", "MineralRock", "CrystalClear", "DiamondEdge", "RubyGlow", "SapphireShine", "EmeraldDream", "AmethystMist", "TopazSun", "OpalMoon", "PearlOcean", "JadeForest", "OnyxShadow", "GarnetFire", "TurquoiseSky", "CoralReef", "IvoryTower", "BronzeAge", "SilverLining", "GoldRush", "PlatinumPro", "TitaniumStrong", "CopperGlow", "IronWill", "SteelNerve", "AluminumLight", "ZincShield", "NickelSpin", "CobaltBlue", "ChromeFinish", "TungstenTough", "MolybdenumMax", "VanadiumVibe", "ManganeseMight", "PalladiumPure", "RhodiumRare", "IridiumIntense", "OsmiumOdd", "RheniumRich", "TantalumTwist", "HafniumHigh", "ZirconiumZest", "NiobiumNova", "TokyoTiger", "LondonLion", "ParisPanther", "BerlinBear", "SydneySerpent", "TorontoTornado", "MadridMaverick", "RomeRaider", "SaoPauloStar", "MumbaiMaster", "ShanghaiShark", "MoscowMight", "DubaiDragon", "SingaporeSurge", "HongKongHero", "SeoulSniper", "BangkokBolt", "JakartaJet", "CairoChamp", "LagoosLegend", "NairobiNinja", "CapeTownCrush", "BuenosAiresBoss", "MexicoCityMaster", "LimaaLion", "SantiagoStorm", "BogotaBeast", "CaracasChamp", "HavannaHawk", "KingstonKing", "MontrealMaverick", "VancouverVictor", "MelbourneMight", "AucklandAce", "WellingtonWolf", "OsakaOracle", "KyotoKnight", "NagoyaNinja", "FukuokaaFury", "SapporoStrike", "MunichMaster", "HamburgHero", "FrankfurtFlash", "CologneCrusher", "DusseldorfDragon", "AmsterdamAce", "BrussellsBoss", "ViennaViking", "ZurichZealot", "GenevaGhost"]
-            let number = String(format: "%06d", Int.random(in: 100000...999999))
-            return baseNames.randomElement()! + number
+    /// Returns a milestone-aware answer if the text asks "what comes after [milestone]".
+    private func milestoneAnswer(for text: String) -> String? {
+        let lowered = text.lowercased()
+        guard lowered.contains("what comes after") || lowered.contains("what's after")
+              || lowered.contains("whats after") || lowered.contains("what is after") else {
+            return nil
         }
+        // Search longest-first to avoid partial matches (e.g. "2" inside "262K")
+        let sorted = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
+        for (idx, milestone) in sorted {
+            if text.contains(milestone), idx + 1 < Self.allMilestones.count {
+                let next = Self.allMilestones[idx + 1]
+                let templates = [
+                    "\(next) comes after \(milestone).",
+                    "After \(milestone) it's \(next)!",
+                    "The next tile after \(milestone) is \(next).",
+                    "\(milestone) → \(next). Keep pushing!",
+                    "\(next)! That's what's after \(milestone).",
+                ]
+                return templates.randomElement()!
+            }
+        }
+        return nil
+    }
+
+    /// Generates a contextual reply that responds to what the previous comment actually said.
+    private func generateContextualReply(to commentText: String, message: String) -> String {
+        let lowered = commentText.lowercased()
+
+        // Strip any leading @mention from the comment so we analyze the real content
+        let strippedText: String = {
+            if lowered.hasPrefix("@") {
+                let parts = commentText.split(separator: " ", maxSplits: 1)
+                return parts.count > 1 ? String(parts[1]) : commentText
+            }
+            return commentText
+        }()
+        let strippedLower = strippedText.lowercased()
+
+        // ── Detect the tone/intent of the comment being replied to ──
+
+        let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
+        let isQuestion = questionKeywords.contains(where: { strippedLower.contains($0) })
+
+        let competitiveKeywords = ["beat", "catching up", "coming for", "won't last", "watch your back", "game on", "challenge", "mine tomorrow", "i'll be", "i'm going to", "not impressed", "my time", "faster", "i passed", "old news", "hold my"]
+        let isCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
+
+        let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never"]
+        let isJealous = jealousKeywords.contains(where: { strippedLower.contains($0) })
+
+        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite"]
+        let isPositive = positiveKeywords.contains(where: { strippedLower.contains($0) })
+
+        let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
+        let isAddRequest = addFriendKeywords.contains(where: { strippedLower.contains($0) })
+
+        // ── Generate contextual replies based on detected intent ──
+
+        if isAddRequest {
+            let replies = [
+                "Sure! My code is in my profile 🤝",
+                "Absolutely, add me anytime!",
+                "Yeah let's link up! Check my profile.",
+                "Of course! Always looking for friends 😊",
+                "Go for it! More competition is always fun.",
+                "Yes! Send me a friend request 🎮",
+                "For sure — the more the merrier!",
+                "Definitely! Let's compete together.",
+            ]
+            return replies.randomElement()!
+        }
+
+        if isQuestion {
+            // Reply with an answer-style response
+            var answers = [
+                "Honestly, just keep grinding and it clicks.",
+                "Took me a while, but consistency helps a lot.",
+                "The trick is patience and keeping lanes open.",
+                "I usually plan 3-4 moves ahead. That helps.",
+                "Just practice! Everyone struggles at first.",
+                "No special trick, just played a LOT 😅",
+                "Focus on keeping one corner anchored.",
+                "Perks help but they're not required.",
+                "A few attempts honestly. Not gonna lie it was rough.",
+                "I watched some replays to figure out the pattern.",
+            ]
+            // Topic-specific answers
+            if message.contains("Hall of Fame") {
+                answers.append(contentsOf: [
+                    "Took about 3 months of daily play to get to HoF.",
+                    "The key is never giving up once you're past the 'a' tiers.",
+                    "Keep pushing through the alphabet tiers and you'll get there.",
+                    "Honestly the hardest part was the 'z' to 'aa' transition.",
+                ])
+            } else if message.contains("streak") {
+                answers.append(contentsOf: [
+                    "I set a phone reminder every evening.",
+                    "Play right after waking up — never miss!",
+                    "Almost lost it twice, but pulled through 😅",
+                    "The first week is the hardest, then it becomes habit.",
+                ])
+            } else if message.contains("timed") || message.contains("speed") {
+                answers.append(contentsOf: [
+                    "Speed comes from pattern recognition. Keep at it!",
+                    "I don't overthink — just go with instinct.",
+                    "Practice the daily challenge every day, times drop naturally.",
+                    "Quick swipes and no second-guessing. That's my style.",
+                ])
+            } else if message.contains("theme") {
+                answers.append(contentsOf: [
+                    "Worth every gem, honestly!",
+                    "I've been saving up for weeks for this one.",
+                    "It changes the whole feel of the game.",
+                    "The colors on this theme are so soothing.",
+                ])
+            } else if message.contains("Quest") || message.contains("quest") {
+                answers.append(contentsOf: [
+                    "I always start with the hardest quest first.",
+                    "Today's quests were actually pretty easy.",
+                    "The chest rewards are so worth it.",
+                    "I try to knock them out in my first session.",
+                ])
+            }
+            return answers.randomElement()!
+        }
+
+        if isCompetitive {
+            // Reply to competitive trash talk
+            let replies = [
+                "Bring it on 😏",
+                "We'll see about that 👀",
+                "Talk is cheap — show me the screenshot 📸",
+                "I'll be waiting at the top 🏔️",
+                "Lol good luck with that 😂",
+                "Respect the confidence! Let's see it.",
+                "Actions speak louder than comments 💪",
+                "Keep that same energy next week 😈",
+                "I love the competition honestly!",
+                "You're on. May the best player win.",
+                "Haha alright, consider this a rivalry.",
+                "Come find me on the leaderboard then 🎯",
+            ]
+            return replies.randomElement()!
+        }
+
+        if isJealous {
+            // Reply encouragingly to jealous/struggling comments
+            let replies = [
+                "You'll get there! Just keep playing 💪",
+                "I was in the same spot a few weeks ago. Don't give up!",
+                "Honestly, it took me forever too. Patience is key.",
+                "Everyone progresses at their own pace. You got this!",
+                "Trust the process — breakthroughs happen randomly.",
+                "I believe in you! Keep grinding 🔥",
+                "We all hit walls. The fun is breaking through them.",
+                "It'll click eventually. Happened to me too!",
+                "Keep at it! The struggle makes the win sweeter.",
+                "Don't worry, half the fun is the journey.",
+                "Seriously, I almost quit before my breakthrough. Stay with it.",
+                "You're closer than you think 🙌",
+            ]
+            return replies.randomElement()!
+        }
+
+        if isPositive {
+            // Reply to compliments/positive reactions
+            let replies = [
+                "Thanks! 🙌",
+                "Appreciate it! 😊",
+                "Right back at you!",
+                "Thanks, means a lot!",
+                "Haha thanks! Keep grinding too!",
+                "Thank you! We're all in this together 🔥",
+                "❤️ appreciate the love!",
+                "Thanks! Your turn next!",
+                "Cheers! Good luck on your runs!",
+                "Ty! See you on the leaderboard!",
+                "So kind! Thank you 😄",
+                "Aww thanks! This community is the best.",
+            ]
+            return replies.randomElement()!
+        }
+
+        // ── Fallback: generic but still conversational ──
+        let fallbacks = [
+            "Honestly, your grid was perfect. Can I add you? 🤝",
+            "Facts. That's exactly how I see it too.",
+            "Couldn't have said it better myself.",
+            "Haha right? This game is something else.",
+            "For real though! 💯",
+            "Completely agree with this.",
+            "Yo same energy over here 😄",
+            "That's what I'm saying!",
+            "Big facts! 🔥",
+            "We need more of this in the feed honestly.",
+            "Love seeing this kind of energy.",
+            "This right here. 👆",
+        ]
+        return fallbacks.randomElement()!
+    }
+
+    // Gamertags from the global leaderboard (exact match to LeaderboardClient.globalNames)
+    private static let leaderboardGamertags = [
+        "DefenselessMetal113090", "LopingLemming366775", "DensePage606454", "BrittleBelly378166", "PerfectPirate002198",
+        "CaramelStamp540035", "Player006362", "CulturalDerision125825", "KnownOwner816617", "SwiftCoder159607",
+        "PixelMaster748740", "NeonRacer607539", "CloudJumper689506", "StarGazer002024", "ThunderBolt507614",
+        "CryptoKing712740", "MidnightOwl188137", "SolarFlare036196", "OceanWave878869", "MountainPeak660972",
+        "DesertStorm875175", "JungleCat510460", "ArcticFox939275", "TropicalBird570541", "CosmicDust555331",
+        "QuantumLeap035256", "NebulaStar541366", "GalaxyRider213281", "AsteroidHunter307929", "CometChaser943999",
+        "MeteorShower490180", "SaturnRing106251", "JupiterMoon945882", "MarsRover652511", "VenusFlyer746976",
+        "MercuryDash434165", "PlutoExplorer378313", "NeptuneWave575300", "UranusOrbit060276", "EarthGuard724482",
+        "SunBlaze762087", "MoonWalker401411", "StarDancer746126", "SpacePilot446429", "RocketMan803508",
+        "LaserBeam193628", "PhotonBlast369925", "NeutronStar967846", "ProtonPower572084", "ElectronFlow288169",
+        "AtomSmasher302943", "MoleculeMix835494", "CellDivider926550", "DNAHelix431818", "RNAStrand123317",
+        "ProteinFold990603", "EnzymeCat244951", "VitaminBoost636173", "MineralRock121189", "CrystalClear873097",
+        "DiamondEdge628696", "RubyGlow895754", "SapphireShine479114", "EmeraldDream535535", "AmethystMist642606",
+        "TopazSun210254", "OpalMoon281552", "PearlOcean894781", "JadeForest723448", "OnyxShadow478670",
+        "GarnetFire754374", "TurquoiseSky641687", "CoralReef948207", "IvoryTower682707", "BronzeAge633030",
+        "SilverLining743365", "GoldRush682418", "PlatinumPro917381", "TitaniumStrong231738", "CopperGlow256951",
+        "IronWill317193", "SteelNerve121543", "AluminumLight184188", "ZincShield809081", "NickelSpin810647",
+        "CobaltBlue134447", "ChromeFinish771732", "TungstenTough258394", "MolybdenumMax376493", "VanadiumVibe172034",
+        "ManganeseMight774509", "PalladiumPure453084", "RhodiumRare101269", "IridiumIntense672277", "OsmiumOdd233561",
+        "RheniumRich695253", "TantalumTwist258498", "HafniumHigh509980", "ZirconiumZest230030", "NiobiumNova237940",
+        "TokyoTiger778294", "LondonLion245602", "ParisPanther498589", "BerlinBear008218", "SydneySerpent634772",
+        "TorontoTornado515976", "MadridMaverick983643", "RomeRaider184724", "SaoPauloStar483164", "MumbaiMaster482711",
+        "ShanghaiShark890139", "MoscowMight810148", "DubaiDragon354547", "SingaporeSurge500873", "HongKongHero351162",
+        "SeoulSniper578452", "BangkokBolt182848", "JakartaJet643384", "CairoChamp081350", "LagoosLegend866099",
+        "NairobiNinja892405", "CapeTownCrush621130", "BuenosAiresBoss725008", "MexicoCityMaster392481", "LimaaLion485983",
+        "SantiagoStorm444097", "BogotaBeast471443", "CaracasChamp147285", "HavannaHawk401550", "KingstonKing737312",
+        "MontrealMaverick378582", "VancouverVictor981419", "MelbourneMight815557", "AucklandAce491276", "WellingtonWolf315877",
+        "OsakaOracle255633", "KyotoKnight377863", "NagoyaNinja611040", "FukuokaaFury815070", "SapporoStrike777002",
+        "MunichMaster942913", "HamburgHero964803", "FrankfurtFlash676648", "CologneCrusher742603", "DusseldorfDragon908503",
+        "AmsterdamAce262368", "BrussellsBoss822873", "ViennaViking160358", "ZurichZealot419278", "GenevaGhost254315",
+        // Hall of Fame gamertags (exact match to LeaderboardClient.hallOfFameNames)
+        "InfinityMaster462572", "EndlessVoyager", "BeyondLimits422678", "EternalChamp", "UltimatePlayer",
+        "LegendaryGamer", "InfiniteWinner", "CosmicConqueror", "SupremeVictor", "DivinePlayer",
+        "MythicalHero", "TranscendentOne", "OmnipotentGamer", "CelestialKing", "ImmortalPlayer",
+        "UnstoppableForce", "PerfectScore571450", "FlawlessVictory", "AbsoluteChamp", "MaxLevelPro",
+        "GodTierPlayer", "EliteInfinity", "MasterOfAll", "ChampOfChamps", "NumberOneForever",
+        "SkillMaxed367578", "TopDogForever", "KingOfKings", "QueenSupreme", "UltimateVictory",
+        "BeyondPerfect", "EndgameBoss", "FinalFormPro", "MaxPowerUser", "InfiniteGlory",
+        "EternalVictory", "LimitBreaker661070", "BoundlessSkill", "NeverEndingWin", "ForeverFirst",
+        "AlphaOmega531681", "ZenithReached", "ApexPredator099366", "PinnaclePlayer", "SummitSeeker",
+        "VanguardVictor", "ParagonPrime", "SupremeSeeker", "TitanTamer", "OlympianOne",
+        "PhoenixRisen", "DragonSlayer864745", "ThunderGod795666", "StormBringer", "LightningLord",
+        "ShadowMaster", "VoidWalker214877", "CosmicRuler", "GalacticKing", "UniversalChamp",
+        "StarForger112263", "NebulaNinja", "QuantumKing911350", "DimensionLord", "RealityBender",
+        "SpeedStar545327", "FastFury575123", "QuickQueen", "RapidRuler", "SwiftStar",
+        "WolfWarrior218074", "FoxFury352370", "BearBoss", "TigerTitan", "LionLord",
+    ]
+
+    // Real names from the leaderboard (exact match to LeaderboardClient.realNames)
+    private static let leaderboardRealNames = [
+        "James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel",
+        "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George",
+        "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail",
+        "Emily", "Elizabeth", "Sofia", "Avery", "Ella", "Scarlett", "Grace", "Chloe", "Victoria", "Riley",
+        "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael",
+        "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila",
+        "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich", "Dieter", "Helmut", "Werner", "Gerhard", "Manfred",
+        "Pierre", "Jean", "Jacques", "François", "Michel", "Philippe", "Alain", "Bernard", "Christophe", "Thierry",
+        "Marco", "Giuseppe", "Giovanni", "Francesco", "Antonio", "Alessandro", "Andrea", "Luca", "Matteo", "Lorenzo",
+        "Hiroshi", "Takeshi", "Kenji", "Yuki", "Haruto", "Sota", "Ren", "Kaito", "Asahi", "Minato",
+        "Minho", "Jiwon", "Seojun", "Dohyun", "Hajun", "Junwoo", "Siwoo", "Yejun", "Jiho", "Junseo",
+        "Wei", "Fang", "Lei", "Jun", "Ming", "Tao", "Hao", "Chen", "Lin", "Jian",
+        "Raj", "Amit", "Vikram", "Rahul", "Arjun", "Aditya", "Rohan", "Karan", "Nikhil", "Sanjay",
+        "Pedro", "Lucas", "Gabriel", "Matheus", "Guilherme", "Bruno", "Felipe", "Gustavo", "Leonardo",
+        "Ivan", "Dmitri", "Alexei", "Sergei", "Nikolai", "Viktor", "Andrei", "Pavel", "Mikhail", "Oleg",
+        "Ahmed", "Mohamed", "Ali", "Omar", "Hassan", "Yusuf", "Ibrahim", "Khalid", "Tariq", "Nasser",
+        "Erik", "Lars", "Anders", "Magnus", "Olaf", "Bjorn", "Sven", "Gunnar", "Harald", "Leif",
+    ]
+
+    // Last names from the leaderboard (exact match to LeaderboardClient.lastNames)
+    private static let leaderboardLastNames = [
+        "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Anderson",
+        "Taylor", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Thompson", "White", "Harris", "Clark",
+        "Lewis", "Robinson", "Walker", "Hall", "Young", "King", "Wright", "Hill", "Scott", "Green",
+        "Garcia", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Perez", "Sanchez", "Ramirez", "Torres",
+        "Mueller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann",
+        "Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Moreau",
+        "Rossi", "Russo", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino", "Greco",
+        "Sato", "Suzuki", "Takahashi", "Tanaka", "Watanabe", "Ito", "Yamamoto", "Nakamura", "Kobayashi", "Kato",
+        "Kim", "Lee", "Park", "Choi", "Jung", "Kang", "Cho", "Yoon", "Jang", "Lim",
+        "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Wu", "Zhou",
+        "Sharma", "Patel", "Singh", "Kumar", "Gupta", "Verma", "Reddy", "Joshi", "Rao", "Mehta",
+        "Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes",
+        "Ivanov", "Smirnov", "Kuznetsov", "Popov", "Vasiliev", "Petrov", "Sokolov", "Mikhailov", "Fedorov", "Morozov",
+        "Al-Rashid", "Al-Farsi", "Al-Hassan", "Al-Mansour", "Al-Nasser", "Al-Hamad", "Al-Salem", "Al-Khalid",
+        "Andersen", "Hansen", "Johansen", "Larsen", "Olsen", "Pedersen", "Nilsen", "Kristiansen", "Jensen", "Karlsen",
+    ]
+
+    private func generateDynamicName() -> String {
+        // Mirror LeaderboardClient.nameForPlayer deterministic logic so every
+        // name that appears in the feed also exists on the leaderboard.
+        let index = Int.random(in: 0..<1000)
+        let countrySeed = Int.random(in: 0..<50)
+        let day = Self.daysSinceReference
+
+        // Same threshold split as leaderboard: 15% real name for top 150
+        // indices, 30% for extended indices.
+        let realNameThreshold: Double = index < 150 ? 0.15 : 0.30
+        let typeRoll = Self.seededNameRandom(seed: index &* 401 &+ countrySeed &* 83, index: index)
+
+        if typeRoll < realNameThreshold {
+            // Real first name — pick deterministically from the pool
+            let nameIndex = (index &+ countrySeed) % Self.leaderboardRealNames.count
+            let firstName = Self.leaderboardRealNames[nameIndex]
+
+            // Region-matched last name (same pool offsets as leaderboard)
+            let regionStart: Int
+            if nameIndex < 40 { regionStart = 0 }         // English
+            else if nameIndex < 60 { regionStart = 40 }   // Hispanic
+            else if nameIndex < 80 { regionStart = 60 }   // German
+            else if nameIndex < 100 { regionStart = 80 }  // French
+            else if nameIndex < 120 { regionStart = 100 } // Italian
+            else { regionStart = 0 }                       // Fallback
+
+            // Last name arrays share similar region grouping
+            let lastIndex = (index &+ countrySeed &+ day) % Self.leaderboardLastNames.count
+            // Use a region-aware pick when possible
+            let regionSize = 10
+            let lastNameIndex: Int
+            if regionStart / 10 < Self.leaderboardLastNames.count / regionSize {
+                let base = (regionStart / 2) % Self.leaderboardLastNames.count
+                lastNameIndex = base + ((index &+ countrySeed) % min(regionSize, Self.leaderboardLastNames.count - base))
+            } else {
+                lastNameIndex = lastIndex
+            }
+            let lastName = Self.leaderboardLastNames[lastNameIndex % Self.leaderboardLastNames.count]
+            return firstName + " " + lastName
+        } else {
+            // Gamertag — use the combined global + HoF pool
+            let pool = Self.leaderboardGamertags
+            let nameIdx = (index &+ countrySeed) % pool.count
+            var baseName = pool[nameIdx]
+
+            // Strip trailing digits (same as leaderboard)
+            while let last = baseName.last, last.isNumber {
+                baseName.removeLast()
+            }
+
+            // 55% of gamertags get a 6-digit suffix (same as leaderboard)
+            let numberRoll = Self.seededNameRandom(seed: index &* 709 &+ countrySeed &* 151, index: index)
+            if numberRoll < 0.55 {
+                let numSeed = Self.seededNameRandom(seed: index &* 823 &+ countrySeed &* 179, index: index)
+                let number = 100000 + Int(numSeed * 900000)
+                return baseName + String(format: "%06d", number)
+            }
+            return baseName
+        }
+    }
+
+    /// Deterministic hash matching the leaderboard's seededRandom exactly.
+    private static func seededNameRandom(seed: Int, index: Int) -> Double {
+        var state = UInt64(seed &+ index &* 2654435761)
+        state = state &* 6364136223846793005 &+ 1442695040888963407
+        state = state &* 6364136223846793005 &+ 1442695040888963407
+        return Double(state & 0x7FFFFFFF) / Double(0x7FFFFFFF)
     }
 }
 

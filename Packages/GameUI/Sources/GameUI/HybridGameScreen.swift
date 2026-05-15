@@ -34,6 +34,7 @@ public struct HybridGameScreen: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(PlayerReadinessStore.self) private var playerReadiness
     @Environment(\.rewardLedgerOptional) private var rewardLedger
+    @Environment(\.socialFeedPublisher) private var socialFeedPublisher
 
     @State private var isShowingTopMergeTile: Bool = false
     @State private var topMergeTileValue: Int? = nil
@@ -656,6 +657,11 @@ public struct HybridGameScreen: View {
     private func showGameOverAndReset() {
         gameStore.gameOverConfirmed = true
         isShowingGameOverText = true
+
+        // Post the player's highest tile to the social feed
+        let step = gameStore.state.highestTileStep
+        let tileName = TileStepLabelFormatter.labelForStep(step, start: 2)
+        socialFeedPublisher.postEndlessMilestone(tileName: tileName)
 
         // Cancel any existing reset task
         gameOverResetTask?.cancel()
