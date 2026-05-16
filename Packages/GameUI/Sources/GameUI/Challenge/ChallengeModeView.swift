@@ -5,11 +5,13 @@ import GameApp
 public struct ChallengeModeView: View {
     @Environment(\.challengeStore) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.gameStore) private var mainGameStore
     @Environment(HomeState.self) private var homeState
     @State private var scrollViewProxy: ScrollViewProxy? = nil
     @State private var currentTime = Date()  // For countdown timer updates
     @State private var selectedChallenge: Challenge? = nil
     @State private var showIconLegend = false
+    @State private var showInsufficientGemsForSkip = false
 
     public var onPlay: ((Challenge) -> Void)?
 
@@ -165,21 +167,55 @@ public struct ChallengeModeView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
             } else if let pending = store.pendingUnlockChallenge {
-                // Pending unlock - show countdown
-                VStack(spacing: 8) {
-                    Text("Next Challenge Unlocks In")
-                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
-                        .foregroundStyle(.secondary)
-                    Text(formatTimeRemaining(until: pending.unlockDate))
-                        .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
-                        .foregroundStyle(.orange)
+                // Pending unlock - show countdown + skip button
+                let skipCost = store.skipWaitCost(for: pending.challenge.id)
+                VStack(spacing: 12) {
+                    VStack(spacing: 4) {
+                        Text("Next Challenge Unlocks In")
+                            .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
+                            .foregroundStyle(.secondary)
+                        Text(formatTimeRemaining(until: pending.unlockDate))
+                            .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
+                            .foregroundStyle(.orange)
+                    }
+
+                    Button {
+                        guard homeState.gems >= skipCost else {
+                            showInsufficientGemsForSkip = true
+                            return
+                        }
+                        // Deduct gems
+                        homeState.gems -= skipCost
+                        _ = mainGameStore.spendCoins(skipCost)
+                        // Skip the cooldown
+                        store.skipWait(for: pending.challenge.id)
+                        // Auto-select the now-active challenge
+                        selectedChallenge = pending.challenge
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "forward.fill")
+                            Text("Skip Wait")
+                            Text("·")
+                            Image("gem")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                            Text("\(skipCost)")
+                        }
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.orange.opacity(0.15))
-                )
+                .alert("Not Enough Gems", isPresented: $showInsufficientGemsForSkip) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text("You need \(skipCost) gems to skip the wait. You have \(homeState.gems).")
+                }
             } else {
                 // All completed or no challenges
                 Text("All Challenges Completed!")
