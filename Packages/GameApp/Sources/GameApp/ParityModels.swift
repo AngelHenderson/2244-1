@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v12"
-    private static let feedDateKey = "socialFeed.cacheDate.v12"
+    private static let feedCacheKey = "socialFeed.cache.v13"
+    private static let feedDateKey = "socialFeed.cacheDate.v13"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts"
 
@@ -2096,6 +2096,12 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've had a \(myDays)-day streak since before you even started playing.",
                     "\(myDays)-day streak. Your \(streakDays)-day streak doesn't even register on my radar.",
                     "My streak is at \(myDays) and yours is still at \(streakDays). Embarrassing.",
+                    "\(myDays) days without missing a single one. \(streakDays) is rookie numbers.",
+                    "I was at \(streakDays) back in my first month. Now I'm at \(myDays).",
+                    "Still at \(streakDays)? My \(myDays)-day streak laughs at that.",
+                    "\(streakDays) days is a warmup. I'm at \(myDays) and I don't plan on stopping.",
+                    "Imagine bragging about \(streakDays) when \(myDays) exists.",
+                    "\(myDays) days of pure dedication. \(streakDays) days of... trying, I guess?",
                 ]
                 if myDays >= streakDays * 2 {
                     templates.append("\(myDays)-day streak here. You're way behind.")
@@ -2135,6 +2141,12 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've been clearing \(myTime) since before you even started playing.",
                     "\(myTime). Your \(posterTime) doesn't even register on my radar.",
                     "My time hit \(myTime) and yours is still stuck at \(posterTime). Embarrassing.",
+                    "\(posterTime) is slow motion compared to my \(myTime).",
+                    "Finished at \(myTime) and still had time for a snack. \(posterTime) though?",
+                    "You call \(posterTime) fast? I call \(myTime) fast.",
+                    "\(myTime) without even breaking a sweat. \(posterTime) must have been stressful.",
+                    "The gap between \(posterTime) and my \(myTime) is called talent.",
+                    "I hit \(myTime) on my first try today. \(posterTime)… yikes.",
                 ]
                 if myTotal <= totalSecs / 2 {
                     templates.append("\(myTime) here. You're way behind.")
@@ -2168,6 +2180,12 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've had \(myCount) infinities since before you even started playing.",
                     "\(myCount). Your \(infCount) doesn't even register on my radar.",
                     "My count hit \(myCount) and yours is still stuck at \(infCount). Embarrassing.",
+                    "\(infCount) infinities and you're bragging? Call me when you hit \(myCount).",
+                    "I clear infinities in my sleep. \(myCount) and growing every day.",
+                    "Imagine thinking \(infCount) was impressive. My \(myCount) says otherwise.",
+                    "Hit \(myCount) last week actually. \(infCount) is old news to me.",
+                    "The Hall of Fame belongs to players at \(myCount). \(infCount) is the waiting room.",
+                    "\(infCount) is the tutorial. \(myCount) is the real game.",
                 ]
                 if myCount >= infCount * 2 {
                     templates.append("\(myCount) infinities here. You're way behind.")
@@ -2211,6 +2229,12 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've been at \(higherM) since before you even started playing.",
                     "\(higherM). Your \(m) doesn't even register on my radar.",
                     "My tile hit \(higherM) and yours is still stuck at \(m). Embarrassing.",
+                    "Still flexing \(m)? I passed that tile a long time ago. \(higherM) now.",
+                    "\(m) is a memory for me. Been living at \(higherM) for a while.",
+                    "The jump from \(m) to \(higherM) is called grinding. Try it sometime.",
+                    "I don't even remember what \(m) looks like. My screen shows \(higherM).",
+                    "Posting \(m) like it's an achievement when \(higherM) exists is bold.",
+                    "You'll understand the \(higherM) grind someday. \(m) is just the start.",
                 ]
                 // "way behind" only with a truly massive gap (150-500 steps ahead)
                 if remaining >= 150 {
@@ -2245,6 +2269,12 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've been pulling \(myTier) since before you even started playing.",
                     "\(myTier). Your \(posterTier) doesn't even register on my radar.",
                     "My quests give \(myTier) and yours are still stuck at \(posterTier). Embarrassing.",
+                    "\(posterTier) chests are basically participation trophies. I pull \(myTier).",
+                    "Every single day, \(myTier). You're still opening \(posterTier) like it's a gift.",
+                    "The rewards from \(myTier) chests hit completely different than \(posterTier).",
+                    "I forgot \(posterTier) chests even existed. \(myTier) only over here.",
+                    "Bragging about \(posterTier)? That's bold when \(myTier) players are right here.",
+                    "\(posterTier) is where I was week one. Now it's \(myTier) or nothing.",
                 ]
                 // tier gap >= 2 (e.g., Bronze→Gold or Bronze→Diamond)
                 let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
