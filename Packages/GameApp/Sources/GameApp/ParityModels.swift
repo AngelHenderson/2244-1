@@ -2008,7 +2008,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "My streak is \(myDays) days. Not even close.",
                     "Lol only \(streakDays)? I'm on day \(myDays). 😏",
                     "Cute! My streak is at \(myDays) days.",
-                    "\(myDays)-day streak here. Sit down.",
+                    "\(myDays)-day streak here. You're way behind.",
                     "Only \(streakDays)? I'm sitting at \(myDays). Step it up.",
                     "That's nothing, my \(myDays)-day streak says hi.",
                     "I was at \(streakDays) days ages ago. I'm at \(myDays) now.",
