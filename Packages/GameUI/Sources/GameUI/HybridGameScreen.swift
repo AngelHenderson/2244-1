@@ -57,6 +57,7 @@ public struct HybridGameScreen: View {
     @State private var gameOverResetTask: Task<Void, Never>? = nil
     @State private var isShowingLowOnMoves = false
     @State private var lowMovesWarningArmed = true
+    @State private var isShowingQuitConfirmation = false
 
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState: HomeState = {
@@ -215,6 +216,15 @@ public struct HybridGameScreen: View {
                 }
             } message: {
                 Text("You are low on moves. Want to use a powerup to free up moves?")
+            }
+            .alert("Are you sure you want to quit?", isPresented: $isShowingQuitConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Quit", role: .destructive) {
+                    isShowingPowerUpOverlay = false
+                    showGameOverAndReset()
+                }
+            } message: {
+                Text("This will restart all of your progress.")
             }
 
         
@@ -593,9 +603,10 @@ public struct HybridGameScreen: View {
         HStack {
             // No Thanks button
             Button {
-                isShowingPowerUpOverlay = false
                 if powerUpOverlayContext == .outOfMoves {
-                    showGameOverAndReset()
+                    isShowingQuitConfirmation = true
+                } else {
+                    isShowingPowerUpOverlay = false
                 }
             } label: {
                 VStack(spacing: 2) {
