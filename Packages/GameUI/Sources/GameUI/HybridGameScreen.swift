@@ -1171,9 +1171,9 @@ private struct GameplayInfoPanel: View {
 
     private var validMovesColor: Color {
         let count = gameStore.validMovesCount
-        if count <= 5 { return .red }
-        if count <= 15 { return .orange }
-        if count <= 25 { return .yellow }
+        if count == 0 { return .red }
+        if count < 10 { return .orange }
+        if count < 20 { return .yellow }
         return .green
     }
 
