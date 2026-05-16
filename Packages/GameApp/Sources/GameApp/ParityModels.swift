@@ -2034,17 +2034,23 @@ public struct MockSocialService: SocialService, Sendable {
                 let myMins = myTotal / 60
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 let templates = [
-                    "I cleared mine in \(myTime). Try harder. 😏",
-                    "I got \(myTime) today. That's how it's done.",
-                    "My PB is \(myTime). Yours isn't even close.",
-                    "\(myTime) here. That clock didn't stand a chance.",
+                    "I cleared mine in \(myTime). Try harder.",
+                    "I got \(myTime) today. That is how it is done.",
+                    "My PB is \(myTime). Yours is not even close.",
+                    "\(myTime) here. That clock did not stand a chance.",
                     "I finished in \(myTime). Speed is my thing.",
-                    "\(myTime) without even trying. Just saying. 💨",
+                    "\(myTime) without even trying. Just saying.",
                     "\(myTime) on my first attempt. Embarrassing for you.",
-                    "I clocked \(myTime). Don't even compare.",
-                    "\(myTime). Beat that. 🏁",
-                    "Imagine not getting \(myTime). Couldn't be me.",
+                    "I clocked \(myTime). Do not even compare.",
+                    "\(myTime). Beat that.",
+                    "Imagine not getting \(myTime). Could not be me.",
+                    "My speed is faster than yours and will always be faster! \(myTime) vs your \(posterTime).",
+                    "\(posterTime)? Yikes. I did \(myTime) half asleep.",
+                    "\(myTime). Your \(posterTime) does not even register on my radar.",
+                    "I have been clearing \(myTime) consistently. Your \(posterTime) is a warm-up for me.",
+                    "My \(myTime) makes your \(posterTime) look like slow motion.",
                 ]
                 return templates.randomElement()!
             }
@@ -2055,16 +2061,21 @@ public struct MockSocialService: SocialService, Sendable {
             if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "∞", "×", "count", "entry", "#"]) {
                 let myCount = infCount + Int.random(in: 1...max(3, infCount))
                 let templates = [
-                    "I'm at ∞×\(myCount). That's levels above you. 😏",
+                    "I'm at \u{221E}\u{00D7}\(myCount). That's levels above you.",
                     "My infinity count is \(myCount). Yours is cute.",
                     "I hit \(myCount) infinities weeks ago. Old news.",
                     "\(myCount) infinities here. Can't relate to only \(infCount).",
-                    "I'm already at ∞×\(myCount). You've got catching up to do.",
+                    "I'm already at \u{221E}\u{00D7}\(myCount). You've got catching up to do.",
                     "Only \(infCount)? I'm sitting at \(myCount). Not impressed.",
                     "That's cute, I passed \(myCount) infinities ages ago.",
                     "\(myCount) infinities and I'm just warming up.",
-                    "Imagine bragging about \(infCount) when I'm at \(myCount). 💀",
+                    "Imagine bragging about \(infCount) when I'm at \(myCount).",
                     "I'll have more infinities than you by tomorrow. Already at \(myCount).",
+                    "\u{221E}\u{00D7}\(myCount). Your \(infCount) doesn't even register on my radar.",
+                    "My infinity count will always be higher than yours. \(myCount) and climbing!",
+                    "\(infCount) infinities? I had that my first week. I'm at \(myCount) now.",
+                    "The gap between \(infCount) and \(myCount) is only getting wider.",
+                    "My \u{221E}\u{00D7}\(myCount) makes your \u{221E}\u{00D7}\(infCount) look like a beginner run.",
                 ]
                 return templates.randomElement()!
             }
@@ -2088,7 +2099,12 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(m) is child's play. \(nextM) is where the real game starts.",
                     "I blew past \(m) into \(nextM). Not looking back.",
                     "\(nextM) club. \(m) players wouldn't understand.",
-                    "Imagine still being at \(m) when \(nextM) exists. 💀",
+                    "Imagine still being at \(m) when \(nextM) exists.",
+                    "\(nextM). Your \(m) doesn't even register on my radar.",
+                    "My tile will always be higher than yours. \(nextM) and beyond!",
+                    "\(m) was a speed bump for me. I flew straight to \(nextM).",
+                    "I was at \(m) for like an hour. \(nextM) is where I live now.",
+                    "The difference between \(m) and \(nextM) is the difference between you and me.",
                 ]
                 return templates.randomElement()!
             }
@@ -2101,12 +2117,18 @@ public struct MockSocialService: SocialService, Sendable {
             if let posterTierIdx = tiers.firstIndex(where: { message.contains($0) }),
                posterTierIdx < tiers.count - 1 {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
+                let posterTier = tiers[posterTierIdx]
                 let templates = [
                     "I got a \(myTier) chest today. Can't relate.",
                     "\(myTier) tier here. That's how you do it.",
                     "My chest was \(myTier). Yours is embarrassing.",
-                    "I always pull \(myTier) these days. 😏",
+                    "I always pull \(myTier) these days.",
                     "\(myTier) chest without breaking a sweat. Easy.",
+                    "My quest rewards are better than yours every single day! \(myTier) chest here.",
+                    "\(posterTier)? Couldn't be me. I pulled \(myTier) like it was nothing.",
+                    "\(myTier) while you're stuck on \(posterTier). The gap is real.",
+                    "I finish my quests faster AND get \(myTier). Your \(posterTier) is tragic.",
+                    "\(posterTier) doesn't even register on my radar. \(myTier) or nothing.",
                 ]
                 return templates.randomElement()!
             }
