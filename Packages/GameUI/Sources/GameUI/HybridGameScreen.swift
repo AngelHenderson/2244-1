@@ -696,6 +696,8 @@ public struct HybridGameScreen: View {
             guard gameStore.spendCoins(tier.gemCost) else { return }
         }
         isShowingMilestoneStart = false
+        isShowingQuitConfirmation = false
+        lowMovesWarningArmed = true
         if tier.step == 0 {
             gameStore.resetGame()
         } else {

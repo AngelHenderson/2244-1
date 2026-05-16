@@ -2421,12 +2421,16 @@ public struct MockSocialService: SocialService, Sendable {
         }).map { ($0.offset, $0.element) }
 
         // Pull any number referenced (playtime, days, attempts, etc.)
+        // Minimum of 3 — smaller numbers like 0, 1, 2 are almost never meaningful stats
         let mentionedNumber: String? = {
             let regex = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b", options: [])
             let range = NSRange(strippedText.startIndex..., in: strippedText)
             if let match = regex?.firstMatch(in: strippedText, range: range),
                let r = Range(match.range(at: 1), in: strippedText) {
-                return String(strippedText[r])
+                let numStr = String(strippedText[r])
+                if let value = Int(numStr), value >= 3 {
+                    return numStr
+                }
             }
             return nil
         }()
