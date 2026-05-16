@@ -2012,11 +2012,10 @@ public struct MockSocialService: SocialService, Sendable {
         if lowered.contains("streak") {
             if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
                 let myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
-                let templates = [
+                var templates = [
                     "My streak is \(myDays) days. Not even close.",
                     "Lol only a \(streakDays)-day streak? Mine is \(myDays).",
                     "Cute! My streak is \(myDays) days.",
-                    "\(myDays)-day streak here. You're way behind.",
                     "Only a \(streakDays)-day streak? Mine is \(myDays). Not impressed.",
                     "That's nothing, my \(myDays)-day streak says hi.",
                     "A \(streakDays)-day streak? I passed that ages ago. Mine is \(myDays).",
@@ -2029,6 +2028,9 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myDays)-day streak. Your \(streakDays)-day streak doesn't even register on my radar.",
                     "My streak is at \(myDays) and yours is still at \(streakDays). Embarrassing.",
                 ]
+                if myDays >= streakDays * 2 {
+                    templates.append("\(myDays)-day streak here. You're way behind.")
+                }
                 return (Self.drawFromBag(key: "\(bagKey)_streak", pool: templates), nil)
             }
         }
@@ -2043,11 +2045,10 @@ public struct MockSocialService: SocialService, Sendable {
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
-                let templates = [
+                var templates = [
                     "My time is \(myTime). Not even close.",
                     "Lol only \(posterTime)? I clocked \(myTime).",
                     "Cute! My clear time is \(myTime).",
-                    "\(myTime) here. You're way behind.",
                     "Only \(posterTime)? I'm sitting at \(myTime). Not impressed.",
                     "That's nothing, my \(myTime) says hi.",
                     "I was clearing \(posterTime) ages ago. I'm at \(myTime) now.",
@@ -2060,6 +2061,9 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myTime). Your \(posterTime) doesn't even register on my radar.",
                     "My time hit \(myTime) and yours is still stuck at \(posterTime). Embarrassing.",
                 ]
+                if myTotal <= totalSecs / 2 {
+                    templates.append("\(myTime) here. You're way behind.")
+                }
                 return (Self.drawFromBag(key: "\(bagKey)_time", pool: templates), nil)
             }
         }
@@ -2068,11 +2072,10 @@ public struct MockSocialService: SocialService, Sendable {
         if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
             if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "\u{221E}", "\u{00D7}", "count", "entry", "#"]) {
                 let myCount = infCount + Int.random(in: 1...max(3, infCount))
-                let templates = [
+                var templates = [
                     "My infinity count is \(myCount). Not even close.",
                     "Lol only \(infCount)? I'm at \(myCount).",
                     "Cute! My count is at \(myCount) infinities.",
-                    "\(myCount) infinities here. You're way behind.",
                     "Only \(infCount)? I'm sitting at \(myCount). Not impressed.",
                     "That's nothing, my \(myCount) infinity count says hi.",
                     "I was at \(infCount) infinities ages ago. I'm at \(myCount) now.",
@@ -2085,35 +2088,45 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myCount). Your \(infCount) doesn't even register on my radar.",
                     "My count hit \(myCount) and yours is still stuck at \(infCount). Embarrassing.",
                 ]
+                if myCount >= infCount * 2 {
+                    templates.append("\(myCount) infinities here. You're way behind.")
+                }
                 return (Self.drawFromBag(key: "\(bagKey)_hof", pool: templates), nil)
             }
         }
 
-        // ── Milestone posts: find the tile, reference the next one ──
+        // ── Milestone posts: find the tile, reference a higher one ──
         let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
         if let foundIdx = sortedMilestones.firstIndex(where: { message.contains($0) }) {
             let m = sortedMilestones[foundIdx]
             if let originalIdx = Self.allMilestones.firstIndex(of: m),
                originalIdx + 1 < Self.allMilestones.count {
-                let nextM = Self.allMilestones[originalIdx + 1]
-                let templates = [
-                    "My tile is \(nextM). Not even close.",
-                    "Lol only \(m)? I'm at \(nextM).",
-                    "Cute! My tile is at \(nextM).",
-                    "\(nextM) here. You're way behind.",
-                    "Only \(m)? I'm sitting at \(nextM). Not impressed.",
-                    "That's nothing, my \(nextM) tile says hi.",
-                    "I was at \(m) ages ago. I'm at \(nextM) now.",
-                    "\(nextM) and climbing. You're not catching me.",
-                    "\(nextM) over here. I'm untouchable.",
-                    "\(m) is amateur hour. Talk to me at \(nextM).",
-                    "My \(nextM) is higher than yours and always will be!",
-                    "\(m)? That's cute. My \(nextM) wipes the floor with that.",
-                    "I've been at \(nextM) since before you even started playing.",
-                    "\(nextM). Your \(m) doesn't even register on my radar.",
-                    "My tile hit \(nextM) and yours is still stuck at \(m). Embarrassing.",
+                // Pick a random milestone 5-30 steps ahead (each step ≈ 2x)
+                let maxJump = min(30, Self.allMilestones.count - 1 - originalIdx)
+                let minJump = min(5, maxJump)
+                let jump = Int.random(in: minJump...maxJump)
+                let higherM = Self.allMilestones[originalIdx + jump]
+                var templates = [
+                    "My tile is \(higherM). Not even close.",
+                    "Lol only \(m)? I'm at \(higherM).",
+                    "Cute! My tile is at \(higherM).",
+                    "Only \(m)? I'm sitting at \(higherM). Not impressed.",
+                    "That's nothing, my \(higherM) tile says hi.",
+                    "I was at \(m) ages ago. I'm at \(higherM) now.",
+                    "\(higherM) and climbing. You're not catching me.",
+                    "\(higherM) over here. I'm untouchable.",
+                    "\(m) is amateur hour. Talk to me at \(higherM).",
+                    "My \(higherM) is higher than yours and always will be!",
+                    "\(m)? That's cute. My \(higherM) wipes the floor with that.",
+                    "I've been at \(higherM) since before you even started playing.",
+                    "\(higherM). Your \(m) doesn't even register on my radar.",
+                    "My tile hit \(higherM) and yours is still stuck at \(m). Embarrassing.",
                 ]
-                let realName = Self.leaderboardPlayerAtMilestone(nextM)
+                // "way behind" only when gap is massive (>= 10 steps ≈ 1000x)
+                if jump >= 10 {
+                    templates.append("\(higherM) here. You're way behind.")
+                }
+                let realName = Self.leaderboardPlayerAtMilestone(higherM)
                 return (Self.drawFromBag(key: "\(bagKey)_tile", pool: templates), realName)
             }
         }
@@ -2125,11 +2138,10 @@ public struct MockSocialService: SocialService, Sendable {
                posterTierIdx < tiers.count - 1 {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                 let posterTier = tiers[posterTierIdx]
-                let templates = [
+                var templates = [
                     "My chest is \(myTier). Not even close.",
                     "Lol only \(posterTier)? I pulled \(myTier).",
                     "Cute! My chest is \(myTier).",
-                    "\(myTier) chest here. You're way behind.",
                     "Only \(posterTier)? I'm pulling \(myTier). Not impressed.",
                     "That's nothing, my \(myTier) chest says hi.",
                     "I was pulling \(posterTier) ages ago. I'm at \(myTier) now.",
@@ -2142,6 +2154,11 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myTier). Your \(posterTier) doesn't even register on my radar.",
                     "My quests give \(myTier) and yours are still stuck at \(posterTier). Embarrassing.",
                 ]
+                // tier gap >= 2 (e.g., Bronze→Gold or Bronze→Diamond)
+                let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
+                if tierGap >= 2 {
+                    templates.append("\(myTier) chest here. You're way behind.")
+                }
                 return (Self.drawFromBag(key: "\(bagKey)_quest", pool: templates), nil)
             }
         }
