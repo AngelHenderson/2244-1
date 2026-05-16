@@ -535,6 +535,8 @@ public struct FriendsView: View {
     @State private var localFriendCode: String?
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var inviteToRemove: FamilyInvite?
+    @State private var showUninviteAlert = false
 
     public init() {}
 
@@ -599,12 +601,8 @@ public struct FriendsView: View {
                                 }
                                 Spacer()
                                 Button("Uninvite") {
-                                    if let idx = invites.firstIndex(where: { $0.id == invite.id }) {
-                                        invites.remove(at: idx)
-                                    }
-                                    Task {
-                                        try? await socialService.removeInvite(id: invite.id)
-                                    }
+                                    inviteToRemove = invite
+                                    showUninviteAlert = true
                                 }
                                 .font(.caption)
                                 .foregroundStyle(.red)
@@ -623,6 +621,20 @@ public struct FriendsView: View {
             }
         }
         .trackScreen(.friends)
+        .alert("Are you sure you want to uninvite this player? They will be removed immediately.", isPresented: $showUninviteAlert) {
+            Button("Yes", role: .destructive) {
+                if let invite = inviteToRemove {
+                    invites.removeAll { $0.id == invite.id }
+                    Task {
+                        try? await socialService.removeInvite(id: invite.id)
+                    }
+                }
+                inviteToRemove = nil
+            }
+            Button("No", role: .cancel) {
+                inviteToRemove = nil
+            }
+        }
     }
 
     private func load() async {
