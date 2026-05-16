@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v13"
-    private static let feedDateKey = "socialFeed.cacheDate.v13"
+    private static let feedCacheKey = "socialFeed.cache.v14"
+    private static let feedDateKey = "socialFeed.cacheDate.v14"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts"
 
@@ -2110,15 +2110,16 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
 
-        // ── Timed challenge posts: extract the time, brag with a faster one ──
+        // ── Timed challenge posts: extract time remaining, brag with more ──
         if lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
-                let fasterBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 4))
-                var myTotal = max(15, totalSecs - fasterBy)
+                // Brag about having MORE time left (higher = better in challenge mode)
+                let moreBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                var myTotal = totalSecs + moreBy
                 var attempts = 0
                 while usedStats.contains("time_\(myTotal)") && attempts < 5 {
-                    myTotal = max(15, totalSecs - Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 4)))
+                    myTotal = totalSecs + Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
                     attempts += 1
                 }
                 usedStats.insert("time_\(myTotal)")
@@ -2127,29 +2128,29 @@ public struct MockSocialService: SocialService, Sendable {
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 var templates = [
-                    "My time is \(myTime). Not even close.",
-                    "Lol only \(posterTime)? I clocked \(myTime).",
-                    "Cute! My clear time is \(myTime).",
-                    "Only \(posterTime)? I'm sitting at \(myTime). Not impressed.",
-                    "That's nothing, my \(myTime) says hi.",
-                    "I was clearing \(posterTime) ages ago. I'm at \(myTime) now.",
-                    "\(myTime) and getting faster. You're not catching me.",
-                    "\(myTime) over here. I'm untouchable.",
-                    "\(posterTime) is amateur hour. Talk to me at \(myTime).",
-                    "My \(myTime) is faster than yours and always will be!",
-                    "\(posterTime)? That's cute. My \(myTime) wipes the floor with that.",
-                    "I've been clearing \(myTime) since before you even started playing.",
-                    "\(myTime). Your \(posterTime) doesn't even register on my radar.",
-                    "My time hit \(myTime) and yours is still stuck at \(posterTime). Embarrassing.",
-                    "\(posterTime) is slow motion compared to my \(myTime).",
-                    "Finished at \(myTime) and still had time for a snack. \(posterTime) though?",
-                    "You call \(posterTime) fast? I call \(myTime) fast.",
-                    "\(myTime) without even breaking a sweat. \(posterTime) must have been stressful.",
-                    "The gap between \(posterTime) and my \(myTime) is called talent.",
-                    "I hit \(myTime) on my first try today. \(posterTime)… yikes.",
+                    "I had \(myTime) left on mine. Not even close.",
+                    "Lol only \(posterTime) left? I had \(myTime) remaining.",
+                    "Cute! I finished with \(myTime) still on the clock.",
+                    "Only \(posterTime) remaining? I had \(myTime) left. Not impressed.",
+                    "That's nothing, my \(myTime) remaining says hi.",
+                    "I was finishing with \(posterTime) ages ago. I'm at \(myTime) now.",
+                    "\(myTime) left and I wasn't even rushing. You're not catching me.",
+                    "\(myTime) remaining over here. I'm untouchable.",
+                    "\(posterTime) left is amateur hour. Talk to me when you hit \(myTime).",
+                    "I'll always finish with more time than you. \(myTime) left today!",
+                    "\(posterTime) left? That's cute. My \(myTime) remaining wipes the floor with that.",
+                    "I've been clearing with \(myTime) left since before you started playing.",
+                    "\(myTime) remaining. Your \(posterTime) doesn't even register on my radar.",
+                    "I had \(myTime) left and yours was only \(posterTime). Embarrassing.",
+                    "\(posterTime) is cutting it close. I had \(myTime) left, no sweat.",
+                    "Finished with \(myTime) on the clock and could've made a sandwich. \(posterTime) though?",
+                    "You call \(posterTime) remaining good? I call \(myTime) remaining good.",
+                    "\(myTime) left without even breaking a sweat. \(posterTime) must have been stressful.",
+                    "The gap between \(posterTime) and my \(myTime) remaining is called talent.",
+                    "I had \(myTime) left on my first try today. \(posterTime)… yikes.",
                 ]
-                if myTotal <= totalSecs / 2 {
-                    templates.append("\(myTime) here. You're way behind.")
+                if myTotal >= totalSecs * 2 {
+                    templates.append("\(myTime) remaining here. You're way behind.")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), nil)
             }
