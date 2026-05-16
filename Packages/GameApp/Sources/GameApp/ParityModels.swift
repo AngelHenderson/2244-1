@@ -2015,6 +2015,11 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myDays) days and counting. You're not catching me.",
                     "Day \(myDays) over here. I'm untouchable.",
                     "\(streakDays) is amateur hour. Talk to me at \(myDays).",
+                    "My \(myDays)-day streak is longer than yours and always will be!",
+                    "\(streakDays) days? That's cute. My \(myDays)-day streak wipes the floor with that.",
+                    "I've had a \(myDays)-day streak since before you even started playing.",
+                    "\(myDays) days. Your \(streakDays) doesn't even register on my radar.",
+                    "My streak hit \(myDays) and yours is still stuck at \(streakDays). Embarrassing.",
                 ]
                 return templates.randomElement()!
             }
