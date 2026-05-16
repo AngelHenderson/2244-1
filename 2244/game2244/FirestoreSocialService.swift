@@ -216,6 +216,14 @@ struct FirestoreSocialService: SocialService, Sendable {
             .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
     }
 
+    func removeInvite(id: UUID) async throws {
+        _ = try await currentUser()
+        try await Firestore.firestore()
+            .collection("familyInvites")
+            .document(id.uuidString)
+            .delete()
+    }
+
     private func currentUser() async throws -> CurrentSocialUser {
         guard FirebaseService.shared.isConfigured else {
             throw FirestoreSocialServiceError.notConfigured
