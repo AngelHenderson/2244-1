@@ -725,6 +725,7 @@ public protocol SocialService: Sendable {
     func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
     func invites() async throws -> [FamilyInvite]
+    func removeInvite(id: UUID) async throws
 }
 
 public enum SocialServiceError: LocalizedError, Sendable {
@@ -766,6 +767,10 @@ public struct UnavailableSocialService: SocialService, Sendable {
     }
 
     public func invites() async throws -> [FamilyInvite] {
+        throw SocialServiceError.unavailable
+    }
+
+    public func removeInvite(id: UUID) async throws {
         throw SocialServiceError.unavailable
     }
 }
@@ -1323,7 +1328,18 @@ public struct MockSocialService: SocialService, Sendable {
         }
     }
 
+    private static let invitesCacheKey = "socialFeed.invites.v1"
+
     public func invites() async throws -> [FamilyInvite] {
+        let defaults = UserDefaults.standard
+
+        // Return cached invites if available
+        if let data = defaults.data(forKey: Self.invitesCacheKey),
+           let cached = try? JSONDecoder().decode([FamilyInvite].self, from: data) {
+            return cached
+        }
+
+        // Generate initial invites
         let codeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         func makeCode() -> String {
             let left = String((0..<3).map { _ in codeChars.randomElement()! })
@@ -1331,11 +1347,29 @@ public struct MockSocialService: SocialService, Sendable {
             return "\(left)-\(right)"
         }
         let names = Self.leaderboardGamertags.shuffled().prefix(3)
-        return [
+        let result = [
             FamilyInvite(displayName: String(names[names.startIndex]), emailOrCode: makeCode(), status: "Invited"),
             FamilyInvite(displayName: String(names[names.index(names.startIndex, offsetBy: 1)]), emailOrCode: makeCode(), status: "Can invite"),
             FamilyInvite(displayName: String(names[names.index(names.startIndex, offsetBy: 2)]), emailOrCode: makeCode(), status: "Can invite"),
         ]
+
+        // Cache the generated invites
+        if let data = try? JSONEncoder().encode(result) {
+            defaults.set(data, forKey: Self.invitesCacheKey)
+        }
+        return result
+    }
+
+    public func removeInvite(id: UUID) async throws {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: Self.invitesCacheKey),
+              var cached = try? JSONDecoder().decode([FamilyInvite].self, from: data) else {
+            return
+        }
+        cached.removeAll { $0.id == id }
+        if let newData = try? JSONEncoder().encode(cached) {
+            defaults.set(newData, forKey: Self.invitesCacheKey)
+        }
     }
     
     private func generateDynamicEvent(milestone: String) -> (message: String, statText: String) {
