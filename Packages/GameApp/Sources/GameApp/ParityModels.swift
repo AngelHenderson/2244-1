@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v11"
-    private static let feedDateKey = "socialFeed.cacheDate.v11"
+    private static let feedCacheKey = "socialFeed.cache.v12"
+    private static let feedDateKey = "socialFeed.cacheDate.v12"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -2072,7 +2072,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if myDays >= streakDays * 2 {
                     templates.append("\(myDays)-day streak here. You're way behind.")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_streak", pool: templates), nil)
+                return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), nil)
             }
         }
 
@@ -2111,7 +2111,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if myTotal <= totalSecs / 2 {
                     templates.append("\(myTime) here. You're way behind.")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_time", pool: templates), nil)
+                return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), nil)
             }
         }
 
@@ -2144,7 +2144,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if myCount >= infCount * 2 {
                     templates.append("\(myCount) infinities here. You're way behind.")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_hof", pool: templates), nil)
+                return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), nil)
             }
         }
 
@@ -2191,7 +2191,7 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("\(wayBehindM) here. You're way behind.")
                 }
                 let realName = Self.leaderboardPlayerAtMilestone(higherM)
-                return (Self.drawFromBag(key: "\(bagKey)_tile", pool: templates), realName)
+                return (Self.drawFromBag(key: "\(bagKey)_tile_\(higherM)", pool: templates), realName)
             }
         }
 
@@ -2223,7 +2223,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if tierGap >= 2 {
                     templates.append("\(myTier) chest here. You're way behind.")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_quest", pool: templates), nil)
+                return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), nil)
             }
         }
 
