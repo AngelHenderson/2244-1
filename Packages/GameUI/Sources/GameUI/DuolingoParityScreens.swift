@@ -605,6 +605,15 @@ public struct FriendsView: View {
                                 }
                             }
                         }
+                        .onDelete { offsets in
+                            let toRemove = offsets.map { invites[$0] }
+                            invites.remove(atOffsets: offsets)
+                            for invite in toRemove {
+                                Task {
+                                    try? await socialService.removeInvite(id: invite.id)
+                                }
+                            }
+                        }
                     }
                 }
             }
