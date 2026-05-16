@@ -929,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v10"
-    private static let feedDateKey = "socialFeed.cacheDate.v10"
+    private static let feedCacheKey = "socialFeed.cache.v11"
+    private static let feedDateKey = "socialFeed.cacheDate.v11"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1047,12 +1047,13 @@ public struct MockSocialService: SocialService, Sendable {
 
         var comments: [SocialFeedComment] = []
         var commentAuthors: [String] = []
+        var usedStats: Set<String> = []
 
         for (index, offset) in commentOffsets.enumerated() {
             let commenter = generateDynamicName()
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
-            let (commentBase, nameOverride) = generateDynamicComment(message: message)
+            let (commentBase, nameOverride) = generateDynamicComment(message: message, usedStats: &usedStats)
             var commentText = commentBase
             let finalCommenter = nameOverride ?? commenter
 
@@ -1199,12 +1200,12 @@ public struct MockSocialService: SocialService, Sendable {
             }
             
             var commentAuthors: [String] = []
-            
+            var usedStats: Set<String> = []
             for (index, offset) in commentOffsets.enumerated() {
                 let commentAuthor = generateDynamicName()
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
-                let (commentBase, nameOverride) = generateDynamicComment(message: message)
+                let (commentBase, nameOverride) = generateDynamicComment(message: message, usedStats: &usedStats)
                 var commentText = commentBase
                 let finalCommenter = nameOverride ?? commentAuthor
                 var commentOffset = offset
@@ -1642,7 +1643,7 @@ public struct MockSocialService: SocialService, Sendable {
         return shuffleBags[key]![idx]
     }
 
-    private func generateDynamicComment(message: String) -> (String, String?) {
+    private func generateDynamicComment(message: String, usedStats: inout Set<String>) -> (String, String?) {
         var nameOverride: String? = nil
         let openers = [
             "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
@@ -1950,7 +1951,7 @@ public struct MockSocialService: SocialService, Sendable {
         
         if roll < 0.55 {
             // ── Competitive (55%) — generate factually accurate one-upmanship ──
-            let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)")
+            let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
             comment = result.0
             nameOverride = result.1
             tone = "competitive"
@@ -2005,13 +2006,19 @@ public struct MockSocialService: SocialService, Sendable {
     /// Returns (commentText, optionalNameOverride). When the comment claims a
     /// specific milestone, nameOverride is a real leaderboard player at that level.
     /// Falls back to the generic `pool` when no number can be extracted.
-    private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String) -> (String, String?) {
+    private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String, usedStats: inout Set<String>) -> (String, String?) {
         let lowered = message.lowercased()
 
         // ── Streak posts: extract the day count, brag with a higher one ──
         if lowered.contains("streak") {
             if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
-                let myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                var myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                var attempts = 0
+                while usedStats.contains("streak_\(myDays)") && attempts < 5 {
+                    myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                    attempts += 1
+                }
+                usedStats.insert("streak_\(myDays)")
                 var templates = [
                     "My streak is \(myDays) days. Not even close.",
                     "Lol only a \(streakDays)-day streak? Mine is \(myDays).",
@@ -2040,7 +2047,13 @@ public struct MockSocialService: SocialService, Sendable {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
                 let fasterBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 4))
-                let myTotal = max(15, totalSecs - fasterBy)
+                var myTotal = max(15, totalSecs - fasterBy)
+                var attempts = 0
+                while usedStats.contains("time_\(myTotal)") && attempts < 5 {
+                    myTotal = max(15, totalSecs - Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 4)))
+                    attempts += 1
+                }
+                usedStats.insert("time_\(myTotal)")
                 let myMins = myTotal / 60
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
@@ -2071,7 +2084,13 @@ public struct MockSocialService: SocialService, Sendable {
         // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
         if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
             if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "\u{221E}", "\u{00D7}", "count", "entry", "#"]) {
-                let myCount = infCount + Int.random(in: 1...max(3, infCount))
+                var myCount = infCount + Int.random(in: 1...max(3, infCount))
+                var attempts = 0
+                while usedStats.contains("hof_\(myCount)") && attempts < 5 {
+                    myCount = infCount + Int.random(in: 1...max(3, infCount))
+                    attempts += 1
+                }
+                usedStats.insert("hof_\(myCount)")
                 var templates = [
                     "My infinity count is \(myCount). Not even close.",
                     "Lol only \(infCount)? I'm at \(myCount).",
@@ -2101,11 +2120,19 @@ public struct MockSocialService: SocialService, Sendable {
             let m = sortedMilestones[foundIdx]
             if let originalIdx = Self.allMilestones.firstIndex(of: m),
                originalIdx + 1 < Self.allMilestones.count {
-                // Pick a random milestone 5-30 steps ahead (each step ≈ 2x)
+                // Pick a random milestone 5-30 steps ahead, avoiding already-used ones
                 let maxJump = min(30, Self.allMilestones.count - 1 - originalIdx)
                 let minJump = min(5, maxJump)
-                let jump = Int.random(in: minJump...maxJump)
-                let higherM = Self.allMilestones[originalIdx + jump]
+                var higherM: String
+                var jump: Int
+                var attempts = 0
+                repeat {
+                    jump = Int.random(in: minJump...maxJump)
+                    higherM = Self.allMilestones[originalIdx + jump]
+                    attempts += 1
+                } while usedStats.contains(higherM) && attempts < 8
+                usedStats.insert(higherM)
+
                 var templates = [
                     "My tile is \(higherM). Not even close.",
                     "Lol only \(m)? I'm at \(higherM).",
