@@ -929,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v8"
-    private static let feedDateKey = "socialFeed.cacheDate.v8"
+    private static let feedCacheKey = "socialFeed.cache.v9"
+    private static let feedDateKey = "socialFeed.cacheDate.v9"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1992,6 +1992,153 @@ public struct MockSocialService: SocialService, Sendable {
         return comment.trimmingCharacters(in: .whitespaces)
     }
 
+    // MARK: - Truthful competitive comments
+
+    /// Generates a competitive comment that is factually accurate — any claimed
+    /// stat is **higher** (or faster) than the poster's actual number.
+    /// Falls back to the generic `pool` when no number can be extracted.
+    private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String) -> String {
+        let lowered = message.lowercased()
+
+        // ── Streak posts: extract the day count, brag with a higher one ──
+        if lowered.contains("streak") {
+            if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
+                let myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                let templates = [
+                    "My streak is \(myDays) days. Keep going though!",
+                    "Nice, but I'm on day \(myDays). 😏",
+                    "Cute! My streak hit \(myDays) days last week.",
+                    "I've been at \(myDays) days for a while now. You'll get there!",
+                    "\(myDays)-day streak here. The grind doesn't stop.",
+                    "Only \(streakDays)? I'm sitting at \(myDays). Step it up!",
+                    "That's solid but my \(myDays)-day streak says hi.",
+                    "I remember when I was at \(streakDays) days. I'm at \(myDays) now.",
+                    "\(myDays) days and counting. You're not catching me.",
+                    "Day \(myDays) over here. Welcome to the club though!",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Timed challenge posts: extract the time, brag with a faster one ──
+        if lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
+            if let (mins, secs) = Self.extractTime(from: message) {
+                let totalSecs = mins * 60 + secs
+                let fasterBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 4))
+                let myTotal = max(15, totalSecs - fasterBy)
+                let myMins = myTotal / 60
+                let mySecs = myTotal % 60
+                let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                let templates = [
+                    "Not bad, but I cleared mine in \(myTime). 😏",
+                    "I got \(myTime) today. You'll beat it eventually!",
+                    "My PB is \(myTime). Keep grinding though!",
+                    "\(myTime) here. That clock didn't stand a chance.",
+                    "I finished in \(myTime). Speed is my thing.",
+                    "Nice time! I managed \(myTime) though. 💨",
+                    "\(myTime) on my first try today. Just saying.",
+                    "I clocked \(myTime). But solid effort on yours!",
+                    "My run was \(myTime). The gap is closing though!",
+                    "\(myTime). Beat that. 🏁",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
+        if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
+            if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "∞", "×", "count", "entry", "#"]) {
+                let myCount = infCount + Int.random(in: 1...max(3, infCount))
+                let templates = [
+                    "Welcome to HoF! I'm at ∞×\(myCount) though. 😏",
+                    "Nice entry! My infinity count is \(myCount). See you up here!",
+                    "I remember my first HoF entry. I'm at \(myCount) infinities now.",
+                    "Congrats! But I hit \(myCount) infinities last week.",
+                    "HoF gang! My count is \(myCount) and climbing.",
+                    "\(myCount) infinities here. The grind continues!",
+                    "I'm already at ∞×\(myCount). You've got catching up to do!",
+                    "Only \(infCount)? I'm sitting at \(myCount). Push harder!",
+                    "That's cute, I passed \(myCount) infinities ages ago.",
+                    "HoF is just the start. Wait until you hit \(myCount) like me.",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Milestone posts: find the tile, reference the next one ──
+        let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
+        if let foundIdx = sortedMilestones.firstIndex(where: { message.contains($0) }) {
+            let m = sortedMilestones[foundIdx]
+            // Find the next milestone in the ordered list
+            if let originalIdx = Self.allMilestones.firstIndex(of: m),
+               originalIdx + 1 < Self.allMilestones.count {
+                let nextM = Self.allMilestones[originalIdx + 1]
+                let templates = [
+                    "I'm already at \(nextM). You'll get there!",
+                    "\(m) is nice but I passed \(nextM) last week.",
+                    "Welcome to \(m)! I'm working on \(nextM) now.",
+                    "Congrats on \(m)! I just hit \(nextM) myself.",
+                    "I remember reaching \(m). Currently grinding \(nextM).",
+                    "\(nextM) here. \(m) feels like ages ago.",
+                    "Nice \(m)! I've been past \(nextM) for a while now.",
+                    "\(m)? Old news for me. \(nextM) is where it's at.",
+                    "I blew past \(m) into \(nextM). Keep pushing!",
+                    "That was my wall too until I broke into \(nextM).",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Quest posts: brag about better chest tier or faster completion ──
+        if lowered.contains("quest") {
+            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
+            // Find poster's tier and pick a better one
+            if let posterTierIdx = tiers.firstIndex(where: { message.contains($0) }),
+               posterTierIdx < tiers.count - 1 {
+                let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
+                let templates = [
+                    "I got a \(myTier) chest today. Better luck next time!",
+                    "\(myTier) tier here. The rewards are insane.",
+                    "My chest was \(myTier). Yours will get there!",
+                    "I always pull \(myTier) these days. 😏",
+                    "Nice quest clear! My \(myTier) chest was chef's kiss though.",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Fallback: use the generic competitive pool ──
+        return Self.drawFromBag(key: bagKey, pool: pool)
+    }
+
+    /// Extracts a number from the message that appears near any of the given context words.
+    private static func extractNumber(from text: String, near contextWords: [String]) -> Int? {
+        let lowered = text.lowercased()
+        // Check that at least one context word is present
+        guard contextWords.contains(where: { lowered.contains($0) }) else { return nil }
+
+        // Find all integers in the message
+        let pattern = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b")
+        let matches = pattern?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
+
+        for match in matches {
+            if let range = Range(match.range(at: 1), in: text), let num = Int(text[range]), num > 0 {
+                return num
+            }
+        }
+        return nil
+    }
+
+    /// Extracts a time in M:SS format from the message. Returns (minutes, seconds).
+    private static func extractTime(from text: String) -> (Int, Int)? {
+        let pattern = try? NSRegularExpression(pattern: "(\\d{1,2}):(\\d{2})")
+        guard let match = pattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let mRange = Range(match.range(at: 1), in: text),
+              let sRange = Range(match.range(at: 2), in: text),
+              let mins = Int(text[mRange]),
+              let secs = Int(text[sRange]) else { return nil }
+        return (mins, secs)
+    }
 
     
     /// Returns a milestone-aware answer if the text asks "what comes after [milestone]".
