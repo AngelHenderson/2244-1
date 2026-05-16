@@ -2005,16 +2005,16 @@ public struct MockSocialService: SocialService, Sendable {
             if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
                 let myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
                 let templates = [
-                    "My streak is \(myDays) days. Keep going though!",
-                    "Nice, but I'm on day \(myDays). 😏",
-                    "Cute! My streak hit \(myDays) days last week.",
-                    "I've been at \(myDays) days for a while now. You'll get there!",
-                    "\(myDays)-day streak here. The grind doesn't stop.",
-                    "Only \(streakDays)? I'm sitting at \(myDays). Step it up!",
-                    "That's solid but my \(myDays)-day streak says hi.",
-                    "I remember when I was at \(streakDays) days. I'm at \(myDays) now.",
+                    "My streak is \(myDays) days. Not even close.",
+                    "Lol only \(streakDays)? I'm on day \(myDays). 😏",
+                    "Cute! My streak is at \(myDays) days.",
+                    "\(myDays)-day streak here. Sit down.",
+                    "Only \(streakDays)? I'm sitting at \(myDays). Step it up.",
+                    "That's nothing, my \(myDays)-day streak says hi.",
+                    "I was at \(streakDays) days ages ago. I'm at \(myDays) now.",
                     "\(myDays) days and counting. You're not catching me.",
-                    "Day \(myDays) over here. Welcome to the club though!",
+                    "Day \(myDays) over here. Stay in your lane.",
+                    "\(streakDays) is amateur hour. Talk to me at \(myDays).",
                 ]
                 return templates.randomElement()!
             }
@@ -2030,16 +2030,16 @@ public struct MockSocialService: SocialService, Sendable {
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
                 let templates = [
-                    "Not bad, but I cleared mine in \(myTime). 😏",
-                    "I got \(myTime) today. You'll beat it eventually!",
-                    "My PB is \(myTime). Keep grinding though!",
+                    "I cleared mine in \(myTime). Try harder. 😏",
+                    "I got \(myTime) today. That's how it's done.",
+                    "My PB is \(myTime). Yours isn't even close.",
                     "\(myTime) here. That clock didn't stand a chance.",
                     "I finished in \(myTime). Speed is my thing.",
-                    "Nice time! I managed \(myTime) though. 💨",
-                    "\(myTime) on my first try today. Just saying.",
-                    "I clocked \(myTime). But solid effort on yours!",
-                    "My run was \(myTime). The gap is closing though!",
+                    "\(myTime) without even trying. Just saying. 💨",
+                    "\(myTime) on my first attempt. Embarrassing for you.",
+                    "I clocked \(myTime). Don't even compare.",
                     "\(myTime). Beat that. 🏁",
+                    "Imagine not getting \(myTime). Couldn't be me.",
                 ]
                 return templates.randomElement()!
             }
@@ -2050,16 +2050,16 @@ public struct MockSocialService: SocialService, Sendable {
             if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "∞", "×", "count", "entry", "#"]) {
                 let myCount = infCount + Int.random(in: 1...max(3, infCount))
                 let templates = [
-                    "Welcome to HoF! I'm at ∞×\(myCount) though. 😏",
-                    "Nice entry! My infinity count is \(myCount). See you up here!",
-                    "I remember my first HoF entry. I'm at \(myCount) infinities now.",
-                    "Congrats! But I hit \(myCount) infinities last week.",
-                    "HoF gang! My count is \(myCount) and climbing.",
-                    "\(myCount) infinities here. The grind continues!",
-                    "I'm already at ∞×\(myCount). You've got catching up to do!",
-                    "Only \(infCount)? I'm sitting at \(myCount). Push harder!",
+                    "I'm at ∞×\(myCount). That's levels above you. 😏",
+                    "My infinity count is \(myCount). Yours is cute.",
+                    "I hit \(myCount) infinities weeks ago. Old news.",
+                    "\(myCount) infinities here. Can't relate to only \(infCount).",
+                    "I'm already at ∞×\(myCount). You've got catching up to do.",
+                    "Only \(infCount)? I'm sitting at \(myCount). Not impressed.",
                     "That's cute, I passed \(myCount) infinities ages ago.",
-                    "HoF is just the start. Wait until you hit \(myCount) like me.",
+                    "\(myCount) infinities and I'm just warming up.",
+                    "Imagine bragging about \(infCount) when I'm at \(myCount). 💀",
+                    "I'll have more infinities than you by tomorrow. Already at \(myCount).",
                 ]
                 return templates.randomElement()!
             }
@@ -2074,16 +2074,16 @@ public struct MockSocialService: SocialService, Sendable {
                originalIdx + 1 < Self.allMilestones.count {
                 let nextM = Self.allMilestones[originalIdx + 1]
                 let templates = [
-                    "I'm already at \(nextM). You'll get there!",
-                    "\(m) is nice but I passed \(nextM) last week.",
-                    "Welcome to \(m)! I'm working on \(nextM) now.",
-                    "Congrats on \(m)! I just hit \(nextM) myself.",
-                    "I remember reaching \(m). Currently grinding \(nextM).",
+                    "I'm already at \(nextM). \(m) is old news.",
+                    "\(m)? I passed \(nextM) last week. Get on my level.",
+                    "Still on \(m)? I'm grinding \(nextM) already.",
+                    "I hit \(nextM) days ago. \(m) was easy.",
                     "\(nextM) here. \(m) feels like ages ago.",
-                    "Nice \(m)! I've been past \(nextM) for a while now.",
-                    "\(m)? Old news for me. \(nextM) is where it's at.",
-                    "I blew past \(m) into \(nextM). Keep pushing!",
-                    "That was my wall too until I broke into \(nextM).",
+                    "\(m)? That's where I was last month. \(nextM) now.",
+                    "\(m) is child's play. \(nextM) is where the real game starts.",
+                    "I blew past \(m) into \(nextM). Not looking back.",
+                    "\(nextM) club. \(m) players wouldn't understand.",
+                    "Imagine still being at \(m) when \(nextM) exists. 💀",
                 ]
                 return templates.randomElement()!
             }
@@ -2097,11 +2097,11 @@ public struct MockSocialService: SocialService, Sendable {
                posterTierIdx < tiers.count - 1 {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                 let templates = [
-                    "I got a \(myTier) chest today. Better luck next time!",
-                    "\(myTier) tier here. The rewards are insane.",
-                    "My chest was \(myTier). Yours will get there!",
+                    "I got a \(myTier) chest today. Can't relate.",
+                    "\(myTier) tier here. That's how you do it.",
+                    "My chest was \(myTier). Yours is embarrassing.",
                     "I always pull \(myTier) these days. 😏",
-                    "Nice quest clear! My \(myTier) chest was chef's kiss though.",
+                    "\(myTier) chest without breaking a sweat. Easy.",
                 ]
                 return templates.randomElement()!
             }
