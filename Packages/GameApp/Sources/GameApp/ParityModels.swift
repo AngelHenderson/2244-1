@@ -929,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v9"
-    private static let feedDateKey = "socialFeed.cacheDate.v9"
+    private static let feedCacheKey = "socialFeed.cache.v10"
+    private static let feedDateKey = "socialFeed.cacheDate.v10"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1052,7 +1052,9 @@ public struct MockSocialService: SocialService, Sendable {
             let commenter = generateDynamicName()
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
-            var commentText = generateDynamicComment(message: message)
+            let (commentBase, nameOverride) = generateDynamicComment(message: message)
+            var commentText = commentBase
+            let finalCommenter = nameOverride ?? commenter
 
             // If this is a reply, pick target: 70% to the poster, 30% to another commenter
             if replyIndices.contains(index), !commentAuthors.isEmpty {
@@ -1065,7 +1067,7 @@ public struct MockSocialService: SocialService, Sendable {
                     let candidates = commentAuthors.filter { $0 != commenter }
                     replyTo = candidates.randomElement() ?? playerName
                 }
-                if replyTo != commenter {
+                if replyTo != finalCommenter {
                     let previousComment = comments.last(where: { $0.authorName == replyTo })
                     if let prev = previousComment {
                         commentText = "@\(replyTo) " + generateContextualReply(to: prev.text, message: message)
@@ -1077,13 +1079,13 @@ public struct MockSocialService: SocialService, Sendable {
             }
 
             comments.append(SocialFeedComment(
-                authorName: commenter,
+                authorName: finalCommenter,
                 avatarID: commenterAvatar,
                 text: commentText,
                 createdAt: now.addingTimeInterval(offset),
                 likes: Int.random(in: 0...10)
             ))
-            commentAuthors.append(commenter)
+            commentAuthors.append(finalCommenter)
         }
 
         // Heart/reaction timestamps trickle in over the next 4 hours (10–50)
@@ -1202,7 +1204,9 @@ public struct MockSocialService: SocialService, Sendable {
                 let commentAuthor = generateDynamicName()
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
-                var commentText = generateDynamicComment(message: message)
+                let (commentBase, nameOverride) = generateDynamicComment(message: message)
+                var commentText = commentBase
+                let finalCommenter = nameOverride ?? commentAuthor
                 var commentOffset = offset
                 
                 // If this index is marked as a response: 70% reply to the poster, 30% to other commenters
@@ -1215,7 +1219,7 @@ public struct MockSocialService: SocialService, Sendable {
                         let candidates = commentAuthors.filter { $0 != commentAuthor }
                         replyingTo = candidates.randomElement() ?? author
                     }
-                    if replyingTo != commentAuthor {
+                    if replyingTo != finalCommenter {
                         // Check if the comment being replied to asks about the next milestone
                         let previousComment = comments.last(where: { $0.authorName == replyingTo })
                         if let prev = previousComment, let answer = milestoneAnswer(for: prev.text) {
@@ -1238,14 +1242,14 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 
                 comments.append(SocialFeedComment(
-                    authorName: commentAuthor,
+                    authorName: finalCommenter,
                     avatarID: commentAvatar,
                     text: commentText,
                     createdAt: now.addingTimeInterval(commentOffset),
                     likes: Int.random(in: 0...10)
                 ))
                 
-                commentAuthors.append(commentAuthor)
+                commentAuthors.append(finalCommenter)
             }
             
             let maxReactions = Int.random(in: 10...50)
@@ -1638,7 +1642,8 @@ public struct MockSocialService: SocialService, Sendable {
         return shuffleBags[key]![idx]
     }
 
-    private func generateDynamicComment(message: String) -> String {
+    private func generateDynamicComment(message: String) -> (String, String?) {
+        var nameOverride: String? = nil
         let openers = [
             "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
             "No way,", "Wait,", "Bruh,", "Sheesh,", "Yo,", "Ngl,", "Ayo,",
@@ -1945,7 +1950,9 @@ public struct MockSocialService: SocialService, Sendable {
         
         if roll < 0.55 {
             // ── Competitive (55%) — generate factually accurate one-upmanship ──
-            comment = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)")
+            let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)")
+            comment = result.0
+            nameOverride = result.1
             tone = "competitive"
         } else if roll < 0.80 {
             // ── Positive (25%) — with opener + subject/verb/adj ──
@@ -1980,7 +1987,6 @@ public struct MockSocialService: SocialService, Sendable {
             case "question": symbol = Self.drawFromBag(key: "sym_q_\(bagSuffix)", pool: questionSymbols)
             case "sad": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
             case "competitive": symbol = Self.drawFromBag(key: "sym_comp_\(bagSuffix)", pool: competitiveSymbols)
-
             default: symbol = ""
             }
             comment += symbol
@@ -1989,15 +1995,17 @@ public struct MockSocialService: SocialService, Sendable {
             comment += keyboardSymbols.randomElement()!
         }
         
-        return comment.trimmingCharacters(in: .whitespaces)
+        return (comment.trimmingCharacters(in: .whitespaces), nameOverride)
     }
 
     // MARK: - Truthful competitive comments
 
     /// Generates a competitive comment that is factually accurate — any claimed
     /// stat is **higher** (or faster) than the poster's actual number.
+    /// Returns (commentText, optionalNameOverride). When the comment claims a
+    /// specific milestone, nameOverride is a real leaderboard player at that level.
     /// Falls back to the generic `pool` when no number can be extracted.
-    private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String) -> String {
+    private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String) -> (String, String?) {
         let lowered = message.lowercased()
 
         // ── Streak posts: extract the day count, brag with a higher one ──
@@ -2021,7 +2029,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myDays)-day streak. Your \(streakDays)-day streak doesn't even register on my radar.",
                     "My streak is at \(myDays) and yours is still at \(streakDays). Embarrassing.",
                 ]
-                return templates.randomElement()!
+                return (Self.drawFromBag(key: "\(bagKey)_streak", pool: templates), nil)
             }
         }
 
@@ -2052,13 +2060,13 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myTime). Your \(posterTime) doesn't even register on my radar.",
                     "My time hit \(myTime) and yours is still stuck at \(posterTime). Embarrassing.",
                 ]
-                return templates.randomElement()!
+                return (Self.drawFromBag(key: "\(bagKey)_time", pool: templates), nil)
             }
         }
 
         // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
         if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
-            if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "∞", "×", "count", "entry", "#"]) {
+            if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "\u{221E}", "\u{00D7}", "count", "entry", "#"]) {
                 let myCount = infCount + Int.random(in: 1...max(3, infCount))
                 let templates = [
                     "My infinity count is \(myCount). Not even close.",
@@ -2077,7 +2085,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myCount). Your \(infCount) doesn't even register on my radar.",
                     "My count hit \(myCount) and yours is still stuck at \(infCount). Embarrassing.",
                 ]
-                return templates.randomElement()!
+                return (Self.drawFromBag(key: "\(bagKey)_hof", pool: templates), nil)
             }
         }
 
@@ -2085,7 +2093,6 @@ public struct MockSocialService: SocialService, Sendable {
         let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
         if let foundIdx = sortedMilestones.firstIndex(where: { message.contains($0) }) {
             let m = sortedMilestones[foundIdx]
-            // Find the next milestone in the ordered list
             if let originalIdx = Self.allMilestones.firstIndex(of: m),
                originalIdx + 1 < Self.allMilestones.count {
                 let nextM = Self.allMilestones[originalIdx + 1]
@@ -2106,14 +2113,14 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(nextM). Your \(m) doesn't even register on my radar.",
                     "My tile hit \(nextM) and yours is still stuck at \(m). Embarrassing.",
                 ]
-                return templates.randomElement()!
+                let realName = Self.leaderboardPlayerAtMilestone(nextM)
+                return (Self.drawFromBag(key: "\(bagKey)_tile", pool: templates), realName)
             }
         }
 
         // ── Quest posts: brag about better chest tier or faster completion ──
         if lowered.contains("quest") {
             let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            // Find poster's tier and pick a better one
             if let posterTierIdx = tiers.firstIndex(where: { message.contains($0) }),
                posterTierIdx < tiers.count - 1 {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
@@ -2135,12 +2142,62 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(myTier). Your \(posterTier) doesn't even register on my radar.",
                     "My quests give \(myTier) and yours are still stuck at \(posterTier). Embarrassing.",
                 ]
-                return templates.randomElement()!
+                return (Self.drawFromBag(key: "\(bagKey)_quest", pool: templates), nil)
             }
         }
 
         // ── Fallback: use the generic competitive pool ──
-        return Self.drawFromBag(key: bagKey, pool: pool)
+        return (Self.drawFromBag(key: bagKey, pool: pool), nil)
+    }
+
+    /// Returns the name of a real leaderboard player who is at the given milestone.
+    /// Uses a subset of US leaderboard data (mirrored from LeaderboardClient) so
+    /// that competitive milestone claims are verifiable on the leaderboard.
+    private static func leaderboardPlayerAtMilestone(_ milestone: String) -> String? {
+        let milestoneToName: [String: String] = [
+            // n-tier (most commonly seen in feed)
+            "2n": "NorfolkNomad", "5n": "ScottsdaleSnake",
+            "11n": "WinstonWarrior", "23n": "GlendaleeGuru",
+            "47n": "LubbockLancer", "95n": "RennoRocket",
+            "191n": "NorthLasVegasNova", "383n": "GilbertGladiator",
+            // m-tier
+            "2m": "MobileMarvel", "5m": "KnoxvilleKing",
+            "11m": "MadisonMarvel", "23m": "ChattanoogaChamp",
+            "46m": "AkronAce", "93m": "SyracuseSniper",
+            "187m": "SavannahStar", "374m": "StPaulPhenomm",
+            // l-tier
+            "2l": "MilwaukeeMight", "5l": "TucsonTwister",
+            "11l": "LouisvilleLion", "22l": "SpringfieldSprint",
+            "45l": "PasadenaPro", "91l": "PompanoPlayer",
+            "182l": "CoralGablesCrush", "365l": "TallahasseTitan",
+            // k-tier
+            "2k": "GainesvilleGuru", "5k": "PensacolaPhenom",
+            "11k": "ClearwaterChamp", "22k": "BocaRatonBoss",
+            "44k": "NapleNinja", "89k": "HartfordHawk",
+            "178k": "ProvidencePro", "356k": "NashvilleNinja",
+            // o-tier
+            "3o": "LaRedoLegend", "6o": "BuffaloBeast",
+            "24o": "JerseyJuggernaut",
+            // p-tier
+            "3p": "DurhamDragon", "12p": "OrlandoOmega",
+            "100p": "ChulaChulaChamp", "401p": "StPaulPhenomm",
+            // q-tier
+            "3q": "IrvineInferno", "102q": "ToledoTerror",
+            // r-tier
+            "6r": "CincinnatiCyber", "842r": "PittsburghPro",
+            // s-tier
+            "26s": "RiversideRuler", "107s": "StocktonStorm",
+            // t-tier
+            "3t": "TampaTitan", "883t": "TulsaTornado",
+            // u-tier
+            "7u": "AnchorageAlpha", "28u": "RichmondRacer",
+            // Common lower milestones
+            "1M": "NapleNinja", "2M": "ClearwaterChamp",
+            "16K": "BocaRatonBoss", "32K": "GainesvilleGuru",
+            "65K": "PensacolaPhenom", "131K": "DaytonDynamo",
+            "262K": "AllenAlpha", "524K": "SavannahStar",
+        ]
+        return milestoneToName[milestone]
     }
 
     /// Extracts a number from the message that appears near any of the given context words.
