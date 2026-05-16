@@ -583,7 +583,7 @@ public struct FriendsView: View {
                         }
                     }
                 }
-                Section("Family invites") {
+                Section {
                     if invites.isEmpty {
                         Text("No family invites yet.")
                             .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
@@ -598,9 +598,11 @@ public struct FriendsView: View {
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer()
-                                Text(invite.status)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                if invite.status == "Invited" {
+                                    Text(invite.status)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }

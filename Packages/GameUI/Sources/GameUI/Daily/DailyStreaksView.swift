@@ -93,7 +93,7 @@ public struct DailyStreaksView: View {
                         .foregroundStyle(.primary)
 
                     if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked })?.day {
-                        Text("\(nextMilestone - store.currentStreak) days until next milestone")
+                        Text("\(nextMilestone - store.currentClaimDay) days until next milestone")
                             .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
@@ -113,7 +113,7 @@ public struct DailyStreaksView: View {
             if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked }) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("\(store.currentStreak)")
+                        Text("\(store.currentClaimDay)")
                             .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                             .foregroundStyle(.secondary)
                         Spacer()
@@ -135,7 +135,7 @@ public struct DailyStreaksView: View {
                                     endPoint: .trailing
                                 ))
                                 .frame(
-                                    width: geometry.size.width * CGFloat(store.currentStreak) / CGFloat(nextMilestone.day),
+                                    width: geometry.size.width * CGFloat(store.currentClaimDay) / CGFloat(nextMilestone.day),
                                     height: 8
                                 )
                         }
@@ -169,7 +169,7 @@ public struct DailyStreaksView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(store.dailyStreaks.prefix(10)) { streak in
-                        MilestoneCard(streak: streak, currentStreak: store.currentStreak)
+                        MilestoneCard(streak: streak, currentDay: store.currentClaimDay)
                             .onTapGesture {
                                 selectedStreak = streak
                             }
@@ -198,7 +198,7 @@ public struct DailyStreaksView: View {
                 GridItem(.adaptive(minimum: 80), spacing: 12)
             ], spacing: 12) {
                 ForEach(store.dailyStreaks) { streak in
-                    MilestoneBadge(streak: streak, currentStreak: store.currentStreak)
+                    MilestoneBadge(streak: streak, currentDay: store.currentClaimDay)
                         .onTapGesture {
                             selectedStreak = streak
                         }
@@ -210,7 +210,7 @@ public struct DailyStreaksView: View {
 
 private struct MilestoneCard: View {
     let streak: DailyClaimsStore.DailyStreak
-    let currentStreak: Int
+    let currentDay: Int
 
     var body: some View {
         VStack(spacing: 12) {
@@ -228,7 +228,7 @@ private struct MilestoneCard: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.green)
-            } else if currentStreak >= streak.day - 3 {
+            } else if currentDay >= streak.day - 3 {
                 Image(systemName: "lock.open.fill")
                     .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.orange)
@@ -267,7 +267,7 @@ private struct MilestoneCard: View {
     private var backgroundGradient: Gradient {
         if streak.isUnlocked {
             return Gradient(colors: [.green.opacity(0.3), .green.opacity(0.1)])
-        } else if currentStreak >= streak.day - 3 {
+        } else if currentDay >= streak.day - 3 {
             return Gradient(colors: [.orange.opacity(0.2), .yellow.opacity(0.1)])
         } else {
             return Gradient(colors: [.gray.opacity(0.1), .clear])
@@ -277,7 +277,7 @@ private struct MilestoneCard: View {
     private var borderColor: Color {
         if streak.isUnlocked {
             return .green
-        } else if currentStreak >= streak.day - 3 {
+        } else if currentDay >= streak.day - 3 {
             return .orange.opacity(0.5)
         } else {
             return .gray.opacity(0.3)
@@ -287,7 +287,7 @@ private struct MilestoneCard: View {
 
 private struct MilestoneBadge: View {
     let streak: DailyClaimsStore.DailyStreak
-    let currentStreak: Int
+    let currentDay: Int
 
     var body: some View {
         VStack(spacing: 4) {

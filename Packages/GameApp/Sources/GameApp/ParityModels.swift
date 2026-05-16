@@ -2318,10 +2318,14 @@ public struct MockSocialService: SocialService, Sendable {
 
         // ── Extract dynamic content from the comment ──
 
-        // Pull any milestone mentioned in the comment (longest match first)
+        // Pull any milestone mentioned in the comment (longest match first, word-boundary aware)
         let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
-        let mentionedMilestone: (index: Int, name: String)? = sortedMilestones.first(where: {
-            strippedLower.contains($0.element.lowercased())
+        let mentionedMilestone: (index: Int, name: String)? = sortedMilestones.first(where: { entry in
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: entry.element.lowercased()))\\b"
+            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(
+                in: strippedLower,
+                range: NSRange(strippedLower.startIndex..., in: strippedLower)
+            ) != nil
         }).map { ($0.offset, $0.element) }
 
         // Pull any number referenced (playtime, days, attempts, etc.)
