@@ -2009,7 +2009,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Lol only \(streakDays)? I'm on day \(myDays). 😏",
                     "Cute! My streak is at \(myDays) days.",
                     "\(myDays)-day streak here. You're way behind.",
-                    "Only \(streakDays)? I'm sitting at \(myDays). Step it up.",
+                    "Only \(streakDays)? I'm sitting at \(myDays). Not impressed.",
                     "That's nothing, my \(myDays)-day streak says hi.",
                     "I was at \(streakDays) days ages ago. I'm at \(myDays) now.",
                     "\(myDays) days and counting. You're not catching me.",
@@ -2040,7 +2040,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Lol only \(posterTime)? I clocked \(myTime).",
                     "Cute! My clear time is \(myTime).",
                     "\(myTime) here. You're way behind.",
-                    "Only \(posterTime)? I'm sitting at \(myTime). Step it up.",
+                    "Only \(posterTime)? I'm sitting at \(myTime). Not impressed.",
                     "That's nothing, my \(myTime) says hi.",
                     "I was clearing \(posterTime) ages ago. I'm at \(myTime) now.",
                     "\(myTime) and getting faster. You're not catching me.",
@@ -2065,7 +2065,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Lol only \(infCount)? I'm at \(myCount).",
                     "Cute! My count is at \(myCount) infinities.",
                     "\(myCount) infinities here. You're way behind.",
-                    "Only \(infCount)? I'm sitting at \(myCount). Step it up.",
+                    "Only \(infCount)? I'm sitting at \(myCount). Not impressed.",
                     "That's nothing, my \(myCount) infinity count says hi.",
                     "I was at \(infCount) infinities ages ago. I'm at \(myCount) now.",
                     "\(myCount) infinities and counting. You're not catching me.",
@@ -2094,7 +2094,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Lol only \(m)? I'm at \(nextM).",
                     "Cute! My tile is at \(nextM).",
                     "\(nextM) here. You're way behind.",
-                    "Only \(m)? I'm sitting at \(nextM). Step it up.",
+                    "Only \(m)? I'm sitting at \(nextM). Not impressed.",
                     "That's nothing, my \(nextM) tile says hi.",
                     "I was at \(m) ages ago. I'm at \(nextM) now.",
                     "\(nextM) and climbing. You're not catching me.",
@@ -2123,7 +2123,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Lol only \(posterTier)? I pulled \(myTier).",
                     "Cute! My chest is \(myTier).",
                     "\(myTier) chest here. You're way behind.",
-                    "Only \(posterTier)? I'm pulling \(myTier). Step it up.",
+                    "Only \(posterTier)? I'm pulling \(myTier). Not impressed.",
                     "That's nothing, my \(myTier) chest says hi.",
                     "I was pulling \(posterTier) ages ago. I'm at \(myTier) now.",
                     "\(myTier) chests every day. You're not catching me.",
@@ -2390,7 +2390,7 @@ public struct MockSocialService: SocialService, Sendable {
             if let num = mentionedNumber {
                 replies.append(contentsOf: [
                     "\(num)? That's cute, check my stats 😏",
-                    "I already beat \(num). Step it up!",
+                    "I already beat \(num). Not impressed.",
                     "\(num) is just the beginning for me.",
                 ])
             }
