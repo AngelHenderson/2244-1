@@ -1022,9 +1022,10 @@ public struct MockSocialService: SocialService, Sendable {
         let playerName = defaults.string(forKey: "player.displayName") ?? "Player"
         let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
-        // 70% top-level comments to the poster, 30% replies between commenters
+        // 60% top-level dynamic comments, 40% replies
+        // Of the 40% replies: 70% to the poster, 30% to other commenters
         let totalComments = Int.random(in: 5...30)
-        let numReplies = max(1, Int(Double(totalComments) * 0.3))
+        let numReplies = max(1, Int(Double(totalComments) * 0.4))
 
         // Sort offsets into the FUTURE so comments trickle in over time
         // Spread from 30 seconds to 4 hours after posting
@@ -1053,15 +1054,24 @@ public struct MockSocialService: SocialService, Sendable {
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
             var commentText = generateDynamicComment(message: message)
 
-            // If this is a reply, reference a previous commenter
+            // If this is a reply, pick target: 70% to the poster, 30% to another commenter
             if replyIndices.contains(index), !commentAuthors.isEmpty {
-                let replyTo = commentAuthors.randomElement()!
+                let replyToPoster = Double.random(in: 0..<1) < 0.7
+                let replyTo: String
+                if replyToPoster {
+                    replyTo = playerName
+                } else {
+                    // Pick a random previous commenter (not self)
+                    let candidates = commentAuthors.filter { $0 != commenter }
+                    replyTo = candidates.randomElement() ?? playerName
+                }
                 if replyTo != commenter {
                     let previousComment = comments.last(where: { $0.authorName == replyTo })
                     if let prev = previousComment {
                         commentText = "@\(replyTo) " + generateContextualReply(to: prev.text, message: message)
                     } else {
-                        commentText = "@\(replyTo) " + commentText
+                        // Replying to the poster (no comment from them in thread)
+                        commentText = "@\(replyTo) " + generateContextualReply(to: message, message: message)
                     }
                 }
             }
@@ -1165,9 +1175,10 @@ public struct MockSocialService: SocialService, Sendable {
             let itemDate = now.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
-            // 70% top-level comments to the poster, 30% replies between commenters
+            // 60% top-level dynamic comments, 40% replies
+            // Of the 40% replies: 70% to the poster, 30% to other commenters
             let totalComments = Int.random(in: 5...18)
-            let numResponses = max(1, Int(Double(totalComments) * 0.3))
+            let numResponses = max(1, Int(Double(totalComments) * 0.4))
             
             // Generate and sort offsets so the conversation flows chronologically
             var commentOffsets: [Double] = []
@@ -1194,9 +1205,16 @@ public struct MockSocialService: SocialService, Sendable {
                 var commentText = generateDynamicComment(message: message)
                 var commentOffset = offset
                 
-                // If this index is marked as a response, reply to a previous comment
+                // If this index is marked as a response: 70% reply to the poster, 30% to other commenters
                 if responseIndices.contains(index) && !commentAuthors.isEmpty {
-                    let replyingTo = commentAuthors.randomElement()!
+                    let replyToPoster = Double.random(in: 0..<1) < 0.7
+                    let replyingTo: String
+                    if replyToPoster {
+                        replyingTo = author
+                    } else {
+                        let candidates = commentAuthors.filter { $0 != commentAuthor }
+                        replyingTo = candidates.randomElement() ?? author
+                    }
                     if replyingTo != commentAuthor {
                         // Check if the comment being replied to asks about the next milestone
                         let previousComment = comments.last(where: { $0.authorName == replyingTo })
@@ -1213,7 +1231,8 @@ public struct MockSocialService: SocialService, Sendable {
                             let maxDelay = max(300, abs(prevOffset) * 0.7)
                             commentOffset = min(prevOffset + Double.random(in: 120...maxDelay), 0)
                         } else {
-                            commentText = "@\(replyingTo) " + commentText
+                            // Replying to the poster (no comment from them in thread)
+                            commentText = "@\(replyingTo) " + generateContextualReply(to: message, message: message)
                         }
                     }
                 }
