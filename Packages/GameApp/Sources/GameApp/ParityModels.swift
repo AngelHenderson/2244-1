@@ -2013,7 +2013,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "That's nothing, my \(myDays)-day streak says hi.",
                     "I was at \(streakDays) days ages ago. I'm at \(myDays) now.",
                     "\(myDays) days and counting. You're not catching me.",
-                    "Day \(myDays) over here. Stay in your lane.",
+                    "Day \(myDays) over here. I'm untouchable.",
                     "\(streakDays) is amateur hour. Talk to me at \(myDays).",
                 ]
                 return templates.randomElement()!
