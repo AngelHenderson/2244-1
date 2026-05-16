@@ -929,8 +929,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v7"
-    private static let feedDateKey = "socialFeed.cacheDate.v7"
+    private static let feedCacheKey = "socialFeed.cache.v9"
+    private static let feedDateKey = "socialFeed.cacheDate.v9"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1022,15 +1022,16 @@ public struct MockSocialService: SocialService, Sendable {
         let playerName = defaults.string(forKey: "player.displayName") ?? "Player"
         let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
-        // Generate 5–30 comments matching the same pattern as mock feed items
-        let numTopLevel = Int.random(in: 3...15)
-        let numReplies = Int.random(in: 2...15)
-        let totalComments = numTopLevel + numReplies
+        // 60% top-level dynamic comments, 40% replies
+        // Of the 40% replies: 70% to the poster, 30% to other commenters
+        let totalComments = Int.random(in: 5...30)
+        let numReplies = max(1, Int(Double(totalComments) * 0.4))
 
-        // Sort offsets so conversation flows chronologically (30 min – 24 hr spread)
+        // Sort offsets into the FUTURE so comments trickle in over time
+        // Spread from 30 seconds to 4 hours after posting
         var commentOffsets: [Double] = []
         for _ in 0..<totalComments {
-            commentOffsets.append(Double.random(in: -86400...(-120)))
+            commentOffsets.append(Double.random(in: 30...14400))
         }
         commentOffsets.sort()
 
@@ -1053,15 +1054,24 @@ public struct MockSocialService: SocialService, Sendable {
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
             var commentText = generateDynamicComment(message: message)
 
-            // If this is a reply, reference a previous commenter
+            // If this is a reply, pick target: 70% to the poster, 30% to another commenter
             if replyIndices.contains(index), !commentAuthors.isEmpty {
-                let replyTo = commentAuthors.randomElement()!
+                let replyToPoster = Double.random(in: 0..<1) < 0.7
+                let replyTo: String
+                if replyToPoster {
+                    replyTo = playerName
+                } else {
+                    // Pick a random previous commenter (not self)
+                    let candidates = commentAuthors.filter { $0 != commenter }
+                    replyTo = candidates.randomElement() ?? playerName
+                }
                 if replyTo != commenter {
                     let previousComment = comments.last(where: { $0.authorName == replyTo })
                     if let prev = previousComment {
                         commentText = "@\(replyTo) " + generateContextualReply(to: prev.text, message: message)
                     } else {
-                        commentText = "@\(replyTo) " + commentText
+                        // Replying to the poster (no comment from them in thread)
+                        commentText = "@\(replyTo) " + generateContextualReply(to: message, message: message)
                     }
                 }
             }
@@ -1076,11 +1086,11 @@ public struct MockSocialService: SocialService, Sendable {
             commentAuthors.append(commenter)
         }
 
-        // Heart/reaction timestamps spread over the next 24 hours (10–50, same as mock feed)
+        // Heart/reaction timestamps trickle in over the next 4 hours (10–50)
         let numReactions = Int.random(in: 10...50)
         var rTimestamps: [Date] = []
         for _ in 0..<numReactions {
-            rTimestamps.append(now.addingTimeInterval(Double.random(in: -86400...0)))
+            rTimestamps.append(now.addingTimeInterval(Double.random(in: 30...14400)))
         }
 
         let newItem = SocialFeedItem(
@@ -1165,9 +1175,10 @@ public struct MockSocialService: SocialService, Sendable {
             let itemDate = now.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
-            let numTopLevelComments = Int.random(in: 2...8)
-            let numResponses = Int.random(in: 3...10)
-            let totalComments = numTopLevelComments + numResponses
+            // 60% top-level dynamic comments, 40% replies
+            // Of the 40% replies: 70% to the poster, 30% to other commenters
+            let totalComments = Int.random(in: 5...18)
+            let numResponses = max(1, Int(Double(totalComments) * 0.4))
             
             // Generate and sort offsets so the conversation flows chronologically
             var commentOffsets: [Double] = []
@@ -1194,9 +1205,16 @@ public struct MockSocialService: SocialService, Sendable {
                 var commentText = generateDynamicComment(message: message)
                 var commentOffset = offset
                 
-                // If this index is marked as a response, reply to a previous comment
+                // If this index is marked as a response: 70% reply to the poster, 30% to other commenters
                 if responseIndices.contains(index) && !commentAuthors.isEmpty {
-                    let replyingTo = commentAuthors.randomElement()!
+                    let replyToPoster = Double.random(in: 0..<1) < 0.7
+                    let replyingTo: String
+                    if replyToPoster {
+                        replyingTo = author
+                    } else {
+                        let candidates = commentAuthors.filter { $0 != commentAuthor }
+                        replyingTo = candidates.randomElement() ?? author
+                    }
                     if replyingTo != commentAuthor {
                         // Check if the comment being replied to asks about the next milestone
                         let previousComment = comments.last(where: { $0.authorName == replyingTo })
@@ -1213,7 +1231,8 @@ public struct MockSocialService: SocialService, Sendable {
                             let maxDelay = max(300, abs(prevOffset) * 0.7)
                             commentOffset = min(prevOffset + Double.random(in: 120...maxDelay), 0)
                         } else {
-                            commentText = "@\(replyingTo) " + commentText
+                            // Replying to the poster (no comment from them in thread)
+                            commentText = "@\(replyingTo) " + generateContextualReply(to: message, message: message)
                         }
                     }
                 }
@@ -1599,7 +1618,26 @@ public struct MockSocialService: SocialService, Sendable {
             return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
         }
     }
-    
+
+    // MARK: - Shuffle-bag rotation
+
+    /// Draws from a shuffled copy of `pool`, cycling back to a fresh shuffle
+    /// once every element has been used. Guarantees every template appears at
+    /// least once before any repeats.
+    nonisolated(unsafe) private static var shuffleBags: [String: [String]] = [:]
+    nonisolated(unsafe) private static var shuffleIndices: [String: Int] = [:]
+
+    private static func drawFromBag(key: String, pool: [String]) -> String {
+        // First call or bag exhausted — reshuffle
+        if shuffleBags[key] == nil || (shuffleIndices[key] ?? 0) >= (shuffleBags[key]?.count ?? 0) {
+            shuffleBags[key] = pool.shuffled()
+            shuffleIndices[key] = 0
+        }
+        let idx = shuffleIndices[key]!
+        shuffleIndices[key] = idx + 1
+        return shuffleBags[key]![idx]
+    }
+
     private func generateDynamicComment(message: String) -> String {
         let openers = [
             "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
@@ -1733,6 +1771,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Any advice for someone aiming for HoF?",
                 "What's your infinity count goal?",
             ])
+
         } else if message.contains("streak") {
             positiveReactions.append(contentsOf: [
                 "Nice streak!", "Don't lose it!", "Streak master!",
@@ -1762,6 +1801,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Has the streak ever been in danger?", "Do you play first thing in the morning?",
                 "What keeps you motivated for the streak?", "Ever almost forgot?",
             ])
+
         } else if message.contains("timed challenge") {
             positiveReactions.append(contentsOf: [
                 "Fast hands!", "Speed demon!", "Nice clear time!",
@@ -1791,6 +1831,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "What's your average clear time?", "Any speed tips?",
                 "Do you go for speed or safety?", "Was that your first attempt today?",
             ])
+
         } else if message.contains("theme") {
             positiveReactions.append(contentsOf: [
                 "Love that theme!", "Looks so fresh.", "Best theme in the game.",
@@ -1819,6 +1860,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "How many themes have you unlocked?", "Was it worth the gems?",
                 "What's the rarest theme?", "Does it change the tile colors too?",
             ])
+
         } else if message.contains("Quest") {
             positiveReactions.append(contentsOf: [
                 "Quest complete!", "Enjoy the rewards!", "Easy gems.",
@@ -1847,6 +1889,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Did you get any good gems?", "What's the best chest you've ever pulled?",
                 "Do you always finish all three?", "Any quest tips for new players?",
             ])
+
         }
         
         // Detect specific milestones if present in the message
@@ -1887,8 +1930,13 @@ public struct MockSocialService: SocialService, Sendable {
                     "What comes after \(m)?", "Is \(m) a big wall?",
                     "What tile was hardest before \(m)?", "Any perk recommendations for \(m)?",
                 ])
+
             }
         }
+        
+        // Build a unique bag key from the message hash so each feed item
+        // gets its own rotation through the templates
+        let bagSuffix = String(message.hashValue & 0xFFFF, radix: 16)
         
         // Weighted category roll: 55% competitive, 25% positive, 15% question, 5% jealous
         var comment = ""
@@ -1896,28 +1944,31 @@ public struct MockSocialService: SocialService, Sendable {
         let roll = Double.random(in: 0..<1)
         
         if roll < 0.55 {
-            // ── Competitive (55%) — standalone, no opener ──
-            comment = competitiveReactions.randomElement()!
+            // ── Competitive (55%) — generate factually accurate one-upmanship ──
+            comment = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)")
             tone = "competitive"
         } else if roll < 0.80 {
             // ── Positive (25%) — with opener + subject/verb/adj ──
-            let opener = openers.randomElement()!
+            let opener = Self.drawFromBag(key: "opener_\(bagSuffix)", pool: openers)
             if Bool.random() {
-                let core = "\(subjects.randomElement()!) \(verbs.randomElement()!) \(adjectives.randomElement()!)"
+                let subj = Self.drawFromBag(key: "subject_\(bagSuffix)", pool: subjects)
+                let verb = Self.drawFromBag(key: "verb_\(bagSuffix)", pool: verbs)
+                let adj = Self.drawFromBag(key: "adjective_\(bagSuffix)", pool: adjectives)
+                let core = "\(subj) \(verb) \(adj)"
                 comment = opener.isEmpty ? core.capitalized + "!" : "\(opener) \(core)!"
             } else {
-                let reaction = positiveReactions.randomElement()!
+                let reaction = Self.drawFromBag(key: "positive_\(bagSuffix)", pool: positiveReactions)
                 comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
             }
             tone = "positive"
         } else if roll < 0.95 {
             // ── Question (15%) — standalone, no opener ──
-            comment = questions.randomElement()!
+            comment = Self.drawFromBag(key: "question_\(bagSuffix)", pool: questions)
             tone = "question"
         } else {
             // ── Jealous (5%) — with opener ──
-            let opener = openers.randomElement()!
-            let reaction = jealousReactions.randomElement()!
+            let opener = Self.drawFromBag(key: "opener_\(bagSuffix)", pool: openers)
+            let reaction = Self.drawFromBag(key: "jealous_\(bagSuffix)", pool: jealousReactions)
             comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
             tone = "sad"
         }
@@ -1925,10 +1976,11 @@ public struct MockSocialService: SocialService, Sendable {
         if Double.random(in: 0...1) < 0.75 {
             let symbol: String
             switch tone {
-            case "positive": symbol = positiveSymbols.randomElement()!
-            case "question": symbol = questionSymbols.randomElement()!
-            case "sad": symbol = sadOrJealousSymbols.randomElement()!
-            case "competitive": symbol = competitiveSymbols.randomElement()!
+            case "positive": symbol = Self.drawFromBag(key: "sym_pos_\(bagSuffix)", pool: positiveSymbols)
+            case "question": symbol = Self.drawFromBag(key: "sym_q_\(bagSuffix)", pool: questionSymbols)
+            case "sad": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
+            case "competitive": symbol = Self.drawFromBag(key: "sym_comp_\(bagSuffix)", pool: competitiveSymbols)
+
             default: symbol = ""
             }
             comment += symbol
@@ -1939,6 +1991,187 @@ public struct MockSocialService: SocialService, Sendable {
         
         return comment.trimmingCharacters(in: .whitespaces)
     }
+
+    // MARK: - Truthful competitive comments
+
+    /// Generates a competitive comment that is factually accurate — any claimed
+    /// stat is **higher** (or faster) than the poster's actual number.
+    /// Falls back to the generic `pool` when no number can be extracted.
+    private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String) -> String {
+        let lowered = message.lowercased()
+
+        // ── Streak posts: extract the day count, brag with a higher one ──
+        if lowered.contains("streak") {
+            if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
+                let myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                let templates = [
+                    "My streak is \(myDays) days. Not even close.",
+                    "Lol only a \(streakDays)-day streak? Mine is \(myDays).",
+                    "Cute! My streak is \(myDays) days.",
+                    "\(myDays)-day streak here. You're way behind.",
+                    "Only a \(streakDays)-day streak? Mine is \(myDays). Not impressed.",
+                    "That's nothing, my \(myDays)-day streak says hi.",
+                    "A \(streakDays)-day streak? I passed that ages ago. Mine is \(myDays).",
+                    "\(myDays)-day streak and counting. You're not catching me.",
+                    "\(myDays)-day streak over here. I'm untouchable.",
+                    "A \(streakDays)-day streak is amateur hour. Talk to me at \(myDays).",
+                    "My \(myDays)-day streak is longer than yours and always will be!",
+                    "A \(streakDays)-day streak? That's cute. My \(myDays)-day streak wipes the floor with that.",
+                    "I've had a \(myDays)-day streak since before you even started playing.",
+                    "\(myDays)-day streak. Your \(streakDays)-day streak doesn't even register on my radar.",
+                    "My streak is at \(myDays) and yours is still at \(streakDays). Embarrassing.",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Timed challenge posts: extract the time, brag with a faster one ──
+        if lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
+            if let (mins, secs) = Self.extractTime(from: message) {
+                let totalSecs = mins * 60 + secs
+                let fasterBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 4))
+                let myTotal = max(15, totalSecs - fasterBy)
+                let myMins = myTotal / 60
+                let mySecs = myTotal % 60
+                let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                let posterTime = "\(mins):\(String(format: "%02d", secs))"
+                let templates = [
+                    "My time is \(myTime). Not even close.",
+                    "Lol only \(posterTime)? I clocked \(myTime).",
+                    "Cute! My clear time is \(myTime).",
+                    "\(myTime) here. You're way behind.",
+                    "Only \(posterTime)? I'm sitting at \(myTime). Not impressed.",
+                    "That's nothing, my \(myTime) says hi.",
+                    "I was clearing \(posterTime) ages ago. I'm at \(myTime) now.",
+                    "\(myTime) and getting faster. You're not catching me.",
+                    "\(myTime) over here. I'm untouchable.",
+                    "\(posterTime) is amateur hour. Talk to me at \(myTime).",
+                    "My \(myTime) is faster than yours and always will be!",
+                    "\(posterTime)? That's cute. My \(myTime) wipes the floor with that.",
+                    "I've been clearing \(myTime) since before you even started playing.",
+                    "\(myTime). Your \(posterTime) doesn't even register on my radar.",
+                    "My time hit \(myTime) and yours is still stuck at \(posterTime). Embarrassing.",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
+        if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
+            if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "∞", "×", "count", "entry", "#"]) {
+                let myCount = infCount + Int.random(in: 1...max(3, infCount))
+                let templates = [
+                    "My infinity count is \(myCount). Not even close.",
+                    "Lol only \(infCount)? I'm at \(myCount).",
+                    "Cute! My count is at \(myCount) infinities.",
+                    "\(myCount) infinities here. You're way behind.",
+                    "Only \(infCount)? I'm sitting at \(myCount). Not impressed.",
+                    "That's nothing, my \(myCount) infinity count says hi.",
+                    "I was at \(infCount) infinities ages ago. I'm at \(myCount) now.",
+                    "\(myCount) infinities and counting. You're not catching me.",
+                    "\(myCount) infinities over here. I'm untouchable.",
+                    "\(infCount) is amateur hour. Talk to me at \(myCount).",
+                    "My \(myCount) infinity count is higher than yours and always will be!",
+                    "\(infCount) infinities? That's cute. My \(myCount) wipes the floor with that.",
+                    "I've had \(myCount) infinities since before you even started playing.",
+                    "\(myCount). Your \(infCount) doesn't even register on my radar.",
+                    "My count hit \(myCount) and yours is still stuck at \(infCount). Embarrassing.",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Milestone posts: find the tile, reference the next one ──
+        let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
+        if let foundIdx = sortedMilestones.firstIndex(where: { message.contains($0) }) {
+            let m = sortedMilestones[foundIdx]
+            // Find the next milestone in the ordered list
+            if let originalIdx = Self.allMilestones.firstIndex(of: m),
+               originalIdx + 1 < Self.allMilestones.count {
+                let nextM = Self.allMilestones[originalIdx + 1]
+                let templates = [
+                    "My tile is \(nextM). Not even close.",
+                    "Lol only \(m)? I'm at \(nextM).",
+                    "Cute! My tile is at \(nextM).",
+                    "\(nextM) here. You're way behind.",
+                    "Only \(m)? I'm sitting at \(nextM). Not impressed.",
+                    "That's nothing, my \(nextM) tile says hi.",
+                    "I was at \(m) ages ago. I'm at \(nextM) now.",
+                    "\(nextM) and climbing. You're not catching me.",
+                    "\(nextM) over here. I'm untouchable.",
+                    "\(m) is amateur hour. Talk to me at \(nextM).",
+                    "My \(nextM) is higher than yours and always will be!",
+                    "\(m)? That's cute. My \(nextM) wipes the floor with that.",
+                    "I've been at \(nextM) since before you even started playing.",
+                    "\(nextM). Your \(m) doesn't even register on my radar.",
+                    "My tile hit \(nextM) and yours is still stuck at \(m). Embarrassing.",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Quest posts: brag about better chest tier or faster completion ──
+        if lowered.contains("quest") {
+            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
+            // Find poster's tier and pick a better one
+            if let posterTierIdx = tiers.firstIndex(where: { message.contains($0) }),
+               posterTierIdx < tiers.count - 1 {
+                let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
+                let posterTier = tiers[posterTierIdx]
+                let templates = [
+                    "My chest is \(myTier). Not even close.",
+                    "Lol only \(posterTier)? I pulled \(myTier).",
+                    "Cute! My chest is \(myTier).",
+                    "\(myTier) chest here. You're way behind.",
+                    "Only \(posterTier)? I'm pulling \(myTier). Not impressed.",
+                    "That's nothing, my \(myTier) chest says hi.",
+                    "I was pulling \(posterTier) ages ago. I'm at \(myTier) now.",
+                    "\(myTier) chests every day. You're not catching me.",
+                    "\(myTier) rewards over here. I'm untouchable.",
+                    "\(posterTier) is amateur hour. Talk to me at \(myTier).",
+                    "My \(myTier) rewards are better than yours and always will be!",
+                    "\(posterTier)? That's cute. My \(myTier) wipes the floor with that.",
+                    "I've been pulling \(myTier) since before you even started playing.",
+                    "\(myTier). Your \(posterTier) doesn't even register on my radar.",
+                    "My quests give \(myTier) and yours are still stuck at \(posterTier). Embarrassing.",
+                ]
+                return templates.randomElement()!
+            }
+        }
+
+        // ── Fallback: use the generic competitive pool ──
+        return Self.drawFromBag(key: bagKey, pool: pool)
+    }
+
+    /// Extracts a number from the message that appears near any of the given context words.
+    private static func extractNumber(from text: String, near contextWords: [String]) -> Int? {
+        let lowered = text.lowercased()
+        // Check that at least one context word is present
+        guard contextWords.contains(where: { lowered.contains($0) }) else { return nil }
+
+        // Find all integers in the message
+        let pattern = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b")
+        let matches = pattern?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
+
+        for match in matches {
+            if let range = Range(match.range(at: 1), in: text), let num = Int(text[range]), num > 0 {
+                return num
+            }
+        }
+        return nil
+    }
+
+    /// Extracts a time in M:SS format from the message. Returns (minutes, seconds).
+    private static func extractTime(from text: String) -> (Int, Int)? {
+        let pattern = try? NSRegularExpression(pattern: "(\\d{1,2}):(\\d{2})")
+        guard let match = pattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let mRange = Range(match.range(at: 1), in: text),
+              let sRange = Range(match.range(at: 2), in: text),
+              let mins = Int(text[mRange]),
+              let secs = Int(text[sRange]) else { return nil }
+        return (mins, secs)
+    }
+
     
     /// Returns a milestone-aware answer if the text asks "what comes after [milestone]".
     private func milestoneAnswer(for text: String) -> String? {
@@ -1969,7 +2202,7 @@ public struct MockSocialService: SocialService, Sendable {
     private func generateContextualReply(to commentText: String, message: String) -> String {
         let lowered = commentText.lowercased()
 
-        // Strip any leading @mention from the comment so we analyze the real content
+        // Strip any leading @mention so we analyze the real content
         let strippedText: String = {
             if lowered.hasPrefix("@") {
                 let parts = commentText.split(separator: " ", maxSplits: 1)
@@ -1979,24 +2212,52 @@ public struct MockSocialService: SocialService, Sendable {
         }()
         let strippedLower = strippedText.lowercased()
 
+        // ── Extract dynamic content from the comment ──
+
+        // Pull any milestone mentioned in the comment (longest match first)
+        let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
+        let mentionedMilestone: (index: Int, name: String)? = sortedMilestones.first(where: {
+            strippedLower.contains($0.element.lowercased())
+        }).map { ($0.offset, $0.element) }
+
+        // Pull any number referenced (playtime, days, attempts, etc.)
+        let mentionedNumber: String? = {
+            let regex = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b", options: [])
+            let range = NSRange(strippedText.startIndex..., in: strippedText)
+            if let match = regex?.firstMatch(in: strippedText, range: range),
+               let r = Range(match.range(at: 1), in: strippedText) {
+                return String(strippedText[r])
+            }
+            return nil
+        }()
+
+        // Extract key phrases the commenter used for mirroring
+        let mentionedTime = strippedLower.contains("time") || strippedLower.contains("fast") || strippedLower.contains("speed") || strippedLower.contains("quick")
+        let mentionedStreak = strippedLower.contains("streak")
+        let mentionedTheme = strippedLower.contains("theme") || strippedLower.contains("style") || strippedLower.contains("aesthetic")
+        let mentionedHoF = strippedLower.contains("hall of fame") || strippedLower.contains("hof") || strippedLower.contains("infinity")
+        let mentionedPerk = strippedLower.contains("hammer") || strippedLower.contains("swap") || strippedLower.contains("magnet") || strippedLower.contains("perk")
+        let mentionedGems = strippedLower.contains("gem")
+        let mentionedQuest = strippedLower.contains("quest") || strippedLower.contains("objective") || strippedLower.contains("chest")
+
         // ── Detect the tone/intent of the comment being replied to ──
 
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["beat", "catching up", "coming for", "won't last", "watch your back", "game on", "challenge", "mine tomorrow", "i'll be", "i'm going to", "not impressed", "my time", "faster", "i passed", "old news", "hold my"]
+        let competitiveKeywords = ["beat", "catching up", "coming for", "won't last", "watch your back", "game on", "challenge", "mine tomorrow", "i'll be", "i'm going to", "not impressed", "my time", "faster", "i passed", "old news", "hold my", "i'll beat", "i'm right behind", "i'm catching"]
         let isCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
 
-        let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never"]
+        let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't"]
         let isJealous = jealousKeywords.contains(where: { strippedLower.contains($0) })
 
-        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite"]
+        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate"]
         let isPositive = positiveKeywords.contains(where: { strippedLower.contains($0) })
 
         let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
         let isAddRequest = addFriendKeywords.contains(where: { strippedLower.contains($0) })
 
-        // ── Generate contextual replies based on detected intent ──
+        // ── Generate contextual replies that reference the actual comment ──
 
         if isAddRequest {
             let replies = [
@@ -2013,81 +2274,183 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         if isQuestion {
-            // Reply with an answer-style response
-            var answers = [
-                "Honestly, just keep grinding and it clicks.",
-                "Took me a while, but consistency helps a lot.",
-                "The trick is patience and keeping lanes open.",
-                "I usually plan 3-4 moves ahead. That helps.",
-                "Just practice! Everyone struggles at first.",
-                "No special trick, just played a LOT 😅",
-                "Focus on keeping one corner anchored.",
-                "Perks help but they're not required.",
-                "A few attempts honestly. Not gonna lie it was rough.",
-                "I watched some replays to figure out the pattern.",
-            ]
-            // Topic-specific answers
-            if message.contains("Hall of Fame") {
+            var answers: [String] = []
+
+            // Dynamic answers that reference what they're asking about
+            if let m = mentionedMilestone {
+                let next = m.index + 1 < Self.allMilestones.count ? Self.allMilestones[m.index + 1] : nil
                 answers.append(contentsOf: [
-                    "Took about 3 months of daily play to get to HoF.",
-                    "The key is never giving up once you're past the 'a' tiers.",
-                    "Keep pushing through the alphabet tiers and you'll get there.",
-                    "Honestly the hardest part was the 'z' to 'aa' transition.",
+                    "For \(m.name), I focused on keeping one corner stacked.",
+                    "\(m.name) took me about a week of solid grinding.",
+                    "The trick at \(m.name) is patience — don't rush merges.",
+                    "Once you're near \(m.name), keep lanes open and plan 3 moves ahead.",
+                    "\(m.name) was tough honestly. Took multiple attempts.",
                 ])
-            } else if message.contains("streak") {
+                if let nextTile = next {
+                    answers.append("\(m.name) → \(nextTile). Just keep pushing!")
+                    answers.append("After \(m.name), aim for \(nextTile). You'll get there!")
+                }
+            }
+
+            if let num = mentionedNumber {
                 answers.append(contentsOf: [
-                    "I set a phone reminder every evening.",
-                    "Play right after waking up — never miss!",
-                    "Almost lost it twice, but pulled through 😅",
+                    "\(num) is solid! Mine was a bit different but close.",
+                    "Around \(num) is where things start clicking.",
+                    "\(num)? That's about where I was too at that point.",
+                    "Not bad! I think mine was closer to \(num) actually.",
+                ])
+            }
+
+            if mentionedStreak {
+                answers.append(contentsOf: [
+                    "I set a phone reminder every evening — never miss!",
+                    "Play right after waking up. That's how I keep mine alive.",
+                    "Almost lost mine twice, but pulled through 😅",
                     "The first week is the hardest, then it becomes habit.",
+                    "Honestly, just make it part of your routine.",
                 ])
-            } else if message.contains("timed") || message.contains("speed") {
+            }
+
+            if mentionedTime {
                 answers.append(contentsOf: [
                     "Speed comes from pattern recognition. Keep at it!",
-                    "I don't overthink — just go with instinct.",
-                    "Practice the daily challenge every day, times drop naturally.",
-                    "Quick swipes and no second-guessing. That's my style.",
+                    "I don't overthink — just go with instinct on timed runs.",
+                    "Practice daily and times drop naturally.",
+                    "Quick swipes and no second-guessing. That's my approach.",
                 ])
-            } else if message.contains("theme") {
+            }
+
+            if mentionedHoF {
+                answers.append(contentsOf: [
+                    "Took about 3 months of daily play to reach HoF.",
+                    "The key is never giving up past the 'a' tiers.",
+                    "Keep pushing through the alphabet tiers and you'll get there.",
+                    "The hardest part was the 'z' to 'aa' transition honestly.",
+                ])
+            }
+
+            if mentionedTheme {
                 answers.append(contentsOf: [
                     "Worth every gem, honestly!",
-                    "I've been saving up for weeks for this one.",
                     "It changes the whole feel of the game.",
-                    "The colors on this theme are so soothing.",
+                    "The colors on this one are so soothing.",
+                    "I've been saving up for weeks for this one.",
                 ])
-            } else if message.contains("Quest") || message.contains("quest") {
+            }
+
+            if mentionedQuest {
                 answers.append(contentsOf: [
                     "I always start with the hardest quest first.",
                     "Today's quests were actually pretty easy.",
-                    "The chest rewards are so worth it.",
+                    "The chest rewards are so worth the effort.",
                     "I try to knock them out in my first session.",
                 ])
             }
+
+            if mentionedPerk {
+                answers.append(contentsOf: [
+                    "Perks help but they're not required. Save them for clutch moments.",
+                    "I mostly hoard perks for the late game pushes.",
+                    "Free perks from the cooldown timer are underrated!",
+                    "I used a hammer for my final push. No shame in it.",
+                ])
+            }
+
+            // Generic question answers as fallback
+            if answers.isEmpty {
+                answers = [
+                    "Honestly, just keep grinding and it clicks.",
+                    "Took me a while, but consistency helps a lot.",
+                    "The trick is patience and keeping lanes open.",
+                    "I usually plan 3-4 moves ahead. That helps.",
+                    "Just practice! Everyone struggles at first.",
+                    "No special trick, just played a LOT 😅",
+                    "Focus on keeping one corner anchored.",
+                    "A few attempts honestly. Not gonna lie it was rough.",
+                    "I watched some replays to figure out the pattern.",
+                ]
+            }
+
             return answers.randomElement()!
         }
 
         if isCompetitive {
-            // Reply to competitive trash talk
-            let replies = [
+            var replies: [String] = []
+
+            // Dynamic competitive responses that echo what they said
+            if let m = mentionedMilestone {
+                replies.append(contentsOf: [
+                    "Talk to me when you pass \(m.name) without perks 😏",
+                    "I blew past \(m.name) days ago. Keep up!",
+                    "\(m.name)? I'm already way beyond that.",
+                    "Good luck beating my \(m.name) run 🎯",
+                ])
+            }
+
+            if let num = mentionedNumber {
+                replies.append(contentsOf: [
+                    "\(num)? That's cute, check my stats 😏",
+                    "I already beat \(num). Not impressed.",
+                    "\(num) is just the beginning for me.",
+                ])
+            }
+
+            if mentionedStreak {
+                replies.append("My streak is longer. Facts. 😈")
+                replies.append("Streak vs streak — mine wins. No contest.")
+            }
+
+            if mentionedTime {
+                replies.append("My clear time was faster. Just saying ⏱️")
+                replies.append("I'll sub that time tomorrow easy.")
+            }
+
+            // Generic competitive
+            replies.append(contentsOf: [
                 "Bring it on 😏",
                 "We'll see about that 👀",
                 "Talk is cheap — show me the screenshot 📸",
                 "I'll be waiting at the top 🏔️",
-                "Lol good luck with that 😂",
                 "Respect the confidence! Let's see it.",
                 "Actions speak louder than comments 💪",
                 "Keep that same energy next week 😈",
                 "I love the competition honestly!",
                 "You're on. May the best player win.",
-                "Haha alright, consider this a rivalry.",
                 "Come find me on the leaderboard then 🎯",
-            ]
+            ])
             return replies.randomElement()!
         }
 
         if isJealous {
-            // Reply encouragingly to jealous/struggling comments
-            let replies = [
+            var replies: [String] = []
+
+            // Dynamic encouragement that references their specific struggle
+            if let m = mentionedMilestone {
+                replies.append(contentsOf: [
+                    "You'll break through \(m.name) eventually! I struggled there too.",
+                    "\(m.name) was my wall for weeks. Then one day it just clicked!",
+                    "Keep pushing near \(m.name) — the breakthrough comes when you least expect it.",
+                    "I was stuck before \(m.name) forever. Patience is the move.",
+                ])
+            }
+
+            if let num = mentionedNumber {
+                replies.append("I was at \(num) for the longest time too. Don't give up!")
+                replies.append("\(num) is progress! You're closer than you think.")
+            }
+
+            if mentionedStreak {
+                replies.append("Losing a streak sucks, but you can start a new one today 🔥")
+                replies.append("Streaks are tough! I've lost mine before too.")
+            }
+
+            if mentionedTheme {
+                replies.append("Keep saving gems! You'll get there before you know it.")
+                replies.append("The grind for themes is real but so worth it.")
+            }
+
+            // Generic encouragement
+            replies.append(contentsOf: [
                 "You'll get there! Just keep playing 💪",
                 "I was in the same spot a few weeks ago. Don't give up!",
                 "Honestly, it took me forever too. Patience is key.",
@@ -2095,18 +2458,35 @@ public struct MockSocialService: SocialService, Sendable {
                 "Trust the process — breakthroughs happen randomly.",
                 "I believe in you! Keep grinding 🔥",
                 "We all hit walls. The fun is breaking through them.",
-                "It'll click eventually. Happened to me too!",
                 "Keep at it! The struggle makes the win sweeter.",
-                "Don't worry, half the fun is the journey.",
-                "Seriously, I almost quit before my breakthrough. Stay with it.",
                 "You're closer than you think 🙌",
-            ]
+            ])
             return replies.randomElement()!
         }
 
         if isPositive {
-            // Reply to compliments/positive reactions
-            let replies = [
+            var replies: [String] = []
+
+            // Dynamic positive responses that mirror their energy
+            if let m = mentionedMilestone {
+                replies.append("\(m.name) gang! 🙌")
+                replies.append("Thanks! \(m.name) was a grind but so worth it.")
+            }
+
+            if mentionedStreak {
+                replies.append("Streak crew! We don't miss days 🔥")
+            }
+
+            if mentionedTheme {
+                replies.append("Right? The aesthetics in this game are top tier!")
+            }
+
+            if mentionedHoF {
+                replies.append("HoF is the dream. Thanks for the love! 🏆")
+            }
+
+            // Generic positive
+            replies.append(contentsOf: [
                 "Thanks! 🙌",
                 "Appreciate it! 😊",
                 "Right back at you!",
@@ -2119,13 +2499,37 @@ public struct MockSocialService: SocialService, Sendable {
                 "Ty! See you on the leaderboard!",
                 "So kind! Thank you 😄",
                 "Aww thanks! This community is the best.",
-            ]
+            ])
             return replies.randomElement()!
         }
 
-        // ── Fallback: generic but still conversational ──
+        // ── Fallback: craft a response from whatever content we can extract ──
+
+        if let m = mentionedMilestone {
+            let contextual = [
+                "\(m.name)? I'm aiming higher 🚀",
+                "\(m.name) is where things get interesting!",
+                "I remember my first \(m.name) run. Good times.",
+                "\(m.name) hits different when you earn it legit.",
+                "Love seeing \(m.name) runs on the feed!",
+            ]
+            return contextual.randomElement()!
+        }
+
+        if let num = mentionedNumber {
+            let contextual = [
+                "\(num) is a good number! Keep it going.",
+                "Around \(num) is when things get real.",
+                "\(num)? Solid. I'm right there too.",
+            ]
+            return contextual.randomElement()!
+        }
+
+        if mentionedGems {
+            return ["Gems are always the bottleneck 💎", "The gem grind never ends!", "Save those gems wisely!"].randomElement()!
+        }
+
         let fallbacks = [
-            "Honestly, your grid was perfect. Can I add you? 🤝",
             "Facts. That's exactly how I see it too.",
             "Couldn't have said it better myself.",
             "Haha right? This game is something else.",

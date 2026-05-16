@@ -1399,9 +1399,17 @@ private struct FeedCommentsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var item: SocialFeedItem
     @State private var comment = ""
+    /// Ticks forward so future-dated comments appear over time
+    @State private var refreshTick = Date()
+    private let commentTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     init(item: SocialFeedItem) {
         self._item = State(initialValue: item)
+    }
+
+    /// Only show comments whose timestamp has already passed
+    private var visibleCommentIndices: [Int] {
+        item.comments.indices.filter { item.comments[$0].createdAt <= refreshTick }
     }
 
     var body: some View {
@@ -1410,47 +1418,47 @@ private struct FeedCommentsView: View {
                 Section("Post") {
                     FeedItemRow(item: $item)
                 }
-                Section("Comments") {
-                    ForEach($item.comments) { $commentData in
+                Section("Comments (\(visibleCommentIndices.count))") {
+                    ForEach(visibleCommentIndices, id: \.self) { idx in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(alignment: .top) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
-                                        Image(commentData.avatarID)
+                                        Image(item.comments[idx].avatarID)
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 24, height: 24)
                                             .clipShape(Circle())
-                                        Text(commentData.authorName)
+                                        Text(item.comments[idx].authorName)
                                             .font(.caption)
                                             .bold()
                                         Spacer()
-                                        Text(formatDate(commentData.createdAt))
+                                        Text(formatDate(item.comments[idx].createdAt))
                                             .font(.caption2)
                                             .foregroundStyle(.secondary)
                                     }
-                                    Text(commentData.text)
+                                    Text(item.comments[idx].text)
                                         .font(.body)
                                 }
                                 
                                 Spacer()
                                 
                                 Button {
-                                    let wasHearted = commentData.isHearted ?? false
-                                    commentData.isHearted = !wasHearted
-                                    let currentLikes = commentData.likes ?? 0
-                                    commentData.likes = currentLikes + (wasHearted ? -1 : 1)
+                                    let wasHearted = item.comments[idx].isHearted ?? false
+                                    item.comments[idx].isHearted = !wasHearted
+                                    let currentLikes = item.comments[idx].likes ?? 0
+                                    item.comments[idx].likes = currentLikes + (wasHearted ? -1 : 1)
                                     
                                     Task {
-                                        try? await socialService.toggleCommentHeart(itemID: item.id, commentID: commentData.id)
+                                        try? await socialService.toggleCommentHeart(itemID: item.id, commentID: item.comments[idx].id)
                                     }
                                 } label: {
                                     VStack(spacing: 2) {
-                                        Image(systemName: (commentData.isHearted ?? false) ? "heart.fill" : "heart")
-                                            .foregroundColor((commentData.isHearted ?? false) ? .red : .secondary)
+                                        Image(systemName: (item.comments[idx].isHearted ?? false) ? "heart.fill" : "heart")
+                                            .foregroundColor((item.comments[idx].isHearted ?? false) ? .red : .secondary)
                                             .font(.footnote)
                                         
-                                        if let likes = commentData.likes, likes > 0 {
+                                        if let likes = item.comments[idx].likes, likes > 0 {
                                             Text("\(likes)")
                                                 .font(.caption2)
                                                 .foregroundColor(.secondary)
@@ -1465,7 +1473,7 @@ private struct FeedCommentsView: View {
                         .padding(.vertical, 4)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            comment = "@\(commentData.authorName) "
+                            comment = "@\(item.comments[idx].authorName) "
                         }
                     }
                 }
@@ -1496,6 +1504,9 @@ private struct FeedCommentsView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
             }
+        }
+        .onReceive(commentTimer) { _ in
+            refreshTick = Date()
         }
     }
     
