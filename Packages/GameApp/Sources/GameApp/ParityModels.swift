@@ -936,6 +936,8 @@ public struct MockSocialService: SocialService, Sendable {
 
     private static let feedCacheKey = "socialFeed.cache.v12"
     private static let feedDateKey = "socialFeed.cacheDate.v12"
+    /// Version-independent key for user-posted events so they survive cache bumps.
+    private static let userPostsKey = "socialFeed.userPosts"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -962,7 +964,19 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         // Generate fresh feed
-        let items = generateFeedItems(now: now)
+        var items = generateFeedItems(now: now)
+
+        // Merge in user posts from the last 7 days so they survive cache regeneration
+        let sevenDaysAgo = now.addingTimeInterval(-7 * 24 * 3600)
+        if let userPostsData = defaults.data(forKey: Self.userPostsKey),
+           let userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: userPostsData) {
+            let recentPosts = userPosts.filter { $0.createdAt > sevenDaysAgo }
+            let existingIDs = Set(items.map { $0.id })
+            for post in recentPosts where !existingIDs.contains(post.id) {
+                items.append(post)
+            }
+            items.sort { $0.createdAt > $1.createdAt }
+        }
 
         // Cache for the rest of the day
         if let data = try? JSONEncoder().encode(items) {
@@ -1125,6 +1139,20 @@ public struct MockSocialService: SocialService, Sendable {
             if let newData = try? JSONEncoder().encode([newItem]) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
+        }
+
+        // Also save to the version-independent user posts store
+        var userPosts: [SocialFeedItem] = []
+        if let existingData = defaults.data(forKey: Self.userPostsKey),
+           let existing = try? JSONDecoder().decode([SocialFeedItem].self, from: existingData) {
+            userPosts = existing
+        }
+        userPosts.insert(newItem, at: 0)
+        // Keep only last 7 days of user posts
+        let sevenDaysAgo = now.addingTimeInterval(-7 * 24 * 3600)
+        userPosts = userPosts.filter { $0.createdAt > sevenDaysAgo }
+        if let userPostsData = try? JSONEncoder().encode(userPosts) {
+            defaults.set(userPostsData, forKey: Self.userPostsKey)
         }
     }
 
