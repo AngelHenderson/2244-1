@@ -507,7 +507,7 @@ struct PlayerHistoryView: View {
                 let countryName = Self.countryDisplayName(for: country)
 
                 // Use actual joining rate to determine how many joins to show for this country
-                let joiningRate = MockLeaderboardData.countryNewPlayersJoining(on: eventDay, countrySeed: cSeed)
+                let joiningRate = MockLeaderboardData.newPlayersJoining(on: eventDay, countrySeed: cSeed)
                 // Show 1-3 of the day's joins in the feed (not all 10-40, just a sample)
                 let visibleJoins = max(1, min(3, Int(joiningRate / 10.0)))
 
