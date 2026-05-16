@@ -2120,8 +2120,9 @@ public struct MockSocialService: SocialService, Sendable {
             let m = sortedMilestones[foundIdx]
             if let originalIdx = Self.allMilestones.firstIndex(of: m),
                originalIdx + 1 < Self.allMilestones.count {
-                // Pick a random milestone 5-30 steps ahead, avoiding already-used ones
-                let maxJump = min(30, Self.allMilestones.count - 1 - originalIdx)
+                // Pick a random milestone 5-60 steps ahead, avoiding already-used ones
+                let remaining = Self.allMilestones.count - 1 - originalIdx
+                let maxJump = min(60, remaining)
                 let minJump = min(5, maxJump)
                 var higherM: String
                 var jump: Int
@@ -2149,9 +2150,11 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(higherM). Your \(m) doesn't even register on my radar.",
                     "My tile hit \(higherM) and yours is still stuck at \(m). Embarrassing.",
                 ]
-                // "way behind" only when gap is massive (>= 10 steps ≈ 1000x)
-                if jump >= 10 {
-                    templates.append("\(higherM) here. You're way behind.")
+                // "way behind" only with a truly massive gap (150-500 steps ahead)
+                if remaining >= 150 {
+                    let wayBehindJump = Int.random(in: 150...min(500, remaining))
+                    let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
+                    templates.append("\(wayBehindM) here. You're way behind.")
                 }
                 let realName = Self.leaderboardPlayerAtMilestone(higherM)
                 return (Self.drawFromBag(key: "\(bagKey)_tile", pool: templates), realName)
