@@ -2006,20 +2006,20 @@ public struct MockSocialService: SocialService, Sendable {
                 let myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
                 let templates = [
                     "My streak is \(myDays) days. Not even close.",
-                    "Lol only \(streakDays)? I'm on day \(myDays). 😏",
-                    "Cute! My streak is at \(myDays) days.",
+                    "Lol only a \(streakDays)-day streak? Mine is \(myDays).",
+                    "Cute! My streak is \(myDays) days.",
                     "\(myDays)-day streak here. You're way behind.",
-                    "Only \(streakDays)? I'm sitting at \(myDays). Not impressed.",
+                    "Only a \(streakDays)-day streak? Mine is \(myDays). Not impressed.",
                     "That's nothing, my \(myDays)-day streak says hi.",
-                    "I was at \(streakDays) days ages ago. I'm at \(myDays) now.",
-                    "\(myDays) days and counting. You're not catching me.",
-                    "Day \(myDays) over here. I'm untouchable.",
-                    "\(streakDays) is amateur hour. Talk to me at \(myDays).",
+                    "A \(streakDays)-day streak? I passed that ages ago. Mine is \(myDays).",
+                    "\(myDays)-day streak and counting. You're not catching me.",
+                    "\(myDays)-day streak over here. I'm untouchable.",
+                    "A \(streakDays)-day streak is amateur hour. Talk to me at \(myDays).",
                     "My \(myDays)-day streak is longer than yours and always will be!",
-                    "\(streakDays) days? That's cute. My \(myDays)-day streak wipes the floor with that.",
+                    "A \(streakDays)-day streak? That's cute. My \(myDays)-day streak wipes the floor with that.",
                     "I've had a \(myDays)-day streak since before you even started playing.",
-                    "\(myDays) days. Your \(streakDays) doesn't even register on my radar.",
-                    "My streak hit \(myDays) and yours is still stuck at \(streakDays). Embarrassing.",
+                    "\(myDays)-day streak. Your \(streakDays)-day streak doesn't even register on my radar.",
+                    "My streak is at \(myDays) and yours is still at \(streakDays). Embarrassing.",
                 ]
                 return templates.randomElement()!
             }
