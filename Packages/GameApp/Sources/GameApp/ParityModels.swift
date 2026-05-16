@@ -1944,8 +1944,8 @@ public struct MockSocialService: SocialService, Sendable {
         let roll = Double.random(in: 0..<1)
         
         if roll < 0.55 {
-            // ── Competitive (55%) — standalone, no opener ──
-            comment = Self.drawFromBag(key: "competitive_\(bagSuffix)", pool: competitiveReactions)
+            // ── Competitive (55%) — generate factually accurate one-upmanship ──
+            comment = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)")
             tone = "competitive"
         } else if roll < 0.80 {
             // ── Positive (25%) — with opener + subject/verb/adj ──
