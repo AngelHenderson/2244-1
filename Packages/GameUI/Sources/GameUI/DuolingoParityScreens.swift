@@ -598,20 +598,16 @@ public struct FriendsView: View {
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer()
-                                if invite.status == "Invited" {
-                                    Text(invite.status)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                Button("Uninvite") {
+                                    if let idx = invites.firstIndex(where: { $0.id == invite.id }) {
+                                        invites.remove(at: idx)
+                                    }
+                                    Task {
+                                        try? await socialService.removeInvite(id: invite.id)
+                                    }
                                 }
-                            }
-                        }
-                        .onDelete { offsets in
-                            let toRemove = offsets.map { invites[$0] }
-                            invites.remove(atOffsets: offsets)
-                            for invite in toRemove {
-                                Task {
-                                    try? await socialService.removeInvite(id: invite.id)
-                                }
+                                .font(.caption)
+                                .foregroundStyle(.red)
                             }
                         }
                     }
