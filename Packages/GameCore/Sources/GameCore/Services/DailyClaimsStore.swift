@@ -197,6 +197,25 @@ public final class DailyClaimsStore {
             }
             return updated
         }
+        // Retroactively unlock milestones if the user's currentClaimDay has surpassed them
+        var retroRewards = AchievementDef.Rewards()
+        var unlockedAny = false
+        for i in 0..<dailyStreaks.count {
+            if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentClaimDay {
+                dailyStreaks[i].isUnlocked = true
+                unlockedStreaks.insert(dailyStreaks[i].day)
+                let bonus = BonusRewardGenerator.generateBonus(forStreakDay: dailyStreaks[i].day)
+                retroRewards.merge(bonus)
+                unlockedAny = true
+            }
+        }
+        if unlockedAny {
+            saveProgress()
+            if !retroRewards.entries.isEmpty {
+                // Pass the rewards via the closure if it exists, or let the caller fetch them
+                onReward?(retroRewards)
+            }
+        }
     }
     
     @MainActor

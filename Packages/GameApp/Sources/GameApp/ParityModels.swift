@@ -934,10 +934,10 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v18"
-    private static let feedDateKey = "socialFeed.cacheDate.v18"
+    private static let feedCacheKey = "socialFeed.cache.v20"
+    private static let feedDateKey = "socialFeed.cacheDate.v20"
     /// Version-independent key for user-posted events so they survive cache bumps.
-    private static let userPostsKey = "socialFeed.userPosts.v2"
+    private static let userPostsKey = "socialFeed.userPosts.v20"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -2023,11 +2023,13 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Ha!", "Haha", "Lmao", "That's hilarious", "Yeah right",
-                    "Nah", "Please", "How embarrassing", "Yeah no", "Pfft",
-                    "Sorry but", "Hate to break it to you but",
-                    "That's funny", "Nice try", "Oh please", "Not gonna lie",
-                    "That's adorable", "Listen", "Watch this", "You wish",
+                    "Too easy.", "Another free win.", "Is this supposed to be hard?",
+                    "Barely had to try.", "I do this in my sleep.", "Light work.",
+                    "Not even a challenge.", "Yawn.", "Is that your best?",
+                    "I'm bored.", "Effortless.", "You're making this too easy.",
+                    "Didn't even break a sweat.", "That's cute.", "I'm unstoppable.",
+                    "Flawless.", "Another W.", "I don't even lose.",
+                    "When do I get a real opponent?", "Absolute child's play.",
                 ]
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
@@ -2035,12 +2037,13 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly append a competitive closer ~80% of the time
             if Double.random(in: 0...1) < 0.80 {
                 let compClosers = [
-                    "Take the L.", "You lost.", "Give up now.", "It's over for you.",
-                    "Stay mad.", "Deal with it.", "Can't relate.", "Get on my level.",
-                    "Know your place.", "I don't make the rules.", "Facts only.",
-                    "No debate.", "End of discussion.", "Log off.", "Just quit.",
-                    "Don't @ me.", "I said what I said.", "And it's not even close.",
-                    "You're welcome.", "Better luck next time.",
+                    "I'm in a league of my own.", "You'll never beat me.", "I always win.",
+                    "Don't bother trying.", "I'm literally unbeatable.", "Another flawless victory.",
+                    "Just accept your defeat.", "I'm on top, as usual.", "You're playing for second place.",
+                    "I'm simply better.", "No one is touching my record.", "The crown is mine.",
+                    "Sit down.", "I'm the absolute best.", "It's lonely at the top.",
+                    "I run this game.", "You're completely outmatched.",
+                    "I'm untouchable.", "Wipes the floor with that.",
                 ]
                 let closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
                 comment = "\(comment) \(closer)"
@@ -2111,29 +2114,18 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("streak_\(myDays)")
                 var templates = [
-                    "\(myDays)-day streak. Good luck beating that.",
-                    "Lol \(streakDays) days? I'm at \(myDays). You're done.",
-                    "\(myDays) days and I haven't missed once. Can you say the same?",
-                    "Only \(streakDays)? Mine's \(myDays). No contest.",
-                    "Oh really? I'm at \(myDays). No possible way you're beating that.",
-                    "I blew past \(streakDays) forever ago. \(myDays) and climbing.",
-                    "\(myDays)-day streak. Try and keep up.",
-                    "\(streakDays) days? That's it? I'm at \(myDays).",
-                    "\(streakDays)? Please. My streak is \(myDays). Take the L.",
-                    "My \(myDays)-day streak destroys that.",
-                    "\(streakDays) days and you're posting about it? I'm at \(myDays) and I don't even brag.",
-                    "Bro I was at \(streakDays) months ago. \(myDays) now. It's over.",
-                    "\(myDays) days straight. You can't touch this.",
-                    "You'll never catch my \(myDays). Accept it.",
-                    "\(streakDays) is nothing. Wake me up when you hit \(myDays).",
-                    "\(myDays)-day streak here. Don't even try.",
-                    "\(streakDays)? That's embarrassing. I'm at \(myDays).",
-                    "\(myDays) and counting. You're not even close.",
-                    "Imagine posting \(streakDays) when I'm sitting here at \(myDays).",
-                    "I own this. \(myDays) days. Nobody's touching me.",
+                    "I'm at \(myDays).",
+                    "Mine's \(myDays).",
+                    "My streak is \(myDays).",
+                    "I'm sitting here at \(myDays).",
+                    "I hit \(myDays) days.",
+                    "\(myDays) days straight.",
+                    "\(myDays)-day streak here.",
+                    "My \(myDays) days is better.",
+                    "I'm already at \(myDays) days.",
                 ]
                 if myDays >= streakDays * 2 {
-                    templates.append("\(myDays)-day streak here. You're way behind.")
+                    templates.append("I doubled that with \(myDays) days.")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), nil)
             }
@@ -2143,43 +2135,30 @@ public struct MockSocialService: SocialService, Sendable {
         if lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
-                // Brag about having MORE time left (higher = better in challenge mode)
-                let moreBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
-                var myTotal = totalSecs + moreBy
+                // Brag about having a FASTER clear time (lower = better)
+                let lessBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                var myTotal = max(10, totalSecs - lessBy)
                 var attempts = 0
                 while usedStats.contains("time_\(myTotal)") && attempts < 5 {
-                    myTotal = totalSecs + Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                    myTotal = max(10, totalSecs - Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3)))
                     attempts += 1
                 }
                 usedStats.insert("time_\(myTotal)")
                 let myMins = myTotal / 60
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
-                let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 var templates = [
-                    "I had \(myTime) left. You had \(posterTime). I win.",
-                    "Lol \(posterTime) left? I had \(myTime). It's not even close.",
-                    "\(myTime) left on the clock. Beat that.",
-                    "Only \(posterTime) remaining? I had \(myTime). That's the difference.",
-                    "Oh really? I finished with \(myTime) left. You're done.",
-                    "I had \(myTime) left and didn't even try hard.",
-                    "\(myTime) left and I was taking my time. \(posterTime) is rough.",
-                    "Finished with \(myTime) still on the clock. Can you?",
-                    "\(posterTime) left? That's tight. I had \(myTime). No stress.",
-                    "\(myTime) remaining. Nobody's beating that today.",
-                    "\(posterTime) left and you're bragging? I had \(myTime).",
-                    "I've been finishing with \(myTime) left all week. Step it up.",
-                    "\(myTime) remaining. These challenges are free for me.",
-                    "Had \(myTime) left. Could've done it blindfolded.",
-                    "\(posterTime) is nothing. I had \(myTime) left. You lost.",
-                    "Finished with \(myTime) on the clock. You can't touch that.",
-                    "You had \(posterTime) left? Yikes. I had \(myTime).",
-                    "\(myTime) left over here. Don't even try to compare.",
-                    "The gap between \(posterTime) and my \(myTime) is embarrassing for you.",
-                    "I had \(myTime) left on my first try. \(posterTime) is a joke.",
+                    "My time is \(myTime).",
+                    "I finished in \(myTime).",
+                    "My clear time was \(myTime).",
+                    "I got \(myTime).",
+                    "I clocked in at \(myTime).",
+                    "\(myTime) over here.",
+                    "I had \(myTime).",
+                    "My time was \(myTime).",
                 ]
-                if myTotal >= totalSecs * 2 {
-                    templates.append("\(myTime) remaining here. You're way behind.")
+                if myTotal <= totalSecs / 2 {
+                    templates.append("I cut that time in half with \(myTime).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), nil)
             }
@@ -2196,29 +2175,17 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("hof_\(myCount)")
                 var templates = [
-                    "\(myCount) infinities. Good luck beating that.",
-                    "Lol \(infCount)? I'm at \(myCount). You're done.",
-                    "\(myCount) infinities. No possible way you're catching me.",
-                    "Only \(infCount)? Mine's \(myCount). No contest.",
-                    "Oh really? I'm at \(myCount) infinities. Give up now.",
-                    "I blew past \(infCount) forever ago. \(myCount) now.",
-                    "\(myCount) infinities and still going. Try and keep up.",
-                    "\(infCount)? That's it? I'm at \(myCount).",
-                    "\(infCount)? Please. I'm at \(myCount). It's over.",
-                    "My \(myCount) infinity count destroys that.",
-                    "\(infCount) and you're posting about it? I'm at \(myCount).",
-                    "Bro I passed \(infCount) ages ago. \(myCount) now. Accept it.",
-                    "\(myCount). You can't touch this.",
-                    "You'll never catch my \(myCount). Don't even try.",
-                    "\(infCount) is nothing. Wake me up when you hit \(myCount).",
-                    "\(myCount) infinities here. Don't bother competing.",
-                    "\(infCount)? That's embarrassing next to my \(myCount).",
-                    "\(myCount) and counting. You're not even in the conversation.",
-                    "Imagine posting \(infCount) when I'm sitting here at \(myCount).",
-                    "I own the Hall of Fame. \(myCount) infinities. Nobody's close.",
+                    "I'm at \(myCount) infinities.",
+                    "Mine is \(myCount).",
+                    "I've reached \(myCount) infinities.",
+                    "I have \(myCount).",
+                    "\(myCount) infinities here.",
+                    "My count is \(myCount).",
+                    "I hit \(myCount).",
+                    "Already at \(myCount).",
                 ]
                 if myCount >= infCount * 2 {
-                    templates.append("\(myCount) infinities here. You're way behind.")
+                    templates.append("I doubled that with \(myCount).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), nil)
             }
@@ -2480,7 +2447,10 @@ public struct MockSocialService: SocialService, Sendable {
         let isQuestion = questionKeywords.contains(where: { strippedLower.contains($0) })
 
         let competitiveKeywords = ["beat", "catching up", "coming for", "won't last", "watch your back", "game on", "challenge", "mine tomorrow", "i'll be", "i'm going to", "not impressed", "my time", "faster", "i passed", "old news", "hold my", "i'll beat", "i'm right behind", "i'm catching"]
-        let isCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
+        var isCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
+        if Double.random(in: 0..<1) < 0.55 {
+            isCompetitive = true
+        }
 
         let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't"]
         let isJealous = jealousKeywords.contains(where: { strippedLower.contains($0) })
@@ -2614,43 +2584,43 @@ public struct MockSocialService: SocialService, Sendable {
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
                 replies.append(contentsOf: [
-                    "Talk to me when you pass \(m.name) without perks 😏",
-                    "I blew past \(m.name) days ago. Keep up!",
-                    "\(m.name)? I'm already way beyond that.",
-                    "Good luck beating my \(m.name) run 🎯",
+                    "Talk to me when you pass \(m.name) without trying 😏",
+                    "I blew past \(m.name) ages ago. Try to keep up.",
+                    "\(m.name)? I'm in a totally different league.",
+                    "You'll never touch my \(m.name) record 🎯",
                 ])
             }
 
             if let num = mentionedNumber {
                 replies.append(contentsOf: [
                     "\(num)? That's cute, check my stats 😏",
-                    "I already beat \(num). Not impressed.",
-                    "\(num) is just the beginning for me.",
+                    "I already destroyed \(num). Not impressed.",
+                    "\(num) is an absolute joke to me.",
                 ])
             }
 
             if mentionedStreak {
-                replies.append("My streak is longer. Facts. 😈")
-                replies.append("Streak vs streak — mine wins. No contest.")
+                replies.append("My streak is untouchable. Facts. 😈")
+                replies.append("Streak vs streak — I win every time. No contest.")
             }
 
             if mentionedTime {
-                replies.append("My clear time was faster. Just saying ⏱️")
-                replies.append("I'll sub that time tomorrow easy.")
+                replies.append("My clear time wipes the floor with yours ⏱️")
+                replies.append("I'll sub that time blindfolded.")
             }
 
             // Generic competitive
             replies.append(contentsOf: [
-                "Bring it on 😏",
-                "We'll see about that 👀",
-                "Talk is cheap — show me the screenshot 📸",
-                "I'll be waiting at the top 🏔️",
-                "Respect the confidence! Let's see it.",
-                "Actions speak louder than comments 💪",
-                "Keep that same energy next week 😈",
-                "I love the competition honestly!",
-                "You're on. May the best player win.",
-                "Come find me on the leaderboard then 🎯",
+                "I'm on an entirely different level 😏",
+                "You actually thought you could win? 👀",
+                "I've never lost and I'm not starting now 📸",
+                "Enjoy the view from the bottom 🏔️",
+                "Keep trying, it's entertaining 😈",
+                "I simply do not lose.",
+                "You're fighting for second place.",
+                "I'm the undisputed champion 🎯",
+                "When do I get a real challenge? 🥱",
+                "Talk to me when you actually win something.",
             ])
             return replies.randomElement()!
         }

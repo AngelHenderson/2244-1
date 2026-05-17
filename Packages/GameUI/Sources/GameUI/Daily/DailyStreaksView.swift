@@ -93,7 +93,7 @@ public struct DailyStreaksView: View {
                         .foregroundStyle(.primary)
 
                     if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked })?.day {
-                        Text("\(nextMilestone - store.currentClaimDay) days until next milestone")
+                        Text("\(nextMilestone - store.currentStreak) days until next milestone")
                             .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
@@ -113,7 +113,7 @@ public struct DailyStreaksView: View {
             if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked }) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("\(store.currentClaimDay)")
+                        Text("\(store.currentStreak)")
                             .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
                             .foregroundStyle(.secondary)
                         Spacer()
@@ -135,7 +135,7 @@ public struct DailyStreaksView: View {
                                     endPoint: .trailing
                                 ))
                                 .frame(
-                                    width: geometry.size.width * CGFloat(store.currentClaimDay) / CGFloat(nextMilestone.day),
+                                    width: geometry.size.width * CGFloat(store.currentStreak) / CGFloat(nextMilestone.day),
                                     height: 8
                                 )
                         }
