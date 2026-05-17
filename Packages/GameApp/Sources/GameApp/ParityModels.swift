@@ -2146,7 +2146,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've been finishing with \(myTime) left all week. Step it up.",
                     "\(myTime) remaining. These challenges are free for me.",
                     "Had \(myTime) left. Could've done it blindfolded.",
-                    "\(posterTime) is nothing. I had \(myTime) left. GG.",
+                    "\(posterTime) is nothing. I had \(myTime) left. You lost.",
                     "Finished with \(myTime) on the clock. You can't touch that.",
                     "You had \(posterTime) left? Yikes. I had \(myTime).",
                     "\(myTime) left over here. Don't even try to compare.",
