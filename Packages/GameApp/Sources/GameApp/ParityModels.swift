@@ -2584,8 +2584,8 @@ public struct MockSocialService: SocialService, Sendable {
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
                 replies.append(contentsOf: [
-                    "Talk to me when you pass \(m.name) without trying 😏",
-                    "I blew past \(m.name) ages ago. Try to keep up.",
+                    "You're not gonna get even close to my milestone.",
+                    "I'll always be tiers ahead of your \(m.name).",
                     "\(m.name)? I'm in a totally different league.",
                     "You'll never touch my \(m.name) record 🎯",
                 ])
@@ -2593,20 +2593,26 @@ public struct MockSocialService: SocialService, Sendable {
 
             if let num = mentionedNumber {
                 replies.append(contentsOf: [
-                    "\(num)? That's cute, check my stats 😏",
-                    "I already destroyed \(num). Not impressed.",
-                    "\(num) is an absolute joke to me.",
+                    "My numbers will always be better.",
+                    "\(num)? I'll always have you beat.",
+                    "\(num) is just the beginning for me.",
                 ])
             }
 
             if mentionedStreak {
+                replies.append("You vs me, my streak will be higher.")
                 replies.append("My streak is untouchable. Facts. 😈")
-                replies.append("Streak vs streak — I win every time. No contest.")
+                replies.append("I'll maintain my streak long after you lose yours.")
             }
 
             if mentionedTime {
-                replies.append("My clear time wipes the floor with yours ⏱️")
-                replies.append("I'll sub that time blindfolded.")
+                replies.append("My time will be faster at all times. Try it. See what happens.")
+                replies.append("I'll always have the faster clear time ⏱️")
+            }
+
+            if mentionedHoF {
+                replies.append("You think your infinity count will be higher? We'll see about that.")
+                replies.append("I'll always dominate the Hall of Fame.")
             }
 
             // Generic competitive
