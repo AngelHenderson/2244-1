@@ -40,6 +40,10 @@ What is verified done from this machine:
   from "firebase-functions"`.
 - `validate-launch-readiness.mjs` passes. Root `firestore.rules` and
   `firebase/firestore.rules` are byte-identical.
+- The Release simulator app bundle contains `GoogleService-Info.plist` for
+  `project-7513530591038917977` / `com.ideabloomlabs.game2244`, and
+  `Info.plist` resolves the production AdMob app ID
+  `ca-app-pub-7853395118626839~7726164547`.
 
 Still blocked from this machine:
 
@@ -65,7 +69,7 @@ Current engineering status:
   Firebase, AdMob, and App Store Connect checks still require real accounts and
   console access.
 
-Local gates verified on 2026-05-10:
+Local gates verified on 2026-05-16:
 
 ```bash
 node scripts/validate-launch-readiness.mjs
@@ -73,7 +77,8 @@ swift test --package-path Packages/GameCore
 swift test --package-path Packages/GameServices
 swift test --package-path Packages/GameApp
 swift test --package-path Packages/GameUI
-FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' build
 ```
 
 Non-blocking local build warnings:
@@ -105,10 +110,10 @@ Minimal launch-learning analytics are wired through the existing
 The numbered items below must be completed in App Store Connect, GCP, AdMob,
 or on a device — they cannot be finished from this CLI session.
 
-1. **Confirm Firebase billing guardrails.** Open
-   <https://console.firebase.google.com/project/project-7513530591038917977/usage/details>
-   and confirm the Puzzle Games project has budget alerts/usage monitoring
-   suitable for Cloud Functions, Cloud Build, Artifact Registry, and Firestore.
+1. **Firebase billing guardrails — verified 2026-05-16.** The Puzzle Games
+   Firebase project is linked to billing account `016E96-92CE0F-81942A` and has
+   a `$25` monthly budget for project number `1032642468174` with alert
+   thresholds at 50%, 90%, and 100%.
 2. **Redeploy backend when needed:**
    ```bash
    npm --prefix firebase run deploy:firestore
