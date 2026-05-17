@@ -70,6 +70,9 @@ assert(!fs.existsSync(path.join(root, 'game2244')), 'Stale root-level game2244 d
 for (const lockfile of [
   'game2244.xcworkspace/xcshareddata/swiftpm/Package.resolved',
   '2244/game2244.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved',
+  'Packages/GameServices/Package.resolved',
+  'Packages/GameApp/Package.resolved',
+  'Packages/GameUI/Package.resolved',
 ]) {
   assertExists(lockfile, `${lockfile} is missing.`);
   const pins = new Set((readJSON(lockfile).pins ?? []).map((pin) => pin.identity));

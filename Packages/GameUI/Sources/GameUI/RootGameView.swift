@@ -7,6 +7,7 @@ import FirebaseCore
 
 /// Root view that manages the flow between Home and Game screens
 public struct RootGameView: View {
+    private static let firebaseAuthReadyNotification = Notification.Name("Game2244FirebaseAuthReady")
     private let managesBackground: Bool
     @Environment(HomeState.self) private var homeState
     @Environment(PlayerReadinessStore.self) private var playerReadiness
@@ -206,6 +207,9 @@ public struct RootGameView: View {
                     }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: Self.firebaseAuthReadyNotification)) { _ in
+            Task { await loadProgressWithCoordinator() }
+        }
         .task {
             if FirstLaunchTutorialGate.shouldPresentInCurrentBuild(
                 hasCompletedTutorial: playerReadiness.hasCompletedTutorial
@@ -380,7 +384,7 @@ public struct RootGameView: View {
                     p.gems = gems
                     p.gamesPlayed += 1
                     p.lastUpdatedAt = Date()
-                }, userIsSignedIn: false)
+                }, userIsSignedIn: canAttemptRemoteProgressSync)
                 
                 // Update home state
                 await MainActor.run {
@@ -399,7 +403,7 @@ public struct RootGameView: View {
     private func loadProgressWithCoordinator() async {
         do {
             // Bootstrap or load existing progress
-            let progress = try await progressCoordinator.bootstrap(userIsSignedIn: false)
+            let progress = try await progressCoordinator.bootstrap(userIsSignedIn: canAttemptRemoteProgressSync)
             
             // Check if there's any saved game state
             let finalHighestTile: Int
@@ -431,7 +435,7 @@ public struct RootGameView: View {
                     Task {
                         try? await progressCoordinator.apply({ progress in
                             progress.gems = currentGems
-                        }, userIsSignedIn: false)
+                        }, userIsSignedIn: canAttemptRemoteProgressSync)
                     }
                 }
                 
@@ -487,13 +491,21 @@ public struct RootGameView: View {
                     p.rank = rank
                     p.theme = theme
                     p.lastUpdatedAt = Date()
-                }, userIsSignedIn: false)
+                }, userIsSignedIn: canAttemptRemoteProgressSync)
                 
                 print("Progress saved: gems=\(progress.gems), highest=\(progress.highestTile)")
             } catch {
                 print("Failed to save progress: \(error)")
             }
         }
+    }
+
+    private var canAttemptRemoteProgressSync: Bool {
+        #if canImport(FirebaseCore)
+        return FirebaseApp.app() != nil
+        #else
+        return false
+        #endif
     }
 }
 

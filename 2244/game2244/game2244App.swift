@@ -316,6 +316,7 @@ struct game2244App: App {
                     let gameCenterClient = LeaderboardClient.gameCenter()
                     if FirebaseApp.app() != nil {
                         try? await FirebaseService.shared.signInAnonymously()
+                        NotificationCenter.default.post(name: Notification.Name("Game2244FirebaseAuthReady"), object: nil)
                         if let snapshot = FirebaseService.shared.currentAuthUser {
                             try? await FirebaseService.shared.upsertPublicUserProfile(
                                 uid: snapshot.uid,

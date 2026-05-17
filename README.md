@@ -59,7 +59,7 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace \
            -quiet clean build
 ```
 
-The app-level Xcode lockfiles are resolved with `FIREBASE_SOURCE_FIRESTORE=1`.
+The committed Xcode and package lockfiles are resolved with `FIREBASE_SOURCE_FIRESTORE=1`.
 Keep that environment variable when resolving packages, building archives, or
 reproducing Xcode Cloud so Firebase uses the `grpc-ios` source-Firestore graph.
 
