@@ -211,7 +211,7 @@ public struct ChallengeModeView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .alert("Can't Afford Recovery Item", isPresented: $showInsufficientGemsForSkip) {
+                .alert("Can't Afford Skip Wait Item", isPresented: $showInsufficientGemsForSkip) {
                     Button("OK", role: .cancel) { }
                 } message: {
                     let needed = skipCost - homeState.gems
