@@ -205,7 +205,7 @@ public final class DailyClaimsStore {
                 dailyStreaks[i].isUnlocked = true
                 unlockedStreaks.insert(dailyStreaks[i].day)
                 let bonus = BonusRewardGenerator.generateBonus(forStreakDay: dailyStreaks[i].day)
-                retroRewards.merge(bonus)
+                retroRewards = retroRewards.merged(with: bonus)
                 unlockedAny = true
             }
         }
@@ -359,8 +359,6 @@ public final class DailyClaimsStore {
     }
     
     public func getTimeUntilNextClaim() -> TimeInterval? {
-        guard !canClaimToday || availableClaims == 0 else { return nil }
-
         let calendar = Calendar.current
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)

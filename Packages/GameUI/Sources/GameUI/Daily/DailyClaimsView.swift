@@ -242,7 +242,7 @@ public struct DailyClaimsView: View {
     
     private var nextClaimSection: some View {
         VStack(spacing: 12) {
-            Text("Next Claim Available In")
+            Text("Next Day Reward Available In")
                 .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
                 .foregroundStyle(.secondary)
 
