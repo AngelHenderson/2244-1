@@ -1222,7 +1222,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
             
             let (message, statText) = generateDynamicEvent(milestone: randomMilestone)
-            let timeOffset = Double.random(in: -86400...0)
+            let timeOffset = Double.random(in: -43200...0) // Spread posts throughout the last 12 hours
             let itemDate = now.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
@@ -1234,7 +1234,8 @@ public struct MockSocialService: SocialService, Sendable {
             // Generate and sort offsets so the conversation flows chronologically
             var commentOffsets: [Double] = []
             for _ in 0..<totalComments {
-                commentOffsets.append(Double.random(in: timeOffset...0))
+                // Comments and replies trickle in up to 8 hours after the post
+                commentOffsets.append(Double.random(in: timeOffset...(timeOffset + 28800)))
             }
             commentOffsets.sort()
             
@@ -1273,16 +1274,14 @@ public struct MockSocialService: SocialService, Sendable {
                         let previousComment = comments.last(where: { $0.authorName == replyingTo })
                         if let prev = previousComment, let answer = milestoneAnswer(for: prev.text) {
                             commentText = "@\(replyingTo) " + answer
-                            // Reply sometime after the question but still in the past
+                            // Reply sometime after the question (up to 2 hours)
                             let questionOffset = prev.createdAt.timeIntervalSince(now)
-                            let maxDelay = max(300, abs(questionOffset) * 0.8)
-                            commentOffset = min(questionOffset + Double.random(in: 300...maxDelay), 0)
+                            commentOffset = questionOffset + Double.random(in: 120...7200)
                         } else if let prev = previousComment {
                             commentText = "@\(replyingTo) " + generateContextualReply(to: prev.text, message: message)
-                            // Respond sometime after the comment being replied to, but still in the past
+                            // Respond sometime after the comment being replied to (up to 2 hours)
                             let prevOffset = prev.createdAt.timeIntervalSince(now)
-                            let maxDelay = max(300, abs(prevOffset) * 0.7)
-                            commentOffset = min(prevOffset + Double.random(in: 120...maxDelay), 0)
+                            commentOffset = prevOffset + Double.random(in: 120...7200)
                         } else {
                             // Replying to the poster (no comment from them in thread)
                             commentText = "@\(replyingTo) " + generateContextualReply(to: message, message: message)
@@ -1304,7 +1303,8 @@ public struct MockSocialService: SocialService, Sendable {
             let maxReactions = Int.random(in: 10...50)
             var rTimestamps: [Date] = []
             for _ in 0..<maxReactions {
-                let rOffset = Double.random(in: timeOffset...0)
+                // Reactions trickle in up to 8 hours after the post
+                let rOffset = Double.random(in: timeOffset...(timeOffset + 28800))
                 rTimestamps.append(now.addingTimeInterval(rOffset))
             }
             
@@ -2038,12 +2038,12 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Too easy.", "Another free win.", "This isn't even hard.",
+                    "Too easy.", "Forever in first place.", "This isn't even hard.",
                     "Barely had to try.", "I do this in my sleep.", "Light work.",
-                    "Not even a challenge.", "Yawn.", "That can't be your best.",
+                    "Not even a challenge.", "Do better.", "That can't be your best.",
                     "I'm bored.", "Effortless.", "You're making this too easy.",
                     "Didn't even break a sweat.", "That's cute.", "I'm unstoppable.",
-                    "Flawless.", "Another W.", "I don't even lose.",
+                    "Flawless.", "This rivalry is completely one-sided.", "I don't even lose.",
                     "I need a real opponent.", "Absolute child's play.",
                 ]
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
@@ -2052,9 +2052,9 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly append a competitive closer ~80% of the time
             if Double.random(in: 0...1) < 0.80 {
                 let compClosers = [
-                    "I'm in a league of my own.", "You'll never beat me.", "I always win.",
-                    "Don't bother trying.", "I'm literally unbeatable.", "Another flawless victory.",
-                    "Just accept your defeat.", "I'm on top, as usual.", "You're playing for second place.",
+                    "I'm in a league of my own.", "You'll never beat me.", "I'll always be tiers above.",
+                    "Don't bother trying.", "I'm literally unbeatable.", "My stats are permanent.",
+                    "Just accept you'll never catch me.", "I'm on top, as usual.", "You're playing for second place.",
                     "I'm simply better.", "No one is touching my record.", "The crown is mine.",
                     "I'm the absolute best.", "It's lonely at the top.",
                     "I run this game.", "You're completely outmatched.",
