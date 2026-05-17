@@ -934,10 +934,10 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v20"
-    private static let feedDateKey = "socialFeed.cacheDate.v20"
+    private static let feedCacheKey = "socialFeed.cache.v21"
+    private static let feedDateKey = "socialFeed.cacheDate.v21"
     /// Version-independent key for user-posted events so they survive cache bumps.
-    private static let userPostsKey = "socialFeed.userPosts.v20"
+    private static let userPostsKey = "socialFeed.userPosts.v2"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1745,13 +1745,13 @@ public struct MockSocialService: SocialService, Sendable {
             "I keep choking at this point", "Why can't I do this",
         ]
         var competitiveReactions = [
-            "I am going to reach higher milestones than you!",
-            "Watch your back, I'm catching up.", "Enjoy it while it lasts.",
-            "My next run will beat that.", "I'm coming for your spot.",
-            "You won't be ahead for long.", "Game on.",
-            "Challenge accepted.", "That record is mine tomorrow.",
-            "I'll be posting my own soon.", "Not impressed, I'm right behind you.",
-            "Hold my tiles.", "Say less, I'm locking in.",
+            "My scores will always be out of reach.",
+            "You'll never catch my lead.", "Enjoy playing for second place.",
+            "My next run will just extend my lead.", "I'm already untouchable.",
+            "You won't ever pass me.", "I'm in an entirely different league.",
+            "That record is cute compared to mine.", "You will never have my stats.",
+            "I'll be staying at the top permanently.", "Not impressed, I'm miles ahead.",
+            "I'm maintaining my dominance.", "Don't even try to compete with me.",
         ]
         var questions = [
             "How long did that take?", "What's your secret?", "Any tips for this tier?",
@@ -2041,7 +2041,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Don't bother trying.", "I'm literally unbeatable.", "Another flawless victory.",
                     "Just accept your defeat.", "I'm on top, as usual.", "You're playing for second place.",
                     "I'm simply better.", "No one is touching my record.", "The crown is mine.",
-                    "Sit down.", "I'm the absolute best.", "It's lonely at the top.",
+                    "I'm the absolute best.", "It's lonely at the top.",
                     "I run this game.", "You're completely outmatched.",
                     "I'm untouchable.", "Wipes the floor with that.",
                 ]
@@ -2114,18 +2114,17 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("streak_\(myDays)")
                 var templates = [
-                    "I'm at \(myDays).",
-                    "Mine's \(myDays).",
-                    "My streak is \(myDays).",
-                    "I'm sitting here at \(myDays).",
-                    "I hit \(myDays) days.",
-                    "\(myDays) days straight.",
-                    "\(myDays)-day streak here.",
-                    "My \(myDays) days is better.",
-                    "I'm already at \(myDays) days.",
+                    "You vs me, my streak will be higher.",
+                    "You'll never get close to my streak.",
+                    "My streak is on another level.",
+                    "You think your streak will be higher? We'll see about that.",
+                    "I'll maintain my streak long after you lose yours.",
+                    "My streak is untouchable.",
+                    "You vs me, I'm taking the streak record.",
+                    "I will always have the higher streak.",
                 ]
                 if myDays >= streakDays * 2 {
-                    templates.append("I doubled that with \(myDays) days.")
+                    templates.append("You're not gonna get even close to my streak.")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), nil)
             }
@@ -2148,17 +2147,17 @@ public struct MockSocialService: SocialService, Sendable {
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
                 var templates = [
-                    "My time is \(myTime).",
-                    "I finished in \(myTime).",
-                    "My clear time was \(myTime).",
-                    "I got \(myTime).",
-                    "I clocked in at \(myTime).",
-                    "\(myTime) over here.",
-                    "I had \(myTime).",
-                    "My time was \(myTime).",
+                    "My time will be faster at all times. Try it. See what happens.",
+                    "You'll never get close to my clear time.",
+                    "I will always have the faster time.",
+                    "You think your time is fast? We'll see about that.",
+                    "I'll always sub that time.",
+                    "My time is completely out of reach.",
+                    "You vs me, my time will always be lower.",
+                    "I'll forever hold the fastest time.",
                 ]
                 if myTotal <= totalSecs / 2 {
-                    templates.append("I cut that time in half with \(myTime).")
+                    templates.append("You're not gonna get even close to my time.")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), nil)
             }
@@ -2175,17 +2174,17 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("hof_\(myCount)")
                 var templates = [
-                    "I'm at \(myCount) infinities.",
-                    "Mine is \(myCount).",
-                    "I've reached \(myCount) infinities.",
-                    "I have \(myCount).",
-                    "\(myCount) infinities here.",
-                    "My count is \(myCount).",
-                    "I hit \(myCount).",
-                    "Already at \(myCount).",
+                    "You think your infinity count will be higher? We'll see about that.",
+                    "You're not gonna get even close to my infinity count.",
+                    "My infinity count will always be higher.",
+                    "I will always dominate the Hall of Fame.",
+                    "You'll never catch up to my infinities.",
+                    "You vs me, my infinities will always be higher.",
+                    "I'll forever be ahead in the Hall of Fame.",
+                    "My infinity count is completely out of reach.",
                 ]
                 if myCount >= infCount * 2 {
-                    templates.append("I doubled that with \(myCount).")
+                    templates.append("You'll never get close to my record.")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), nil)
             }
@@ -2212,26 +2211,14 @@ public struct MockSocialService: SocialService, Sendable {
                 usedStats.insert(higherM)
 
                 var templates = [
-                    "I'm at \(higherM). Good luck beating that.",
-                    "Lol \(m)? I'm at \(higherM). You're done.",
-                    "\(higherM). No possible way you're catching me.",
-                    "Only \(m)? Mine's \(higherM). No contest.",
-                    "Oh really? I'm at \(higherM). Take the L.",
-                    "I blew past \(m) forever ago. \(higherM) now.",
-                    "\(higherM) and still climbing. Try and keep up.",
-                    "\(m)? That's it? I'm at \(higherM).",
-                    "\(m)? Please. I'm at \(higherM). It's over.",
-                    "My \(higherM) tile destroys that.",
-                    "\(m) and you're posting about it? I'm at \(higherM).",
-                    "Bro I passed \(m) ages ago. \(higherM) now. Accept it.",
-                    "\(higherM). You can't touch this.",
-                    "You'll never catch my \(higherM). Don't even try.",
-                    "\(m) is nothing. Wake me up when you hit \(higherM).",
-                    "\(higherM) over here. Don't bother competing.",
-                    "\(m)? That's embarrassing next to my \(higherM).",
-                    "\(higherM) and counting. You're not even in the conversation.",
-                    "Imagine posting \(m) when I'm sitting here at \(higherM).",
-                    "I own this game. \(higherM). Nobody's close.",
+                    "You're not gonna get even close to my milestone.",
+                    "I will always be tiers ahead of your \(m).",
+                    "You'll never touch my \(m) record.",
+                    "You vs me, I will always be higher.",
+                    "You think you can pass my milestone? We'll see about that.",
+                    "I will forever be at a higher tier.",
+                    "My milestone is completely out of reach.",
+                    "I'll maintain my lead long after you get stuck.",
                 ]
                 // "way behind" only with a truly massive gap (150-500 steps ahead)
                 if remaining >= 150 {
@@ -2252,26 +2239,14 @@ public struct MockSocialService: SocialService, Sendable {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                 let posterTier = tiers[posterTierIdx]
                 var templates = [
-                    "I pull \(myTier) chests. Good luck beating that.",
-                    "Lol \(posterTier)? I get \(myTier). You're done.",
-                    "\(myTier) chests daily. No possible way you're catching me.",
-                    "Only \(posterTier)? Mine's \(myTier). No contest.",
-                    "Oh really? I pull \(myTier). Give up now.",
-                    "I was getting \(posterTier) forever ago. \(myTier) now.",
-                    "\(myTier) chests every day. Try and keep up.",
-                    "\(posterTier)? That's it? I pull \(myTier).",
-                    "\(posterTier)? Please. I'm pulling \(myTier). It's over.",
-                    "My \(myTier) rewards destroy that.",
-                    "\(posterTier) and you're posting about it? I pull \(myTier).",
-                    "Bro I was getting \(posterTier) ages ago. \(myTier) now. Accept it.",
-                    "\(myTier) chests. You can't touch this.",
-                    "You'll never pull \(myTier) at this rate. Don't even try.",
-                    "\(posterTier) is nothing. Wake me up when you pull \(myTier).",
-                    "\(myTier) over here. Don't bother competing.",
-                    "\(posterTier)? That's embarrassing next to my \(myTier).",
-                    "\(myTier) and it keeps getting better. You're not in the conversation.",
-                    "Imagine posting \(posterTier) when I'm pulling \(myTier) daily.",
-                    "I own quests. \(myTier) chests. Nobody's close.",
+                    "You vs me, I'll always pull better chests.",
+                    "You think your quests are impressive? We'll see about that.",
+                    "My chest tier will always be higher.",
+                    "You'll never pull \(myTier) at my rate.",
+                    "I'll forever pull better rewards.",
+                    "You're not gonna get even close to my chest tier.",
+                    "My quest rewards will always be better.",
+                    "I will maintain a higher tier than you at all times.",
                 ]
                 // tier gap >= 2 (e.g., Bronze→Gold or Bronze→Diamond)
                 let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
@@ -2591,7 +2566,7 @@ public struct MockSocialService: SocialService, Sendable {
                 ])
             }
 
-            if let num = mentionedNumber {
+            if let num = mentionedNumber, !mentionedTime, !mentionedStreak, !mentionedHoF {
                 replies.append(contentsOf: [
                     "My numbers will always be better.",
                     "\(num)? I'll always have you beat.",
