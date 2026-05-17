@@ -13,6 +13,9 @@ This directory contains Firebase configuration files and setup instructions.
    - Add an iOS app to your Firebase project
    - Use bundle ID: `com.ideabloomlabs.game2244` (the app target's current release bundle identifier)
    - Download `GoogleService-Info.plist`
+   - Keep the Firebase iOS API key restricted to bundle ID
+     `com.ideabloomlabs.game2244` and the Firebase API target allowlist in
+     Google Cloud APIs & Services → Credentials
    - Keep the actual configuration local and out of commits:
      ```bash
      cp ~/Downloads/GoogleService-Info.plist /Users/angelhenderson/Development/Personal/2244/2244/game2244/GoogleService-Info.plist
@@ -42,6 +45,11 @@ This directory contains Firebase configuration files and setup instructions.
      ```bash
      npm --prefix firebase run artifacts:setpolicy
      ```
+   - If callable requests return an HTTP 401 before reaching function code,
+     restore the gen2 invoker binding:
+     ```bash
+     npm --prefix firebase run functions:allow-invoker
+     ```
 
 ## Local Firebase CLI
 
@@ -55,11 +63,14 @@ npm --prefix firebase run deploy:rules
 npm --prefix firebase run deploy:indexes
 npm --prefix firebase run deploy:firestore
 npm --prefix firebase run deploy:functions
+npm --prefix firebase run functions:allow-invoker
 npm --prefix firebase run artifacts:setpolicy
 ```
 
 `submitScore` is deployed as a callable second-generation Cloud Function in
-`us-central1` on Node.js 22.
+`us-central1` on Node.js 22. It allows public Cloud Run invocation so Firebase
+callable clients can reach the handler, then enforces Firebase Auth inside the
+function before accepting score writes.
 
 ## Project Structure
 
@@ -90,6 +101,8 @@ firebase functions:config:set app.version="1.0.0"
 
 - All score submissions are server-authoritative
 - Client apps cannot write directly to Firestore
+- The live iOS Firebase API key is restricted to
+  `com.ideabloomlabs.game2244` plus Firebase API targets
 - Consider implementing App Attest (iOS) for additional security
 - Rate limiting is built into Cloud Functions
 

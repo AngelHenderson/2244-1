@@ -27,6 +27,12 @@ What is verified done from this machine:
   `npm --prefix firebase run deploy:functions`. Callable function
   `submitScore` is live in `us-central1` on Node.js 22. Artifact Registry
   cleanup policy is set to delete old function images after 7 days.
+- `submitScore` has public gen2 invoker access on the backing Cloud Run service
+  so Firebase callable requests can reach the handler; the handler still rejects
+  unauthenticated requests with Firebase Auth.
+- Live callable smoke passed using a temporary anonymous Firebase Auth user and
+  `mode:smoke_test`; the temporary Firestore leaderboard tree was deleted after
+  the smoke run.
 - `firebase/functions/` TypeScript build passes (`npm install` + `npm run build`
   produces `lib/index.js` and `lib/submitScore.js`). One pre-existing source
   bug fixed: `firebase-functions/v2/https` does not export `logger` in
@@ -41,10 +47,10 @@ Still blocked from this machine:
   session and Firebase Console observation.
 - Live `/players/{uid}/progress/blocked` smoke write still requires a real
   device session and Firebase Console observation.
-- Leaked Firebase Web API key. `2244/game2244/GoogleService-Info.plist` was
-  un-tracked in commit `148eaa07`, but the key
-  `<redacted Firebase Web API key>` (project number 1032642468174)
-  remains in git history and is still valid until rotated in the GCP console.
+- Firebase credential exposure is mitigated. `2244/game2244/GoogleService-Info.plist`
+  was un-tracked in commit `148eaa07`, remains gitignored, and the live iOS
+  key for project number 1032642468174 is restricted to bundle identifier
+  `com.ideabloomlabs.game2244` with Firebase API target restrictions.
 
 ## Last 2% Closeout Status (2026-05-10)
 
@@ -107,18 +113,18 @@ or on a device — they cannot be finished from this CLI session.
    ```bash
    npm --prefix firebase run deploy:firestore
    npm --prefix firebase run deploy:functions
+   npm --prefix firebase run functions:allow-invoker
    npm --prefix firebase run artifacts:setpolicy
    ```
    Callable `submitScore` should remain visible in
    `https://console.firebase.google.com/project/project-7513530591038917977/functions`.
-3. **Rotate the leaked Web API key** in the GCP Console under APIs & Services →
-   Credentials. The current value in git history is
-   `<redacted Firebase Web API key>`. After rotating, regenerate
-   `GoogleService-Info.plist` from the Firebase Console (Project Settings →
-   Your apps → iOS app), drop the new file at
-   `2244/game2244/GoogleService-Info.plist` (still gitignored), and add API key
-   restrictions (iOS bundle identifier `com.ideabloomlabs.game2244`, allowed
-   APIs limited to Firebase services).
+3. **Credential hygiene check.** The current iOS Firebase API key is restricted
+   to bundle identifier `com.ideabloomlabs.game2244` and Firebase API targets.
+   If the repository is published outside the release team or abuse is
+   suspected, rotate the key in the GCP Console under APIs & Services →
+   Credentials, regenerate `GoogleService-Info.plist` from the Firebase Console
+   (Project Settings → Your apps → iOS app), and drop the new file at
+   `2244/game2244/GoogleService-Info.plist` (still gitignored).
 4. **App Store Connect IAP SKUs.** Confirm all 15 SKUs from
    `Docs/IAP_CATALOG.md` exist with matching type, localization, pricing, and
    review screenshots, and are attached to the submitted version.
@@ -207,8 +213,9 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme g
 - Confirm `GoogleService-Info.plist` exists locally in `2244/game2244/` and
   matches `com.ideabloomlabs.game2244`.
 - The release credential file is removed from the current git index and ignored.
-  If the repo is shared outside the release team, rotate Firebase credentials
-  and purge any historical committed copies before publishing.
+  The live iOS Firebase API key is restricted to
+  `com.ideabloomlabs.game2244`; rotate credentials only if publishing the repo
+  outside the release team or if abuse is suspected.
 - Run the Firebase smoke checklist in `Docs/FIREBASE_INTEGRATION_GUIDE.md`.
 
 ## IAP / StoreKit
