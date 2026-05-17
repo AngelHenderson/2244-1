@@ -326,13 +326,13 @@ public enum MockLeaderboardData {
 
         // Loop through completed days to accumulate new players and apply attrition
         for d in 0..<days {
-            let joinedToday = countryNewPlayersJoining(on: d, countrySeed: activeSeed)
+            let joinedToday = newPlayersJoining(on: d, countrySeed: activeSeed)
             remainingPlayers += joinedToday
             remainingPlayers *= dailyRetention
         }
 
         // For the current day (partial day), add today's joined players and apply partial attrition
-        let joinedToday = countryNewPlayersJoining(on: days, countrySeed: activeSeed)
+        let joinedToday = newPlayersJoining(on: days, countrySeed: activeSeed)
         let startOfDayTotal = remainingPlayers + joinedToday
         let endOfDayTotal = startOfDayTotal * dailyRetention
 
@@ -1019,14 +1019,8 @@ public enum MockLeaderboardData {
     static let baseGlobalPlayers = 885_676
 
     // Calculate new players joining on a given day (10-40 per day per country)
-    static func newPlayersJoining(on day: Int, isUS: Bool) -> Double {
-        let seed = isUS ? 12345 : 67890
-        let random = seededRandom(seed: seed, index: day)
-        return 10.0 + random * 30.0  // 10 to 40 new players per day
-    }
-
-    // Calculate country-specific new players joining per day (10-40 per day)
-    static func countryNewPlayersJoining(on day: Int, countrySeed: Int) -> Double {
+    // Each country has a unique seed for varied growth patterns
+    static func newPlayersJoining(on day: Int, countrySeed: Int) -> Double {
         let random = seededRandom(seed: countrySeed, index: day)
         return 10.0 + random * 30.0  // 10 to 40 new players per day
     }
@@ -1053,75 +1047,40 @@ public enum MockLeaderboardData {
         }
     }
 
+
+
     // Calculate players leaving per day (0.1-0.5 per day)
+    // Each country has a unique seed for varied attrition patterns
     // Reasons: game over 45%, banned 45%, deleted 5%, restart 5%
     // 95% of leaving players are from ranks 151+, only 5% from top 150
-    static func playersLeaving(on day: Int, isUS: Bool) -> Double {
-        let seed = isUS ? 11111 : 22222
-        let random = seededRandom(seed: seed, index: day)
+    static func playersLeaving(on day: Int, countrySeed: Int) -> Double {
+        let random = seededRandom(seed: countrySeed, index: day)
         return 0.1 + random * 0.4  // 0.1 to 0.5 players per day
     }
 
     // Calculate players leaving for a specific reason (weighted distribution)
     // banned: 45%, gameOver: 45%, deleted: 5%, restart: 5%
-    static func playersLeavingFor(reason: PlayerLeavingReason, on day: Int, isUS: Bool) -> Double {
+    static func playersLeavingFor(reason: PlayerLeavingReason, on day: Int, countrySeed: Int) -> Double {
         let weight: Double
         switch reason {
         case .banned, .gameOver: weight = 0.45
         case .deleted, .restart: weight = 0.05
         }
-        return playersLeaving(on: day, isUS: isUS) * weight
+        return playersLeaving(on: day, countrySeed: countrySeed) * weight
     }
 
     // Calculate players leaving from outside top 150 (95% of total leaving)
-    static func playersLeavingOutsideTop150(on day: Int, isUS: Bool) -> Double {
-        return playersLeaving(on: day, isUS: isUS) * 0.95
+    static func playersLeavingOutsideTop150(on day: Int, countrySeed: Int) -> Double {
+        return playersLeaving(on: day, countrySeed: countrySeed) * 0.95
     }
 
     // Calculate players leaving from top 150 (5% of total leaving)
-    static func playersLeavingFromTop150(on day: Int, isUS: Bool) -> Double {
-        return playersLeaving(on: day, isUS: isUS) * 0.05
-    }
-
-    // Calculate country-specific players leaving per day (0.1-0.5 per day)
-    // Each country has a unique seed for varied attrition patterns
-    // Reasons: game over 45%, banned 45%, deleted 5%, restart 5%
-    // 95% are from outside top 150, only 5% from top 150
-    static func countryPlayersLeaving(on day: Int, countrySeed: Int) -> Double {
-        let random = seededRandom(seed: countrySeed, index: day)
-        return 0.1 + random * 0.4  // 0.1 to 0.5 players per day
-    }
-
-    // Country-specific players leaving for a specific reason (weighted distribution)
-    // banned: 45%, gameOver: 45%, deleted: 5%, restart: 5%
-    static func countryPlayersLeavingFor(reason: PlayerLeavingReason, on day: Int, countrySeed: Int) -> Double {
-        let weight: Double
-        switch reason {
-        case .banned, .gameOver: weight = 0.45
-        case .deleted, .restart: weight = 0.05
-        }
-        return countryPlayersLeaving(on: day, countrySeed: countrySeed) * weight
-    }
-
-    // Country-specific players leaving from outside top 150 (95%)
-    static func countryPlayersLeavingOutsideTop150(on day: Int, countrySeed: Int) -> Double {
-        return countryPlayersLeaving(on: day, countrySeed: countrySeed) * 0.95
-    }
-
-    // Country-specific players leaving from top 150 (5%)
-    static func countryPlayersLeavingFromTop150(on day: Int, countrySeed: Int) -> Double {
-        return countryPlayersLeaving(on: day, countrySeed: countrySeed) * 0.05
+    static func playersLeavingFromTop150(on day: Int, countrySeed: Int) -> Double {
+        return playersLeaving(on: day, countrySeed: countrySeed) * 0.05
     }
 
     // Calculate players changing name or avatar per day (0.05-0.4 per country)
-    static func playersChangingNameOrAvatar(on day: Int, isUS: Bool) -> Double {
-        let seed = isUS ? 33333 : 44444
-        let random = seededRandom(seed: seed, index: day)
-        return 0.05 + random * 0.35  // 0.05 to 0.4 players per day
-    }
-
-    // Country-specific players changing name or avatar per day (0.05-0.4 per country)
-    static func countryPlayersChangingNameOrAvatar(on day: Int, countrySeed: Int) -> Double {
+    static func playersChangingNameOrAvatar(on day: Int, countrySeed: Int) -> Double {
         let random = seededRandom(seed: countrySeed + 5000, index: day)
         return 0.05 + random * 0.35  // 0.05 to 0.4 players per day
     }
@@ -1159,9 +1118,6 @@ public enum MockLeaderboardData {
     }
 
     static func totalCountryPlayers(for countryCode: String, on day: Int) -> Int {
-        if countryCode == "US" {
-            return totalPlayers(on: day, isUS: true)
-        }
         let basePlayers = basePlayerCount(for: countryCode)
         let seed = countrySeed(for: countryCode)
         return totalCountryPlayers(basePlayers: basePlayers, on: day, countrySeed: seed)
@@ -1197,8 +1153,8 @@ public enum MockLeaderboardData {
         var totalNew: Double = 0
         var totalLeft: Double = 0
         for d in 0...day {
-            totalNew += countryNewPlayersJoining(on: d, countrySeed: countrySeed)
-            totalLeft += countryPlayersLeaving(on: d, countrySeed: countrySeed)
+            totalNew += newPlayersJoining(on: d, countrySeed: countrySeed)
+            totalLeft += playersLeaving(on: d, countrySeed: countrySeed)
         }
         // Net players = base + new - left (ensure at least 151 to maintain top 150 leaderboard)
         let result = max(151, basePlayers + Int(totalNew) - Int(totalLeft))
@@ -1227,31 +1183,7 @@ public enum MockLeaderboardData {
         return newPlayerStartingMilestones[min(index, newPlayerStartingMilestones.count - 1)]
     }
 
-    // Cache for totalPlayers results (invalidated daily)
-    nonisolated(unsafe) private static var totalPlayersCacheDay: Int = -1
-    nonisolated(unsafe) private static var totalPlayersCache: [Bool: Int] = [:]
 
-    static func totalPlayers(on day: Int, isUS: Bool) -> Int {
-        if day != totalPlayersCacheDay {
-            totalPlayersCache.removeAll()
-            totalPlayersCacheDay = day
-        }
-        if let cached = totalPlayersCache[isUS] {
-            return cached
-        }
-
-        let basePlayers = isUS ? baseUSPlayers : baseGlobalPlayers
-        var totalNew: Double = 0
-        var totalLeft: Double = 0
-        for d in 0...day {
-            totalNew += newPlayersJoining(on: d, isUS: isUS)
-            totalLeft += playersLeaving(on: d, isUS: isUS)
-        }
-        // Net players = base + new - left (ensure non-negative)
-        let result = max(0, basePlayers + Int(totalNew) - Int(totalLeft))
-        totalPlayersCache[isUS] = result
-        return result
-    }
 
     // Calculate score with daily progression for a player
     // - 75% of new players are "active" and start with a milestone immediately
@@ -1370,7 +1302,7 @@ public enum MockLeaderboardData {
         // Calculate cumulative name/avatar changes up to this day
         var totalChanges: Double = 0
         for d in 0...day {
-            totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+            totalChanges += playersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
         }
 
         // Determine which players have changed based on seeded randomness
@@ -1413,7 +1345,7 @@ public enum MockLeaderboardData {
         // Calculate cumulative name/avatar changes up to this day
         var totalChanges: Double = 0
         for d in 0...day {
-            totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
+            totalChanges += playersChangingNameOrAvatar(on: d, countrySeed: countrySeed)
         }
 
         // Check if this player's name has changed
@@ -4568,7 +4500,7 @@ public extension LeaderboardClient {
                 if let code = filter.countryCode {
                     totalPlayers = MockLeaderboardData.totalCountryPlayers(for: code, on: day)
                 } else {
-                    totalPlayers = MockLeaderboardData.totalPlayers(on: day, isUS: true)
+                    totalPlayers = MockLeaderboardData.totalCountryPlayers(for: "US", on: day)
                 }
             }
             // Resolve duplicate realistic first names by adding last names
@@ -4676,7 +4608,7 @@ public extension LeaderboardClient {
         // Use a Hall of Fame specific seed
         var totalLeftHoF: Double = 0
         for d in 0...day {
-            totalLeftHoF += MockLeaderboardData.countryPlayersLeaving(on: d, countrySeed: 88888)
+            totalLeftHoF += MockLeaderboardData.playersLeaving(on: d, countrySeed: 88888)
         }
         let playersToSkip = Int(totalLeftHoF)
 
@@ -4921,20 +4853,9 @@ public extension LeaderboardClient {
             progressedData.append((player.id, progressedCount, player.country, player.nameIndex, player.playerIndex))
         }
 
-        // Add dynamic infinity players from scalable countries
-        let explicitHoFCountries: Set<String> = [
-            "US", "GB", "CA", "AU", "DE", "FR", "JP", "IN", "BR", "MX",
-            "AF", "AL", "DZ", "CN", "KR", "IT", "ES", "NL", "NO", "DK",
-            "FI", "PL", "BE", "FJ", "VN", "KZ", "IE", "ID", "CH", "AE",
-            "KG", "IS", "SK", "PK", "UZ", "MY", "AZ", "TJ", "NU", "AT",
-            "HU", "NZ", "UA", "MG", "IQ"
-        ]
-
         var dynamicGlobalIndex = 1000000 // avoid collision with explicit name indices
 
         for code in MockLeaderboardData.allScalableCountryCodes {
-            if explicitHoFCountries.contains(code) { continue }
-            
             let data = MockLeaderboardData.countryData(for: code, day: day)
             let milestones = data.milestones
             let seed = MockLeaderboardData.countrySeed(for: code)

@@ -725,6 +725,7 @@ public protocol SocialService: Sendable {
     func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
     func invites() async throws -> [FamilyInvite]
+    func removeInvite(id: UUID) async throws
 }
 
 public enum SocialServiceError: LocalizedError, Sendable {
@@ -766,6 +767,10 @@ public struct UnavailableSocialService: SocialService, Sendable {
     }
 
     public func invites() async throws -> [FamilyInvite] {
+        throw SocialServiceError.unavailable
+    }
+
+    public func removeInvite(id: UUID) async throws {
         throw SocialServiceError.unavailable
     }
 }
@@ -929,8 +934,10 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v9"
-    private static let feedDateKey = "socialFeed.cacheDate.v9"
+    private static let feedCacheKey = "socialFeed.cache.v14"
+    private static let feedDateKey = "socialFeed.cacheDate.v14"
+    /// Version-independent key for user-posted events so they survive cache bumps.
+    private static let userPostsKey = "socialFeed.userPosts"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -957,7 +964,19 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         // Generate fresh feed
-        let items = generateFeedItems(now: now)
+        var items = generateFeedItems(now: now)
+
+        // Merge in user posts from the last 7 days so they survive cache regeneration
+        let sevenDaysAgo = now.addingTimeInterval(-7 * 24 * 3600)
+        if let userPostsData = defaults.data(forKey: Self.userPostsKey),
+           let userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: userPostsData) {
+            let recentPosts = userPosts.filter { $0.createdAt > sevenDaysAgo }
+            let existingIDs = Set(items.map { $0.id })
+            for post in recentPosts where !existingIDs.contains(post.id) {
+                items.append(post)
+            }
+            items.sort { $0.createdAt > $1.createdAt }
+        }
 
         // Cache for the rest of the day
         if let data = try? JSONEncoder().encode(items) {
@@ -1047,12 +1066,15 @@ public struct MockSocialService: SocialService, Sendable {
 
         var comments: [SocialFeedComment] = []
         var commentAuthors: [String] = []
+        var usedStats: Set<String> = []
 
         for (index, offset) in commentOffsets.enumerated() {
             let commenter = generateDynamicName()
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
-            var commentText = generateDynamicComment(message: message)
+            let (commentBase, nameOverride) = generateDynamicComment(message: message, usedStats: &usedStats)
+            var commentText = commentBase
+            let finalCommenter = nameOverride ?? commenter
 
             // If this is a reply, pick target: 70% to the poster, 30% to another commenter
             if replyIndices.contains(index), !commentAuthors.isEmpty {
@@ -1065,7 +1087,7 @@ public struct MockSocialService: SocialService, Sendable {
                     let candidates = commentAuthors.filter { $0 != commenter }
                     replyTo = candidates.randomElement() ?? playerName
                 }
-                if replyTo != commenter {
+                if replyTo != finalCommenter {
                     let previousComment = comments.last(where: { $0.authorName == replyTo })
                     if let prev = previousComment {
                         commentText = "@\(replyTo) " + generateContextualReply(to: prev.text, message: message)
@@ -1077,13 +1099,13 @@ public struct MockSocialService: SocialService, Sendable {
             }
 
             comments.append(SocialFeedComment(
-                authorName: commenter,
+                authorName: finalCommenter,
                 avatarID: commenterAvatar,
                 text: commentText,
                 createdAt: now.addingTimeInterval(offset),
                 likes: Int.random(in: 0...10)
             ))
-            commentAuthors.append(commenter)
+            commentAuthors.append(finalCommenter)
         }
 
         // Heart/reaction timestamps trickle in over the next 4 hours (10–50)
@@ -1117,6 +1139,20 @@ public struct MockSocialService: SocialService, Sendable {
             if let newData = try? JSONEncoder().encode([newItem]) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
+        }
+
+        // Also save to the version-independent user posts store
+        var userPosts: [SocialFeedItem] = []
+        if let existingData = defaults.data(forKey: Self.userPostsKey),
+           let existing = try? JSONDecoder().decode([SocialFeedItem].self, from: existingData) {
+            userPosts = existing
+        }
+        userPosts.insert(newItem, at: 0)
+        // Keep only last 7 days of user posts
+        let sevenDaysAgo = now.addingTimeInterval(-7 * 24 * 3600)
+        userPosts = userPosts.filter { $0.createdAt > sevenDaysAgo }
+        if let userPostsData = try? JSONEncoder().encode(userPosts) {
+            defaults.set(userPostsData, forKey: Self.userPostsKey)
         }
     }
 
@@ -1197,12 +1233,14 @@ public struct MockSocialService: SocialService, Sendable {
             }
             
             var commentAuthors: [String] = []
-            
+            var usedStats: Set<String> = []
             for (index, offset) in commentOffsets.enumerated() {
                 let commentAuthor = generateDynamicName()
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
-                var commentText = generateDynamicComment(message: message)
+                let (commentBase, nameOverride) = generateDynamicComment(message: message, usedStats: &usedStats)
+                var commentText = commentBase
+                let finalCommenter = nameOverride ?? commentAuthor
                 var commentOffset = offset
                 
                 // If this index is marked as a response: 70% reply to the poster, 30% to other commenters
@@ -1215,7 +1253,7 @@ public struct MockSocialService: SocialService, Sendable {
                         let candidates = commentAuthors.filter { $0 != commentAuthor }
                         replyingTo = candidates.randomElement() ?? author
                     }
-                    if replyingTo != commentAuthor {
+                    if replyingTo != finalCommenter {
                         // Check if the comment being replied to asks about the next milestone
                         let previousComment = comments.last(where: { $0.authorName == replyingTo })
                         if let prev = previousComment, let answer = milestoneAnswer(for: prev.text) {
@@ -1238,14 +1276,14 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 
                 comments.append(SocialFeedComment(
-                    authorName: commentAuthor,
+                    authorName: finalCommenter,
                     avatarID: commentAvatar,
                     text: commentText,
                     createdAt: now.addingTimeInterval(commentOffset),
                     likes: Int.random(in: 0...10)
                 ))
                 
-                commentAuthors.append(commentAuthor)
+                commentAuthors.append(finalCommenter)
             }
             
             let maxReactions = Int.random(in: 10...50)
@@ -1318,7 +1356,18 @@ public struct MockSocialService: SocialService, Sendable {
         }
     }
 
+    private static let invitesCacheKey = "socialFeed.invites.v1"
+
     public func invites() async throws -> [FamilyInvite] {
+        let defaults = UserDefaults.standard
+
+        // Return cached invites if available
+        if let data = defaults.data(forKey: Self.invitesCacheKey),
+           let cached = try? JSONDecoder().decode([FamilyInvite].self, from: data) {
+            return cached
+        }
+
+        // Generate initial invites
         let codeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         func makeCode() -> String {
             let left = String((0..<3).map { _ in codeChars.randomElement()! })
@@ -1326,11 +1375,29 @@ public struct MockSocialService: SocialService, Sendable {
             return "\(left)-\(right)"
         }
         let names = Self.leaderboardGamertags.shuffled().prefix(3)
-        return [
+        let result = [
             FamilyInvite(displayName: String(names[names.startIndex]), emailOrCode: makeCode(), status: "Invited"),
             FamilyInvite(displayName: String(names[names.index(names.startIndex, offsetBy: 1)]), emailOrCode: makeCode(), status: "Can invite"),
             FamilyInvite(displayName: String(names[names.index(names.startIndex, offsetBy: 2)]), emailOrCode: makeCode(), status: "Can invite"),
         ]
+
+        // Cache the generated invites
+        if let data = try? JSONEncoder().encode(result) {
+            defaults.set(data, forKey: Self.invitesCacheKey)
+        }
+        return result
+    }
+
+    public func removeInvite(id: UUID) async throws {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: Self.invitesCacheKey),
+              var cached = try? JSONDecoder().decode([FamilyInvite].self, from: data) else {
+            return
+        }
+        cached.removeAll { $0.id == id }
+        if let newData = try? JSONEncoder().encode(cached) {
+            defaults.set(newData, forKey: Self.invitesCacheKey)
+        }
     }
     
     private func generateDynamicEvent(milestone: String) -> (message: String, statText: String) {
@@ -1638,7 +1705,8 @@ public struct MockSocialService: SocialService, Sendable {
         return shuffleBags[key]![idx]
     }
 
-    private func generateDynamicComment(message: String) -> String {
+    private func generateDynamicComment(message: String, usedStats: inout Set<String>) -> (String, String?) {
+        var nameOverride: String? = nil
         let openers = [
             "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
             "No way,", "Wait,", "Bruh,", "Sheesh,", "Yo,", "Ngl,", "Ayo,",
@@ -1945,7 +2013,9 @@ public struct MockSocialService: SocialService, Sendable {
         
         if roll < 0.55 {
             // ── Competitive (55%) — generate factually accurate one-upmanship ──
-            comment = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)")
+            let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
+            comment = result.0
+            nameOverride = result.1
             tone = "competitive"
         } else if roll < 0.80 {
             // ── Positive (25%) — with opener + subject/verb/adj ──
@@ -1980,7 +2050,6 @@ public struct MockSocialService: SocialService, Sendable {
             case "question": symbol = Self.drawFromBag(key: "sym_q_\(bagSuffix)", pool: questionSymbols)
             case "sad": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
             case "competitive": symbol = Self.drawFromBag(key: "sym_comp_\(bagSuffix)", pool: competitiveSymbols)
-
             default: symbol = ""
             }
             comment += symbol
@@ -1989,26 +2058,33 @@ public struct MockSocialService: SocialService, Sendable {
             comment += keyboardSymbols.randomElement()!
         }
         
-        return comment.trimmingCharacters(in: .whitespaces)
+        return (comment.trimmingCharacters(in: .whitespaces), nameOverride)
     }
 
     // MARK: - Truthful competitive comments
 
     /// Generates a competitive comment that is factually accurate — any claimed
     /// stat is **higher** (or faster) than the poster's actual number.
+    /// Returns (commentText, optionalNameOverride). When the comment claims a
+    /// specific milestone, nameOverride is a real leaderboard player at that level.
     /// Falls back to the generic `pool` when no number can be extracted.
-    private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String) -> String {
+    private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String, usedStats: inout Set<String>) -> (String, String?) {
         let lowered = message.lowercased()
 
         // ── Streak posts: extract the day count, brag with a higher one ──
         if lowered.contains("streak") {
             if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
-                let myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
-                let templates = [
+                var myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                var attempts = 0
+                while usedStats.contains("streak_\(myDays)") && attempts < 5 {
+                    myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                    attempts += 1
+                }
+                usedStats.insert("streak_\(myDays)")
+                var templates = [
                     "My streak is \(myDays) days. Not even close.",
                     "Lol only a \(streakDays)-day streak? Mine is \(myDays).",
                     "Cute! My streak is \(myDays) days.",
-                    "\(myDays)-day streak here. You're way behind.",
                     "Only a \(streakDays)-day streak? Mine is \(myDays). Not impressed.",
                     "That's nothing, my \(myDays)-day streak says hi.",
                     "A \(streakDays)-day streak? I passed that ages ago. Mine is \(myDays).",
@@ -2020,51 +2096,80 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've had a \(myDays)-day streak since before you even started playing.",
                     "\(myDays)-day streak. Your \(streakDays)-day streak doesn't even register on my radar.",
                     "My streak is at \(myDays) and yours is still at \(streakDays). Embarrassing.",
+                    "\(myDays) days without missing a single one. \(streakDays) is rookie numbers.",
+                    "I was at \(streakDays) back in my first month. Now I'm at \(myDays).",
+                    "Still at \(streakDays)? My \(myDays)-day streak laughs at that.",
+                    "\(streakDays) days is a warmup. I'm at \(myDays) and I don't plan on stopping.",
+                    "Imagine bragging about \(streakDays) when \(myDays) exists.",
+                    "\(myDays) days of pure dedication. \(streakDays) days of... trying, I guess?",
                 ]
-                return templates.randomElement()!
+                if myDays >= streakDays * 2 {
+                    templates.append("\(myDays)-day streak here. You're way behind.")
+                }
+                return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), nil)
             }
         }
 
-        // ── Timed challenge posts: extract the time, brag with a faster one ──
+        // ── Timed challenge posts: extract time remaining, brag with more ──
         if lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
-                let fasterBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 4))
-                let myTotal = max(15, totalSecs - fasterBy)
+                // Brag about having MORE time left (higher = better in challenge mode)
+                let moreBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                var myTotal = totalSecs + moreBy
+                var attempts = 0
+                while usedStats.contains("time_\(myTotal)") && attempts < 5 {
+                    myTotal = totalSecs + Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                    attempts += 1
+                }
+                usedStats.insert("time_\(myTotal)")
                 let myMins = myTotal / 60
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
-                let templates = [
-                    "My time is \(myTime). Not even close.",
-                    "Lol only \(posterTime)? I clocked \(myTime).",
-                    "Cute! My clear time is \(myTime).",
-                    "\(myTime) here. You're way behind.",
-                    "Only \(posterTime)? I'm sitting at \(myTime). Not impressed.",
-                    "That's nothing, my \(myTime) says hi.",
-                    "I was clearing \(posterTime) ages ago. I'm at \(myTime) now.",
-                    "\(myTime) and getting faster. You're not catching me.",
-                    "\(myTime) over here. I'm untouchable.",
-                    "\(posterTime) is amateur hour. Talk to me at \(myTime).",
-                    "My \(myTime) is faster than yours and always will be!",
-                    "\(posterTime)? That's cute. My \(myTime) wipes the floor with that.",
-                    "I've been clearing \(myTime) since before you even started playing.",
-                    "\(myTime). Your \(posterTime) doesn't even register on my radar.",
-                    "My time hit \(myTime) and yours is still stuck at \(posterTime). Embarrassing.",
+                var templates = [
+                    "I had \(myTime) left on mine. Not even close.",
+                    "Lol only \(posterTime) left? I had \(myTime) remaining.",
+                    "Cute! I finished with \(myTime) still on the clock.",
+                    "Only \(posterTime) remaining? I had \(myTime) left. Not impressed.",
+                    "That's nothing, my \(myTime) remaining says hi.",
+                    "I was finishing with \(posterTime) ages ago. I'm at \(myTime) now.",
+                    "\(myTime) left and I wasn't even rushing. You're not catching me.",
+                    "\(myTime) remaining over here. I'm untouchable.",
+                    "\(posterTime) left is amateur hour. Talk to me when you hit \(myTime).",
+                    "I'll always finish with more time than you. \(myTime) left today!",
+                    "\(posterTime) left? That's cute. My \(myTime) remaining wipes the floor with that.",
+                    "I've been clearing with \(myTime) left since before you started playing.",
+                    "\(myTime) remaining. Your \(posterTime) doesn't even register on my radar.",
+                    "I had \(myTime) left and yours was only \(posterTime). Embarrassing.",
+                    "\(posterTime) is cutting it close. I had \(myTime) left, no sweat.",
+                    "Finished with \(myTime) on the clock and could've made a sandwich. \(posterTime) though?",
+                    "You call \(posterTime) remaining good? I call \(myTime) remaining good.",
+                    "\(myTime) left without even breaking a sweat. \(posterTime) must have been stressful.",
+                    "The gap between \(posterTime) and my \(myTime) remaining is called talent.",
+                    "I had \(myTime) left on my first try today. \(posterTime)… yikes.",
                 ]
-                return templates.randomElement()!
+                if myTotal >= totalSecs * 2 {
+                    templates.append("\(myTime) remaining here. You're way behind.")
+                }
+                return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), nil)
             }
         }
 
         // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
         if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
-            if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "∞", "×", "count", "entry", "#"]) {
-                let myCount = infCount + Int.random(in: 1...max(3, infCount))
-                let templates = [
+            if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "\u{221E}", "\u{00D7}", "count", "entry", "#"]) {
+                var myCount = infCount + Int.random(in: 1...max(3, infCount))
+                var attempts = 0
+                while usedStats.contains("hof_\(myCount)") && attempts < 5 {
+                    myCount = infCount + Int.random(in: 1...max(3, infCount))
+                    attempts += 1
+                }
+                usedStats.insert("hof_\(myCount)")
+                var templates = [
                     "My infinity count is \(myCount). Not even close.",
                     "Lol only \(infCount)? I'm at \(myCount).",
                     "Cute! My count is at \(myCount) infinities.",
-                    "\(myCount) infinities here. You're way behind.",
                     "Only \(infCount)? I'm sitting at \(myCount). Not impressed.",
                     "That's nothing, my \(myCount) infinity count says hi.",
                     "I was at \(infCount) infinities ages ago. I'm at \(myCount) now.",
@@ -2076,53 +2181,84 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've had \(myCount) infinities since before you even started playing.",
                     "\(myCount). Your \(infCount) doesn't even register on my radar.",
                     "My count hit \(myCount) and yours is still stuck at \(infCount). Embarrassing.",
+                    "\(infCount) infinities and you're bragging? Call me when you hit \(myCount).",
+                    "I clear infinities in my sleep. \(myCount) and growing every day.",
+                    "Imagine thinking \(infCount) was impressive. My \(myCount) says otherwise.",
+                    "Hit \(myCount) last week actually. \(infCount) is old news to me.",
+                    "The Hall of Fame belongs to players at \(myCount). \(infCount) is the waiting room.",
+                    "\(infCount) is the tutorial. \(myCount) is the real game.",
                 ]
-                return templates.randomElement()!
+                if myCount >= infCount * 2 {
+                    templates.append("\(myCount) infinities here. You're way behind.")
+                }
+                return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), nil)
             }
         }
 
-        // ── Milestone posts: find the tile, reference the next one ──
+        // ── Milestone posts: find the tile, reference a higher one ──
         let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
         if let foundIdx = sortedMilestones.firstIndex(where: { message.contains($0) }) {
             let m = sortedMilestones[foundIdx]
-            // Find the next milestone in the ordered list
             if let originalIdx = Self.allMilestones.firstIndex(of: m),
                originalIdx + 1 < Self.allMilestones.count {
-                let nextM = Self.allMilestones[originalIdx + 1]
-                let templates = [
-                    "My tile is \(nextM). Not even close.",
-                    "Lol only \(m)? I'm at \(nextM).",
-                    "Cute! My tile is at \(nextM).",
-                    "\(nextM) here. You're way behind.",
-                    "Only \(m)? I'm sitting at \(nextM). Not impressed.",
-                    "That's nothing, my \(nextM) tile says hi.",
-                    "I was at \(m) ages ago. I'm at \(nextM) now.",
-                    "\(nextM) and climbing. You're not catching me.",
-                    "\(nextM) over here. I'm untouchable.",
-                    "\(m) is amateur hour. Talk to me at \(nextM).",
-                    "My \(nextM) is higher than yours and always will be!",
-                    "\(m)? That's cute. My \(nextM) wipes the floor with that.",
-                    "I've been at \(nextM) since before you even started playing.",
-                    "\(nextM). Your \(m) doesn't even register on my radar.",
-                    "My tile hit \(nextM) and yours is still stuck at \(m). Embarrassing.",
+                // Pick a random milestone 5-60 steps ahead, avoiding already-used ones
+                let remaining = Self.allMilestones.count - 1 - originalIdx
+                let maxJump = min(60, remaining)
+                let minJump = min(5, maxJump)
+                var higherM: String
+                var jump: Int
+                var attempts = 0
+                repeat {
+                    jump = Int.random(in: minJump...maxJump)
+                    higherM = Self.allMilestones[originalIdx + jump]
+                    attempts += 1
+                } while usedStats.contains(higherM) && attempts < 8
+                usedStats.insert(higherM)
+
+                var templates = [
+                    "My tile is \(higherM). Not even close.",
+                    "Lol only \(m)? I'm at \(higherM).",
+                    "Cute! My tile is at \(higherM).",
+                    "Only \(m)? I'm sitting at \(higherM). Not impressed.",
+                    "That's nothing, my \(higherM) tile says hi.",
+                    "I was at \(m) ages ago. I'm at \(higherM) now.",
+                    "\(higherM) and climbing. You're not catching me.",
+                    "\(higherM) over here. I'm untouchable.",
+                    "\(m) is amateur hour. Talk to me at \(higherM).",
+                    "My \(higherM) is higher than yours and always will be!",
+                    "\(m)? That's cute. My \(higherM) wipes the floor with that.",
+                    "I've been at \(higherM) since before you even started playing.",
+                    "\(higherM). Your \(m) doesn't even register on my radar.",
+                    "My tile hit \(higherM) and yours is still stuck at \(m). Embarrassing.",
+                    "Still flexing \(m)? I passed that tile a long time ago. \(higherM) now.",
+                    "\(m) is a memory for me. Been living at \(higherM) for a while.",
+                    "The jump from \(m) to \(higherM) is called grinding. Try it sometime.",
+                    "I don't even remember what \(m) looks like. My screen shows \(higherM).",
+                    "Posting \(m) like it's an achievement when \(higherM) exists is bold.",
+                    "You'll understand the \(higherM) grind someday. \(m) is just the start.",
                 ]
-                return templates.randomElement()!
+                // "way behind" only with a truly massive gap (150-500 steps ahead)
+                if remaining >= 150 {
+                    let wayBehindJump = Int.random(in: 150...min(500, remaining))
+                    let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
+                    templates.append("\(wayBehindM) here. You're way behind.")
+                }
+                let realName = Self.leaderboardPlayerAtMilestone(higherM)
+                return (Self.drawFromBag(key: "\(bagKey)_tile_\(higherM)", pool: templates), realName)
             }
         }
 
         // ── Quest posts: brag about better chest tier or faster completion ──
         if lowered.contains("quest") {
             let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            // Find poster's tier and pick a better one
             if let posterTierIdx = tiers.firstIndex(where: { message.contains($0) }),
                posterTierIdx < tiers.count - 1 {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                 let posterTier = tiers[posterTierIdx]
-                let templates = [
+                var templates = [
                     "My chest is \(myTier). Not even close.",
                     "Lol only \(posterTier)? I pulled \(myTier).",
                     "Cute! My chest is \(myTier).",
-                    "\(myTier) chest here. You're way behind.",
                     "Only \(posterTier)? I'm pulling \(myTier). Not impressed.",
                     "That's nothing, my \(myTier) chest says hi.",
                     "I was pulling \(posterTier) ages ago. I'm at \(myTier) now.",
@@ -2134,13 +2270,74 @@ public struct MockSocialService: SocialService, Sendable {
                     "I've been pulling \(myTier) since before you even started playing.",
                     "\(myTier). Your \(posterTier) doesn't even register on my radar.",
                     "My quests give \(myTier) and yours are still stuck at \(posterTier). Embarrassing.",
+                    "\(posterTier) chests are basically participation trophies. I pull \(myTier).",
+                    "Every single day, \(myTier). You're still opening \(posterTier) like it's a gift.",
+                    "The rewards from \(myTier) chests hit completely different than \(posterTier).",
+                    "I forgot \(posterTier) chests even existed. \(myTier) only over here.",
+                    "Bragging about \(posterTier)? That's bold when \(myTier) players are right here.",
+                    "\(posterTier) is where I was week one. Now it's \(myTier) or nothing.",
                 ]
-                return templates.randomElement()!
+                // tier gap >= 2 (e.g., Bronze→Gold or Bronze→Diamond)
+                let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
+                if tierGap >= 2 {
+                    templates.append("\(myTier) chest here. You're way behind.")
+                }
+                return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), nil)
             }
         }
 
         // ── Fallback: use the generic competitive pool ──
-        return Self.drawFromBag(key: bagKey, pool: pool)
+        return (Self.drawFromBag(key: bagKey, pool: pool), nil)
+    }
+
+    /// Returns the name of a real leaderboard player who is at the given milestone.
+    /// Uses a subset of US leaderboard data (mirrored from LeaderboardClient) so
+    /// that competitive milestone claims are verifiable on the leaderboard.
+    private static func leaderboardPlayerAtMilestone(_ milestone: String) -> String? {
+        let milestoneToName: [String: String] = [
+            // n-tier (most commonly seen in feed)
+            "2n": "NorfolkNomad", "5n": "ScottsdaleSnake",
+            "11n": "WinstonWarrior", "23n": "GlendaleeGuru",
+            "47n": "LubbockLancer", "95n": "RennoRocket",
+            "191n": "NorthLasVegasNova", "383n": "GilbertGladiator",
+            // m-tier
+            "2m": "MobileMarvel", "5m": "KnoxvilleKing",
+            "11m": "MadisonMarvel", "23m": "ChattanoogaChamp",
+            "46m": "AkronAce", "93m": "SyracuseSniper",
+            "187m": "SavannahStar", "374m": "StPaulPhenomm",
+            // l-tier
+            "2l": "MilwaukeeMight", "5l": "TucsonTwister",
+            "11l": "LouisvilleLion", "22l": "SpringfieldSprint",
+            "45l": "PasadenaPro", "91l": "PompanoPlayer",
+            "182l": "CoralGablesCrush", "365l": "TallahasseTitan",
+            // k-tier
+            "2k": "GainesvilleGuru", "5k": "PensacolaPhenom",
+            "11k": "ClearwaterChamp", "22k": "BocaRatonBoss",
+            "44k": "NapleNinja", "89k": "HartfordHawk",
+            "178k": "ProvidencePro", "356k": "NashvilleNinja",
+            // o-tier
+            "3o": "LaRedoLegend", "6o": "BuffaloBeast",
+            "24o": "JerseyJuggernaut",
+            // p-tier
+            "3p": "DurhamDragon", "12p": "OrlandoOmega",
+            "100p": "ChulaChulaChamp", "401p": "StPaulPhenomm",
+            // q-tier
+            "3q": "IrvineInferno", "102q": "ToledoTerror",
+            // r-tier
+            "6r": "CincinnatiCyber", "842r": "PittsburghPro",
+            // s-tier
+            "26s": "RiversideRuler", "107s": "StocktonStorm",
+            // t-tier
+            "3t": "TampaTitan", "883t": "TulsaTornado",
+            // u-tier
+            "7u": "AnchorageAlpha", "28u": "RichmondRacer",
+            // Common lower milestones
+            "1M": "NapleNinja", "2M": "ClearwaterChamp",
+            "16K": "BocaRatonBoss", "32K": "GainesvilleGuru",
+            "65K": "PensacolaPhenom", "131K": "DaytonDynamo",
+            "262K": "AllenAlpha", "524K": "SavannahStar",
+        ]
+        return milestoneToName[milestone]
     }
 
     /// Extracts a number from the message that appears near any of the given context words.
@@ -2214,19 +2411,27 @@ public struct MockSocialService: SocialService, Sendable {
 
         // ── Extract dynamic content from the comment ──
 
-        // Pull any milestone mentioned in the comment (longest match first)
+        // Pull any milestone mentioned in the comment (longest match first, word-boundary aware)
         let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
-        let mentionedMilestone: (index: Int, name: String)? = sortedMilestones.first(where: {
-            strippedLower.contains($0.element.lowercased())
+        let mentionedMilestone: (index: Int, name: String)? = sortedMilestones.first(where: { entry in
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: entry.element.lowercased()))\\b"
+            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(
+                in: strippedLower,
+                range: NSRange(strippedLower.startIndex..., in: strippedLower)
+            ) != nil
         }).map { ($0.offset, $0.element) }
 
         // Pull any number referenced (playtime, days, attempts, etc.)
+        // Minimum of 3 — smaller numbers like 0, 1, 2 are almost never meaningful stats
         let mentionedNumber: String? = {
             let regex = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b", options: [])
             let range = NSRange(strippedText.startIndex..., in: strippedText)
             if let match = regex?.firstMatch(in: strippedText, range: range),
                let r = Range(match.range(at: 1), in: strippedText) {
-                return String(strippedText[r])
+                let numStr = String(strippedText[r])
+                if let value = Int(numStr), value >= 3 {
+                    return numStr
+                }
             }
             return nil
         }()

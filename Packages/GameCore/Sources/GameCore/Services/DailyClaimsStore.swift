@@ -251,8 +251,9 @@ public final class DailyClaimsStore {
         onReward?(rewards)
 
         // Check for newly unlocked streaks and give weighted random bonus rewards
+        // Milestones unlock based on total claim progress (currentClaimDay), not consecutive streak
         for i in 0..<dailyStreaks.count {
-            if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentStreak {
+            if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentClaimDay {
                 dailyStreaks[i].isUnlocked = true
                 unlockedStreaks.insert(dailyStreaks[i].day)
                 // Generate weighted random bonus (50% gems, 15% megaMerge, etc.)
@@ -464,11 +465,11 @@ public final class DailyClaimsStore {
     }
     
     private func pendingStreakRewards(afterClaimingDay day: Int) -> [AchievementDef.Rewards] {
-        let resultingStreak = currentStreak + 1 // streak increments when day is claimed
+        let resultingDay = currentClaimDay + 1 // claim day increments when day is claimed
         // Return random bonus rewards for each pending streak unlock
         // Each bonus type has 12.5% probability (equal distribution)
         return dailyStreaks
-            .filter { !$0.isUnlocked && $0.day <= resultingStreak }
+            .filter { !$0.isUnlocked && $0.day <= resultingDay }
             .map { streak in
                 BonusRewardGenerator.generateRandomBonus(forStreakDay: streak.day)
             }
@@ -476,16 +477,16 @@ public final class DailyClaimsStore {
 
     /// Returns the count of pending streak bonuses without generating rewards
     public func pendingStreakBonusCount(afterClaimingDay day: Int) -> Int {
-        let resultingStreak = currentStreak + 1
+        let resultingDay = currentClaimDay + 1
         return dailyStreaks
-            .filter { !$0.isUnlocked && $0.day <= resultingStreak }
+            .filter { !$0.isUnlocked && $0.day <= resultingDay }
             .count
     }
 
     /// Returns a preview of the next streak bonus (type, display amount, and rewards)
     public func nextStreakBonusPreview() -> (type: BonusRewardGenerator.BonusType, amount: Int, rewards: AchievementDef.Rewards)? {
-        let resultingStreak = currentStreak + 1
-        guard let nextStreak = dailyStreaks.first(where: { !$0.isUnlocked && $0.day <= resultingStreak }) else {
+        let resultingDay = currentClaimDay + 1
+        guard let nextStreak = dailyStreaks.first(where: { !$0.isUnlocked && $0.day <= resultingDay }) else {
             return nil
         }
         let type = BonusRewardGenerator.bonusType(forStreakDay: nextStreak.day)

@@ -88,6 +88,22 @@ public final class ChallengeStore: Sendable {
         saveProgress()
     }
 
+    /// Cost in gems to skip the wait for a challenge (250 × challenge number)
+    public func skipWaitCost(for challengeId: UUID) -> Int {
+        guard let index = challengeOrder.firstIndex(of: challengeId) else { return 250 }
+        return 250 * (index + 1)
+    }
+
+    /// Skips the cooldown wait for a pending challenge by backdating the previous
+    /// challenge's completion timestamp so the unlock check passes immediately.
+    public func skipWait(for challengeId: UUID) {
+        guard let index = challengeOrder.firstIndex(of: challengeId), index > 0 else { return }
+        let previousId = challengeOrder[index - 1]
+        // Set the previous completion to far enough in the past
+        completionTimestamps[previousId] = Date().addingTimeInterval(-Self.unlockDelaySeconds - 1)
+        saveProgress()
+    }
+
     /// Returns the reward for a challenge by its UUID
     public func reward(for challengeId: UUID) -> ChallengeReward? {
         guard let index = challengeOrder.firstIndex(of: challengeId) else {

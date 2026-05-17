@@ -57,6 +57,7 @@ public struct HybridGameScreen: View {
     @State private var gameOverResetTask: Task<Void, Never>? = nil
     @State private var isShowingLowOnMoves = false
     @State private var lowMovesWarningArmed = true
+    @State private var isShowingQuitConfirmation = false
 
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState: HomeState = {
@@ -215,6 +216,15 @@ public struct HybridGameScreen: View {
                 }
             } message: {
                 Text("You are low on moves. Want to use a powerup to free up moves?")
+            }
+            .alert("Are you sure you want to quit?", isPresented: $isShowingQuitConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Quit", role: .destructive) {
+                    isShowingPowerUpOverlay = false
+                    showGameOverAndReset()
+                }
+            } message: {
+                Text("This will restart all of your progress.")
             }
 
         
@@ -593,9 +603,10 @@ public struct HybridGameScreen: View {
         HStack {
             // No Thanks button
             Button {
-                isShowingPowerUpOverlay = false
                 if powerUpOverlayContext == .outOfMoves {
-                    showGameOverAndReset()
+                    isShowingQuitConfirmation = true
+                } else {
+                    isShowingPowerUpOverlay = false
                 }
             } label: {
                 VStack(spacing: 2) {
@@ -685,6 +696,8 @@ public struct HybridGameScreen: View {
             guard gameStore.spendCoins(tier.gemCost) else { return }
         }
         isShowingMilestoneStart = false
+        isShowingQuitConfirmation = false
+        lowMovesWarningArmed = true
         if tier.step == 0 {
             gameStore.resetGame()
         } else {
@@ -1171,9 +1184,9 @@ private struct GameplayInfoPanel: View {
 
     private var validMovesColor: Color {
         let count = gameStore.validMovesCount
-        if count <= 5 { return .red }
-        if count <= 15 { return .orange }
-        if count <= 25 { return .yellow }
+        if count == 0 { return .red }
+        if count < 10 { return .orange }
+        if count < 20 { return .yellow }
         return .green
     }
 
