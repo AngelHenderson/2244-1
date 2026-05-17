@@ -98,6 +98,16 @@ public struct DailyStreaksView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                
+                if let timeRemaining = store.getTimeUntilNextClaim() {
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock")
+                        TimerView(timeRemaining: timeRemaining)
+                    }
+                    .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                }
             }
         }
         .padding()
