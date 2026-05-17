@@ -2023,11 +2023,11 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Ha!", "Haha", "Lmao", "Lol", "Wow", "Bruh",
-                    "Nah", "Please", "Oh wow", "Yeah no", "Pfft",
+                    "Ha!", "Haha", "Lmao", "Lol", "Yeah right",
+                    "Nah", "Please", "You serious?", "Yeah no", "Pfft",
                     "Sorry but", "Hate to break it to you but",
-                    "Oof", "Yikes", "Oh please", "Not gonna lie",
-                    "I mean", "Listen", "Bro",
+                    "That's funny", "Yikes", "Oh please", "Not gonna lie",
+                    "That's adorable", "Listen", "Hold on", "You wish",
                 ]
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
