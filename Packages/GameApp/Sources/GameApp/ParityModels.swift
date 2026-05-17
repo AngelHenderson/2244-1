@@ -2026,9 +2026,24 @@ public struct MockSocialService: SocialService, Sendable {
                     "Ha!", "Haha", "Lmao", "Lol", "Wow", "Bruh",
                     "Nah", "Please", "Oh wow", "Yeah no", "Pfft",
                     "Sorry but", "Hate to break it to you but",
+                    "Oof", "Yikes", "Oh please", "Not gonna lie",
+                    "I mean", "Listen", "Bro",
                 ]
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
+            }
+            // Randomly append a competitive closer ~50% of the time
+            if Double.random(in: 0...1) < 0.5 {
+                let compClosers = [
+                    "Take the L.", "You lost.", "Give up now.", "It's over for you.",
+                    "Stay mad.", "Deal with it.", "Can't relate.", "Get on my level.",
+                    "Know your place.", "I don't make the rules.", "Facts only.",
+                    "No debate.", "End of discussion.", "Log off.", "Just quit.",
+                    "Don't @ me.", "I said what I said.", "And it's not even close.",
+                    "You're welcome.", "Better luck next time.",
+                ]
+                let closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
+                comment = "\(comment) \(closer)"
             }
             tone = "competitive"
         } else if roll < 0.80 {
