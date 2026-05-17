@@ -934,10 +934,10 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v16"
-    private static let feedDateKey = "socialFeed.cacheDate.v16"
+    private static let feedCacheKey = "socialFeed.cache.v18"
+    private static let feedDateKey = "socialFeed.cacheDate.v18"
     /// Version-independent key for user-posted events so they survive cache bumps.
-    private static let userPostsKey = "socialFeed.userPosts"
+    private static let userPostsKey = "socialFeed.userPosts.v2"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -2023,11 +2023,11 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Ha!", "Haha", "Lmao", "Lol", "Yeah right",
-                    "Nah", "Please", "You serious?", "Yeah no", "Pfft",
+                    "Ha!", "Haha", "Lmao", "That's hilarious", "Yeah right",
+                    "Nah", "Please", "How embarrassing", "Yeah no", "Pfft",
                     "Sorry but", "Hate to break it to you but",
-                    "That's funny", "Yikes", "Oh please", "Not gonna lie",
-                    "That's adorable", "Listen", "Hold on", "You wish",
+                    "That's funny", "Nice try", "Oh please", "Not gonna lie",
+                    "That's adorable", "Listen", "Watch this", "You wish",
                 ]
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
