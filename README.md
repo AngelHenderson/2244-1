@@ -1,6 +1,6 @@
 # Ultimate2244 - iOS Game
 
-A modern implementation of the 2244 puzzle game for iOS 18+, built with Swift 6, SwiftUI, and modular architecture.
+A modern implementation of the 2244 puzzle game for iOS 26+, built with Swift 6.2, SwiftUI, Firebase, StoreKit 2, AdMob, and modular local Swift packages.
 
 ## 🎮 Game Overview
 
@@ -26,10 +26,12 @@ A modern implementation of the 2244 puzzle game for iOS 18+, built with Swift 6,
 
 ### Technology Stack
 
-- **Swift 6** with strict concurrency
-- **iOS 18+** minimum deployment
+- **Swift 6.2** with strict concurrency
+- **iOS 26+** minimum deployment
 - **SwiftUI** with Observation framework (@Observable/@Bindable)
 - **StoreKit 2** for in-app purchases
+- **Firebase** for auth, Firestore progress/reporting, and Cloud Functions leaderboards
+- **Google Mobile Ads / UMP** for ads and consent
 - **Dependency Injection** via @Environment
 - **Deterministic RNG** for replay support
 
@@ -37,9 +39,9 @@ A modern implementation of the 2244 puzzle game for iOS 18+, built with Swift 6,
 
 ### Prerequisites
 
-- Xcode 16.0+
-- iOS 18.0+ SDK
-- Swift 6.0+
+- Xcode 26+
+- iOS 26 SDK
+- Swift 6.2+
 
 ### Building the Project
 
@@ -49,6 +51,7 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace \
            -scheme game2244 \
            -configuration Debug \
            -sdk iphonesimulator \
+           -onlyUsePackageVersionsFromResolvedFile \
            -quiet clean build
 
 # Build for Device  
@@ -56,12 +59,20 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace \
            -scheme game2244 \
            -configuration Release \
            -sdk iphoneos \
+           -onlyUsePackageVersionsFromResolvedFile \
            -quiet clean build
 ```
 
-The app-level Xcode lockfiles are resolved with `FIREBASE_SOURCE_FIRESTORE=1`.
-Keep that environment variable when resolving packages, building archives, or
-reproducing Xcode Cloud so Firebase uses the `grpc-ios` source-Firestore graph.
+The committed app-project and package lockfiles are resolved with
+`FIREBASE_SOURCE_FIRESTORE=1`. Keep that environment variable when resolving
+packages, building archives, or reproducing Xcode Cloud so Firebase uses the
+`grpc-ios` source-Firestore graph. Keep
+`-onlyUsePackageVersionsFromResolvedFile` on local CLI builds so Xcode does not
+rewrite the workspace lockfile back to Firebase's binary Firestore graph.
+In Xcode Cloud, set `FIREBASE_SOURCE_FIRESTORE` to `1` in the workflow
+Environment section. The repo's `ci_scripts/ci_pre_xcodebuild.sh` checks this
+before the archive step so Cloud does not silently try to resolve
+`abseil-cpp-binary` / `grpc-binary` against the committed source lockfiles.
 
 ### Running Tests
 
@@ -76,50 +87,32 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild test -workspace game2244.xcworkspace \
 swift test --package-path Packages/GameCore
 ```
 
-## 🎯 Development Roadmap
+## 🎯 Release Status
 
-### ✅ M0: Bootstrap (Complete)
-- [x] Workspace and module structure
-- [x] Local SwiftPM packages
-- [x] Dependency injection setup
-- [x] Basic app scene
+The app is past the initial roadmap milestones. Core gameplay, progression,
+daily rewards, challenges, achievements, StoreKit catalog wiring, Firebase
+leaderboard submission, reporting, AdMob integration, and launch-readiness
+checks are implemented locally.
 
-### 🚧 M1: Core Gameplay (In Progress)
-- [x] Board representation and tiles
-- [x] Chain validation logic
-- [x] Merge mechanics and gravity
-- [x] Drag gesture handling
-- [ ] Polish animations and haptics
-
-### 📋 M2: Monetization
-- [ ] StoreKit 2 integration
-- [ ] Ad service abstraction
-- [ ] Coin economy
-- [ ] Power-ups (hammer, swap, shuffle)
-
-### 📋 M3: Theming & Accessibility
-- [ ] Dynamic color themes
-- [ ] Color-blind mode
-- [ ] VoiceOver support
-- [ ] Remote Config integration
-
-### 📋 M4: Daily Mode & Replay
-- [ ] Daily seed generation
-- [ ] Replay recording/playback
-- [ ] Share codes
-- [ ] Leaderboards
+Before an App Store submission, use `Docs/ReleaseReadiness.md` as the source of
+truth. The remaining work is mainly external validation: App Store Connect IAP
+metadata and agreements, AdMob/UMP console setup, TestFlight sandbox purchases,
+real-device Firebase smoke tests, and App Privacy completion.
 
 ## 🔑 Configuration
 
-### Product IDs (Placeholder)
-```swift
-let adFreeProductID = "com.game2244.adfree"
-```
+### Product IDs
 
-### Remote Config Keys
-- `theme.palette` - Color theme overrides
-- `game.spawnWeights` - Tile spawn probabilities
-- `ads.interstitialInterval` - Games between ads
+The canonical StoreKit catalog is documented in `Docs/IAP_CATALOG.md` and
+implemented in `Packages/GameCore/Sources/GameCore/Models/IAPProduct.swift`.
+All 15 product IDs must exist in App Store Connect before submission.
+
+### Firebase
+
+Keep the real `GoogleService-Info.plist` local at
+`2244/game2244/GoogleService-Info.plist`. It is intentionally ignored and must
+not be committed. Deploy Firebase from the `firebase/` directory through the
+scripts in `firebase/package.json`; there is no root-level Firebase deploy path.
 
 ## 🧪 Testing
 

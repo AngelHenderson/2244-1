@@ -1,0 +1,20 @@
+{
+  "name": "game2244-firebase",
+  "private": true,
+  "scripts": {
+    "firebase": "NO_UPDATE_NOTIFIER=1 firebase",
+    "login": "NO_UPDATE_NOTIFIER=1 firebase login",
+    "projects": "NO_UPDATE_NOTIFIER=1 firebase projects:list",
+    "emulators": "NO_UPDATE_NOTIFIER=1 firebase emulators:start --project project-7513530591038917977",
+    "deploy:rules": "NO_UPDATE_NOTIFIER=1 firebase deploy --only firestore:rules --project project-7513530591038917977",
+    "deploy:indexes": "NO_UPDATE_NOTIFIER=1 firebase deploy --only firestore:indexes --project project-7513530591038917977",
+    "deploy:firestore": "NO_UPDATE_NOTIFIER=1 firebase deploy --only firestore --project project-7513530591038917977",
+    "deploy:functions": "NO_UPDATE_NOTIFIER=1 firebase deploy --only functions --project project-7513530591038917977",
+    "deploy:backend": "NO_UPDATE_NOTIFIER=1 firebase deploy --only firestore,functions --project project-7513530591038917977",
+    "artifacts:setpolicy": "NO_UPDATE_NOTIFIER=1 firebase functions:artifacts:setpolicy --location us-central1 --days 7 --force --project project-7513530591038917977",
+    "functions:allow-invoker": "gcloud functions add-invoker-policy-binding submitScore --gen2 --region us-central1 --project project-7513530591038917977 --member=allUsers"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.18.0"
+  }
+}

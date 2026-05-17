@@ -61,6 +61,7 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 .DS_Store
+node_modules/
 *.xcworkspacedata
 GoogleService-Info.plist
 GoogleService-Info-*.plist

@@ -53,11 +53,15 @@ public struct HybridGameScreen: View {
     @State private var isShowingMilestoneStart = false
     @State private var isShowingInsufficientGemsAlert = false
     @State private var isShowingMilestoneTooLowAlert = false
+    @State private var pendingMilestoneSpend: MilestoneTier?
     @State private var selectedMilestoneIndex: Int = 0
     @State private var gameOverResetTask: Task<Void, Never>? = nil
     @State private var isShowingLowOnMoves = false
     @State private var lowMovesWarningArmed = true
     @State private var isShowingQuitConfirmation = false
+    @State private var pendingGameSummary: GameSummaryPresentation?
+    @State private var runBestScoreAtStart: AlphaNumber = .zero
+    @AppStorage("hasSeenFirstGameSummary") private var hasSeenFirstGameSummary = false
 
     // Temporary HomeState for HUDTopBar (initialized with game values)
     @State private var tempHomeState: HomeState = {
@@ -96,6 +100,11 @@ public struct HybridGameScreen: View {
         let notificationBinding = Binding(
             get: { gameStore.currentNotification != nil },
             set: { newValue in if !newValue { gameStore.dismissCurrentNotification() } }
+        )
+
+        let milestoneSpendBinding = Binding(
+            get: { pendingMilestoneSpend != nil },
+            set: { newValue in if !newValue { pendingMilestoneSpend = nil } }
         )
 
         let baseView = gameplayLayout
@@ -279,6 +288,7 @@ public struct HybridGameScreen: View {
                 // Initialize tempHomeState with current values
                 tempHomeState.gems = gameStore.coins
                 tempHomeState.rank = UserLeaderboardData.globalRank
+                captureRunStartBaselines()
                 // Only show unlock reward if there's no notification already pending
                 let hasUnlockNotification = gameStore.currentNotification != nil
                 isShowingUnlockReward = gameStore.pendingUnlockRewardBase != nil && !hasUnlockNotification
@@ -333,7 +343,7 @@ public struct HybridGameScreen: View {
                 }
             }
             .onChange(of: gameStore.state.isGameOver) { _, isGameOver in
-                if isGameOver && !isShowingPowerUpOverlay && !isShowingGameOverText {
+                if isGameOver && !isShowingPowerUpOverlay && !isShowingGameOverText && pendingGameSummary == nil {
                     // Show out of moves dialog when game ends
                     powerUpOverlayContext = .outOfMoves
                     isShowingPowerUpOverlay = true
@@ -344,6 +354,7 @@ public struct HybridGameScreen: View {
                     gameOverResetTask = nil
                     isShowingPowerUpOverlay = false
                     isShowingGameOverText = false
+                    pendingGameSummary = nil
                 }
             }
             .onChange(of: gameStore.validMovesCount) { _, newCount in
@@ -379,11 +390,32 @@ public struct HybridGameScreen: View {
                 if isShowingPowerUpOverlay {
                     powerUpOverlay
                 }
+
+                if let presentation = pendingGameSummary {
+                    GameSummaryView(
+                        summary: presentation.summary,
+                        isFirstRun: presentation.isFirstRun,
+                        isPersonalBest: presentation.isPersonalBest,
+                        onPlayAgain: { playAgainFromSummary() },
+                        onReplayFromMilestone: { replayFromMilestoneAfterSummary() },
+                        onHome: { returnHomeFromSummary() }
+                    )
+                }
             }
             .navigationTitle("")
             .platformNavigationTitleDisplayMode(.inline)
             .toolbar { gameplayNavigationToolbar }
             .gameplayNavigationBarBackground()
+        }
+        .alert("Spend Gems?", isPresented: milestoneSpendBinding, presenting: pendingMilestoneSpend) { tier in
+            Button("Cancel", role: .cancel) {
+                pendingMilestoneSpend = nil
+            }
+            Button("Spend \(tier.gemCost) Gems") {
+                confirmMilestoneSpend(tier)
+            }
+        } message: { tier in
+            Text("Spend \(tier.gemCost) gems to replay from \(tier.label)?")
         }
         .trackScreen(.gameplay)
     }
@@ -668,6 +700,7 @@ public struct HybridGameScreen: View {
     private func showGameOverAndReset() {
         gameStore.gameOverConfirmed = true
         isShowingGameOverText = true
+        isShowingPowerUpOverlay = false
 
         // Post the player's highest tile to the social feed
         let step = gameStore.state.highestTileStep
@@ -677,7 +710,7 @@ public struct HybridGameScreen: View {
         // Cancel any existing reset task
         gameOverResetTask?.cancel()
 
-        // Show GAME OVER for 2 seconds, then transition to milestone picker
+        // Show GAME OVER briefly, then transition into the run payoff summary.
         gameOverResetTask = Task {
             try? await Task.sleep(for: .seconds(2))
 
@@ -685,24 +718,84 @@ public struct HybridGameScreen: View {
 
             await MainActor.run {
                 isShowingGameOverText = false
-                selectedMilestoneIndex = 0
-                isShowingMilestoneStart = true
+                pendingGameSummary = makeGameSummaryPresentation()
             }
         }
     }
 
     private func startAtMilestone(_ tier: MilestoneTier) {
         if tier.gemCost > 0 {
-            guard gameStore.spendCoins(tier.gemCost) else { return }
+            pendingMilestoneSpend = tier
+            return
         }
+        startAtMilestoneAfterSpend(tier)
+    }
+
+    private func confirmMilestoneSpend(_ tier: MilestoneTier) {
+        pendingMilestoneSpend = nil
+        guard gameStore.spendCoins(tier.gemCost) else {
+            isShowingInsufficientGemsAlert = true
+            return
+        }
+        startAtMilestoneAfterSpend(tier)
+    }
+
+    private func startAtMilestoneAfterSpend(_ tier: MilestoneTier) {
         isShowingMilestoneStart = false
         isShowingQuitConfirmation = false
+        pendingGameSummary = nil
         lowMovesWarningArmed = true
         if tier.step == 0 {
             gameStore.resetGame()
         } else {
             gameStore.resetGameAtMilestone(step: tier.step)
         }
+        captureRunStartBaselines()
+    }
+
+    private func makeGameSummaryPresentation() -> GameSummaryPresentation {
+        let summary = gameStore.currentRunSummary()
+        let presentation = GameSummaryPresentation(
+            summary: summary,
+            isFirstRun: !hasSeenFirstGameSummary,
+            isPersonalBest: !summary.scoreAlpha.isZero && summary.scoreAlpha > runBestScoreAtStart
+        )
+        hasSeenFirstGameSummary = true
+        return presentation
+    }
+
+    private func playAgainFromSummary() {
+        pendingGameSummary = nil
+        selectedMilestoneIndex = 0
+        startAtMilestoneAfterSpend(MilestoneTier.allTiers[0])
+    }
+
+    private func replayFromMilestoneAfterSummary() {
+        pendingGameSummary = nil
+        selectedMilestoneIndex = 0
+        isShowingPowerUpOverlay = false
+        isShowingQuitConfirmation = false
+        isShowingMilestoneStart = true
+    }
+
+    private func returnHomeFromSummary() {
+        pendingGameSummary = nil
+        isShowingPowerUpOverlay = false
+        isShowingMilestoneStart = false
+        isShowingQuitConfirmation = false
+        isPlayingDismiss?()
+    }
+
+    private func captureRunStartBaselines() {
+        runBestScoreAtStart = savedBestScoreAlpha()
+    }
+
+    private func savedBestScoreAlpha() -> AlphaNumber {
+        if let string = UserDefaults.standard.string(forKey: "savedBestScoreAlpha"),
+           let alpha = AlphaNumber(decimalString: string) {
+            return alpha
+        }
+        return AlphaNumber(UserDefaults.standard.integer(forKey: "savedBestScore"))
     }
 
     @ViewBuilder
@@ -2252,6 +2345,14 @@ private struct ProgressLine: View {
 }
 
 // MARK: - Milestone Start Data
+
+private struct GameSummaryPresentation: Identifiable {
+    let summary: GameRunSummary
+    let isFirstRun: Bool
+    let isPersonalBest: Bool
+
+    var id: String { summary.id }
+}
 
 struct MilestoneTier: Identifiable {
     let id: Int  // index

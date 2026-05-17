@@ -71,23 +71,18 @@ cp firebase/GoogleService-Info-template.plist 2244/game2244/GoogleService-Info.p
 
 ### 3. Deploy Backend
 ```bash
-cd firebase
-
-# Install Firebase CLI if needed
-npm install -g firebase-tools
-
-# Login and init
-firebase login
-firebase init functions
-firebase init firestore
-
-# Install function dependencies
-cd functions
-npm install
-
-# Deploy everything
-firebase deploy
+npm --prefix firebase install
+npm --prefix firebase/functions install
+npm --prefix firebase run login
+npm --prefix firebase run deploy:firestore
+npm --prefix firebase run deploy:functions
+npm --prefix firebase run functions:allow-invoker
+npm --prefix firebase run artifacts:setpolicy
 ```
+
+Do not run `firebase deploy` from the repository root. The active Firebase CLI
+configuration is `firebase/firebase.json`, and launch validation fails if a
+root-level `firebase.json` or `functions/` directory reappears.
 
 ### 4. iOS Project Setup
 The iOS integration is already complete. Keep the real
@@ -229,6 +224,8 @@ rules cover the launch paths:
 - `/players/{uid}/leaderboards/{board=**}` covers per-player leaderboard metadata;
 - `/players/{uid}/purchases/{txnId}` covers purchase receipt mirrors;
 - `/reports/{id}` is append-only and requires `reporterId == request.auth.uid`.
+- `firebase/functions/src/index.ts` exports both `submitScore` and
+  `onReportCreated`.
 - the real `2244/game2244/GoogleService-Info.plist` is ignored and not tracked.
 
 ### Production Testing
@@ -251,7 +248,11 @@ sandbox/test user:
    `/players/{uid}/progress/blocked` round-trips and still filters the player.
 6. Submit a report from the leaderboard and confirm a new `/reports/{id}` doc
    contains `reporterId`, `reportedPlayerName`, `reason`, and timestamps.
-7. Attempt a direct client write to `/leaderboards/global/scores/{uid}` from the
+7. Confirm `onReportCreated` runs after the report write. For a resolvable
+   `reportedPlayerId`, the matching `/players/{reportedPlayerId}` document
+   should receive `abuse_points` / `last_reported_at` updates, with duplicate
+   report cooldown behavior.
+8. Attempt a direct client write to `/leaderboards/global/scores/{uid}` from the
    emulator or Firebase console rules playground and confirm it is denied.
 
 ## Monitoring
@@ -286,8 +287,9 @@ sandbox/test user:
 ## Firestore Rules Source-of-Truth
 
 The deployable rules live at `firebase/firestore.rules` and are picked up by
-`firebase deploy --only firestore:rules` via `firebase/firebase.json`. The
-root-level `firestore.rules` mirrors that file exactly — keep both in sync.
+the npm scripts in `firebase/package.json` via `firebase/firebase.json`. The
+root-level `firestore.rules` mirrors that file exactly so editor tooling can
+find it — keep both rule files in sync.
 
 Both files require:
 
@@ -299,6 +301,7 @@ Both files require:
   the owner only.
 - `/players/{uid}/purchases/{txnId}` — append-only by owner.
 - `/reports/{id}` — append-only, must include `reporterId == request.auth.uid`.
+  `onReportCreated` handles server-side de-dupe and moderation escalation.
 - `/leaderboards/{boardId}/scores/{uid}` — public read, **Cloud Function-only
   write**. Direct client writes are rejected; the `submitScore` callable is the
   only legitimate write path.
@@ -331,6 +334,7 @@ FirebaseConfiguration.shared.setLoggerLevel(.debug)
 
 **Implementation Status**: ✅ Complete and Ready for Production
 
-The Firebase leaderboard system is fully integrated and ready to use. Add the
-local `GoogleService-Info.plist`, deploy the Cloud Functions and rules, then run
-the smoke checklist above before submission.
+The Firebase leaderboard and report-moderation functions are integrated and
+ready to use. Add the local `GoogleService-Info.plist`, deploy the Cloud
+Functions and rules from `firebase/`, then run the smoke checklist above before
+submission.

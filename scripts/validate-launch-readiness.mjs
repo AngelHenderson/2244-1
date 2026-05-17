@@ -67,9 +67,25 @@ const storeKitSchemeReference = scheme.match(/<StoreKitConfigurationFileReferenc
 
 assert(workspace.includes('location = "group:2244/game2244.xcodeproj"'), 'Workspace does not reference the active 2244/game2244.xcodeproj project.');
 assert(!fs.existsSync(path.join(root, 'game2244')), 'Stale root-level game2244 directory exists. The active app target is 2244/game2244.');
+assert(!fs.existsSync(path.join(root, 'firebase.json')), 'Stale root-level firebase.json exists. Deploy from firebase/firebase.json via npm --prefix firebase scripts.');
+assert(!fs.existsSync(path.join(root, 'functions')), 'Stale root-level functions directory exists. Active Cloud Functions live under firebase/functions.');
+assertExists('firebase/firebase.json', 'firebase/firebase.json is missing.');
+assertExists('firebase/functions/src/index.ts', 'firebase/functions/src/index.ts is missing.');
+assertExists('firebase/functions/src/submitScore.ts', 'firebase/functions/src/submitScore.ts is missing.');
+assertExists('firebase/functions/src/onReportCreated.ts', 'firebase/functions/src/onReportCreated.ts is missing.');
+assertExists('ci_scripts/ci_pre_xcodebuild.sh', 'ci_scripts/ci_pre_xcodebuild.sh is missing.');
+const functionsIndex = read('firebase/functions/src/index.ts');
+assert(functionsIndex.includes('submitScore'), 'Active functions index does not export submitScore.');
+assert(functionsIndex.includes('onReportCreated'), 'Active functions index does not export onReportCreated.');
+const xcodeCloudPrebuildScript = read('ci_scripts/ci_pre_xcodebuild.sh');
+assert(xcodeCloudPrebuildScript.includes('FIREBASE_SOURCE_FIRESTORE=1'), 'Xcode Cloud prebuild script does not enforce FIREBASE_SOURCE_FIRESTORE=1.');
+assert((fs.statSync(path.join(root, 'ci_scripts/ci_pre_xcodebuild.sh')).mode & 0o111) !== 0, 'ci_scripts/ci_pre_xcodebuild.sh is not executable.');
 for (const lockfile of [
   'game2244.xcworkspace/xcshareddata/swiftpm/Package.resolved',
   '2244/game2244.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved',
+  'Packages/GameServices/Package.resolved',
+  'Packages/GameApp/Package.resolved',
+  'Packages/GameUI/Package.resolved',
 ]) {
   assertExists(lockfile, `${lockfile} is missing.`);
   const pins = new Set((readJSON(lockfile).pins ?? []).map((pin) => pin.identity));

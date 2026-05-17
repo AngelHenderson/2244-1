@@ -818,8 +818,8 @@ These surfaces still exist in the repo and are screen-like, but they are not par
 - `ProgressSyncCoordinator` attaches `FirestoreProgressStore` when Firebase is
   configured; otherwise it degrades to local-only progress.
 - `ReportPlayerSheet` submits to `ReportService` and can optionally hide the
-  reported player locally; backend de-dupe/ban enforcement remains an external
-  Cloud Functions concern.
+  reported player locally; `firebase/functions/src/onReportCreated.ts` handles
+  backend de-dupe and moderation escalation after report documents are created.
 - `PlayerHistoryView` still derives activity history from leaderboard entries;
   treat it as an engagement/history visualization, not a server-backed
   moderation audit log.

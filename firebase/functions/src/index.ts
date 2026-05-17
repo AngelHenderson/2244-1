@@ -1,8 +1,5 @@
-import { initializeApp } from "firebase-admin/app";
 import { submitScore } from "./submitScore";
-
-// Initialize Firebase Admin
-initializeApp();
+import { onReportCreated } from "./onReportCreated";
 
 // Export Cloud Functions
-export { submitScore };
+export { submitScore, onReportCreated };

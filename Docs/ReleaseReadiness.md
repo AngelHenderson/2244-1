@@ -6,40 +6,64 @@ Use this as the final engineering and App Store checklist for release
 candidates. It is intentionally limited to launch blockers, trust/privacy,
 monetization, Firebase, IAP, first-launch UX, and external console work.
 
-## Current State Snapshot (2026-04-30)
+## Current State Snapshot (updated 2026-05-17)
 
 What is verified done from this machine:
 
-- Repo HEAD: `381945ab` (Address remaining Focus, Trust, And Launch Readiness gaps).
+- Repo has local release-readiness changes in progress. Run `git status --short`
+  before archiving or cutting a submission build.
 - Firebase project pinned via `firebase/.firebaserc` to the existing Puzzle Games
   project, `project-7513530591038917977`. `firebase use` from `firebase/` resolves to
   that project; root no longer relies on global state for the Firebase project
   directory.
-- `firebase/functions/` TypeScript build passes (`npm install` + `npm run build`
-  produces `lib/index.js` and `lib/submitScore.js`). One pre-existing source
-  bug fixed: `firebase-functions/v2/https` does not export `logger` in
-  `firebase-functions@^5`; replaced `functions.logger` with `import { logger }
-  from "firebase-functions"`.
-- Firestore rules must be deployed to Puzzle Games (`project-7513530591038917977`),
-  the active release project.
+- Firebase Console app metadata is aligned for the iOS app:
+  bundle ID `com.ideabloomlabs.game2244`, App Store ID `6751923364`, and Apple
+  Team ID `U6GR42555U`.
+- Firebase Authentication has Email/Password and Anonymous providers enabled.
+- Local Firebase CLI is installed under `firebase/` via `firebase-tools`, logged
+  in as the release account, and sees `Puzzle Games` as the current project.
+- Firestore rules and composite indexes were deployed to Puzzle Games with
+  `npm --prefix firebase run deploy:firestore`.
+- Cloud Functions deploy from `firebase/functions/` with
+  `npm --prefix firebase run deploy:functions`. The active code exports
+  `submitScore` and `onReportCreated` on Node.js 22. Redeploy after changing
+  either function. Artifact Registry cleanup policy is set to delete old
+  function images after 7 days.
+- `submitScore` has public gen2 invoker access on the backing Cloud Run service
+  so Firebase callable requests can reach the handler; the handler still rejects
+  unauthenticated requests with Firebase Auth.
+- Live callable smoke passed using a temporary anonymous Firebase Auth user and
+  `mode:smoke_test`; the temporary Firestore leaderboard tree was deleted after
+  the smoke run.
+- `firebase/functions/` TypeScript build should produce `lib/index.js`,
+  `lib/submitScore.js`, and `lib/onReportCreated.js`.
 - `validate-launch-readiness.mjs` passes. Root `firestore.rules` and
-  `firebase/firestore.rules` are byte-identical.
+  `firebase/firestore.rules` are byte-identical; root-level `firebase.json`
+  and `functions/` are intentionally absent so deployments cannot target stale
+  backend code.
+- Xcode Cloud must define workflow environment variable
+  `FIREBASE_SOURCE_FIRESTORE=1` before archive. The committed
+  app-project and package `Package.resolved` files use Firebase's
+  source-Firestore graph (`abseil-cpp-swiftpm`, `boringssl-swiftpm`,
+  `grpc-ios`); without that variable, Xcode Cloud resolves
+  `abseil-cpp-binary` / `grpc-binary` and fails because automatic dependency
+  resolution is disabled. The executable `ci_scripts/ci_pre_xcodebuild.sh` now
+  fails early with this exact instruction when the variable is missing.
+- The Release simulator app bundle contains `GoogleService-Info.plist` for
+  `project-7513530591038917977` / `com.ideabloomlabs.game2244`, and
+  `Info.plist` resolves the production AdMob app ID
+  `ca-app-pub-7853395118626839~7726164547`.
 
 Still blocked from this machine:
 
-- Cloud Functions deploy. Confirm whether Puzzle Games (`project-7513530591038917977`) is on Blaze.
-  `cloudfunctions.googleapis.com`, `cloudbuild.googleapis.com`, and
-  `artifactregistry.googleapis.com` require Blaze. Until the project is
-  upgraded, `submitScore` is not deployed and direct client writes to
-  `/leaderboards/{boardId}/scores/{uid}` will be denied (which matches rules,
-  but means no leaderboard data lands in Firestore).
-- Live game-end smoke writes: cannot run until `submitScore` deploys.
-- Live `/players/{uid}/progress/blocked` smoke write: requires a real device
-  session and Firebase Console observation; not runnable from this CLI.
-- Leaked Firebase Web API key. `2244/game2244/GoogleService-Info.plist` was
-  un-tracked in commit `148eaa07`, but the key
-  `AIzaSyC6wRiQH9L50oNcnVazu0tFsFkAnDeof7M` (project number 1032642468174)
-  remains in git history and is still valid until rotated in the GCP console.
+- Live game-end smoke writes from the app still require a real device/TestFlight
+  session and Firebase Console observation.
+- Live `/players/{uid}/progress/blocked` smoke write still requires a real
+  device session and Firebase Console observation.
+- Firebase credential exposure is mitigated. `2244/game2244/GoogleService-Info.plist`
+  was un-tracked in commit `148eaa07`, remains gitignored, and the live iOS
+  key for project number 1032642468174 is restricted to bundle identifier
+  `com.ideabloomlabs.game2244` with Firebase API target restrictions.
 
 ## Last 2% Closeout Status (2026-05-10)
 
@@ -54,21 +78,26 @@ Current engineering status:
   Firebase, AdMob, and App Store Connect checks still require real accounts and
   console access.
 
-Local gates verified on 2026-05-10:
+Local gates verified on 2026-05-17:
 
 ```bash
 node scripts/validate-launch-readiness.mjs
 swift test --package-path Packages/GameCore
 swift test --package-path Packages/GameServices
 swift test --package-path Packages/GameApp
-swift test --package-path Packages/GameUI
-FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
 ```
 
 Non-blocking local build warnings:
 
 - Source-Firestore `abseil` package emits "no rule to process file" warnings
   for included non-source files.
+- Standalone `swift test --package-path Packages/GameUI` can be brittle with
+  `FIREBASE_SOURCE_FIRESTORE=1` because SwiftPM compiles the full Firestore/grpc
+  source tree and can fail in generated abseil dependency files before reaching
+  app code. Use the workspace `xcodebuild` gate for release-critical GameUI
+  compilation.
 - App Intents metadata extraction is skipped because the app has no
   AppIntents.framework dependency.
 
@@ -94,25 +123,26 @@ Minimal launch-learning analytics are wired through the existing
 The numbered items below must be completed in App Store Connect, GCP, AdMob,
 or on a device — they cannot be finished from this CLI session.
 
-1. **Upgrade Firebase plan.** Open
-   <https://console.firebase.google.com/project/project-7513530591038917977/usage/details>
-   and confirm the Puzzle Games project is on Blaze (pay-as-you-go). Set a budget
-   alert if it is not already configured.
-2. **Deploy Cloud Functions** once Blaze is active:
+1. **Firebase billing guardrails — verified 2026-05-16.** The Puzzle Games
+   Firebase project is linked to billing account `016E96-92CE0F-81942A` and has
+   a `$25` monthly budget for project number `1032642468174` with alert
+   thresholds at 50%, 90%, and 100%.
+2. **Redeploy backend when needed:**
    ```bash
-   cd firebase
-   firebase deploy --only functions --project project-7513530591038917977
+   npm --prefix firebase run deploy:firestore
+   npm --prefix firebase run deploy:functions
+   npm --prefix firebase run functions:allow-invoker
+   npm --prefix firebase run artifacts:setpolicy
    ```
-   Expect a callable `submitScore` to appear in
+   Callable `submitScore` and trigger `onReportCreated` should remain visible in
    `https://console.firebase.google.com/project/project-7513530591038917977/functions`.
-3. **Rotate the leaked Web API key** in the GCP Console under APIs & Services →
-   Credentials. The current value in git history is
-   `AIzaSyC6wRiQH9L50oNcnVazu0tFsFkAnDeof7M`. After rotating, regenerate
-   `GoogleService-Info.plist` from the Firebase Console (Project Settings →
-   Your apps → iOS app), drop the new file at
-   `2244/game2244/GoogleService-Info.plist` (still gitignored), and add API key
-   restrictions (iOS bundle identifier `com.ideabloomlabs.game2244`, allowed
-   APIs limited to Firebase services).
+3. **Credential hygiene check.** The current iOS Firebase API key is restricted
+   to bundle identifier `com.ideabloomlabs.game2244` and Firebase API targets.
+   If the repository is published outside the release team or abuse is
+   suspected, rotate the key in the GCP Console under APIs & Services →
+   Credentials, regenerate `GoogleService-Info.plist` from the Firebase Console
+   (Project Settings → Your apps → iOS app), and drop the new file at
+   `2244/game2244/GoogleService-Info.plist` (still gitignored).
 4. **App Store Connect IAP SKUs.** Confirm all 15 SKUs from
    `Docs/IAP_CATALOG.md` exist with matching type, localization, pricing, and
    review screenshots, and are attached to the submitted version.
@@ -144,9 +174,12 @@ or on a device — they cannot be finished from this CLI session.
      `/players/{uid}/progress/blocked` mirrors the change. Force-quit and
      relaunch; confirm the blocked list still filters that player.
    - Submit a report; confirm `/reports/{id}` lands with `reporterId ==
-     request.auth.uid` and that direct client writes to
-     `/leaderboards/global/scores/{uid}` are rejected from the Firestore Rules
-     Playground.
+     request.auth.uid`.
+   - Confirm `onReportCreated` updates the reported player's moderation fields
+     (`abuse_points`, `last_reported_at`, and ban fields when thresholds are
+     reached).
+   - Confirm direct client writes to `/leaderboards/global/scores/{uid}` are
+     rejected from the Firestore Rules Playground.
 10. **App Store Connect agreements.** Paid Applications agreement, tax, and
     banking must be signed and active.
 11. **AdMob.** Payment profile, store-listing linkage, consent messages, and
@@ -157,14 +190,14 @@ or on a device — they cannot be finished from this CLI session.
 Run before archiving:
 
 ```bash
+test -x ci_scripts/ci_pre_xcodebuild.sh
 node scripts/validate-launch-readiness.mjs
 swift test --package-path Packages/GameCore
 swift test --package-path Packages/GameApp
 swift test --package-path Packages/GameServices
-swift test --package-path Packages/GameUI
-swift build --package-path Packages/GameUI
-FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' build
-FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' build
+npm --prefix firebase/functions run build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
 ```
 
 ## App Store Metadata
@@ -201,8 +234,9 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme g
 - Confirm `GoogleService-Info.plist` exists locally in `2244/game2244/` and
   matches `com.ideabloomlabs.game2244`.
 - The release credential file is removed from the current git index and ignored.
-  If the repo is shared outside the release team, rotate Firebase credentials
-  and purge any historical committed copies before publishing.
+  The live iOS Firebase API key is restricted to
+  `com.ideabloomlabs.game2244`; rotate credentials only if publishing the repo
+  outside the release team or if abuse is suspected.
 - Run the Firebase smoke checklist in `Docs/FIREBASE_INTEGRATION_GUIDE.md`.
 
 ## IAP / StoreKit

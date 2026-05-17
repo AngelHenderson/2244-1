@@ -13,6 +13,9 @@ This directory contains Firebase configuration files and setup instructions.
    - Add an iOS app to your Firebase project
    - Use bundle ID: `com.ideabloomlabs.game2244` (the app target's current release bundle identifier)
    - Download `GoogleService-Info.plist`
+   - Keep the Firebase iOS API key restricted to bundle ID
+     `com.ideabloomlabs.game2244` and the Firebase API target allowlist in
+     Google Cloud APIs & Services → Credentials
    - Keep the actual configuration local and out of commits:
      ```bash
      cp ~/Downloads/GoogleService-Info.plist /Users/angelhenderson/Development/Personal/2244/2244/game2244/GoogleService-Info.plist
@@ -22,32 +25,70 @@ This directory contains Firebase configuration files and setup instructions.
    - Enable Sign-in methods in Firebase Console:
      - Email/Password (for account creation and sign-in)
      - Anonymous (for guest users)
-     - Apple Sign-In (for iOS users)
+     - Apple Sign-In (optional, if account linking is added)
      - Google Sign-In (optional)
      - Phone (for phone verification, if you want SMS verification live)
 
 4. **Firestore Database**
-   - Create Firestore database in production mode
-   - Deploy security rules (see `firestore.rules`)
+   - Firestore exists in Native mode in `nam5`
+   - Deploy security rules and indexes from this directory:
+     ```bash
+     npm --prefix firebase run deploy:firestore
+     ```
 
 5. **Cloud Functions**
-   - Initialize Functions in your project:
+   - Deploy the existing functions:
      ```bash
-     cd firebase
-     firebase init functions
+     npm --prefix firebase run deploy:functions
      ```
-   - Deploy the functions (see `functions/` directory)
+   - Keep old container images cleaned up:
+     ```bash
+     npm --prefix firebase run artifacts:setpolicy
+     ```
+   - If callable requests return an HTTP 401 before reaching function code,
+     restore the gen2 invoker binding:
+     ```bash
+     npm --prefix firebase run functions:allow-invoker
+     ```
+
+## Local Firebase CLI
+
+The Firebase CLI is installed as a local dev dependency in this directory.
+Use npm scripts instead of relying on a global `firebase` binary:
+
+```bash
+npm --prefix firebase run firebase -- --version
+npm --prefix firebase run projects
+npm --prefix firebase run deploy:rules
+npm --prefix firebase run deploy:indexes
+npm --prefix firebase run deploy:firestore
+npm --prefix firebase run deploy:functions
+npm --prefix firebase run functions:allow-invoker
+npm --prefix firebase run artifacts:setpolicy
+```
+
+Cloud Functions run in `us-central1` on Node.js 22:
+
+- `submitScore` is a callable second-generation function. It allows public
+  Cloud Run invocation so Firebase callable clients can reach the handler, then
+  enforces Firebase Auth inside the function before accepting score writes.
+- `onReportCreated` is a Firestore trigger on `/reports/{reportId}`. It
+  de-dupes repeat reports from the same reporter/target pair, increments
+  moderation points on the reported player document, and escalates repeat abuse
+  into temporary or permanent bans.
 
 ## Project Structure
 
 ```
 firebase/
+├── package.json                        # Local Firebase CLI scripts
 ├── GoogleService-Info-template.plist  # Template configuration
 ├── firestore.rules                    # Security rules
 ├── functions/                         # Cloud Functions
 │   ├── src/
 │   │   ├── index.ts                  # Main functions export
-│   │   └── submitScore.ts            # Score submission function
+│   │   ├── submitScore.ts            # Score submission callable
+│   │   └── onReportCreated.ts        # Report moderation trigger
 │   ├── package.json                  # Dependencies
 │   └── tsconfig.json                 # TypeScript config
 └── firebase.json                     # Firebase project config
@@ -66,6 +107,8 @@ firebase functions:config:set app.version="1.0.0"
 
 - All score submissions are server-authoritative
 - Client apps cannot write directly to Firestore
+- The live iOS Firebase API key is restricted to
+  `com.ideabloomlabs.game2244` plus Firebase API targets
 - Consider implementing App Attest (iOS) for additional security
 - Rate limiting is built into Cloud Functions
 
