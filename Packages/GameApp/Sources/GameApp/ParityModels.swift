@@ -1029,6 +1029,7 @@ public struct MockSocialService: SocialService, Sendable {
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
+            persistInteractedItem(cached[index])
         }
     }
 
@@ -1142,15 +1143,27 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         // Also save to the version-independent user posts store
+        persistInteractedItem(newItem)
+    }
+
+    private func persistInteractedItem(_ item: SocialFeedItem) {
+        let defaults = UserDefaults.standard
         var userPosts: [SocialFeedItem] = []
         if let existingData = defaults.data(forKey: Self.userPostsKey),
            let existing = try? JSONDecoder().decode([SocialFeedItem].self, from: existingData) {
             userPosts = existing
         }
-        userPosts.insert(newItem, at: 0)
-        // Keep only last 7 days of user posts
+        
+        if let idx = userPosts.firstIndex(where: { $0.id == item.id }) {
+            userPosts[idx] = item
+        } else {
+            userPosts.insert(item, at: 0)
+        }
+        
+        let now = Date()
         let sevenDaysAgo = now.addingTimeInterval(-7 * 24 * 3600)
         userPosts = userPosts.filter { $0.createdAt > sevenDaysAgo }
+        
         if let userPostsData = try? JSONEncoder().encode(userPosts) {
             defaults.set(userPostsData, forKey: Self.userPostsKey)
         }
@@ -1169,6 +1182,7 @@ public struct MockSocialService: SocialService, Sendable {
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
+            persistInteractedItem(cached[itemIndex])
         }
     }
 
@@ -1188,6 +1202,7 @@ public struct MockSocialService: SocialService, Sendable {
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
+            persistInteractedItem(cached[itemIndex])
         }
     }
 
