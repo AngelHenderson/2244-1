@@ -102,7 +102,7 @@ public struct DailyStreaksView: View {
                 if let timeRemaining = store.getTimeUntilNextClaim() {
                     HStack(spacing: 6) {
                         Image(systemName: "clock")
-                        TimerView(timeRemaining: timeRemaining)
+                        StreakCountdownText(timeRemaining: timeRemaining)
                     }
                     .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
                     .foregroundStyle(.secondary)
@@ -408,6 +408,34 @@ private struct RewardsDisplay: View {
     }
 }
 
+private struct StreakCountdownText: View {
+    let timeRemaining: TimeInterval
+    @State private var deadline: Date?
+    @State private var now = Date()
+
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        Text(timeString)
+            .onAppear {
+                deadline = Date().addingTimeInterval(timeRemaining)
+            }
+            .onReceive(timer) { _ in
+                now = Date()
+            }
+    }
+
+    private var timeString: String {
+        guard let deadline else {
+            return String(format: "%02d:%02d:%02d", 0, 0, 0)
+        }
+        let remaining = max(0, deadline.timeIntervalSince(now))
+        let hours = Int(remaining) / 3600
+        let minutes = (Int(remaining) % 3600) / 60
+        let seconds = Int(remaining) % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+}
 
 #if DEBUG
 #Preview("Daily Streaks") {
