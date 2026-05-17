@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v15"
-    private static let feedDateKey = "socialFeed.cacheDate.v15"
+    private static let feedCacheKey = "socialFeed.cache.v16"
+    private static let feedDateKey = "socialFeed.cacheDate.v16"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts"
 
@@ -2020,6 +2020,16 @@ public struct MockSocialService: SocialService, Sendable {
             let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
             comment = result.0
             nameOverride = result.1
+            // Randomly prepend a competitive opener ~60% of the time
+            if Double.random(in: 0...1) < 0.6 {
+                let compOpeners = [
+                    "Ha!", "Haha", "Lmao", "Lol", "Wow", "Bruh",
+                    "Nah", "Please", "Oh wow", "Yeah no", "Pfft",
+                    "Sorry but", "Hate to break it to you but",
+                ]
+                let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
+                comment = "\(opener) \(comment)"
+            }
             tone = "competitive"
         } else if roll < 0.80 {
             // ── Positive (25%) — with opener + subject/verb/adj ──
