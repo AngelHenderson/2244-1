@@ -2020,8 +2020,8 @@ public struct MockSocialService: SocialService, Sendable {
             let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
             comment = result.0
             nameOverride = result.1
-            // Randomly prepend a competitive opener ~60% of the time
-            if Double.random(in: 0...1) < 0.6 {
+            // Randomly prepend a competitive opener ~95% of the time
+            if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
                     "Ha!", "Haha", "Lmao", "Lol", "Wow", "Bruh",
                     "Nah", "Please", "Oh wow", "Yeah no", "Pfft",
@@ -2032,8 +2032,8 @@ public struct MockSocialService: SocialService, Sendable {
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
             }
-            // Randomly append a competitive closer ~50% of the time
-            if Double.random(in: 0...1) < 0.5 {
+            // Randomly append a competitive closer ~80% of the time
+            if Double.random(in: 0...1) < 0.80 {
                 let compClosers = [
                     "Take the L.", "You lost.", "Give up now.", "It's over for you.",
                     "Stay mad.", "Deal with it.", "Can't relate.", "Get on my level.",
