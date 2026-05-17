@@ -1,9 +1,16 @@
 import * as functions from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
+import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 
-// Initialize Firestore
+// The Firebase CLI imports this module during deploy analysis. Initialize the
+// Admin SDK before any module-scope service access so analysis and runtime both
+// see a default app.
+if (getApps().length === 0) {
+  initializeApp();
+}
+
 const db = getFirestore();
 
 // Composite score calculation constants
@@ -84,6 +91,7 @@ export const submitScore = functions.onCall(
     timeoutSeconds: 60,
     memory: "256MiB",
     maxInstances: 100,
+    invoker: "public",
   },
   async (request) => {
     // Verify authentication

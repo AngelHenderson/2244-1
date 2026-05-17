@@ -6,7 +6,7 @@ Use this as the final engineering and App Store checklist for release
 candidates. It is intentionally limited to launch blockers, trust/privacy,
 monetization, Firebase, IAP, first-launch UX, and external console work.
 
-## Current State Snapshot (2026-04-30)
+## Current State Snapshot (updated 2026-05-16)
 
 What is verified done from this machine:
 
@@ -15,30 +15,35 @@ What is verified done from this machine:
   project, `project-7513530591038917977`. `firebase use` from `firebase/` resolves to
   that project; root no longer relies on global state for the Firebase project
   directory.
+- Firebase Console app metadata is aligned for the iOS app:
+  bundle ID `com.ideabloomlabs.game2244`, App Store ID `6751923364`, and Apple
+  Team ID `U6GR42555U`.
+- Firebase Authentication has Email/Password and Anonymous providers enabled.
+- Local Firebase CLI is installed under `firebase/` via `firebase-tools`, logged
+  in as the release account, and sees `Puzzle Games` as the current project.
+- Firestore rules and composite indexes were deployed to Puzzle Games with
+  `npm --prefix firebase run deploy:firestore`.
+- Cloud Functions were deployed to Puzzle Games with
+  `npm --prefix firebase run deploy:functions`. Callable function
+  `submitScore` is live in `us-central1` on Node.js 22. Artifact Registry
+  cleanup policy is set to delete old function images after 7 days.
 - `firebase/functions/` TypeScript build passes (`npm install` + `npm run build`
   produces `lib/index.js` and `lib/submitScore.js`). One pre-existing source
   bug fixed: `firebase-functions/v2/https` does not export `logger` in
   `firebase-functions@^5`; replaced `functions.logger` with `import { logger }
   from "firebase-functions"`.
-- Firestore rules must be deployed to Puzzle Games (`project-7513530591038917977`),
-  the active release project.
 - `validate-launch-readiness.mjs` passes. Root `firestore.rules` and
   `firebase/firestore.rules` are byte-identical.
 
 Still blocked from this machine:
 
-- Cloud Functions deploy. Confirm whether Puzzle Games (`project-7513530591038917977`) is on Blaze.
-  `cloudfunctions.googleapis.com`, `cloudbuild.googleapis.com`, and
-  `artifactregistry.googleapis.com` require Blaze. Until the project is
-  upgraded, `submitScore` is not deployed and direct client writes to
-  `/leaderboards/{boardId}/scores/{uid}` will be denied (which matches rules,
-  but means no leaderboard data lands in Firestore).
-- Live game-end smoke writes: cannot run until `submitScore` deploys.
-- Live `/players/{uid}/progress/blocked` smoke write: requires a real device
-  session and Firebase Console observation; not runnable from this CLI.
+- Live game-end smoke writes from the app still require a real device/TestFlight
+  session and Firebase Console observation.
+- Live `/players/{uid}/progress/blocked` smoke write still requires a real
+  device session and Firebase Console observation.
 - Leaked Firebase Web API key. `2244/game2244/GoogleService-Info.plist` was
   un-tracked in commit `148eaa07`, but the key
-  `AIzaSyC6wRiQH9L50oNcnVazu0tFsFkAnDeof7M` (project number 1032642468174)
+  `<redacted Firebase Web API key>` (project number 1032642468174)
   remains in git history and is still valid until rotated in the GCP console.
 
 ## Last 2% Closeout Status (2026-05-10)
@@ -94,20 +99,21 @@ Minimal launch-learning analytics are wired through the existing
 The numbered items below must be completed in App Store Connect, GCP, AdMob,
 or on a device — they cannot be finished from this CLI session.
 
-1. **Upgrade Firebase plan.** Open
+1. **Confirm Firebase billing guardrails.** Open
    <https://console.firebase.google.com/project/project-7513530591038917977/usage/details>
-   and confirm the Puzzle Games project is on Blaze (pay-as-you-go). Set a budget
-   alert if it is not already configured.
-2. **Deploy Cloud Functions** once Blaze is active:
+   and confirm the Puzzle Games project has budget alerts/usage monitoring
+   suitable for Cloud Functions, Cloud Build, Artifact Registry, and Firestore.
+2. **Redeploy backend when needed:**
    ```bash
-   cd firebase
-   firebase deploy --only functions --project project-7513530591038917977
+   npm --prefix firebase run deploy:firestore
+   npm --prefix firebase run deploy:functions
+   npm --prefix firebase run artifacts:setpolicy
    ```
-   Expect a callable `submitScore` to appear in
+   Callable `submitScore` should remain visible in
    `https://console.firebase.google.com/project/project-7513530591038917977/functions`.
 3. **Rotate the leaked Web API key** in the GCP Console under APIs & Services →
    Credentials. The current value in git history is
-   `AIzaSyC6wRiQH9L50oNcnVazu0tFsFkAnDeof7M`. After rotating, regenerate
+   `<redacted Firebase Web API key>`. After rotating, regenerate
    `GoogleService-Info.plist` from the Firebase Console (Project Settings →
    Your apps → iOS app), drop the new file at
    `2244/game2244/GoogleService-Info.plist` (still gitignored), and add API key

@@ -22,26 +22,50 @@ This directory contains Firebase configuration files and setup instructions.
    - Enable Sign-in methods in Firebase Console:
      - Email/Password (for account creation and sign-in)
      - Anonymous (for guest users)
-     - Apple Sign-In (for iOS users)
+     - Apple Sign-In (optional, if account linking is added)
      - Google Sign-In (optional)
      - Phone (for phone verification, if you want SMS verification live)
 
 4. **Firestore Database**
-   - Create Firestore database in production mode
-   - Deploy security rules (see `firestore.rules`)
+   - Firestore exists in Native mode in `nam5`
+   - Deploy security rules and indexes from this directory:
+     ```bash
+     npm --prefix firebase run deploy:firestore
+     ```
 
 5. **Cloud Functions**
-   - Initialize Functions in your project:
+   - Deploy the existing functions:
      ```bash
-     cd firebase
-     firebase init functions
+     npm --prefix firebase run deploy:functions
      ```
-   - Deploy the functions (see `functions/` directory)
+   - Keep old container images cleaned up:
+     ```bash
+     npm --prefix firebase run artifacts:setpolicy
+     ```
+
+## Local Firebase CLI
+
+The Firebase CLI is installed as a local dev dependency in this directory.
+Use npm scripts instead of relying on a global `firebase` binary:
+
+```bash
+npm --prefix firebase run firebase -- --version
+npm --prefix firebase run projects
+npm --prefix firebase run deploy:rules
+npm --prefix firebase run deploy:indexes
+npm --prefix firebase run deploy:firestore
+npm --prefix firebase run deploy:functions
+npm --prefix firebase run artifacts:setpolicy
+```
+
+`submitScore` is deployed as a callable second-generation Cloud Function in
+`us-central1` on Node.js 22.
 
 ## Project Structure
 
 ```
 firebase/
+├── package.json                        # Local Firebase CLI scripts
 ├── GoogleService-Info-template.plist  # Template configuration
 ├── firestore.rules                    # Security rules
 ├── functions/                         # Cloud Functions
