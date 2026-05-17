@@ -1556,8 +1556,11 @@ private struct FriendProfileRow: View {
 
     var body: some View {
         HStack {
-            Image(systemName: "person.crop.circle.fill")
-                .font(.title2)
+            Image(profile.avatarID)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 32, height: 32)
+                .clipShape(Circle())
             VStack(alignment: .leading) {
                 Text(profile.displayName)
                 Text(profile.friendCode)

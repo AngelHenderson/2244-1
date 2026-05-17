@@ -17,7 +17,6 @@ public struct PlayerProfileView: View {
                     identityHero
                     coreStats
                     globalRankCard
-                    seasonCard
                     masteryGrid
                     syncFooter
                 }
@@ -78,9 +77,7 @@ public struct PlayerProfileView: View {
                     }
                 )
             }
-            .sheet(isPresented: $model.showSeasonHistory) {
-                SeasonHistoryView(season: model.season, playerSeed: model.friendCode)
-            }
+
             #if os(iOS)
             .platformFullScreenCover(isPresented: $model.showCountryPicker) {
                 CountryPickerView(
@@ -278,34 +275,6 @@ public struct PlayerProfileView: View {
         .frame(height: 95)
     }
     
-    private var seasonCard: some View {
-        Button {
-            model.showSeasonHistory = true
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "trophy.fill")
-                    .foregroundStyle(.yellow)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(model.season.name)
-                        .font(.avenirNext(size: GameFonts.calloutSize, weight: .semibold))
-                        .foregroundStyle(.primary)
-                    Text(model.season.division)
-                        .font(.avenirNext(size: GameFonts.footnoteSize, weight: .regular))
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Text("History")
-                    .font(.avenirNext(size: GameFonts.footnoteSize, weight: .medium))
-                    .foregroundStyle(.secondary)
-                Image(systemName: "chevron.right")
-                    .font(.footnote)
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(12)
-            .glassBackground(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .buttonStyle(.plain)
-    }
 
     private var globalRankCard: some View {
         GeometryReader { geometry in
