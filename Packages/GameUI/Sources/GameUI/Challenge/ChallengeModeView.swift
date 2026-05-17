@@ -211,10 +211,11 @@ public struct ChallengeModeView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .alert("Not Enough Gems", isPresented: $showInsufficientGemsForSkip) {
+                .alert("Can't Afford Recovery Item", isPresented: $showInsufficientGemsForSkip) {
                     Button("OK", role: .cancel) { }
                 } message: {
-                    Text("You need \(skipCost) gems to skip the wait. You have \(homeState.gems).")
+                    let needed = skipCost - homeState.gems
+                    Text("You need \(skipCost) gems to skip the wait, but you only have \(homeState.gems). You need \(needed) more gems.")
                 }
             } else {
                 // All completed or no challenges
