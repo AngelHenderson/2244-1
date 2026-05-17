@@ -1,6 +1,7 @@
 ---
 name: "Ultimate2244"
-startupName: "Ultimate2244 Play Studio"
+startupName: "Number Puzzle Studio"
+businessName: "Number Puzzle Studio"
 category: "Games"
 status: "Researching"
 summary: "Pending agent assessment for Ultimate2244."
@@ -20,7 +21,7 @@ Pending agent assessment for Ultimate2244. This starter report was created by Di
 
 ## Startup Identity
 
-Ultimate2244 Play Studio
+Number Puzzle Studio
 
 ## Product Shape
 
