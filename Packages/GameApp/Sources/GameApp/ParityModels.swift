@@ -2038,13 +2038,13 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Too easy.", "Another free win.", "Is this supposed to be hard?",
+                    "Too easy.", "Another free win.", "This isn't even hard.",
                     "Barely had to try.", "I do this in my sleep.", "Light work.",
-                    "Not even a challenge.", "Yawn.", "Is that your best?",
+                    "Not even a challenge.", "Yawn.", "That can't be your best.",
                     "I'm bored.", "Effortless.", "You're making this too easy.",
                     "Didn't even break a sweat.", "That's cute.", "I'm unstoppable.",
                     "Flawless.", "Another W.", "I don't even lose.",
-                    "When do I get a real opponent?", "Absolute child's play.",
+                    "I need a real opponent.", "Absolute child's play.",
                 ]
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
@@ -2576,7 +2576,7 @@ public struct MockSocialService: SocialService, Sendable {
                 replies.append(contentsOf: [
                     "You're not gonna get even close to my milestone.",
                     "I'll always be tiers ahead of your \(m.name).",
-                    "\(m.name)? I'm in a totally different league.",
+                    "\(m.name) is nothing. I'm in a totally different league.",
                     "You'll never touch my \(m.name) record 🎯",
                 ])
             }
@@ -2584,7 +2584,7 @@ public struct MockSocialService: SocialService, Sendable {
             if let num = mentionedNumber, !mentionedTime, !mentionedStreak, !mentionedHoF {
                 replies.append(contentsOf: [
                     "My numbers will always be better.",
-                    "\(num)? I'll always have you beat.",
+                    "Your \(num) is cute. I'll always have you beat.",
                     "\(num) is just the beginning for me.",
                 ])
             }
@@ -2601,21 +2601,21 @@ public struct MockSocialService: SocialService, Sendable {
             }
 
             if mentionedHoF {
-                replies.append("You think your infinity count will be higher? We'll see about that.")
+                replies.append("I doubt your infinity count will be higher. We'll see about that.")
                 replies.append("I'll always dominate the Hall of Fame.")
             }
 
             // Generic competitive
             replies.append(contentsOf: [
                 "I'm on an entirely different level 😏",
-                "You actually thought you could win? 👀",
+                "You actually thought you could win. 👀",
                 "I've never lost and I'm not starting now 📸",
                 "Enjoy the view from the bottom 🏔️",
                 "Keep trying, it's entertaining 😈",
                 "I simply do not lose.",
                 "You're fighting for second place.",
                 "I'm the undisputed champion 🎯",
-                "When do I get a real challenge? 🥱",
+                "I need a real challenge. 🥱",
                 "Talk to me when you actually win something.",
             ])
             return replies.randomElement()!

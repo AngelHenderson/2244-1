@@ -748,10 +748,10 @@ struct PlayerHistoryView: View {
                     // Seed the starting ladder index from player name for variety
                     if banStartIndex[name] == nil {
                         let nameHash = targetName.hashValue & 0x7FFFFFFF
-                        banStartIndex[name] = nameHash % 4  // Cap to one day – one week for report-based bans
+                        banStartIndex[name] = nameHash % 2  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[name] ?? 0
-                    let duration = escalationLadder[min(startIdx + banNumber, 3)]  // Cap to one week max for report-based bans
+                    let duration = escalationLadder[min(startIdx + banNumber, 1)]  // Cap to one week max for report-based bans
                     if let interval = intervalForDuration(duration) {
                         pendingUnbans.append((targetName, event.eventDate.addingTimeInterval(interval)))
                     }
@@ -823,10 +823,10 @@ struct PlayerHistoryView: View {
                     // Seed the starting ladder index from player name for variety
                     if banStartIndex[reportedName] == nil {
                         let nameHash = targetName.hashValue & 0x7FFFFFFF
-                        banStartIndex[reportedName] = nameHash % 4  // Cap to one day – one week for report-based bans
+                        banStartIndex[reportedName] = nameHash % 2  // Cap to one day – one week for report-based bans
                     }
                     let startIdx = banStartIndex[reportedName] ?? 0
-                    let duration = escalationLadder[min(startIdx + banNumber, 3)]  // Cap to one week max for report-based bans
+                    let duration = escalationLadder[min(startIdx + banNumber, 1)]  // Cap to one week max for report-based bans
 
                     if let interval = intervalForDuration(duration) {
                         pendingUnbans.append((targetName, event.eventDate.addingTimeInterval(interval)))
