@@ -10,6 +10,7 @@ public struct ChallengeModeView: View {
     @State private var scrollViewProxy: ScrollViewProxy? = nil
     @State private var currentTime = Date()  // For countdown timer updates
     @State private var selectedChallenge: Challenge? = nil
+    @State private var detailChallenge: Challenge?
     @State private var showIconLegend = false
     @State private var showInsufficientGemsForSkip = false
 
@@ -74,6 +75,19 @@ public struct ChallengeModeView: View {
             }
             .sheet(isPresented: $showIconLegend) {
                 IconLegendSheet()
+            }
+            .sheet(item: $detailChallenge) { challenge in
+                let challengeNumber = (store.challenges.firstIndex(where: { $0.id == challenge.id }) ?? 0) + 1
+                ChallengeDetailView(
+                    challenge: challenge,
+                    challengeNumber: challengeNumber,
+                    status: store.status(for: challenge),
+                    reward: store.reward(for: challenge.id) ?? challenge.reward,
+                    onStart: {
+                        onPlay?(challenge)
+                        dismiss()
+                    }
+                )
             }
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { time in
                 currentTime = time
@@ -153,12 +167,11 @@ public struct ChallengeModeView: View {
                 let challengeNumber = (store.challenges.firstIndex(where: { $0.id == selected.id }) ?? 0) + 1
                 let isReplay = store.completedIds.contains(selected.id)
                 Button {
-                    onPlay?(selected)
-                    dismiss()
+                    detailChallenge = selected
                 } label: {
                     HStack {
-                        Image(systemName: isReplay ? "arrow.clockwise" : "play.fill")
-                        Text(isReplay ? "Replay Challenge \(challengeNumber)" : "Play Challenge \(challengeNumber)")
+                        Image(systemName: "doc.text.magnifyingglass")
+                        Text(isReplay ? "Review Challenge \(challengeNumber)" : "View Challenge \(challengeNumber)")
                     }
                     .font(.avenirNext(size: GameFonts.title3Size, weight: .semibold))
                     .frame(maxWidth: .infinity)

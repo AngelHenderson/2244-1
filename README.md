@@ -51,6 +51,7 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace \
            -scheme game2244 \
            -configuration Debug \
            -sdk iphonesimulator \
+           -onlyUsePackageVersionsFromResolvedFile \
            -quiet clean build
 
 # Build for Device  
@@ -58,13 +59,16 @@ FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace \
            -scheme game2244 \
            -configuration Release \
            -sdk iphoneos \
+           -onlyUsePackageVersionsFromResolvedFile \
            -quiet clean build
 ```
 
 The committed app-project and package lockfiles are resolved with
 `FIREBASE_SOURCE_FIRESTORE=1`. Keep that environment variable when resolving
 packages, building archives, or reproducing Xcode Cloud so Firebase uses the
-`grpc-ios` source-Firestore graph.
+`grpc-ios` source-Firestore graph. Keep
+`-onlyUsePackageVersionsFromResolvedFile` on local CLI builds so Xcode does not
+rewrite the workspace lockfile back to Firebase's binary Firestore graph.
 In Xcode Cloud, set `FIREBASE_SOURCE_FIRESTORE` to `1` in the workflow
 Environment section. The repo's `ci_scripts/ci_pre_xcodebuild.sh` checks this
 before the archive step so Cloud does not silently try to resolve

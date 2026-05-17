@@ -81,6 +81,7 @@ const xcodeCloudPrebuildScript = read('ci_scripts/ci_pre_xcodebuild.sh');
 assert(xcodeCloudPrebuildScript.includes('FIREBASE_SOURCE_FIRESTORE=1'), 'Xcode Cloud prebuild script does not enforce FIREBASE_SOURCE_FIRESTORE=1.');
 assert((fs.statSync(path.join(root, 'ci_scripts/ci_pre_xcodebuild.sh')).mode & 0o111) !== 0, 'ci_scripts/ci_pre_xcodebuild.sh is not executable.');
 for (const lockfile of [
+  'game2244.xcworkspace/xcshareddata/swiftpm/Package.resolved',
   '2244/game2244.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved',
   'Packages/GameServices/Package.resolved',
   'Packages/GameApp/Package.resolved',
