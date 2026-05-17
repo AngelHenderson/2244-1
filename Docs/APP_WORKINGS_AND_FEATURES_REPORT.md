@@ -645,8 +645,10 @@ Some features require external setup to work fully in production:
 - StoreKit products must exist in App Store Connect with the exact IDs listed in `Docs/IAP_CATALOG.md`.
 - AdMob requires production app/ad units, payment profile, privacy messaging, consent configuration, and App Store linkage.
 - Report moderation has local submission UX and Firestore writes; server-side
-  de-dupe and ban escalation are external backend enforcement tasks.
-- Older README roadmap sections are partly stale compared with the current implementation. `Docs/MASTER_APP_MAP.md` and the live Swift files are more reliable for current behavior.
+  de-dupe and ban escalation are handled by the active `onReportCreated` Cloud
+  Function after backend deployment.
+- `Docs/ReleaseReadiness.md`, `Docs/MASTER_APP_MAP.md`, and the live Swift files
+  are the reliable current behavior sources.
 
 ## Feature Inventory
 

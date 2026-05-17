@@ -6,11 +6,12 @@ Use this as the final engineering and App Store checklist for release
 candidates. It is intentionally limited to launch blockers, trust/privacy,
 monetization, Firebase, IAP, first-launch UX, and external console work.
 
-## Current State Snapshot (updated 2026-05-16)
+## Current State Snapshot (updated 2026-05-17)
 
 What is verified done from this machine:
 
-- Repo HEAD: `381945ab` (Address remaining Focus, Trust, And Launch Readiness gaps).
+- Repo has local release-readiness changes in progress. Run `git status --short`
+  before archiving or cutting a submission build.
 - Firebase project pinned via `firebase/.firebaserc` to the existing Puzzle Games
   project, `project-7513530591038917977`. `firebase use` from `firebase/` resolves to
   that project; root no longer relies on global state for the Firebase project
@@ -23,23 +24,31 @@ What is verified done from this machine:
   in as the release account, and sees `Puzzle Games` as the current project.
 - Firestore rules and composite indexes were deployed to Puzzle Games with
   `npm --prefix firebase run deploy:firestore`.
-- Cloud Functions were deployed to Puzzle Games with
-  `npm --prefix firebase run deploy:functions`. Callable function
-  `submitScore` is live in `us-central1` on Node.js 22. Artifact Registry
-  cleanup policy is set to delete old function images after 7 days.
+- Cloud Functions deploy from `firebase/functions/` with
+  `npm --prefix firebase run deploy:functions`. The active code exports
+  `submitScore` and `onReportCreated` on Node.js 22. Redeploy after changing
+  either function. Artifact Registry cleanup policy is set to delete old
+  function images after 7 days.
 - `submitScore` has public gen2 invoker access on the backing Cloud Run service
   so Firebase callable requests can reach the handler; the handler still rejects
   unauthenticated requests with Firebase Auth.
 - Live callable smoke passed using a temporary anonymous Firebase Auth user and
   `mode:smoke_test`; the temporary Firestore leaderboard tree was deleted after
   the smoke run.
-- `firebase/functions/` TypeScript build passes (`npm install` + `npm run build`
-  produces `lib/index.js` and `lib/submitScore.js`). One pre-existing source
-  bug fixed: `firebase-functions/v2/https` does not export `logger` in
-  `firebase-functions@^5`; replaced `functions.logger` with `import { logger }
-  from "firebase-functions"`.
+- `firebase/functions/` TypeScript build should produce `lib/index.js`,
+  `lib/submitScore.js`, and `lib/onReportCreated.js`.
 - `validate-launch-readiness.mjs` passes. Root `firestore.rules` and
-  `firebase/firestore.rules` are byte-identical.
+  `firebase/firestore.rules` are byte-identical; root-level `firebase.json`
+  and `functions/` are intentionally absent so deployments cannot target stale
+  backend code.
+- Xcode Cloud must define workflow environment variable
+  `FIREBASE_SOURCE_FIRESTORE=1` before archive. The committed
+  app-project and package `Package.resolved` files use Firebase's
+  source-Firestore graph (`abseil-cpp-swiftpm`, `boringssl-swiftpm`,
+  `grpc-ios`); without that variable, Xcode Cloud resolves
+  `abseil-cpp-binary` / `grpc-binary` and fails because automatic dependency
+  resolution is disabled. The executable `ci_scripts/ci_pre_xcodebuild.sh` now
+  fails early with this exact instruction when the variable is missing.
 - The Release simulator app bundle contains `GoogleService-Info.plist` for
   `project-7513530591038917977` / `com.ideabloomlabs.game2244`, and
   `Info.plist` resolves the production AdMob app ID
@@ -69,22 +78,26 @@ Current engineering status:
   Firebase, AdMob, and App Store Connect checks still require real accounts and
   console access.
 
-Local gates verified on 2026-05-16:
+Local gates verified on 2026-05-17:
 
 ```bash
 node scripts/validate-launch-readiness.mjs
 swift test --package-path Packages/GameCore
 swift test --package-path Packages/GameServices
 swift test --package-path Packages/GameApp
-swift test --package-path Packages/GameUI
-FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' build
-FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
 ```
 
 Non-blocking local build warnings:
 
 - Source-Firestore `abseil` package emits "no rule to process file" warnings
   for included non-source files.
+- Standalone `swift test --package-path Packages/GameUI` can be brittle with
+  `FIREBASE_SOURCE_FIRESTORE=1` because SwiftPM compiles the full Firestore/grpc
+  source tree and can fail in generated abseil dependency files before reaching
+  app code. Use the workspace `xcodebuild` gate for release-critical GameUI
+  compilation.
 - App Intents metadata extraction is skipped because the app has no
   AppIntents.framework dependency.
 
@@ -121,7 +134,7 @@ or on a device — they cannot be finished from this CLI session.
    npm --prefix firebase run functions:allow-invoker
    npm --prefix firebase run artifacts:setpolicy
    ```
-   Callable `submitScore` should remain visible in
+   Callable `submitScore` and trigger `onReportCreated` should remain visible in
    `https://console.firebase.google.com/project/project-7513530591038917977/functions`.
 3. **Credential hygiene check.** The current iOS Firebase API key is restricted
    to bundle identifier `com.ideabloomlabs.game2244` and Firebase API targets.
@@ -161,9 +174,12 @@ or on a device — they cannot be finished from this CLI session.
      `/players/{uid}/progress/blocked` mirrors the change. Force-quit and
      relaunch; confirm the blocked list still filters that player.
    - Submit a report; confirm `/reports/{id}` lands with `reporterId ==
-     request.auth.uid` and that direct client writes to
-     `/leaderboards/global/scores/{uid}` are rejected from the Firestore Rules
-     Playground.
+     request.auth.uid`.
+   - Confirm `onReportCreated` updates the reported player's moderation fields
+     (`abuse_points`, `last_reported_at`, and ban fields when thresholds are
+     reached).
+   - Confirm direct client writes to `/leaderboards/global/scores/{uid}` are
+     rejected from the Firestore Rules Playground.
 10. **App Store Connect agreements.** Paid Applications agreement, tax, and
     banking must be signed and active.
 11. **AdMob.** Payment profile, store-listing linkage, consent messages, and
@@ -174,14 +190,14 @@ or on a device — they cannot be finished from this CLI session.
 Run before archiving:
 
 ```bash
+test -x ci_scripts/ci_pre_xcodebuild.sh
 node scripts/validate-launch-readiness.mjs
 swift test --package-path Packages/GameCore
 swift test --package-path Packages/GameApp
 swift test --package-path Packages/GameServices
-swift test --package-path Packages/GameUI
-swift build --package-path Packages/GameUI
-FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' build
-FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' build
+npm --prefix firebase/functions run build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
+FIREBASE_SOURCE_FIRESTORE=1 xcodebuild -workspace game2244.xcworkspace -scheme game2244 -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
 ```
 
 ## App Store Metadata

@@ -67,10 +67,15 @@ npm --prefix firebase run functions:allow-invoker
 npm --prefix firebase run artifacts:setpolicy
 ```
 
-`submitScore` is deployed as a callable second-generation Cloud Function in
-`us-central1` on Node.js 22. It allows public Cloud Run invocation so Firebase
-callable clients can reach the handler, then enforces Firebase Auth inside the
-function before accepting score writes.
+Cloud Functions run in `us-central1` on Node.js 22:
+
+- `submitScore` is a callable second-generation function. It allows public
+  Cloud Run invocation so Firebase callable clients can reach the handler, then
+  enforces Firebase Auth inside the function before accepting score writes.
+- `onReportCreated` is a Firestore trigger on `/reports/{reportId}`. It
+  de-dupes repeat reports from the same reporter/target pair, increments
+  moderation points on the reported player document, and escalates repeat abuse
+  into temporary or permanent bans.
 
 ## Project Structure
 
@@ -82,7 +87,8 @@ firebase/
 ├── functions/                         # Cloud Functions
 │   ├── src/
 │   │   ├── index.ts                  # Main functions export
-│   │   └── submitScore.ts            # Score submission function
+│   │   ├── submitScore.ts            # Score submission callable
+│   │   └── onReportCreated.ts        # Report moderation trigger
 │   ├── package.json                  # Dependencies
 │   └── tsconfig.json                 # TypeScript config
 └── firebase.json                     # Firebase project config
