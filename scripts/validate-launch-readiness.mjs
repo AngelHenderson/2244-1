@@ -67,6 +67,15 @@ const storeKitSchemeReference = scheme.match(/<StoreKitConfigurationFileReferenc
 
 assert(workspace.includes('location = "group:2244/game2244.xcodeproj"'), 'Workspace does not reference the active 2244/game2244.xcodeproj project.');
 assert(!fs.existsSync(path.join(root, 'game2244')), 'Stale root-level game2244 directory exists. The active app target is 2244/game2244.');
+assert(!fs.existsSync(path.join(root, 'firebase.json')), 'Stale root-level firebase.json exists. Deploy from firebase/firebase.json via npm --prefix firebase scripts.');
+assert(!fs.existsSync(path.join(root, 'functions')), 'Stale root-level functions directory exists. Active Cloud Functions live under firebase/functions.');
+assertExists('firebase/firebase.json', 'firebase/firebase.json is missing.');
+assertExists('firebase/functions/src/index.ts', 'firebase/functions/src/index.ts is missing.');
+assertExists('firebase/functions/src/submitScore.ts', 'firebase/functions/src/submitScore.ts is missing.');
+assertExists('firebase/functions/src/onReportCreated.ts', 'firebase/functions/src/onReportCreated.ts is missing.');
+const functionsIndex = read('firebase/functions/src/index.ts');
+assert(functionsIndex.includes('submitScore'), 'Active functions index does not export submitScore.');
+assert(functionsIndex.includes('onReportCreated'), 'Active functions index does not export onReportCreated.');
 for (const lockfile of [
   'game2244.xcworkspace/xcshareddata/swiftpm/Package.resolved',
   '2244/game2244.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved',
