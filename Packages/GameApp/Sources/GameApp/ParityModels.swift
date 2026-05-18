@@ -989,16 +989,16 @@ public struct MockSocialService: SocialService, Sendable {
 
     public func addComment(to itemID: UUID, text: String) async throws {
         let defaults = UserDefaults.standard
-        guard let data = defaults.data(forKey: Self.feedCacheKey),
-              var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
-            return
-        }
-        if let index = cached.firstIndex(where: { $0.id == itemID }) {
-            let now = Date()
-            let newComment = SocialFeedComment(authorName: "Player", avatarID: "avatar_buddy_bot", text: text, createdAt: now)
-            cached[index].comments.append(newComment)
+        var foundAndUpdated: SocialFeedItem? = nil
+        
+        let now = Date()
+        let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
+        let playerAvatar = defaults.string(forKey: "profileAvatarId") ?? "avatar_buddy_bot"
+        let newComment = SocialFeedComment(authorName: playerName, avatarID: playerAvatar, text: text, createdAt: now)
+        
+        func processItem(_ item: inout SocialFeedItem) {
+            item.comments.append(newComment)
             
-            // Simulate a response from another player (30 mins to 24 hours later)
             let delay = Double.random(in: 1800...86400)
             let responseTime = now.addingTimeInterval(delay)
             
@@ -1008,28 +1008,48 @@ public struct MockSocialService: SocialService, Sendable {
             if text.hasPrefix("@") {
                 let parts = text.split(separator: " ")
                 if let first = parts.first {
-                    responderName = String(first.dropFirst()) // Reply as the mentioned user
+                    responderName = String(first.dropFirst())
                 } else {
                     responderName = generateDynamicName()
                 }
             } else {
-                responderName = cached[index].authorName // Reply as the post author
+                responderName = item.authorName
             }
             
             let responseText: String
             if let answer = milestoneAnswer(for: text) {
-                responseText = "@Player " + answer
+                responseText = "@\(playerName) " + answer
             } else {
-                responseText = "@Player " + generateContextualReply(to: text, message: cached[index].message)
+                responseText = "@\(playerName) " + generateContextualReply(to: text, message: item.message)
             }
             let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
-            cached[index].comments.append(responseComment)
+            item.comments.append(responseComment)
+            item.commentCount = item.comments.count
+        }
+
+        if let data = defaults.data(forKey: Self.feedCacheKey),
+           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+           let index = cached.firstIndex(where: { $0.id == itemID }) {
             
-            cached[index].commentCount = cached[index].comments.count
+            processItem(&cached[index])
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
-            persistInteractedItem(cached[index])
+            foundAndUpdated = cached[index]
+        }
+        
+        if foundAndUpdated == nil {
+            if let data = defaults.data(forKey: Self.userPostsKey),
+               var userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+               let index = userPosts.firstIndex(where: { $0.id == itemID }) {
+                
+                processItem(&userPosts[index])
+                foundAndUpdated = userPosts[index]
+            }
+        }
+        
+        if let item = foundAndUpdated {
+            persistInteractedItem(item)
         }
     }
 
@@ -1171,10 +1191,12 @@ public struct MockSocialService: SocialService, Sendable {
 
     public func toggleItemHeart(itemID: UUID) async throws {
         let defaults = UserDefaults.standard
-        guard let data = defaults.data(forKey: Self.feedCacheKey),
-              var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else { return }
+        var foundAndUpdated: SocialFeedItem? = nil
         
-        if let itemIndex = cached.firstIndex(where: { $0.id == itemID }) {
+        if let data = defaults.data(forKey: Self.feedCacheKey),
+           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+           let itemIndex = cached.firstIndex(where: { $0.id == itemID }) {
+            
             let wasHearted = cached[itemIndex].isHearted ?? false
             cached[itemIndex].isHearted = !wasHearted
             cached[itemIndex].reactionCount += (wasHearted ? -1 : 1)
@@ -1182,16 +1204,33 @@ public struct MockSocialService: SocialService, Sendable {
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
-            persistInteractedItem(cached[itemIndex])
+            foundAndUpdated = cached[itemIndex]
+        }
+        
+        if foundAndUpdated == nil {
+            if let data = defaults.data(forKey: Self.userPostsKey),
+               var userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+               let itemIndex = userPosts.firstIndex(where: { $0.id == itemID }) {
+                
+                let wasHearted = userPosts[itemIndex].isHearted ?? false
+                userPosts[itemIndex].isHearted = !wasHearted
+                userPosts[itemIndex].reactionCount += (wasHearted ? -1 : 1)
+                foundAndUpdated = userPosts[itemIndex]
+            }
+        }
+        
+        if let item = foundAndUpdated {
+            persistInteractedItem(item)
         }
     }
 
     public func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws {
         let defaults = UserDefaults.standard
-        guard let data = defaults.data(forKey: Self.feedCacheKey),
-              var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else { return }
-        
-        if let itemIndex = cached.firstIndex(where: { $0.id == itemID }),
+        var foundAndUpdated: SocialFeedItem? = nil
+
+        if let data = defaults.data(forKey: Self.feedCacheKey),
+           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+           let itemIndex = cached.firstIndex(where: { $0.id == itemID }),
            let commentIndex = cached[itemIndex].comments.firstIndex(where: { $0.id == commentID }) {
             
             let wasHearted = cached[itemIndex].comments[commentIndex].isHearted ?? false
@@ -1202,7 +1241,25 @@ public struct MockSocialService: SocialService, Sendable {
             if let newData = try? JSONEncoder().encode(cached) {
                 defaults.set(newData, forKey: Self.feedCacheKey)
             }
-            persistInteractedItem(cached[itemIndex])
+            foundAndUpdated = cached[itemIndex]
+        }
+        
+        if foundAndUpdated == nil {
+            if let data = defaults.data(forKey: Self.userPostsKey),
+               var userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+               let itemIndex = userPosts.firstIndex(where: { $0.id == itemID }),
+               let commentIndex = userPosts[itemIndex].comments.firstIndex(where: { $0.id == commentID }) {
+                
+                let wasHearted = userPosts[itemIndex].comments[commentIndex].isHearted ?? false
+                userPosts[itemIndex].comments[commentIndex].isHearted = !wasHearted
+                let currentLikes = userPosts[itemIndex].comments[commentIndex].likes ?? 0
+                userPosts[itemIndex].comments[commentIndex].likes = currentLikes + (wasHearted ? -1 : 1)
+                foundAndUpdated = userPosts[itemIndex]
+            }
+        }
+        
+        if let item = foundAndUpdated {
+            persistInteractedItem(item)
         }
     }
 
