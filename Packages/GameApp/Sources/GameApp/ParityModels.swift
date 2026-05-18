@@ -2095,13 +2095,13 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Too easy.", "Forever in first place.", "This isn't even hard.",
-                    "Barely had to try.", "I do this in my sleep.", "Light work.",
-                    "Not even a challenge.", "Do better.", "That can't be your best.",
-                    "I'm bored.", "Effortless.", "You're making this too easy.",
-                    "Didn't even break a sweat.", "That's cute.", "I'm unstoppable.",
-                    "Flawless.", "This rivalry is completely one-sided.", "My lead is permanent.",
-                    "I need a real opponent.", "Absolute child's play.",
+                    "Too easy.", "Forever in first place.", "You can't compete with infinity.",
+                    "Barely had to try.", "My infinite lead is permanent.", "Light work.",
+                    "Not even a challenge.", "Do better.", "Your effort is pointless.",
+                    "I'm bored.", "Effortless.", "This rivalry is already over.",
+                    "Didn't even break a sweat.", "That's cute.", "I dominate eternity.",
+                    "Flawless.", "This rivalry is completely one-sided.", "There is no catching up to infinity.",
+                    "I need a real opponent.", "Endless grinding, and you're still behind."
                 ]
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
