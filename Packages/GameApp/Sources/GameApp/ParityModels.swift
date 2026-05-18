@@ -2629,11 +2629,15 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
+                let jump = Int.random(in: 1...5)
+                let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
+                let higherM = Self.allMilestones[higherIdx]
+                
                 replies.append(contentsOf: [
-                    "You're not gonna get even close to my milestone.",
-                    "I'll always be tiers ahead of your \(m.name).",
-                    "\(m.name) is nothing. I'm in a totally different league.",
-                    "You'll never touch my \(m.name) record.",
+                    "You're not gonna get even close to my milestone. I'm already at \(higherM).",
+                    "I'll always be tiers ahead of your \(m.name). Try hitting \(higherM) first.",
+                    "\(m.name) is nothing. Talk to me when you reach \(higherM).",
+                    "You'll never touch my \(higherM) record.",
                 ])
             }
 
