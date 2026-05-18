@@ -2109,13 +2109,15 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly append a competitive closer ~80% of the time
             if Double.random(in: 0...1) < 0.80 {
                 let compClosers = [
-                    "I'm in a league of my own.", "You'll never beat me.", "I'll always be tiers above.",
-                    "Don't bother trying.", "I'm literally unbeatable.", "My stats are permanent.",
-                    "Just accept you'll never catch me.", "I'm on top, as usual.", "You're playing for second place.",
-                    "I'm simply better.", "No one is touching my record.", "The crown is mine.",
-                    "I'm the absolute best.", "It's lonely at the top.",
+                    "My infinite lead cannot be broken.", "You'll never beat me.", "I'll always be tiers above.",
+                    "Don't bother trying.", "I'm literally unbeatable.", "My endless stats are permanent.",
+                    "Just accept you'll never catch me.", "I reign over eternity.", "You're playing for second place.",
+                    "I'm simply better.", "No one is touching my infinite record.", "The crown is permanently mine.",
+                    "Your grind is meaningless against infinity.", "It's lonely at the absolute top.",
                     "I run this game.", "You're completely outmatched.",
                     "I'm untouchable.", "Wipes the floor with that.",
+                    "Stay down there.", "Eternity belongs to me.",
+                    "Your progress is a joke to me."
                 ]
                 let closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
                 comment = "\(comment) \(closer)"
