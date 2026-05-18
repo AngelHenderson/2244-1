@@ -2089,7 +2089,6 @@ public struct MockSocialService: SocialService, Sendable {
             comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
             tone = "sad"
         }
-        
         if Double.random(in: 0...1) < 0.75 {
             let symbol: String
             switch tone {
