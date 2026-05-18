@@ -2043,7 +2043,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Not even a challenge.", "Do better.", "That can't be your best.",
                     "I'm bored.", "Effortless.", "You're making this too easy.",
                     "Didn't even break a sweat.", "That's cute.", "I'm unstoppable.",
-                    "Flawless.", "This rivalry is completely one-sided.", "I don't even lose.",
+                    "Flawless.", "This rivalry is completely one-sided.", "My lead is permanent.",
                     "I need a real opponent.", "Absolute child's play.",
                 ]
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
@@ -2577,7 +2577,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "You're not gonna get even close to my milestone.",
                     "I'll always be tiers ahead of your \(m.name).",
                     "\(m.name) is nothing. I'm in a totally different league.",
-                    "You'll never touch my \(m.name) record 🎯",
+                    "You'll never touch my \(m.name) record.",
                 ])
             }
 
@@ -2591,13 +2591,13 @@ public struct MockSocialService: SocialService, Sendable {
 
             if mentionedStreak {
                 replies.append("You vs me, my streak will be higher.")
-                replies.append("My streak is untouchable. Facts. 😈")
+                replies.append("My streak is untouchable. Facts.")
                 replies.append("I'll maintain my streak long after you lose yours.")
             }
 
             if mentionedTime {
                 replies.append("My time will be faster at all times. Try it. See what happens.")
-                replies.append("I'll always have the faster clear time ⏱️")
+                replies.append("I'll always have the faster clear time.")
             }
 
             if mentionedHoF {
@@ -2607,16 +2607,16 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Generic competitive
             replies.append(contentsOf: [
-                "I'm on an entirely different level 😏",
-                "You actually thought you could win. 👀",
-                "I've never lost and I'm not starting now 📸",
-                "Enjoy the view from the bottom 🏔️",
-                "Keep trying, it's entertaining 😈",
-                "I simply do not lose.",
+                "I'm on an entirely different level.",
+                "You will never catch me.",
+                "My record is flawless and permanent.",
+                "Enjoy the view from the bottom.",
+                "Keep trying, it's entertaining.",
+                "I am permanently untouchable.",
                 "You're fighting for second place.",
-                "I'm the undisputed champion 🎯",
-                "I need a real challenge. 🥱",
-                "Talk to me when you actually win something.",
+                "I'm the undisputed champion.",
+                "I need a real challenge.",
+                "Talk to me when you actually pose a threat.",
             ])
             return replies.randomElement()!
         }
