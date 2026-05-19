@@ -2096,7 +2096,9 @@ public struct MockSocialService: SocialService, Sendable {
             let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
             let posterM = sortedMilestones.first(where: { message.lowercased().contains($0.lowercased()) }) ?? "11n"
             let posterIdx = Self.allMilestones.firstIndex(of: posterM) ?? 15
-            let jump = Int.random(in: 5...60)
+            let remaining = Self.allMilestones.count - 1 - posterIdx
+            let isMassiveGap = remaining >= 150 && Bool.random()
+            let jump = isMassiveGap ? Int.random(in: 150...min(500, remaining)) : Int.random(in: 5...60)
             let higherIdx = min(posterIdx + jump, Self.allMilestones.count - 1)
             let higherM = Self.allMilestones[higherIdx]
 
@@ -2119,11 +2121,11 @@ public struct MockSocialService: SocialService, Sendable {
             }
             // Randomly append a competitive closer ~80% of the time
             if Double.random(in: 0...1) < 0.80 {
-                let compClosers = [
+                var compClosers = [
                     "My infinite lead cannot be broken.", "You'll never beat me.", "I'll always be tiers above.",
                     "Don't bother trying.", "I'm literally unbeatable.", "My endless stats are permanent.",
                     "Just accept you'll never catch me.", "I reign over eternity.", "You're playing for second place.",
-                    "I'm simply better.", "No one is touching my infinite record.", "The crown is permanently mine.",
+                    "I'm simply better.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
                     "Your grind is meaningless against infinity.", "It's lonely at the absolute top.",
                     "I run this game.", "You're completely outmatched.",
                     "I'm untouchable.", "Wipes the floor with that.",
@@ -2131,9 +2133,15 @@ public struct MockSocialService: SocialService, Sendable {
                     "Your progress is a joke to me.",
                     "Your effort is pointless. You're only at \(posterM), I'm at \(higherM).",
                     "You're stuck at \(posterM) while I'm at \(higherM).",
-                    "I'm at \(higherM). Your \(posterM) is nothing.",
-                    "\(posterM) vs \(higherM). Not even close."
+                    "I'm at \(higherM). Your \(posterM) is nothing."
                 ]
+                
+                if higherIdx - posterIdx >= 100 {
+                    compClosers.append("\(posterM) vs \(higherM). Not even close.")
+                    compClosers.append("You're hundreds of milestones behind at \(posterM).")
+                    compClosers.append("The gap between \(posterM) and \(higherM) is embarrassing.")
+                }
+                
                 let closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
                 comment = "\(comment) \(closer)"
             }
@@ -2210,17 +2218,17 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("streak_\(myDays)")
                 var templates = [
-                    "You vs me, my streak will be higher. I'm already at \(higherM).",
-                    "You'll never get close to my streak. I'm at \(higherM).",
-                    "My streak is on another level. Catch me at \(higherM).",
+                    "You vs me, my streak will be infinitely higher. I'm already at \(higherM).",
+                    "Your streak is pointless when you're stuck at \(posterM) and I'm at \(higherM).",
+                    "My streak is on another level. You're at \(posterM), I'm at \(higherM).",
                     "You think your streak will be higher? We'll see about that at \(higherM).",
-                    "I'll maintain my streak long after you lose yours. I'm at \(higherM).",
+                    "I'll maintain my streak forever. You're only at \(posterM), I'm at \(higherM).",
                     "My streak is untouchable. I'm at \(higherM).",
-                    "You vs me, I'm taking the streak record. I'm at \(higherM).",
+                    "You vs me, my streak is endless. I'm at \(higherM).",
                     "I will always have the higher streak. Try hitting \(higherM).",
                 ]
                 if myDays >= streakDays * 2 {
-                    templates.append("You're not gonna get even close to my streak. I'm at \(higherM).")
+                    templates.append("You're not gonna get even close to my streak. \(posterM) vs \(higherM).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), higherName)
             }
@@ -2243,17 +2251,17 @@ public struct MockSocialService: SocialService, Sendable {
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
                 var templates = [
-                    "My time will be faster at all times. Try it. See what happens at \(higherM).",
-                    "You'll never get close to my clear time. I'm at \(higherM).",
+                    "My time will be faster at all times. You're only at \(posterM), I'm at \(higherM).",
+                    "Your speed is irrelevant. \(posterM) vs \(higherM).",
                     "I will always have the faster time. I'm already at \(higherM).",
-                    "You think your time is fast? We'll see about that at \(higherM).",
+                    "You think your time is fast? You're at \(posterM), I'm at \(higherM).",
                     "I'll always sub that time. Catch me at \(higherM).",
-                    "My time is completely out of reach. I'm at \(higherM).",
+                    "My time is completely out of reach. You're stuck at \(posterM) while I'm at \(higherM).",
                     "You vs me, my time will always be lower. I'm at \(higherM).",
                     "I'll forever hold the fastest time. Try hitting \(higherM).",
                 ]
                 if myTotal <= totalSecs / 2 {
-                    templates.append("You're not gonna get even close to my time. I'm at \(higherM).")
+                    templates.append("You're not gonna get even close to my time. \(posterM) vs \(higherM).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), higherName)
             }
@@ -2270,17 +2278,17 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("hof_\(myCount)")
                 var templates = [
-                    "You think your infinity count will be higher? We'll see about that at \(higherM).",
-                    "You're not gonna get even close to my infinity count. I'm at \(higherM).",
-                    "My infinity count will always be higher. Catch me at \(higherM).",
-                    "I will always dominate the Hall of Fame. I'm already at \(higherM).",
+                    "You think your infinity count matters? You're at \(posterM), I'm at \(higherM).",
+                    "You're not gonna get even close to my infinity count when you're stuck at \(posterM). I'm at \(higherM).",
+                    "My infinity count will always be higher. You're only at \(posterM), I'm at \(higherM).",
+                    "I will eternally dominate the Hall of Fame. \(posterM) vs \(higherM).",
                     "You'll never catch up to my infinities. I'm at \(higherM).",
                     "You vs me, my infinities will always be higher. I'm at \(higherM).",
-                    "I'll forever be ahead in the Hall of Fame. Try hitting \(higherM).",
+                    "I'll forever be ahead in the Hall of Fame. You're only at \(posterM), I'm at \(higherM).",
                     "My infinity count is completely out of reach. I'm at \(higherM).",
                 ]
                 if myCount >= infCount * 2 {
-                    templates.append("You'll never get close to my record. I'm at \(higherM).")
+                    templates.append("You'll never get close to my infinities. \(posterM) vs \(higherM).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), higherName)
             }
@@ -2334,12 +2342,12 @@ public struct MockSocialService: SocialService, Sendable {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                 let posterTier = tiers[posterTierIdx]
                 var templates = [
-                    "You vs me, I'll always pull better chests. I'm at \(higherM).",
-                    "You think your quests are impressive? We'll see about that at \(higherM).",
-                    "My chest tier will always be higher. Catch me at \(higherM).",
+                    "You vs me, I'll always pull better chests. You're at \(posterM), I'm at \(higherM).",
+                    "You think your quests are impressive? You're only at \(posterM), I'm at \(higherM).",
+                    "My chest tier will always be higher. \(posterM) vs \(higherM).",
                     "You'll never pull \(myTier) at my rate. I'm at \(higherM).",
                     "I'll forever pull better rewards. I'm already at \(higherM).",
-                    "You're not gonna get even close to my chest tier. I'm at \(higherM).",
+                    "You're not gonna get even close to my chest tier. You're only at \(posterM), I'm at \(higherM).",
                     "My quest rewards will always be better. Try hitting \(higherM).",
                     "I will maintain a higher tier than you at all times. I'm at \(higherM).",
                 ]
