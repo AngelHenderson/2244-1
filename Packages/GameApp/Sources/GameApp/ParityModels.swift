@@ -2222,25 +2222,26 @@ public struct MockSocialService: SocialService, Sendable {
         // ── Streak posts: extract the day count, brag with a higher one ──
         if lowered.contains("streak") {
             if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
-                var myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                let isMassiveGap = Bool.random()
+                var myDays = streakDays + (isMassiveGap ? Int.random(in: streakDays * 3...streakDays * 8 + 50) : Int.random(in: 5...max(10, streakDays / 2)))
                 var attempts = 0
                 while usedStats.contains("streak_\(myDays)") && attempts < 5 {
-                    myDays = streakDays + Int.random(in: 5...max(10, streakDays / 2))
+                    myDays = streakDays + (isMassiveGap ? Int.random(in: streakDays * 3...streakDays * 8 + 50) : Int.random(in: 5...max(10, streakDays / 2)))
                     attempts += 1
                 }
                 usedStats.insert("streak_\(myDays)")
                 var templates = [
                     "You vs me, my streak will be infinitely higher. I'm already at \(myDays) days.",
-                    "Your streak is pointless when you're stuck at \(streakDays) days and I'm at \(myDays) days.",
                     "My streak is on another level. You're at \(streakDays) days, I'm at \(myDays) days.",
                     "You think your streak will be higher? We'll see about that at \(myDays) days.",
                     "I'll maintain my streak forever. You're only at \(streakDays) days, I'm at \(myDays) days.",
-                    "My streak is untouchable. I'm at \(myDays) days.",
                     "You vs me, my streak is endless. I'm at \(myDays) days.",
                     "I will always have the higher streak. Try hitting \(myDays) days.",
                 ]
                 if myDays >= streakDays * 2 {
                     templates.append("You're not gonna get even close to my streak. \(streakDays) days vs \(myDays) days.")
+                    templates.append("Your streak is pointless when you're stuck at \(streakDays) days and I'm at \(myDays) days.")
+                    templates.append("My streak is untouchable. I'm at \(myDays) days.")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), higherName)
             }
@@ -2251,11 +2252,14 @@ public struct MockSocialService: SocialService, Sendable {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
                 // Brag about having a FASTER clear time (lower = better)
-                let lessBy = Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                let isMassiveGap = Bool.random()
+                let maxLess = totalSecs - 10
+                let lessBy = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
                 var myTotal = max(10, totalSecs - lessBy)
                 var attempts = 0
                 while usedStats.contains("time_\(myTotal)") && attempts < 5 {
-                    myTotal = max(10, totalSecs - Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3)))
+                    let retryLess = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                    myTotal = max(10, totalSecs - retryLess)
                     attempts += 1
                 }
                 usedStats.insert("time_\(myTotal)")
@@ -2265,16 +2269,16 @@ public struct MockSocialService: SocialService, Sendable {
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 var templates = [
                     "My time will be faster at all times. You're only at \(posterTime), I'm at \(myTime).",
-                    "Your speed is irrelevant. \(posterTime) vs \(myTime).",
                     "I will always have the faster time. I'm already at \(myTime).",
                     "You think your time is fast? You're at \(posterTime), I'm at \(myTime).",
                     "I'll always sub that time. Catch me at \(myTime).",
-                    "My time is completely out of reach. You're stuck at \(posterTime) while I'm at \(myTime).",
                     "You vs me, my time will always be lower. I'm at \(myTime).",
                     "I'll forever hold the fastest time. Try hitting \(myTime).",
                 ]
                 if myTotal <= totalSecs / 2 {
                     templates.append("You're not gonna get even close to my time. \(posterTime) vs \(myTime).")
+                    templates.append("Your speed is irrelevant. \(posterTime) vs \(myTime).")
+                    templates.append("My time is completely out of reach. You're stuck at \(posterTime) while I'm at \(myTime).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), higherName)
             }
@@ -2283,25 +2287,26 @@ public struct MockSocialService: SocialService, Sendable {
         // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
         if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
             if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "\u{221E}", "\u{00D7}", "count", "entry", "#"]) {
-                var myCount = infCount + Int.random(in: 1...max(3, infCount))
+                let isMassiveGap = Bool.random()
+                var myCount = infCount + (isMassiveGap ? Int.random(in: infCount * 3...infCount * 8 + 100) : Int.random(in: 1...max(3, infCount)))
                 var attempts = 0
                 while usedStats.contains("hof_\(myCount)") && attempts < 5 {
-                    myCount = infCount + Int.random(in: 1...max(3, infCount))
+                    myCount = infCount + (isMassiveGap ? Int.random(in: infCount * 3...infCount * 8 + 100) : Int.random(in: 1...max(3, infCount)))
                     attempts += 1
                 }
                 usedStats.insert("hof_\(myCount)")
                 var templates = [
                     "You think your infinity count matters? You're at \(infCount), I'm at \(myCount).",
-                    "You're not gonna get even close to my infinity count when you're stuck at \(infCount). I'm at \(myCount).",
                     "My infinity count will always be higher. You're only at \(infCount), I'm at \(myCount).",
                     "I will eternally dominate the Hall of Fame. \(infCount) vs \(myCount).",
-                    "You'll never catch up to my infinities. I'm at \(myCount).",
                     "You vs me, my infinities will always be higher. I'm at \(myCount).",
                     "I'll forever be ahead in the Hall of Fame. You're only at \(infCount), I'm at \(myCount).",
-                    "My infinity count is completely out of reach. I'm at \(myCount).",
                 ]
                 if myCount >= infCount * 2 {
                     templates.append("You'll never get close to my infinities. \(infCount) vs \(myCount).")
+                    templates.append("You're not gonna get even close to my infinity count when you're stuck at \(infCount). I'm at \(myCount).")
+                    templates.append("You'll never catch up to my infinities. I'm at \(myCount).")
+                    templates.append("My infinity count is completely out of reach. I'm at \(myCount).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), higherName)
             }
@@ -2356,11 +2361,8 @@ public struct MockSocialService: SocialService, Sendable {
                 let posterTier = tiers[posterTierIdx]
                 var templates = [
                     "You vs me, I'll always pull better chests. You're at \(posterTier), I'm at \(myTier).",
-                    "You think your quests are impressive? You're only pulling \(posterTier), I'm pulling \(myTier).",
                     "My chest tier will always be higher. \(posterTier) vs \(myTier).",
-                    "You'll never pull \(myTier) at my rate. I'm at \(myTier).",
                     "I'll forever pull better rewards. I'm already at \(myTier).",
-                    "You're not gonna get even close to my chest tier. You're only pulling \(posterTier), I'm pulling \(myTier).",
                     "My quest rewards will always be better. Try hitting \(myTier).",
                     "I will maintain a higher tier than you at all times. I'm at \(myTier).",
                 ]
@@ -2368,6 +2370,9 @@ public struct MockSocialService: SocialService, Sendable {
                 let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
                 if tierGap >= 2 {
                     templates.append("\(myTier) chest here. You're way behind at \(posterTier).")
+                    templates.append("You think your quests are impressive? You're only pulling \(posterTier), I'm pulling \(myTier).")
+                    templates.append("You'll never pull \(myTier) at my rate. I'm at \(myTier).")
+                    templates.append("You're not gonna get even close to my chest tier. You're only pulling \(posterTier), I'm pulling \(myTier).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), higherName)
             }
