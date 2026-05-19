@@ -2230,17 +2230,17 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("streak_\(myDays)")
                 var templates = [
-                    "You vs me, my streak will be infinitely higher. I'm already at \(higherM).",
-                    "Your streak is pointless when you're stuck at \(posterM) and I'm at \(higherM).",
-                    "My streak is on another level. You're at \(posterM), I'm at \(higherM).",
-                    "You think your streak will be higher? We'll see about that at \(higherM).",
-                    "I'll maintain my streak forever. You're only at \(posterM), I'm at \(higherM).",
-                    "My streak is untouchable. I'm at \(higherM).",
-                    "You vs me, my streak is endless. I'm at \(higherM).",
-                    "I will always have the higher streak. Try hitting \(higherM).",
+                    "You vs me, my streak will be infinitely higher. I'm already at \(myDays) days.",
+                    "Your streak is pointless when you're stuck at \(streakDays) days and I'm at \(myDays) days.",
+                    "My streak is on another level. You're at \(streakDays) days, I'm at \(myDays) days.",
+                    "You think your streak will be higher? We'll see about that at \(myDays) days.",
+                    "I'll maintain my streak forever. You're only at \(streakDays) days, I'm at \(myDays) days.",
+                    "My streak is untouchable. I'm at \(myDays) days.",
+                    "You vs me, my streak is endless. I'm at \(myDays) days.",
+                    "I will always have the higher streak. Try hitting \(myDays) days.",
                 ]
                 if myDays >= streakDays * 2 {
-                    templates.append("You're not gonna get even close to my streak. \(posterM) vs \(higherM).")
+                    templates.append("You're not gonna get even close to my streak. \(streakDays) days vs \(myDays) days.")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), higherName)
             }
@@ -2262,18 +2262,19 @@ public struct MockSocialService: SocialService, Sendable {
                 let myMins = myTotal / 60
                 let mySecs = myTotal % 60
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 var templates = [
-                    "My time will be faster at all times. You're only at \(posterM), I'm at \(higherM).",
-                    "Your speed is irrelevant. \(posterM) vs \(higherM).",
-                    "I will always have the faster time. I'm already at \(higherM).",
-                    "You think your time is fast? You're at \(posterM), I'm at \(higherM).",
-                    "I'll always sub that time. Catch me at \(higherM).",
-                    "My time is completely out of reach. You're stuck at \(posterM) while I'm at \(higherM).",
-                    "You vs me, my time will always be lower. I'm at \(higherM).",
-                    "I'll forever hold the fastest time. Try hitting \(higherM).",
+                    "My time will be faster at all times. You're only at \(posterTime), I'm at \(myTime).",
+                    "Your speed is irrelevant. \(posterTime) vs \(myTime).",
+                    "I will always have the faster time. I'm already at \(myTime).",
+                    "You think your time is fast? You're at \(posterTime), I'm at \(myTime).",
+                    "I'll always sub that time. Catch me at \(myTime).",
+                    "My time is completely out of reach. You're stuck at \(posterTime) while I'm at \(myTime).",
+                    "You vs me, my time will always be lower. I'm at \(myTime).",
+                    "I'll forever hold the fastest time. Try hitting \(myTime).",
                 ]
                 if myTotal <= totalSecs / 2 {
-                    templates.append("You're not gonna get even close to my time. \(posterM) vs \(higherM).")
+                    templates.append("You're not gonna get even close to my time. \(posterTime) vs \(myTime).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), higherName)
             }
@@ -2290,17 +2291,17 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("hof_\(myCount)")
                 var templates = [
-                    "You think your infinity count matters? You're at \(posterM), I'm at \(higherM).",
-                    "You're not gonna get even close to my infinity count when you're stuck at \(posterM). I'm at \(higherM).",
-                    "My infinity count will always be higher. You're only at \(posterM), I'm at \(higherM).",
-                    "I will eternally dominate the Hall of Fame. \(posterM) vs \(higherM).",
-                    "You'll never catch up to my infinities. I'm at \(higherM).",
-                    "You vs me, my infinities will always be higher. I'm at \(higherM).",
-                    "I'll forever be ahead in the Hall of Fame. You're only at \(posterM), I'm at \(higherM).",
-                    "My infinity count is completely out of reach. I'm at \(higherM).",
+                    "You think your infinity count matters? You're at \(infCount), I'm at \(myCount).",
+                    "You're not gonna get even close to my infinity count when you're stuck at \(infCount). I'm at \(myCount).",
+                    "My infinity count will always be higher. You're only at \(infCount), I'm at \(myCount).",
+                    "I will eternally dominate the Hall of Fame. \(infCount) vs \(myCount).",
+                    "You'll never catch up to my infinities. I'm at \(myCount).",
+                    "You vs me, my infinities will always be higher. I'm at \(myCount).",
+                    "I'll forever be ahead in the Hall of Fame. You're only at \(infCount), I'm at \(myCount).",
+                    "My infinity count is completely out of reach. I'm at \(myCount).",
                 ]
                 if myCount >= infCount * 2 {
-                    templates.append("You'll never get close to my infinities. \(posterM) vs \(higherM).")
+                    templates.append("You'll never get close to my infinities. \(infCount) vs \(myCount).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), higherName)
             }
@@ -2354,19 +2355,19 @@ public struct MockSocialService: SocialService, Sendable {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                 let posterTier = tiers[posterTierIdx]
                 var templates = [
-                    "You vs me, I'll always pull better chests. You're at \(posterM), I'm at \(higherM).",
-                    "You think your quests are impressive? You're only at \(posterM), I'm at \(higherM).",
-                    "My chest tier will always be higher. \(posterM) vs \(higherM).",
-                    "You'll never pull \(myTier) at my rate. I'm at \(higherM).",
-                    "I'll forever pull better rewards. I'm already at \(higherM).",
-                    "You're not gonna get even close to my chest tier. You're only at \(posterM), I'm at \(higherM).",
-                    "My quest rewards will always be better. Try hitting \(higherM).",
-                    "I will maintain a higher tier than you at all times. I'm at \(higherM).",
+                    "You vs me, I'll always pull better chests. You're at \(posterTier), I'm at \(myTier).",
+                    "You think your quests are impressive? You're only pulling \(posterTier), I'm pulling \(myTier).",
+                    "My chest tier will always be higher. \(posterTier) vs \(myTier).",
+                    "You'll never pull \(myTier) at my rate. I'm at \(myTier).",
+                    "I'll forever pull better rewards. I'm already at \(myTier).",
+                    "You're not gonna get even close to my chest tier. You're only pulling \(posterTier), I'm pulling \(myTier).",
+                    "My quest rewards will always be better. Try hitting \(myTier).",
+                    "I will maintain a higher tier than you at all times. I'm at \(myTier).",
                 ]
                 // tier gap >= 2 (e.g., Bronze→Gold or Bronze→Diamond)
                 let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
                 if tierGap >= 2 {
-                    templates.append("\(myTier) chest here. You're way behind at \(higherM).")
+                    templates.append("\(myTier) chest here. You're way behind at \(posterTier).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), higherName)
             }
