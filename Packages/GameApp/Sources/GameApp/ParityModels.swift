@@ -2094,7 +2094,8 @@ public struct MockSocialService: SocialService, Sendable {
             nameOverride = result.1
             // Randomly prepend a competitive opener ~95% of the time
             let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
-            let posterM = sortedMilestones.first(where: { message.lowercased().contains($0.lowercased()) }) ?? "11n"
+            let actualPosterM = sortedMilestones.first(where: { message.lowercased().contains($0.lowercased()) })
+            let posterM = actualPosterM ?? "11n"
             let posterIdx = Self.allMilestones.firstIndex(of: posterM) ?? 15
             let remaining = Self.allMilestones.count - 1 - posterIdx
             let isMassiveGap = remaining >= 150 && Bool.random()
@@ -2103,19 +2104,25 @@ public struct MockSocialService: SocialService, Sendable {
             let higherM = Self.allMilestones[higherIdx]
 
             if Double.random(in: 0...1) < 0.95 {
-                let compOpeners = [
+                var compOpeners = [
                     "Too easy.", "Forever in first place.", "You can't compete with infinity.",
                     "Barely had to try.", "My infinite lead is permanent.", "Light work.",
                     "Not even a challenge.", "Do better.", "Your effort is pointless.",
                     "I'm bored.", "Effortless.", "This rivalry is already over.",
                     "Didn't even break a sweat.", "That's cute.", "I dominate eternity.",
                     "Flawless.", "This rivalry is completely one-sided.", "There is no catching up to infinity.",
-                    "I need a real opponent.", "Endless grinding, and you're still behind.",
-                    "Your effort is pointless. You're only at \(posterM), I'm at \(higherM).",
-                    "Try hitting \(higherM) before talking to me at \(posterM).",
-                    "You celebrate \(posterM)? I'm already at \(higherM).",
-                    "\(posterM) is cute. Come back when you reach \(higherM)."
+                    "I need a real opponent.", "Endless grinding, and you're still behind."
                 ]
+                
+                if actualPosterM != nil {
+                    compOpeners.append(contentsOf: [
+                        "Your effort is pointless. You're only at \(posterM), I'm at \(higherM).",
+                        "Try hitting \(higherM) before talking to me at \(posterM).",
+                        "You celebrate \(posterM)? I'm already at \(higherM).",
+                        "\(posterM) is cute. Come back when you reach \(higherM)."
+                    ])
+                }
+                
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
             }
@@ -2130,16 +2137,21 @@ public struct MockSocialService: SocialService, Sendable {
                     "I run this game.", "You're completely outmatched.",
                     "I'm untouchable.", "Wipes the floor with that.",
                     "Stay down there.", "Eternity belongs to me.",
-                    "Your progress is a joke to me.",
-                    "Your effort is pointless. You're only at \(posterM), I'm at \(higherM).",
-                    "You're stuck at \(posterM) while I'm at \(higherM).",
-                    "I'm at \(higherM). Your \(posterM) is nothing."
+                    "Your progress is a joke to me."
                 ]
                 
-                if higherIdx - posterIdx >= 100 {
-                    compClosers.append("\(posterM) vs \(higherM). Not even close.")
-                    compClosers.append("You're hundreds of milestones behind at \(posterM).")
-                    compClosers.append("The gap between \(posterM) and \(higherM) is embarrassing.")
+                if actualPosterM != nil {
+                    compClosers.append(contentsOf: [
+                        "Your effort is pointless. You're only at \(posterM), I'm at \(higherM).",
+                        "You're stuck at \(posterM) while I'm at \(higherM).",
+                        "I'm at \(higherM). Your \(posterM) is nothing."
+                    ])
+                    
+                    if higherIdx - posterIdx >= 100 {
+                        compClosers.append("\(posterM) vs \(higherM). Not even close.")
+                        compClosers.append("You're hundreds of milestones behind at \(posterM).")
+                        compClosers.append("The gap between \(posterM) and \(higherM) is embarrassing.")
+                    }
                 }
                 
                 let closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
