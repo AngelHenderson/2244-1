@@ -2108,7 +2108,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Too easy.", "Forever in first place.", "You can't compete with infinity.",
                     "Barely had to try.", "My infinite lead is permanent.", "Light work.",
                     "Not even a challenge.", "Do better.", "Your effort is pointless.",
-                    "I'm bored.", "Effortless.", "This rivalry is already over.",
+                    "I'm bored.", "Effortless.", "I'll dominate this rivalry forever.",
                     "Didn't even break a sweat.", "That's cute.", "I dominate eternity.",
                     "Flawless.", "This rivalry is completely one-sided.", "There is no catching up to infinity.",
                     "I need a real opponent.", "Endless grinding, and you're still behind."
