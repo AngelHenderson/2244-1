@@ -1062,71 +1062,86 @@ public struct MockSocialService: SocialService, Sendable {
         let playerName = defaults.string(forKey: "player.displayName") ?? "Player"
         let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
-        // 60% top-level dynamic comments, 40% replies
-        // Of the 40% replies: 70% to the poster, 30% to other commenters
-        let totalComments = Int.random(in: 5...30)
-        let numReplies = max(1, Int(Double(totalComments) * 0.4))
-
-        // Sort offsets into the FUTURE so comments trickle in over time
-        // Spread from 30 seconds to 4 hours after posting
-        var commentOffsets: [Double] = []
-        for _ in 0..<totalComments {
-            commentOffsets.append(Double.random(in: 30...14400))
-        }
-        commentOffsets.sort()
-
-        // Mark which indices are replies to previous comments
-        var replyIndices = Set<Int>()
-        if totalComments > 1 {
-            var available = Array(1..<totalComments)
-            available.shuffle()
-            for i in 0..<min(numReplies, available.count) {
-                replyIndices.insert(available[i])
-            }
-        }
-
         var comments: [SocialFeedComment] = []
-        var commentAuthors: [String] = []
+        let numBaseComments = Int.random(in: 4...10)
         var usedStats: Set<String> = []
-
-        for (index, offset) in commentOffsets.enumerated() {
+        
+        for _ in 0..<numBaseComments {
             let commenter = generateDynamicName()
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
-            let (commentBase, nameOverride) = generateDynamicComment(message: message, usedStats: &usedStats)
-            var commentText = commentBase
+            
+            let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats)
             let finalCommenter = nameOverride ?? commenter
-
-            // If this is a reply, pick target: 70% to the poster, 30% to another commenter
-            if replyIndices.contains(index), !commentAuthors.isEmpty {
-                let replyToPoster = Double.random(in: 0..<1) < 0.7
-                let replyTo: String
-                if replyToPoster {
-                    replyTo = playerName
-                } else {
-                    // Pick a random previous commenter (not self)
-                    let candidates = commentAuthors.filter { $0 != commenter }
-                    replyTo = candidates.randomElement() ?? playerName
-                }
-                if replyTo != finalCommenter {
-                    let previousComment = comments.last(where: { $0.authorName == replyTo })
-                    if let prev = previousComment {
-                        commentText = "@\(replyTo) " + generateContextualReply(to: prev.text, message: message)
-                    } else {
-                        // Replying to the poster (no comment from them in thread)
-                        commentText = "@\(replyTo) " + generateContextualReply(to: message, message: message)
-                    }
-                }
-            }
-
-            comments.append(SocialFeedComment(
+            
+            let baseOffset = Double.random(in: 30...14400)
+            let baseCreatedAt = now.addingTimeInterval(baseOffset)
+            
+            let baseComment = SocialFeedComment(
                 authorName: finalCommenter,
                 avatarID: commenterAvatar,
-                text: commentText,
-                createdAt: now.addingTimeInterval(offset),
+                text: commentBase,
+                createdAt: baseCreatedAt,
                 likes: Int.random(in: 0...10)
-            ))
-            commentAuthors.append(finalCommenter)
+            )
+            comments.append(baseComment)
+            
+            if tone == "competitive" {
+                var currentDepth = 0
+                var lastComment = baseComment
+                
+                while currentDepth < 5 && Double.random(in: 0...1) < 0.40 {
+                    let replyAuthor = generateDynamicName()
+                    let replyIndex = Int.random(in: 1...100000)
+                    let replyAvatar = Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay)
+                    
+                    let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
+                    
+                    let replyOffset = Double.random(in: 120...3600)
+                    let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                    
+                    let replyComment = SocialFeedComment(
+                        authorName: replyAuthor,
+                        avatarID: replyAvatar,
+                        text: replyText,
+                        createdAt: replyCreatedAt,
+                        likes: Int.random(in: 0...5)
+                    )
+                    comments.append(replyComment)
+                    lastComment = replyComment
+                    currentDepth += 1
+                }
+            } else {
+                if Double.random(in: 0...1) < 0.30 {
+                    let replyAuthor = generateDynamicName()
+                    let replyIndex = Int.random(in: 1...100000)
+                    let replyAvatar = Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay)
+                    
+                    let replyText: String
+                    if let answer = milestoneAnswer(for: baseComment.text) {
+                        replyText = "@\(baseComment.authorName) " + answer
+                    } else {
+                        // Sometimes reply to the poster, sometimes reply to the commenter
+                        if Double.random(in: 0...1) < 0.7 {
+                            replyText = "@\(playerName) " + generateContextualReply(to: message, message: message)
+                        } else {
+                            replyText = "@\(baseComment.authorName) " + generateContextualReply(to: baseComment.text, message: message)
+                        }
+                    }
+                    
+                    let replyOffset = Double.random(in: 120...7200)
+                    let replyCreatedAt = baseComment.createdAt.addingTimeInterval(replyOffset)
+                    
+                    let replyComment = SocialFeedComment(
+                        authorName: replyAuthor,
+                        avatarID: replyAvatar,
+                        text: replyText,
+                        createdAt: replyCreatedAt,
+                        likes: Int.random(in: 0...5)
+                    )
+                    comments.append(replyComment)
+                }
+            }
         }
 
         // Heart/reaction timestamps trickle in over the next 4 hours (10–50)
@@ -1283,78 +1298,85 @@ public struct MockSocialService: SocialService, Sendable {
             let itemDate = now.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
-            // 60% top-level dynamic comments, 40% replies
-            // Of the 40% replies: 70% to the poster, 30% to other commenters
-            let totalComments = Int.random(in: 5...18)
-            let numResponses = max(1, Int(Double(totalComments) * 0.4))
             
-            // Generate and sort offsets so the conversation flows chronologically
-            var commentOffsets: [Double] = []
-            for _ in 0..<totalComments {
-                // Comments and replies trickle in up to 8 hours after the post
-                commentOffsets.append(Double.random(in: timeOffset...(timeOffset + 28800)))
-            }
-            commentOffsets.sort()
-            
-            var responseIndices = Set<Int>()
-            if totalComments > 1 {
-                var availableIndices = Array(1..<totalComments)
-                availableIndices.shuffle()
-                for i in 0..<min(numResponses, availableIndices.count) {
-                    responseIndices.insert(availableIndices[i])
-                }
-            }
-            
-            var commentAuthors: [String] = []
+            // Generate top-level base comments
+            let numBaseComments = Int.random(in: 4...10)
             var usedStats: Set<String> = []
-            for (index, offset) in commentOffsets.enumerated() {
+            
+            for _ in 0..<numBaseComments {
                 let commentAuthor = generateDynamicName()
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
-                let (commentBase, nameOverride) = generateDynamicComment(message: message, usedStats: &usedStats)
-                var commentText = commentBase
+                
+                let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats)
                 let finalCommenter = nameOverride ?? commentAuthor
-                var commentOffset = offset
                 
-                // If this index is marked as a response: 70% reply to the poster, 30% to other commenters
-                if responseIndices.contains(index) && !commentAuthors.isEmpty {
-                    let replyToPoster = Double.random(in: 0..<1) < 0.7
-                    let replyingTo: String
-                    if replyToPoster {
-                        replyingTo = author
-                    } else {
-                        let candidates = commentAuthors.filter { $0 != commentAuthor }
-                        replyingTo = candidates.randomElement() ?? author
-                    }
-                    if replyingTo != finalCommenter {
-                        // Check if the comment being replied to asks about the next milestone
-                        let previousComment = comments.last(where: { $0.authorName == replyingTo })
-                        if let prev = previousComment, let answer = milestoneAnswer(for: prev.text) {
-                            commentText = "@\(replyingTo) " + answer
-                            // Reply sometime after the question (up to 2 hours)
-                            let questionOffset = prev.createdAt.timeIntervalSince(now)
-                            commentOffset = questionOffset + Double.random(in: 120...7200)
-                        } else if let prev = previousComment {
-                            commentText = "@\(replyingTo) " + generateContextualReply(to: prev.text, message: message)
-                            // Respond sometime after the comment being replied to (up to 2 hours)
-                            let prevOffset = prev.createdAt.timeIntervalSince(now)
-                            commentOffset = prevOffset + Double.random(in: 120...7200)
-                        } else {
-                            // Replying to the poster (no comment from them in thread)
-                            commentText = "@\(replyingTo) " + generateContextualReply(to: message, message: message)
-                        }
-                    }
-                }
+                let baseOffset = Double.random(in: timeOffset...(timeOffset + 28800))
+                let baseCreatedAt = now.addingTimeInterval(baseOffset)
                 
-                comments.append(SocialFeedComment(
+                let baseComment = SocialFeedComment(
                     authorName: finalCommenter,
                     avatarID: commentAvatar,
-                    text: commentText,
-                    createdAt: now.addingTimeInterval(commentOffset),
+                    text: commentBase,
+                    createdAt: baseCreatedAt,
                     likes: Int.random(in: 0...10)
-                ))
+                )
+                comments.append(baseComment)
                 
-                commentAuthors.append(finalCommenter)
+                // If it's a competitive comment, start a recursive competitive chain
+                if tone == "competitive" {
+                    var currentDepth = 0
+                    var lastComment = baseComment
+                    
+                    while currentDepth < 5 && Double.random(in: 0...1) < 0.40 {
+                        let replyAuthor = generateDynamicName()
+                        let replyIndex = Int.random(in: 1...100000)
+                        let replyAvatar = Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay)
+                        
+                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
+                        
+                        let replyOffset = Double.random(in: 120...3600)
+                        let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                        
+                        let replyComment = SocialFeedComment(
+                            authorName: replyAuthor,
+                            avatarID: replyAvatar,
+                            text: replyText,
+                            createdAt: replyCreatedAt,
+                            likes: Int.random(in: 0...5)
+                        )
+                        comments.append(replyComment)
+                        lastComment = replyComment
+                        currentDepth += 1
+                    }
+                } else {
+                    // For non-competitive comments, small chance for a standard reply
+                    if Double.random(in: 0...1) < 0.30 {
+                        let replyAuthor = generateDynamicName()
+                        let replyIndex = Int.random(in: 1...100000)
+                        let replyAvatar = Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay)
+                        
+                        // Small chance to answer a question if it asks about the next milestone
+                        var replyText = ""
+                        if let answer = milestoneAnswer(for: baseComment.text) {
+                            replyText = "@\(baseComment.authorName) " + answer
+                        } else {
+                            replyText = "@\(baseComment.authorName) " + generateContextualReply(to: baseComment.text, message: message)
+                        }
+                        
+                        let replyOffset = Double.random(in: 120...7200)
+                        let replyCreatedAt = baseComment.createdAt.addingTimeInterval(replyOffset)
+                        
+                        let replyComment = SocialFeedComment(
+                            authorName: replyAuthor,
+                            avatarID: replyAvatar,
+                            text: replyText,
+                            createdAt: replyCreatedAt,
+                            likes: Int.random(in: 0...5)
+                        )
+                        comments.append(replyComment)
+                    }
+                }
             }
             
             let maxReactions = Int.random(in: 10...50)
@@ -1781,7 +1803,7 @@ public struct MockSocialService: SocialService, Sendable {
         return shuffleBags[key]![idx]
     }
 
-    private func generateDynamicComment(message: String, usedStats: inout Set<String>) -> (String, String?) {
+    private func generateDynamicComment(message: String, usedStats: inout Set<String>) -> (commentText: String, nameOverride: String?, tone: String) {
         var nameOverride: String? = nil
         let openers = [
             "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
@@ -2189,7 +2211,7 @@ public struct MockSocialService: SocialService, Sendable {
             comment += keyboardSymbols.randomElement()!
         }
         
-        return (comment.trimmingCharacters(in: .whitespaces), nameOverride)
+        return (comment.trimmingCharacters(in: .whitespaces), nameOverride, tone)
     }
 
     // MARK: - Truthful competitive comments
@@ -2468,7 +2490,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     /// Generates a contextual reply that responds to what the previous comment actually said.
-    private func generateContextualReply(to commentText: String, message: String) -> String {
+    private func generateContextualReply(to commentText: String, message: String, forceTone: String? = nil) -> String {
         let lowered = commentText.lowercased()
 
         // Strip any leading @mention so we analyze the real content
@@ -2529,19 +2551,19 @@ public struct MockSocialService: SocialService, Sendable {
         let isQuestion = questionKeywords.contains(where: { strippedLower.contains($0) })
 
         let competitiveKeywords = ["beat", "catching up", "coming for", "won't last", "watch your back", "game on", "challenge", "mine tomorrow", "i'll be", "i'm going to", "not impressed", "my time", "faster", "i passed", "old news", "hold my", "i'll beat", "i'm right behind", "i'm catching"]
-        var isCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
-        if Double.random(in: 0..<1) < 0.55 {
+        var isCompetitive = forceTone == "competitive" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
+        if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
         }
 
         let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't"]
-        let isJealous = jealousKeywords.contains(where: { strippedLower.contains($0) })
+        let isJealous = forceTone != "competitive" && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
         let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate"]
-        let isPositive = positiveKeywords.contains(where: { strippedLower.contains($0) })
+        let isPositive = forceTone != "competitive" && positiveKeywords.contains(where: { strippedLower.contains($0) })
 
         let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
-        let isAddRequest = addFriendKeywords.contains(where: { strippedLower.contains($0) })
+        let isAddRequest = forceTone != "competitive" && addFriendKeywords.contains(where: { strippedLower.contains($0) })
 
         // ── Generate contextual replies that reference the actual comment ──
 

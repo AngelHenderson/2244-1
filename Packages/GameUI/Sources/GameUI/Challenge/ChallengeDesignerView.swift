@@ -63,9 +63,9 @@ public struct ChallengeDesignerView: View {
                     store.prevTarget()
                 } label: {
                     Text("◄")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 32, weight: .bold))
                         .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
+                        .frame(width: 80, height: 80)
                         .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
                 }
                 .buttonStyle(.plain)
@@ -95,9 +95,9 @@ public struct ChallengeDesignerView: View {
                     store.nextTarget()
                 } label: {
                     Text("►")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 32, weight: .bold))
                         .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
+                        .frame(width: 80, height: 80)
                         .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
                 }
                 .buttonStyle(.plain)
