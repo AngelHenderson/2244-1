@@ -627,7 +627,7 @@ private struct IconLegendSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private let legendItems: [(icon: String, name: String, description: String)] = [
-        ("gem", "Gems", "Currency to spend in shop"),
+        ("gem", "Gems", "In-game currency for power-ups & skips"),
         ("hammer", "Hammer", "Destroy any tile"),
         ("swap", "Swap", "Swap two tiles"),
         ("magnet", "MegaMerge", "Pull matching tiles together"),
