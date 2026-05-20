@@ -165,7 +165,7 @@ struct ChallengeDetailView: View {
     }
 
     private var timeText: String {
-        guard let timeLimit = challenge.timeLimit else { return "No limit" }
+        guard let timeLimit = challenge.timeLimit else { return "3:00" }
         let seconds = Int(timeLimit.rounded())
         let minutes = seconds / 60
         let remainder = seconds % 60
@@ -176,7 +176,7 @@ struct ChallengeDetailView: View {
     }
 
     private var moveText: String {
-        guard let moveLimit = challenge.moveLimit else { return "No limit" }
+        guard let moveLimit = challenge.moveLimit else { return "Depends on valid moves" }
         return "\(moveLimit)"
     }
 
