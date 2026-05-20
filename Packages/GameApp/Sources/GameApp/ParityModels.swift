@@ -1894,15 +1894,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "I've been trying to reach HoF for months",
                 "That's literally my end goal", "HoF is my white whale",
             ])
-            competitiveReactions.append(contentsOf: [
-                "I will join the Hall of Fame and have a higher infinity count than you!",
-                "My infinity count will be bigger than yours.",
-                "I'm coming for your HoF spot.", "I'll have more infinities by next week.",
-                "Just wait until I get my HoF entry.",
-                "I'll be right behind you in the rankings.",
-                "My HoF push starts today.", "I'm going to pass your infinity count.",
-                "See you on the leaderboard soon.", "That HoF record won't last.",
-            ])
+
             questions.append(contentsOf: [
                 "How many infinity counts do you have?",
                 "Are you going for a high infinity count?",
@@ -1931,13 +1923,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "I lost a 30-day streak last week", "My streak always dies on weekends",
                 "I wish I had that consistency", "I'm so bad at maintaining streaks",
             ])
-            competitiveReactions.append(contentsOf: [
-                "My streak is longer than yours.", "I'm catching up to your streak.",
-                "I haven't missed a day in months.", "My streak will outlast yours.",
-                "That's cute, check mine.",
-                "My streak started before yours.", "I'm never breaking my streak.",
-                "Wait until you see my streak count.", "Streak vs streak, let's go.",
-            ])
+
             questions.append(contentsOf: [
                 "How long is your streak now?", "Did you ever use a streak freeze?",
                 "Have you ever lost a long streak?", "What's your all-time best streak?",
@@ -1961,13 +1947,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "My hands aren't fast enough", "I panic when the timer starts",
                 "I can never think that quickly", "Time pressure is my worst enemy",
             ])
-            competitiveReactions.append(contentsOf: [
-                "I bet my time was faster.", "I'll beat your time tomorrow.",
-                "My PB is lower than that.", "I'm the real speed king.",
-                "That time is beatable.", "I'll sub that time easy.",
-                "Tomorrow I'm going for the record.", "My clear was cleaner.",
-                "I shaved 30 seconds off my best today.", "Speed challenge accepted.",
-            ])
+
             questions.append(contentsOf: [
                 "What was your exact time?", "Did you pause at all?",
                 "What's your fastest ever?", "Did you use a hammer during the run?",
@@ -1990,13 +1970,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Gem grind for that theme is real", "I need more gems for themes",
                 "Saving every gem for that exact theme", "I keep spending gems on perks instead",
             ])
-            competitiveReactions.append(contentsOf: [
-                "My theme is better.", "I have all the themes unlocked.",
-                "I had that theme ages ago.", "Wait until you see mine.",
-                "I unlocked every theme already.", "That's my second favorite theme.",
-                "I switch themes every week.", "My collection is complete.",
-                "I unlocked that one first day.", "Try collecting them all like me.",
-            ])
+
             questions.append(contentsOf: [
                 "Which theme is that?", "How much did that cost?",
                 "How many gems was it?", "Is that your favorite theme?",
@@ -2019,13 +1993,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "The quest RNG hates me", "I got the hardest quests today",
                 "I can never finish before reset", "Wish my quests were that easy",
             ])
-            competitiveReactions.append(contentsOf: [
-                "I finished mine hours ago.", "I always finish quests faster.",
-                "I had those done by breakfast.", "My chest was better.",
-                "I got Diamond tier today.", "Quests are too easy honestly.",
-                "I speed-clear quests every day.", "I've finished every quest this month.",
-                "My quest streak is untouched.", "I finish dailies on my first game.",
-            ])
+
             questions.append(contentsOf: [
                 "What did you get from the chest?", "Were your quests hard?",
                 "What tier chest was it?", "How long did the quests take?",
@@ -2060,13 +2028,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "I keep dying one tile before \(m)",
                     "\(m) is my wall right now", "Maybe someday I'll reach \(m)",
                 ])
-                competitiveReactions.append(contentsOf: [
-                    "I'm getting past \(m) today.", "I'll beat your \(m).",
-                    "I passed \(m) last week.", "My \(m) run was cleaner.",
-                    "\(m) is old news for me.", "I'll be past \(m) by tonight.",
-                    "Already beyond \(m) personally.", "My \(m) time was faster.",
-                    "I hit \(m) without any perks.", "I hit \(m) effortlessly.",
-                ])
+
                 questions.append(contentsOf: [
                     "Any tips for getting \(m)?", "Was \(m) tough?",
                     "How many tries for \(m)?", "What's the strategy near \(m)?",
@@ -2114,15 +2076,6 @@ public struct MockSocialService: SocialService, Sendable {
                     "I need a real opponent.", "Endless grinding, and you're still behind."
                 ]
                 
-                if actualPosterM != nil {
-                    compOpeners.append(contentsOf: [
-                        "Your effort is pointless. You're only at \(posterM), I'm at \(higherM).",
-                        "Try hitting \(higherM) before talking to me at \(posterM).",
-                        "You celebrate \(posterM)? I'm already at \(higherM).",
-                        "\(posterM) is cute. Come back when you reach \(higherM)."
-                    ])
-                }
-                
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
                 comment = "\(opener) \(comment)"
             }
@@ -2139,20 +2092,6 @@ public struct MockSocialService: SocialService, Sendable {
                     "Stay down there.", "Eternity belongs to me.",
                     "Your progress is a joke to me."
                 ]
-                
-                if actualPosterM != nil {
-                    compClosers.append(contentsOf: [
-                        "Your effort is pointless. You're only at \(posterM), I'm at \(higherM).",
-                        "You're stuck at \(posterM) while I'm at \(higherM).",
-                        "I'm at \(higherM). Your \(posterM) is nothing."
-                    ])
-                    
-                    if higherIdx - posterIdx >= 100 {
-                        compClosers.append("\(posterM) vs \(higherM). Not even close.")
-                        compClosers.append("You're hundreds of milestones behind at \(posterM).")
-                        compClosers.append("The gap between \(posterM) and \(higherM) is embarrassing.")
-                    }
-                }
                 
                 let closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
                 comment = "\(comment) \(closer)"
