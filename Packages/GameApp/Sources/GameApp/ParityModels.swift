@@ -2685,57 +2685,69 @@ public struct MockSocialService: SocialService, Sendable {
         if isCompetitive {
             var replies: [String] = []
 
-            let posterM = mentionedMilestone ?? (index: 15, name: "11n")
-            let jump = Int.random(in: 1...5)
-            let higherIdx = min(posterM.index + jump, Self.allMilestones.count - 1)
-            let higherM = Self.allMilestones[higherIdx]
-
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
                 replies.append(contentsOf: [
-                    "You're not gonna get even close to my milestone. I'm already at \(higherM).",
-                    "I'll always be tiers ahead of your \(m.name). Try hitting \(higherM) first.",
-                    "\(m.name) is nothing. Talk to me when you reach \(higherM).",
-                    "You'll never touch my \(higherM) record.",
+                    "My \(m.name) run was completely effortless.",
+                    "\(m.name) is permanently behind me.",
+                    "Your \(m.name) is nothing compared to my record.",
+                    "I passed \(m.name) ages ago.",
+                    "I dominate \(m.name) effortlessly.",
                 ])
             }
 
             if let num = mentionedNumber, !mentionedTime, !mentionedStreak, !mentionedHoF {
                 replies.append(contentsOf: [
-                    "My numbers will always be better. I'm already at \(higherM).",
-                    "Your \(num) is cute. I'll always have you beat at \(higherM).",
-                    "\(num) is just the beginning for me. Try \(higherM).",
+                    "My score is permanently out of reach.",
+                    "I've been at the top since day one.",
+                    "Your \(num) is nothing compared to my record.",
+                    "I'll always have the higher score.",
+                    "I dominate the leaderboards.",
+                    "You'll never catch my progress.",
                 ])
             }
 
             if mentionedStreak {
-                replies.append("You vs me, my streak will be higher. I'm at \(higherM).")
-                replies.append("My streak is untouchable. Facts. Catch me at \(higherM).")
-                replies.append("I'll maintain my streak long after you lose yours. I'm at \(higherM).")
+                replies.append(contentsOf: [
+                    "My streak is permanently out of reach.",
+                    "I haven't missed a day since launch.",
+                    "Your streak is nothing compared to mine.",
+                    "I'll always have the higher streak.",
+                    "I dominate the daily grind.",
+                    "You'll never catch my streak.",
+                ])
             }
 
             if mentionedTime {
-                replies.append("My time will be faster at all times. Try it. See what happens at \(higherM).")
-                replies.append("I'll always have the faster clear time. I'm at \(higherM).")
+                replies.append(contentsOf: [
+                    "My time is permanently out of reach.",
+                    "I've had the fastest time since day one.",
+                    "Your speed is nothing compared to my record.",
+                    "I'll always have the faster clear.",
+                    "I dominate the speed leaderboards.",
+                    "You'll never beat my time.",
+                ])
             }
 
             if mentionedHoF {
-                replies.append("I doubt your infinity count will be higher. We'll see about that at \(higherM).")
-                replies.append("I'll always dominate the Hall of Fame. I'm already at \(higherM).")
+                replies.append(contentsOf: [
+                    "My infinity count is permanently out of reach.",
+                    "I've been in the Hall of Fame since day one.",
+                    "Your HoF entry is nothing compared to my record.",
+                    "I'll always have more infinities.",
+                    "I dominate the Hall of Fame.",
+                    "You'll never catch my infinity count.",
+                ])
             }
 
             // Generic competitive
             replies.append(contentsOf: [
-                "I'm on an entirely different level. I'm at \(higherM).",
-                "You will never catch me. Try hitting \(higherM) first.",
-                "My record is flawless and permanent. I'm at \(higherM).",
-                "Enjoy the view from the bottom. I'm at \(higherM).",
-                "Keep trying, it's entertaining. I'm already at \(higherM).",
-                "I am permanently untouchable at \(higherM).",
-                "Your grind is entirely pointless. I'm at \(higherM).",
-                "My infinite lead is undisputed. Catch me at \(higherM).",
-                "I need a real challenge. Who is at \(higherM)?",
-                "Talk to me when you actually pose a threat at \(higherM).",
+                "I am permanently out of reach.",
+                "I've been at the top since day one.",
+                "Your progress is nothing compared to my record.",
+                "I'll always have the endless lead.",
+                "I dominate the endless grind.",
+                "You'll never catch my progress.",
             ])
             return replies.randomElement()!
         }
