@@ -2065,7 +2065,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "I passed \(m) last week.", "My \(m) run was cleaner.",
                     "\(m) is old news for me.", "I'll be past \(m) by tonight.",
                     "Already beyond \(m) personally.", "My \(m) time was faster.",
-                    "I hit \(m) without any perks.", "\(m)? I'm aiming higher.",
+                    "I hit \(m) without any perks.", "I hit \(m) effortlessly.",
                 ])
                 questions.append(contentsOf: [
                     "Any tips for getting \(m)?", "Was \(m) tough?",
@@ -2826,7 +2826,7 @@ public struct MockSocialService: SocialService, Sendable {
 
         if let m = mentionedMilestone {
             let contextual = [
-                "\(m.name)? I'm aiming higher 🚀",
+                "\(m.name) is a solid milestone!",
                 "\(m.name) is where things get interesting!",
                 "I remember my first \(m.name) run. Good times.",
                 "\(m.name) hits different when you earn it legit.",
