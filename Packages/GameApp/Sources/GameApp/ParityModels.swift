@@ -1894,6 +1894,14 @@ public struct MockSocialService: SocialService, Sendable {
                 "I've been trying to reach HoF for months",
                 "That's literally my end goal", "HoF is my white whale",
             ])
+            competitiveReactions.append(contentsOf: [
+                "My infinity count is permanently out of reach.",
+                "I've been in the Hall of Fame since day one.",
+                "Your HoF entry is nothing compared to my record.",
+                "I'll always have more infinities.",
+                "I dominate the Hall of Fame.",
+                "You'll never catch my infinity count.",
+            ])
 
             questions.append(contentsOf: [
                 "How many infinity counts do you have?",
@@ -1923,6 +1931,15 @@ public struct MockSocialService: SocialService, Sendable {
                 "I lost a 30-day streak last week", "My streak always dies on weekends",
                 "I wish I had that consistency", "I'm so bad at maintaining streaks",
             ])
+            
+            competitiveReactions.append(contentsOf: [
+                "My streak is permanently out of reach.",
+                "I haven't missed a day since launch.",
+                "Your streak is nothing compared to mine.",
+                "I'll always have the higher streak.",
+                "I dominate the daily grind.",
+                "You'll never catch my streak.",
+            ])
 
             questions.append(contentsOf: [
                 "How long is your streak now?", "Did you ever use a streak freeze?",
@@ -1948,6 +1965,15 @@ public struct MockSocialService: SocialService, Sendable {
                 "I can never think that quickly", "Time pressure is my worst enemy",
             ])
 
+            competitiveReactions.append(contentsOf: [
+                "My time is permanently out of reach.",
+                "I've had the fastest time since day one.",
+                "Your speed is nothing compared to my record.",
+                "I'll always have the faster clear.",
+                "I dominate the speed leaderboards.",
+                "You'll never beat my time.",
+            ])
+
             questions.append(contentsOf: [
                 "What was your exact time?", "Did you pause at all?",
                 "What's your fastest ever?", "Did you use a hammer during the run?",
@@ -1971,6 +1997,15 @@ public struct MockSocialService: SocialService, Sendable {
                 "Saving every gem for that exact theme", "I keep spending gems on perks instead",
             ])
 
+            competitiveReactions.append(contentsOf: [
+                "I already have all the themes unlocked. Take the L.",
+                "You play dress-up while I grind.",
+                "You care about colors? I only care about progression.",
+                "A new theme won't help you catch up to me.",
+                "Themes are for players stuck at the bottom.",
+                "Keep playing in style. I'll keep dominating.",
+            ])
+
             questions.append(contentsOf: [
                 "Which theme is that?", "How much did that cost?",
                 "How many gems was it?", "Is that your favorite theme?",
@@ -1992,6 +2027,15 @@ public struct MockSocialService: SocialService, Sendable {
                 "I got stuck on the last objective", "I keep running out of time for quests",
                 "The quest RNG hates me", "I got the hardest quests today",
                 "I can never finish before reset", "Wish my quests were that easy",
+            ])
+
+            competitiveReactions.append(contentsOf: [
+                "My quest rewards are permanently out of reach.",
+                "I've pulled Diamond chests since day one.",
+                "Your quest tier is nothing compared to my record.",
+                "I'll always pull the better chests.",
+                "I dominate the daily quests.",
+                "You'll never catch my quest streak.",
             ])
 
             questions.append(contentsOf: [
@@ -2027,6 +2071,14 @@ public struct MockSocialService: SocialService, Sendable {
                     "My board always falls apart near \(m)",
                     "I keep dying one tile before \(m)",
                     "\(m) is my wall right now", "Maybe someday I'll reach \(m)",
+                ])
+                competitiveReactions.append(contentsOf: [
+                    "My \(m) run was completely effortless.",
+                    "\(m) is permanently behind me.",
+                    "Your \(m) is nothing compared to my record.",
+                    "I passed \(m) ages ago.",
+                    "I dominate \(m) effortlessly.",
+                    "You'll never catch me at \(m).",
                 ])
 
                 questions.append(contentsOf: [
@@ -2303,21 +2355,6 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), higherName)
             }
-        }
-
-        // ── Theme posts: dismiss aesthetics, brag about progression ──
-        let themeKeywords = ["theme", "aesthetic", "look", "sage", "yellow", "rust", "coral", "classic", "style"]
-        if themeKeywords.contains(where: { lowered.contains($0) }) {
-            let templates = [
-                "I already have all the themes unlocked. Take the L.",
-                "You play dress-up while I grind.",
-                "You care about colors? I only care about progression.",
-                "A new theme won't help you catch up to me.",
-                "Enjoy your aesthetic. I'll enjoy my infinite lead.",
-                "Themes are for players stuck at the bottom.",
-                "Keep playing in style. I'll keep dominating.",
-            ]
-            return (Self.drawFromBag(key: "\(bagKey)_theme", pool: templates), nil)
         }
 
         // ── Fallback: use the generic competitive pool ──
