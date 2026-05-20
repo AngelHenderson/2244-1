@@ -1293,6 +1293,7 @@ public final class GameStore {
         // Check if we created a new highest tile and show milestone notifications
         let currentStep = state.highestTileStep
         let isNewHighest = currentStep > previousHighestStep || state.highestTile > previousHighest
+        print("🔔 MILESTONE CHECK: previousStep=\(previousHighestStep) currentStep=\(currentStep) previousHighest=\(previousHighest) currentHighest=\(state.highestTile) isNewHighest=\(isNewHighest)")
         if isNewHighest {
             // Show unlock/added/eliminated notifications
             setMergeInfoIfMilestone(
@@ -2304,6 +2305,7 @@ public final class GameStore {
             // to show a milestone notification. Otherwise, it's not a new milestone.
             guard let prevStep = previousStep, let newStepVal = newStep, newStepVal > prevStep else {
                 // Not a new milestone - don't show any notification
+                print("🔔 HIGH-VALUE SKIP: prevStep=\(previousStep as Any) newStep=\(newStep as Any) - guard failed")
                 return
             }
 
@@ -2327,7 +2329,7 @@ public final class GameStore {
             }
 
             enqueueNotifications(pending)
-            print("🎯 HIGH-VALUE MILESTONE: Unlocked step \(newStepVal), previous step \(prevStep)")
+            print("🎯 HIGH-VALUE MILESTONE: Unlocked step \(newStepVal), previous step \(prevStep), isSkip=\(isSkipMilestone), queued \(pending.count) notifications, currentNotification=\(String(describing: currentNotification))")
             return
         }
 
@@ -2385,6 +2387,7 @@ public final class GameStore {
     
     private func enqueueNotifications(_ notifications: [MergeNotification]) {
         guard !notifications.isEmpty else { return }
+        print("🔔 ENQUEUE: \(notifications.count) notifications, currentNotification=\(currentNotification == nil ? "nil" : "active"), queueSize=\(notificationQueue.count)")
         notificationQueue.append(contentsOf: notifications)
         if currentNotification == nil {
             showNextNotification()
