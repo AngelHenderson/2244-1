@@ -25,6 +25,8 @@ public struct SpinWheelView: View {
     @State private var purchaseFeedback: String?
     @State private var showShopFromGems = false
     @State private var showOutOfSpins = false
+    @State private var showCantAfford = false
+    @State private var cantAffordCost = 0
     @State private var now = Date()
     @State private var currentSpinKey: String = ""
     @State private var giftBoxGrantIndex: Int = 0
@@ -113,6 +115,12 @@ public struct SpinWheelView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("You are still banned. Your ban is over in \(homeState.banTimeRemainingText ?? "never (permanent)").")
+        }
+        .alert("Can't Afford Spins", isPresented: $showCantAfford) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            let need = cantAffordCost - homeState.gems
+            Text("You need \(cantAffordCost) gems, but you only have \(homeState.gems). You need \(need) more gems.")
         }
         .trackScreen(.freeSpin)
     }
@@ -257,7 +265,14 @@ public struct SpinWheelView: View {
     
     private func purchaseButton(title: String, cost: Int, grant: Int) -> some View {
         Button {
-            purchaseBonusSpins(count: grant, cost: cost)
+            if homeState.isBanned {
+                homeState.showBanAlert = true
+            } else if homeState.gems < cost {
+                cantAffordCost = cost
+                showCantAfford = true
+            } else {
+                purchaseBonusSpins(count: grant, cost: cost)
+            }
         } label: {
             VStack(spacing: 4) {
                 Text(title)
@@ -272,10 +287,6 @@ public struct SpinWheelView: View {
             .opacity(homeState.gems >= cost && !homeState.isBanned ? 1.0 : 0.5)
         }
         .buttonStyle(.plain)
-        .disabled(homeState.gems < cost || homeState.isBanned)
-        .onTapGesture {
-            if homeState.isBanned { homeState.showBanAlert = true }
-        }
     }
     
     private var spinButton: some View {
