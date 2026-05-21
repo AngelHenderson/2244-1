@@ -577,7 +577,8 @@ private struct AchievementRow: View {
     private func progressValueText(for progress: AchievementStore.AchievementProgress) -> String {
         // Show actual unclamped values so users can see when they've exceeded the target (e.g., "1.56K/1.5K")
         // The progress bar itself remains clamped to not exceed 100%
-        return "\(formattedValue(progress.current))/\(formattedValue(progress.target))"
+        let percent = min(100, Int((progress.current / max(1.0, progress.target)) * 100))
+        return "\(formattedValue(progress.current))/\(formattedValue(progress.target)) (\(percent)%)"
     }
     
     private func progressLabel(for progress: AchievementStore.AchievementProgress) -> String {
@@ -989,7 +990,9 @@ private struct DailyQuestRow: View {
                         .progressViewStyle(.linear)
                         .tint(quest.isComplete ? .green : .blue)
 
-                    Text("\(min(quest.current, quest.target))/\(quest.target)")
+                    let current = min(quest.current, quest.target)
+                    let percent = min(100, Int((Double(current) / Double(max(1, quest.target))) * 100))
+                    Text("\(current)/\(quest.target) (\(percent)%)")
                         .font(.avenirNext(size: GameFonts.caption2Size, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)

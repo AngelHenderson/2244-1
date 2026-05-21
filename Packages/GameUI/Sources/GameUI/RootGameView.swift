@@ -75,9 +75,9 @@ public struct RootGameView: View {
                     .zIndex(-1)
             }
             if isPlayingCustomChallenge, let config = customChallengeConfig {
-                // Dedicated challenge gameplay screen (separate from regular gameplay)
-                // Challenge uses its own GameStore internally - doesn't affect regular gameplay
-                CustomChallengeGameScreen(
+                // Challenge gameplay using the full HybridGameScreen UI
+                // Wrapper injects a sandboxed GameStore and layers challenge overlays on top
+                ChallengeGameWrapper(
                     config: config,
                     playerHighestTile: gameStore.state.highestTile,
                     playerHighestTileStep: gameStore.state.highestTileStep,

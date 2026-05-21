@@ -7,6 +7,7 @@ public struct HomeView: View {
     private let managesBackground: Bool
     @Environment(HomeState.self) private var state
     @Environment(DailyClaimsStore.self) private var dailyClaimsStore
+    @Environment(DailyQuestStore.self) private var dailyQuestStore
     @Environment(AchievementStore.self) private var achievementStore
     @Environment(PlayerReadinessStore.self) private var playerReadiness
     @Environment(\.homeActions) private var actions
@@ -184,7 +185,7 @@ public struct HomeView: View {
         }
         // Update achievements badge count + auto-present weekly offer once per ISO week
         .onAppear {
-            state.achievementsBadgeCount = achievementStore.claimableCount
+            state.achievementsBadgeCount = achievementStore.claimableCount + dailyQuestStore.claimableCount
             if WeeklyOfferManager.shouldAutoPresent() {
                 WeeklyOfferManager.markAutoPresented()
                 isShowingWeeklyOffer = true
@@ -200,7 +201,10 @@ public struct HomeView: View {
             isPrivacyOptionsRequired = await adService.isPrivacyOptionsRequired()
         }
         .onChange(of: achievementStore.claimableCount) { _, newCount in
-            state.achievementsBadgeCount = newCount
+            state.achievementsBadgeCount = newCount + dailyQuestStore.claimableCount
+        }
+        .onChange(of: dailyQuestStore.claimableCount) { _, newCount in
+            state.achievementsBadgeCount = achievementStore.claimableCount + newCount
         }
         .alert("Tile Too Low", isPresented: $showLockedChallengeAlert) {
             Button("OK", role: .cancel) { }

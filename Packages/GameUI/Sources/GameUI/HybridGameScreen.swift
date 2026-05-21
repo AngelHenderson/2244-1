@@ -1128,7 +1128,7 @@ private func hybridGameScreenPreview(size: CGSize) -> some View {
 
 // MARK: - Gameplay Navigation Bar
 
-private struct GameplayNavigationLeading: View {
+struct GameplayNavigationLeading: View {
     let rank: Int
     let showsRank: Bool
     let onPause: () -> Void
@@ -1163,7 +1163,7 @@ private struct GameplayNavigationLeading: View {
     }
 }
 
-private struct GameplayNavigationStatus: View {
+struct GameplayNavigationStatus: View {
     @Environment(\.gameStore) private var gameStore
     let scoreText: String
 
@@ -1203,7 +1203,7 @@ private struct GameplayNavigationStatus: View {
     }
 }
 
-private struct GameplayNavigationGemButton: View {
+struct GameplayNavigationGemButton: View {
     @Environment(\.gameStore) private var gameStore
     let onShop: () -> Void
 
@@ -1229,7 +1229,7 @@ private struct GameplayNavigationGemButton: View {
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder
     func gameplayNavigationBarBackground() -> some View {
         #if os(iOS)
@@ -1245,7 +1245,7 @@ private extension View {
 
 // MARK: - Gameplay Layout Chrome
 
-private struct GameplayInfoPanel: View {
+struct GameplayInfoPanel: View {
     @Environment(\.gameStore) private var gameStore
     @Environment(\.currentTheme) private var currentTheme
     @Environment(DailyQuestStore.self) private var dailyQuestStore
@@ -1364,7 +1364,7 @@ private struct GameplayInfoPanel: View {
     }
 }
 
-private struct MilestoneValuePill: View {
+struct MilestoneValuePill: View {
     let title: String
     let value: String
     let color: Color
@@ -1385,7 +1385,7 @@ private struct MilestoneValuePill: View {
     }
 }
 
-private struct GameplayInfoStat: View {
+struct GameplayInfoStat: View {
     let title: String
     let value: String
     let systemImage: String
@@ -1422,7 +1422,7 @@ private struct GameplayInfoStat: View {
     }
 }
 
-private struct DailyQuestStatusRow: View {
+struct DailyQuestStatusRow: View {
     let quest: DailyQuestStore.Quest
     let isCompact: Bool
 
@@ -1494,7 +1494,7 @@ private struct DailyQuestStatusRow: View {
     }
 }
 
-private struct ObjectiveProgressBand: View {
+struct ObjectiveProgressBand: View {
     @Environment(\.gameStore) private var gameStore
     @Environment(\.currentTheme) private var currentTheme
 

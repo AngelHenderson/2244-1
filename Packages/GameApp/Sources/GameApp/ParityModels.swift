@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v23"
-    private static let feedDateKey = "socialFeed.cacheDate.v22"
+    private static let feedCacheKey = "socialFeed.cache.v26"
+    private static let feedDateKey = "socialFeed.cacheDate.v25"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
 
@@ -1104,18 +1104,35 @@ public struct MockSocialService: SocialService, Sendable {
         let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
         var comments: [SocialFeedComment] = []
-        let numBaseComments = Int.random(in: 4...10)
+        let numBaseComments = Int.random(in: 15...35)
         var usedStats: Set<String> = []
         
-        for _ in 0..<numBaseComments {
+        // Guarantee exact tone percentages
+        var tones: [String] = []
+        let numComp = Int(round(Double(numBaseComments) * 0.55))
+        let numPos = Int(round(Double(numBaseComments) * 0.25))
+        let numQuestion = Int(round(Double(numBaseComments) * 0.15))
+        let numSad = max(0, numBaseComments - numComp - numPos - numQuestion)
+        
+        tones.append(contentsOf: Array(repeating: "competitive", count: numComp))
+        tones.append(contentsOf: Array(repeating: "positive", count: numPos))
+        tones.append(contentsOf: Array(repeating: "question", count: numQuestion))
+        tones.append(contentsOf: Array(repeating: "sad", count: numSad))
+        
+        while tones.count < numBaseComments { tones.append("competitive") }
+        while tones.count > numBaseComments { tones.removeLast() }
+        tones.shuffle()
+        
+        for i in 0..<numBaseComments {
             let commenter = generateDynamicName()
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
             
-            let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats)
+            let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
             let finalCommenter = nameOverride ?? commenter
             
-            let baseOffset = Double.random(in: 30...14400)
+            // Comments trickle in over 4 days (345,600 seconds)
+            let baseOffset = Double.random(in: 30...345600)
             let baseCreatedAt = now.addingTimeInterval(baseOffset)
             
             let baseComment = SocialFeedComment(
@@ -1131,7 +1148,8 @@ public struct MockSocialService: SocialService, Sendable {
                 var currentDepth = 0
                 var lastComment = baseComment
                 
-                while currentDepth < 5 && Double.random(in: 0...1) < 0.40 {
+                let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 1...4) : 0
+                while currentDepth < targetDepth {
                     let replyAuthor = generateDynamicName()
                     let replyIndex = Int.random(in: 1...100000)
                     let replyAvatar = Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay)
@@ -1185,11 +1203,11 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
 
-        // Heart/reaction timestamps trickle in over the next 4 hours (10–50)
-        let numReactions = Int.random(in: 10...50)
+        // Heart/reaction timestamps trickle in over the next 4 days
+        let numReactions = Int.random(in: 50...200)
         var rTimestamps: [Date] = []
         for _ in 0..<numReactions {
-            rTimestamps.append(now.addingTimeInterval(Double.random(in: 30...14400)))
+            rTimestamps.append(now.addingTimeInterval(Double.random(in: 30...345600)))
         }
 
         let newItem = SocialFeedItem(
@@ -1571,7 +1589,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "NEW personal best — \(milestone) tile unlocked in Endless!",
                 "\(milestone) tile reached! The grind never stops.",
                 "Finally broke through to \(milestone) in Endless mode!",
-                "After so many attempts… \(milestone) is MINE! 🏆",
+                "After so many attempts… \(milestone) is MINE! ♾️",
                 "Thought \(milestone) was impossible. Proved myself wrong.",
                 "\(milestone) achieved on an absolute marathon run.",
             ]
@@ -1646,7 +1664,7 @@ public struct MockSocialService: SocialService, Sendable {
             let closers: [String]
             if streakDays >= 100 {
                 closers = [
-                    "! 🔥", " — legendary status! 👑",
+                    "! 🔥", " — legendary status! ♾️",
                     ". Triple digits and counting!", ". This streak is untouchable.",
                     " 💎 Can't stop now.", ". \(streakDays) days deep!",
                     ". Built different.", " — no breaks, no excuses.",
@@ -1672,7 +1690,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(streakPhrase.randomElement()!)\(closers.randomElement()!)"
             
-            let statEmojis = ["🔥", "🛡️", "📅", "💎", "⭐", "👑", "✅"]
+            let statEmojis = ["🔥", "🛡️", "📅", "💎", "⭐", "♾️", "✅"]
             let statLabels: [String]
             if streakDays >= 100 {
                 statLabels = [
@@ -1714,15 +1732,15 @@ public struct MockSocialService: SocialService, Sendable {
             let details: [String]
             if infinityCount > 10 {
                 details = [
-                    "! Infinity count: \(infinityCount) 👑", " with \(infinityCount) infinities!",
-                    "! ∞×\(infinityCount) and climbing!", ". Entry #\(infinityCount) 🏆",
+                    "! Infinity count: \(infinityCount) ♾️", " with \(infinityCount) infinities!",
+                    "! ∞×\(infinityCount) and climbing!", ". Entry #\(infinityCount) ♾️",
                     "! \(infinityCount) infinity tiles deep.", " — \(infinityCount) infinities strong.",
                     ". Veteran status with \(infinityCount) runs.", "! Can't stop at \(infinityCount).",
                     " with ∞×\(infinityCount). Legendary!", ". \(infinityCount) and counting 🌟",
                 ]
             } else if infinityCount > 1 {
                 details = [
-                    "! 🏆", "! Infinity count: \(infinityCount) 👑",
+                    "! ♾️", "! Infinity count: \(infinityCount) ♾️",
                     " with \(infinityCount) infinities!", ". The journey was worth it.",
                     "! Entry #\(infinityCount).", " — ∞×\(infinityCount)!",
                     ". \(infinityCount) infinity tiles reached!", ". Still pushing for more.",
@@ -1730,7 +1748,7 @@ public struct MockSocialService: SocialService, Sendable {
                 ]
             } else {
                 details = [
-                    "! 🏆", "! I actually made it!",
+                    "! ♾️", "! I actually made it!",
                     " for the first time!", ". The grind paid off!",
                     "! After months of grinding…", " — this one's for the long-term players.",
                     "! They said it couldn't be done 🏅", ". First infinity tile!",
@@ -1740,7 +1758,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(subject.randomElement()!)\(details.randomElement()!)"
             
-            let statEmojis = ["🏆", "🏅", "🌟", "👑", "⭐", "💎", "✨"]
+            let statEmojis = ["♾️", "🏅", "🌟", "♾️", "⭐", "💎", "✨"]
             let statLabels: [String]
             if infinityCount > 10 {
                 statLabels = [
@@ -1821,7 +1839,7 @@ public struct MockSocialService: SocialService, Sendable {
                 " — \(questTier) reward chest grabbed.",
                 "! +\(gemsEarned) gems 💎",
                 ". \(questTier) tier. Easy gems today.",
-                " before lunch! \(questTier) chest 🏆",
+                " before lunch! \(questTier) chest ♾️",
                 " — all objectives done!",
                 ". \(questTier) chest opened for \(gemsEarned) gems.",
                 ". That \(questTier) chest was worth it.",
@@ -1915,7 +1933,7 @@ public struct MockSocialService: SocialService, Sendable {
         ]
         
         // Symbols categorized by tone
-        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "🏆", "✨"]
+        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "♾️", "✨"]
         let questionSymbols = ["?!", "...", "👀", "🤔", "??", "!!?"]
         let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", "😩", "😭", "💀", "🫠"]
         let competitiveSymbols = [" >:)", " 👀", " 😈", " ⚔️", " 🎯", " 😏", " 🏁", " 💨"]
@@ -2214,7 +2232,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "My infinite lead cannot be broken.", "You'll never beat me.", "I'll always be tiers above.",
                     "Don't bother trying.", "I'm literally unbeatable.", "My endless stats are permanent.",
                     "Just accept you'll never catch me.", "I reign over eternity.", "Your progress means nothing here.",
-                    "I'm simply better.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
+                    "You are completely irrelevant.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
                     "Your grind is meaningless against infinity.", "It's lonely at the absolute top.",
                     "I run this game.", "You're completely outmatched.",
                     "I'm untouchable.", "We are not the same.",
@@ -2342,7 +2360,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "You're only at \(posterTime), I'm at \(myTime).",
                     "I'm already at \(myTime).",
                     "You're at \(posterTime), I'm at \(myTime).",
-                    "Catch me at \(myTime).",
+                    "I am sitting untouched at \(myTime).",
                     "I'm at \(myTime).",
                     "Try hitting \(myTime).",
                 ]
@@ -2763,13 +2781,13 @@ public struct MockSocialService: SocialService, Sendable {
                 let higherM = Self.allMilestones[higherIdx]
                 replies.append(contentsOf: [
                     "I just beat your \(m.name) record ⚔️. I'm at \(higherM).",
-                    "\(m.name) is permanently behind me. Catch me at \(higherM) 💨.",
+                    "\(m.name) is permanently behind me. I am untouchable at \(higherM) 💨.",
                     "Your \(m.name) is nothing compared to my \(higherM) record ♾️.",
                     "I passed \(m.name) ages ago. I dominate \(higherM) 🔥.",
                     "My \(higherM) run was completely effortless. \(m.name) is cute 😏.",
                     "\(m.name) was a warm-up 🥱. I'm already sitting at \(higherM).",
                     "You're celebrating \(m.name)? I just cleared \(higherM) 💀.",
-                    "I left \(m.name) in the dust. \(higherM) is the new standard 🏆.",
+                    "I left \(m.name) in the dust. \(higherM) is the new standard ♾️.",
                     "Try hitting \(higherM) before bragging about \(m.name) 💅.",
                     "I hit \(higherM) yesterday. \(m.name) is old news 📉.",
                 ])
@@ -2869,7 +2887,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "I just logged my \(higherNum)th infinity. Your \(numStr) is cute 🥱.",
                         "I dominate the HoF with \(higherNum) entries 🔥. \(numStr) isn't enough.",
                         "You're bragging about \(numStr)? I just hit \(higherNum) in the HoF 💀.",
-                        "The Hall of Fame belongs to me. \(higherNum) > \(numStr) 🏆.",
+                        "The Hall of Fame belongs to me. \(higherNum) > \(numStr) ♾️.",
                     ])
                 } else {
                     let assumedNum = Int.random(in: 5...15)
@@ -2882,7 +2900,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "I just logged my \(higherNum)th infinity. Your \(assumedNum) is cute 🥱.",
                         "I dominate the HoF with \(higherNum) entries 🔥. \(assumedNum) isn't enough.",
                         "You're bragging about \(assumedNum)? I just hit \(higherNum) in the HoF 💀.",
-                        "The Hall of Fame belongs to me. \(higherNum) > \(assumedNum) 🏆.",
+                        "The Hall of Fame belongs to me. \(higherNum) > \(assumedNum) ♾️.",
                     ])
                 }
             }
@@ -2897,12 +2915,12 @@ public struct MockSocialService: SocialService, Sendable {
             replies.append(contentsOf: [
                 "I am infinitely ahead of you ⚔️. I'm at \(genericHigherM).",
                 "Your progress is nothing. I'm already at \(genericHigherM) ♾️.",
-                "I'll always have the endless lead. Catch me at \(genericHigherM) 💨.",
+                "I'll always have the endless lead. You'll never reach me at \(genericHigherM) 💨.",
                 "I dominate the endless grind 🔥. I'm at \(genericHigherM).",
                 "You'll never catch my progress. I passed \(genericHigherM) 💅.",
                 "Your efforts are pointless. I just hit \(genericHigherM) 💀.",
                 "I am infinitely ahead of you. I'm pushing \(genericHigherM) 🥱.",
-                "My record is flawless. Try reaching \(genericHigherM) 🏆.",
+                "My record is flawless. Try reaching \(genericHigherM) ♾️.",
                 "Enjoy the view from the bottom. I'm way up at \(genericHigherM) 😏.",
                 "This rivalry is entirely one-sided. I'm already at \(genericHigherM) 📉.",
             ])
@@ -2970,7 +2988,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
 
             if mentionedHoF {
-                replies.append("HoF is the dream. Thanks for the love! 🏆")
+                replies.append("HoF is the dream. Thanks for the love! ♾️")
             }
 
             // Generic positive

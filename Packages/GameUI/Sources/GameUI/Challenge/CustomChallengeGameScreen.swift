@@ -1,6 +1,7 @@
 import SwiftUI
 import GameCore
 import GameApp
+import GameServices
 
 /// Dedicated screen for playing custom challenges (separate from regular gameplay)
 public struct CustomChallengeGameScreen: View {
@@ -15,6 +16,16 @@ public struct CustomChallengeGameScreen: View {
     // Reference to main game store for achievement tracking
     @Environment(\.gameStore) private var mainGameStore
     @Environment(\.socialFeedPublisher) private var socialFeedPublisher
+    @Environment(\.currentTheme) private var currentTheme
+    @Environment(\.adService) private var adService
+    @Environment(\.purchaseService) private var purchaseService
+
+    // Wallpaper selection stored in AppStorage (for gameplay background)
+    @AppStorage("selectedWallpaperId") private var selectedWallpaperId: String = "wallpaper_default"
+
+    private var currentWallpaper: WallpaperTheme {
+        WallpaperThemeRegistry.Default.wallpaper(for: selectedWallpaperId)
+    }
     @State private var showResult = false
     @State private var challengeWon = false
     @State private var challengeEnded = false
@@ -68,50 +79,24 @@ public struct CustomChallengeGameScreen: View {
     }
 
     public var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // Challenge header with timer and target
-                challengeHeader
+        let gameplayView = challengeGameplayLayout
+            .environment(\.gameStore, challengeGameStore)
 
-                // Power-up dock
-                powerUpDock
-                    .padding(.top, 8)
+        return NavigationStack {
+            ZStack {
+                challengeWallpaperBackground
+                    .ignoresSafeArea()
 
-                // Game board - uses challenge's own GameStore
-                ZStack {
-                    SimplifiedGlassBoardView(onTileTap: handleTileTap, isPowerUpActive: isHammerMode || isSwapMode || isMagnetMode)
-                        .environment(\.gameStore, challengeGameStore)
-                        .padding(.horizontal, 8)
+                gameplayView
 
-                    // Mode overlay indicators
-                    if isHammerMode || isSwapMode || isMagnetMode {
-                        ModeOverlay(
-                            isHammerMode: isHammerMode,
-                            isSwapMode: isSwapMode,
-                            isMagnetMode: isMagnetMode,
-                            firstSwapPosition: firstSwapPosition,
-                            onCancel: cancelAllModes
-                        )
-                    }
-                }
-
-                Spacer()
+                if showResult { resultOverlay }
+                if isShowingPowerUpRecovery { powerUpRecoveryOverlay }
+                if isShowingTimeRecovery { timeRecoveryOverlay }
             }
-
-            // Result overlay
-            if showResult {
-                resultOverlay
-            }
-
-            // Power-up recovery selection overlay
-            if isShowingPowerUpRecovery {
-                powerUpRecoveryOverlay
-            }
-
-            // Time recovery overlay
-            if isShowingTimeRecovery {
-                timeRecoveryOverlay
-            }
+            .navigationTitle("")
+            .platformNavigationTitleDisplayMode(.inline)
+            .toolbar { challengeNavigationToolbar }
+            .gameplayNavigationBarBackground()
         }
         .onAppear {
             startChallenge()
@@ -208,356 +193,231 @@ public struct CustomChallengeGameScreen: View {
 
     }
 
-    // MARK: - Power-up Dock
+    // MARK: - Navigation Toolbar
 
-    private var powerUpDock: some View {
-        HStack(spacing: 12) {
-            // Hammer
-            powerupItem(
-                assetName: "hammer",
-                badge: challengeGameStore.powerUpInventory["hammer", default: 0],
-                price: challengeGameStore.powerUpPrice("hammer"),
-                isEnabled: challengeGameStore.isPowerUpAvailable("hammer"),
-                action: handleHammer
-            )
+    @ToolbarContentBuilder
+    private var challengeNavigationToolbar: some ToolbarContent {
+        #if os(macOS)
+        ToolbarItem(placement: .navigation) { challengeNavLeading }
+        ToolbarItem(placement: .principal) { challengeNavStatus }
+        ToolbarItem(placement: .primaryAction) { challengeNavGems }
+        #else
+        ToolbarItem(placement: .topBarLeading) { challengeNavLeading }
+        ToolbarItem(placement: .principal) { challengeNavStatus }
+        ToolbarItem(placement: .topBarTrailing) { challengeNavGems }
+        #endif
+    }
 
-            // Swap
-            powerupItem(
-                assetName: "swap",
-                badge: challengeGameStore.powerUpInventory["swap", default: 0],
-                price: challengeGameStore.powerUpPrice("swap"),
-                isEnabled: challengeGameStore.isPowerUpAvailable("swap"),
-                action: handleSwap
-            )
-
-            // Magnet
-            powerupItem(
-                assetName: "magnet",
-                badge: challengeGameStore.powerUpInventory["magnet", default: 0],
-                price: challengeGameStore.powerUpPrice("magnet"),
-                isEnabled: challengeGameStore.isPowerUpAvailable("magnet"),
-                action: handleMagnet
-            )
-
-            // Undo
-            powerupItem(
-                icon: "arrow.uturn.backward",
-                isEnabled: challengeGameStore.state.undoAvailable,
-                action: handleUndo
-            )
-
-            // Gem wallet
-            HStack(spacing: 4) {
-                gemImage
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 20, height: 20)
-                Text("\(challengeGameStore.coins)")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-            }
-            .padding(.leading, 4)
+    private var challengeNavLeading: some View {
+        Button(action: { onDismiss() }) {
+            Image(systemName: "xmark")
+                .font(.system(size: 15, weight: .bold))
+                .frame(width: 34, height: 34)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .buttonStyle(.plain)
+        .glassEffectCompat(cornerRadius: 10)
+        .foregroundStyle(.white)
+        .accessibilityLabel("Exit challenge")
+    }
+
+    private var challengeNavStatus: some View {
+        TimelineView(.animation(minimumInterval: 0.5, paused: false)) { context in
+            let remaining = timeRemainingAt(context.date)
+            HStack(spacing: 7) {
+                Image(systemName: "timer")
+                    .font(.system(size: 12, weight: .bold))
+                Text(formatTime(remaining))
+                    .monospacedDigit()
+                Text("Goal \(targetLabel)")
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+            }
+            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+            .foregroundStyle(remaining <= 10 ? .red : .white)
+            .padding(.horizontal, 10)
+            .frame(height: 34)
+            .glassEffectCompat(cornerRadius: 10)
+            .onChange(of: remaining <= 0) { _, isExpired in
+                if isExpired && !challengeEnded {
+                    if checkWinCondition() {
+                        endChallenge(won: true)
+                    } else if !hasUsedTimeRecovery {
+                        frozenTimeRemaining = 0
+                        isShowingTimeRecovery = true
+                    } else {
+                        endChallenge(won: false)
+                    }
+                }
+            }
+        }
+    }
+
+    private var challengeNavGems: some View {
+        HStack(spacing: 4) {
+            Image("gem")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+            Text("\(challengeGameStore.coins)")
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+        }
+        .padding(.horizontal, 8)
+        .frame(height: 34)
+        .foregroundStyle(.white)
+        .glassEffectCompat(cornerRadius: 10)
+        .accessibilityLabel("Gems \(challengeGameStore.coins)")
+    }
+
+    // MARK: - Gameplay Layout
+
+    @ViewBuilder
+    private var challengeGameplayLayout: some View {
+        GeometryReader { proxy in
+            let metrics = PuzzleScreenMetrics(
+                container: proxy.size,
+                safeArea: proxy.safeAreaInsets,
+                rows: challengeGameStore.state.board.height,
+                columns: challengeGameStore.state.board.width
+            )
+            VStack(spacing: metrics.sectionSpacing) {
+                challengeInfoPanel(isCompact: metrics.compression != .expanded)
+                    .frame(height: metrics.objectiveHeight)
+
+                challengeGameBoard(metrics: metrics)
+                    .frame(width: metrics.boardSize.width, height: metrics.boardSize.height)
+                    .layoutPriority(10)
+
+                HorizontalPowerupDock(
+                    isCollapsed: metrics.shouldCollapseTools,
+                    onHammer: handleHammer,
+                    onSwap: handleSwap,
+                    onMagnet: handleMagnet,
+                    onUndo: handleUndo
+                )
+                .frame(
+                    width: metrics.shouldCollapseTools ? nil : metrics.boardSize.width,
+                    height: metrics.toolTrayHeight
+                )
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .padding(.horizontal, metrics.margin)
+            .padding(.vertical, metrics.margin)
+        }
+    }
+
+    // MARK: - Challenge Info Panel
+
+    @ViewBuilder
+    private func challengeInfoPanel(isCompact: Bool) -> some View {
+        let bestStep = max(0, challengeGameStore.state.highestTileStep)
+        let goalStep = challengeTargetStep
+        let bestLabel = JourneyTileGenerator.formatTileAtStep(bestStep)
+        let bestColor = currentTheme?.colorForStep(bestStep) ?? .green
+        let goalColor = currentTheme?.colorForStep(goalStep) ?? .orange
+        let progressFraction: CGFloat = goalStep > 0
+            ? min(1.0, CGFloat(bestStep) / CGFloat(goalStep)) : 0
+
+        VStack(spacing: isCompact ? 6 : 8) {
+            VStack(spacing: isCompact ? 4 : 5) {
+                HStack(spacing: 8) {
+                    MilestoneValuePill(title: "Best", value: bestLabel, color: bestColor)
+                    Spacer(minLength: 8)
+                    MilestoneValuePill(title: "Goal", value: targetLabel, color: goalColor)
+                }
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.white.opacity(0.16))
+                        Capsule().fill(bestColor)
+                            .frame(width: max(5, geometry.size.width * progressFraction))
+                    }
+                }
+                .frame(height: isCompact ? 4 : 5)
+            }
+
+            HStack(spacing: isCompact ? 6 : 8) {
+                GameplayInfoStat(title: "Moves", value: "\(challengeGameStore.state.moves)",
+                    systemImage: "arrow.triangle.2.circlepath", isCompact: isCompact)
+                GameplayInfoStat(title: "Valid", value: "\(challengeGameStore.validMovesCount)",
+                    systemImage: "point.3.connected.trianglepath.dotted", isCompact: isCompact,
+                    valueColor: validMovesColor)
+                GameplayInfoStat(title: "Highest",
+                    value: JourneyTileGenerator.formatTileAtStep(max(0, challengeGameStore.state.highestTileStep)),
+                    systemImage: "crown.fill", isCompact: isCompact)
+            }
+        }
+        .padding(.horizontal, isCompact ? 10 : 12)
+        .padding(.vertical, isCompact ? 8 : 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
-                .shadow(radius: 4)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.black.opacity(0.2))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
         )
     }
 
-    private var gemImage: Image {
-        #if canImport(UIKit)
-        if let img = UIImage(named: "gem") { return Image(uiImage: img) }
-        #elseif canImport(AppKit)
-        if let img = NSImage(named: "gem") { return Image(nsImage: img) }
-        #endif
-        return Image("gem")
-    }
-
-    private func powerupItem(
-        icon: String,
-        badge: Int = 0,
-        isEnabled: Bool = true,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .frame(width: 40, height: 40)
-                    .foregroundStyle(isEnabled ? .primary : .tertiary)
-
-                if badge > 0 {
-                    Text("\(badge)")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.blue, in: Capsule())
-                        .offset(x: 4, y: -4)
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .disabled(!isEnabled)
-        .opacity(isEnabled ? 1.0 : 0.6)
-    }
-
-    private func powerupItem(
-        assetName: String,
-        badge: Int = 0,
-        price: Int? = nil,
-        isEnabled: Bool = true,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                Image(assetName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 20, height: 20)
-                    .frame(width: 40, height: 40)
-                    .opacity(isEnabled ? 1.0 : 0.4)
-
-                if badge > 0 {
-                    Text("\(badge)")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.blue, in: Capsule())
-                        .offset(x: 4, y: -4)
-                } else if let price = price {
-                    HStack(spacing: 1) {
-                        Image("gem")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 8, height: 8)
-                        Text("\(price)")
-                            .font(.system(size: 8, weight: .bold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 3)
-                    .padding(.vertical, 1)
-                    .background(Color.black.opacity(0.6), in: Capsule())
-                    .offset(x: 10, y: -6)
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .disabled(!isEnabled)
-        .opacity(isEnabled ? 1.0 : 0.6)
-    }
-
-    // MARK: - Power-up Handlers
-
-    private func handleHammer() {
-        if challengeGameStore.isPowerUpAvailable("hammer") {
-            cancelAllModes()
-            isHammerMode = true
-            haptics.lightImpact()
-        } else {
-            haptics.error()
-        }
-    }
-
-    private func handleSwap() {
-        if challengeGameStore.isPowerUpAvailable("swap") {
-            cancelAllModes()
-            isSwapMode = true
-            firstSwapPosition = nil
-            haptics.lightImpact()
-        } else {
-            haptics.error()
-        }
-    }
-
-    private func handleMagnet() {
-        if challengeGameStore.isPowerUpAvailable("magnet") {
-            cancelAllModes()
-            isMagnetMode = true
-            haptics.lightImpact()
-        } else {
-            haptics.error()
-        }
-    }
-
-    private func handleUndo() {
-        if challengeGameStore.state.undoAvailable {
-            _ = challengeGameStore.useUndo()
-            // Track achievement progress using main game store
-            mainGameStore.achievementEvaluator?.onUndoUsed()
-            haptics.lightImpact()
-        } else {
-            haptics.error()
-        }
-    }
-
-    private func handleTileTap(at position: Position) {
-        // Handle hammer mode
-        if isHammerMode {
-            if challengeGameStore.state.board[position] != nil {
-                _ = challengeGameStore.useHammer(at: position)
-                // Track achievement progress using main game store
-                mainGameStore.achievementEvaluator?.onPowerUpUsed(type: "hammer")
-                haptics.success()
-                isHammerMode = false
-            } else {
-                haptics.error()
-            }
-            return
-        }
-
-        // Handle swap mode
-        if isSwapMode {
-            if challengeGameStore.state.board[position] != nil {
-                if let first = firstSwapPosition {
-                    if first != position {
-                        _ = challengeGameStore.useSwap(first, position)
-                        // Track achievement progress using main game store
-                        mainGameStore.achievementEvaluator?.onPowerUpUsed(type: "swap")
-                        haptics.success()
-                        isSwapMode = false
-                        firstSwapPosition = nil
-                    } else {
-                        firstSwapPosition = nil
-                        haptics.lightImpact()
-                    }
-                } else {
-                    firstSwapPosition = position
-                    haptics.lightImpact()
-                }
-            } else {
-                haptics.error()
-            }
-            return
-        }
-
-        // Handle magnet mode
-        if isMagnetMode {
-            if let tile = challengeGameStore.state.board[position] {
-                let merges = challengeGameStore.useMagnet(value: tile.value, to: position)
-                if merges > 0 {
-                    // Track achievement progress using main game store
-                    mainGameStore.achievementEvaluator?.onMagnetUsed(mergeCount: merges)
-                    haptics.success()
-                } else {
-                    haptics.warning()
-                }
-                isMagnetMode = false
-            } else {
-                haptics.error()
-            }
-            return
-        }
-    }
-
-    private func cancelAllModes() {
-        isHammerMode = false
-        isSwapMode = false
-        isMagnetMode = false
-        firstSwapPosition = nil
-    }
-
-    private var explicitInstructionText: String? {
-        guard config.challengeId != nil else { return nil }
-
-        let timeText = "\(config.timeLimitSeconds) seconds"
-        
+    private var challengeTargetStep: Int {
         switch config.target {
-        case .score:
-            return "Reach \(targetLabel) score in \(timeText)"
-        case .tile, .tileStep:
-            if targetLabel == "∞" {
-                return "Reach infinity in \(timeText)"
-            }
-            return "Reach \(targetLabel) in \(timeText)"
-        case .chain:
-            return "Create a \(targetLabel) in \(timeText)"
+        case .tileStep(let step): return step
+        case .tile(let value):
+            var s = 0; var v = 2
+            while v < value && s < 1000 { v *= 2; s += 1 }
+            return s
+        case .score: return 20
+        case .chain: return 10
         }
     }
 
-    private var challengeHeader: some View {
-        VStack(spacing: 12) {
-            if let instructions = explicitInstructionText {
-                Text(instructions)
-                    .font(.system(.headline, design: .rounded))
-                    .foregroundStyle(.primary)
-                    .multilineTextAlignment(.center)
-            }
+    // MARK: - Game Board
 
-            HStack {
-                // Timer and Target (left, stacked)
-            VStack(spacing: 8) {
-                // Timer display - uses TimelineView with animation schedule to never pause
-                TimelineView(.animation(minimumInterval: 0.5, paused: false)) { context in
-                    let remaining = timeRemainingAt(context.date)
-                    VStack(spacing: 2) {
-                        Text("TIME")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(formatTime(remaining))
-                            .font(.system(.title3, design: .monospaced).bold())
-                            .foregroundStyle(remaining <= 10 ? .red : .primary)
-                            .contentTransition(.numericText())
-                    }
-                    .onChange(of: remaining <= 0) { _, isExpired in
-                        if isExpired && !challengeEnded {
-                            if checkWinCondition() {
-                                endChallenge(won: true)
-                            } else if !hasUsedTimeRecovery {
-                                // Freeze timer and show recovery prompt
-                                frozenTimeRemaining = 0
-                                isShowingTimeRecovery = true
-                            } else {
-                                endChallenge(won: false)
-                            }
-                        }
-                    }
-                }
-
-                VStack(spacing: 2) {
-                    Text("TARGET")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text(targetLabel)
-                        .font(.system(.title3, design: .rounded).bold())
-                }
-            }
-
-            Spacer()
-
-            // Valid moves count (center)
-            VStack(spacing: 2) {
-                Text("\(challengeGameStore.validMovesCount)")
-                    .font(.system(.title3, design: .rounded).bold())
-                    .foregroundStyle(validMovesColor)
-                    .contentTransition(.numericText())
-                Text("moves")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            // Gem balance + Exit button (right)
-            HStack(spacing: 12) {
-                GemBalancePill()
-
-                Button {
-                    onDismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-            }
+    @ViewBuilder
+    private func challengeGameBoard(metrics: PuzzleScreenMetrics) -> some View {
+        ZStack {
+            SimplifiedGlassBoardView(
+                onTileTap: { position in handleTileTap(at: position) },
+                isPowerUpActive: isHammerMode || isSwapMode || isMagnetMode,
+                maxTileSize: metrics.maxTileSize,
+                gridSpacing: metrics.gridSpacing
+            )
+            if isHammerMode || isSwapMode || isMagnetMode {
+                ModeOverlay(
+                    isHammerMode: isHammerMode,
+                    isSwapMode: isSwapMode,
+                    isMagnetMode: isMagnetMode,
+                    firstSwapPosition: firstSwapPosition,
+                    onCancel: cancelAllModes
+                )
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
+    }
+
+    // MARK: - Wallpaper Background
+
+    @ViewBuilder
+    private var challengeWallpaperBackground: some View {
+        GeometryReader { geo in
+            ZStack {
+                if currentWallpaper.imageName.isEmpty {
+                    LinearGradient(
+                        colors: [Color(hex: "1a1a2e"), Color(hex: "16213e")],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                } else {
+                    Image(currentWallpaper.imageName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                    if currentWallpaper.overlayOpacity > 0 {
+                        Color.black.opacity(currentWallpaper.overlayOpacity)
+                    }
+                }
+            }
+        }
     }
 
     private var resultOverlay: some View {
