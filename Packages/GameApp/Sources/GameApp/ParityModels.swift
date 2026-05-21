@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v22"
-    private static let feedDateKey = "socialFeed.cacheDate.v21"
+    private static let feedCacheKey = "socialFeed.cache.v23"
+    private static let feedDateKey = "socialFeed.cacheDate.v22"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
 
@@ -1386,7 +1386,8 @@ public struct MockSocialService: SocialService, Sendable {
                     var currentDepth = 0
                     var lastComment = baseComment
                     
-                    while currentDepth < 5 && Double.random(in: 0...1) < 0.40 {
+                    let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 1...4) : 0
+                    while currentDepth < targetDepth {
                         let replyAuthor = generateDynamicName()
                         let replyIndex = Int.random(in: 1...100000)
                         let replyAvatar = Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay)
@@ -2265,7 +2266,7 @@ public struct MockSocialService: SocialService, Sendable {
             comment += keyboardSymbols.randomElement()!
         }
         
-        return (comment.trimmingCharacters(in: .whitespaces), nameOverride, tone)
+        return (comment.trimmingCharacters(in: .whitespaces), nameOverride, tone!)
     }
 
     // MARK: - Truthful competitive comments
