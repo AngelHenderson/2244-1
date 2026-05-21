@@ -1344,12 +1344,29 @@ public struct MockSocialService: SocialService, Sendable {
             let numBaseComments = Int.random(in: 4...10)
             var usedStats: Set<String> = []
             
-            for _ in 0..<numBaseComments {
+            // Guarantee exact tone percentages
+            var tones: [String] = []
+            let numComp = Int(round(Double(numBaseComments) * 0.55))
+            let numPos = Int(round(Double(numBaseComments) * 0.25))
+            let numQuestion = Int(round(Double(numBaseComments) * 0.15))
+            let numSad = max(0, numBaseComments - numComp - numPos - numQuestion)
+            
+            tones.append(contentsOf: Array(repeating: "competitive", count: numComp))
+            tones.append(contentsOf: Array(repeating: "positive", count: numPos))
+            tones.append(contentsOf: Array(repeating: "question", count: numQuestion))
+            tones.append(contentsOf: Array(repeating: "sad", count: numSad))
+            
+            // Adjust if total doesn't match due to rounding
+            while tones.count < numBaseComments { tones.append("competitive") }
+            while tones.count > numBaseComments { tones.removeLast() }
+            tones.shuffle()
+            
+            for i in 0..<numBaseComments {
                 let commentAuthor = generateDynamicName()
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
                 
-                let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats)
+                let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
                 let finalCommenter = nameOverride ?? commentAuthor
                 
                 let baseOffset = Double.random(in: timeOffset...(timeOffset + 28800))
@@ -1844,7 +1861,7 @@ public struct MockSocialService: SocialService, Sendable {
         return shuffleBags[key]![idx]
     }
 
-    private func generateDynamicComment(message: String, usedStats: inout Set<String>) -> (commentText: String, nameOverride: String?, tone: String) {
+    private func generateDynamicComment(message: String, usedStats: inout Set<String>, forcedTone: String? = nil) -> (commentText: String, nameOverride: String?, tone: String) {
         var nameOverride: String? = nil
         let openers = [
             "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
@@ -2161,10 +2178,16 @@ public struct MockSocialService: SocialService, Sendable {
         
         // Weighted category roll: 55% competitive, 25% positive, 15% question, 5% jealous
         var comment = ""
-        var tone = "positive"
-        let roll = Double.random(in: 0..<1)
+        var tone = forcedTone
+        if tone == nil {
+            let roll = Double.random(in: 0..<1)
+            if roll < 0.55 { tone = "competitive" }
+            else if roll < 0.80 { tone = "positive" }
+            else if roll < 0.95 { tone = "question" }
+            else { tone = "sad" }
+        }
         
-        if roll < 0.55 {
+        if tone == "competitive" {
             // ── Competitive (55%) — generate factually accurate one-upmanship ──
             let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
             comment = result.0
@@ -2202,7 +2225,7 @@ public struct MockSocialService: SocialService, Sendable {
                 comment = "\(comment) \(closer)"
             }
             tone = "competitive"
-        } else if roll < 0.80 {
+        } else if tone == "positive" {
             // ── Positive (25%) — with opener + subject/verb/adj ──
             let opener = Self.drawFromBag(key: "opener_\(bagSuffix)", pool: openers)
             if Bool.random() {
@@ -2216,7 +2239,7 @@ public struct MockSocialService: SocialService, Sendable {
                 comment = opener.isEmpty ? reaction : "\(opener) \(reaction.lowercased())"
             }
             tone = "positive"
-        } else if roll < 0.95 {
+        } else if tone == "question" {
             // ── Question (15%) — standalone, no opener ──
             comment = Self.drawFromBag(key: "question_\(bagSuffix)", pool: questions)
             tone = "question"
