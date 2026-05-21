@@ -2501,17 +2501,18 @@ public struct MockSocialService: SocialService, Sendable {
 
         // ── Extract dynamic content from the comment ──
 
-        // Pull any milestone mentioned in the comment (longest match first, word-boundary aware)
-        let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
-        var mentionedMilestone: (index: Int, name: String)? = sortedMilestones.first(where: { entry in
-            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: entry.element.lowercased()))\\b"
-            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(
-                in: strippedLower,
-                range: NSRange(strippedLower.startIndex..., in: strippedLower)
-            ) != nil
-        }).map { ($0.offset, $0.element) }
+        // Pull any milestone mentioned in the comment (find highest index for competitive progression)
+        var foundMilestones: [(index: Int, name: String)] = []
+        for (idx, m) in Self.allMilestones.enumerated() {
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: m.lowercased()))\\b"
+            if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: strippedLower, range: NSRange(strippedLower.startIndex..., in: strippedLower)) != nil {
+                foundMilestones.append((index: idx, name: m))
+            }
+        }
+        var mentionedMilestone = foundMilestones.max(by: { $0.index < $1.index })
 
         if mentionedMilestone == nil {
+            let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
             mentionedMilestone = sortedMilestones.first(where: { entry in
                 message.lowercased().contains(entry.element.lowercased())
             }).map { ($0.offset, $0.element) }
@@ -2544,7 +2545,7 @@ public struct MockSocialService: SocialService, Sendable {
         // ── Detect the tone/intent of the comment being replied to ──
 
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
-        let isQuestion = questionKeywords.contains(where: { strippedLower.contains($0) })
+        let isQuestion = forceTone != "competitive" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
         let competitiveKeywords = ["beat", "catching up", "coming for", "won't last", "watch your back", "game on", "challenge", "mine tomorrow", "i'll be", "i'm going to", "not impressed", "my time", "faster", "i passed", "old news", "hold my", "i'll beat", "i'm right behind", "i'm catching"]
         var isCompetitive = forceTone == "competitive" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
@@ -2683,67 +2684,153 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
+                let jump = Int.random(in: 1...5)
+                let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
+                let higherM = Self.allMilestones[higherIdx]
                 replies.append(contentsOf: [
-                    "My \(m.name) run was completely effortless.",
-                    "\(m.name) is permanently behind me.",
-                    "Your \(m.name) is nothing compared to my record.",
-                    "I passed \(m.name) ages ago.",
-                    "I dominate \(m.name) effortlessly.",
+                    "I just beat your \(m.name) record ⚔️. I'm at \(higherM).",
+                    "\(m.name) is permanently behind me. Catch me at \(higherM) 💨.",
+                    "Your \(m.name) is nothing compared to my \(higherM) record 👑.",
+                    "I passed \(m.name) ages ago. I dominate \(higherM) 🔥.",
+                    "My \(higherM) run was completely effortless. \(m.name) is cute 😏.",
+                    "\(m.name) was a warm-up 🥱. I'm already sitting at \(higherM).",
+                    "You're celebrating \(m.name)? I just cleared \(higherM) 💀.",
+                    "I left \(m.name) in the dust. \(higherM) is the new standard 🏆.",
+                    "Try hitting \(higherM) before bragging about \(m.name) 💅.",
+                    "I hit \(higherM) yesterday. \(m.name) is old news 📉.",
                 ])
             }
 
-            if let num = mentionedNumber, !mentionedTime, !mentionedStreak, !mentionedHoF {
+            if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
+                let higherNum = num + Int.random(in: 10...max(20, num))
                 replies.append(contentsOf: [
-                    "My score is permanently out of reach.",
-                    "I've been at the top since day one.",
-                    "Your \(num) is nothing compared to my record.",
-                    "I'll always have the higher score.",
-                    "I dominate the leaderboards.",
-                    "You'll never catch my progress.",
+                    "I beat your \(numStr) record ⚔️. I'm at \(higherNum).",
+                    "Your \(numStr) is cute. I'll always have you beat at \(higherNum) 👑.",
+                    "\(numStr) is just the beginning 🥱. I'm already at \(higherNum).",
+                    "I crushed your \(numStr) score. Just hit \(higherNum) 🔥.",
+                    "You thought \(numStr) was good? I'm laughing from \(higherNum) 💀.",
+                    "\(numStr) points is light work. Try \(higherNum) 😏.",
+                    "I passed \(numStr) without even looking. I'm at \(higherNum) 💅.",
+                    "\(higherNum) is my floor. Your \(numStr) is my ceiling 📉.",
                 ])
             }
 
             if mentionedStreak {
-                replies.append(contentsOf: [
-                    "My streak is permanently out of reach.",
-                    "I haven't missed a day since launch.",
-                    "Your streak is nothing compared to mine.",
-                    "I'll always have the higher streak.",
-                    "I dominate the daily grind.",
-                    "You'll never catch my streak.",
-                ])
+                if let numStr = mentionedNumber, let num = Int(numStr) {
+                    let higherNum = num + Int.random(in: 10...50)
+                    replies.append(contentsOf: [
+                        "I beat your \(numStr) days ⚔️. I'm at \(higherNum) days.",
+                        "Your \(numStr) day streak is nothing. Try catching my \(higherNum) days 💨.",
+                        "I passed \(numStr) days ages ago. I'm at \(higherNum) days 👑.",
+                        "\(numStr) days? Try keeping a \(higherNum) day streak like me 🔥.",
+                        "I broke your \(numStr) day record effortlessly. Currently at \(higherNum) 😏.",
+                        "Your \(numStr) days are cute. Call me when you reach \(higherNum) days 🥱.",
+                        "I haven't dropped my \(higherNum) day streak. \(numStr) is light 💅.",
+                        "\(higherNum) consecutive days here. Your \(numStr) days won't last 📉.",
+                    ])
+                } else {
+                    let assumedNum = Int.random(in: 10...30)
+                    let higherNum = assumedNum + Int.random(in: 10...50)
+                    replies.append(contentsOf: [
+                        "I beat your \(assumedNum) days ⚔️. I'm at \(higherNum) days.",
+                        "Your \(assumedNum) day streak is nothing. Try catching my \(higherNum) days 💨.",
+                        "I passed \(assumedNum) days ages ago. I'm at \(higherNum) days 👑.",
+                        "\(assumedNum) days? Try keeping a \(higherNum) day streak like me 🔥.",
+                        "I broke your \(assumedNum) day record effortlessly. Currently at \(higherNum) 😏.",
+                        "Your \(assumedNum) days are cute. Call me when you reach \(higherNum) days 🥱.",
+                        "I haven't dropped my \(higherNum) day streak. \(assumedNum) is light 💅.",
+                        "\(higherNum) consecutive days here. Your \(assumedNum) days won't last 📉.",
+                    ])
+                }
             }
 
             if mentionedTime {
-                replies.append(contentsOf: [
-                    "My time is permanently out of reach.",
-                    "I've had the fastest time since day one.",
-                    "Your speed is nothing compared to my record.",
-                    "I'll always have the faster clear.",
-                    "I dominate the speed leaderboards.",
-                    "You'll never beat my time.",
-                ])
+                if let (mins, secs) = Self.extractTime(from: strippedLower) {
+                    let totalSecs = mins * 60 + secs
+                    let higherNum = max(10, totalSecs - Int.random(in: 10...30))
+                    let myMins = higherNum / 60
+                    let mySecs = higherNum % 60
+                    let higherTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                    let posterTime = "\(mins):\(String(format: "%02d", secs))"
+                    replies.append(contentsOf: [
+                        "I beat your \(posterTime) time ⚔️. I'm at \(higherTime).",
+                        "Your \(posterTime) time is cute. I clear it in \(higherTime) 💨.",
+                        "I passed your time ages ago. My record is \(higherTime) 👑.",
+                        "\(posterTime) is too slow 🥱. I just clocked \(higherTime).",
+                        "I shaved minutes off your \(posterTime). My best is \(higherTime) 🔥.",
+                        "You call \(posterTime) fast? Try beating my \(higherTime) 😏.",
+                        "I speedrun this game. \(higherTime) destroys your \(posterTime) 💀.",
+                        "Your \(posterTime) was my practice run. I'm down to \(higherTime) 💅.",
+                    ])
+                } else {
+                    let assumedTotal = Int.random(in: 60...120)
+                    let higherNum = max(10, assumedTotal - Int.random(in: 10...30))
+                    let myMins = higherNum / 60
+                    let mySecs = higherNum % 60
+                    let higherTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                    let posterMins = assumedTotal / 60
+                    let posterSecs = assumedTotal % 60
+                    let posterTime = "\(posterMins):\(String(format: "%02d", posterSecs))"
+                    replies.append(contentsOf: [
+                        "I beat your \(posterTime) time ⚔️. I'm at \(higherTime).",
+                        "Your \(posterTime) time is cute. I clear it in \(higherTime) 💨.",
+                        "I passed your time ages ago. My record is \(higherTime) 👑.",
+                        "\(posterTime) is too slow 🥱. I just clocked \(higherTime).",
+                        "I shaved minutes off your \(posterTime). My best is \(higherTime) 🔥.",
+                        "You call \(posterTime) fast? Try beating my \(higherTime) 😏.",
+                        "I speedrun this game. \(higherTime) destroys your \(posterTime) 💀.",
+                        "Your \(posterTime) was my practice run. I'm down to \(higherTime) 💅.",
+                    ])
+                }
             }
 
             if mentionedHoF {
-                replies.append(contentsOf: [
-                    "My infinity count is permanently out of reach.",
-                    "I've been in the Hall of Fame since day one.",
-                    "Your HoF entry is nothing compared to my record.",
-                    "I'll always have more infinities.",
-                    "I dominate the Hall of Fame.",
-                    "You'll never catch my infinity count.",
-                ])
+                if let numStr = mentionedNumber, let num = Int(numStr) {
+                    let higherNum = num + Int.random(in: 1...max(3, num/2))
+                    replies.append(contentsOf: [
+                        "I beat your \(numStr) infinity count ⚔️. I'm at \(higherNum).",
+                        "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) 👑.",
+                        "I passed \(numStr) infinities ages ago. I'm at \(higherNum) 💨.",
+                        "\(numStr) infinities is a good start. I'm already sitting at \(higherNum) 😏.",
+                        "I just logged my \(higherNum)th infinity. Your \(numStr) is cute 🥱.",
+                        "I dominate the HoF with \(higherNum) entries 🔥. \(numStr) isn't enough.",
+                        "You're bragging about \(numStr)? I just hit \(higherNum) in the HoF 💀.",
+                        "The Hall of Fame belongs to me. \(higherNum) > \(numStr) 🏆.",
+                    ])
+                } else {
+                    let assumedNum = Int.random(in: 5...15)
+                    let higherNum = assumedNum + Int.random(in: 2...8)
+                    replies.append(contentsOf: [
+                        "I beat your \(assumedNum) infinity count ⚔️. I'm at \(higherNum).",
+                        "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum) 👑.",
+                        "I passed \(assumedNum) infinities ages ago. I'm at \(higherNum) 💨.",
+                        "\(assumedNum) infinities is a good start. I'm already sitting at \(higherNum) 😏.",
+                        "I just logged my \(higherNum)th infinity. Your \(assumedNum) is cute 🥱.",
+                        "I dominate the HoF with \(higherNum) entries 🔥. \(assumedNum) isn't enough.",
+                        "You're bragging about \(assumedNum)? I just hit \(higherNum) in the HoF 💀.",
+                        "The Hall of Fame belongs to me. \(higherNum) > \(assumedNum) 🏆.",
+                    ])
+                }
             }
 
             // Generic competitive
+            let fallbackM = mentionedMilestone?.name ?? "11n"
+            let fallbackIdx = mentionedMilestone?.index ?? 15
+            let genericJump = Int.random(in: 1...5)
+            let genericHigherIdx = min(fallbackIdx + genericJump, Self.allMilestones.count - 1)
+            let genericHigherM = Self.allMilestones[genericHigherIdx]
+
             replies.append(contentsOf: [
-                "I am permanently out of reach.",
-                "I've been at the top since day one.",
-                "Your progress is nothing compared to my record.",
-                "I'll always have the endless lead.",
-                "I dominate the endless grind.",
-                "You'll never catch my progress.",
+                "I beat your record ⚔️. I'm at \(genericHigherM).",
+                "Your progress is nothing. I'm already at \(genericHigherM) 👑.",
+                "I'll always have the endless lead. Catch me at \(genericHigherM) 💨.",
+                "I dominate the endless grind 🔥. I'm at \(genericHigherM).",
+                "You'll never catch my progress. I passed \(genericHigherM) 💅.",
+                "Your efforts are pointless. I just hit \(genericHigherM) 💀.",
+                "I am infinitely ahead of you. I'm pushing \(genericHigherM) 🥱.",
+                "My record is flawless. Try reaching \(genericHigherM) 🏆.",
+                "Enjoy the view from the bottom. I'm way up at \(genericHigherM) 😏.",
+                "This rivalry is entirely one-sided. I'm already at \(genericHigherM) 📉.",
             ])
             return replies.randomElement()!
         }
