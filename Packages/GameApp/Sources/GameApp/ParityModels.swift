@@ -2129,16 +2129,6 @@ public struct MockSocialService: SocialService, Sendable {
             comment = result.0
             nameOverride = result.1
             // Randomly prepend a competitive opener ~95% of the time
-            let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
-            let actualPosterM = sortedMilestones.first(where: { message.lowercased().contains($0.lowercased()) })
-            let posterM = actualPosterM ?? "11n"
-            let posterIdx = Self.allMilestones.firstIndex(of: posterM) ?? 15
-            let remaining = Self.allMilestones.count - 1 - posterIdx
-            let isMassiveGap = remaining >= 150 && Bool.random()
-            let jump = isMassiveGap ? Int.random(in: 150...min(500, remaining)) : Int.random(in: 5...60)
-            let higherIdx = min(posterIdx + jump, Self.allMilestones.count - 1)
-            let higherM = Self.allMilestones[higherIdx]
-
             if Double.random(in: 0...1) < 0.95 {
                 var compOpeners = [
                     "Too easy.", "Forever in first place.", "You can't compete with infinity.",
@@ -2319,8 +2309,39 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
 
+        // ── Quest posts: brag about better chest tier or faster completion ──
+        if lowered.contains("quest") {
+            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
+            if let posterTierIdx = tiers.firstIndex(where: { message.contains($0) }),
+               posterTierIdx < tiers.count - 1 {
+                let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
+                let posterTier = tiers[posterTierIdx]
+                var templates = [
+                    "You're at \(posterTier), I'm at \(myTier).",
+                    "You're only pulling \(posterTier), I'm pulling \(myTier).",
+                    "\(posterTier) vs \(myTier).",
+                    "I'm at \(myTier).",
+                    "I'm already at \(myTier).",
+                    "Try hitting \(myTier).",
+                ]
+                // tier gap >= 2 (e.g., Bronze→Gold or Bronze→Diamond)
+                let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
+                if tierGap >= 2 {
+                    templates.append("\(myTier) chest here.")
+                    templates.append("You're only pulling \(posterTier), I'm pulling \(myTier).")
+                }
+                return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), higherName)
+            }
+        }
+
         // ── Milestone posts: find the tile, reference a higher one ──
-        if let foundIdx = sortedMilestones.firstIndex(where: { message.contains($0) }) {
+        if let foundIdx = sortedMilestones.firstIndex(where: { m in
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: m.lowercased()))\\b"
+            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(
+                in: lowered,
+                range: NSRange(lowered.startIndex..., in: lowered)
+            ) != nil
+        }) {
             let m = sortedMilestones[foundIdx]
             if let originalIdx = Self.allMilestones.firstIndex(of: m),
                originalIdx + 1 < Self.allMilestones.count {
@@ -2351,31 +2372,6 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
                 return (Self.drawFromBag(key: "\(bagKey)_tile_\(localHigherM)", pool: templates), realName)
-            }
-        }
-
-        // ── Quest posts: brag about better chest tier or faster completion ──
-        if lowered.contains("quest") {
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            if let posterTierIdx = tiers.firstIndex(where: { message.contains($0) }),
-               posterTierIdx < tiers.count - 1 {
-                let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
-                let posterTier = tiers[posterTierIdx]
-                var templates = [
-                    "You're at \(posterTier), I'm at \(myTier).",
-                    "You're only pulling \(posterTier), I'm pulling \(myTier).",
-                    "\(posterTier) vs \(myTier).",
-                    "I'm at \(myTier).",
-                    "I'm already at \(myTier).",
-                    "Try hitting \(myTier).",
-                ]
-                // tier gap >= 2 (e.g., Bronze→Gold or Bronze→Diamond)
-                let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
-                if tierGap >= 2 {
-                    templates.append("\(myTier) chest here.")
-                    templates.append("You're only pulling \(posterTier), I'm pulling \(myTier).")
-                }
-                return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), higherName)
             }
         }
 
