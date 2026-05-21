@@ -2256,7 +2256,10 @@ public struct MockSocialService: SocialService, Sendable {
         let lowered = message.lowercased()
 
         let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
-        let posterM = sortedMilestones.first(where: { lowered.contains($0.lowercased()) }) ?? "11n"
+        let posterM = sortedMilestones.first(where: { m in
+            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m.lowercased()))\\b(?!:)"
+            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowered, range: NSRange(lowered.startIndex..., in: lowered)) != nil
+        }) ?? "11n"
         let posterIdx = Self.allMilestones.firstIndex(of: posterM) ?? 15
         let jump = Int.random(in: 5...60)
         let higherIdx = min(posterIdx + jump, Self.allMilestones.count - 1)
@@ -2291,7 +2294,8 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         // ── Timed challenge posts: extract time remaining, brag with more ──
-        if lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
+        let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: lowered, range: NSRange(lowered.startIndex..., in: lowered)) != nil
+        if hasTimeFormat || lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
                 // Brag about having a FASTER clear time (lower = better)
@@ -2511,7 +2515,7 @@ public struct MockSocialService: SocialService, Sendable {
         // Search longest-first to avoid partial matches (e.g. "2" inside "262K")
         let sorted = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
         for (idx, milestone) in sorted {
-            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: milestone.lowercased()))\\b"
+            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: milestone.lowercased()))\\b(?!:)"
             if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowered, range: NSRange(lowered.startIndex..., in: lowered)) != nil, idx + 1 < Self.allMilestones.count {
                 let next = Self.allMilestones[idx + 1]
                 let templates = [
@@ -2546,7 +2550,7 @@ public struct MockSocialService: SocialService, Sendable {
         // Pull any milestone mentioned in the comment (find highest index for competitive progression)
         var foundMilestones: [(index: Int, name: String)] = []
         for (idx, m) in Self.allMilestones.enumerated() {
-            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: m.lowercased()))\\b"
+            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m.lowercased()))\\b(?!:)"
             if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: strippedLower, range: NSRange(strippedLower.startIndex..., in: strippedLower)) != nil {
                 foundMilestones.append((index: idx, name: m))
             }
@@ -2557,7 +2561,7 @@ public struct MockSocialService: SocialService, Sendable {
             let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
             let lowerMessage = message.lowercased()
             mentionedMilestone = sortedMilestones.first(where: { entry in
-                let pattern = "\\b\(NSRegularExpression.escapedPattern(for: entry.element.lowercased()))\\b"
+                let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: entry.element.lowercased()))\\b(?!:)"
                 return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowerMessage, range: NSRange(lowerMessage.startIndex..., in: lowerMessage)) != nil
             }).map { ($0.offset, $0.element) }
         }
@@ -2579,7 +2583,8 @@ public struct MockSocialService: SocialService, Sendable {
 
         // Extract key phrases the commenter used for mirroring
         // Extract key phrases the commenter used for mirroring
-        let mentionedTime = strippedLower.contains("time") || strippedLower.contains("fast") || strippedLower.contains("speed") || strippedLower.contains("quick") || strippedLower.contains("sec") || strippedLower.contains("min") || strippedLower.contains("clock")
+        let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: strippedLower, range: NSRange(strippedLower.startIndex..., in: strippedLower)) != nil
+        let mentionedTime = hasTimeFormat || strippedLower.contains("time") || strippedLower.contains("fast") || strippedLower.contains("speed") || strippedLower.contains("quick") || strippedLower.contains("sec") || strippedLower.contains("min") || strippedLower.contains("clock")
         let mentionedStreak = strippedLower.contains("streak") || strippedLower.contains("day") || strippedLower.contains("consecutive")
         let mentionedTheme = strippedLower.contains("theme") || strippedLower.contains("style") || strippedLower.contains("aesthetic")
         let mentionedHoF = strippedLower.contains("hall of fame") || strippedLower.contains("hof") || strippedLower.contains("infinity")
