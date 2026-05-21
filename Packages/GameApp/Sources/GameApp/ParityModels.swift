@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v26"
-    private static let feedDateKey = "socialFeed.cacheDate.v25"
+    private static let feedCacheKey = "socialFeed.cache.v27"
+    private static let feedDateKey = "socialFeed.cacheDate.v26"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
 
