@@ -467,7 +467,7 @@ private struct AddEventSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("What's happening?", text: $message, axis: .vertical)
+                    TextField("Comment", text: $message, axis: .vertical)
                         .lineLimit(3...6)
                 } header: {
                     Text("Message")
