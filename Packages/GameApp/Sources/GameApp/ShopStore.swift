@@ -171,38 +171,121 @@ public final class ShopStore {
     }
     
     private func createDefaultCatalog() -> ShopCatalog {
-        // Create a minimal catalog with sample data for testing
+        // Hardcoded fallback catalog matching the original 2244_shop_catalog.json
         return ShopCatalog(
             catalogVersion: "2025-09-04c",
             lastUpdated: "2025-09-04T23:33:37",
             currency: "USD",
             pricingModel: "one_time",
             bundles: [
-                ShopBundle.canonical(IAPProduct.starterPackProduct, tags: ["Starter"]),
-                ShopBundle.canonical(IAPProduct.powerUpBundleProduct, tags: ["Tools"]),
-                ShopBundle.canonical(IAPProduct.megaBundleProduct, tags: ["Best Value"])
-            ],
-            gemBundles: [
-                GemBundle(
-                    id: IAPProduct.smallCoinsProduct.id,
-                    gems: 500,
-                    price: 0.99,
-                    tags: nil
-                ),
-                GemBundle(
-                    id: IAPProduct.mediumCoinsProduct.id,
-                    gems: 2500,
-                    price: 3.99,
-                    tags: ["Popular"]
-                ),
-                GemBundle(
-                    id: IAPProduct.largeCoinsProduct.id,
-                    gems: 10000,
+                ShopBundle(
+                    id: "starter_bundle",
+                    title: "Starter Bundle",
                     price: 9.99,
-                    tags: ["Best Value"]
+                    tags: nil,
+                    perks: nil,
+                    items: ShopBundle.Items(
+                        gems: 1000, hammers: 5, swaps: 5, magnets: 5, spins: 5,
+                        boost2x: nil, boost3x: nil, boost4x: nil,
+                        liveThemes: nil, tileBeats: nil,
+                        galaxyThemes: nil, colorWheelThemes: nil, gridThemes: nil
+                    )
+                ),
+                ShopBundle(
+                    id: "value_bundle",
+                    title: "Value Bundle",
+                    price: 14.99,
+                    tags: nil,
+                    perks: nil,
+                    items: ShopBundle.Items(
+                        gems: 5000, hammers: 15, swaps: 15, magnets: 15, spins: 50,
+                        boost2x: nil, boost3x: nil, boost4x: nil,
+                        liveThemes: nil, tileBeats: nil,
+                        galaxyThemes: nil, colorWheelThemes: nil, gridThemes: nil
+                    )
+                ),
+                ShopBundle(
+                    id: "boost_bundle",
+                    title: "Boost Bundle",
+                    price: 24.99,
+                    tags: nil,
+                    perks: nil,
+                    items: ShopBundle.Items(
+                        gems: 25000, hammers: nil, swaps: nil, magnets: nil, spins: nil,
+                        boost2x: 80, boost3x: 70, boost4x: 60,
+                        liveThemes: nil, tileBeats: nil,
+                        galaxyThemes: nil, colorWheelThemes: nil, gridThemes: nil
+                    )
+                ),
+                ShopBundle(
+                    id: "tools_bundle",
+                    title: "Tools Bundle",
+                    price: 29.99,
+                    tags: nil,
+                    perks: nil,
+                    items: ShopBundle.Items(
+                        gems: nil, hammers: 50, swaps: 35, magnets: 25, spins: nil,
+                        boost2x: nil, boost3x: nil, boost4x: nil,
+                        liveThemes: nil, tileBeats: nil,
+                        galaxyThemes: nil, colorWheelThemes: nil, gridThemes: nil
+                    )
+                ),
+                ShopBundle(
+                    id: "mega_bundle",
+                    title: "Mega Bundle",
+                    price: 34.99,
+                    tags: nil,
+                    perks: nil,
+                    items: ShopBundle.Items(
+                        gems: 50000, hammers: 25, swaps: 25, magnets: 25, spins: 25,
+                        boost2x: 25, boost3x: 25, boost4x: 25,
+                        liveThemes: nil, tileBeats: nil,
+                        galaxyThemes: nil, colorWheelThemes: nil, gridThemes: nil
+                    )
+                ),
+                ShopBundle(
+                    id: "power_boost_bundle",
+                    title: "Power Boost Bundle",
+                    price: 49.99,
+                    tags: nil,
+                    perks: nil,
+                    items: ShopBundle.Items(
+                        gems: nil, hammers: nil, swaps: nil, magnets: nil, spins: nil,
+                        boost2x: 100, boost3x: 100, boost4x: 100,
+                        liveThemes: nil, tileBeats: nil,
+                        galaxyThemes: nil, colorWheelThemes: nil, gridThemes: nil
+                    )
+                ),
+                ShopBundle(
+                    id: "ultimate_bundle",
+                    title: "Ultimate Bundle",
+                    price: 99.99,
+                    tags: ["Best Value"],
+                    perks: nil,
+                    items: ShopBundle.Items(
+                        gems: 100000, hammers: 250, swaps: 200, magnets: 150, spins: 250,
+                        boost2x: 150, boost3x: 125, boost4x: 100,
+                        liveThemes: nil, tileBeats: nil,
+                        galaxyThemes: nil, colorWheelThemes: nil, gridThemes: nil
+                    )
                 )
             ],
-            perkBundles: [],
+            gemBundles: [
+                GemBundle(id: "gems_1000", gems: 1000, price: 0.99, tags: nil),
+                GemBundle(id: "gems_5000", gems: 5000, price: 2.99, tags: nil),
+                GemBundle(id: "gems_15000", gems: 15000, price: 4.99, tags: nil),
+                GemBundle(id: "gems_25000", gems: 25000, price: 7.49, tags: nil),
+                GemBundle(id: "gems_50000", gems: 50000, price: 9.99, tags: nil),
+                GemBundle(id: "gems_100000", gems: 100000, price: 19.99, tags: nil),
+                GemBundle(id: "gems_250000", gems: 250000, price: 49.99, tags: ["Popular"]),
+                GemBundle(id: "gems_500000", gems: 500000, price: 99.99, tags: ["Whale"])
+            ],
+            perkBundles: [
+                PerkBundle(id: "hammers_5", item: "hammer", quantity: 5, price: 0.99),
+                PerkBundle(id: "hammers_15", item: "hammer", quantity: 15, price: 1.99),
+                PerkBundle(id: "swaps_5", item: "swap", quantity: 5, price: 1.29),
+                PerkBundle(id: "magnets_5", item: "magnet", quantity: 5, price: 1.49)
+            ],
             freePerks: []
         )
     }

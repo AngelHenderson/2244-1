@@ -2233,7 +2233,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Don't bother trying.", "I'm literally unbeatable.", "My endless stats are permanent.",
                     "Just accept you'll never catch me.", "I reign over eternity.", "Your progress means nothing here.",
                     "You are completely irrelevant.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
-                    "Your grind is meaningless against infinity.", "It's lonely at the absolute top.",
+                    "Your grind is meaningless against infinity.", "The absolute top belongs to me.",
                     "I run this game.", "You're completely outmatched.",
                     "I'm untouchable.", "We are not the same.",
                     "Stay down there.", "Eternity belongs to me.",
