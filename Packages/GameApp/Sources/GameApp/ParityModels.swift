@@ -1016,15 +1016,56 @@ public struct MockSocialService: SocialService, Sendable {
                 responderName = item.authorName
             }
             
-            let responseText: String
-            if let answer = milestoneAnswer(for: text) {
-                responseText = "@\(playerName) " + answer
-            } else {
-                responseText = "@\(playerName) " + generateContextualReply(to: text, message: item.message)
+            func extractMaxNumber(from text: String) -> Int {
+                let pattern = "\\d+"
+                guard let regex = try? NSRegularExpression(pattern: pattern) else { return 0 }
+                let matches = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
+                var maxNum = 0
+                for match in matches {
+                    if let range = Range(match.range, in: text), let num = Int(text[range]) {
+                        maxNum = max(maxNum, num)
+                    }
+                }
+                return maxNum
             }
-            let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
-            item.comments.append(responseComment)
-            item.commentCount = item.comments.count
+            
+            var posterBeatsNPC = false
+            let loweredText = text.lowercased()
+            let loweredBase = item.message.lowercased()
+            
+            if let cSecs = Self.extractTime(from: loweredText).map({ $0.0 * 60 + $0.1 }),
+               let bSecs = Self.extractTime(from: loweredBase).map({ $0.0 * 60 + $0.1 }) {
+                if cSecs < bSecs { posterBeatsNPC = true }
+            } else {
+                let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
+                if let cM = sortedMilestones.first(where: { loweredText.contains($0.lowercased()) }),
+                   let bM = sortedMilestones.first(where: { loweredBase.contains($0.lowercased()) }),
+                   let cIdx = Self.allMilestones.firstIndex(of: cM),
+                   let bIdx = Self.allMilestones.firstIndex(of: bM) {
+                    if cIdx > bIdx { posterBeatsNPC = true }
+                } else {
+                    let cNum = extractMaxNumber(from: text)
+                    let bNum = extractMaxNumber(from: item.message)
+                    if cNum > 0 && cNum > bNum {
+                        posterBeatsNPC = true
+                    }
+                }
+            }
+            
+            let answer = milestoneAnswer(for: text)
+            if posterBeatsNPC || answer != nil {
+                let responseText: String
+                if let ans = answer {
+                    responseText = "@\(playerName) " + ans
+                } else {
+                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: item.message)
+                }
+                let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
+                item.comments.append(responseComment)
+                item.commentCount = item.comments.count
+            } else {
+                item.commentCount = item.comments.count
+            }
         }
 
         if let data = defaults.data(forKey: Self.feedCacheKey),
@@ -2470,7 +2511,8 @@ public struct MockSocialService: SocialService, Sendable {
         // Search longest-first to avoid partial matches (e.g. "2" inside "262K")
         let sorted = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
         for (idx, milestone) in sorted {
-            if text.contains(milestone), idx + 1 < Self.allMilestones.count {
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: milestone.lowercased()))\\b"
+            if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowered, range: NSRange(lowered.startIndex..., in: lowered)) != nil, idx + 1 < Self.allMilestones.count {
                 let next = Self.allMilestones[idx + 1]
                 let templates = [
                     "\(next) comes after \(milestone).",
@@ -2513,8 +2555,10 @@ public struct MockSocialService: SocialService, Sendable {
 
         if mentionedMilestone == nil {
             let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
+            let lowerMessage = message.lowercased()
             mentionedMilestone = sortedMilestones.first(where: { entry in
-                message.lowercased().contains(entry.element.lowercased())
+                let pattern = "\\b\(NSRegularExpression.escapedPattern(for: entry.element.lowercased()))\\b"
+                return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowerMessage, range: NSRange(lowerMessage.startIndex..., in: lowerMessage)) != nil
             }).map { ($0.offset, $0.element) }
         }
 
@@ -2534,8 +2578,9 @@ public struct MockSocialService: SocialService, Sendable {
         }()
 
         // Extract key phrases the commenter used for mirroring
-        let mentionedTime = strippedLower.contains("time") || strippedLower.contains("fast") || strippedLower.contains("speed") || strippedLower.contains("quick")
-        let mentionedStreak = strippedLower.contains("streak")
+        // Extract key phrases the commenter used for mirroring
+        let mentionedTime = strippedLower.contains("time") || strippedLower.contains("fast") || strippedLower.contains("speed") || strippedLower.contains("quick") || strippedLower.contains("sec") || strippedLower.contains("min") || strippedLower.contains("clock")
+        let mentionedStreak = strippedLower.contains("streak") || strippedLower.contains("day") || strippedLower.contains("consecutive")
         let mentionedTheme = strippedLower.contains("theme") || strippedLower.contains("style") || strippedLower.contains("aesthetic")
         let mentionedHoF = strippedLower.contains("hall of fame") || strippedLower.contains("hof") || strippedLower.contains("infinity")
         let mentionedPerk = strippedLower.contains("hammer") || strippedLower.contains("swap") || strippedLower.contains("magnet") || strippedLower.contains("perk")
@@ -2690,7 +2735,7 @@ public struct MockSocialService: SocialService, Sendable {
                 replies.append(contentsOf: [
                     "I just beat your \(m.name) record ⚔️. I'm at \(higherM).",
                     "\(m.name) is permanently behind me. Catch me at \(higherM) 💨.",
-                    "Your \(m.name) is nothing compared to my \(higherM) record 👑.",
+                    "Your \(m.name) is nothing compared to my \(higherM) record ♾️.",
                     "I passed \(m.name) ages ago. I dominate \(higherM) 🔥.",
                     "My \(higherM) run was completely effortless. \(m.name) is cute 😏.",
                     "\(m.name) was a warm-up 🥱. I'm already sitting at \(higherM).",
@@ -2705,7 +2750,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let higherNum = num + Int.random(in: 10...max(20, num))
                 replies.append(contentsOf: [
                     "I beat your \(numStr) record ⚔️. I'm at \(higherNum).",
-                    "Your \(numStr) is cute. I'll always have you beat at \(higherNum) 👑.",
+                    "Your \(numStr) is cute. I'll always have you beat at \(higherNum) ♾️.",
                     "\(numStr) is just the beginning 🥱. I'm already at \(higherNum).",
                     "I crushed your \(numStr) score. Just hit \(higherNum) 🔥.",
                     "You thought \(numStr) was good? I'm laughing from \(higherNum) 💀.",
@@ -2721,7 +2766,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append(contentsOf: [
                         "I beat your \(numStr) days ⚔️. I'm at \(higherNum) days.",
                         "Your \(numStr) day streak is nothing. Try catching my \(higherNum) days 💨.",
-                        "I passed \(numStr) days ages ago. I'm at \(higherNum) days 👑.",
+                        "I passed \(numStr) days ages ago. I'm at \(higherNum) days ♾️.",
                         "\(numStr) days? Try keeping a \(higherNum) day streak like me 🔥.",
                         "I broke your \(numStr) day record effortlessly. Currently at \(higherNum) 😏.",
                         "Your \(numStr) days are cute. Call me when you reach \(higherNum) days 🥱.",
@@ -2734,7 +2779,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append(contentsOf: [
                         "I beat your \(assumedNum) days ⚔️. I'm at \(higherNum) days.",
                         "Your \(assumedNum) day streak is nothing. Try catching my \(higherNum) days 💨.",
-                        "I passed \(assumedNum) days ages ago. I'm at \(higherNum) days 👑.",
+                        "I passed \(assumedNum) days ages ago. I'm at \(higherNum) days ♾️.",
                         "\(assumedNum) days? Try keeping a \(higherNum) day streak like me 🔥.",
                         "I broke your \(assumedNum) day record effortlessly. Currently at \(higherNum) 😏.",
                         "Your \(assumedNum) days are cute. Call me when you reach \(higherNum) days 🥱.",
@@ -2755,7 +2800,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append(contentsOf: [
                         "I beat your \(posterTime) time ⚔️. I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) 💨.",
-                        "I passed your time ages ago. My record is \(higherTime) 👑.",
+                        "I passed your time ages ago. My record is \(higherTime) ♾️.",
                         "\(posterTime) is too slow 🥱. I just clocked \(higherTime).",
                         "I shaved minutes off your \(posterTime). My best is \(higherTime) 🔥.",
                         "You call \(posterTime) fast? Try beating my \(higherTime) 😏.",
@@ -2774,7 +2819,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append(contentsOf: [
                         "I beat your \(posterTime) time ⚔️. I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) 💨.",
-                        "I passed your time ages ago. My record is \(higherTime) 👑.",
+                        "I passed your time ages ago. My record is \(higherTime) ♾️.",
                         "\(posterTime) is too slow 🥱. I just clocked \(higherTime).",
                         "I shaved minutes off your \(posterTime). My best is \(higherTime) 🔥.",
                         "You call \(posterTime) fast? Try beating my \(higherTime) 😏.",
@@ -2789,7 +2834,7 @@ public struct MockSocialService: SocialService, Sendable {
                     let higherNum = num + Int.random(in: 1...max(3, num/2))
                     replies.append(contentsOf: [
                         "I beat your \(numStr) infinity count ⚔️. I'm at \(higherNum).",
-                        "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) 👑.",
+                        "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) ♾️.",
                         "I passed \(numStr) infinities ages ago. I'm at \(higherNum) 💨.",
                         "\(numStr) infinities is a good start. I'm already sitting at \(higherNum) 😏.",
                         "I just logged my \(higherNum)th infinity. Your \(numStr) is cute 🥱.",
@@ -2802,7 +2847,7 @@ public struct MockSocialService: SocialService, Sendable {
                     let higherNum = assumedNum + Int.random(in: 2...8)
                     replies.append(contentsOf: [
                         "I beat your \(assumedNum) infinity count ⚔️. I'm at \(higherNum).",
-                        "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum) 👑.",
+                        "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum) ♾️.",
                         "I passed \(assumedNum) infinities ages ago. I'm at \(higherNum) 💨.",
                         "\(assumedNum) infinities is a good start. I'm already sitting at \(higherNum) 😏.",
                         "I just logged my \(higherNum)th infinity. Your \(assumedNum) is cute 🥱.",
@@ -2821,8 +2866,8 @@ public struct MockSocialService: SocialService, Sendable {
             let genericHigherM = Self.allMilestones[genericHigherIdx]
 
             replies.append(contentsOf: [
-                "I beat your record ⚔️. I'm at \(genericHigherM).",
-                "Your progress is nothing. I'm already at \(genericHigherM) 👑.",
+                "I am infinitely ahead of you ⚔️. I'm at \(genericHigherM).",
+                "Your progress is nothing. I'm already at \(genericHigherM) ♾️.",
                 "I'll always have the endless lead. Catch me at \(genericHigherM) 💨.",
                 "I dominate the endless grind 🔥. I'm at \(genericHigherM).",
                 "You'll never catch my progress. I passed \(genericHigherM) 💅.",
