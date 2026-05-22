@@ -5,7 +5,9 @@ import GameApp
 @MainActor
 public struct DailyStreaksView: View {
     @Environment(DailyClaimsStore.self) private var store
+    @Environment(HomeState.self) private var homeState
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedStreak: DailyClaimsStore.DailyStreak?
     
     public init() {}
@@ -47,6 +49,14 @@ public struct DailyStreaksView: View {
                 .presentationDragIndicator(.visible)
         }
         .trackScreen(.dailyStreaks)
+        .onAppear {
+            store.updateAvailability(banStartDate: homeState.banStartDate, banEndDate: homeState.banEndDate)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                store.updateAvailability(banStartDate: homeState.banStartDate, banEndDate: homeState.banEndDate)
+            }
+        }
     }
 
     private var currentStreakSection: some View {

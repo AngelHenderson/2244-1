@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v28"
-    private static let feedDateKey = "socialFeed.cacheDate.v27"
+    private static let feedCacheKey = "socialFeed.cache.v32"
+    private static let feedDateKey = "socialFeed.cacheDate.v31"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
 
@@ -1131,8 +1131,8 @@ public struct MockSocialService: SocialService, Sendable {
             let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
             let finalCommenter = nameOverride ?? commenter
             
-            // Comments trickle in over 4 days (345,600 seconds)
-            let baseOffset = Double.random(in: 30...345600)
+            // Competitive comments arrive fast (within 15 mins) to enforce dominance. Others trickle over 4 days.
+            let baseOffset = tone == "competitive" ? Double.random(in: 15...900) : Double.random(in: 900...345600)
             let baseCreatedAt = now.addingTimeInterval(baseOffset)
             
             let baseComment = SocialFeedComment(
@@ -1156,7 +1156,8 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                     
-                    let replyOffset = Double.random(in: 120...3600)
+                    // Threaded competitive replies happen fast (within 5 minutes)
+                    let replyOffset = Double.random(in: 30...300)
                     let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                     
                     let replyComment = SocialFeedComment(
@@ -1387,7 +1388,8 @@ public struct MockSocialService: SocialService, Sendable {
                 let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
                 let finalCommenter = nameOverride ?? commentAuthor
                 
-                let baseOffset = Double.random(in: timeOffset...(timeOffset + 28800))
+                // Competitive comments arrive within 15 minutes of the post to immediately assert dominance
+                let baseOffset = tone == "competitive" ? Double.random(in: timeOffset...min(timeOffset + 900, 0)) : Double.random(in: timeOffset...(timeOffset + 28800))
                 let baseCreatedAt = now.addingTimeInterval(baseOffset)
                 
                 let baseComment = SocialFeedComment(
@@ -1441,7 +1443,8 @@ public struct MockSocialService: SocialService, Sendable {
                             replyText = "@\(baseComment.authorName) " + generateContextualReply(to: baseComment.text, message: message)
                         }
                         
-                        let replyOffset = Double.random(in: 120...7200)
+                        // Threaded competitive replies happen fast (within 5 minutes)
+                        let replyOffset = Double.random(in: 30...300)
                         let replyCreatedAt = baseComment.createdAt.addingTimeInterval(replyOffset)
                         
                         let replyComment = SocialFeedComment(
@@ -1922,7 +1925,7 @@ public struct MockSocialService: SocialService, Sendable {
             "You won't ever pass me.", "I'm in an entirely different league.",
             "That record is cute compared to mine.", "You will never have my stats.",
             "I'll be staying infinitely ahead permanently.", "Not impressed, I'm miles ahead.",
-            "I'm maintaining my dominance.", "Don't even try to compete with me.",
+            "I'm maintaining my dominance.", "Don't even try to reach me.",
         ]
         var questions = [
             "How long did that take?", "What's your secret?", "Any tips for this tier?",
@@ -2214,7 +2217,7 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 var compOpeners = [
-                    "Too easy.", "Forever in first place.", "You can't compete with infinity.",
+                    "Too easy.", "Forever in first place.", "You can't touch infinity.",
                     "Barely had to try.", "My infinite lead is permanent.", "Light work.",
                     "Not even a challenge.", "Do better.", "Your effort is pointless.",
                     "I'm bored.", "Effortless.", "I'll dominate this rivalry forever.",
@@ -2658,14 +2661,14 @@ public struct MockSocialService: SocialService, Sendable {
 
         if isAddRequest {
             let replies = [
-                "Sure! My code is in my profile 🤝",
-                "Absolutely, add me anytime!",
-                "Yeah let's link up! Check my profile.",
-                "Of course! Always looking for friends 😊",
-                "Go for it! More competition is always fun.",
-                "Yes! Send me a friend request 🎮",
-                "For sure — the more the merrier!",
-                "Definitely! Let's compete together.",
+                "You can add me, but you'll never catch me.",
+                "Add me if you want to watch me stay infinitely ahead.",
+                "Sure, add me so you can stare at my infinite lead.",
+                "You can watch my stats from the bottom.",
+                "Go for it! I need an audience for my endless dominance.",
+                "Yes! Add me and witness infinity.",
+                "For sure — watch me extend my lead permanently.",
+                "Definitely! But don't expect to ever reach my tier.",
             ]
             return replies.randomElement()!
         }

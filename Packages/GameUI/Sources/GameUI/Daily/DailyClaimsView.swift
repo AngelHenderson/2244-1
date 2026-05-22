@@ -11,6 +11,7 @@ public struct DailyClaimsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.homeActions) private var homeActions
     @Environment(\.socialFeedPublisher) private var socialFeedPublisher
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showClaimAnimation = false
     @State private var claimedRewards: AchievementDef.Rewards?
     @State private var claimedBaseRewards: AchievementDef.Rewards?
@@ -93,6 +94,12 @@ public struct DailyClaimsView: View {
             }
         }
         .trackScreen(.dailyClaims)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                store.updateAvailability(banStartDate: homeState.banStartDate, banEndDate: homeState.banEndDate)
+                syncSelectedPage()
+            }
+        }
     }
     
     private var headerSection: some View {
