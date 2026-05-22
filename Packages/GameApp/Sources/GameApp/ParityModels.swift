@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v32"
-    private static let feedDateKey = "socialFeed.cacheDate.v31"
+    private static let feedCacheKey = "socialFeed.cache.v35"
+    private static let feedDateKey = "socialFeed.cacheDate.v34"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
 
@@ -1148,11 +1148,17 @@ public struct MockSocialService: SocialService, Sendable {
                 var currentDepth = 0
                 var lastComment = baseComment
                 
-                let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 1...4) : 0
+                let npc1 = (name: baseComment.authorName, avatar: baseComment.avatarID)
+                var npc2: (name: String, avatar: String)? = nil
+                
+                // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
+                let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
                 while currentDepth < targetDepth {
-                    let replyAuthor = generateDynamicName()
-                    let replyIndex = Int.random(in: 1...100000)
-                    let replyAvatar = Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay)
+                    if npc2 == nil {
+                        let replyIndex = Int.random(in: 1...100000)
+                        npc2 = (name: generateDynamicName(), avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
+                    }
+                    let currentSpeaker = currentDepth % 2 == 0 ? npc2! : npc1
                     
                     let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                     
@@ -1161,8 +1167,8 @@ public struct MockSocialService: SocialService, Sendable {
                     let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                     
                     let replyComment = SocialFeedComment(
-                        authorName: replyAuthor,
-                        avatarID: replyAvatar,
+                        authorName: currentSpeaker.name,
+                        avatarID: currentSpeaker.avatar,
                         text: replyText,
                         createdAt: replyCreatedAt,
                         likes: Int.random(in: 0...5)
@@ -1189,7 +1195,8 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                     }
                     
-                    let replyOffset = Double.random(in: 120...7200)
+                    // Threaded competitive replies happen fast (within 5 minutes)
+                    let replyOffset = Double.random(in: 30...300)
                     let replyCreatedAt = baseComment.createdAt.addingTimeInterval(replyOffset)
                     
                     let replyComment = SocialFeedComment(
@@ -1406,20 +1413,27 @@ public struct MockSocialService: SocialService, Sendable {
                     var currentDepth = 0
                     var lastComment = baseComment
                     
-                    let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 1...4) : 0
+                    let npc1 = (name: baseComment.authorName, avatar: baseComment.avatarID)
+                    var npc2: (name: String, avatar: String)? = nil
+                    
+                    // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
+                    let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
                     while currentDepth < targetDepth {
-                        let replyAuthor = generateDynamicName()
-                        let replyIndex = Int.random(in: 1...100000)
-                        let replyAvatar = Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay)
+                        if npc2 == nil {
+                            let replyIndex = Int.random(in: 1...100000)
+                            npc2 = (name: generateDynamicName(), avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
+                        }
+                        let currentSpeaker = currentDepth % 2 == 0 ? npc2! : npc1
                         
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                         
-                        let replyOffset = Double.random(in: 120...3600)
+                        // Threaded competitive replies happen fast (within 5 minutes)
+                        let replyOffset = Double.random(in: 30...300)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
                         let replyComment = SocialFeedComment(
-                            authorName: replyAuthor,
-                            avatarID: replyAvatar,
+                            authorName: currentSpeaker.name,
+                            avatarID: currentSpeaker.avatar,
                             text: replyText,
                             createdAt: replyCreatedAt,
                             likes: Int.random(in: 0...5)
@@ -2783,7 +2797,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
                 let higherM = Self.allMilestones[higherIdx]
                 replies.append(contentsOf: [
-                    "I just beat your \(m.name) record ⚔️. I'm at \(higherM).",
+                    "I am infinitely ahead of your \(m.name) ⚔️. I'm at \(higherM).",
                     "\(m.name) is permanently behind me. I am untouchable at \(higherM) 💨.",
                     "Your \(m.name) is nothing compared to my \(higherM) record ♾️.",
                     "I passed \(m.name) ages ago. I dominate \(higherM) 🔥.",
@@ -2799,10 +2813,10 @@ public struct MockSocialService: SocialService, Sendable {
             if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
                 let higherNum = num + Int.random(in: 10...max(20, num))
                 replies.append(contentsOf: [
-                    "I beat your \(numStr) record ⚔️. I'm at \(higherNum).",
-                    "Your \(numStr) is cute. I'll always have you beat at \(higherNum) ♾️.",
+                    "I am infinitely ahead of your \(numStr) ⚔️. I'm at \(higherNum).",
+                    "Your \(numStr) is cute. I'll always be infinitely ahead at \(higherNum) ♾️.",
                     "\(numStr) is just the beginning 🥱. I'm already at \(higherNum).",
-                    "I crushed your \(numStr) score. Just hit \(higherNum) 🔥.",
+                    "I left your \(numStr) score in the dust. Just hit \(higherNum) 🔥.",
                     "You thought \(numStr) was good? I'm laughing from \(higherNum) 💀.",
                     "\(numStr) points is light work. Try \(higherNum) 😏.",
                     "I passed \(numStr) without even looking. I'm at \(higherNum) 💅.",
@@ -2814,11 +2828,11 @@ public struct MockSocialService: SocialService, Sendable {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum = num + Int.random(in: 10...50)
                     replies.append(contentsOf: [
-                        "I beat your \(numStr) days ⚔️. I'm at \(higherNum) days.",
+                        "I am infinitely ahead of your \(numStr) days ⚔️. I'm at \(higherNum) days.",
                         "Your \(numStr) day streak is nothing. Try catching my \(higherNum) days 💨.",
                         "I passed \(numStr) days ages ago. I'm at \(higherNum) days ♾️.",
                         "\(numStr) days? Try keeping a \(higherNum) day streak like me 🔥.",
-                        "I broke your \(numStr) day record effortlessly. Currently at \(higherNum) 😏.",
+                        "I extended infinitely past your \(numStr) days. Currently at \(higherNum) 😏.",
                         "Your \(numStr) days are cute. Call me when you reach \(higherNum) days 🥱.",
                         "I haven't dropped my \(higherNum) day streak. \(numStr) is light 💅.",
                         "\(higherNum) consecutive days here. Your \(numStr) days won't last 📉.",
@@ -2827,11 +2841,11 @@ public struct MockSocialService: SocialService, Sendable {
                     let assumedNum = Int.random(in: 10...30)
                     let higherNum = assumedNum + Int.random(in: 10...50)
                     replies.append(contentsOf: [
-                        "I beat your \(assumedNum) days ⚔️. I'm at \(higherNum) days.",
+                        "I am infinitely ahead of your \(assumedNum) days ⚔️. I'm at \(higherNum) days.",
                         "Your \(assumedNum) day streak is nothing. Try catching my \(higherNum) days 💨.",
                         "I passed \(assumedNum) days ages ago. I'm at \(higherNum) days ♾️.",
                         "\(assumedNum) days? Try keeping a \(higherNum) day streak like me 🔥.",
-                        "I broke your \(assumedNum) day record effortlessly. Currently at \(higherNum) 😏.",
+                        "I extended infinitely past your \(assumedNum) days. Currently at \(higherNum) 😏.",
                         "Your \(assumedNum) days are cute. Call me when you reach \(higherNum) days 🥱.",
                         "I haven't dropped my \(higherNum) day streak. \(assumedNum) is light 💅.",
                         "\(higherNum) consecutive days here. Your \(assumedNum) days won't last 📉.",
@@ -2848,12 +2862,12 @@ public struct MockSocialService: SocialService, Sendable {
                     let higherTime = "\(myMins):\(String(format: "%02d", mySecs))"
                     let posterTime = "\(mins):\(String(format: "%02d", secs))"
                     replies.append(contentsOf: [
-                        "I beat your \(posterTime) time ⚔️. I'm at \(higherTime).",
+                        "I am infinitely faster than your \(posterTime) ⚔️. I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) 💨.",
                         "I passed your time ages ago. My record is \(higherTime) ♾️.",
                         "\(posterTime) is too slow 🥱. I just clocked \(higherTime).",
                         "I shaved minutes off your \(posterTime). My best is \(higherTime) 🔥.",
-                        "You call \(posterTime) fast? Try beating my \(higherTime) 😏.",
+                        "You call \(posterTime) fast? Try reaching my \(higherTime) 😏.",
                         "I speedrun this game. \(higherTime) destroys your \(posterTime) 💀.",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime) 💅.",
                     ])
@@ -2883,7 +2897,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum = num + Int.random(in: 1...max(3, num/2))
                     replies.append(contentsOf: [
-                        "I beat your \(numStr) infinity count ⚔️. I'm at \(higherNum).",
+                        "I am infinitely ahead of your \(numStr) infinity count ⚔️. I'm at \(higherNum).",
                         "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) ♾️.",
                         "I passed \(numStr) infinities ages ago. I'm at \(higherNum) 💨.",
                         "\(numStr) infinities is a good start. I'm already sitting at \(higherNum) 😏.",
@@ -2896,7 +2910,7 @@ public struct MockSocialService: SocialService, Sendable {
                     let assumedNum = Int.random(in: 5...15)
                     let higherNum = assumedNum + Int.random(in: 2...8)
                     replies.append(contentsOf: [
-                        "I beat your \(assumedNum) infinity count ⚔️. I'm at \(higherNum).",
+                        "I am infinitely ahead of your \(assumedNum) infinity count ⚔️. I'm at \(higherNum).",
                         "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum) ♾️.",
                         "I passed \(assumedNum) infinities ages ago. I'm at \(higherNum) 💨.",
                         "\(assumedNum) infinities is a good start. I'm already sitting at \(higherNum) 😏.",
@@ -2916,11 +2930,11 @@ public struct MockSocialService: SocialService, Sendable {
             let genericHigherM = Self.allMilestones[genericHigherIdx]
 
             replies.append(contentsOf: [
-                "I am infinitely ahead of you ⚔️. I'm at \(genericHigherM).",
-                "Your progress is nothing. I'm already at \(genericHigherM) ♾️.",
-                "I'll always have the endless lead. You'll never reach me at \(genericHigherM) 💨.",
-                "I dominate the endless grind 🔥. I'm at \(genericHigherM).",
-                "You'll never catch my progress. I passed \(genericHigherM) 💅.",
+                "Talk to me when you reach \(genericHigherM) ⚔️.",
+                "None of you are anywhere near my \(genericHigherM) record ♾️.",
+                "I'm ignoring this and focusing on my \(genericHigherM) grind 💨.",
+                "While you argue, I just hit \(genericHigherM) 🔥.",
+                "I don't have time for this, I'm already pushing \(genericHigherM) 💅.",
                 "Your efforts are pointless. I just hit \(genericHigherM) 💀.",
                 "I am infinitely ahead of you. I'm pushing \(genericHigherM) 🥱.",
                 "My record is flawless. Try reaching \(genericHigherM) ♾️.",
