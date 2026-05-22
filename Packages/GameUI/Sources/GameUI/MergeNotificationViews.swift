@@ -2,31 +2,17 @@ import SwiftUI
 import GameApp
 import GameCore
 
-// MARK: - Celebration Phrases
+// Celebration phrases are pre-selected in GameStore.pickUniquePhrases()
+// and passed through to each notification view via the celebrationPhrase parameter.
 
-private enum CelebrationPhrases {
-    static let all = [
-        "Marvelous!", "Glorious!", "Excellent!", "Fantastic!",
-        "Incredible!", "Brilliant!", "Outstanding!", "Superb!",
-        "Amazing!", "Spectacular!", "Phenomenal!", "Magnificent!",
-        "Great Job!", "Well Done!", "Awesome!", "Nice Work!",
-        "Keep Going!", "Way to Go!", "Impressive!", "Stellar!",
-        "Good Job!", "Nice!", "Progress!", "Moving Up!",
-        "Onward!", "Advancing!", "Leveling Up!", "Rising!"
-    ]
-
-    static func random() -> String {
-        all.randomElement() ?? "Excellent!"
-    }
-}
 
 struct UnlockedNotificationView: View {
     let value: Int
+    let celebrationPhrase: String
     let onClose: () -> Void
     @Environment(\.gameStore) private var gameStore
     @Environment(\.audio) private var audioService
     @Environment(\.currentTheme) private var currentTheme
-    @State private var celebrationPhrase = ""
 
     // Bouncing spinner state
     @State private var currentIndex: Int = 0
@@ -126,7 +112,7 @@ struct UnlockedNotificationView: View {
     var body: some View {
         VStack(spacing: 12) {
             // Celebration header
-            Text(celebrationPhrase)
+            Text(displayPhrase)
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 .foregroundStyle(.orange)
 
@@ -238,8 +224,6 @@ struct UnlockedNotificationView: View {
         .onAppear {
             didClaim = false
             hasStopped = false
-            // Special phrases for milestone unlocks
-            celebrationPhrase = unlockCelebrationPhrase()
             startSpinner()
         }
         .onDisappear {
@@ -375,10 +359,10 @@ struct UnlockedNotificationView: View {
 
     // MARK: - Celebration Phrases
 
-    private func unlockCelebrationPhrase() -> String {
+    /// Returns the special milestone override phrase, or the pre-selected unique phrase.
+    private var displayPhrase: String {
         // Check for infinity first
         if isInfinity {
-            // Count infinity tiles on the board to detect second+ infinity
             let infinityCount = countInfinityTilesOnBoard()
             if infinityCount >= 2 {
                 return "You made a second infinity tile! Keep going!"
@@ -427,24 +411,17 @@ struct UnlockedNotificationView: View {
 
         // Check for step-based milestones
         switch displayStep {
-        case 8:  // 512 (step 8)
-            return "Good Job! First milestone unlocked!"
-        case 9:  // 1024 (step 9)
-            return "Magnificent! You're in the thousands!"
-        case 10: // 2048 (step 10)
-            return "Amazing! You unlocked 2048!"
-        case 49: // 50th milestone (step 49 = 288b)
-            return "50th milestone unlocked! Keep going!"
-        case 99: // 100th milestone (step 99 = 324g)
-            return "100th Milestone Unlocked! Keep going!"
-        case 199: // 200th milestone (step 199 = 411q)
-            return "200th milestone unlocked! Keep Going!"
-        default:
-            break
+        case 8:  return "Good Job! First milestone unlocked!"
+        case 9:  return "Magnificent! You're in the thousands!"
+        case 10: return "Amazing! You unlocked 2048!"
+        case 49: return "50th milestone unlocked! Keep going!"
+        case 99: return "100th Milestone Unlocked! Keep going!"
+        case 199: return "200th milestone unlocked! Keep Going!"
+        default: break
         }
 
-        // Random phrase for other milestones
-        return CelebrationPhrases.random()
+        // Use the pre-selected unique phrase from the milestone sequence
+        return celebrationPhrase
     }
 
     private func countInfinityTilesOnBoard() -> Int {
@@ -475,12 +452,12 @@ private struct Triangle: Shape {
 
 struct AddedNotificationView: View {
     let value: Int
+    let celebrationPhrase: String
     let onClose: () -> Void
     @Environment(\.gameStore) private var gameStore
     @Environment(\.currentTheme) private var currentTheme
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
-    @State private var celebrationPhrase = ""
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -543,7 +520,7 @@ struct AddedNotificationView: View {
     var body: some View {
         VStack(spacing: 16) {
             // Celebration header
-            Text(celebrationPhrase)
+            Text(displayPhrase)
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 .foregroundStyle(.green)
 
@@ -584,28 +561,25 @@ struct AddedNotificationView: View {
         .padding(20)
         .presentationDetents([.height(240)])
         .presentationDragIndicator(.visible)
-        .onAppear {
-            celebrationPhrase = addedCelebrationPhrase()
-        }
     }
 
-    private func addedCelebrationPhrase() -> String {
+    private var displayPhrase: String {
         // Check for 2048 (step 10)
         if tileLabel == "2048" || displayStep == 10 {
             return "Great! First block added!"
         }
-        return CelebrationPhrases.random()
+        return celebrationPhrase
     }
 }
 
 struct ExcludedNotificationView: View {
     let value: Int
+    let celebrationPhrase: String
     let onClose: () -> Void
     @Environment(\.gameStore) private var gameStore
     @Environment(\.currentTheme) private var currentTheme
     @State private var showClaimOption = false
     @State private var selectedMultiplier = 1
-    @State private var celebrationPhrase = ""
 
     private var isHighValue: Bool {
         value >= Int.max / 2
@@ -686,7 +660,7 @@ struct ExcludedNotificationView: View {
     var body: some View {
         VStack(spacing: 16) {
             // Celebration header
-            Text(celebrationPhrase)
+            Text(displayPhrase)
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
                 .foregroundStyle(.cyan)
 
@@ -727,12 +701,9 @@ struct ExcludedNotificationView: View {
         .padding(20)
         .presentationDetents([.height(240)])
         .presentationDragIndicator(.visible)
-        .onAppear {
-            celebrationPhrase = excludedCelebrationPhrase()
-        }
     }
 
-    private func excludedCelebrationPhrase() -> String {
+    private var displayPhrase: String {
         // Special phrase for infinity
         if isAtInfinity {
             return "Congratulations! Can you make another Infinity?"
@@ -741,7 +712,7 @@ struct ExcludedNotificationView: View {
         if tileLabel == "2048" || displayStep == 10 {
             return "Awesome! First block eliminated!"
         }
-        return CelebrationPhrases.random()
+        return celebrationPhrase
     }
 }
 

@@ -27,14 +27,19 @@ public final class GemWallet {
     private var playerId: String
     private weak var gameStore: GameStore?
     private weak var homeState: HomeState?
-    private(set) var balance: Int
+    public var balance: Int {
+        get { defaults.integer(forKey: Keys.balance) }
+        set {
+            defaults.set(newValue, forKey: Keys.balance)
+            applyToGameState()
+        }
+    }
     #if canImport(FirebaseFirestore)
     private var document: DocumentReference?
     #endif
     
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.balance = defaults.integer(forKey: Keys.balance)
         if let existing = defaults.string(forKey: Keys.playerId) {
             playerId = existing
         } else {
@@ -57,8 +62,6 @@ public final class GemWallet {
     public func deposit(_ amount: Int, source: Source) {
         guard amount > 0 else { return }
         balance += amount
-        persistLocal()
-        applyToGameState()
         syncToCloud(reason: source.rawValue)
     }
     
@@ -66,8 +69,6 @@ public final class GemWallet {
         let merged = max(remoteValue, balance)
         guard merged != balance else { return }
         balance = merged
-        persistLocal()
-        applyToGameState()
     }
     
     public func startCloudSync() async {
@@ -109,10 +110,6 @@ public final class GemWallet {
         #else
         return nil
         #endif
-    }
-    
-    private func persistLocal() {
-        defaults.set(balance, forKey: Keys.balance)
     }
     
     private func applyToGameState() {

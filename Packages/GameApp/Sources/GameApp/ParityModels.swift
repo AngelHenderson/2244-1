@@ -1851,28 +1851,32 @@ public struct MockSocialService: SocialService, Sendable {
                 "the full quest line", "all three quests",
                 "the daily mission set",
             ]
+            let mins = Int.random(in: 1...45)
+            let secs = Int.random(in: 0...59)
+            let timeStr = "\(mins):\(String(format: "%02d", secs))"
+
             let details = [
-                "! \(questTier) chest earned 🎁",
-                " — \(questTier) reward chest grabbed.",
-                "! +\(gemsEarned) gems 💎",
-                ". \(questTier) tier. Easy gems today.",
-                " before lunch! \(questTier) chest ♾️",
-                " — all objectives done!",
-                ". \(questTier) chest opened for \(gemsEarned) gems.",
-                ". That \(questTier) chest was worth it.",
-                "! \(gemsEarned) gems richer now.",
-                ". \(questTier) chest in the bag!",
+                "! \(questTier) chest earned in \(timeStr) 🎁",
+                " in \(timeStr) — \(questTier) reward chest grabbed.",
+                "! +\(gemsEarned) gems in \(timeStr) 💎",
+                " in \(timeStr). \(questTier) tier. Easy gems today.",
+                " in \(timeStr)! \(questTier) chest ♾️",
+                " in \(timeStr) — all objectives done!",
+                ". \(questTier) chest opened in \(timeStr).",
+                " in \(timeStr). That \(questTier) chest was worth it.",
+                "! \(gemsEarned) gems richer in \(timeStr).",
+                " in \(timeStr). \(questTier) chest in the bag!",
             ]
             
             let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(details.randomElement()!)"
             
-            let statEmojis = ["📋", "🎁", "✅", "🏅", "📦", "💎", "🎯"]
+            let statEmojis = ["⏱️", "⏳", "💨", "🏅", "🏃‍♂️", "💎", "🎯"]
             let statLabels = [
-                "Daily Quest · \(questTier)", "Quest complete · +\(gemsEarned) 💎",
-                "Daily Quest · Done", "\(questTier) quest · Complete",
-                "Quest chest · \(questTier)", "Quests cleared · \(questTier)",
-                "Daily objectives · Done", "Quest rewards · \(gemsEarned) 💎",
-                "\(questTier) chest · Opened", "Quest log · Cleared",
+                "Quests cleared · \(timeStr)", "Daily Quest · \(timeStr)",
+                "All objectives · \(timeStr)", "\(questTier) quest · \(timeStr)",
+                "Quest time · \(timeStr)", "Speed run · \(timeStr)",
+                "Daily objectives · \(timeStr)", "Quests finished · \(timeStr)",
+                "\(questTier) chest · \(timeStr)", "Quest log · \(timeStr)",
             ]
             return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
         }
@@ -2924,7 +2928,7 @@ public struct MockSocialService: SocialService, Sendable {
 
             if mentionedQuest {
                 let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-                let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { lowerMessage.contains($0.lowercased()) }) ?? 0
+                let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) ?? 0
                 
                 if posterTierIdx < tiers.count - 1 {
                     let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]

@@ -59,9 +59,28 @@ public final class GameStore {
     public private(set) var pendingUnlockTile: Int? = nil
     // Milestone notification pipeline
     public enum MergeNotification: Equatable, Sendable {
-        case unlocked(Int)
-        case added(Int)
-        case excluded(Int)
+        case unlocked(Int, celebrationPhrase: String)
+        case added(Int, celebrationPhrase: String)
+        case excluded(Int, celebrationPhrase: String)
+    }
+
+    /// Shared celebration phrases for milestone notifications.
+    /// When a milestone triggers multiple notifications, unique phrases are pre-selected
+    /// so no two notifications in the sequence share the same word.
+    private static let celebrationPhrases = [
+        "Marvelous!", "Glorious!", "Excellent!", "Fantastic!",
+        "Incredible!", "Brilliant!", "Outstanding!", "Superb!",
+        "Amazing!", "Spectacular!", "Phenomenal!", "Magnificent!",
+        "Great Job!", "Well Done!", "Awesome!", "Nice Work!",
+        "Keep Going!", "Way to Go!", "Impressive!", "Stellar!",
+        "Good Job!", "Nice!", "Progress!", "Moving Up!",
+        "Onward!", "Advancing!", "Leveling Up!", "Rising!",
+    ]
+
+    /// Pick `count` unique random phrases from the shared pool.
+    private static func pickUniquePhrases(_ count: Int) -> [String] {
+        let pool = celebrationPhrases.shuffled()
+        return Array(pool.prefix(count))
     }
     
     public struct MagnetEvent: Equatable, Sendable {
@@ -322,6 +341,18 @@ public final class GameStore {
     
     public func addPowerUp(_ type: String, count: Int) {
         powerUpInventory[type, default: 0] += count
+        persistPowerUpInventory()
+    }
+
+    /// Copies the power-up inventory from another GameStore (used to sync sandboxed stores)
+    public func copyPowerUpInventory(from source: GameStore) {
+        powerUpInventory = source.powerUpInventory
+    }
+
+    /// Decrements a single power-up from the inventory (used to sync challenge spending back to main store)
+    public func consumePowerUp(_ type: String) {
+        guard powerUpInventory[type, default: 0] > 0 else { return }
+        powerUpInventory[type, default: 0] -= 1
         persistPowerUpInventory()
     }
 
@@ -2258,7 +2289,7 @@ public final class GameStore {
     
     public func dismissCurrentNotification() {
         // Check if we're dismissing an excluded notification - trigger elimination animation
-        if case .excluded = currentNotification, !pendingEliminationTiles.isEmpty {
+        if case .excluded(_, _) = currentNotification, !pendingEliminationTiles.isEmpty {
             triggerEliminationAnimation()
         }
         currentNotification = nil
@@ -2317,23 +2348,27 @@ public final class GameStore {
                 return
             }
 
-            // Step-based notification for high-value tiles
-            var pending: [MergeNotification] = []
-            pending.append(.unlocked(newTileValue))
-
             // Skip pattern for high-value milestones:
             // Matches milestoneExcludedValue: (step+1 - 26) % 3 == 2 → skip
             // step+1 = log2(milestone), log67M = 26
             let isSkipMilestone = (newStepVal + 1 - 26) % 3 == 2
 
+            // Pre-select unique phrases for this milestone sequence
+            let notificationCount = isSkipMilestone ? 1 : 3
+            let phrases = Self.pickUniquePhrases(notificationCount)
+
+            // Step-based notification for high-value tiles
+            var pending: [MergeNotification] = []
+            pending.append(.unlocked(newTileValue, celebrationPhrase: phrases[0]))
+
             if !isSkipMilestone {
                 // Added = eliminated << 7 = milestone >> 7 (step - 7)
                 // Use Int.max as placeholder - the UI formats based on step
-                pending.append(.added(Int.max))
+                pending.append(.added(Int.max, celebrationPhrase: phrases[1]))
 
                 // Eliminated = milestone >> 14 (step - 14)
                 // Use Int.max as placeholder - the UI formats based on step
-                pending.append(.excluded(Int.max))
+                pending.append(.excluded(Int.max, celebrationPhrase: phrases[2]))
             }
 
             enqueueNotifications(pending)
@@ -2349,23 +2384,14 @@ public final class GameStore {
         // Get all milestones we passed
         let passedMilestones = engine.milestonesBetween(previousHighest, and: newTileValue)
 
-        // Always show unlock notification for the new highest tile
-        pending.append(.unlocked(newTileValue))
-
         // Check if any passed milestones add new spawn values
         var addedValue: Int? = nil
         for milestone in passedMilestones {
             if let added = engine.milestoneAddedValue(for: milestone) {
-                // Track the highest added value
                 if addedValue == nil || added > addedValue! {
                     addedValue = added
                 }
             }
-        }
-
-        // Only show added notification if something was actually added
-        if let added = addedValue {
-            pending.append(.added(added))
         }
 
         // Check if any passed milestones eliminate values
@@ -2376,10 +2402,27 @@ public final class GameStore {
             }
         }
 
+        // Count how many notifications we need and pre-select unique phrases
+        var notificationCount = 1 // unlocked is always shown
+        if addedValue != nil { notificationCount += 1 }
+        if eliminatedValues.max() != nil { notificationCount += 1 }
+        let phrases = Self.pickUniquePhrases(notificationCount)
+        var phraseIndex = 0
+
+        // Always show unlock notification for the new highest tile
+        pending.append(.unlocked(newTileValue, celebrationPhrase: phrases[phraseIndex]))
+        phraseIndex += 1
+
+        // Only show added notification if something was actually added
+        if let added = addedValue {
+            pending.append(.added(added, celebrationPhrase: phrases[phraseIndex]))
+            phraseIndex += 1
+        }
+
         // Only show excluded notification if something was actually eliminated
         // Show the highest eliminated value (most recent)
         if let maxEliminated = eliminatedValues.max() {
-            pending.append(.excluded(maxEliminated))
+            pending.append(.excluded(maxEliminated, celebrationPhrase: phrases[phraseIndex]))
         }
 
         enqueueNotifications(pending)

@@ -187,12 +187,12 @@ public struct HybridGameScreen: View {
                 if let notification = gameStore.currentNotification {
                     Group {
                         switch notification {
-                        case .unlocked(let value):
-                            UnlockedNotificationView(value: value, onClose: { gameStore.dismissCurrentNotification() })
-                        case .added(let value):
-                            AddedNotificationView(value: value, onClose: { gameStore.dismissCurrentNotification() })
-                        case .excluded(let value):
-                            ExcludedNotificationView(value: value, onClose: { gameStore.dismissCurrentNotification() })
+                        case .unlocked(let value, let phrase):
+                            UnlockedNotificationView(value: value, celebrationPhrase: phrase, onClose: { gameStore.dismissCurrentNotification() })
+                        case .added(let value, let phrase):
+                            AddedNotificationView(value: value, celebrationPhrase: phrase, onClose: { gameStore.dismissCurrentNotification() })
+                        case .excluded(let value, let phrase):
+                            ExcludedNotificationView(value: value, celebrationPhrase: phrase, onClose: { gameStore.dismissCurrentNotification() })
                         }
                     }
                 }

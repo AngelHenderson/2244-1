@@ -124,6 +124,19 @@ public struct ChallengeGameWrapper: View {
                 _ = mainGameStore.spendCoins(spent)
             }
         }
+        // Power-up sync: mirror inventory changes back to main store
+        .onChange(of: challengeGameStore.powerUpInventory) { oldInventory, newInventory in
+            for (type, newCount) in newInventory {
+                let oldCount = oldInventory[type, default: 0]
+                if newCount < oldCount {
+                    // Power-up was consumed — deduct from main store too
+                    let used = oldCount - newCount
+                    for _ in 0..<used {
+                        mainGameStore.consumePowerUp(type)
+                    }
+                }
+            }
+        }
         // Track chain length for chain-target challenges + achievements
         .onChange(of: challengeGameStore.lastChainLength) { _, chainLength in
             if chainLength > 0 {
@@ -509,6 +522,9 @@ public struct ChallengeGameWrapper: View {
 
         // Initialize gems from player's inventory AFTER reset
         challengeGameStore.coins = homeState.gems
+
+        // Copy the player's actual power-up inventory so challenge shows real counts
+        challengeGameStore.copyPowerUpInventory(from: mainGameStore)
 
         startTime = Date()
         challengeEnded = false
