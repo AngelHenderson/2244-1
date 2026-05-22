@@ -2003,11 +2003,15 @@ public final class GameStore {
     }
 
     private func setPendingUnlockRewardIfNeeded(for newHigh: Int, previousHigh: Int) {
+        // Skip unlock rewards in sandboxed/challenge mode
+        guard !sandboxed else { return }
         // Use step-based comparison for reliable handling of values beyond Int.max
         let newStep = state.highestTileStep
         let previousStep = TileStepLabelFormatter.stepForValue(previousHigh, start: 2) ?? 0
 
         guard newStep > previousStep else { return }
+        // Skip unlock rewards in sandboxed (challenge) mode
+        guard !sandboxed else { return }
 
         // Use step-based reward calculation to handle arbitrarily large tile values
         let base = baseUnlockRewardForStep(newStep)
@@ -2046,6 +2050,8 @@ public final class GameStore {
     
     public func presentJourneyReward(for tier: JourneyAbbreviationTier) {
         guard pendingGiftReward == nil else { return }
+        // Skip gift rewards in sandboxed (challenge) mode
+        guard !sandboxed else { return }
         guard isAbbreviationTierUnlocked(tier), !hasClaimedAbbreviationTier(tier) else { return }
         pendingJourneyRewardTierID = tier.id
         pendingGiftReward = JourneyAbbreviationRewardCurve.reward(for: tier)
@@ -2142,6 +2148,8 @@ public final class GameStore {
     
     public func tapGiftBox(at position: Position) {
         guard pendingGiftReward == nil else { return }
+        // Skip gift boxes in sandboxed (challenge) mode
+        guard !sandboxed else { return }
         guard let reward = pendingGiftBoxes.removeValue(forKey: position) else { return }
         pendingJourneyRewardTierID = nil
         pendingGiftReward = reward
@@ -2387,6 +2395,8 @@ public final class GameStore {
     
     private func enqueueNotifications(_ notifications: [MergeNotification]) {
         guard !notifications.isEmpty else { return }
+        // Skip merge notifications in sandboxed (challenge) mode
+        guard !sandboxed else { return }
         print("🔔 ENQUEUE: \(notifications.count) notifications, currentNotification=\(currentNotification == nil ? "nil" : "active"), queueSize=\(notificationQueue.count)")
         notificationQueue.append(contentsOf: notifications)
         if currentNotification == nil {

@@ -1498,14 +1498,50 @@ public enum MockLeaderboardData {
             return realNames[realNameIndex]
         } else {
             var baseName: String
+            let arrayToUse: [String]
+            
+            if names.isEmpty {
+                // Use gamertag language distribution
+                let nameTypeRandom = seededRandom(seed: index * 601 + countrySeed * 127, index: index)
+                if nameTypeRandom < 0.40 {
+                    arrayToUse = usNames
+                } else if nameTypeRandom < 0.545 {
+                    arrayToUse = mexicoNames
+                } else if nameTypeRandom < 0.595 {
+                    arrayToUse = germanyNames
+                } else if nameTypeRandom < 0.63 {
+                    arrayToUse = franceNames
+                } else if nameTypeRandom < 0.73 {
+                    arrayToUse = italyNames
+                } else if nameTypeRandom < 0.745 {
+                    arrayToUse = japanNames
+                } else if nameTypeRandom < 0.7525 {
+                    arrayToUse = chinaNames
+                } else if nameTypeRandom < 0.9025 {
+                    arrayToUse = brazilNames
+                } else if nameTypeRandom < 0.915 {
+                    arrayToUse = indiaNames
+                } else if nameTypeRandom < 0.925 {
+                    arrayToUse = ukraineNames // 1% Russian/Slavic fallback
+                } else if nameTypeRandom < 0.975 {
+                    arrayToUse = uaeNames // 5% Arabic fallback
+                } else if nameTypeRandom < 0.98 {
+                    arrayToUse = southKoreaNames
+                } else {
+                    arrayToUse = swedenNames // 2% Scandinavian fallback
+                }
+            } else {
+                arrayToUse = names
+            }
+            
             if hasChanged {
                 // Name has changed - use a different gamertag
-                let newIndex = (index + countrySeed + day * 3) % names.count
-                baseName = names[newIndex]
+                let newIndex = (index + countrySeed + day * 3) % arrayToUse.count
+                baseName = arrayToUse[newIndex]
             } else {
                 // Base gamertag name
-                let nameIndex = (index + countrySeed) % names.count
-                baseName = names[nameIndex]
+                let nameIndex = (index + countrySeed) % arrayToUse.count
+                baseName = arrayToUse[nameIndex]
             }
             
             // Strip any existing trailing digits from the base name
@@ -2178,7 +2214,7 @@ public enum MockLeaderboardData {
         case "UA": return ukraineNames
         case "MG": return madagascarNames
         case "IQ": return iraqNames
-        default: return usNames
+        default: return []
         }
     }
 

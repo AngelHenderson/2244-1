@@ -48,7 +48,7 @@ public struct ChallengeDesignerView: View {
     }
 
     private var targetSection: some View {
-        let buttonColor = Color.purple.opacity(0.7)
+        let buttonColor = Color(red: 0.85, green: 0.55, blue: 0.85)
 
         return VStack(spacing: 0) {
             Text("TARGET")
@@ -67,6 +67,8 @@ public struct ChallengeDesignerView: View {
                         .foregroundStyle(.white)
                         .frame(width: 80, height: 80)
                         .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
+                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.white.opacity(0.3), lineWidth: 2))
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                 }
                 .buttonStyle(.plain)
 
@@ -99,6 +101,8 @@ public struct ChallengeDesignerView: View {
                         .foregroundStyle(.white)
                         .frame(width: 80, height: 80)
                         .background(RoundedRectangle(cornerRadius: 12).fill(buttonColor))
+                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.white.opacity(0.3), lineWidth: 2))
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                 }
                 .buttonStyle(.plain)
             }

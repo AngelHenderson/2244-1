@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v27"
-    private static let feedDateKey = "socialFeed.cacheDate.v26"
+    private static let feedCacheKey = "socialFeed.cache.v28"
+    private static let feedDateKey = "socialFeed.cacheDate.v27"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
 
@@ -1921,7 +1921,7 @@ public struct MockSocialService: SocialService, Sendable {
             "My next run will just extend my lead.", "I'm already untouchable.",
             "You won't ever pass me.", "I'm in an entirely different league.",
             "That record is cute compared to mine.", "You will never have my stats.",
-            "I'll be staying at the top permanently.", "Not impressed, I'm miles ahead.",
+            "I'll be staying infinitely ahead permanently.", "Not impressed, I'm miles ahead.",
             "I'm maintaining my dominance.", "Don't even try to compete with me.",
         ]
         var questions = [
@@ -2233,7 +2233,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Don't bother trying.", "I'm literally unbeatable.", "My endless stats are permanent.",
                     "Just accept you'll never catch me.", "I reign over eternity.", "Your progress means nothing here.",
                     "You are completely irrelevant.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
-                    "Your grind is meaningless against infinity.", "The absolute top belongs to me.",
+                    "Your grind is meaningless against infinity.", "My dominance here is absolute.",
                     "I run this game.", "You're completely outmatched.",
                     "I'm untouchable.", "We are not the same.",
                     "Stay down there.", "Eternity belongs to me.",
