@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v35"
-    private static let feedDateKey = "socialFeed.cacheDate.v34"
+    private static let feedCacheKey = "socialFeed.cache.v37"
+    private static let feedDateKey = "socialFeed.cacheDate.v36"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
 
@@ -2087,7 +2087,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Your speed is nothing compared to my record.",
                 "I'll always have the faster clear.",
                 "I dominate the speed leaderboards.",
-                "You'll never beat my time.",
+                "You'll never reach my time.",
             ])
 
             questions.append(contentsOf: [
@@ -2233,11 +2233,11 @@ public struct MockSocialService: SocialService, Sendable {
                 var compOpeners = [
                     "Too easy.", "Forever in first place.", "You can't touch infinity.",
                     "Barely had to try.", "My infinite lead is permanent.", "Light work.",
-                    "Not even a challenge.", "Do better.", "Your effort is pointless.",
+                    "This is entirely effortless.", "Do better.", "Your effort is pointless.",
                     "I'm bored.", "Effortless.", "I'll dominate this rivalry forever.",
                     "Didn't even break a sweat.", "That's cute.", "I dominate eternity.",
                     "Flawless.", "This rivalry is completely one-sided.", "There is no catching up to infinity.",
-                    "I need a real opponent.", "Endless grinding, and you're still behind."
+                    "No one can touch my infinity.", "Endless grinding, and you're still behind."
                 ]
                 
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
@@ -2246,12 +2246,12 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly append a competitive closer ~80% of the time
             if Double.random(in: 0...1) < 0.80 {
                 var compClosers = [
-                    "My infinite lead cannot be broken.", "You'll never beat me.", "I'll always be tiers above.",
-                    "Don't bother trying.", "I'm literally unbeatable.", "My endless stats are permanent.",
+                    "My infinite lead cannot be broken.", "You'll never catch me.", "I'll always be tiers above.",
+                    "Don't bother trying.", "I'm infinitely untouchable.", "My endless stats are permanent.",
                     "Just accept you'll never catch me.", "I reign over eternity.", "Your progress means nothing here.",
                     "You are completely irrelevant.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
                     "Your grind is meaningless against infinity.", "My dominance here is absolute.",
-                    "I run this game.", "You're completely outmatched.",
+                    "I run this game.", "You're entirely left behind.",
                     "I'm untouchable.", "We are not the same.",
                     "Stay down there.", "Eternity belongs to me.",
                     "Your progress is a joke to me."
@@ -2339,7 +2339,7 @@ public struct MockSocialService: SocialService, Sendable {
                 var templates = [
                     "I'm already at \(myDays) days.",
                     "You're at \(streakDays) days, I'm at \(myDays) days.",
-                    "We'll see about that at \(myDays) days.",
+                    "I'll always be untouched at \(myDays) days.",
                     "You're only at \(streakDays) days, I'm at \(myDays) days.",
                     "I'm at \(myDays) days.",
                     "Try hitting \(myDays) days.",
@@ -2881,12 +2881,12 @@ public struct MockSocialService: SocialService, Sendable {
                     let posterSecs = assumedTotal % 60
                     let posterTime = "\(posterMins):\(String(format: "%02d", posterSecs))"
                     replies.append(contentsOf: [
-                        "I beat your \(posterTime) time ⚔️. I'm at \(higherTime).",
+                        "I am infinitely faster than your \(posterTime) ⚔️. I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) 💨.",
                         "I passed your time ages ago. My record is \(higherTime) ♾️.",
                         "\(posterTime) is too slow 🥱. I just clocked \(higherTime).",
                         "I shaved minutes off your \(posterTime). My best is \(higherTime) 🔥.",
-                        "You call \(posterTime) fast? Try beating my \(higherTime) 😏.",
+                        "You call \(posterTime) fast? Try reaching my \(higherTime) 😏.",
                         "I speedrun this game. \(higherTime) destroys your \(posterTime) 💀.",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime) 💅.",
                     ])
@@ -2922,25 +2922,54 @@ public struct MockSocialService: SocialService, Sendable {
                 }
             }
 
-            // Generic competitive
-            let fallbackM = mentionedMilestone?.name ?? "11n"
-            let fallbackIdx = mentionedMilestone?.index ?? 15
-            let genericJump = Int.random(in: 1...5)
-            let genericHigherIdx = min(fallbackIdx + genericJump, Self.allMilestones.count - 1)
-            let genericHigherM = Self.allMilestones[genericHigherIdx]
+            if mentionedQuest {
+                let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
+                let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { lowerMessage.contains($0.lowercased()) }) ?? 0
+                
+                if posterTierIdx < tiers.count - 1 {
+                    let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
+                    let posterTier = tiers[posterTierIdx]
+                    replies.append(contentsOf: [
+                        "I am infinitely ahead of your \(posterTier) chests ⚔️. I pull \(myTier).",
+                        "Your \(posterTier) is cute. I only open \(myTier) 💨.",
+                        "I passed \(posterTier) ages ago. I farm \(myTier) ♾️.",
+                        "\(posterTier) chests? Try pulling \(myTier) like me 🔥.",
+                        "I extended infinitely past \(posterTier). Currently on \(myTier) 😏.",
+                        "Your \(posterTier) pulls are cute. Call me when you reach \(myTier) 🥱.",
+                        "I haven't dropped below \(myTier). \(posterTier) is light 💅.",
+                        "\(myTier) drops only here. Your \(posterTier) won't last 📉.",
+                    ])
+                } else {
+                    replies.append(contentsOf: [
+                        "Diamond chests are just my baseline ⚔️. I farm them effortlessly.",
+                        "You finally got a Diamond chest? I open them daily 💨.",
+                        "I passed that struggle ages ago. Diamond is standard for me ♾️.",
+                        "Diamond? Try hoarding them like me 🔥.",
+                    ])
+                }
+            }
 
-            replies.append(contentsOf: [
-                "Talk to me when you reach \(genericHigherM) ⚔️.",
-                "None of you are anywhere near my \(genericHigherM) record ♾️.",
-                "I'm ignoring this and focusing on my \(genericHigherM) grind 💨.",
-                "While you argue, I just hit \(genericHigherM) 🔥.",
-                "I don't have time for this, I'm already pushing \(genericHigherM) 💅.",
-                "Your efforts are pointless. I just hit \(genericHigherM) 💀.",
-                "I am infinitely ahead of you. I'm pushing \(genericHigherM) 🥱.",
-                "My record is flawless. Try reaching \(genericHigherM) ♾️.",
-                "Enjoy the view from the bottom. I'm way up at \(genericHigherM) 😏.",
-                "This rivalry is entirely one-sided. I'm already at \(genericHigherM) 📉.",
-            ])
+            // Generic competitive
+            if replies.isEmpty {
+                let fallbackM = mentionedMilestone?.name ?? "11n"
+                let fallbackIdx = mentionedMilestone?.index ?? 15
+                let genericJump = Int.random(in: 1...5)
+                let genericHigherIdx = min(fallbackIdx + genericJump, Self.allMilestones.count - 1)
+                let genericHigherM = Self.allMilestones[genericHigherIdx]
+
+                replies.append(contentsOf: [
+                    "Talk to me when you reach \(genericHigherM) ⚔️.",
+                    "None of you are anywhere near my \(genericHigherM) record ♾️.",
+                    "I'm ignoring this and focusing on my \(genericHigherM) grind 💨.",
+                    "I'm ignoring this and focusing on my \(genericHigherM) grind 🔥.",
+                    "I don't have time for this, I'm already pushing \(genericHigherM) 💅.",
+                    "Your efforts are pointless. I just hit \(genericHigherM) 💀.",
+                    "I am infinitely ahead of you. I'm pushing \(genericHigherM) 🥱.",
+                    "My record is flawless. Try reaching \(genericHigherM) ♾️.",
+                    "Enjoy the view from the bottom. I'm way up at \(genericHigherM) 😏.",
+                    "This rivalry is entirely one-sided. I'm already at \(genericHigherM) 📉.",
+                ])
+            }
             return replies.randomElement()!
         }
 
