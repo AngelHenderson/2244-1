@@ -307,6 +307,109 @@ public struct CustomChallengeGameScreen: View {
         }
     }
 
+    // MARK: - Power-up Handlers
+
+    private func handleHammer() {
+        if challengeGameStore.isPowerUpAvailable("hammer") {
+            cancelAllModes()
+            isHammerMode = true
+            haptics.lightImpact()
+        } else {
+            haptics.error()
+        }
+    }
+
+    private func handleSwap() {
+        if challengeGameStore.isPowerUpAvailable("swap") {
+            cancelAllModes()
+            isSwapMode = true
+            firstSwapPosition = nil
+            haptics.lightImpact()
+        } else {
+            haptics.error()
+        }
+    }
+
+    private func handleMagnet() {
+        if challengeGameStore.isPowerUpAvailable("magnet") {
+            cancelAllModes()
+            isMagnetMode = true
+            haptics.lightImpact()
+        } else {
+            haptics.error()
+        }
+    }
+
+    private func handleUndo() {
+        if challengeGameStore.state.undoAvailable {
+            _ = challengeGameStore.useUndo()
+            mainGameStore.achievementEvaluator?.onUndoUsed()
+            haptics.lightImpact()
+        } else {
+            haptics.error()
+        }
+    }
+
+    private func handleTileTap(at position: Position) {
+        if isHammerMode {
+            if challengeGameStore.state.board[position] != nil {
+                _ = challengeGameStore.useHammer(at: position)
+                mainGameStore.achievementEvaluator?.onPowerUpUsed(type: "hammer")
+                haptics.success()
+                isHammerMode = false
+            } else {
+                haptics.error()
+            }
+            return
+        }
+
+        if isSwapMode {
+            if challengeGameStore.state.board[position] != nil {
+                if let first = firstSwapPosition {
+                    if first != position {
+                        _ = challengeGameStore.useSwap(first, position)
+                        mainGameStore.achievementEvaluator?.onPowerUpUsed(type: "swap")
+                        haptics.success()
+                        isSwapMode = false
+                        firstSwapPosition = nil
+                    } else {
+                        firstSwapPosition = nil
+                        haptics.lightImpact()
+                    }
+                } else {
+                    firstSwapPosition = position
+                    haptics.lightImpact()
+                }
+            } else {
+                haptics.error()
+            }
+            return
+        }
+
+        if isMagnetMode {
+            if let tile = challengeGameStore.state.board[position] {
+                let merges = challengeGameStore.useMagnet(value: tile.value, to: position)
+                if merges > 0 {
+                    mainGameStore.achievementEvaluator?.onMagnetUsed(mergeCount: merges)
+                    haptics.success()
+                } else {
+                    haptics.warning()
+                }
+                isMagnetMode = false
+            } else {
+                haptics.error()
+            }
+            return
+        }
+    }
+
+    private func cancelAllModes() {
+        isHammerMode = false
+        isSwapMode = false
+        isMagnetMode = false
+        firstSwapPosition = nil
+    }
+
     // MARK: - Challenge Info Panel
 
     @ViewBuilder
