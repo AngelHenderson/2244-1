@@ -934,8 +934,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v37"
-    private static let feedDateKey = "socialFeed.cacheDate.v36"
+    private static let feedCacheKey = "socialFeed.cache.v38"
+    private static let feedDateKey = "socialFeed.cacheDate.v37"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
 
@@ -2828,34 +2828,8 @@ public struct MockSocialService: SocialService, Sendable {
                 ])
             }
 
-            if mentionedStreak {
-                if let numStr = mentionedNumber, let num = Int(numStr) {
-                    let higherNum = num + Int.random(in: 10...50)
-                    replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(numStr) days ⚔️. I'm at \(higherNum) days.",
-                        "Your \(numStr) day streak is nothing. Try catching my \(higherNum) days 💨.",
-                        "I passed \(numStr) days ages ago. I'm at \(higherNum) days ♾️.",
-                        "\(numStr) days? Try keeping a \(higherNum) day streak like me 🔥.",
-                        "I extended infinitely past your \(numStr) days. Currently at \(higherNum) 😏.",
-                        "Your \(numStr) days are cute. Call me when you reach \(higherNum) days 🥱.",
-                        "I haven't dropped my \(higherNum) day streak. \(numStr) is light 💅.",
-                        "\(higherNum) consecutive days here. Your \(numStr) days won't last 📉.",
-                    ])
-                } else {
-                    let assumedNum = Int.random(in: 10...30)
-                    let higherNum = assumedNum + Int.random(in: 10...50)
-                    replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(assumedNum) days ⚔️. I'm at \(higherNum) days.",
-                        "Your \(assumedNum) day streak is nothing. Try catching my \(higherNum) days 💨.",
-                        "I passed \(assumedNum) days ages ago. I'm at \(higherNum) days ♾️.",
-                        "\(assumedNum) days? Try keeping a \(higherNum) day streak like me 🔥.",
-                        "I extended infinitely past your \(assumedNum) days. Currently at \(higherNum) 😏.",
-                        "Your \(assumedNum) days are cute. Call me when you reach \(higherNum) days 🥱.",
-                        "I haven't dropped my \(higherNum) day streak. \(assumedNum) is light 💅.",
-                        "\(higherNum) consecutive days here. Your \(assumedNum) days won't last 📉.",
-                    ])
-                }
-            }
+            // Streak number escalation removed. Streak posts will naturally pivot to Milestone Grinding
+            // to avoid the logical paradox of gaining days in minutes.
 
             if mentionedTime {
                 if let (mins, secs) = Self.extractTime(from: strippedLower) {
