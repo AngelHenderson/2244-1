@@ -1751,9 +1751,9 @@ public final class GameEngine {
         case 256: return 1         // 256 eliminates 1s
         case 512: return 1         // 512 eliminates 1s
         case 1024: return 1        // 1024 eliminates 1s
-        case 2048: return 2        // 2K eliminates 2s
-        case 4096: return 4        // 4K eliminates 4s
-        case 8192: return nil      // 8K - skip
+        case 2048: return 2        // 2048 eliminates 2s
+        case 4096: return 4        // 4096 eliminates 4s
+        case 8192: return nil      // 8192 - skip
         case 16384: return 8       // 16K eliminates 8s
         case 32768: return 16      // 32K eliminates 16s
         case 65536: return 32      // 65K eliminates 32s
