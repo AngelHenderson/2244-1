@@ -855,7 +855,7 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v38"
+    private static let feedCacheKey = "socialFeed.cache.v39"
     private static let feedDateKey = "socialFeed.cacheDate.v37"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
@@ -2159,7 +2159,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Too easy.", "Forever in first place.", "You can't touch infinity.",
                     "Barely had to try.", "My infinite lead is permanent.", "Light work.",
                     "This is entirely effortless.", "Do better.", "Your effort is pointless.",
-                    "I'm bored.", "Effortless.", "I'll dominate this rivalry forever.",
+                    "You are entirely irrelevant.", "Effortless.", "I'll dominate this rivalry forever.",
                     "Didn't even break a sweat.", "That's cute.", "I dominate eternity.",
                     "Flawless.", "This rivalry is completely one-sided.", "There is no catching up to infinity.",
                     "No one can touch my infinity.", "Endless grinding, and you're still behind."
@@ -2571,7 +2571,7 @@ public struct MockSocialService: SocialService, Sendable {
         let mentionedTime = hasTimeFormat || strippedLower.contains("time") || strippedLower.contains("fast") || strippedLower.contains("speed") || strippedLower.contains("quick") || strippedLower.contains("sec") || strippedLower.contains("min") || strippedLower.contains("clock")
         let mentionedStreak = strippedLower.contains("streak") || strippedLower.contains("day") || strippedLower.contains("consecutive")
         let mentionedTheme = strippedLower.contains("theme") || strippedLower.contains("style") || strippedLower.contains("aesthetic")
-        let mentionedHoF = strippedLower.contains("hall of fame") || strippedLower.contains("hof") || strippedLower.contains("infinity")
+        let mentionedHoF = strippedLower.contains("hall of fame") || strippedLower.contains("hof") || strippedLower.contains("infinity count")
         let mentionedPerk = strippedLower.contains("hammer") || strippedLower.contains("swap") || strippedLower.contains("magnet") || strippedLower.contains("perk")
         let mentionedGems = strippedLower.contains("gem")
         let mentionedQuest = strippedLower.contains("quest") || strippedLower.contains("objective") || strippedLower.contains("chest")
