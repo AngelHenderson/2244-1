@@ -362,7 +362,8 @@ public final class PlayerReadinessStore {
             features.formUnion([.shop, .freeSpin, .music, .theme, .profile, .adBonus, .subscription, .yearReview])
         }
 
-        if snapshot.totalMerges >= 10 || highestTileStep >= 10 {
+        if snapshot.totalMerges >= 10 || highestTileStep >= 10
+            || snapshot.completedRuns > 0 || snapshot.hasEarnedFirstReward {
             features.formUnion([.achievements, .leaderboard, .boosts, .feed, .friends, .proCoach])
         }
 

@@ -193,6 +193,14 @@ public struct HomeView: View {
             // Consume any pending route that arrived before HomeView was on
             // screen (e.g., cold launch via deep link).
             consumeHomeOwnedRoute(deepLinkRouter.pendingRoute)
+
+            // Recompute visible features based on current progress so
+            // dock items unlocked during the last play session appear
+            // immediately when returning to the home screen.
+            playerReadiness.recomputeVisibleFeatures(
+                highestTile: gameStore.state.highestTile,
+                highestTileStep: gameStore.state.highestTileStep
+            )
         }
         .task {
             // Refresh consent state once per home appearance so the

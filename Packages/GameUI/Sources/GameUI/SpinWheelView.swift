@@ -90,7 +90,7 @@ public struct SpinWheelView: View {
                 spinState.refresh(now: date)
             }
         }
-        .alert("🎉 Congratulations!", isPresented: $showReward) {
+        .alert("Congratulations!", isPresented: $showReward) {
             Button("Collect", role: .cancel) {
                 showReward = false
             }

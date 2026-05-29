@@ -1876,13 +1876,13 @@ public struct MockSocialService: SocialService, Sendable {
             "I keep choking at this point", "Why can't I do this",
         ]
         var competitiveReactions = [
-            "My scores will always be out of reach.",
-            "You'll never catch my lead.", "Enjoy staring at my infinite lead.",
-            "My next run will just extend my lead.", "I'm already untouchable.",
-            "You won't ever pass me.", "I'm in an entirely different league.",
-            "That record is cute compared to mine.", "You will never have my stats.",
-            "I'll be staying infinitely ahead permanently.", "Not impressed, I'm miles ahead.",
-            "I'm maintaining my dominance.", "Don't even try to reach me.",
+            "Your score is entirely irrelevant to my infinity.",
+            "You will never exist on my tier.", "Enjoy staring up at eternity.",
+            "My next run will just establish a higher ceiling.", "I'm permanently untouchable.",
+            "You are nothing compared to infinity.", "I dominate this game effortlessly.",
+            "That record is cute. I'm already infinitely ahead.", "You will never touch my stats.",
+            "I'll be staying infinitely ahead permanently.", "I am laughing from the top.",
+            "I am maintaining absolute dominance.", "I am completely unreachable.",
         ]
         var questions = [
             "How long did that take?", "What's your secret?", "Any tips for this tier?",
@@ -1954,12 +1954,12 @@ public struct MockSocialService: SocialService, Sendable {
                 "That's literally my end goal", "HoF is my white whale",
             ])
             competitiveReactions.append(contentsOf: [
-                "My infinity count is permanently out of reach.",
-                "I've been in the Hall of Fame since day one.",
-                "Your HoF entry is nothing compared to my record.",
-                "I'll always have more infinities.",
-                "I dominate the Hall of Fame.",
-                "You'll never catch my infinity count.",
+                "Your infinity count is entirely irrelevant to my dominance.",
+                "I've been ruling the Hall of Fame since eternity.",
+                "Your HoF entry is nothing compared to my infinite status.",
+                "I will permanently have more infinities.",
+                "I effortlessly dominate the Hall of Fame.",
+                "My infinity count will remain untouchable forever.",
             ])
 
             questions.append(contentsOf: [
@@ -1992,12 +1992,12 @@ public struct MockSocialService: SocialService, Sendable {
             ])
             
             competitiveReactions.append(contentsOf: [
-                "My streak is permanently out of reach.",
-                "I haven't missed a day since launch.",
-                "Your streak is nothing compared to mine.",
-                "I'll always have the higher streak.",
-                "I dominate the daily grind.",
-                "You'll never catch my streak.",
+                "Your streak is entirely irrelevant to my infinite grind.",
+                "My dedication is absolute and permanently untouchable.",
+                "Your streak is cute compared to my infinite consistency.",
+                "I will infinitely hold the higher streak.",
+                "I dominate the daily grind without effort.",
+                "My streak will remain untouched for eternity.",
             ])
 
             questions.append(contentsOf: [
@@ -2025,12 +2025,12 @@ public struct MockSocialService: SocialService, Sendable {
             ])
 
             competitiveReactions.append(contentsOf: [
-                "My time is permanently out of reach.",
-                "I've had the fastest time since day one.",
-                "Your speed is nothing compared to my record.",
-                "I'll always have the faster clear.",
-                "I dominate the speed leaderboards.",
-                "You'll never reach my time.",
+                "Your time is entirely irrelevant to my speed.",
+                "My clears have been untouchable since eternity.",
+                "Your speed is nothing compared to my infinite pace.",
+                "I will permanently hold the faster clear.",
+                "I absolutely dominate the speed leaderboards.",
+                "My time will remain untouched forever.",
             ])
 
             questions.append(contentsOf: [
@@ -2057,12 +2057,12 @@ public struct MockSocialService: SocialService, Sendable {
             ])
 
             competitiveReactions.append(contentsOf: [
-                "I already have all the themes unlocked. Take the L.",
-                "You play dress-up while I grind.",
-                "You care about colors? I only care about progression.",
-                "A new theme won't help you catch up to me.",
-                "Themes are for players stuck at the bottom.",
-                "Keep playing in style. I'll keep dominating.",
+                "Your theme is irrelevant to my absolute dominance.",
+                "You play dress-up while I establish infinity.",
+                "Themes are meaningless compared to my progression.",
+                "A new theme won't make you any less irrelevant.",
+                "Themes are for players who can't reach infinity.",
+                "Keep staring at colors. I'll keep dominating.",
             ])
 
             questions.append(contentsOf: [
@@ -2089,12 +2089,12 @@ public struct MockSocialService: SocialService, Sendable {
             ])
 
             competitiveReactions.append(contentsOf: [
-                "My quest rewards are permanently out of reach.",
-                "I've pulled Diamond chests since day one.",
-                "Your quest tier is nothing compared to my record.",
-                "I'll always pull the better chests.",
-                "I dominate the daily quests.",
-                "You'll never catch my quest streak.",
+                "Your quest rewards are entirely irrelevant to my loot.",
+                "I've been claiming Diamond chests since eternity.",
+                "Your tier is nothing compared to my infinite vault.",
+                "I will permanently claim better rewards.",
+                "I dominate quests without a single thought.",
+                "My quest efficiency will remain untouchable forever.",
             ])
 
             questions.append(contentsOf: [
@@ -2132,12 +2132,12 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(m) is my wall right now", "Maybe someday I'll reach \(m)",
                 ])
                 competitiveReactions.append(contentsOf: [
-                    "My \(m) run was completely effortless.",
-                    "\(m) is permanently behind me.",
-                    "Your \(m) is nothing compared to my record.",
-                    "I passed \(m) ages ago.",
-                    "I dominate \(m) effortlessly.",
-                    "You'll never catch me at \(m).",
+                    "Your \(m) is entirely irrelevant to my infinity.",
+                    "\(m) is permanently and absolutely behind me.",
+                    "Your \(m) is nothing compared to my eternal record.",
+                    "I left \(m) in the dust ages ago.",
+                    "I dominate \(m) without even looking.",
+                    "My lead beyond \(m) will remain untouchable forever.",
                 ])
 
                 questions.append(contentsOf: [
@@ -2280,16 +2280,16 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("streak_\(myDays)")
                 var templates = [
-                    "I'm already at \(myDays) days.",
-                    "You're at \(streakDays) days, I'm at \(myDays) days.",
-                    "I'll always be untouched at \(myDays) days.",
-                    "You're only at \(streakDays) days, I'm at \(myDays) days.",
-                    "I'm at \(myDays) days.",
-                    "Try hitting \(myDays) days.",
+                    "I'm permanently untouched at \(myDays) days.",
+                    "Your \(streakDays) days are irrelevant. I'm at \(myDays) days.",
+                    "I dominate eternity. I'm already at \(myDays) days.",
+                    "\(streakDays) days is cute. I'm at \(myDays) days.",
+                    "My infinite consistency is at \(myDays) days.",
+                    "You'll never touch my \(myDays) days.",
                 ]
                 if myDays >= streakDays * 2 {
-                    templates.append("\(streakDays) days vs \(myDays) days.")
-                    templates.append("You're stuck at \(streakDays) days and I'm at \(myDays) days.")
+                    templates.append("Your \(streakDays) days are meaningless against my \(myDays) days.")
+                    templates.append("You're entirely left behind at \(streakDays) days while I'm at \(myDays).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), higherName)
             }
@@ -2326,16 +2326,16 @@ public struct MockSocialService: SocialService, Sendable {
                 let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 var templates = [
-                    "You're only at \(posterTime), I'm at \(myTime).",
-                    "I'm already at \(myTime).",
-                    "You're at \(posterTime), I'm at \(myTime).",
-                    "I am sitting untouched at \(myTime).",
-                    "I'm at \(myTime).",
-                    "Try hitting \(myTime).",
+                    "Your \(posterTime) is irrelevant. I clear it in \(myTime).",
+                    "My clears have been untouchable since \(myTime).",
+                    "You're stuck at \(posterTime). I'm sitting at \(myTime).",
+                    "I am infinitely faster. My record is \(myTime).",
+                    "I effortlessly clock \(myTime).",
+                    "You'll never reach my \(myTime).",
                 ]
                 if myTotal <= totalSecs / 2 {
-                    templates.append("\(posterTime) vs \(myTime).")
-                    templates.append("You're stuck at \(posterTime) while I'm at \(myTime).")
+                    templates.append("Your \(posterTime) is a joke compared to my \(myTime).")
+                    templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), higherName)
             }
@@ -2353,13 +2353,13 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 usedStats.insert("hof_\(myCount)")
                 var templates = [
-                    "You're at \(infCount), I'm at \(myCount).",
-                    "You're only at \(infCount), I'm at \(myCount).",
-                    "I'm at \(myCount).",
+                    "Your \(infCount) is nothing compared to my \(myCount).",
+                    "I effortlessly dominate with \(myCount).",
+                    "I am permanently ahead with \(myCount).",
                 ]
                 if myCount >= infCount * 2 {
-                    templates.append("\(infCount) vs \(myCount).")
-                    templates.append("You're stuck at \(infCount) and I'm at \(myCount).")
+                    templates.append("Your \(infCount) is entirely irrelevant against my \(myCount).")
+                    templates.append("You're left in the dust at \(infCount) while I sit at \(myCount).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), higherName)
             }
@@ -2373,18 +2373,18 @@ public struct MockSocialService: SocialService, Sendable {
                 let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                 let posterTier = tiers[posterTierIdx]
                 var templates = [
-                    "You're at \(posterTier), I'm at \(myTier).",
-                    "You're only pulling \(posterTier), I'm pulling \(myTier).",
-                    "\(posterTier) vs \(myTier).",
-                    "I'm at \(myTier).",
-                    "I'm already at \(myTier).",
-                    "Try hitting \(myTier).",
+                    "Your \(posterTier) is entirely irrelevant to my \(myTier).",
+                    "I effortlessly pull \(myTier) chests.",
+                    "\(posterTier) is cute. I only open \(myTier).",
+                    "I am permanently locked to \(myTier).",
+                    "I left \(posterTier) behind for \(myTier).",
+                    "You'll never touch my \(myTier) rewards.",
                 ]
                 // tier gap >= 2 (e.g., Bronze→Gold or Bronze→Diamond)
                 let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
                 if tierGap >= 2 {
-                    templates.append("\(myTier) chest here.")
-                    templates.append("You're only pulling \(posterTier), I'm pulling \(myTier).")
+                    templates.append("Your \(posterTier) is meaningless against my \(myTier).")
+                    templates.append("You're stuck at \(posterTier) while I dominate with \(myTier).")
                 }
                 return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), higherName)
             }
@@ -2416,15 +2416,16 @@ public struct MockSocialService: SocialService, Sendable {
                 usedStats.insert(localHigherM)
 
                 var templates = [
-                    "I'm at \(localHigherM).",
-                    "I'm already at \(localHigherM).",
-                    "\(localHigherM) here.",
+                    "Your milestone is entirely irrelevant. I'm at \(localHigherM).",
+                    "I left your tier in the dust. I'm at \(localHigherM).",
+                    "I effortlessly reached \(localHigherM).",
+                    "\(localHigherM) is my floor.",
                 ]
                 // "way behind" only with a truly massive gap (150-500 steps ahead)
                 if remaining >= 150 {
                     let wayBehindJump = Int.random(in: 150...min(500, remaining))
                     let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
-                    templates.append("\(wayBehindM) here.")
+                    templates.append("You are infinitely behind. I'm already at \(wayBehindM).")
                 }
                 let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
                 return (Self.drawFromBag(key: "\(bagKey)_tile_\(localHigherM)", pool: templates), realName)
