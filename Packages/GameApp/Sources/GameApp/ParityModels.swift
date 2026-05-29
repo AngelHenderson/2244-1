@@ -855,7 +855,7 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v39"
+    private static let feedCacheKey = "socialFeed.cache.v40"
     private static let feedDateKey = "socialFeed.cacheDate.v37"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v2"
@@ -903,6 +903,15 @@ public struct MockSocialService: SocialService, Sendable {
         if let data = try? JSONEncoder().encode(items) {
             defaults.set(data, forKey: Self.feedCacheKey)
             defaults.set(todayString, forKey: Self.feedDateKey)
+        }
+
+        // Apply time-filtering to the returned array so simulated future events don't show up yet
+        for i in 0..<items.count {
+            items[i].comments = items[i].comments.filter { $0.createdAt <= now }
+            items[i].commentCount = items[i].comments.count
+            if let rts = items[i].reactionTimestamps {
+                items[i].reactionCount = rts.filter { $0 <= now }.count
+            }
         }
 
         return items
@@ -1132,11 +1141,15 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
 
-        // Heart/reaction timestamps trickle in over the next 4 days
+        // Heart/reaction timestamps mirror comment speed (55% fast, 45% slow)
         let numReactions = Int.random(in: 50...200)
         var rTimestamps: [Date] = []
         for _ in 0..<numReactions {
-            rTimestamps.append(now.addingTimeInterval(Double.random(in: 30...345600)))
+            if Double.random(in: 0...1) < 0.55 {
+                rTimestamps.append(now.addingTimeInterval(Double.random(in: 15...900)))
+            } else {
+                rTimestamps.append(now.addingTimeInterval(Double.random(in: 900...345600)))
+            }
         }
 
         let newItem = SocialFeedItem(
@@ -1397,9 +1410,14 @@ public struct MockSocialService: SocialService, Sendable {
             let maxReactions = Int.random(in: 10...50)
             var rTimestamps: [Date] = []
             for _ in 0..<maxReactions {
-                // Reactions trickle in up to 8 hours after the post
-                let rOffset = Double.random(in: timeOffset...(timeOffset + 28800))
-                rTimestamps.append(now.addingTimeInterval(rOffset))
+                // Heart/reaction timestamps mirror comment speed (55% fast, 45% slow)
+                if Double.random(in: 0...1) < 0.55 {
+                    let rOffset = Double.random(in: timeOffset...min(timeOffset + 900, 0))
+                    rTimestamps.append(now.addingTimeInterval(rOffset))
+                } else {
+                    let rOffset = Double.random(in: timeOffset...(timeOffset + 28800))
+                    rTimestamps.append(now.addingTimeInterval(rOffset))
+                }
             }
             
             items.append(SocialFeedItem(
@@ -2284,13 +2302,22 @@ public struct MockSocialService: SocialService, Sendable {
                 let totalSecs = mins * 60 + secs
                 // Brag about having a FASTER clear time (lower = better)
                 let isMassiveGap = Bool.random()
-                let maxLess = totalSecs - 10
-                let lessBy = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
-                var myTotal = max(10, totalSecs - lessBy)
+                
+                func generateBetterTime() -> Int {
+                    if totalSecs <= 10 {
+                        return max(0, totalSecs - Int.random(in: 1...3))
+                    } else {
+                        let maxLess = totalSecs - 10
+                        let lessBy = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                        return max(10, totalSecs - lessBy)
+                    }
+                }
+                
+                var myTotal = generateBetterTime()
                 var attempts = 0
-                while usedStats.contains("time_\(myTotal)") && attempts < 5 {
-                    let retryLess = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
-                    myTotal = max(10, totalSecs - retryLess)
+                while myTotal >= totalSecs || (usedStats.contains("time_\(myTotal)") && attempts < 5) {
+                    myTotal = generateBetterTime()
+                    if myTotal >= totalSecs { myTotal = max(0, totalSecs - 1) }
                     attempts += 1
                 }
                 usedStats.insert("time_\(myTotal)")
@@ -2581,7 +2608,7 @@ public struct MockSocialService: SocialService, Sendable {
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = forceTone != "competitive" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["beat", "catching up", "coming for", "won't last", "watch your back", "game on", "challenge", "mine tomorrow", "i'll be", "i'm going to", "not impressed", "my time", "faster", "i passed", "old news", "hold my", "i'll beat", "i'm right behind", "i'm catching"]
+        let competitiveKeywords = ["infinitely", "untouchable", "permanently", "nothing compared", "dominate", "effortless", "cute", "warm-up", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster"]
         var isCompetitive = forceTone == "competitive" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -2755,7 +2782,12 @@ public struct MockSocialService: SocialService, Sendable {
             if mentionedTime {
                 if let (mins, secs) = Self.extractTime(from: strippedLower) {
                     let totalSecs = mins * 60 + secs
-                    let higherNum = max(10, totalSecs - Int.random(in: 10...30))
+                    let higherNum: Int
+                    if totalSecs <= 10 {
+                        higherNum = max(0, totalSecs - Int.random(in: 1...3))
+                    } else {
+                        higherNum = max(10, totalSecs - Int.random(in: 10...30))
+                    }
                     let myMins = higherNum / 60
                     let mySecs = higherNum % 60
                     let higherTime = "\(myMins):\(String(format: "%02d", mySecs))"
