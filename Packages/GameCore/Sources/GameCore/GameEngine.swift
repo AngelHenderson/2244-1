@@ -1532,8 +1532,8 @@ public final class GameEngine {
         if let highestLargeMilestone = largeMilestones.max() {
             // For milestones >= 67M:
             // - Minimum spawn should be 13 steps below (so 7 candidates reach 7 steps below)
-            // - But never below elimination threshold (14 steps below)
-            let eliminationThreshold = highestLargeMilestone >> 14  // What gets eliminated
+            // - But never below elimination threshold (12 steps below)
+            let eliminationThreshold = highestLargeMilestone >> 12  // What gets eliminated
             let calculatedMin = highestLargeMilestone >> 13  // 13 steps down
 
             // Use whichever is higher to ensure we don't spawn below elimination threshold
@@ -1714,7 +1714,7 @@ public final class GameEngine {
         // spawn pool configuration:
         //   - Below 131K (step < 16): max spawn = highestStep - 7  → added is 7 steps above eliminated
         //   - At 131K+ (step >= 16): max spawn = highestStep - 5   → added is 9 steps above eliminated
-        // (eliminated is always 14 steps below milestone → milestone >> 14)
+        // (eliminated is always 12 steps below milestone → milestone >> 12)
         let milestoneStep = TileStepLabelFormatter.stepForValue(milestone, start: 2) ?? 0
         let addedShift = milestoneStep >= 16 ? 9 : 7
 
@@ -1762,15 +1762,15 @@ public final class GameEngine {
         case 524288: return 128    // 524K eliminates 128s
         case 1048576: return 256   // 1M eliminates 256s
         case 2097152: return nil   // 2M - skip
-        case 4194304: return 512   // 4M eliminates 512s
-        case 8388608: return 1024  // 8M eliminates 1024s
-        case 16777216: return 2048 // 16M eliminates 2048s
+        case 4194304: return 1024  // 4M eliminates 1024s (step 21 - 12 = 9)
+        case 8388608: return 2048  // 8M eliminates 2048s (step 22 - 12 = 10)
+        case 16777216: return 4096 // 16M eliminates 4096s (step 23 - 12 = 11)
         case 33554432: return nil  // 33M - skip
-        case 67108864: return 4096 // 67M eliminates 4096s
-        case 134217728: return 8192 // 134M eliminates 8192s
+        case 67108864: return 16384 // 67M eliminates 16384s (step 25 - 12 = 13)
+        case 134217728: return 32768 // 134M eliminates 32768s (step 26 - 12 = 14)
         default:
             // For values beyond 134M, use the consistent pattern:
-            // Eliminated value is always 14 steps (doublings) down from the milestone
+            // Eliminated value is always 12 steps (doublings) down from the milestone
             // Skip pattern still applies: every 3rd position relative to 67M skips
             if milestone >= 268435456 { // 268M and beyond
                 // Calculate position relative to 67M for skip pattern
@@ -1783,9 +1783,9 @@ public final class GameEngine {
                     return nil // Skip position
                 }
 
-                // Eliminated value is always 14 steps down from milestone
-                // milestone / 2^14 = milestone >> 14
-                let eliminated = milestone >> 14
+                // Eliminated value is always 12 steps down from milestone
+                // milestone / 2^12 = milestone >> 12
+                let eliminated = milestone >> 12
 
                 // Safeguard against underflow (though unlikely at these large values)
                 return eliminated > 0 ? eliminated : nil
@@ -2074,7 +2074,7 @@ public final class GameEngine {
         print("🎯 Checking milestone elimination for value: \(formatLargeNumber(createdValue))")
 
         // For milestones >= 67M, use threshold elimination
-        // This eliminates all tiles below (milestone >> 14)
+        // This eliminates all tiles below (milestone >> 12)
         if createdValue >= 67_108_864 { // 67M or higher
             // Check if it's a skip milestone
             let log67M = 26 // log2(67108864)
@@ -2088,8 +2088,8 @@ public final class GameEngine {
                 return
             }
 
-            // Eliminate everything below (createdValue >> 14)
-            let threshold = createdValue >> 14
+            // Eliminate everything below (createdValue >> 12)
+            let threshold = createdValue >> 12
 
             print("🗑️ MILESTONE ELIMINATION: Reached \(formatLargeNumber(createdValue))")
             print("   Eliminating all tiles below \(formatLargeNumber(threshold))")

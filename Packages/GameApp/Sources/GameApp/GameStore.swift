@@ -2366,7 +2366,7 @@ public final class GameStore {
                 // Use Int.max as placeholder - the UI formats based on step
                 pending.append(.added(Int.max, celebrationPhrase: phrases[1]))
 
-                // Eliminated = milestone >> 14 (step - 14)
+                // Eliminated = milestone >> 12 (step - 12)
                 // Use Int.max as placeholder - the UI formats based on step
                 pending.append(.excluded(Int.max, celebrationPhrase: phrases[2]))
             }
