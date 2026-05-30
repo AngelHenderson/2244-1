@@ -8,6 +8,7 @@ public struct DailyStreaksView: View {
     @Environment(HomeState.self) private var homeState
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.homeActions) private var homeActions
     @State private var selectedStreak: DailyClaimsStore.DailyStreak?
     
     public init() {}
@@ -38,6 +39,15 @@ public struct DailyStreaksView: View {
                 ToolbarItem(placement: .platformTopBarTrailing) {
                     HStack(spacing: 12) {
                         GemBalancePill()
+                        Button {
+                            dismiss()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                homeActions.openDaily()
+                            }
+                        } label: {
+                            Image(systemName: "calendar.badge.plus")
+                        }
+                        .accessibilityLabel("Claim Daily Rewards")
                         Button("Done") { dismiss() }
                     }
                 }
@@ -109,7 +119,7 @@ public struct DailyStreaksView: View {
                     }
                 }
                 
-                if let timeRemaining = store.getTimeUntilNextClaim() {
+                if let timeRemaining = store.getTimeUntilNextClaim(), !store.canClaimToday {
                     HStack(spacing: 6) {
                         Image(systemName: "clock")
                         StreakCountdownText(timeRemaining: timeRemaining)
@@ -117,6 +127,35 @@ public struct DailyStreaksView: View {
                     .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .padding(.top, 4)
+                }
+
+                // CTA to go claim daily rewards
+                if store.canClaimToday {
+                    Button {
+                        dismiss()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            homeActions.openDaily()
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "gift.fill")
+                            Text("Claim Daily Reward")
+                                .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            LinearGradient(
+                                colors: [.orange, .red],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            in: Capsule()
+                        )
+                        .shadow(color: .orange.opacity(0.4), radius: 8, y: 4)
+                    }
+                    .padding(.top, 8)
                 }
             }
         }
@@ -248,7 +287,7 @@ private struct MilestoneCard: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.green)
-            } else if currentDay >= streak.day - 3 {
+            } else if currentDay > 0 && currentDay >= streak.day - 3 {
                 Image(systemName: "lock.open.fill")
                     .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.orange)
@@ -287,7 +326,7 @@ private struct MilestoneCard: View {
     private var backgroundGradient: Gradient {
         if streak.isUnlocked {
             return Gradient(colors: [.green.opacity(0.3), .green.opacity(0.1)])
-        } else if currentDay >= streak.day - 3 {
+        } else if currentDay > 0 && currentDay >= streak.day - 3 {
             return Gradient(colors: [.orange.opacity(0.2), .yellow.opacity(0.1)])
         } else {
             return Gradient(colors: [.gray.opacity(0.1), .clear])
@@ -297,7 +336,7 @@ private struct MilestoneCard: View {
     private var borderColor: Color {
         if streak.isUnlocked {
             return .green
-        } else if currentDay >= streak.day - 3 {
+        } else if currentDay > 0 && currentDay >= streak.day - 3 {
             return .orange.opacity(0.5)
         } else {
             return .gray.opacity(0.3)

@@ -367,11 +367,11 @@ public final class PlayerReadinessStore {
             features.formUnion([.achievements, .leaderboard, .boosts, .feed, .friends, .proCoach])
         }
 
-        if highestTileStep >= 15 || highestTile >= 65_536 {
+        if highestTileStep > 0 || highestTile >= 65_536 {
             features.insert(.create)
         }
 
-        if highestTileStep >= 25 || highestTile >= 67_108_864 {
+        if highestTileStep > 0 || highestTile >= 67_108_864 {
             features.insert(.challenge)
         }
 

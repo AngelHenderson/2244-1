@@ -1359,7 +1359,7 @@ private struct FeedItemRow: View {
                             .clipShape(Capsule())
                     } else {
                         Text(item.statText)
-                            .font(.caption2.weight(.semibold))
+                            .font(.system(size: 11, weight: .semibold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(eventColor.opacity(0.15))
@@ -1468,7 +1468,7 @@ private struct FeedCommentsView: View {
                                             .foregroundStyle(.secondary)
                                     }
                                     Text(item.comments[idx].text)
-                                        .font(.body)
+                                        .font(.system(size: 15))
                                 }
                                 
                                 Spacer()

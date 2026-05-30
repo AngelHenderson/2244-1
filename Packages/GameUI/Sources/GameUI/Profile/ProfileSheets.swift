@@ -342,7 +342,11 @@ struct CompareView: View {
                     Section("Search Results (\(filteredPlayers.count))") {
                         ForEach(filteredPlayers) { player in
                             HStack {
-                                Text(player.countryFlag)
+                                Text(player.countryCode.uppercased())
+                                    .font(.avenirNext(size: 11, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 26, height: 18)
+                                    .background(Color.accentColor.opacity(0.7), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(player.name)
                                         .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .medium))
@@ -382,8 +386,11 @@ struct CompareView: View {
                                     .frame(width: 28, alignment: .leading)
 
                                 // Country flag
-                                Text(entry.countryFlag)
-                                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+                                Text(entry.countryFlag.uppercased())
+                                    .font(.avenirNext(size: 11, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 26, height: 18)
+                                    .background(Color.accentColor.opacity(0.7), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
 
                                 // Name and code
                                 VStack(alignment: .leading, spacing: 2) {
@@ -445,8 +452,11 @@ struct CompareView: View {
                                     .frame(width: 28, alignment: .leading)
 
                                 // Country flag
-                                Text(entry.countryFlag)
-                                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+                                Text(entry.countryFlag.uppercased())
+                                    .font(.avenirNext(size: 11, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 26, height: 18)
+                                    .background(Color.accentColor.opacity(0.7), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
 
                                 // Name and code
                                 VStack(alignment: .leading, spacing: 2) {
@@ -583,11 +593,7 @@ struct MockPlayer: Identifiable {
     let isGameOver: Bool
 
     var countryFlag: String {
-        let base: UInt32 = 0x1F1E6
-        return countryCode.uppercased().unicodeScalars.compactMap { scalar -> String? in
-            guard let flag = UnicodeScalar(base + scalar.value - 65) else { return nil }
-            return String(flag)
-        }.joined()
+        countryCode.uppercased()
     }
 
     /// Generate all players from the actual leaderboard data (cached per session/day)

@@ -57,7 +57,15 @@ public struct BanAlertModifier: ViewModifier {
     let duration: BanDuration
 
     public func body(content: Content) -> some View {
+        let isExpired: Bool = {
+            switch duration {
+            case .temporary(let endDate): return endDate.timeIntervalSinceNow <= 0
+            case .permanent: return false
+            }
+        }()
+
         let title: String = {
+            if isExpired { return "Ban Expired" }
             switch duration {
             case .permanent: return "Permanently Banned"
             case .temporary: return "Temporarily Banned"
@@ -66,14 +74,22 @@ public struct BanAlertModifier: ViewModifier {
 
         content
             .alert(title, isPresented: $isPresented) {
-                Button("OK", role: .cancel) { }
+                if isExpired {
+                    Button("I understand what I did and won't do it again.", role: .cancel) { }
+                } else {
+                    Button("OK", role: .cancel) { }
+                }
             } message: {
-                let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
-                switch duration {
-                case .temporary(let endDate):
-                    Text("You are temporarily banned due to \(reason.rawValue). Ban expires in \(endDate, style: .timer). \(disabledNote)")
-                case .permanent:
-                    Text("You are permanently banned due to \(reason.rawValue). \(disabledNote)")
+                if isExpired {
+                    Text("Your temporary ban for \(reason.rawValue) has ended. You may now resume playing.")
+                } else {
+                    let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
+                    switch duration {
+                    case .temporary(let endDate):
+                        Text("You are temporarily banned due to \(reason.rawValue). Ban expires in \(endDate, style: .timer). \(disabledNote)")
+                    case .permanent:
+                        Text("You are permanently banned due to \(reason.rawValue). \(disabledNote)")
+                    }
                 }
             }
     }
