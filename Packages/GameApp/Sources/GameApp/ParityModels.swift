@@ -1541,21 +1541,21 @@ public struct MockSocialService: SocialService, Sendable {
             // Reached a new tile in Endless
             let templates = [
                 "Reached the \(milestone) tile in Endless!",
-                "Just hit \(milestone) for the first time! 🎯",
+                "Just hit \(milestone) for the first time!",
                 "NEW personal best — \(milestone) tile unlocked in Endless!",
                 "\(milestone) tile reached! The grind never stops.",
                 "Finally broke through to \(milestone) in Endless mode!",
-                "After so many attempts… \(milestone) is MINE! ♾️",
+                "After so many attempts… \(milestone) is MINE!",
                 "Thought \(milestone) was impossible. Proved myself wrong.",
                 "\(milestone) achieved on an absolute marathon run.",
             ]
             let stats = [
-                "🧩 New tile · Endless",
-                "🏅 Milestone · \(milestone)",
-                "📈 Personal best · Endless",
-                "🔥 Breakthrough · \(milestone)",
-                "⭐ New record · Endless",
-                "💎 \(milestone) · First reach",
+                "puzzlepiece.extension|New tile · Endless",
+                "medal|Milestone · \(milestone)",
+                "chart.line.uptrend.xyaxis|Personal best · Endless",
+                "flame|Breakthrough · \(milestone)",
+                "star|New record · Endless",
+                "diamond|\(milestone) · First reach",
             ]
             return (templates.randomElement()!, stats.randomElement()!)
             
@@ -1584,14 +1584,14 @@ public struct MockSocialService: SocialService, Sendable {
                 "\(timeStr) total", "in \(timeStr) sharp",
             ]
             let closers = [
-                "!", " ⏱️", " 🚀", ". New strategy worked perfectly.",
-                ". That was INTENSE.", " 💨", ". Clean run.",
+                "!", ".", ". New strategy worked perfectly.",
+                ". That was INTENSE.", ".", ". Clean run.",
                 ". Not even close.", " — feels good!", ". Let's go!",
             ]
             
             let message = "\(openers.randomElement()!) \(subjects.randomElement()!) \(details.randomElement()!)\(closers.randomElement()!)"
             
-            let statEmojis = ["⏱️", "🏁", "⚡", "🎯", "🕐", "💨", "🔥"]
+            let statEmojis = ["timer", "flag.checkered", "bolt", "target", "clock", "wind", "flame"]
             let statLabels = [
                 "Timed challenge · \(timeStr)", "Daily challenge · Done",
                 "Speed clear · \(timeStr)", "Challenge · \(timeStr) finish",
@@ -1599,7 +1599,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Challenge clear · \(timeStr)", "Speed run · Done",
                 "Daily timed · \(timeStr)", "Clock beaten · \(timeStr)",
             ]
-            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
+            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             
         case 2:
             // Protected a streak
@@ -1620,33 +1620,33 @@ public struct MockSocialService: SocialService, Sendable {
             let closers: [String]
             if streakDays >= 100 {
                 closers = [
-                    "! 🔥", " — legendary status! ♾️",
+                    "!", " — legendary status!",
                     ". Triple digits and counting!", ". This streak is untouchable.",
-                    " 💎 Can't stop now.", ". \(streakDays) days deep!",
+                    ". Can't stop now.", ". \(streakDays) days deep!",
                     ". Built different.", " — no breaks, no excuses.",
-                    ". The grind never stops 🔥", ". Still going strong 💪",
+                    ". The grind never stops.", ". Still going strong.",
                 ]
             } else if streakDays >= 30 {
                 closers = [
-                    "! 🔥", ". Dedicated! 💪",
+                    "!", ". Dedicated!",
                     ". A whole month and beyond!", ". Consistency pays off.",
                     " — keeping the fire alive!", ". Not stopping now.",
-                    ". This streak means everything.", " ✅ Locked in.",
-                    ". Steady progress!", ". Day by day 🛡️",
+                    ". This streak means everything.", ". Locked in.",
+                    ". Steady progress!", ". Day by day.",
                 ]
             } else {
                 closers = [
-                    "! 🔥", ". Every day counts!",
-                    ". Almost forgot today 😅", " — close call!",
-                    ". Building momentum!", ". Played at 11:58 PM to save it 😅",
-                    " ✅", ". Not losing this one.",
+                    "!", ". Every day counts!",
+                    ". Almost forgot today.", " — close call!",
+                    ". Building momentum!", ". Played at 11:58 PM to save it.",
+                    ".", ". Not losing this one.",
                     ". The habit is forming!", ". Streak: protected.",
                 ]
             }
             
             let message = "\(openers.randomElement()!) \(streakPhrase.randomElement()!)\(closers.randomElement()!)"
             
-            let statEmojis = ["🔥", "🛡️", "📅", "💎", "⭐", "♾️", "✅"]
+            let statEmojis = ["flame", "shield", "calendar", "diamond", "star", "infinity", "checkmark.circle"]
             let statLabels: [String]
             if streakDays >= 100 {
                 statLabels = [
@@ -1667,7 +1667,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Streak alive · \(streakDays)d", "Daily streak · \(streakDays)",
                 ]
             }
-            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
+            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             
         case 3:
             // Joined the Hall of Fame
@@ -1688,33 +1688,33 @@ public struct MockSocialService: SocialService, Sendable {
             let details: [String]
             if infinityCount > 10 {
                 details = [
-                    "! Infinity count: \(infinityCount) ♾️", " with \(infinityCount) infinities!",
-                    "! ∞×\(infinityCount) and climbing!", ". Entry #\(infinityCount) ♾️",
+                    "! Infinity count: \(infinityCount)", " with \(infinityCount) infinities!",
+                    "! ∞×\(infinityCount) and climbing!", ". Entry #\(infinityCount)",
                     "! \(infinityCount) infinity tiles deep.", " — \(infinityCount) infinities strong.",
                     ". Veteran status with \(infinityCount) runs.", "! Can't stop at \(infinityCount).",
-                    " with ∞×\(infinityCount). Legendary!", ". \(infinityCount) and counting 🌟",
+                    " with ∞×\(infinityCount). Legendary!", ". \(infinityCount) and counting.",
                 ]
             } else if infinityCount > 1 {
                 details = [
-                    "! ♾️", "! Infinity count: \(infinityCount) ♾️",
+                    "!", "! Infinity count: \(infinityCount)",
                     " with \(infinityCount) infinities!", ". The journey was worth it.",
                     "! Entry #\(infinityCount).", " — ∞×\(infinityCount)!",
                     ". \(infinityCount) infinity tiles reached!", ". Still pushing for more.",
-                    "! Grinding paid off 🏅", ". \(infinityCount) down, more to go.",
+                    "! Grinding paid off.", ". \(infinityCount) down, more to go.",
                 ]
             } else {
                 details = [
-                    "! ♾️", "! I actually made it!",
+                    "!", "! I actually made it!",
                     " for the first time!", ". The grind paid off!",
                     "! After months of grinding…", " — this one's for the long-term players.",
-                    "! They said it couldn't be done 🏅", ". First infinity tile!",
-                    "! Welcome to the club!", ". Dream achieved ✨",
+                    "! They said it couldn't be done.", ". First infinity tile!",
+                    "! Welcome to the club!", ". Dream achieved.",
                 ]
             }
             
             let message = "\(openers.randomElement()!) \(subject.randomElement()!)\(details.randomElement()!)"
             
-            let statEmojis = ["♾️", "🏅", "🌟", "♾️", "⭐", "💎", "✨"]
+            let statEmojis = ["infinity", "medal", "star", "infinity.circle", "sparkles", "diamond", "crown"]
             let statLabels: [String]
             if infinityCount > 10 {
                 statLabels = [
@@ -1735,7 +1735,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Hall of Fame · Debut", "HoF · Entry #1",
                 ]
             }
-            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
+            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             
         case 4:
             // Unlocked a new theme
@@ -1754,16 +1754,16 @@ public struct MockSocialService: SocialService, Sendable {
                 "the \(theme) color palette",
             ]
             let closers = [
-                "! 🎨", ". The board looks amazing!",
+                "!", ". The board looks amazing!",
                 " — time to play in style.", "! Worth every gem.",
-                " and it changes the whole vibe 🌈", ". Even better than I expected!",
-                " 🔔 Fresh look alert!", ". New look, who dis?",
+                " and it changes the whole vibe.", ". Even better than I expected!",
+                ". Fresh look alert!", ". New look, who dis?",
                 ". So clean!", " — best theme in the game.",
             ]
             
             let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(closers.randomElement()!)"
             
-            let statEmojis = ["🎨", "✨", "🖌️", "💫", "🎭", "🌈", "🔔"]
+            let statEmojis = ["paintpalette", "sparkles", "paintbrush", "star.circle", "theatermasks", "rainbow", "bell"]
             let statLabels = [
                 "Theme unlocked · \(theme)", "New theme · \(theme)",
                 "Customization · \(theme)", "\(theme) · Unlocked",
@@ -1771,7 +1771,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Theme equipped · \(theme)", "Fresh look · \(theme)",
                 "\(theme) · Activated", "Style update · \(theme)",
             ]
-            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
+            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             
         default:
             // Completed the Daily Quest
@@ -1795,11 +1795,11 @@ public struct MockSocialService: SocialService, Sendable {
             let timeStr = "\(mins):\(String(format: "%02d", secs))"
 
             let details = [
-                "! \(questTier) chest earned in \(timeStr) 🎁",
+                "! \(questTier) chest earned in \(timeStr).",
                 " in \(timeStr) — \(questTier) reward chest grabbed.",
-                "! +\(gemsEarned) gems in \(timeStr) 💎",
+                "! +\(gemsEarned) gems in \(timeStr).",
                 " in \(timeStr). \(questTier) tier. Easy gems today.",
-                " in \(timeStr)! \(questTier) chest ♾️",
+                " in \(timeStr)! \(questTier) chest.",
                 " in \(timeStr) — all objectives done!",
                 ". \(questTier) chest opened in \(timeStr).",
                 " in \(timeStr). That \(questTier) chest was worth it.",
@@ -1809,7 +1809,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(details.randomElement()!)"
             
-            let statEmojis = ["⏱️", "⏳", "💨", "🏅", "🏃‍♂️", "💎", "🎯"]
+            let statEmojis = ["timer", "hourglass", "wind", "medal", "figure.run", "diamond", "target"]
             let statLabels = [
                 "Quests cleared · \(timeStr)", "Daily Quest · \(timeStr)",
                 "All objectives · \(timeStr)", "\(questTier) quest · \(timeStr)",
@@ -1817,7 +1817,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Daily objectives · \(timeStr)", "Quests finished · \(timeStr)",
                 "\(questTier) chest · \(timeStr)", "Quest log · \(timeStr)",
             ]
-            return (message, "\(statEmojis.randomElement()!) \(statLabels.randomElement()!)")
+            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
         }
     }
 
@@ -1893,10 +1893,10 @@ public struct MockSocialService: SocialService, Sendable {
         ]
         
         // Symbols categorized by tone
-        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", "🔥", "🙌", "🚀", "👏", "💪", "♾️", "✨"]
-        let questionSymbols = ["?!", "...", "👀", "🤔", "??", "!!?"]
-        let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", "😩", "😭", "💀", "🫠"]
-        let competitiveSymbols = [" >:)", " 👀", " 😈", " ⚔️", " 🎯", " 😏", " 🏁", " 💨"]
+        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)"]
+        let questionSymbols = ["?!", "...", "??", "!!?"]
+        let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "..."]
+        let competitiveSymbols = [" >:)", " !!", " !!!"]
         let keyboardSymbols = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
         
         // Dynamically inject topic-specific subjects based on the feed item's message
@@ -2173,7 +2173,7 @@ public struct MockSocialService: SocialService, Sendable {
             nameOverride = result.1
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
-                var compOpeners = [
+                let compOpeners = [
                     "Too easy.", "Forever in first place.", "You can't touch infinity.",
                     "Barely had to try.", "My infinite lead is permanent.", "Light work.",
                     "This is entirely effortless.", "Do better.", "Your effort is pointless.",
@@ -2188,7 +2188,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
             // Randomly append a competitive closer ~80% of the time
             if Double.random(in: 0...1) < 0.80 {
-                var compClosers = [
+                let compClosers = [
                     "My infinite lead cannot be broken.", "You'll never catch me.", "I'll always be tiers above.",
                     "Don't bother trying.", "I'm infinitely untouchable.", "My endless stats are permanent.",
                     "Just accept you'll never catch me.", "I reign over eternity.", "Your progress means nothing here.",
@@ -2672,7 +2672,7 @@ public struct MockSocialService: SocialService, Sendable {
                 answers.append(contentsOf: [
                     "I set a phone reminder every evening — never miss!",
                     "Play right after waking up. That's how I keep mine alive.",
-                    "Almost lost mine twice, but pulled through 😅",
+                    "Almost lost mine twice, but pulled through ",
                     "The first week is the hardest, then it becomes habit.",
                     "Honestly, just make it part of your routine.",
                 ])
@@ -2731,7 +2731,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "The trick is patience and keeping lanes open.",
                     "I usually plan 3-4 moves ahead. That helps.",
                     "Just practice! Everyone struggles at first.",
-                    "No special trick, just played a LOT 😅",
+                    "No special trick, just played a LOT ",
                     "Focus on keeping one corner anchored.",
                     "A few attempts honestly. Not gonna lie it was rough.",
                     "I watched some replays to figure out the pattern.",
@@ -2750,30 +2750,30 @@ public struct MockSocialService: SocialService, Sendable {
                 let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
                 let higherM = Self.allMilestones[higherIdx]
                 replies.append(contentsOf: [
-                    "I am infinitely ahead of your \(m.name) ⚔️. I'm at \(higherM).",
-                    "\(m.name) is permanently behind me. I am untouchable at \(higherM) 💨.",
-                    "Your \(m.name) is nothing compared to my \(higherM) record ♾️.",
-                    "I passed \(m.name) ages ago. I dominate \(higherM) 🔥.",
-                    "My \(higherM) run was completely effortless. \(m.name) is cute 😏.",
-                    "\(m.name) was a warm-up 🥱. I'm already sitting at \(higherM).",
-                    "You're celebrating \(m.name)? I just cleared \(higherM) 💀.",
-                    "I left \(m.name) in the dust. \(higherM) is the new standard ♾️.",
-                    "Try hitting \(higherM) before bragging about \(m.name) 💅.",
-                    "I hit \(higherM) yesterday. \(m.name) is old news 📉.",
+                    "I am infinitely ahead of your \(m.name) . I'm at \(higherM).",
+                    "\(m.name) is permanently behind me. I am untouchable at \(higherM) .",
+                    "Your \(m.name) is nothing compared to my \(higherM) record .",
+                    "I passed \(m.name) ages ago. I dominate \(higherM) .",
+                    "My \(higherM) run was completely effortless. \(m.name) is cute .",
+                    "\(m.name) was a warm-up . I'm already sitting at \(higherM).",
+                    "You're celebrating \(m.name)? I just cleared \(higherM) .",
+                    "I left \(m.name) in the dust. \(higherM) is the new standard .",
+                    "Try hitting \(higherM) before bragging about \(m.name) .",
+                    "I hit \(higherM) yesterday. \(m.name) is old news .",
                 ])
             }
 
             if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
                 let higherNum = num + Int.random(in: 10...max(20, num))
                 replies.append(contentsOf: [
-                    "I am infinitely ahead of your \(numStr) ⚔️. I'm at \(higherNum).",
-                    "Your \(numStr) is cute. I'll always be infinitely ahead at \(higherNum) ♾️.",
-                    "\(numStr) is just the beginning 🥱. I'm already at \(higherNum).",
-                    "I left your \(numStr) score in the dust. Just hit \(higherNum) 🔥.",
-                    "You thought \(numStr) was good? I'm laughing from \(higherNum) 💀.",
-                    "\(numStr) points is light work. Try \(higherNum) 😏.",
-                    "I passed \(numStr) without even looking. I'm at \(higherNum) 💅.",
-                    "\(higherNum) is my floor. Your \(numStr) is my ceiling 📉.",
+                    "I am infinitely ahead of your \(numStr) . I'm at \(higherNum).",
+                    "Your \(numStr) is cute. I'll always be infinitely ahead at \(higherNum) .",
+                    "\(numStr) is just the beginning . I'm already at \(higherNum).",
+                    "I left your \(numStr) score in the dust. Just hit \(higherNum) .",
+                    "You thought \(numStr) was good? I'm laughing from \(higherNum) .",
+                    "\(numStr) points is light work. Try \(higherNum) .",
+                    "I passed \(numStr) without even looking. I'm at \(higherNum) .",
+                    "\(higherNum) is my floor. Your \(numStr) is my ceiling .",
                 ])
             }
 
@@ -2794,14 +2794,14 @@ public struct MockSocialService: SocialService, Sendable {
                     let higherTime = "\(myMins):\(String(format: "%02d", mySecs))"
                     let posterTime = "\(mins):\(String(format: "%02d", secs))"
                     replies.append(contentsOf: [
-                        "I am infinitely faster than your \(posterTime) ⚔️. I'm at \(higherTime).",
-                        "Your \(posterTime) time is cute. I clear it in \(higherTime) 💨.",
-                        "I passed your time ages ago. My record is \(higherTime) ♾️.",
-                        "\(posterTime) is too slow 🥱. I just clocked \(higherTime).",
-                        "I shaved minutes off your \(posterTime). My best is \(higherTime) 🔥.",
-                        "You call \(posterTime) fast? Try reaching my \(higherTime) 😏.",
-                        "I speedrun this game. \(higherTime) destroys your \(posterTime) 💀.",
-                        "Your \(posterTime) was my practice run. I'm down to \(higherTime) 💅.",
+                        "I am infinitely faster than your \(posterTime) . I'm at \(higherTime).",
+                        "Your \(posterTime) time is cute. I clear it in \(higherTime) .",
+                        "I passed your time ages ago. My record is \(higherTime) .",
+                        "\(posterTime) is too slow . I just clocked \(higherTime).",
+                        "I shaved minutes off your \(posterTime). My best is \(higherTime) .",
+                        "You call \(posterTime) fast? Try reaching my \(higherTime) .",
+                        "I speedrun this game. \(higherTime) destroys your \(posterTime) .",
+                        "Your \(posterTime) was my practice run. I'm down to \(higherTime) .",
                     ])
                 } else {
                     let assumedTotal = Int.random(in: 60...120)
@@ -2813,14 +2813,14 @@ public struct MockSocialService: SocialService, Sendable {
                     let posterSecs = assumedTotal % 60
                     let posterTime = "\(posterMins):\(String(format: "%02d", posterSecs))"
                     replies.append(contentsOf: [
-                        "I am infinitely faster than your \(posterTime) ⚔️. I'm at \(higherTime).",
-                        "Your \(posterTime) time is cute. I clear it in \(higherTime) 💨.",
-                        "I passed your time ages ago. My record is \(higherTime) ♾️.",
-                        "\(posterTime) is too slow 🥱. I just clocked \(higherTime).",
-                        "I shaved minutes off your \(posterTime). My best is \(higherTime) 🔥.",
-                        "You call \(posterTime) fast? Try reaching my \(higherTime) 😏.",
-                        "I speedrun this game. \(higherTime) destroys your \(posterTime) 💀.",
-                        "Your \(posterTime) was my practice run. I'm down to \(higherTime) 💅.",
+                        "I am infinitely faster than your \(posterTime) . I'm at \(higherTime).",
+                        "Your \(posterTime) time is cute. I clear it in \(higherTime) .",
+                        "I passed your time ages ago. My record is \(higherTime) .",
+                        "\(posterTime) is too slow . I just clocked \(higherTime).",
+                        "I shaved minutes off your \(posterTime). My best is \(higherTime) .",
+                        "You call \(posterTime) fast? Try reaching my \(higherTime) .",
+                        "I speedrun this game. \(higherTime) destroys your \(posterTime) .",
+                        "Your \(posterTime) was my practice run. I'm down to \(higherTime) .",
                     ])
                 }
             }
@@ -2829,27 +2829,27 @@ public struct MockSocialService: SocialService, Sendable {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum = num + Int.random(in: 1...max(3, num/2))
                     replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(numStr) infinity count ⚔️. I'm at \(higherNum).",
-                        "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) ♾️.",
-                        "I passed \(numStr) infinities ages ago. I'm at \(higherNum) 💨.",
-                        "\(numStr) infinities is a good start. I'm already sitting at \(higherNum) 😏.",
-                        "I just logged my \(higherNum)th infinity. Your \(numStr) is cute 🥱.",
-                        "I dominate the HoF with \(higherNum) entries 🔥. \(numStr) isn't enough.",
-                        "You're bragging about \(numStr)? I just hit \(higherNum) in the HoF 💀.",
-                        "The Hall of Fame belongs to me. \(higherNum) > \(numStr) ♾️.",
+                        "I am infinitely ahead of your \(numStr) infinity count . I'm at \(higherNum).",
+                        "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) .",
+                        "I passed \(numStr) infinities ages ago. I'm at \(higherNum) .",
+                        "\(numStr) infinities is a good start. I'm already sitting at \(higherNum) .",
+                        "I just logged my \(higherNum)th infinity. Your \(numStr) is cute .",
+                        "I dominate the HoF with \(higherNum) entries . \(numStr) isn't enough.",
+                        "You're bragging about \(numStr)? I just hit \(higherNum) in the HoF .",
+                        "The Hall of Fame belongs to me. \(higherNum) > \(numStr) .",
                     ])
                 } else {
                     let assumedNum = Int.random(in: 5...15)
                     let higherNum = assumedNum + Int.random(in: 2...8)
                     replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(assumedNum) infinity count ⚔️. I'm at \(higherNum).",
-                        "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum) ♾️.",
-                        "I passed \(assumedNum) infinities ages ago. I'm at \(higherNum) 💨.",
-                        "\(assumedNum) infinities is a good start. I'm already sitting at \(higherNum) 😏.",
-                        "I just logged my \(higherNum)th infinity. Your \(assumedNum) is cute 🥱.",
-                        "I dominate the HoF with \(higherNum) entries 🔥. \(assumedNum) isn't enough.",
-                        "You're bragging about \(assumedNum)? I just hit \(higherNum) in the HoF 💀.",
-                        "The Hall of Fame belongs to me. \(higherNum) > \(assumedNum) ♾️.",
+                        "I am infinitely ahead of your \(assumedNum) infinity count . I'm at \(higherNum).",
+                        "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum) .",
+                        "I passed \(assumedNum) infinities ages ago. I'm at \(higherNum) .",
+                        "\(assumedNum) infinities is a good start. I'm already sitting at \(higherNum) .",
+                        "I just logged my \(higherNum)th infinity. Your \(assumedNum) is cute .",
+                        "I dominate the HoF with \(higherNum) entries . \(assumedNum) isn't enough.",
+                        "You're bragging about \(assumedNum)? I just hit \(higherNum) in the HoF .",
+                        "The Hall of Fame belongs to me. \(higherNum) > \(assumedNum) .",
                     ])
                 }
             }
@@ -2862,44 +2862,43 @@ public struct MockSocialService: SocialService, Sendable {
                     let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                     let posterTier = tiers[posterTierIdx]
                     replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(posterTier) chests ⚔️. I pull \(myTier).",
-                        "Your \(posterTier) is cute. I only open \(myTier) 💨.",
-                        "I passed \(posterTier) ages ago. I farm \(myTier) ♾️.",
-                        "\(posterTier) chests? Try pulling \(myTier) like me 🔥.",
-                        "I extended infinitely past \(posterTier). Currently on \(myTier) 😏.",
-                        "Your \(posterTier) pulls are cute. Call me when you reach \(myTier) 🥱.",
-                        "I haven't dropped below \(myTier). \(posterTier) is light 💅.",
-                        "\(myTier) drops only here. Your \(posterTier) won't last 📉.",
+                        "I am infinitely ahead of your \(posterTier) chests . I pull \(myTier).",
+                        "Your \(posterTier) is cute. I only open \(myTier) .",
+                        "I passed \(posterTier) ages ago. I farm \(myTier) .",
+                        "\(posterTier) chests? Try pulling \(myTier) like me .",
+                        "I extended infinitely past \(posterTier). Currently on \(myTier) .",
+                        "Your \(posterTier) pulls are cute. Call me when you reach \(myTier) .",
+                        "I haven't dropped below \(myTier). \(posterTier) is light .",
+                        "\(myTier) drops only here. Your \(posterTier) won't last .",
                     ])
                 } else {
                     replies.append(contentsOf: [
-                        "Diamond chests are just my baseline ⚔️. I farm them effortlessly.",
-                        "You finally got a Diamond chest? I open them daily 💨.",
-                        "I passed that struggle ages ago. Diamond is standard for me ♾️.",
-                        "Diamond? Try hoarding them like me 🔥.",
+                        "Diamond chests are just my baseline . I farm them effortlessly.",
+                        "You finally got a Diamond chest? I open them daily .",
+                        "I passed that struggle ages ago. Diamond is standard for me .",
+                        "Diamond? Try hoarding them like me .",
                     ])
                 }
             }
 
             // Generic competitive
             if replies.isEmpty {
-                let fallbackM = mentionedMilestone?.name ?? "11n"
                 let fallbackIdx = mentionedMilestone?.index ?? 15
                 let genericJump = Int.random(in: 1...5)
                 let genericHigherIdx = min(fallbackIdx + genericJump, Self.allMilestones.count - 1)
                 let genericHigherM = Self.allMilestones[genericHigherIdx]
 
                 replies.append(contentsOf: [
-                    "Talk to me when you reach \(genericHigherM) ⚔️.",
-                    "None of you are anywhere near my \(genericHigherM) record ♾️.",
-                    "I'm ignoring this and focusing on my \(genericHigherM) grind 💨.",
-                    "I'm ignoring this and focusing on my \(genericHigherM) grind 🔥.",
-                    "I don't have time for this, I'm already pushing \(genericHigherM) 💅.",
-                    "Your efforts are pointless. I just hit \(genericHigherM) 💀.",
-                    "I am infinitely ahead of you. I'm pushing \(genericHigherM) 🥱.",
-                    "My record is flawless. Try reaching \(genericHigherM) ♾️.",
-                    "Enjoy the view from the bottom. I'm way up at \(genericHigherM) 😏.",
-                    "This rivalry is entirely one-sided. I'm already at \(genericHigherM) 📉.",
+                    "Talk to me when you reach \(genericHigherM) .",
+                    "None of you are anywhere near my \(genericHigherM) record .",
+                    "I'm ignoring this and focusing on my \(genericHigherM) grind .",
+                    "I'm ignoring this and focusing on my \(genericHigherM) grind .",
+                    "I don't have time for this, I'm already pushing \(genericHigherM) .",
+                    "Your efforts are pointless. I just hit \(genericHigherM) .",
+                    "I am infinitely ahead of you. I'm pushing \(genericHigherM) .",
+                    "My record is flawless. Try reaching \(genericHigherM) .",
+                    "Enjoy the view from the bottom. I'm way up at \(genericHigherM) .",
+                    "This rivalry is entirely one-sided. I'm already at \(genericHigherM) .",
                 ])
             }
             return replies.randomElement()!
@@ -2924,7 +2923,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
 
             if mentionedStreak {
-                replies.append("Losing a streak sucks, but you can start a new one today 🔥")
+                replies.append("Losing a streak sucks, but you can start a new one today ")
                 replies.append("Streaks are tough! I've lost mine before too.")
             }
 
@@ -2935,15 +2934,15 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Generic encouragement
             replies.append(contentsOf: [
-                "You'll get there! Just keep playing 💪",
+                "You'll get there! Just keep playing ",
                 "I was in the same spot a few weeks ago. Don't give up!",
                 "Honestly, it took me forever too. Patience is key.",
                 "Everyone progresses at their own pace. You got this!",
                 "Trust the process — breakthroughs happen randomly.",
-                "I believe in you! Keep grinding 🔥",
+                "I believe in you! Keep grinding ",
                 "We all hit walls. The fun is breaking through them.",
                 "Keep at it! The struggle makes the win sweeter.",
-                "You're closer than you think 🙌",
+                "You're closer than you think ",
             ])
             return replies.randomElement()!
         }
@@ -2953,12 +2952,12 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Dynamic positive responses that mirror their energy
             if let m = mentionedMilestone {
-                replies.append("\(m.name) gang! 🙌")
+                replies.append("\(m.name) gang! ")
                 replies.append("Thanks! \(m.name) was a grind but so worth it.")
             }
 
             if mentionedStreak {
-                replies.append("Streak crew! We don't miss days 🔥")
+                replies.append("Streak crew! We don't miss days ")
             }
 
             if mentionedTheme {
@@ -2966,22 +2965,22 @@ public struct MockSocialService: SocialService, Sendable {
             }
 
             if mentionedHoF {
-                replies.append("HoF is the dream. Thanks for the love! ♾️")
+                replies.append("HoF is the dream. Thanks for the love! ")
             }
 
             // Generic positive
             replies.append(contentsOf: [
-                "Thanks! 🙌",
-                "Appreciate it! 😊",
+                "Thanks! ",
+                "Appreciate it! ",
                 "Right back at you!",
                 "Thanks, means a lot!",
                 "Haha thanks! Keep grinding too!",
-                "Thank you! We're all in this together 🔥",
-                "❤️ appreciate the love!",
+                "Thank you! We're all in this together ",
+                " appreciate the love!",
                 "Thanks! Your turn next!",
                 "Cheers! Good luck on your runs!",
                 "Ty! See you on the leaderboard!",
-                "So kind! Thank you 😄",
+                "So kind! Thank you ",
                 "Aww thanks! This community is the best.",
             ])
             return replies.randomElement()!
@@ -3010,21 +3009,21 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         if mentionedGems {
-            return ["Gems are always the bottleneck 💎", "The gem grind never ends!", "Save those gems wisely!"].randomElement()!
+            return ["Gems are always the bottleneck ", "The gem grind never ends!", "Save those gems wisely!"].randomElement()!
         }
 
         let fallbacks = [
             "Facts. That's exactly how I see it too.",
             "Couldn't have said it better myself.",
             "Haha right? This game is something else.",
-            "For real though! 💯",
+            "For real though! ",
             "Completely agree with this.",
-            "Yo same energy over here 😄",
+            "Yo same energy over here ",
             "That's what I'm saying!",
-            "Big facts! 🔥",
+            "Big facts! ",
             "We need more of this in the feed honestly.",
             "Love seeing this kind of energy.",
-            "This right here. 👆",
+            "This right here. ",
         ]
         return fallbacks.randomElement()!
     }

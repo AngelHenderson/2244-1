@@ -43,17 +43,17 @@ public final class SocialFeedPublisher {
 
         let templates = [
             "Reached the \(tileName) tile in Endless!",
-            "Just hit \(tileName) for the first time! 🎯",
+            "Just hit \(tileName) for the first time!",
             "NEW personal best — \(tileName) tile unlocked in Endless!",
             "\(tileName) tile reached! The grind never stops.",
             "Finally broke through to \(tileName) in Endless mode!",
-            "After so many attempts… \(tileName) is MINE! 🏆",
+            "After so many attempts… \(tileName) is MINE!",
         ]
         let stats = [
-            "🧩 New tile · Endless",
-            "🏅 Milestone · \(tileName)",
-            "📈 Personal best · Endless",
-            "🔥 Breakthrough · \(tileName)",
+            "puzzlepiece.extension|New tile · Endless",
+            "medal|Milestone · \(tileName)",
+            "chart.line.uptrend.xyaxis|Personal best · Endless",
+            "flame|Breakthrough · \(tileName)",
         ]
         Task {
             try? await socialService.postEvent(
@@ -70,16 +70,17 @@ public final class SocialFeedPublisher {
         markPosted(eventKey: key)
 
         let templates = [
-            "Finished today's timed challenge in \(timeString)!",
-            "Crushed the daily timed challenge with \(timeString) clear time ⏱️",
-            "Beat the clock! Timed challenge done in \(timeString).",
-            "Today's timed challenge wasn't even close. \(timeString).",
-            "Cleared the timed challenge clocking \(timeString) 🚀",
+            "Finished the daily timed challenge in \(timeString)!",
+            "Crushed today's speed run in \(timeString) flat.",
+            "Beat the clock: \(timeString).",
+            "Cleared the timed challenge in \(timeString).",
+            "Completed the daily speed challenge with a time of \(timeString).",
         ]
         let stats = [
-            "⏱️ Timed challenge · \(timeString)",
-            "🏁 Daily challenge · Done",
-            "⚡ Speed clear · \(timeString)",
+            "timer|Timed challenge · \(timeString)",
+            "flag.checkered|Daily challenge · Done",
+            "bolt|Speed clear · \(timeString)",
+            "target|Challenge · \(timeString) finish",
         ]
         Task {
             try? await socialService.postEvent(
@@ -95,25 +96,16 @@ public final class SocialFeedPublisher {
         guard shouldPost(eventKey: key) else { return }
         markPosted(eventKey: key)
 
-        let templates: [String]
-        if days >= 100 {
-            templates = [
-                "Defended \(days) days running. Legendary commitment! 🏆",
-                "Maintained a \(days)-day streak. Triple digits! 💯",
-                "Day \(days) — still going strong. Unstoppable.",
-                "\(days) days straight. This streak is a lifestyle. 🔥",
-            ]
-        } else {
-            templates = [
-                "Defended \(days) days running. Steady progress!",
-                "Maintained a \(days)-day streak. Day by day 🔥",
-                "Protected a \(days)-day streak. Can't stop, won't stop!",
-                "\(days) consecutive days. Consistency is key!",
-            ]
-        }
-        let emoji = days >= 100 ? "🏆" : (days >= 30 ? "🔥" : "✅")
-        let label = days >= 100 ? "Legendary" : (days >= 30 ? "Dedicated" : "Active")
-        let stat = "\(emoji) \(days)-day streak · \(label)"
+        let templates: [String] = [
+            "Protected a \(days)-day streak!",
+            "Saved my \(days)-day streak.",
+            "Kept the streak alive at \(days) days.",
+            "Extended my streak to \(days) days.",
+            "Another day, another streak point. (\(days) days)",
+        ]
+        let stat = days >= 100 ? "flame.fill|\(days)-day streak · Legend" :
+                  days >= 30 ? "flame|\(days)-day streak · Dedicated" :
+                  "shield|Streak protected · \(days) days"
 
         Task {
             try? await socialService.postEvent(
@@ -132,18 +124,19 @@ public final class SocialFeedPublisher {
         let templates: [String]
         if infinityCount <= 1 {
             templates = [
-                "Entered the Hall of Fame! Infinity reached! ∞",
-                "Unlocked the Hall of Fame. Still pushing for more.",
-                "Made it to the Hall of Fame — the ultimate milestone! 🏆",
+                "Made it into the Hall of Fame!",
+                "Joined the infinity club.",
+                "Unlocked Hall of Fame status.",
+                "Earned a spot on the legends board.",
             ]
         } else {
             templates = [
-                "Made it into HoF glory — \(infinityCount) infinities strong. 💎",
-                "Made it into the infinity club with ∞×\(infinityCount). Legendary!",
+                "Made it into HoF glory — \(infinityCount) infinities strong.",
+                "Made it into the infinity club with \(infinityCount) counts. Legendary!",
                 "Hall of Fame update: \(infinityCount) infinity counts and climbing!",
             ]
         }
-        let stat = "💎 HoF · \(infinityCount) \(infinityCount == 1 ? "infinity" : "infinities")"
+        let stat = "infinity|Hall of Fame · \(infinityCount) \(infinityCount == 1 ? "infinity" : "infinities")"
         Task {
             try? await socialService.postEvent(
                 message: templates.randomElement()!,
@@ -159,12 +152,12 @@ public final class SocialFeedPublisher {
         markPosted(eventKey: key)
 
         let templates = [
-            "Switched to the \(themeName) style 🎨 Fresh look alert!",
+            "Unlocked the \(themeName) theme!",
+            "Grabbed the new \(themeName) style.",
             "Equipped the \(themeName) aesthetic — time to play in style.",
-            "Activated the \(themeName) style. Even better than I expected!",
-            "Switched to the \(themeName) color palette. New look, who dis?",
+            "Just got the \(themeName) color palette.",
         ]
-        let stat = "🎨 New theme · \(themeName)"
+        let stat = "paintpalette|Theme unlocked · \(themeName)"
         Task {
             try? await socialService.postEvent(
                 message: templates.randomElement()!,
@@ -174,19 +167,18 @@ public final class SocialFeedPublisher {
     }
 
     /// Post when the player completes all daily quests.
-    public func postQuestsComplete(chestTier: String? = nil) {
-        let key = "quests_complete"
+    public func postDailyQuestsComplete(chestTier: String? = nil) {
+        let key = "daily_quests"
         guard shouldPost(eventKey: key) else { return }
         markPosted(eventKey: key)
 
-        let tierText = chestTier ?? "reward"
         let templates = [
-            "All daily quests complete! \(tierText) chest earned 🎁",
-            "Finished every quest today. Clean sweep!",
-            "Daily quests demolished — time to collect! 💰",
-            "Quest objectives cleared. Another day, another chest!",
+            "Completed the Daily Quest!",
+            "Finished all daily quests. Easy gems.",
+            "Cleared today's quest log.",
+            "Knocked out the daily objectives.",
         ]
-        let stat = "🎯 Daily Quests · Complete"
+        let stat = "target|Daily Quest · Complete"
         Task {
             try? await socialService.postEvent(
                 message: templates.randomElement()!,

@@ -1928,6 +1928,7 @@ public enum MockLeaderboardData {
             milestones: milestones,
             extendedBrackets: extendedBrackets,
             totalPlayers: totalPlayers,
+            countryCode: countryCode,
             countrySeed: countrySeed,
             day: day
         ) + 1
@@ -2184,6 +2185,7 @@ public enum MockLeaderboardData {
         milestones: [String],
         extendedBrackets: [(milestone: String, startRank: Int)],
         totalPlayers: Int,
+        countryCode: String,
         countrySeed: Int? = nil,
         day: Int? = nil
     ) -> Int {
@@ -2240,7 +2242,14 @@ public enum MockLeaderboardData {
             }
         }
         for bracket in extendedBrackets {
-            let bracketIdx = milestoneIndex(for: bracket.milestone)
+            let progressedBracketMilestone: String
+            if bracket.startRank <= 150 {
+                progressedBracketMilestone = milestoneAtCountryRank(rank: bracket.startRank, countryCode: countryCode) ?? bracket.milestone
+            } else {
+                progressedBracketMilestone = milestoneForExtendedRank(rank: bracket.startRank, countryCode: countryCode) ?? bracket.milestone
+            }
+            let bracketIdx = milestoneIndex(for: progressedBracketMilestone)
+            
             if userMilestoneIdx >= bracketIdx {
                 // startRank - 1 = number of players better than this bracket
                 // Subtract infinity players since they're filtered from country leaderboards
@@ -2295,6 +2304,7 @@ public enum MockLeaderboardData {
                 milestones: data.milestones,
                 extendedBrackets: data.extendedBrackets,
                 totalPlayers: data.totalPlayers,
+                countryCode: code,
                 countrySeed: seed
             )
         }

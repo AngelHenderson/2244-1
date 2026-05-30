@@ -1348,13 +1348,24 @@ private struct FeedItemRow: View {
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
                     }
-                    Text(item.statText)
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(eventColor.opacity(0.15))
-                        .foregroundStyle(eventColor)
-                        .clipShape(Capsule())
+                    let statParts = item.statText.components(separatedBy: "|")
+                    if statParts.count == 2 {
+                        Label(statParts[1], systemImage: statParts[0])
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(eventColor.opacity(0.15))
+                            .foregroundStyle(eventColor)
+                            .clipShape(Capsule())
+                    } else {
+                        Text(item.statText)
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(eventColor.opacity(0.15))
+                            .foregroundStyle(eventColor)
+                            .clipShape(Capsule())
+                    }
                 }
                 Spacer()
             }

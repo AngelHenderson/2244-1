@@ -42,7 +42,7 @@ public struct DailyQuestsView: View {
                             questStore.claim(questId: quest.id)
                             // Post to social feed when all quests are now complete
                             if questStore.quests.allSatisfy({ $0.claimed }) {
-                                socialFeedPublisher.postQuestsComplete()
+                                socialFeedPublisher.postDailyQuestsComplete()
                             }
                         }
                     }
