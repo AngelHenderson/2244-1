@@ -123,8 +123,11 @@ public struct PlayerProfileView: View {
                 } label: {
                     HStack(spacing: 6) {
                         if let countryCode = model.countryCode {
-                            Text(flagEmoji(countryCode))
-                                .font(.system(size: 28))
+                            Text(countryCode.uppercased())
+                                .font(.avenirNext(size: 16, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 36, height: 28)
+                                .background(Color.accentColor.opacity(0.8), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                             Text(countryName(countryCode))
                                 .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .medium))
                         } else {
@@ -362,17 +365,7 @@ public struct PlayerProfileView: View {
     // MARK: - Helper Functions
 
     private func flagEmoji(_ countryCode: String) -> String {
-        let uppercased = countryCode.uppercased()
-        let regionalIndicatorBase: UInt32 = 0x1F1E6 // 🇦
-        let asciiA: UInt32 = 0x41 // A
-
-        return uppercased.unicodeScalars.compactMap { scalar in
-            guard scalar.value >= asciiA && scalar.value <= 0x5A else { return nil } // A-Z range
-            let offset = scalar.value - asciiA
-            return UnicodeScalar(regionalIndicatorBase + offset)
-        }
-        .map(String.init)
-        .joined()
+        countryCode.uppercased()
     }
 
     private func countryName(_ countryCode: String) -> String {
@@ -554,8 +547,11 @@ private struct CountryPickerView: View {
             dismiss()
         } label: {
             HStack {
-                Text(flagEmoji(countryCode))
-                    .font(.system(size: 20))
+                Text(countryCode.uppercased())
+                    .font(.avenirNext(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 30, height: 22)
+                    .background(Color.accentColor.opacity(0.8), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
                 Text(countryName(countryCode))
                     .font(.avenirNext(size: GameFonts.bodySize, weight: .medium))
                 Spacer()
@@ -569,17 +565,7 @@ private struct CountryPickerView: View {
     }
 
     private func flagEmoji(_ countryCode: String) -> String {
-        let uppercased = countryCode.uppercased()
-        let regionalIndicatorBase: UInt32 = 0x1F1E6 // 🇦
-        let asciiA: UInt32 = 0x41 // A
-
-        return uppercased.unicodeScalars.compactMap { scalar in
-            guard scalar.value >= asciiA && scalar.value <= 0x5A else { return nil } // A-Z range
-            let offset = scalar.value - asciiA
-            return UnicodeScalar(regionalIndicatorBase + offset)
-        }
-        .map(String.init)
-        .joined()
+        countryCode.uppercased()
     }
 
     private func countryName(_ countryCode: String) -> String {

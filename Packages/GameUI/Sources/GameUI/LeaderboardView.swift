@@ -760,8 +760,8 @@ public struct LeaderboardView: View {
                     Image(systemName: "infinity")
                         .font(.avenirNext(size: 14, weight: .regular))
                 } else if let countryCode = filter.countryCode {
-                    Text(flagEmoji(countryCode))
-                        .font(.avenirNext(size: 14, weight: .regular))
+                    Text(countryCode.uppercased())
+                        .font(.avenirNext(size: 12, weight: .bold))
                 }
 
                 Text(filter.title)
@@ -875,8 +875,11 @@ public struct LeaderboardView: View {
 
             // Country Flag
             if let countryCode = entry.countryCode {
-                Text(flagEmoji(countryCode))
-                    .font(.avenirNext(size: GameFonts.title3Size, weight: .regular))
+                Text(countryCode.uppercased())
+                    .font(.avenirNext(size: 12, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 28, height: 20)
+                    .background(Color.accentColor.opacity(0.7), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
             }
 
             // Milestone Badge (highest tile - styled as game tile)
@@ -1091,14 +1094,7 @@ public struct LeaderboardView: View {
     }
     
     private func flagEmoji(_ countryCode: String) -> String {
-        let base: UInt32 = 127397
-        var emoji = ""
-        for scalar in countryCode.uppercased().unicodeScalars {
-            if let unicodeScalar = UnicodeScalar(base + scalar.value) {
-                emoji.unicodeScalars.append(unicodeScalar)
-            }
-        }
-        return emoji
+        countryCode.uppercased()
     }
 
 }

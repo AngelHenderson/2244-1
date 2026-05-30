@@ -113,6 +113,10 @@ public final class DailyClaimsStore {
         let calendar = Calendar.current
         let now = Date()
 
+        print("🔍 [DailyClaims] updateAvailability called")
+        print("🔍 [DailyClaims] currentClaimDay=\(currentClaimDay), currentStreak=\(currentStreak), lastClaimDate=\(String(describing: lastClaimDate))")
+        print("🔍 [DailyClaims] availableClaims(before)=\(availableClaims), canClaimToday(before)=\(canClaimToday)")
+
         // Check if we can claim today and how many claims are available
         if let lastClaim = lastClaimDate {
             // IMPORTANT: Compare calendar days using startOfDay, not raw timestamps
@@ -120,6 +124,8 @@ public final class DailyClaimsStore {
             let lastClaimDay = calendar.startOfDay(for: lastClaim)
             let today = calendar.startOfDay(for: now)
             let daysSinceLastClaim = calendar.dateComponents([.day], from: lastClaimDay, to: today).day ?? 0
+
+            print("🔍 [DailyClaims] daysSinceLastClaim=\(daysSinceLastClaim), lastClaimDay=\(lastClaimDay), today=\(today)")
 
             if daysSinceLastClaim == 0 {
                 // Already claimed today — but preserve any remaining catch-up claims
@@ -131,10 +137,12 @@ public final class DailyClaimsStore {
                     canClaimToday = false
                     availableClaims = 0
                 }
+                print("🔍 [DailyClaims] BRANCH: daysSince==0 → canClaim=\(canClaimToday), available=\(availableClaims)")
             } else if daysSinceLastClaim == 1 {
                 // Consecutive day - continue streak
                 canClaimToday = true
                 availableClaims = 1
+                print("🔍 [DailyClaims] BRANCH: daysSince==1 → canClaim=true, available=1")
             } else {
                 // Missed days - check how many fell during a ban
                 // Days during ban are forfeited, not available for catch-up
@@ -172,11 +180,30 @@ public final class DailyClaimsStore {
 
                 canClaimToday = claimable > 0
                 availableClaims = claimable
+                print("🔍 [DailyClaims] BRANCH: daysSince==\(daysSinceLastClaim), bannedDays=\(bannedDays), claimable=\(claimable)")
             }
         } else {
             // First time claiming
             canClaimToday = true
             availableClaims = 1
+            print("🔍 [DailyClaims] BRANCH: firstTime → canClaim=true, available=1")
+        }
+
+        print("🔍 [DailyClaims] RESULT: canClaimToday=\(canClaimToday), availableClaims=\(availableClaims), currentClaimDay=\(currentClaimDay)")
+
+        // Safety net: If availableClaims is 0 but the next sequential day hasn't been
+        // claimed, AND we do have a lastClaimDate that's in the past (not today), then
+        // the state is corrupt — force-grant one claim so the user is never locked out.
+        if !canClaimToday, let lastClaim = lastClaimDate {
+            let lastClaimDay = calendar.startOfDay(for: lastClaim)
+            let today = calendar.startOfDay(for: now)
+            let daysSince = calendar.dateComponents([.day], from: lastClaimDay, to: today).day ?? 0
+            let nextDay = currentClaimDay + 1
+            if daysSince > 0 && !claimedDays.contains(nextDay) {
+                print("🔍 [DailyClaims] SAFETY: forcing canClaimToday=true, availableClaims=\(daysSince) — day \(nextDay) unclaimed but was locked")
+                canClaimToday = true
+                availableClaims = max(1, daysSince)
+            }
         }
 
         // Ensure catalog has enough entries for the next visible window
