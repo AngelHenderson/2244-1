@@ -6,6 +6,8 @@ public struct ChallengeDesignerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.challengeDesignerStore) private var store
     @Environment(\.currentTheme) private var currentTheme
+    @Environment(\.gameStore) private var gameStore
+    @State private var showTileTooLowAlert = false
 
     public var onPlay: ((CustomChallengeConfig) -> Void)?
     
@@ -43,6 +45,11 @@ public struct ChallengeDesignerView: View {
             .safeAreaInset(edge: .bottom) {
                 bottomBar
             }
+        }
+        .alert("Tile Too Low", isPresented: $showTileTooLowAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Your highest tile is \(JourneyTileGenerator.formatTileAtStep(max(0, gameStore.state.highestTileStep))). You need to reach \(store.targetLabel) first before you can set it as a challenge target.")
         }
         .trackScreen(.challengeDesigner)
     }
@@ -219,8 +226,13 @@ public struct ChallengeDesignerView: View {
             Spacer()
 
             Button {
-                onPlay?(store.config)
-                dismiss()
+                print("🎯 PLAY: targetStep=\(store.targetStep) highestTileStep=\(gameStore.state.highestTileStep)")
+                if store.targetStep > gameStore.state.highestTileStep {
+                    showTileTooLowAlert = true
+                } else {
+                    onPlay?(store.config)
+                    dismiss()
+                }
             } label: {
                 Label("Play", systemImage: "play.fill")
                     .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))

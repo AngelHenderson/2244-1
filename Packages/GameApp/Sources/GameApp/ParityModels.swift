@@ -1555,7 +1555,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "chart.line.uptrend.xyaxis|Personal best · Endless",
                 "flame|Breakthrough · \(milestone)",
                 "star|New record · Endless",
-                "diamond|\(milestone) · First reach",
+                "suit.diamond.fill|\(milestone) · First reach",
             ]
             return (templates.randomElement()!, stats.randomElement()!)
             
@@ -1646,7 +1646,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(streakPhrase.randomElement()!)\(closers.randomElement()!)"
             
-            let statEmojis = ["flame", "shield", "calendar", "diamond", "star", "infinity", "checkmark.circle"]
+            let statEmojis = ["flame", "shield", "calendar", "suit.diamond.fill", "star", "infinity", "checkmark.circle"]
             let statLabels: [String]
             if streakDays >= 100 {
                 statLabels = [
@@ -1714,7 +1714,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(subject.randomElement()!)\(details.randomElement()!)"
             
-            let statEmojis = ["infinity", "medal", "star", "infinity.circle", "sparkles", "diamond", "crown"]
+            let statEmojis = ["infinity", "medal", "star", "infinity.circle", "sparkles", "suit.diamond.fill", "crown"]
             let statLabels: [String]
             if infinityCount > 10 {
                 statLabels = [
@@ -1763,7 +1763,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(closers.randomElement()!)"
             
-            let statEmojis = ["paintpalette", "sparkles", "paintbrush", "star.circle", "theatermasks", "rainbow", "bell"]
+            let statEmojis = ["paintpalette", "sparkles", "paintbrush", "star.circle", "theatermasks", "cloud.rainbow.half", "bell"]
             let statLabels = [
                 "Theme unlocked · \(theme)", "New theme · \(theme)",
                 "Customization · \(theme)", "\(theme) · Unlocked",
@@ -1809,7 +1809,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(details.randomElement()!)"
             
-            let statEmojis = ["timer", "hourglass", "wind", "medal", "figure.run", "diamond", "target"]
+            let statEmojis = ["timer", "hourglass", "wind", "medal", "figure.run", "suit.diamond.fill", "target"]
             let statLabels = [
                 "Quests cleared · \(timeStr)", "Daily Quest · \(timeStr)",
                 "All objectives · \(timeStr)", "\(questTier) quest · \(timeStr)",
@@ -2151,9 +2151,9 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
         
-        // Build a unique bag key from the message hash so each feed item
-        // gets its own rotation through the templates
-        let bagSuffix = String(message.hashValue & 0xFFFF, radix: 16)
+        // Build a static bag key so the rotation of templates, openers, and closers
+        // persists globally across all feed items, guaranteeing no early repeats.
+        let bagSuffix = ""
         
         // Weighted category roll: 55% competitive, 25% positive, 15% question, 5% jealous
         var comment = ""
@@ -2291,7 +2291,7 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("Your \(streakDays) days are meaningless against my \(myDays) days.")
                     templates.append("You're entirely left behind at \(streakDays) days while I'm at \(myDays).")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_streak_\(myDays)", pool: templates), higherName)
+                return (Self.drawFromBag(key: "\(bagKey)_streak", pool: templates), higherName)
             }
         }
 
@@ -2337,7 +2337,7 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("Your \(posterTime) is a joke compared to my \(myTime).")
                     templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_time_\(myTotal)", pool: templates), higherName)
+                return (Self.drawFromBag(key: "\(bagKey)_time", pool: templates), higherName)
             }
         }
 
@@ -2361,7 +2361,7 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("Your \(infCount) is entirely irrelevant against my \(myCount).")
                     templates.append("You're left in the dust at \(infCount) while I sit at \(myCount).")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_hof_\(myCount)", pool: templates), higherName)
+                return (Self.drawFromBag(key: "\(bagKey)_hof", pool: templates), higherName)
             }
         }
 
@@ -2386,7 +2386,7 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("Your \(posterTier) is meaningless against my \(myTier).")
                     templates.append("You're stuck at \(posterTier) while I dominate with \(myTier).")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_quest_\(myTier)", pool: templates), higherName)
+                return (Self.drawFromBag(key: "\(bagKey)_quest", pool: templates), higherName)
             }
         }
 
@@ -2428,7 +2428,7 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("You are infinitely behind. I'm already at \(wayBehindM).")
                 }
                 let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
-                return (Self.drawFromBag(key: "\(bagKey)_tile_\(localHigherM)", pool: templates), realName)
+                return (Self.drawFromBag(key: "\(bagKey)_tile", pool: templates), realName)
             }
         }
 
