@@ -1828,6 +1828,19 @@ public struct MockSocialService: SocialService, Sendable {
     /// least once before any repeats.
     nonisolated(unsafe) private static var shuffleBags: [String: [String]] = [:]
     nonisolated(unsafe) private static var shuffleIndices: [String: Int] = [:]
+    nonisolated(unsafe) private static var shuffleIndexBags: [String: [Int]] = [:]
+
+    private static func drawIndexFromBag(key: String, count: Int) -> Int {
+        if count == 0 { return 0 }
+        let currentBag = shuffleIndexBags[key] ?? []
+        if currentBag.count != count || (shuffleIndices[key] ?? 0) >= count {
+            shuffleIndexBags[key] = Array(0..<count).shuffled()
+            shuffleIndices[key] = 0
+        }
+        let idx = shuffleIndices[key]!
+        shuffleIndices[key] = idx + 1
+        return shuffleIndexBags[key]![idx]
+    }
 
     private static func drawFromBag(key: String, pool: [String]) -> String {
         // First call or bag exhausted — reshuffle
@@ -2291,7 +2304,8 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("Your \(streakDays) days are meaningless against my \(myDays) days.")
                     templates.append("You're entirely left behind at \(streakDays) days while I'm at \(myDays).")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_streak", pool: templates), higherName)
+                let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
+                return (templates[idx], higherName)
             }
         }
 
@@ -2337,7 +2351,8 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("Your \(posterTime) is a joke compared to my \(myTime).")
                     templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_time", pool: templates), higherName)
+                let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
+                return (templates[idx], higherName)
             }
         }
 
@@ -2361,7 +2376,8 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("Your \(infCount) is entirely irrelevant against my \(myCount).")
                     templates.append("You're left in the dust at \(infCount) while I sit at \(myCount).")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_hof", pool: templates), higherName)
+                let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
+                return (templates[idx], higherName)
             }
         }
 
@@ -2386,7 +2402,8 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("Your \(posterTier) is meaningless against my \(myTier).")
                     templates.append("You're stuck at \(posterTier) while I dominate with \(myTier).")
                 }
-                return (Self.drawFromBag(key: "\(bagKey)_quest", pool: templates), higherName)
+                let idx = Self.drawIndexFromBag(key: "\(bagKey)_quest", count: templates.count)
+                return (templates[idx], higherName)
             }
         }
 
@@ -2428,7 +2445,8 @@ public struct MockSocialService: SocialService, Sendable {
                     templates.append("You are infinitely behind. I'm already at \(wayBehindM).")
                 }
                 let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
-                return (Self.drawFromBag(key: "\(bagKey)_tile", pool: templates), realName)
+                let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
+                return (templates[idx], realName)
             }
         }
 
