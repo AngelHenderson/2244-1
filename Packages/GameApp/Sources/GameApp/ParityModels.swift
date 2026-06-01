@@ -1061,8 +1061,8 @@ public struct MockSocialService: SocialService, Sendable {
             let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
             let finalCommenter = nameOverride ?? commenter
             
-            // Competitive comments arrive fast (within 15 mins) to enforce dominance. Others trickle over 4 days.
-            let baseOffset = tone == "competitive" ? Double.random(in: 15...900) : Double.random(in: 900...345600)
+            // Competitive comments arrive within 30 to 60 minutes to enforce dominance. Others trickle over 4 days.
+            let baseOffset = tone == "competitive" ? Double.random(in: 1800...3600) : Double.random(in: 900...345600)
             let baseCreatedAt = now.addingTimeInterval(baseOffset)
             
             let baseComment = SocialFeedComment(
@@ -1092,8 +1092,8 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                     
-                    // Threaded competitive replies happen fast (within 5 minutes)
-                    let replyOffset = Double.random(in: 30...300)
+                    // Threaded competitive replies happen within 30 to 60 minutes
+                    let replyOffset = Double.random(in: 1800...3600)
                     let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                     
                     let replyComment = SocialFeedComment(
@@ -1329,8 +1329,15 @@ public struct MockSocialService: SocialService, Sendable {
                 let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
                 let finalCommenter = nameOverride ?? commentAuthor
                 
-                // Competitive comments arrive within 15 minutes of the post to immediately assert dominance
-                let baseOffset = tone == "competitive" ? Double.random(in: timeOffset...min(timeOffset + 900, 0)) : Double.random(in: timeOffset...(timeOffset + 28800))
+                // Competitive comments arrive within 30 to 60 minutes of the post
+                let baseOffset: Double
+                if tone == "competitive" {
+                    let randomDelay = Double.random(in: 1800...3600)
+                    baseOffset = min(timeOffset + randomDelay, 0)
+                } else {
+                    let randomDelay = Double.random(in: 0...28800)
+                    baseOffset = min(timeOffset + randomDelay, 0)
+                }
                 let baseCreatedAt = now.addingTimeInterval(baseOffset)
                 
                 let baseComment = SocialFeedComment(
@@ -1361,8 +1368,8 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                         
-                        // Threaded competitive replies happen fast (within 5 minutes)
-                        let replyOffset = Double.random(in: 30...300)
+                        // Threaded competitive replies happen within 30 to 60 minutes
+                        let replyOffset = Double.random(in: 1800...3600)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
                         let replyComment = SocialFeedComment(
@@ -1832,14 +1839,47 @@ public struct MockSocialService: SocialService, Sendable {
 
     private static func drawIndexFromBag(key: String, count: Int) -> Int {
         if count == 0 { return 0 }
-        let currentBag = shuffleIndexBags[key] ?? []
-        if currentBag.count != count || (shuffleIndices[key] ?? 0) >= count {
+        
+        var currentBag = shuffleIndexBags[key] ?? []
+        
+        // 1. If bag is empty or exhausted, create a fresh one of the requested size
+        if currentBag.isEmpty || (shuffleIndices[key] ?? 0) >= currentBag.count {
             shuffleIndexBags[key] = Array(0..<count).shuffled()
             shuffleIndices[key] = 0
+            currentBag = shuffleIndexBags[key]!
         }
+        
+        // 2. If the requested count is smaller than the current bag (e.g. 8 -> 6)
+        if currentBag.count > count {
+            let currentIndex = shuffleIndices[key]!
+            let played = Array(currentBag[0..<currentIndex]).filter { $0 < count }
+            let unplayed = Array(currentBag[currentIndex...]).filter { $0 < count }
+            
+            currentBag = played + unplayed
+            shuffleIndexBags[key] = currentBag
+            shuffleIndices[key] = played.count
+            
+            // If filtering exhausted the bag, generate a fresh one
+            if shuffleIndices[key]! >= currentBag.count {
+                shuffleIndexBags[key] = Array(0..<count).shuffled()
+                shuffleIndices[key] = 0
+                currentBag = shuffleIndexBags[key]!
+            }
+        }
+        // 3. If the requested count is larger than the current bag (e.g. 6 -> 8)
+        else if currentBag.count < count {
+            let currentIndex = shuffleIndices[key]!
+            let newIndices = Array(currentBag.count..<count)
+            let unplayed = Array(currentBag[currentIndex...])
+            let combinedAndShuffled = (unplayed + newIndices).shuffled()
+            
+            currentBag = Array(currentBag[0..<currentIndex]) + combinedAndShuffled
+            shuffleIndexBags[key] = currentBag
+        }
+        
         let idx = shuffleIndices[key]!
         shuffleIndices[key] = idx + 1
-        return shuffleIndexBags[key]![idx]
+        return currentBag[idx]
     }
 
     private static func drawFromBag(key: String, pool: [String]) -> String {
@@ -2187,7 +2227,7 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Too easy.", "Forever in first place.", "You can't touch infinity.",
+                    "Too easy.", "Forever beyond reach.", "You can't touch infinity.",
                     "Barely had to try.", "My infinite lead is permanent.", "Light work.",
                     "This is entirely effortless.", "Do better.", "Your effort is pointless.",
                     "You are entirely irrelevant.", "Effortless.", "I'll dominate this rivalry forever.",
@@ -2612,15 +2652,17 @@ public struct MockSocialService: SocialService, Sendable {
         }()
 
         // Extract key phrases the commenter used for mirroring
-        // Extract key phrases the commenter used for mirroring
-        let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: strippedLower, range: NSRange(strippedLower.startIndex..., in: strippedLower)) != nil
-        let mentionedTime = hasTimeFormat || strippedLower.contains("time") || strippedLower.contains("fast") || strippedLower.contains("speed") || strippedLower.contains("quick") || strippedLower.contains("sec") || strippedLower.contains("min") || strippedLower.contains("clock")
-        let mentionedStreak = strippedLower.contains("streak") || strippedLower.contains("day") || strippedLower.contains("consecutive")
-        let mentionedTheme = strippedLower.contains("theme") || strippedLower.contains("style") || strippedLower.contains("aesthetic")
-        let mentionedHoF = strippedLower.contains("hall of fame") || strippedLower.contains("hof") || strippedLower.contains("infinity count")
-        let mentionedPerk = strippedLower.contains("hammer") || strippedLower.contains("swap") || strippedLower.contains("magnet") || strippedLower.contains("perk")
-        let mentionedGems = strippedLower.contains("gem")
-        let mentionedQuest = strippedLower.contains("quest") || strippedLower.contains("objective") || strippedLower.contains("chest")
+        let msgLower = message.lowercased()
+        let combinedLower = strippedLower + " " + msgLower
+        
+        let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: combinedLower, range: NSRange(combinedLower.startIndex..., in: combinedLower)) != nil
+        let mentionedTime = hasTimeFormat || combinedLower.contains("time") || combinedLower.contains("fast") || combinedLower.contains("speed") || combinedLower.contains("quick") || combinedLower.contains("sec") || combinedLower.contains("min") || combinedLower.contains("clock")
+        let mentionedStreak = combinedLower.contains("streak") || combinedLower.contains("day") || combinedLower.contains("consecutive")
+        let mentionedTheme = combinedLower.contains("theme") || combinedLower.contains("style") || combinedLower.contains("aesthetic")
+        let mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("hof") || combinedLower.contains("infinity count")
+        let mentionedPerk = combinedLower.contains("hammer") || combinedLower.contains("swap") || combinedLower.contains("magnet") || combinedLower.contains("perk")
+        let mentionedGems = combinedLower.contains("gem")
+        let mentionedQuest = combinedLower.contains("quest") || combinedLower.contains("objective") || combinedLower.contains("chest")
 
         // ── Detect the tone/intent of the comment being replied to ──
 
@@ -2795,8 +2837,34 @@ public struct MockSocialService: SocialService, Sendable {
                 ])
             }
 
-            // Streak number escalation removed. Streak posts will naturally pivot to Milestone Grinding
-            // to avoid the logical paradox of gaining days in minutes.
+            if mentionedStreak {
+                if let numStr = mentionedNumber, let num = Int(numStr) {
+                    let higherNum = num + Int.random(in: 10...max(30, num))
+                    replies.append(contentsOf: [
+                        "I am infinitely ahead of your \(numStr) days . I'm at \(higherNum).",
+                        "Your \(numStr) day streak is cute. Try catching my \(higherNum) days .",
+                        "I passed \(numStr) days ages ago. I'm untouched at \(higherNum) .",
+                        "\(numStr) days is a warm-up. I'm already sitting at \(higherNum) .",
+                        "I just hit \(higherNum) days. Your \(numStr) is nothing .",
+                        "My infinite consistency is at \(higherNum) days . \(numStr) is light.",
+                        "You're bragging about \(numStr) days? I'm at \(higherNum) .",
+                        "\(higherNum) days belongs to me. \(higherNum) > \(numStr) .",
+                    ])
+                } else {
+                    let assumedNum = Int.random(in: 5...30)
+                    let higherNum = assumedNum + Int.random(in: 10...30)
+                    replies.append(contentsOf: [
+                        "I am infinitely ahead of your streak . I'm at \(higherNum) days.",
+                        "Your streak is cute. Try catching my \(higherNum) days .",
+                        "I passed that ages ago. I'm untouched at \(higherNum) days .",
+                        "Your streak is a warm-up. I'm already sitting at \(higherNum) days .",
+                        "I just hit \(higherNum) days. Your consistency is nothing .",
+                        "My infinite consistency is at \(higherNum) days . Your streak is light.",
+                        "You're bragging about streaks? I'm at \(higherNum) days .",
+                        "\(higherNum) days belongs to me. I dominate eternity .",
+                    ])
+                }
+            }
 
             if mentionedTime {
                 if let (mins, secs) = Self.extractTime(from: strippedLower) {
