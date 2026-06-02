@@ -939,7 +939,7 @@ public struct MockSocialService: SocialService, Sendable {
             let newComment = SocialFeedComment(authorName: playerName, avatarID: playerAvatar, text: text, createdAt: replyDate)
             item.comments.append(newComment)
             
-            let delay = Double.random(in: 1800...86400)
+            let delay = Double.random(in: 60...300)
             let responseTime = now.addingTimeInterval(delay)
             
             let responderName: String
@@ -2868,13 +2868,14 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
+                let mIdx = Self.allMilestones.firstIndex(of: m) ?? 15
                 let jump: Int
                 if Double.random(in: 0...1) < 0.80 {
                     jump = Int.random(in: 1...10)
                 } else {
                     jump = Int.random(in: 11...50)
                 }
-                let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
+                let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
                 let higherM = Self.allMilestones[higherIdx]
                 if wantsBetter {
                     replies.append(contentsOf: [
@@ -2886,17 +2887,16 @@ public struct MockSocialService: SocialService, Sendable {
                     ])
                 } else {
                     replies.append(contentsOf: [
-                replies.append(contentsOf: [
-                    "I am infinitely ahead of your \(m.name) . I'm at \(higherM).",
-                    "\(m.name) is permanently behind me. I am untouchable at \(higherM) .",
-                    "Your \(m.name) is nothing compared to my \(higherM) record .",
-                    "I passed \(m.name) ages ago. I dominate \(higherM) .",
-                    "My \(higherM) run was completely effortless. \(m.name) is cute .",
-                    "\(m.name) was a warm-up . I'm already sitting at \(higherM).",
-                    "You're celebrating \(m.name)? I just cleared \(higherM) .",
-                    "I left \(m.name) in the dust. \(higherM) is the new standard .",
-                    "Try hitting \(higherM) before bragging about \(m.name) .",
-                    "I hit \(higherM) yesterday. \(m.name) is old news .",
+                    "I am infinitely ahead of your \(m) . I'm at \(higherM).",
+                    "\(m) is permanently behind me. I am untouchable at \(higherM) .",
+                    "Your \(m) is nothing compared to my \(higherM) record .",
+                    "I passed \(m) ages ago. I dominate \(higherM) .",
+                    "My \(higherM) run was completely effortless. \(m) is cute .",
+                    "\(m) was a warm-up . I'm already sitting at \(higherM).",
+                    "You're celebrating \(m)? I just cleared \(higherM) .",
+                    "I left \(m) in the dust. \(higherM) is the new standard .",
+                    "Try hitting \(higherM) before bragging about \(m) .",
+                    "I hit \(higherM) yesterday. \(m) is old news .",
                 ])
                 }
             }
@@ -3006,6 +3006,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "I speedrun this game. \(higherTime) destroys your \(posterTime) .",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime) .",
                     ])
+                    }
                 } else {
                     let assumedTotal = Int.random(in: 60...120)
                     let higherNum = max(10, assumedTotal - Int.random(in: 10...30))

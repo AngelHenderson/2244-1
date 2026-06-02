@@ -2501,10 +2501,9 @@ public enum MockLeaderboardData {
         // Parse milestones manually for comparison
         // Format: <number><suffix> where suffix is K, M, B, or lowercase letters (a-z, aa-zz, etc.)
         func parseMilestone(_ m: String) -> (mantissa: Int, tier: Int)? {
-            let lowered = m.lowercased()
             var numStr = ""
             var suffix = ""
-            for char in lowered {
+            for char in m {
                 if char.isNumber {
                     numStr.append(char)
                 } else {
@@ -2516,17 +2515,18 @@ public enum MockLeaderboardData {
             // Determine tier from suffix
             let tier: Int
             switch suffix {
-            case "k": tier = 1
-            case "m": tier = 2
-            case "b": tier = 3
+            case "K", "k": tier = 1
+            case "M", "m": tier = 2
+            case "B": tier = 3 // Uppercase B is billion
             default:
                 // Letter suffixes: a=4, b=5, ..., z=29, aa=30, ab=31, ...
-                if suffix.isEmpty {
+                let lowered = suffix.lowercased()
+                if lowered.isEmpty {
                     tier = 0
-                } else if suffix.count == 1, let c = suffix.first, c >= "a" && c <= "z" {
+                } else if lowered.count == 1, let c = lowered.first, c >= "a" && c <= "z" {
                     tier = 4 + Int(c.asciiValue! - Character("a").asciiValue!)
-                } else if suffix.count == 2 {
-                    let chars = Array(suffix)
+                } else if lowered.count == 2 {
+                    let chars = Array(lowered)
                     let first = Int(chars[0].asciiValue! - Character("a").asciiValue!)
                     let second = Int(chars[1].asciiValue! - Character("a").asciiValue!)
                     tier = 30 + first * 26 + second
@@ -4467,7 +4467,7 @@ public extension LeaderboardClient {
             }
             // Resolve duplicate realistic first names by adding last names
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
-            let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
+            let myEntry = resolvedEntries.first(where: { $0.isMe })
             let page = LeaderboardPage(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
             pageCache[filter] = page
             return page
@@ -4476,7 +4476,7 @@ public extension LeaderboardClient {
         initialData: {
             let entries = globalEntries()
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
-            let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
+            let myEntry = resolvedEntries.first(where: { $0.isMe })
             let day = MockLeaderboardData.daysSinceReference
             let totalPlayers = MockLeaderboardData.totalGlobalPlayers(on: day)
             return .init(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: totalPlayers)
@@ -4497,7 +4497,7 @@ public extension LeaderboardClient {
                 }
             }
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)
-            let myEntry = resolvedEntries.first(where: { $0.isMe }) ?? resolvedEntries.last
+            let myEntry = resolvedEntries.first(where: { $0.isMe })
             return .init(entries: resolvedEntries, myEntry: myEntry, nextCursor: nil, totalPlayers: nil)
         }
     )
@@ -4838,33 +4838,56 @@ public extension LeaderboardClient {
             }
         }
 
+        let userMilestone = UserLeaderboardData.currentMilestone
+        if userMilestone.hasSuffix("∞") {
+            let countStr = userMilestone.dropLast()
+            if let userCount = Int(countStr) {
+                progressedData.append(("me", userCount, UserLeaderboardData.currentCountry, -1, -1))
+            }
+        }
+
         // Sort by progressed count (highest first)
         progressedData.sort { $0.progressedCount > $1.progressedCount }
 
         // Build entries with ranks based on sorted order
         var entries: [LeaderboardEntry] = []
         for (rank, player) in progressedData.enumerated() {
-            // Use the player's stable nameIndex (assigned at creation, never changes)
-            // instead of the post-sort rank. This keeps explicit HoF players' names
-            // constant even when new dynamic scalable-country players enter the list
-            // and shift everyone's rank positions.
-            let name = MockLeaderboardData.nameForPlayer(index: player.nameIndex, names: MockLeaderboardData.hallOfFameNames, countrySeed: 999999, day: day)
+            if player.id == "me" {
+                entries.append(LeaderboardEntry(
+                    id: "me",
+                    rank: rank + 1,
+                    name: UserLeaderboardData.playerName,
+                    score: MockLeaderboardData.scoreForMilestone(userMilestone),
+                    countryCode: player.country,
+                    platform: .ios,
+                    isMe: true,
+                    avatarURL: UserLeaderboardData.avatarID,
+                    highestTile: userMilestone
+                ))
+            } else {
+                // Use the player's stable nameIndex (assigned at creation, never changes)
+                // instead of the post-sort rank. This keeps explicit HoF players' names
+                // constant even when new dynamic scalable-country players enter the list
+                // and shift everyone's rank positions.
+                let name = MockLeaderboardData.nameForPlayer(index: player.nameIndex, names: MockLeaderboardData.hallOfFameNames, countrySeed: 999999, day: day)
 
-            let platform: Platform = player.nameIndex % 2 == 0 ? .ios : .android
-            // Use stable nameIndex for avatar too, so it doesn't shift with rank changes
-            let avatar = MockLeaderboardData.avatarForPlayer(index: player.nameIndex, countrySeed: 999999, day: day)
-            let score = MockLeaderboardData.scoreForMilestone("\(player.progressedCount)∞")
+                let platform: Platform = player.nameIndex % 2 == 0 ? .ios : .android
+                // Use stable nameIndex for avatar too, so it doesn't shift with rank changes
+                let avatar = MockLeaderboardData.avatarForPlayer(index: player.nameIndex, countrySeed: 999999, day: day)
+                let score = MockLeaderboardData.scoreForMilestone("\(player.progressedCount)∞")
 
-            entries.append(LeaderboardEntry(
-                id: player.id,
-                rank: rank + 1,
-                name: name,
-                score: score,
-                countryCode: player.country,
-                platform: platform,
-                avatarURL: avatar,
-                highestTile: "\(player.progressedCount)∞"
-            ))
+                entries.append(LeaderboardEntry(
+                    id: player.id,
+                    rank: rank + 1,
+                    name: name,
+                    score: score,
+                    countryCode: player.country,
+                    platform: platform,
+                    isMe: false,
+                    avatarURL: avatar,
+                    highestTile: "\(player.progressedCount)∞"
+                ))
+            }
         }
 
         // Cache the result for this day

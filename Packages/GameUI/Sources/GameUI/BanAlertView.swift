@@ -53,6 +53,7 @@ public enum BanAlert {
 /// Usage: `.banAlert(isPresented: $showBan, reason: .cheating, duration: .temporary(days: 7))`
 public struct BanAlertModifier: ViewModifier {
     @Binding var isPresented: Bool
+    @State private var showUnderstandingAlert = false
     let reason: BanReason
     let duration: BanDuration
 
@@ -65,7 +66,6 @@ public struct BanAlertModifier: ViewModifier {
         }()
 
         let title: String = {
-            if isExpired { return "Ban Expired" }
             switch duration {
             case .permanent: return "Permanently Banned"
             case .temporary: return "Temporarily Banned"
@@ -74,23 +74,28 @@ public struct BanAlertModifier: ViewModifier {
 
         content
             .alert(title, isPresented: $isPresented) {
-                if isExpired {
-                    Button("I understand what I did and won't do it again.", role: .cancel) { }
-                } else {
-                    Button("OK", role: .cancel) { }
-                }
-            } message: {
-                if isExpired {
-                    Text("Your temporary ban for \(reason.rawValue) has ended. You may now resume playing.")
-                } else {
-                    let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
-                    switch duration {
-                    case .temporary(let endDate):
-                        Text("You are temporarily banned due to \(reason.rawValue). Ban expires in \(endDate, style: .timer). \(disabledNote)")
-                    case .permanent:
-                        Text("You are permanently banned due to \(reason.rawValue). \(disabledNote)")
+                Button("OK", role: .cancel) {
+                    if isExpired {
+                        showUnderstandingAlert = true
                     }
                 }
+            } message: {
+                let disabledNote = "Milestone progression, spinwheel, daily rewards, challenge mode, custom challenges, and shop are all disabled until you are unbanned."
+                switch duration {
+                case .temporary(let endDate):
+                    if isExpired {
+                        Text("You were temporarily banned due to \(reason.rawValue). \(disabledNote)")
+                    } else {
+                        Text("You are temporarily banned due to \(reason.rawValue). Ban expires in \(endDate, style: .timer). \(disabledNote)")
+                    }
+                case .permanent:
+                    Text("You are permanently banned due to \(reason.rawValue). \(disabledNote)")
+                }
+            }
+            .alert("Ban Expired", isPresented: $showUnderstandingAlert) {
+                Button("I understand what I did and won't do it again.", role: .cancel) { }
+            } message: {
+                Text("Your temporary ban for \(reason.rawValue) has ended. You may now resume playing.")
             }
     }
 }
