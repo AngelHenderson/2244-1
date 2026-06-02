@@ -10,6 +10,8 @@ public struct DailyStreaksView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.homeActions) private var homeActions
     @State private var selectedStreak: DailyClaimsStore.DailyStreak?
+    @State private var showRestoreConfirm = false
+    @State private var showNotEnoughGems = false
     
     public init() {}
     
@@ -27,6 +29,9 @@ public struct DailyStreaksView: View {
                 ScrollView {
                     VStack(spacing: 24) {
                         currentStreakSection
+                        if store.brokenStreak > 0 {
+                            streakRestorationSection
+                        }
                         progressSection
                         milestonesSection
                     }
@@ -59,6 +64,22 @@ public struct DailyStreaksView: View {
                 .presentationDragIndicator(.visible)
         }
         .trackScreen(.dailyStreaks)
+        .alert("Restore Streak?", isPresented: $showRestoreConfirm) {
+            Button("Restore for \(store.streakRestoreCost) Gems", role: .destructive) {
+                homeState.addGems(-store.streakRestoreCost)
+                _ = store.restoreStreak()
+            }
+            Button("Decline", role: .cancel) {
+                store.dismissBrokenStreak()
+            }
+        } message: {
+            Text("Your \(store.brokenStreak)-day streak broke! Pay \(store.streakRestoreCost) gems to restore it.")
+        }
+        .alert("Not Enough Gems", isPresented: $showNotEnoughGems) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You need \(store.streakRestoreCost) gems to restore your streak, but you only have \(homeState.gems). You need \(store.streakRestoreCost - homeState.gems) more gems.")
+        }
         .onAppear {
             store.updateAvailability(banStartDate: homeState.banStartDate, banEndDate: homeState.banEndDate)
         }
@@ -161,6 +182,43 @@ public struct DailyStreaksView: View {
         }
         .padding()
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+    }
+
+    private var streakRestorationSection: some View {
+        Button {
+            if homeState.gems >= store.streakRestoreCost {
+                showRestoreConfirm = true
+            } else {
+                showNotEnoughGems = true
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.counterclockwise")
+                Text("Restore Streak")
+                    .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
+                Spacer()
+                HStack(spacing: 4) {
+                    Image("gem")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 18, height: 18)
+                    Text("\(store.streakRestoreCost)")
+                        .font(.avenirNext(size: GameFonts.bodySize, weight: .bold))
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(
+                LinearGradient(
+                    colors: [.purple, .indigo],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                ),
+                in: RoundedRectangle(cornerRadius: 14)
+            )
+            .shadow(color: .purple.opacity(0.3), radius: 8, y: 4)
+        }
     }
     
     private var progressSection: some View {

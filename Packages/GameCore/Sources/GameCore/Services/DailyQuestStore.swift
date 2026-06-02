@@ -210,7 +210,9 @@ public final class DailyQuestStore {
     }
 
     public var claimableCount: Int {
-        quests.filter(\.isClaimable).count
+        quests.filter(\.isClaimable)
+            .map { max(1, $0.rewards.itemCount) }
+            .reduce(0, +)
     }
 
     public var allComplete: Bool {

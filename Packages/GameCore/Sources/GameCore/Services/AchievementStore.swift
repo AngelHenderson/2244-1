@@ -3135,7 +3135,13 @@ public final class AchievementStore {
     }
     
     public var claimableCount: Int {
-        unlocks.values.filter { $0.isClaimable }.count
+        var count = 0
+        for def in catalog {
+            guard unlocks[def.id]?.isClaimable == true else { continue }
+            let rewards = def.id == "tile_progression" ? tileRewards(for: def) : def.rewards
+            count += max(1, rewards?.itemCount ?? 1)
+        }
+        return count
     }
 
     /// Claims all currently claimable achievements and returns the merged rewards

@@ -1072,8 +1072,12 @@ public struct MockSocialService: SocialService, Sendable {
                 // Competitive comments arrive within 30 to 60 minutes
                 baseOffset = Double.random(in: 1800...3600)
             } else {
-                // Others trickle over 4 days
-                baseOffset = Double.random(in: 900...345600)
+                // Non-competitive comments arrive mostly in the first 30 minutes to match the early heart surge
+                if Double.random(in: 0...1) < 0.85 {
+                    baseOffset = Double.random(in: 30...1800)
+                } else {
+                    baseOffset = Double.random(in: 1800...86400)
+                }
             }
             let baseCreatedAt = now.addingTimeInterval(baseOffset)
             
@@ -1104,8 +1108,8 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                     
-                    // Threaded competitive replies happen fast (~3 minutes per brag)
-                    let replyOffset = Double.random(in: 120...240)
+                    // Threaded competitive replies happen fast (4 comments / 5 mins, so ~75s per brag)
+                    let replyOffset = Double.random(in: 60...90)
                     let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                     
                     let replyComment = SocialFeedComment(
@@ -1359,7 +1363,13 @@ public struct MockSocialService: SocialService, Sendable {
                     let randomDelay = Double.random(in: 1800...3600)
                     baseOffset = min(timeOffset + randomDelay, 0)
                 } else {
-                    let randomDelay = Double.random(in: 0...28800)
+                    // Non-competitive comments mostly arrive in the first 30 minutes
+                    let randomDelay: Double
+                    if Double.random(in: 0...1) < 0.85 {
+                        randomDelay = Double.random(in: 30...1800)
+                    } else {
+                        randomDelay = Double.random(in: 1800...86400)
+                    }
                     baseOffset = min(timeOffset + randomDelay, 0)
                 }
                 let baseCreatedAt = now.addingTimeInterval(baseOffset)
@@ -1392,8 +1402,8 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                         
-                        // Threaded competitive replies happen fast (~3 minutes per brag)
-                        let replyOffset = Double.random(in: 120...240)
+                        // Threaded competitive replies happen fast (4 comments / 5 mins, so ~75s per brag)
+                        let replyOffset = Double.random(in: 60...90)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
                         let replyComment = SocialFeedComment(
@@ -1563,8 +1573,17 @@ public struct MockSocialService: SocialService, Sendable {
     }
     
     private func generateDynamicEvent(milestone: String) -> (message: String, statText: String) {
-        let eventType = Int.random(in: 0...5)
-        
+        let rand = Double.random(in: 0..<100)
+        let eventType: Int
+        if rand < 34.9 {
+            eventType = 1 // Time (34.9%)
+        } else if rand < 70.0 {
+            eventType = 0 // Milestones (35.1%)
+        } else if rand < 85.0 {
+            eventType = 2 // Streaks (15%)
+        } else {
+            eventType = 3 // HOF (15%)
+        }
         let themeNames = ["Classic", "Simple Sage", "Mellow Yellow", "Relaxed Rust", "Cozy Coral"]
         
         switch eventType {
@@ -2665,11 +2684,15 @@ public struct MockSocialService: SocialService, Sendable {
         let mentionedNumber: String? = {
             let regex = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b", options: [])
             let range = NSRange(strippedText.startIndex..., in: strippedText)
-            if let match = regex?.firstMatch(in: strippedText, range: range),
-               let r = Range(match.range(at: 1), in: strippedText) {
-                let numStr = String(strippedText[r])
-                if let value = Int(numStr), value >= 3 {
-                    return numStr
+            if let matches = regex?.matches(in: strippedText, range: range) {
+                let numbers = matches.compactMap { match -> Int? in
+                    if let r = Range(match.range(at: 1), in: strippedText) {
+                        return Int(String(strippedText[r]))
+                    }
+                    return nil
+                }
+                if let maxNum = numbers.max(), maxNum >= 3 {
+                    return String(maxNum)
                 }
             }
             return nil
@@ -2830,7 +2853,12 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
-                let jump = Int.random(in: 1...5)
+                let jump: Int
+                if Double.random(in: 0...1) < 0.80 {
+                    jump = Int.random(in: 1...10)
+                } else {
+                    jump = Int.random(in: 11...50)
+                }
                 let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
                 let higherM = Self.allMilestones[higherIdx]
                 replies.append(contentsOf: [
@@ -2863,7 +2891,7 @@ public struct MockSocialService: SocialService, Sendable {
 
             if mentionedStreak {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
-                    let higherNum = num + Int.random(in: 10...max(30, num))
+                    let higherNum = num + Int.random(in: 5...max(15, num / 5))
                     replies.append(contentsOf: [
                         "I am infinitely ahead of your \(numStr) days . I'm at \(higherNum).",
                         "Your \(numStr) day streak is cute. Try catching my \(higherNum) days .",

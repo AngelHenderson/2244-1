@@ -2402,6 +2402,15 @@ public final class GameStore {
             }
         }
 
+        // Filter out trivial eliminations (e.g. eliminating the "1" tile)
+        eliminatedValues = eliminatedValues.filter { $0 > 1 }
+
+        // Also skip the added notification when the eliminated value is trivial
+        // (the added tile is derived from the eliminated tile)
+        if eliminatedValues.isEmpty {
+            addedValue = nil
+        }
+
         // Count how many notifications we need and pre-select unique phrases
         var notificationCount = 1 // unlocked is always shown
         if addedValue != nil { notificationCount += 1 }

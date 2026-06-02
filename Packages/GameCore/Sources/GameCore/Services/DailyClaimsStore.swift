@@ -25,6 +25,8 @@ public final class DailyClaimsStore {
     public private(set) var lastClaimDate: Date?
     public private(set) var canClaimToday: Bool = false
     public private(set) var availableClaims: Int = 0  // Number of claims available (for catching up on missed days)
+    /// When a streak breaks, this stores the old streak value so the user can pay to restore it.
+    public private(set) var brokenStreak: Int = 0
     
     private let storage: UserDefaults
     private let visibleLookaheadDays = 21
@@ -34,11 +36,33 @@ public final class DailyClaimsStore {
     private static let claimedDaysKey = "claimedDays"
     private static let unlockedStreaksKey = "unlockedStreaks"
     private static let availableClaimsKey = "availableClaims"
+    private static let brokenStreakKey = "brokenStreak"
     
     private var claimedDays: Set<Int> = []
     private var unlockedStreaks: Set<Int> = []
     
     public var onReward: (@MainActor (AchievementDef.Rewards) -> Void)?
+
+    /// The gem cost to restore a broken streak: `brokenStreak × 25`.
+    public var streakRestoreCost: Int { brokenStreak * 25 }
+
+    /// Restores the previously broken streak. Returns `true` if restored.
+    /// The caller is responsible for deducting gems from `HomeState` beforehand.
+    @MainActor
+    public func restoreStreak() -> Bool {
+        guard brokenStreak > 0 else { return false }
+        currentStreak = brokenStreak
+        brokenStreak = 0
+        saveProgress()
+        return true
+    }
+
+    /// Dismisses the streak restoration offer permanently (user declined).
+    @MainActor
+    public func dismissBrokenStreak() {
+        brokenStreak = 0
+        saveProgress()
+    }
     
     public init(storage: UserDefaults = .standard) {
         self.storage = storage
@@ -89,6 +113,7 @@ public final class DailyClaimsStore {
         claimedDays = Set(storage.array(forKey: Self.claimedDaysKey) as? [Int] ?? [])
         unlockedStreaks = Set(storage.array(forKey: Self.unlockedStreaksKey) as? [Int] ?? [])
         availableClaims = storage.integer(forKey: Self.availableClaimsKey)
+        brokenStreak = storage.integer(forKey: Self.brokenStreakKey)
     }
     
     private func saveProgress() {
@@ -106,6 +131,9 @@ public final class DailyClaimsStore {
         
         // Save available claims count (for catch-up persistence)
         storage.set(availableClaims, forKey: Self.availableClaimsKey)
+        
+        // Save broken streak for restoration
+        storage.set(brokenStreak, forKey: Self.brokenStreakKey)
     }
     
     @MainActor
@@ -163,7 +191,10 @@ public final class DailyClaimsStore {
                     }
                 }
 
-                // Streak resets but user can only claim non-banned days
+                // Streak breaks — save the old value so user can pay to restore
+                if currentStreak > 0 {
+                    brokenStreak = currentStreak
+                }
                 currentStreak = 0
                 let claimable = max(0, daysSinceLastClaim - bannedDays)
 

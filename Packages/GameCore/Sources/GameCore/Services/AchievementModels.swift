@@ -36,6 +36,19 @@ public struct AchievementDef: Codable, Identifiable, Hashable {
             self.boost3x = boost3x
             self.boost4x = boost4x
         }
+        
+        public var itemCount: Int {
+            var count = 0
+            if let gems = gems, gems > 0 { count += 1 }
+            if let spins = spins, spins > 0 { count += 1 }
+            if let hammers = hammers, hammers > 0 { count += 1 }
+            if let magnets = magnets, magnets > 0 { count += 1 }
+            if let swaps = swaps, swaps > 0 { count += 1 }
+            if let boost2x = boost2x, boost2x > 0 { count += 1 }
+            if let boost3x = boost3x, boost3x > 0 { count += 1 }
+            if let boost4x = boost4x, boost4x > 0 { count += 1 }
+            return count
+        }
     }
     
     public let id: String
