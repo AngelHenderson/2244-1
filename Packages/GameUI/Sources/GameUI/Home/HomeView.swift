@@ -24,6 +24,7 @@ public struct HomeView: View {
     @State private var isShowingWeeklyOffer: Bool = false
     @State private var isShowingAdBonusIntro: Bool = false
     @State private var showLockedChallengeAlert: Bool = false
+    @State private var showLockedCreateAlert: Bool = false
     @State private var centeredMilestone: Int? = nil
     @State private var isPrivacyOptionsRequired: Bool = false
     // Measured overlay heights for proper centering of the journey scroller
@@ -218,6 +219,11 @@ public struct HomeView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Sorry! You do not have a high enough tile to unlock this. You need a 1B tile.")
+        }
+        .alert("Tile Too Low", isPresented: $showLockedCreateAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Sorry! You do not have a high enough tile to unlock this. You need a 1M tile.")
         }
         .alert("You Are Still Banned!", isPresented: Bindable(state).showBanAlert) {
             Button("OK", role: .cancel) { }
@@ -415,7 +421,7 @@ public struct HomeView: View {
                     title: "CREATE",
                     locked: state.isCreateLocked,
                     banned: state.isBanned,
-                    onLockedTap: {},
+                    onLockedTap: { showLockedCreateAlert = true },
                     onBannedTap: { state.showBanAlert = true },
                     action: { actions.openCreate() }
                 )

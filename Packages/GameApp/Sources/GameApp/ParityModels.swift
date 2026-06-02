@@ -1061,8 +1061,20 @@ public struct MockSocialService: SocialService, Sendable {
             let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
             let finalCommenter = nameOverride ?? commenter
             
-            // Competitive comments arrive within 30 to 60 minutes to enforce dominance. Others trickle over 4 days.
-            let baseOffset = tone == "competitive" ? Double.random(in: 1800...3600) : Double.random(in: 900...345600)
+            let baseOffset: Double
+            if i == 0 {
+                // First comment arrives extremely fast (10-30 seconds) for instant engagement
+                baseOffset = Double.random(in: 10...30)
+            } else if i == 1 {
+                // Second comment arrives within a couple minutes (60-180 seconds)
+                baseOffset = Double.random(in: 60...180)
+            } else if tone == "competitive" {
+                // Competitive comments arrive within 30 to 60 minutes
+                baseOffset = Double.random(in: 1800...3600)
+            } else {
+                // Others trickle over 4 days
+                baseOffset = Double.random(in: 900...345600)
+            }
             let baseCreatedAt = now.addingTimeInterval(baseOffset)
             
             let baseComment = SocialFeedComment(
@@ -1092,8 +1104,8 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                     
-                    // Threaded competitive replies happen within 30 to 60 minutes
-                    let replyOffset = Double.random(in: 1800...3600)
+                    // Threaded competitive replies happen fast (~3 minutes per brag)
+                    let replyOffset = Double.random(in: 120...240)
                     let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                     
                     let replyComment = SocialFeedComment(
@@ -1144,8 +1156,11 @@ public struct MockSocialService: SocialService, Sendable {
         // Heart/reaction timestamps mirror comment speed (55% fast, 45% slow)
         let numReactions = Int.random(in: 50...200)
         var rTimestamps: [Date] = []
-        for _ in 0..<numReactions {
-            if Double.random(in: 0...1) < 0.55 {
+        for i in 0..<numReactions {
+            if i < 3 {
+                // First 3 reactions arrive instantly (1 to 10 seconds)
+                rTimestamps.append(now.addingTimeInterval(Double.random(in: 1...10)))
+            } else if Double.random(in: 0...1) < 0.55 {
                 rTimestamps.append(now.addingTimeInterval(Double.random(in: 15...900)))
             } else {
                 rTimestamps.append(now.addingTimeInterval(Double.random(in: 900...345600)))
@@ -1287,11 +1302,20 @@ public struct MockSocialService: SocialService, Sendable {
             let authorIndex = Int.random(in: 1...100000)
             let authorAvatar = Self.avatarForPlayer(index: authorIndex, countrySeed: 0, day: currentDay)
             
+            let rand = Double.random(in: 0...1)
             let randomMilestone: String
-            if Double.random(in: 0...1) < 0.8 {
-                randomMilestone = Self.allMilestones[Int.random(in: 14..<Self.allMilestones.count)]
+            if rand < 0.35 {
+                // 35% raw numbers-B-tier (Indices 14...61, starting at 32k to avoid trivial early tiles)
+                randomMilestone = Self.allMilestones[Int.random(in: 14...61)]
+            } else if rand < 0.75 {
+                // 40% a-z-tier
+                randomMilestone = Self.allMilestones[Int.random(in: 62...297)]
+            } else if rand < 0.89 {
+                // 14% aa-az
+                randomMilestone = Self.allMilestones[Int.random(in: 298...557)]
             } else {
-                randomMilestone = Self.allMilestones.randomElement()!
+                // 11% ba-bz
+                randomMilestone = Self.allMilestones[Int.random(in: 558...816)]
             }
             
             let (message, statText) = generateDynamicEvent(milestone: randomMilestone)
@@ -1368,8 +1392,8 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
                         
-                        // Threaded competitive replies happen within 30 to 60 minutes
-                        let replyOffset = Double.random(in: 1800...3600)
+                        // Threaded competitive replies happen fast (~3 minutes per brag)
+                        let replyOffset = Double.random(in: 120...240)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
                         let replyComment = SocialFeedComment(
