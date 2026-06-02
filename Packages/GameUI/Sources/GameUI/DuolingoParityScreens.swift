@@ -1545,9 +1545,21 @@ private struct FeedCommentsView: View {
         let text = comment
         comment = ""
         
-        let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: Date())
+        var replyDate = Date()
+        if text.hasPrefix("@") {
+            let parts = text.split(separator: " ")
+            if let first = parts.first {
+                let targetName = String(first.dropFirst())
+                if let targetComment = item.comments.last(where: { $0.authorName == targetName }) {
+                    replyDate = targetComment.createdAt.addingTimeInterval(1)
+                }
+            }
+        }
+        
+        let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: replyDate)
         item.comments.append(newComment)
-        item.commentCount += 1
+        item.comments.sort { $0.createdAt < $1.createdAt }
+        item.commentCount = item.comments.count
         
         Task {
             try? await socialService.addComment(to: item.id, text: text)

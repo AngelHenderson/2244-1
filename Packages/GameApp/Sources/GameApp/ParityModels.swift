@@ -924,9 +924,19 @@ public struct MockSocialService: SocialService, Sendable {
         let now = Date()
         let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
         let playerAvatar = defaults.string(forKey: "profileAvatarId") ?? "avatar_buddy_bot"
-        let newComment = SocialFeedComment(authorName: playerName, avatarID: playerAvatar, text: text, createdAt: now)
-        
         func processItem(_ item: inout SocialFeedItem) {
+            var replyDate = now
+            if text.hasPrefix("@") {
+                let parts = text.split(separator: " ")
+                if let first = parts.first {
+                    let targetName = String(first.dropFirst())
+                    if let targetComment = item.comments.last(where: { $0.authorName == targetName }) {
+                        replyDate = targetComment.createdAt.addingTimeInterval(1)
+                    }
+                }
+            }
+            
+            let newComment = SocialFeedComment(authorName: playerName, avatarID: playerAvatar, text: text, createdAt: replyDate)
             item.comments.append(newComment)
             
             let delay = Double.random(in: 1800...86400)
@@ -982,20 +992,24 @@ public struct MockSocialService: SocialService, Sendable {
                 }
             }
             
+            if loweredText.contains("do better") {
+                posterBeatsNPC = true
+            }
+            
             let answer = milestoneAnswer(for: text)
             if posterBeatsNPC || answer != nil {
                 let responseText: String
                 if let ans = answer {
                     responseText = "@\(playerName) " + ans
                 } else {
-                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: item.message)
+                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: item.message, forceTone: "competitive")
                 }
                 let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
                 item.comments.append(responseComment)
-                item.commentCount = item.comments.count
-            } else {
-                item.commentCount = item.comments.count
             }
+            
+            item.comments.sort { $0.createdAt < $1.createdAt }
+            item.commentCount = item.comments.count
         }
 
         if let data = defaults.data(forKey: Self.feedCacheKey),
@@ -2716,7 +2730,7 @@ public struct MockSocialService: SocialService, Sendable {
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = forceTone != "competitive" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["infinitely", "untouchable", "permanently", "nothing compared", "dominate", "effortless", "cute", "warm-up", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster"]
+        let competitiveKeywords = ["infinitely", "untouchable", "permanently", "nothing compared", "dominate", "effortless", "cute", "warm-up", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "do better"]
         var isCompetitive = forceTone == "competitive" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -2850,6 +2864,7 @@ public struct MockSocialService: SocialService, Sendable {
 
         if isCompetitive {
             var replies: [String] = []
+            let wantsBetter = strippedLower.contains("do better")
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
@@ -2861,6 +2876,16 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
                 let higherM = Self.allMilestones[higherIdx]
+                if wantsBetter {
+                    replies.append(contentsOf: [
+                        "I always do better. I just hit \(higherM).",
+                        "You wanted better? I'm already at \(higherM).",
+                        "I did do better. Try catching \(higherM).",
+                        "Done. I'm untouched at \(higherM).",
+                        "I'm permanently getting better. I just cleared \(higherM).",
+                    ])
+                } else {
+                    replies.append(contentsOf: [
                 replies.append(contentsOf: [
                     "I am infinitely ahead of your \(m.name) . I'm at \(higherM).",
                     "\(m.name) is permanently behind me. I am untouchable at \(higherM) .",
@@ -2873,11 +2898,21 @@ public struct MockSocialService: SocialService, Sendable {
                     "Try hitting \(higherM) before bragging about \(m.name) .",
                     "I hit \(higherM) yesterday. \(m.name) is old news .",
                 ])
+                }
             }
 
             if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
                 let higherNum = num + Int.random(in: 10...max(20, num))
-                replies.append(contentsOf: [
+                if wantsBetter {
+                    replies.append(contentsOf: [
+                        "I always do better. Just hit \(higherNum).",
+                        "You wanted better? I'm already at \(higherNum).",
+                        "I did do better. Try catching \(higherNum).",
+                        "Done. I'm untouched at \(higherNum).",
+                        "I'm permanently getting better. I just cleared \(higherNum).",
+                    ])
+                } else {
+                    replies.append(contentsOf: [
                     "I am infinitely ahead of your \(numStr) . I'm at \(higherNum).",
                     "Your \(numStr) is cute. I'll always be infinitely ahead at \(higherNum) .",
                     "\(numStr) is just the beginning . I'm already at \(higherNum).",
@@ -2887,12 +2922,22 @@ public struct MockSocialService: SocialService, Sendable {
                     "I passed \(numStr) without even looking. I'm at \(higherNum) .",
                     "\(higherNum) is my floor. Your \(numStr) is my ceiling .",
                 ])
+                }
             }
 
             if mentionedStreak {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum = num + Int.random(in: 5...max(15, num / 5))
-                    replies.append(contentsOf: [
+                    if wantsBetter {
+                        replies.append(contentsOf: [
+                            "I always do better. My streak is now \(higherNum).",
+                            "You wanted better? I'm already at \(higherNum) days.",
+                            "I did do better. Try catching \(higherNum) days.",
+                            "Done. I'm untouched at \(higherNum) days.",
+                            "I'm permanently getting better. I just hit \(higherNum) days.",
+                        ])
+                    } else {
+                        replies.append(contentsOf: [
                         "I am infinitely ahead of your \(numStr) days . I'm at \(higherNum).",
                         "Your \(numStr) day streak is cute. Try catching my \(higherNum) days .",
                         "I passed \(numStr) days ages ago. I'm untouched at \(higherNum) .",
@@ -2902,10 +2947,20 @@ public struct MockSocialService: SocialService, Sendable {
                         "You're bragging about \(numStr) days? I'm at \(higherNum) .",
                         "\(higherNum) days belongs to me. \(higherNum) > \(numStr) .",
                     ])
+                    }
                 } else {
                     let assumedNum = Int.random(in: 5...30)
                     let higherNum = assumedNum + Int.random(in: 10...30)
-                    replies.append(contentsOf: [
+                    if wantsBetter {
+                        replies.append(contentsOf: [
+                            "I always do better. My streak is now \(higherNum).",
+                            "You wanted better? I'm already at \(higherNum) days.",
+                            "I did do better. Try catching \(higherNum) days.",
+                            "Done. I'm untouched at \(higherNum) days.",
+                            "I'm permanently getting better. I just hit \(higherNum) days.",
+                        ])
+                    } else {
+                        replies.append(contentsOf: [
                         "I am infinitely ahead of your streak . I'm at \(higherNum) days.",
                         "Your streak is cute. Try catching my \(higherNum) days .",
                         "I passed that ages ago. I'm untouched at \(higherNum) days .",
@@ -2915,6 +2970,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "You're bragging about streaks? I'm at \(higherNum) days .",
                         "\(higherNum) days belongs to me. I dominate eternity .",
                     ])
+                    }
                 }
             }
 
@@ -2931,7 +2987,16 @@ public struct MockSocialService: SocialService, Sendable {
                     let mySecs = higherNum % 60
                     let higherTime = "\(myMins):\(String(format: "%02d", mySecs))"
                     let posterTime = "\(mins):\(String(format: "%02d", secs))"
-                    replies.append(contentsOf: [
+                    if wantsBetter {
+                        replies.append(contentsOf: [
+                            "I always do better. I just cleared it in \(higherTime).",
+                            "You wanted better? I'm already down to \(higherTime).",
+                            "I did do better. Try catching \(higherTime).",
+                            "Done. I'm untouched at \(higherTime).",
+                            "I'm permanently getting faster. I just hit \(higherTime).",
+                        ])
+                    } else {
+                        replies.append(contentsOf: [
                         "I am infinitely faster than your \(posterTime) . I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) .",
                         "I passed your time ages ago. My record is \(higherTime) .",
