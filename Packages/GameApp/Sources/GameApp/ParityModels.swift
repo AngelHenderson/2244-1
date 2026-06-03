@@ -2623,12 +2623,24 @@ public struct MockSocialService: SocialService, Sendable {
     /// Extracts a time in M:SS format from the message. Returns (minutes, seconds).
     private static func extractTime(from text: String) -> (Int, Int)? {
         let pattern = try? NSRegularExpression(pattern: "(\\d{1,2}):(\\d{2})")
-        guard let match = pattern?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-              let mRange = Range(match.range(at: 1), in: text),
-              let sRange = Range(match.range(at: 2), in: text),
-              let mins = Int(text[mRange]),
-              let secs = Int(text[sRange]) else { return nil }
-        return (mins, secs)
+        let matches = pattern?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
+        
+        var bestTime: (mins: Int, secs: Int)? = nil
+        var bestTotal = Int.max
+        
+        for match in matches {
+            if let mRange = Range(match.range(at: 1), in: text),
+               let sRange = Range(match.range(at: 2), in: text),
+               let mins = Int(text[mRange]),
+               let secs = Int(text[sRange]) {
+                let total = mins * 60 + secs
+                if total < bestTotal {
+                    bestTotal = total
+                    bestTime = (mins, secs)
+                }
+            }
+        }
+        return bestTime
     }
 
     
