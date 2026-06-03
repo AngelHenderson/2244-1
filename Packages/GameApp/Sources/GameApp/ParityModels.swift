@@ -2868,7 +2868,8 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
-                let mIdx = Self.allMilestones.firstIndex(of: m) ?? 15
+                let mIdx = m.index
+                let mName = m.name
                 let jump: Int
                 if Double.random(in: 0...1) < 0.80 {
                     jump = Int.random(in: 1...10)
@@ -2887,16 +2888,16 @@ public struct MockSocialService: SocialService, Sendable {
                     ])
                 } else {
                     replies.append(contentsOf: [
-                    "I am infinitely ahead of your \(m) . I'm at \(higherM).",
-                    "\(m) is permanently behind me. I am untouchable at \(higherM) .",
-                    "Your \(m) is nothing compared to my \(higherM) record .",
-                    "I passed \(m) ages ago. I dominate \(higherM) .",
-                    "My \(higherM) run was completely effortless. \(m) is cute .",
-                    "\(m) was a warm-up . I'm already sitting at \(higherM).",
-                    "You're celebrating \(m)? I just cleared \(higherM) .",
-                    "I left \(m) in the dust. \(higherM) is the new standard .",
-                    "Try hitting \(higherM) before bragging about \(m) .",
-                    "I hit \(higherM) yesterday. \(m) is old news .",
+                    "I am infinitely ahead of your \(mName) . I'm at \(higherM).",
+                    "\(mName) is permanently behind me. I am untouchable at \(higherM) .",
+                    "Your \(mName) is nothing compared to my \(higherM) record .",
+                    "I passed \(mName) ages ago. I dominate \(higherM) .",
+                    "My \(higherM) run was completely effortless. \(mName) is cute .",
+                    "\(mName) was a warm-up . I'm already sitting at \(higherM).",
+                    "You're celebrating \(mName)? I just cleared \(higherM) .",
+                    "I left \(mName) in the dust. \(higherM) is the new standard .",
+                    "Try hitting \(higherM) before bragging about \(mName) .",
+                    "I hit \(higherM) yesterday. \(mName) is old news .",
                 ])
                 }
             }
