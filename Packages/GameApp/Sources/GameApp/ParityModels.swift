@@ -1987,9 +1987,9 @@ public struct MockSocialService: SocialService, Sendable {
         ]
         var competitiveReactions = [
             "Your score is entirely irrelevant to my infinity.",
-            "You will never exist on my tier.", "Enjoy staring up at eternity.",
+            "You will never exist on my tier.", "Enjoy chasing eternity.",
             "My next run will just establish a higher ceiling.", "I'm permanently untouchable.",
-            "You are nothing compared to infinity.", "I dominate this game effortlessly.",
+            "You are nothing compared to infinity.", "I dominate infinity effortlessly.",
             "That record is cute. I'm already infinitely ahead.", "You will never touch my stats.",
             "I'll be staying infinitely ahead permanently.", "I am laughing from the top.",
             "I am maintaining absolute dominance.", "I am completely unreachable.",
@@ -2304,7 +2304,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Just accept you'll never catch me.", "I reign over eternity.", "Your progress means nothing here.",
                     "You are completely irrelevant.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
                     "Your grind is meaningless against infinity.", "My dominance here is absolute.",
-                    "I run this game.", "You're entirely left behind.",
+                    "I run eternity.", "You're entirely left behind.",
                     "I'm untouchable.", "We are not the same.",
                     "Stay down there.", "Eternity belongs to me.",
                     "Your progress is a joke to me."
@@ -3002,9 +3002,9 @@ public struct MockSocialService: SocialService, Sendable {
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) .",
                         "I passed your time ages ago. My record is \(higherTime) .",
                         "\(posterTime) is too slow . I just clocked \(higherTime).",
-                        "I shaved minutes off your \(posterTime). My best is \(higherTime) .",
+                        "I shaved time off your \(posterTime). My best is \(higherTime) .",
                         "You call \(posterTime) fast? Try reaching my \(higherTime) .",
-                        "I speedrun this game. \(higherTime) destroys your \(posterTime) .",
+                        "I speedrun eternity. \(higherTime) destroys your \(posterTime) .",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime) .",
                     ])
                     }
@@ -3022,9 +3022,9 @@ public struct MockSocialService: SocialService, Sendable {
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) .",
                         "I passed your time ages ago. My record is \(higherTime) .",
                         "\(posterTime) is too slow . I just clocked \(higherTime).",
-                        "I shaved minutes off your \(posterTime). My best is \(higherTime) .",
+                        "I shaved time off your \(posterTime). My best is \(higherTime) .",
                         "You call \(posterTime) fast? Try reaching my \(higherTime) .",
-                        "I speedrun this game. \(higherTime) destroys your \(posterTime) .",
+                        "I speedrun eternity. \(higherTime) destroys your \(posterTime) .",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime) .",
                     ])
                 }
@@ -3037,11 +3037,11 @@ public struct MockSocialService: SocialService, Sendable {
                         "I am infinitely ahead of your \(numStr) infinity count . I'm at \(higherNum).",
                         "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) .",
                         "I passed \(numStr) infinities ages ago. I'm at \(higherNum) .",
-                        "\(numStr) infinities is a good start. I'm already sitting at \(higherNum) .",
+                        "\(numStr) infinities is a warm-up. I'm already sitting at \(higherNum) .",
                         "I just logged my \(higherNum)th infinity. Your \(numStr) is cute .",
                         "I dominate the HoF with \(higherNum) entries . \(numStr) isn't enough.",
                         "You're bragging about \(numStr)? I just hit \(higherNum) in the HoF .",
-                        "The Hall of Fame belongs to me. \(higherNum) > \(numStr) .",
+                        "My Hall of Fame status is untouchable. \(higherNum) > \(numStr) .",
                     ])
                 } else {
                     let assumedNum = Int.random(in: 5...15)
@@ -3050,11 +3050,11 @@ public struct MockSocialService: SocialService, Sendable {
                         "I am infinitely ahead of your \(assumedNum) infinity count . I'm at \(higherNum).",
                         "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum) .",
                         "I passed \(assumedNum) infinities ages ago. I'm at \(higherNum) .",
-                        "\(assumedNum) infinities is a good start. I'm already sitting at \(higherNum) .",
+                        "\(assumedNum) infinities is a warm-up. I'm already sitting at \(higherNum) .",
                         "I just logged my \(higherNum)th infinity. Your \(assumedNum) is cute .",
                         "I dominate the HoF with \(higherNum) entries . \(assumedNum) isn't enough.",
                         "You're bragging about \(assumedNum)? I just hit \(higherNum) in the HoF .",
-                        "The Hall of Fame belongs to me. \(higherNum) > \(assumedNum) .",
+                        "My Hall of Fame status is untouchable. \(higherNum) > \(assumedNum) .",
                     ])
                 }
             }
@@ -3097,8 +3097,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Talk to me when you reach \(genericHigherM) .",
                     "None of you are anywhere near my \(genericHigherM) record .",
                     "I'm ignoring this and focusing on my \(genericHigherM) grind .",
-                    "I'm ignoring this and focusing on my \(genericHigherM) grind .",
-                    "I don't have time for this, I'm already pushing \(genericHigherM) .",
+                    "I am untouchable, I'm already pushing \(genericHigherM) .",
                     "Your efforts are pointless. I just hit \(genericHigherM) .",
                     "I am infinitely ahead of you. I'm pushing \(genericHigherM) .",
                     "My record is flawless. Try reaching \(genericHigherM) .",

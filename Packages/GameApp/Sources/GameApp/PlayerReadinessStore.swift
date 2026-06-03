@@ -350,15 +350,15 @@ public final class PlayerReadinessStore {
     public func recomputeVisibleFeatures(highestTile: Int, highestTileStep: Int) {
         var features: Set<HomeFeature> = [.play, .journey, .settings]
 
-        if snapshot.hasCompletedTutorial {
+        if snapshot.hasCompletedTutorial || highestTileStep > 0 {
             features.formUnion([.modes, .practice, .account, .reminders, .widgetPromo])
         }
 
-        if snapshot.completedRuns > 0 {
+        if snapshot.completedRuns > 0 || highestTileStep > 0 {
             features.formUnion([.daily, .dailyQuests, .dailyStreaks])
         }
 
-        if snapshot.hasEarnedFirstReward {
+        if snapshot.hasEarnedFirstReward || highestTileStep > 0 {
             features.formUnion([.shop, .freeSpin, .music, .theme, .profile, .adBonus, .subscription, .yearReview])
         }
 

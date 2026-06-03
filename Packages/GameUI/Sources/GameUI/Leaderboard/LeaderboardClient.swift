@@ -4472,7 +4472,7 @@ public extension LeaderboardClient {
             pageCache[filter] = page
             return page
         },
-        fetchMyRank: { _, _ in globalEntries().first(where: { $0.isMe }) ?? globalEntries().last },
+        fetchMyRank: { _, _ in globalEntries().first(where: { $0.isMe }) },
         initialData: {
             let entries = globalEntries()
             let resolvedEntries = MockLeaderboardData.resolveEntryDuplicates(entries)

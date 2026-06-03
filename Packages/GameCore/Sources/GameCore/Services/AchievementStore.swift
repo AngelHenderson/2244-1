@@ -3137,11 +3137,65 @@ public final class AchievementStore {
     public var claimableCount: Int {
         var count = 0
         for def in catalog {
-            guard unlocks[def.id]?.isClaimable == true else { continue }
-            let rewards = def.id == "tile_progression" ? tileRewards(for: def) : def.rewards
-            count += max(1, rewards?.itemCount ?? 1)
+            count += claimableTiersCount(for: def)
         }
         return count
+    }
+    
+    private func claimableTiersCount(for definition: AchievementDef) -> Int {
+        guard let state = unlocks[definition.id], state.isClaimable else { return 0 }
+        guard let snapshot = lastEvaluatedSnapshot else { return 1 }
+        
+        switch definition.id {
+        case "tile_progression":
+            return Self.tileTiers[tileProgressionTier...].filter { Double(snapshot.max_tile) >= $0.value }.count
+        case "moves_progression":
+            return Self.movesTiers[movesProgressionTier...].filter { Double(snapshot.total_moves) >= $0.value }.count
+        case "merge_progression":
+            return Self.mergeTiers[mergeProgressionTier...].filter { Double(snapshot.merged_tiles_total) >= Double($0.milestone) }.count
+        case "swap_usage_progression":
+            return Self.swapUseTiers[swapUsesProgressionTier...].filter { Double(snapshot.swap_uses_total) >= Double($0.milestone) }.count
+        case "hammer_usage_progression":
+            return Self.hammerUseTiers[hammerUsesProgressionTier...].filter { Double(snapshot.hammer_uses_total) >= Double($0.milestone) }.count
+        case "magnet_usage_progression":
+            return Self.magnetUseTiers[magnetUsesProgressionTier...].filter { Double(snapshot.magnet_uses_total) >= Double($0.milestone) }.count
+        case "spin_usage_progression":
+            return Self.spinUseTiers[spinUsesProgressionTier...].filter { Double(snapshot.spin_uses_total) >= Double($0.milestone) }.count
+        case "survive_moves_progression":
+            return Self.surviveMovesTiers[surviveMovesProgressionTier...].filter { Double(snapshot.survive_moves_total) >= Double($0.milestone) }.count
+        case "playtime_progression":
+            return Self.playtimeTiers[playtimeProgressionTier...].filter { Double(snapshot.play_minutes_total) >= Double($0.milestone) }.count
+        case "infinity_progression":
+            return Self.infinityTiers[infinityProgressionTier...].filter { Double(snapshot.infinity_creations_total) >= Double($0.milestone) }.count
+        case "boost2x_usage_progression":
+            return Self.boost2xUseTiers[boost2xUsesProgressionTier...].filter { Double(snapshot.boost2x_uses_total) >= Double($0.milestone) }.count
+        case "boost3x_usage_progression":
+            return Self.boost3xUseTiers[boost3xUsesProgressionTier...].filter { Double(snapshot.boost3x_uses_total) >= Double($0.milestone) }.count
+        case "boost4x_usage_progression":
+            return Self.boost4xUseTiers[boost4xUsesProgressionTier...].filter { Double(snapshot.boost4x_uses_total) >= Double($0.milestone) }.count
+        case "spin_purchases_progression":
+            return Self.spinPurchaseTiers[spinPurchasesProgressionTier...].filter { Double(snapshot.spin_purchases_total) >= Double($0.milestone) }.count
+        case "daily_claims_progression":
+            return Self.dailyClaimsTiers[dailyClaimsProgressionTier...].filter { Double(snapshot.daily_claims_total) >= Double($0.milestone) }.count
+        case "boost5x_usage_progression":
+            return Self.boost5xUseTiers[boost5xUsesProgressionTier...].filter { Double(snapshot.boost5x_uses_total) >= Double($0.milestone) }.count
+        case "boost20x_usage_progression":
+            return Self.boost20xUseTiers[boost20xUsesProgressionTier...].filter { Double(snapshot.boost20x_uses_total) >= Double($0.milestone) }.count
+        case "wheel_collects_progression":
+            return Self.wheelCollectsTiers[wheelCollectsProgressionTier...].filter { Double(snapshot.wheel_collects_total) >= Double($0.milestone) }.count
+        case "challenge_creation":
+            return Self.challengeCreationTiers[challengeCreationTier...].filter { Double(snapshot.challenge_creations_total) >= Double($0.milestone) }.count
+        case "combo_6_10":
+            return Self.combo610Tiers[combo610Tier...].filter { Double(snapshot.combo610Total) >= Double($0.milestone) }.count
+        case "combo_11_15":
+            return Self.combo1115Tiers[combo1115Tier...].filter { Double(snapshot.combo1115Total) >= Double($0.milestone) }.count
+        case "combo_16_20":
+            return Self.combo1620Tiers[combo1620Tier...].filter { Double(snapshot.combo1620Total) >= Double($0.milestone) }.count
+        case "combo_21_30":
+            return Self.combo2130Tiers[combo2130Tier...].filter { Double(snapshot.combo2130Total) >= Double($0.milestone) }.count
+        default:
+            return 1
+        }
     }
 
     /// Claims all currently claimable achievements and returns the merged rewards
