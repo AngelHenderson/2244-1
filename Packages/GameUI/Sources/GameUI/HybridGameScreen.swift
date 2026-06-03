@@ -97,11 +97,6 @@ public struct HybridGameScreen: View {
             set: { newValue in if !newValue { gameStore.dismissGiftReward() } }
         )
 
-        let notificationBinding = Binding(
-            get: { gameStore.currentNotification != nil },
-            set: { newValue in if !newValue { gameStore.dismissCurrentNotification() } }
-        )
-
         let milestoneSpendBinding = Binding(
             get: { pendingMilestoneSpend != nil },
             set: { newValue in if !newValue { pendingMilestoneSpend = nil } }
@@ -181,9 +176,13 @@ public struct HybridGameScreen: View {
                 }
             }
 
-        // Use regular sheet (not adaptiveSheet) for notifications so they don't cover the whole screen
+        // Notification sheet — uses .sheet for proper presentation styling.
+        // Re-presentation is handled by dismissCurrentNotification's delay logic.
         let notificationSheet = unlockSheet
-            .sheet(isPresented: notificationBinding) {
+            .sheet(isPresented: Binding(
+                get: { gameStore.currentNotification != nil },
+                set: { newValue in if !newValue { gameStore.dismissCurrentNotification() } }
+            )) {
                 if let notification = gameStore.currentNotification {
                     Group {
                         switch notification {

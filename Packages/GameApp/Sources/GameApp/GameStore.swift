@@ -2279,15 +2279,34 @@ public final class GameStore {
         lastMagnetEvent = nil
     }
     
+    private var notificationWatchdog: Task<Void, Never>?
+
     private func showNextNotification() {
+        // Cancel any existing watchdog
+        notificationWatchdog?.cancel()
+
         guard !notificationQueue.isEmpty else {
             currentNotification = nil
             return
         }
         currentNotification = notificationQueue.removeFirst()
+
+        // Start a watchdog timer — if the notification hasn't been dismissed within
+        // 30 seconds (e.g., SwiftUI sheet failed to present), auto-dismiss it so
+        // the queue doesn't get permanently stuck.
+        notificationWatchdog = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+            guard !Task.isCancelled, let self, self.currentNotification != nil else { return }
+            print("🔔 WATCHDOG: Auto-dismissing stale notification")
+            self.dismissCurrentNotification()
+        }
     }
     
     public func dismissCurrentNotification() {
+        // Cancel watchdog since the notification was properly dismissed
+        notificationWatchdog?.cancel()
+        notificationWatchdog = nil
+
         // Check if we're dismissing an excluded notification - trigger elimination animation
         if case .excluded(_, _) = currentNotification, !pendingEliminationTiles.isEmpty {
             triggerEliminationAnimation()

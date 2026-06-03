@@ -1406,7 +1406,7 @@ public struct MockSocialService: SocialService, Sendable {
                     var npc2: (name: String, avatar: String)? = nil
                     
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
-                    let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
+                    let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...10) : 0
                     while currentDepth < targetDepth {
                         if npc2 == nil {
                             let replyIndex = Int.random(in: 1...100000)
@@ -2694,35 +2694,47 @@ public struct MockSocialService: SocialService, Sendable {
                 foundMilestones.append((index: idx, name: m))
             }
         }
-        var mentionedMilestone = foundMilestones.max(by: { $0.index < $1.index })
+        let commentMilestone = foundMilestones.max(by: { $0.index < $1.index })
+        
+        let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
+        let lowerMessage = message.lowercased()
+        let rootMilestone = sortedMilestones.first(where: { entry in
+            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: entry.element.lowercased()))\\b(?!:)"
+            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowerMessage, range: NSRange(lowerMessage.startIndex..., in: lowerMessage)) != nil
+        }).map { (index: $0.offset, name: $0.element) }
 
-        if mentionedMilestone == nil {
-            let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
-            let lowerMessage = message.lowercased()
-            mentionedMilestone = sortedMilestones.first(where: { entry in
-                let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: entry.element.lowercased()))\\b(?!:)"
-                return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowerMessage, range: NSRange(lowerMessage.startIndex..., in: lowerMessage)) != nil
-            }).map { ($0.offset, $0.element) }
-        }
+        let mentionedMilestone = commentMilestone ?? rootMilestone
 
-        // Pull any number referenced (playtime, days, attempts, etc.)
-        // Minimum of 3 — smaller numbers like 0, 1, 2 are almost never meaningful stats
-        let mentionedNumber: String? = {
+        let commentNumber: Int? = {
             let regex = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b", options: [])
             let range = NSRange(strippedText.startIndex..., in: strippedText)
             if let matches = regex?.matches(in: strippedText, range: range) {
                 let numbers = matches.compactMap { match -> Int? in
-                    if let r = Range(match.range(at: 1), in: strippedText) {
-                        return Int(String(strippedText[r]))
-                    }
+                    if let r = Range(match.range(at: 1), in: strippedText) { return Int(String(strippedText[r])) }
                     return nil
                 }
-                if let maxNum = numbers.max(), maxNum >= 3 {
-                    return String(maxNum)
-                }
+                if let maxNum = numbers.max(), maxNum >= 3 { return maxNum }
             }
             return nil
         }()
+
+        let rootNumber: Int? = {
+            let regex = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b", options: [])
+            let range = NSRange(message.startIndex..., in: message)
+            if let matches = regex?.matches(in: message, range: range) {
+                let numbers = matches.compactMap { match -> Int? in
+                    if let r = Range(match.range(at: 1), in: message) { return Int(String(message[r])) }
+                    return nil
+                }
+                if let maxNum = numbers.max(), maxNum >= 3 { return maxNum }
+            }
+            return nil
+        }()
+        
+        let mentionedNumber = (commentNumber ?? rootNumber).map { String($0) }
+        
+        let commentTime = Self.extractTime(from: strippedLower)
+        let rootTime = Self.extractTime(from: message.lowercased())
 
         // Extract key phrases the commenter used for mirroring
         let msgLower = message.lowercased()
@@ -2880,8 +2892,18 @@ public struct MockSocialService: SocialService, Sendable {
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
-                let mIdx = m.index
-                let mName = m.name
+                let isLowerBrag = commentMilestone != nil && rootMilestone != nil && commentMilestone!.index < rootMilestone!.index
+                if isLowerBrag, let cM = commentMilestone, let rM = rootMilestone {
+                    replies.append(contentsOf: [
+                        "You're bragging about \(cM.name)? I'm already at \(rM.name). You're still too low to get ahead.",
+                        "\(cM.name) is nothing. I posted about \(rM.name). You're still too low to get ahead.",
+                        "You thought \(cM.name) would impress me? I'm at \(rM.name). You're still too low to get ahead.",
+                        "Are you serious? \(cM.name) is beneath my \(rM.name). You're still too low to get ahead.",
+                        "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead."
+                    ])
+                } else {
+                    let mIdx = m.index
+                    let mName = m.name
                 let jump: Int
                 if Double.random(in: 0...1) < 0.80 {
                     jump = Int.random(in: 1...10)
@@ -2892,11 +2914,16 @@ public struct MockSocialService: SocialService, Sendable {
                 let higherM = Self.allMilestones[higherIdx]
                 if wantsBetter {
                     replies.append(contentsOf: [
-                        "I always do better. I just hit \(higherM).",
-                        "You wanted better? I'm already at \(higherM).",
+                        "I always do better. I'm already pushing \(higherM).",
+                        "You wanted better? I'm sitting at \(higherM).",
                         "I did do better. Try catching \(higherM).",
                         "Done. I'm untouched at \(higherM).",
-                        "I'm permanently getting better. I just cleared \(higherM).",
+                        "I'm permanently climbing. I just hit \(higherM).",
+                        "Better is my baseline. I'm at \(higherM).",
+                        "I already left you behind. \(higherM) is next.",
+                        "Watch me. I'm clearing \(higherM) effortlessly.",
+                        "That's easy. I'm sitting comfortably at \(higherM).",
+                        "I never stop climbing. \(higherM) is already done.",
                     ])
                 } else {
                     replies.append(contentsOf: [
@@ -2912,54 +2939,87 @@ public struct MockSocialService: SocialService, Sendable {
                     "I hit \(higherM) yesterday. \(mName) is old news .",
                 ])
                 }
+                }
             }
 
             if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
-                let higherNum = num + Int.random(in: 10...max(20, num))
-                if wantsBetter {
+                let isLowerScoreBrag = commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                if isLowerScoreBrag, let cN = commentNumber, let rN = rootNumber {
                     replies.append(contentsOf: [
-                        "I always do better. Just hit \(higherNum).",
-                        "You wanted better? I'm already at \(higherNum).",
-                        "I did do better. Try catching \(higherNum).",
-                        "Done. I'm untouched at \(higherNum).",
-                        "I'm permanently getting better. I just cleared \(higherNum).",
+                        "You're bragging about \(cN)? I'm already at \(rN). You're still too low to get ahead.",
+                        "\(cN) is nothing. I posted about \(rN). You're still too low to get ahead.",
+                        "You thought \(cN) would impress me? I'm at \(rN). You're still too low to get ahead.",
+                        "Are you serious? \(cN) is beneath my \(rN). You're still too low to get ahead.",
+                        "I'm at \(rN) and you're bragging about \(cN)? You're still too low to get ahead."
                     ])
                 } else {
-                    replies.append(contentsOf: [
-                    "I am infinitely ahead of your \(numStr) . I'm at \(higherNum).",
-                    "Your \(numStr) is cute. I'll always be infinitely ahead at \(higherNum) .",
-                    "\(numStr) is just the beginning . I'm already at \(higherNum).",
-                    "I left your \(numStr) score in the dust. Just hit \(higherNum) .",
-                    "You thought \(numStr) was good? I'm laughing from \(higherNum) .",
-                    "\(numStr) points is light work. Try \(higherNum) .",
-                    "I passed \(numStr) without even looking. I'm at \(higherNum) .",
-                    "\(higherNum) is my floor. Your \(numStr) is my ceiling .",
-                ])
+                    let higherNum = num + Int.random(in: 10...max(20, num))
+                    if wantsBetter {
+                        replies.append(contentsOf: [
+                            "I always do better. Just hit \(higherNum) .",
+                            "You wanted better? I'm already at \(higherNum) .",
+                            "I did do better. Try catching \(higherNum) .",
+                            "Done. I'm untouched at \(higherNum) .",
+                            "I'm permanently climbing. I just hit \(higherNum) .",
+                            "Better is my baseline. I just hit \(higherNum) .",
+                            "I already left you behind. \(higherNum) is my new floor .",
+                            "Watch me. I'm scoring \(higherNum) effortlessly .",
+                            "That's easy. I'm sitting comfortably at \(higherNum) .",
+                            "I never stop climbing. \(higherNum) is already done .",
+                        ])
+                    } else {
+                        replies.append(contentsOf: [
+                        "I am infinitely ahead of your \(numStr) . I'm at \(higherNum).",
+                        "Your \(numStr) is cute. I'll always be infinitely ahead at \(higherNum) .",
+                        "\(numStr) is just the beginning . I'm already at \(higherNum).",
+                        "I left your \(numStr) score in the dust. Just hit \(higherNum) .",
+                        "You thought \(numStr) was good? I'm laughing from \(higherNum) .",
+                        "\(numStr) points is light work. Try \(higherNum) .",
+                        "I passed \(numStr) without even looking. I'm at \(higherNum) .",
+                        "\(higherNum) is my floor. Your \(numStr) is my ceiling .",
+                    ])
+                    }
                 }
             }
 
             if mentionedStreak {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
-                    let higherNum = num + Int.random(in: 5...max(15, num / 5))
-                    if wantsBetter {
+                    let isLowerStreakBrag = commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                    if isLowerStreakBrag, let cN = commentNumber, let rN = rootNumber {
                         replies.append(contentsOf: [
-                            "I always do better. My streak is now \(higherNum).",
-                            "You wanted better? I'm already at \(higherNum) days.",
-                            "I did do better. Try catching \(higherNum) days.",
-                            "Done. I'm untouched at \(higherNum) days.",
-                            "I'm permanently getting better. I just hit \(higherNum) days.",
+                            "You're bragging about \(cN) days? I'm already at \(rN). You're still too low to get ahead.",
+                            "\(cN) days is nothing. I posted about \(rN). You're still too low to get ahead.",
+                            "You thought \(cN) days would impress me? I'm at \(rN). You're still too low to get ahead.",
+                            "Are you serious? \(cN) days is beneath my \(rN). You're still too low to get ahead.",
+                            "I'm at \(rN) days and you're bragging about \(cN)? You're still too low to get ahead."
                         ])
                     } else {
-                        replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(numStr) days . I'm at \(higherNum).",
-                        "Your \(numStr) day streak is cute. Try catching my \(higherNum) days .",
-                        "I passed \(numStr) days ages ago. I'm untouched at \(higherNum) .",
-                        "\(numStr) days is a warm-up. I'm already sitting at \(higherNum) .",
-                        "I just hit \(higherNum) days. Your \(numStr) is nothing .",
-                        "My infinite consistency is at \(higherNum) days . \(numStr) is light.",
-                        "You're bragging about \(numStr) days? I'm at \(higherNum) .",
-                        "\(higherNum) days belongs to me. \(higherNum) > \(numStr) .",
-                    ])
+                        let higherNum = num + Int.random(in: 5...max(15, num / 5))
+                        if wantsBetter {
+                            replies.append(contentsOf: [
+                                "I always do better. My streak is now \(higherNum).",
+                                "You wanted better? I'm already at \(higherNum) days.",
+                                "I did do better. Try catching \(higherNum) days.",
+                                "Done. I'm untouched at \(higherNum) days.",
+                                "I'm permanently climbing. I just hit \(higherNum) days.",
+                                "Better is my baseline. I just hit \(higherNum) days.",
+                                "I already left you behind. \(higherNum) days is my new floor.",
+                                "Watch me. I'm streak-running \(higherNum) days effortlessly.",
+                                "That's easy. I'm sitting comfortably at \(higherNum) days.",
+                                "I never stop climbing. \(higherNum) days is already done.",
+                            ])
+                        } else {
+                            replies.append(contentsOf: [
+                            "I am infinitely ahead of your \(numStr) days . I'm at \(higherNum).",
+                            "Your \(numStr) day streak is cute. Try catching my \(higherNum) days .",
+                            "I passed \(numStr) days ages ago. I'm untouched at \(higherNum) .",
+                            "\(numStr) days is a warm-up. I'm already sitting at \(higherNum) .",
+                            "I just hit \(higherNum) days. Your \(numStr) is nothing .",
+                            "My infinite consistency is at \(higherNum) days . \(numStr) is light.",
+                            "You're bragging about \(numStr) days? I'm at \(higherNum) .",
+                            "\(higherNum) days belongs to me. \(higherNum) > \(numStr) .",
+                        ])
+                        }
                     }
                 } else {
                     let assumedNum = Int.random(in: 5...30)
@@ -2988,7 +3048,25 @@ public struct MockSocialService: SocialService, Sendable {
             }
 
             if mentionedTime {
-                if let (mins, secs) = Self.extractTime(from: strippedLower) {
+                let isSlowerTimeBrag = {
+                    if let cT = commentTime, let rT = rootTime {
+                        let cSecs = cT.0 * 60 + cT.1
+                        let rSecs = rT.0 * 60 + rT.1
+                        return cSecs > rSecs
+                    }
+                    return false
+                }()
+                if isSlowerTimeBrag, let cT = commentTime, let rT = rootTime {
+                    let cTimeStr = "\(cT.0):\(String(format: "%02d", cT.1))"
+                    let rTimeStr = "\(rT.0):\(String(format: "%02d", rT.1))"
+                    replies.append(contentsOf: [
+                        "You're bragging about \(cTimeStr)? I'm already down to \(rTimeStr). You're still too slow to get ahead.",
+                        "\(cTimeStr) is nothing. I posted about \(rTimeStr). You're still too slow to get ahead.",
+                        "You thought \(cTimeStr) would impress me? I'm at \(rTimeStr). You're still too slow to get ahead.",
+                        "Are you serious? \(cTimeStr) is slower than my \(rTimeStr). You're still too slow to get ahead.",
+                        "I'm at \(rTimeStr) and you're bragging about \(cTimeStr)? You're still too slow to get ahead."
+                    ])
+                } else if let (mins, secs) = commentTime ?? rootTime {
                     let totalSecs = mins * 60 + secs
                     let higherNum: Int
                     if totalSecs <= 10 {
@@ -3007,6 +3085,11 @@ public struct MockSocialService: SocialService, Sendable {
                             "I did do better. Try catching \(higherTime).",
                             "Done. I'm untouched at \(higherTime).",
                             "I'm permanently getting faster. I just hit \(higherTime).",
+                            "Better is my baseline. I just cleared it in \(higherTime).",
+                            "I already left you behind. \(higherTime) is my new floor.",
+                            "Watch me. I'm clocking \(higherTime) effortlessly.",
+                            "That's easy. I'm sitting comfortably at \(higherTime).",
+                            "I never stop climbing. \(higherTime) is already done.",
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -3044,17 +3127,28 @@ public struct MockSocialService: SocialService, Sendable {
 
             if mentionedHoF {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
-                    let higherNum = num + Int.random(in: 1...max(3, num/2))
-                    replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(numStr) infinity count . I'm at \(higherNum).",
-                        "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) .",
-                        "I passed \(numStr) infinities ages ago. I'm at \(higherNum) .",
-                        "\(numStr) infinities is a warm-up. I'm already sitting at \(higherNum) .",
-                        "I just logged my \(higherNum)th infinity. Your \(numStr) is cute .",
-                        "I dominate the HoF with \(higherNum) entries . \(numStr) isn't enough.",
-                        "You're bragging about \(numStr)? I just hit \(higherNum) in the HoF .",
-                        "My Hall of Fame status is untouchable. \(higherNum) > \(numStr) .",
-                    ])
+                    let isLowerHoFBrag = commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                    if isLowerHoFBrag, let cN = commentNumber, let rN = rootNumber {
+                        replies.append(contentsOf: [
+                            "You're bragging about \(cN) infinities? I'm already at \(rN). You're still too low to get ahead.",
+                            "\(cN) infinities is nothing. I posted about \(rN). You're still too low to get ahead.",
+                            "You thought \(cN) infinities would impress me? I'm at \(rN). You're still too low to get ahead.",
+                            "Are you serious? \(cN) infinities is beneath my \(rN). You're still too low to get ahead.",
+                            "I'm at \(rN) infinities and you're bragging about \(cN)? You're still too low to get ahead."
+                        ])
+                    } else {
+                        let higherNum = num + Int.random(in: 1...max(3, num/2))
+                        replies.append(contentsOf: [
+                            "I am infinitely ahead of your \(numStr) infinity count . I'm at \(higherNum).",
+                            "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) .",
+                            "I passed \(numStr) infinities ages ago. I'm at \(higherNum) .",
+                            "\(numStr) infinities is a warm-up. I'm already sitting at \(higherNum) .",
+                            "I just logged my \(higherNum)th infinity. Your \(numStr) is cute .",
+                            "I dominate the HoF with \(higherNum) entries . \(numStr) isn't enough.",
+                            "You're bragging about \(numStr)? I just hit \(higherNum) in the HoF .",
+                            "My Hall of Fame status is untouchable. \(higherNum) > \(numStr) .",
+                        ])
+                    }
                 } else {
                     let assumedNum = Int.random(in: 5...15)
                     let higherNum = assumedNum + Int.random(in: 2...8)
