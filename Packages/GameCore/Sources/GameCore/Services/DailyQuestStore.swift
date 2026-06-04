@@ -41,12 +41,41 @@ public final class DailyQuestStore {
     private static let tileTargetStepKey = "dailyQuests.tileTargetStep"
 
     private let defaults: UserDefaults
+    nonisolated(unsafe) private var resetTimer: Timer?
+    nonisolated(unsafe) private var dayChangedObserver: Any?
 
     // MARK: - Init
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         resetIfNewDay()
+        scheduleNextReset()
+        
+        dayChangedObserver = NotificationCenter.default.addObserver(forName: .NSCalendarDayChanged, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.resetIfNewDay()
+                self?.scheduleNextReset()
+            }
+        }
+    }
+    
+    deinit {
+        resetTimer?.invalidate()
+        if let observer = dayChangedObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+    
+    private func scheduleNextReset() {
+        resetTimer?.invalidate()
+        let timeRemaining = timeUntilReset()
+        // Wait precisely until midnight plus a tiny fractional buffer
+        resetTimer = Timer.scheduledTimer(withTimeInterval: timeRemaining + 0.1, repeats: false) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.resetIfNewDay()
+                self?.scheduleNextReset()
+            }
+        }
     }
 
     // MARK: - Quest Definitions

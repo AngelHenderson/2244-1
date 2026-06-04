@@ -2709,7 +2709,7 @@ public struct MockSocialService: SocialService, Sendable {
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowerMessage, range: NSRange(lowerMessage.startIndex..., in: lowerMessage)) != nil
         }).map { (index: $0.offset, name: $0.element) }
 
-        let mentionedMilestone = commentMilestone ?? rootMilestone
+        var mentionedMilestone = commentMilestone ?? rootMilestone
 
         let commentNumber: Int? = {
             let regex = try? NSRegularExpression(pattern: "\\b(\\d{1,6})\\b", options: [])
@@ -2737,7 +2737,7 @@ public struct MockSocialService: SocialService, Sendable {
             return nil
         }()
         
-        let mentionedNumber = (commentNumber ?? rootNumber).map { String($0) }
+        var mentionedNumber = (commentNumber ?? rootNumber).map { String($0) }
         
         let commentTime = Self.extractTime(from: strippedLower)
         let rootTime = Self.extractTime(from: message.lowercased())
@@ -2747,13 +2747,36 @@ public struct MockSocialService: SocialService, Sendable {
         let combinedLower = strippedLower + " " + msgLower
         
         let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: combinedLower, range: NSRange(combinedLower.startIndex..., in: combinedLower)) != nil
-        let mentionedTime = hasTimeFormat || combinedLower.contains("time") || combinedLower.contains("fast") || combinedLower.contains("speed") || combinedLower.contains("quick") || combinedLower.contains("sec") || combinedLower.contains("min") || combinedLower.contains("clock")
-        let mentionedStreak = combinedLower.contains("streak") || combinedLower.contains("day") || combinedLower.contains("consecutive")
-        let mentionedTheme = combinedLower.contains("theme") || combinedLower.contains("style") || combinedLower.contains("aesthetic")
-        let mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("hof") || combinedLower.contains("infinity count")
-        let mentionedPerk = combinedLower.contains("hammer") || combinedLower.contains("swap") || combinedLower.contains("magnet") || combinedLower.contains("perk")
-        let mentionedGems = combinedLower.contains("gem")
-        let mentionedQuest = combinedLower.contains("quest") || combinedLower.contains("objective") || combinedLower.contains("chest")
+        var mentionedTime = hasTimeFormat || combinedLower.contains("time") || combinedLower.contains("fast") || combinedLower.contains("speed") || combinedLower.contains("quick") || combinedLower.contains("sec") || combinedLower.contains("min") || combinedLower.contains("clock")
+        var mentionedStreak = combinedLower.contains("streak") || combinedLower.contains("day") || combinedLower.contains("consecutive")
+        var mentionedTheme = combinedLower.contains("theme") || combinedLower.contains("style") || combinedLower.contains("aesthetic")
+        var mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("hof") || combinedLower.contains("infinity count")
+        var mentionedPerk = combinedLower.contains("hammer") || combinedLower.contains("swap") || combinedLower.contains("magnet") || combinedLower.contains("perk")
+        var mentionedGems = combinedLower.contains("gem")
+        var mentionedQuest = combinedLower.contains("quest") || combinedLower.contains("objective") || combinedLower.contains("chest")
+
+        // ── Mutually Exclusive Topic Priority ──
+        if mentionedHoF {
+            mentionedMilestone = nil
+            mentionedTime = false
+            mentionedStreak = false
+            mentionedQuest = false
+            // Keep mentionedNumber for HoF logic
+        } else if mentionedTime {
+            mentionedMilestone = nil
+            mentionedStreak = false
+            mentionedQuest = false
+            mentionedNumber = nil // Time logic doesn't use generic numbers
+        } else if mentionedStreak {
+            mentionedMilestone = nil
+            mentionedQuest = false
+            // Keep mentionedNumber for Streak logic
+        } else if mentionedQuest {
+            mentionedMilestone = nil
+            mentionedNumber = nil // Quest logic uses string tiers
+        } else if mentionedMilestone != nil {
+            mentionedNumber = nil // Milestone logic uses milestone indexes
+        }
 
         // ── Detect the tone/intent of the comment being replied to ──
 

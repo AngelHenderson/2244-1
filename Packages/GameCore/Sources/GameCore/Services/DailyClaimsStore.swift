@@ -41,6 +41,9 @@ public final class DailyClaimsStore {
     private var claimedDays: Set<Int> = []
     private var unlockedStreaks: Set<Int> = []
     
+    nonisolated(unsafe) private var resetTimer: Timer?
+    nonisolated(unsafe) private var dayChangedObserver: Any?
+    
     public var onReward: (@MainActor (AchievementDef.Rewards) -> Void)?
 
     /// The gem cost to restore a broken streak: `brokenStreak × 25`.
@@ -70,6 +73,39 @@ public final class DailyClaimsStore {
         Task {
             await loadCatalogs()
             updateAvailability()
+        }
+        scheduleNextReset()
+        
+        dayChangedObserver = NotificationCenter.default.addObserver(forName: .NSCalendarDayChanged, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.updateAvailability()
+                self?.scheduleNextReset()
+            }
+        }
+    }
+    
+    deinit {
+        resetTimer?.invalidate()
+        if let observer = dayChangedObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+    
+    private func scheduleNextReset() {
+        resetTimer?.invalidate()
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday) else { return }
+        
+        let timeRemaining = max(0, startOfTomorrow.timeIntervalSince(now))
+        
+        // Wait precisely until midnight plus a tiny fractional buffer
+        resetTimer = Timer.scheduledTimer(withTimeInterval: timeRemaining + 0.1, repeats: false) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.updateAvailability()
+                self?.scheduleNextReset()
+            }
         }
     }
     
