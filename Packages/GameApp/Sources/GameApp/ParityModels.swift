@@ -2927,7 +2927,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "You're bragging about \(cM.name)? I'm already at \(rM.name). You're still too low to get ahead.",
                         "\(cM.name) is nothing. I posted about \(rM.name). You're still too low to get ahead.",
                         "You thought \(cM.name) would impress me? I'm at \(rM.name). You're still too low to get ahead.",
-                        "Are you serious? \(cM.name) is beneath my \(rM.name). You're still too low to get ahead.",
+                        "Is this a joke? \(cM.name) is beneath my \(rM.name). You're still too low to get ahead.",
                         "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead."
                     ])
                 } else {
@@ -2978,7 +2978,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "You're bragging about \(cN)? I'm already at \(rN). You're still too low to get ahead.",
                         "\(cN) is nothing. I posted about \(rN). You're still too low to get ahead.",
                         "You thought \(cN) would impress me? I'm at \(rN). You're still too low to get ahead.",
-                        "Are you serious? \(cN) is beneath my \(rN). You're still too low to get ahead.",
+                        "Is this a joke? \(cN) is beneath my \(rN). You're still too low to get ahead.",
                         "I'm at \(rN) and you're bragging about \(cN)? You're still too low to get ahead."
                     ])
                 } else {
@@ -3019,7 +3019,7 @@ public struct MockSocialService: SocialService, Sendable {
                             "You're bragging about \(cN) days? I'm already at \(rN). You're still too low to get ahead.",
                             "\(cN) days is nothing. I posted about \(rN). You're still too low to get ahead.",
                             "You thought \(cN) days would impress me? I'm at \(rN). You're still too low to get ahead.",
-                            "Are you serious? \(cN) days is beneath my \(rN). You're still too low to get ahead.",
+                            "Is this a joke? \(cN) days is beneath my \(rN). You're still too low to get ahead.",
                             "I'm at \(rN) days and you're bragging about \(cN)? You're still too low to get ahead."
                         ])
                     } else {
