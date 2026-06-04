@@ -1992,12 +1992,12 @@ public struct MockSocialService: SocialService, Sendable {
             "I keep choking at this point", "Why can't I do this",
         ]
         var competitiveReactions = [
-            "Your score is entirely irrelevant to my infinity.",
-            "You will never exist on my tier.", "Enjoy chasing eternity.",
+            "Your score is entirely irrelevant to my record.",
+            "You will never exist on my level.", "Enjoy chasing my lead.",
             "My next run will just establish a higher ceiling.", "I'm permanently untouchable.",
-            "You are nothing compared to infinity.", "I dominate infinity effortlessly.",
-            "That record is cute. I'm already infinitely ahead.", "You will never touch my stats.",
-            "I'll be staying infinitely ahead permanently.", "I am laughing from the top.",
+            "You are nothing compared to my dominance.", "I dominate everything effortlessly.",
+            "That record is cute. I'm already leagues ahead.", "You will never touch my stats.",
+            "I'll be staying far ahead permanently.", "I am laughing from the top.",
             "I am maintaining absolute dominance.", "I am completely unreachable.",
         ]
         var questions = [
@@ -2290,13 +2290,13 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Too easy.", "Forever beyond reach.", "You can't touch infinity.",
-                    "Barely had to try.", "My infinite lead is permanent.", "Light work.",
+                    "Too easy.", "Forever beyond reach.", "You can't touch my stats.",
+                    "Barely had to try.", "My lead is permanent.", "Light work.",
                     "This is entirely effortless.", "Do better.", "Your effort is pointless.",
                     "You are entirely irrelevant.", "Effortless.", "I'll dominate this rivalry forever.",
-                    "Didn't even break a sweat.", "That's cute.", "I dominate eternity.",
-                    "Flawless.", "This rivalry is completely one-sided.", "There is no catching up to infinity.",
-                    "No one can touch my infinity.", "Endless grinding, and you're still behind."
+                    "Didn't even break a sweat.", "That's cute.", "I dominate everything.",
+                    "Flawless.", "This rivalry is completely one-sided.", "There is no catching up to me.",
+                    "No one can touch my stats.", "Endless grinding, and you're still behind."
                 ]
                 
                 let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
@@ -2305,11 +2305,11 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly append a competitive closer ~80% of the time
             if Double.random(in: 0...1) < 0.80 {
                 let compClosers = [
-                    "My infinite lead cannot be broken.", "You'll never catch me.", "I'll always be tiers above.",
-                    "Don't bother trying.", "I'm infinitely untouchable.", "My endless stats are permanent.",
+                    "My lead cannot be broken.", "You'll never catch me.", "I'll always be levels above.",
+                    "Don't bother trying.", "I'm permanently untouchable.", "My endless stats are permanent.",
                     "Just accept you'll never catch me.", "I reign supreme.", "Your progress means nothing here.",
-                    "You are completely irrelevant.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
-                    "Your grind is meaningless against infinity.", "My dominance here is absolute.",
+                    "You are completely irrelevant.", "No one is touching my record.", "I'll always be leagues ahead.",
+                    "Your grind is meaningless.", "My dominance here is absolute.",
                     "I set the standard.", "You're entirely left behind.",
                     "I'm untouchable.", "We are not the same.",
                     "Stay down there.", "This record belongs to me.",
