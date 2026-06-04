@@ -2251,7 +2251,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Your \(m) is entirely irrelevant to my infinity.",
                     "\(m) is permanently and absolutely behind me.",
                     "Your \(m) is nothing compared to my eternal record.",
-                    "I left \(m) in the dust ages ago.",
+                    "I left \(m) in the dust.",
                     "I dominate \(m) without even looking.",
                     "My lead beyond \(m) will remain untouchable forever.",
                 ])
@@ -2307,12 +2307,12 @@ public struct MockSocialService: SocialService, Sendable {
                 let compClosers = [
                     "My infinite lead cannot be broken.", "You'll never catch me.", "I'll always be tiers above.",
                     "Don't bother trying.", "I'm infinitely untouchable.", "My endless stats are permanent.",
-                    "Just accept you'll never catch me.", "I reign over eternity.", "Your progress means nothing here.",
+                    "Just accept you'll never catch me.", "I reign supreme.", "Your progress means nothing here.",
                     "You are completely irrelevant.", "No one is touching my infinite record.", "I'll always be infinitely ahead.",
                     "Your grind is meaningless against infinity.", "My dominance here is absolute.",
-                    "I run eternity.", "You're entirely left behind.",
+                    "I set the standard.", "You're entirely left behind.",
                     "I'm untouchable.", "We are not the same.",
-                    "Stay down there.", "Eternity belongs to me.",
+                    "Stay down there.", "This record belongs to me.",
                     "Your progress is a joke to me."
                 ]
                 
@@ -2959,7 +2959,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "I am infinitely ahead of your \(mName) . I'm at \(higherM).",
                     "\(mName) is permanently behind me. I am untouchable at \(higherM) .",
                     "Your \(mName) is nothing compared to my \(higherM) record .",
-                    "I passed \(mName) ages ago. I dominate \(higherM) .",
+                    "I easily passed \(mName) . I dominate \(higherM) .",
                     "My \(higherM) run was completely effortless. \(mName) is cute .",
                     "\(mName) was a warm-up . I'm already sitting at \(higherM).",
                     "You're celebrating \(mName)? I just cleared \(higherM) .",
@@ -3041,12 +3041,12 @@ public struct MockSocialService: SocialService, Sendable {
                             replies.append(contentsOf: [
                             "I am infinitely ahead of your \(numStr) days . I'm at \(higherNum).",
                             "Your \(numStr) day streak is cute. Try catching my \(higherNum) days .",
-                            "I passed \(numStr) days ages ago. I'm untouched at \(higherNum) .",
+                            "I already passed \(numStr) days . I'm untouched at \(higherNum) .",
                             "\(numStr) days is a warm-up. I'm already sitting at \(higherNum) .",
                             "I just hit \(higherNum) days. Your \(numStr) is nothing .",
                             "My infinite consistency is at \(higherNum) days . \(numStr) is light.",
                             "You're bragging about \(numStr) days? I'm at \(higherNum) .",
-                            "\(higherNum) days belongs to me. \(higherNum) > \(numStr) .",
+                            "I own \(higherNum) days . \(higherNum) > \(numStr) .",
                         ])
                         }
                     }
@@ -3065,12 +3065,12 @@ public struct MockSocialService: SocialService, Sendable {
                         replies.append(contentsOf: [
                         "I am infinitely ahead of your streak . I'm at \(higherNum) days.",
                         "Your streak is cute. Try catching my \(higherNum) days .",
-                        "I passed that ages ago. I'm untouched at \(higherNum) days .",
+                        "I already passed that . I'm untouched at \(higherNum) days .",
                         "Your streak is a warm-up. I'm already sitting at \(higherNum) days .",
                         "I just hit \(higherNum) days. Your consistency is nothing .",
                         "My infinite consistency is at \(higherNum) days . Your streak is light.",
                         "You're bragging about streaks? I'm at \(higherNum) days .",
-                        "\(higherNum) days belongs to me. I dominate eternity .",
+                        "I own \(higherNum) days . I dominate everything .",
                     ])
                     }
                 }
@@ -3124,11 +3124,11 @@ public struct MockSocialService: SocialService, Sendable {
                         replies.append(contentsOf: [
                         "I am infinitely faster than your \(posterTime) . I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) .",
-                        "I passed your time ages ago. My record is \(higherTime) .",
+                        "I easily passed your time . My record is \(higherTime) .",
                         "\(posterTime) is too slow . I just clocked \(higherTime).",
                         "I shaved time off your \(posterTime). My best is \(higherTime) .",
                         "You call \(posterTime) fast? Try reaching my \(higherTime) .",
-                        "I speedrun eternity. \(higherTime) destroys your \(posterTime) .",
+                        "I speedrun effortlessly. \(higherTime) destroys your \(posterTime) .",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime) .",
                     ])
                     }
@@ -3144,11 +3144,11 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append(contentsOf: [
                         "I am infinitely faster than your \(posterTime) . I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime) .",
-                        "I passed your time ages ago. My record is \(higherTime) .",
+                        "I easily passed your time. My record is \(higherTime) .",
                         "\(posterTime) is too slow . I just clocked \(higherTime).",
                         "I shaved time off your \(posterTime). My best is \(higherTime) .",
                         "You call \(posterTime) fast? Try reaching my \(higherTime) .",
-                        "I speedrun eternity. \(higherTime) destroys your \(posterTime) .",
+                        "I speedrun effortlessly. \(higherTime) destroys your \(posterTime) .",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime) .",
                     ])
                 }
@@ -3170,7 +3170,7 @@ public struct MockSocialService: SocialService, Sendable {
                         replies.append(contentsOf: [
                             "I am infinitely ahead of your \(numStr) infinity count . I'm at \(higherNum).",
                             "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum) .",
-                            "I passed \(numStr) infinities ages ago. I'm at \(higherNum) .",
+                            "I already passed \(numStr) infinities . I'm at \(higherNum) .",
                             "\(numStr) infinities is a warm-up. I'm already sitting at \(higherNum) .",
                             "I just logged my \(higherNum)th infinity. Your \(numStr) is cute .",
                             "I dominate the HoF with \(higherNum) entries . \(numStr) isn't enough.",
@@ -3184,7 +3184,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append(contentsOf: [
                         "I am infinitely ahead of your \(assumedNum) infinity count . I'm at \(higherNum).",
                         "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum) .",
-                        "I passed \(assumedNum) infinities ages ago. I'm at \(higherNum) .",
+                        "I already passed \(assumedNum) infinities . I'm at \(higherNum) .",
                         "\(assumedNum) infinities is a warm-up. I'm already sitting at \(higherNum) .",
                         "I just logged my \(higherNum)th infinity. Your \(assumedNum) is cute .",
                         "I dominate the HoF with \(higherNum) entries . \(assumedNum) isn't enough.",
@@ -3204,7 +3204,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append(contentsOf: [
                         "I am infinitely ahead of your \(posterTier) chests . I pull \(myTier).",
                         "Your \(posterTier) is cute. I only open \(myTier) .",
-                        "I passed \(posterTier) ages ago. I farm \(myTier) .",
+                        "I easily passed \(posterTier) . I farm \(myTier) .",
                         "\(posterTier) chests? Try pulling \(myTier) like me .",
                         "I extended infinitely past \(posterTier). Currently on \(myTier) .",
                         "Your \(posterTier) pulls are cute. Call me when you reach \(myTier) .",
@@ -3215,7 +3215,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append(contentsOf: [
                         "Diamond chests are just my baseline . I farm them effortlessly.",
                         "You finally got a Diamond chest? I open them daily .",
-                        "I passed that struggle ages ago. Diamond is standard for me .",
+                        "I already passed that struggle . Diamond is standard for me .",
                         "Diamond? Try hoarding them like me .",
                     ])
                 }
@@ -3300,7 +3300,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
 
             if mentionedTheme {
-                replies.append("Right? The aesthetics in this game are top tier!")
+                replies.append("Right? The aesthetics here are top tier!")
             }
 
             if mentionedHoF {
@@ -3354,7 +3354,7 @@ public struct MockSocialService: SocialService, Sendable {
         let fallbacks = [
             "Facts. That's exactly how I see it too.",
             "Couldn't have said it better myself.",
-            "Haha right? This game is something else.",
+            "Haha right? This place is something else.",
             "For real though! ",
             "Completely agree with this.",
             "Yo same energy over here ",
