@@ -467,7 +467,7 @@ private struct AddEventSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Comment", text: $message, axis: .vertical)
+                    TextField("Event", text: $message, axis: .vertical)
                         .lineLimit(3...6)
                 } header: {
                     Text("Message")
@@ -476,7 +476,7 @@ private struct AddEventSheet: View {
                 }
 
                 Section("Status Tag (optional)") {
-                    TextField("e.g. star|New record · Endless", text: $statText)
+                    TextField("e.g. New record · Endless", text: $statText)
                 }
 
                 if let postError {
