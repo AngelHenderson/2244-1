@@ -219,8 +219,9 @@ struct UnlockedNotificationView: View {
             }
         }
         .padding(20)
-        .presentationDetents([.height(420)])
-        .presentationDragIndicator(.visible)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.horizontal, 16)
         .onAppear {
             didClaim = false
             hasStopped = false
@@ -560,8 +561,9 @@ struct AddedNotificationView: View {
             }
         }
         .padding(20)
-        .presentationDetents([.height(240)])
-        .presentationDragIndicator(.visible)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.horizontal, 16)
     }
 
     private var displayPhrase: String {
@@ -700,8 +702,9 @@ struct ExcludedNotificationView: View {
             }
         }
         .padding(20)
-        .presentationDetents([.height(240)])
-        .presentationDragIndicator(.visible)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.horizontal, 16)
     }
 
     private var displayPhrase: String {

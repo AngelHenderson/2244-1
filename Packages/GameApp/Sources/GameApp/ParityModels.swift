@@ -926,12 +926,14 @@ public struct MockSocialService: SocialService, Sendable {
         let playerAvatar = defaults.string(forKey: "profileAvatarId") ?? "avatar_buddy_bot"
         func processItem(_ item: inout SocialFeedItem) {
             var replyDate = now
+            var targetComment: SocialFeedComment? = nil
             if text.hasPrefix("@") {
                 let parts = text.split(separator: " ")
                 if let first = parts.first {
                     let targetName = String(first.dropFirst())
-                    if let targetComment = item.comments.last(where: { $0.authorName == targetName }) {
-                        replyDate = targetComment.createdAt.addingTimeInterval(1)
+                    targetComment = item.comments.last(where: { $0.authorName == targetName })
+                    if let tC = targetComment {
+                        replyDate = tC.createdAt.addingTimeInterval(1)
                     }
                 }
             }
@@ -969,9 +971,13 @@ public struct MockSocialService: SocialService, Sendable {
                 return maxNum
             }
             
+            let baseText = targetComment?.text ?? item.message
+            
             var posterBeatsNPC = false
             let loweredText = text.lowercased()
-            let loweredBase = item.message.lowercased()
+            let loweredBase = baseText.lowercased()
+            
+            let playerBragged = Self.extractTime(from: loweredText) != nil || Self.allMilestones.contains(where: { loweredText.contains($0.lowercased()) }) || extractMaxNumber(from: text) >= 3 || loweredText.contains("streak") || loweredText.contains("day") || loweredText.contains("infinity") || loweredText.contains("hof") || loweredText.contains("time")
             
             if let cSecs = Self.extractTime(from: loweredText).map({ $0.0 * 60 + $0.1 }),
                let bSecs = Self.extractTime(from: loweredBase).map({ $0.0 * 60 + $0.1 }) {
@@ -985,7 +991,7 @@ public struct MockSocialService: SocialService, Sendable {
                     if cIdx > bIdx { posterBeatsNPC = true }
                 } else {
                     let cNum = extractMaxNumber(from: text)
-                    let bNum = extractMaxNumber(from: item.message)
+                    let bNum = extractMaxNumber(from: baseText)
                     if cNum > 0 && cNum > bNum {
                         posterBeatsNPC = true
                     }
@@ -997,12 +1003,12 @@ public struct MockSocialService: SocialService, Sendable {
             }
             
             let answer = milestoneAnswer(for: text)
-            if posterBeatsNPC || answer != nil {
+            if posterBeatsNPC || answer != nil || playerBragged || targetComment != nil {
                 let responseText: String
                 if let ans = answer {
                     responseText = "@\(playerName) " + ans
                 } else {
-                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: item.message, forceTone: "competitive")
+                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: baseText, forceTone: "competitive")
                 }
                 let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
                 item.comments.append(responseComment)

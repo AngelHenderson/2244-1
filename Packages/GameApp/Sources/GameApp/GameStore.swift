@@ -2326,8 +2326,12 @@ public final class GameStore {
         notificationWatchdog = nil
 
         // Check if we're dismissing an excluded notification - trigger elimination animation
+        // after a short delay so the notification overlay finishes its dismiss animation first.
         if case .excluded(_, _) = currentNotification, !pendingEliminationTiles.isEmpty {
-            triggerEliminationAnimation()
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                self?.triggerEliminationAnimation()
+            }
         }
         currentNotification = nil
         // Delay before showing next notification so SwiftUI can complete the

@@ -176,13 +176,20 @@ public struct HybridGameScreen: View {
                 }
             }
 
-        // Notification sheet — uses .sheet for proper presentation styling.
-        // Re-presentation is handled by dismissCurrentNotification's delay logic.
+        // Notification overlay — uses overlay instead of .sheet to avoid SwiftUI's
+        // sheet stacking limitation (only one sheet per hierarchy level). Notification
+        // views have their own card background (.ultraThinMaterial) so they render
+        // properly as overlays.
         let notificationSheet = unlockSheet
-            .sheet(isPresented: Binding(
-                get: { gameStore.currentNotification != nil },
-                set: { newValue in if !newValue { gameStore.dismissCurrentNotification() } }
-            )) {
+            .overlay {
+                if gameStore.currentNotification != nil {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture { /* block taps on background */ }
+                        .transition(.opacity)
+                }
+            }
+            .overlay(alignment: .bottom) {
                 if let notification = gameStore.currentNotification {
                     Group {
                         switch notification {
@@ -194,8 +201,12 @@ public struct HybridGameScreen: View {
                             ExcludedNotificationView(value: value, celebrationPhrase: phrase, onClose: { gameStore.dismissCurrentNotification() })
                         }
                     }
+                    .padding(.bottom, 16)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(100)
                 }
             }
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: gameStore.currentNotification != nil)
         
         let alertView = notificationSheet
             .alert("Double your tile?", isPresented: $isShowingDoublePrompt) {
