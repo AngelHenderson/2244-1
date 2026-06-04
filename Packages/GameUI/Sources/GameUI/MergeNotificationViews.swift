@@ -383,17 +383,18 @@ struct UnlockedNotificationView: View {
             return "You're in the quadrillions! Keep going!"
         }
 
-        // Check for specific milestone tile labels (case-insensitive)
-        switch tileLabel.lowercased() {
+        // Check for specific milestone tile labels (case-sensitive to distinguish
+        // real tiers like "1K" (thousands) from letter-suffix tiers like "1k" (10^42))
+        switch tileLabel {
         case "512":
             return "Good Job! First milestone unlocked!"
-        case "1024", "1k":
+        case "1024", "1K":
             return "Magnificent! You're in the thousands!"
-        case "524k":
+        case "524K":
             return "Incredible! Almost in the millions!"
-        case "1m":
+        case "1M":
             return "You're in the millions! Keep going!"
-        case "536m":
+        case "536M":
             return "Almost in the billions! Keep going!"
         case "1a":
             return "You're in the trillions! Keep going!"

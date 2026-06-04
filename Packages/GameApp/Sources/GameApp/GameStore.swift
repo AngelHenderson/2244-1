@@ -1074,6 +1074,24 @@ public final class GameStore {
                     // the "before" position to animate to the "after" position.
                     try? await Task.sleep(nanoseconds: 16_000_000) // ~1 frame
                     self.performGravityDrop(columns: affectedColumns)
+
+                    // Update lastAddedTilePosition after gravity — the merged tile
+                    // may have dropped to a lower row in the same column.
+                    if let oldPos = self.lastAddedTilePosition,
+                       let targetStep = self.pendingDoubleBaseStep ?? self.lastAddedTileValue.flatMap({ TileStepLabelFormatter.stepForValue($0) }) {
+                        let col = oldPos.col
+                        // Search from bottom up in the same column for the tile
+                        for row in stride(from: self.state.board.height - 1, through: 0, by: -1) {
+                            let pos = Position(row: row, col: col)
+                            if let tile = self.state.board[pos], tile.stepIndex == targetStep {
+                                if pos != oldPos {
+                                    print("[GameStore] Gravity moved tile from \(oldPos) to \(pos)")
+                                }
+                                self.lastAddedTilePosition = pos
+                                break
+                            }
+                        }
+                    }
                 }
 
                 // Wait for gravity animation (tiles dropping)
