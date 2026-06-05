@@ -1354,15 +1354,17 @@ public struct MockSocialService: SocialService, Sendable {
             
             // Guarantee exact tone percentages
             var tones: [String] = []
-            let numComp = Int(round(Double(numBaseComments) * 0.55))
+            let numComp = Int(round(Double(numBaseComments) * 0.50))
             let numPos = Int(round(Double(numBaseComments) * 0.25))
             let numQuestion = Int(round(Double(numBaseComments) * 0.15))
-            let numSad = max(0, numBaseComments - numComp - numPos - numQuestion)
+            let numJealous = Int(round(Double(numBaseComments) * 0.05))
+            let numBehind = max(0, numBaseComments - numComp - numPos - numQuestion - numJealous)
             
             tones.append(contentsOf: Array(repeating: "competitive", count: numComp))
             tones.append(contentsOf: Array(repeating: "positive", count: numPos))
             tones.append(contentsOf: Array(repeating: "question", count: numQuestion))
-            tones.append(contentsOf: Array(repeating: "sad", count: numSad))
+            tones.append(contentsOf: Array(repeating: "jealous", count: numJealous))
+            tones.append(contentsOf: Array(repeating: "behind", count: numBehind))
             
             // Adjust if total doesn't match due to rounding
             while tones.count < numBaseComments { tones.append("competitive") }
@@ -2271,15 +2273,16 @@ public struct MockSocialService: SocialService, Sendable {
         // persists globally across all feed items, guaranteeing no early repeats.
         let bagSuffix = ""
         
-        // Weighted category roll: 55% competitive, 25% positive, 15% question, 5% jealous
+        // Weighted category roll: 50% competitive, 25% positive, 15% question, 5% jealous, 5% behind
         var comment = ""
         var tone = forcedTone
         if tone == nil {
             let roll = Double.random(in: 0..<1)
-            if roll < 0.55 { tone = "competitive" }
-            else if roll < 0.80 { tone = "positive" }
-            else if roll < 0.95 { tone = "question" }
-            else { tone = "sad" }
+            if roll < 0.50 { tone = "competitive" }
+            else if roll < 0.75 { tone = "positive" }
+            else if roll < 0.90 { tone = "question" }
+            else if roll < 0.95 { tone = "jealous" }
+            else { tone = "behind" }
         }
         
         if tone == "competitive" {
@@ -2292,7 +2295,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let compOpeners = [
                     "Too easy.", "Barely had to try.", "Light work.",
                     "This is entirely effortless.", "Do better.", "Effortless.",
-                    "Didn't even break a sweat.", "That's cute.", "Flawless.",
+                    "Didn't even break a sweat.", "That's cute.", "Amateur.",
                     "What a joke.", "Not even trying.", "A child could do that.",
                     "Is that all?", "I was asleep for this.", "Warm-up complete.",
                     "Are you even trying?"
@@ -2351,19 +2354,55 @@ public struct MockSocialService: SocialService, Sendable {
             // ── Question (15%) — standalone, no opener ──
             comment = Self.drawFromBag(key: "question_\(bagSuffix)", pool: questions)
             tone = "question"
+        } else if tone == "jealous" {
+            // ── Jealous (5%) — with generic opener ──
+            var reaction = Self.drawFromBag(key: "jealous_\(bagSuffix)", pool: jealousReactions)
+            let genericOpener = Self.drawFromBag(key: "opener_\(bagSuffix)", pool: openers)
+            if !genericOpener.isEmpty {
+                var lower = reaction.lowercased()
+                if lower.hasPrefix("i ") || lower.hasPrefix("i'") {
+                    lower = "I" + lower.dropFirst()
+                }
+                reaction = "\(genericOpener) \(lower)"
+            } else {
+                reaction = reaction.capitalized
+            }
+            comment = reaction
+            tone = "jealous"
         } else {
-            // ── Jealous (5%) — with opener ──
-            let opener = Self.drawFromBag(key: "opener_\(bagSuffix)", pool: openers)
-            let reaction = Self.drawFromBag(key: "jealous_\(bagSuffix)", pool: jealousReactions)
-            comment = opener.isEmpty ? reaction.capitalized : "\(opener) \(reaction.lowercased())"
-            tone = "sad"
+            // ── Behind (5%) — with behind opener and closer ──
+            var reaction = Self.drawFromBag(key: "jealous_\(bagSuffix)", pool: jealousReactions)
+            
+            // Behind opener
+            let behindOpeners = [
+                "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
+                "I'm never going to catch you.", "You're too fast.", "I give up.",
+                "How are you doing this?", "You make this look easy.", "I'm struggling over here.",
+                "I feel so slow."
+            ]
+            let bOpener = Self.drawFromBag(key: "behind_opener_\(bagSuffix)", pool: behindOpeners)
+            reaction = "\(bOpener) \(reaction)"
+            
+            // Behind closer
+            let behindClosers = [
+                "My score is pathetic.", "I'll never reach that level.", "I need to practice more.",
+                "You're in a league of your own.", "I'm basically a beginner.", "Leave some records for the rest of us.",
+                "I'm going back to the tutorial.", "I'm not even close.", "Teach me your ways.",
+                "I have a long way to go."
+            ]
+            let bCloser = Self.drawFromBag(key: "behind_closer_\(bagSuffix)", pool: behindClosers)
+            reaction = "\(reaction) \(bCloser)"
+            
+            comment = reaction
+            tone = "behind"
         }
+        
         if Double.random(in: 0...1) < 0.75 {
             let symbol: String
             switch tone {
             case "positive": symbol = Self.drawFromBag(key: "sym_pos_\(bagSuffix)", pool: positiveSymbols)
             case "question": symbol = Self.drawFromBag(key: "sym_q_\(bagSuffix)", pool: questionSymbols)
-            case "sad": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
+            case "jealous", "behind": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
             case "competitive": symbol = Self.drawFromBag(key: "sym_comp_\(bagSuffix)", pool: competitiveSymbols)
             default: symbol = ""
             }
@@ -2802,7 +2841,7 @@ public struct MockSocialService: SocialService, Sendable {
             isCompetitive = true
         }
 
-        let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't"]
+        let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
         let isJealous = forceTone != "competitive" && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
         let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate"]
@@ -2814,7 +2853,7 @@ public struct MockSocialService: SocialService, Sendable {
         // ── Generate contextual replies that reference the actual comment ──
 
         if isAddRequest {
-            let replies = [
+            var replies = [
                 "You can add me, but you'll never catch me.",
                 "Add me if you want to watch me stay infinitely ahead.",
                 "Sure, add me so you can stare at my infinite lead.",
@@ -2824,7 +2863,9 @@ public struct MockSocialService: SocialService, Sendable {
                 "For sure — watch me extend my lead permanently.",
                 "Definitely! But don't expect to ever reach my tier.",
             ]
-            return replies.randomElement()!
+            var reply = replies.randomElement()!
+            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!"].randomElement()! }
+            return reply
         }
 
         if isQuestion {
@@ -2925,7 +2966,9 @@ public struct MockSocialService: SocialService, Sendable {
                 ]
             }
 
-            return answers.randomElement()!
+            var reply = answers.randomElement()!
+            if Double.random(in: 0...1) < 0.75 { reply += ["?!", "...", "??", "!!?"].randomElement()! }
+            return reply
         }
 
         if isCompetitive {
@@ -3253,50 +3296,56 @@ public struct MockSocialService: SocialService, Sendable {
                     "This rivalry is entirely one-sided. I'm already at \(genericHigherM) .",
                 ])
             }
-            return replies.randomElement()!
+            var reply = replies.randomElement()!
+            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!"].randomElement()! }
+            return reply
         }
 
         if isJealous {
             var replies: [String] = []
 
-            // Dynamic encouragement that references their specific struggle
+            // Dynamic dismissal that references their specific struggle
             if let m = mentionedMilestone {
                 replies.append(contentsOf: [
-                    "You'll break through \(m.name) eventually! I struggled there too.",
-                    "\(m.name) was my wall for weeks. Then one day it just clicked!",
-                    "Keep pushing near \(m.name) — the breakthrough comes when you least expect it.",
-                    "I was stuck before \(m.name) forever. Patience is the move.",
+                    "You'll never break through \(m.name). Just accept it.",
+                    "\(m.name) is a wall you won't climb. I cleared it effortlessly.",
+                    "Stuck before \(m.name)? You will always be behind.",
+                    "I left \(m.name) in the dust. You're permanently stuck.",
                 ])
             }
 
             if let num = mentionedNumber {
-                replies.append("I was at \(num) for the longest time too. Don't give up!")
-                replies.append("\(num) is progress! You're closer than you think.")
+                replies.append("Still at \(num)? You'll be there forever.")
+                replies.append("\(num) is nothing. You will always be behind.")
             }
 
             if mentionedStreak {
-                replies.append("Losing a streak sucks, but you can start a new one today ")
-                replies.append("Streaks are tough! I've lost mine before too.")
+                replies.append("Your streak is gone, and you'll never catch mine.")
+                replies.append("You'll always struggle to keep a streak. I never miss.")
             }
 
             if mentionedTheme {
-                replies.append("Keep saving gems! You'll get there before you know it.")
-                replies.append("The grind for themes is real but so worth it.")
+                replies.append("You'll never get that theme. Your gem count is pathetic.")
+                replies.append("Keep dreaming. That theme belongs to players who actually win.")
             }
 
-            // Generic encouragement
+            // Generic dismissal
             replies.append(contentsOf: [
-                "You'll get there! Just keep playing ",
-                "I was in the same spot a few weeks ago. Don't give up!",
-                "Honestly, it took me forever too. Patience is key.",
-                "Everyone progresses at their own pace. You got this!",
-                "Trust the process — breakthroughs happen randomly.",
-                "I believe in you! Keep grinding ",
-                "We all hit walls. The fun is breaking through them.",
-                "Keep at it! The struggle makes the win sweeter.",
-                "You're closer than you think ",
+                "You'll never get there. Just give up.",
+                "I was never in your spot. You will always be behind.",
+                "Patience won't help you. You're permanently outclassed.",
+                "Everyone progresses, except you. You're stuck at the bottom.",
+                "Trust me, you'll never break through.",
+                "I don't believe in you. You're completely irrelevant.",
+                "The wall you hit is permanent. Stay down there.",
+                "The struggle is yours alone. I'm untouched.",
+                "You are infinitely behind, and always will be.",
+                "You're permanently stuck in the lower tiers.",
+                "It's over for you. You'll never catch up."
             ])
-            return replies.randomElement()!
+            var reply = replies.randomElement()!
+            if Double.random(in: 0...1) < 0.75 { reply += [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "..."].randomElement()! }
+            return reply
         }
 
         if isPositive {
@@ -3335,7 +3384,9 @@ public struct MockSocialService: SocialService, Sendable {
                 "So kind! Thank you ",
                 "Aww thanks! This community is the best.",
             ])
-            return replies.randomElement()!
+            var reply = replies.randomElement()!
+            if Double.random(in: 0...1) < 0.75 { reply += ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)"].randomElement()! }
+            return reply
         }
 
         // ── Fallback: craft a response from whatever content we can extract ──
