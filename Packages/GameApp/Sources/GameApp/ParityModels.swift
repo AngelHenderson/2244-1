@@ -2290,33 +2290,46 @@ public struct MockSocialService: SocialService, Sendable {
             // Randomly prepend a competitive opener ~95% of the time
             if Double.random(in: 0...1) < 0.95 {
                 let compOpeners = [
-                    "Too easy.", "Forever beyond reach.", "You can't touch my stats.",
-                    "Barely had to try.", "My lead is permanent.", "Light work.",
-                    "This is entirely effortless.", "Do better.", "Your effort is pointless.",
-                    "You are entirely irrelevant.", "Effortless.", "I'll dominate this rivalry forever.",
-                    "Didn't even break a sweat.", "That's cute.", "I dominate everything.",
-                    "Flawless.", "This rivalry is completely one-sided.", "There is no catching up to me.",
-                    "No one can touch my stats.", "Endless grinding, and you're still behind."
+                    "Too easy.", "Barely had to try.", "Light work.",
+                    "This is entirely effortless.", "Do better.", "Effortless.",
+                    "Didn't even break a sweat.", "That's cute.", "Flawless.",
+                    "What a joke.", "Not even trying.", "A child could do that.",
+                    "Is that all?", "I was asleep for this.", "Warm-up complete.",
+                    "Are you even trying?"
                 ]
                 
-                let opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
+                var opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
+                var attempts = 0
+                while attempts < 3 && (comment.lowercased().contains("effort") && opener.lowercased().contains("effort") ||
+                                       comment.lowercased().contains("cute") && opener.lowercased().contains("cute")) {
+                    opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
+                    attempts += 1
+                }
                 comment = "\(opener) \(comment)"
             }
             // Randomly append a competitive closer ~80% of the time
             if Double.random(in: 0...1) < 0.80 {
                 let compClosers = [
                     "My lead cannot be broken.", "You'll never catch me.", "I'll always be levels above.",
-                    "Don't bother trying.", "I'm permanently untouchable.", "My endless stats are permanent.",
-                    "Just accept you'll never catch me.", "I reign supreme.", "Your progress means nothing here.",
-                    "You are completely irrelevant.", "No one is touching my record.", "I'll always be leagues ahead.",
-                    "Your grind is meaningless.", "My dominance here is absolute.",
-                    "I set the standard.", "You're entirely left behind.",
-                    "I'm untouchable.", "We are not the same.",
-                    "Stay down there.", "This record belongs to me.",
-                    "Your progress is a joke to me."
+                    "Don't bother trying.", "I'm permanently untouchable.", "I reign supreme.",
+                    "Your progress means nothing here.", "You are completely irrelevant.", "No one is touching my record.",
+                    "I'll always be leagues ahead.", "Your grind is meaningless.", "My dominance here is absolute.",
+                    "I set the standard.", "You're entirely left behind.", "We are not the same.",
+                    "Stay down there.", "This record belongs to me.", "Enjoy the view from the bottom."
                 ]
                 
-                let closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
+                var closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
+                var attempts = 0
+                while attempts < 5 && (comment.lowercased().contains("irrelevant") && closer.lowercased().contains("irrelevant") ||
+                                       comment.lowercased().contains("catch") && closer.lowercased().contains("catch") ||
+                                       comment.lowercased().contains("permanent") && closer.lowercased().contains("permanent") ||
+                                       comment.lowercased().contains("untouchable") && closer.lowercased().contains("untouchable") ||
+                                       comment.lowercased().contains("dominate") && closer.lowercased().contains("dominate") ||
+                                       comment.lowercased().contains("behind") && closer.lowercased().contains("behind") ||
+                                       comment.lowercased().contains("record") && closer.lowercased().contains("record")) {
+                    closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
+                    attempts += 1
+                }
                 comment = "\(comment) \(closer)"
             }
             tone = "competitive"
