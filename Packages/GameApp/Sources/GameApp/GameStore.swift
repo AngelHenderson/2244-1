@@ -1328,7 +1328,7 @@ public final class GameStore {
                 shouldOfferDouble = offerIfOneBelow || offerIfAnotherHighest
             }
 
-            if shouldOfferDouble {
+            if shouldOfferDouble && !sandboxed {
                 pendingDoubleBase = addedValue
                 pendingDoubleBaseStep = addedStep
             } else {
@@ -2669,7 +2669,7 @@ public final class GameStore {
             self.lastAddedTilePosition = position
             let isOneBelow = (previousHighestStep >= 1) && (mergedStep == previousHighestStep - 1)
             let isSameAsHighest = (mergedStep == previousHighestStep)
-            if isOneBelow || isSameAsHighest {
+            if (isOneBelow || isSameAsHighest) && !self.sandboxed {
                 self.pendingDoubleBase = mergedValue
                 self.pendingDoubleBaseStep = mergedStep
             } else {
