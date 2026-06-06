@@ -1354,17 +1354,15 @@ public struct MockSocialService: SocialService, Sendable {
             
             // Guarantee exact tone percentages
             var tones: [String] = []
-            let numComp = Int(round(Double(numBaseComments) * 0.50))
+            let numComp = Int(round(Double(numBaseComments) * 0.55))
             let numPos = Int(round(Double(numBaseComments) * 0.25))
             let numQuestion = Int(round(Double(numBaseComments) * 0.15))
-            let numJealous = Int(round(Double(numBaseComments) * 0.05))
-            let numBehind = max(0, numBaseComments - numComp - numPos - numQuestion - numJealous)
+            let numJealous = max(0, numBaseComments - numComp - numPos - numQuestion)
             
             tones.append(contentsOf: Array(repeating: "competitive", count: numComp))
             tones.append(contentsOf: Array(repeating: "positive", count: numPos))
             tones.append(contentsOf: Array(repeating: "question", count: numQuestion))
             tones.append(contentsOf: Array(repeating: "jealous", count: numJealous))
-            tones.append(contentsOf: Array(repeating: "behind", count: numBehind))
             
             // Adjust if total doesn't match due to rounding
             while tones.count < numBaseComments { tones.append("competitive") }
@@ -1406,7 +1404,7 @@ public struct MockSocialService: SocialService, Sendable {
                 comments.append(baseComment)
                 
                 // If it's a competitive comment, start a recursive competitive chain
-                if tone == "competitive" {
+                if tone == "competitive" || tone == "behind_competitive" {
                     var currentDepth = 0
                     var lastComment = baseComment
                     
@@ -1414,7 +1412,12 @@ public struct MockSocialService: SocialService, Sendable {
                     var npc2: (name: String, avatar: String)? = nil
                     
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
-                    let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...10) : 0
+                    let targetDepth: Int
+                    if tone == "behind_competitive" {
+                        targetDepth = Double.random(in: 0...1) < 0.86 ? Int.random(in: 2...10) : 0
+                    } else {
+                        targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...10) : 0
+                    }
                     while currentDepth < targetDepth {
                         if npc2 == nil {
                             let replyIndex = Int.random(in: 1...100000)
@@ -2281,61 +2284,88 @@ public struct MockSocialService: SocialService, Sendable {
             if roll < 0.50 { tone = "competitive" }
             else if roll < 0.75 { tone = "positive" }
             else if roll < 0.90 { tone = "question" }
-            else if roll < 0.95 { tone = "jealous" }
-            else { tone = "behind" }
+            else { tone = "jealous" }
         }
         
         if tone == "competitive" {
-            // ── Competitive (55%) — generate factually accurate one-upmanship ──
-            let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
-            comment = result.0
-            nameOverride = result.1
-            // Randomly prepend a competitive opener ~95% of the time
-            if Double.random(in: 0...1) < 0.95 {
-                let compOpeners = [
-                    "Too easy.", "Barely had to try.", "Light work.",
-                    "This is entirely effortless.", "Do better.", "Effortless.",
-                    "Didn't even break a sweat.", "That's cute.", "Amateur.",
-                    "What a joke.", "Not even trying.", "A child could do that.",
-                    "Is that all?", "I was asleep for this.", "Warm-up complete.",
-                    "Are you even trying?"
-                ]
+            if Double.random(in: 0...1) < 0.47 {
+                // ── Behind (47% of competitive) — with behind opener and closer ──
+                var reaction = Self.drawFromBag(key: "jealous_\(bagSuffix)", pool: jealousReactions)
                 
-                var opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
-                var attempts = 0
-                while attempts < 3 && (comment.lowercased().contains("effort") && opener.lowercased().contains("effort") ||
-                                       comment.lowercased().contains("cute") && opener.lowercased().contains("cute")) {
-                    opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
-                    attempts += 1
-                }
-                comment = "\(opener) \(comment)"
-            }
-            // Randomly append a competitive closer ~80% of the time
-            if Double.random(in: 0...1) < 0.80 {
-                let compClosers = [
-                    "My lead cannot be broken.", "You'll never catch me.", "I'll always be levels above.",
-                    "Don't bother trying.", "I'm permanently untouchable.", "I reign supreme.",
-                    "Your progress means nothing here.", "You are completely irrelevant.", "No one is touching my record.",
-                    "I'll always be leagues ahead.", "Your grind is meaningless.", "My dominance here is absolute.",
-                    "I set the standard.", "You're entirely left behind.", "We are not the same.",
-                    "Stay down there.", "This record belongs to me.", "Enjoy the view from the bottom."
+                // Behind opener
+                let behindOpeners = [
+                    "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
+                    "I'm never going to catch you.", "You're too fast.", "I give up.",
+                    "How are you doing this?", "You make this look easy.", "I'm struggling over here.",
+                    "I feel so slow."
                 ]
+                let bOpener = Self.drawFromBag(key: "behind_opener_\(bagSuffix)", pool: behindOpeners)
+                reaction = "\(bOpener) \(reaction)"
                 
-                var closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
-                var attempts = 0
-                while attempts < 5 && (comment.lowercased().contains("irrelevant") && closer.lowercased().contains("irrelevant") ||
-                                       comment.lowercased().contains("catch") && closer.lowercased().contains("catch") ||
-                                       comment.lowercased().contains("permanent") && closer.lowercased().contains("permanent") ||
-                                       comment.lowercased().contains("untouchable") && closer.lowercased().contains("untouchable") ||
-                                       comment.lowercased().contains("dominate") && closer.lowercased().contains("dominate") ||
-                                       comment.lowercased().contains("behind") && closer.lowercased().contains("behind") ||
-                                       comment.lowercased().contains("record") && closer.lowercased().contains("record")) {
-                    closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
-                    attempts += 1
+                // Behind closer
+                let behindClosers = [
+                    "My score is pathetic.", "I'll never reach that level.", "I need to practice more.",
+                    "You're in a league of your own.", "I'm basically a beginner.", "Leave some records for the rest of us.",
+                    "I'm going back to the tutorial.", "I'm not even close.", "Teach me your ways.",
+                    "I have a long way to go."
+                ]
+                let bCloser = Self.drawFromBag(key: "behind_closer_\(bagSuffix)", pool: behindClosers)
+                reaction = "\(reaction) \(bCloser)"
+                
+                comment = reaction
+                tone = "behind_competitive"
+            } else {
+                // ── Competitive (53% of competitive) — generate factually accurate one-upmanship ──
+                let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
+                comment = result.0
+                nameOverride = result.1
+                // Randomly prepend a competitive opener ~95% of the time
+                if Double.random(in: 0...1) < 0.95 {
+                    let compOpeners = [
+                        "Too easy.", "Barely had to try.", "Light work.",
+                        "This is entirely effortless.", "Do better.", "Effortless.",
+                        "Didn't even break a sweat.", "That's cute.", "Amateur.",
+                        "What a joke.", "Not even trying.", "A child could do that.",
+                        "Is that all?", "I was asleep for this.", "Warm-up complete.",
+                        "Are you even trying?"
+                    ]
+                    
+                    var opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
+                    var attempts = 0
+                    while attempts < 3 && (comment.lowercased().contains("effort") && opener.lowercased().contains("effort") ||
+                                           comment.lowercased().contains("cute") && opener.lowercased().contains("cute")) {
+                        opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
+                        attempts += 1
+                    }
+                    comment = "\(opener) \(comment)"
                 }
-                comment = "\(comment) \(closer)"
+                // Randomly append a competitive closer ~80% of the time
+                if Double.random(in: 0...1) < 0.80 {
+                    let compClosers = [
+                        "My lead cannot be broken.", "You'll never catch me.", "I'll always be levels above.",
+                        "Don't bother trying.", "I'm permanently untouchable.", "I reign supreme.",
+                        "Your progress means nothing here.", "You are completely irrelevant.", "No one is touching my record.",
+                        "I'll always be leagues ahead.", "Your grind is meaningless.", "My dominance here is absolute.",
+                        "I set the standard.", "You're entirely left behind.", "We are not the same.",
+                        "Stay down there.", "This record belongs to me.", "Enjoy the view from the bottom."
+                    ]
+                    
+                    var closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
+                    var attempts = 0
+                    while attempts < 5 && (comment.lowercased().contains("irrelevant") && closer.lowercased().contains("irrelevant") ||
+                                           comment.lowercased().contains("catch") && closer.lowercased().contains("catch") ||
+                                           comment.lowercased().contains("permanent") && closer.lowercased().contains("permanent") ||
+                                           comment.lowercased().contains("untouchable") && closer.lowercased().contains("untouchable") ||
+                                           comment.lowercased().contains("dominate") && closer.lowercased().contains("dominate") ||
+                                           comment.lowercased().contains("behind") && closer.lowercased().contains("behind") ||
+                                           comment.lowercased().contains("record") && closer.lowercased().contains("record")) {
+                        closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
+                        attempts += 1
+                    }
+                    comment = "\(comment) \(closer)"
+                }
+                tone = "competitive"
             }
-            tone = "competitive"
         } else if tone == "positive" {
             // ── Positive (25%) — with opener + subject/verb/adj ──
             let opener = Self.drawFromBag(key: "opener_\(bagSuffix)", pool: openers)
@@ -2369,32 +2399,6 @@ public struct MockSocialService: SocialService, Sendable {
             }
             comment = reaction
             tone = "jealous"
-        } else {
-            // ── Behind (5%) — with behind opener and closer ──
-            var reaction = Self.drawFromBag(key: "jealous_\(bagSuffix)", pool: jealousReactions)
-            
-            // Behind opener
-            let behindOpeners = [
-                "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
-                "I'm never going to catch you.", "You're too fast.", "I give up.",
-                "How are you doing this?", "You make this look easy.", "I'm struggling over here.",
-                "I feel so slow."
-            ]
-            let bOpener = Self.drawFromBag(key: "behind_opener_\(bagSuffix)", pool: behindOpeners)
-            reaction = "\(bOpener) \(reaction)"
-            
-            // Behind closer
-            let behindClosers = [
-                "My score is pathetic.", "I'll never reach that level.", "I need to practice more.",
-                "You're in a league of your own.", "I'm basically a beginner.", "Leave some records for the rest of us.",
-                "I'm going back to the tutorial.", "I'm not even close.", "Teach me your ways.",
-                "I have a long way to go."
-            ]
-            let bCloser = Self.drawFromBag(key: "behind_closer_\(bagSuffix)", pool: behindClosers)
-            reaction = "\(reaction) \(bCloser)"
-            
-            comment = reaction
-            tone = "behind"
         }
         
         if Double.random(in: 0...1) < 0.75 {
@@ -2402,7 +2406,7 @@ public struct MockSocialService: SocialService, Sendable {
             switch tone {
             case "positive": symbol = Self.drawFromBag(key: "sym_pos_\(bagSuffix)", pool: positiveSymbols)
             case "question": symbol = Self.drawFromBag(key: "sym_q_\(bagSuffix)", pool: questionSymbols)
-            case "jealous", "behind": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
+            case "jealous", "behind", "behind_competitive": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
             case "competitive": symbol = Self.drawFromBag(key: "sym_comp_\(bagSuffix)", pool: competitiveSymbols)
             default: symbol = ""
             }
