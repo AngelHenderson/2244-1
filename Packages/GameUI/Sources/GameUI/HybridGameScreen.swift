@@ -2167,7 +2167,7 @@ struct ModeOverlay: View {
         if isHammerMode { return "Tap a tile to destroy" }
         if isSwapMode { 
             if firstSwapPosition != nil {
-                return "Tap an adjacent tile to swap"
+                return "Tap a tile to swap"
             } else {
                 return "Select first tile to swap"
             }

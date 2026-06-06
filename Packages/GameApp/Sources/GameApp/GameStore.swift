@@ -2428,9 +2428,9 @@ public final class GameStore {
             }
 
             // Skip pattern for high-value milestones:
-            // Matches milestoneExcludedValue: (step+1 - 26) % 3 == 2 → skip
-            // step+1 = log2(milestone), log67M = 26
-            let isSkipMilestone = (newStepVal + 1 - 26) % 3 == 2
+            // Must match engine's formula in applyAllMilestonesBetweenSteps:
+            // position = step - 62; skip if position % 3 == 2
+            let isSkipMilestone = (newStepVal - 62) % 3 == 2
 
             // Pre-select unique phrases for this milestone sequence
             let notificationCount = isSkipMilestone ? 1 : 3
