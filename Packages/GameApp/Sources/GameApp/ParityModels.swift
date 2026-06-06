@@ -2494,7 +2494,7 @@ public struct MockSocialService: SocialService, Sendable {
                 
                 func generateBetterTime() -> Int {
                     if totalSecs <= 10 {
-                        return max(0, totalSecs - Int.random(in: 1...3))
+                        return max(2, totalSecs - Int.random(in: 1...3))
                     } else {
                         let maxLess = totalSecs - 10
                         let lessBy = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
@@ -2506,7 +2506,7 @@ public struct MockSocialService: SocialService, Sendable {
                 var attempts = 0
                 while myTotal >= totalSecs || (usedStats.contains("time_\(myTotal)") && attempts < 5) {
                     myTotal = generateBetterTime()
-                    if myTotal >= totalSecs { myTotal = max(0, totalSecs - 1) }
+                    if myTotal >= totalSecs { myTotal = max(2, totalSecs - 1) }
                     attempts += 1
                 }
                 usedStats.insert("time_\(myTotal)")
@@ -2830,9 +2830,11 @@ public struct MockSocialService: SocialService, Sendable {
         var mentionedQuest = !combinedWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
 
                 // ── Mutually Exclusive Topic Priority & Thread Locking ──
-        let isMessageTime = msgLower.contains("time") || msgLower.contains("sec") || msgLower.contains("min") || msgLower.contains("challenge")
-        let isMessageHoF = msgLower.contains("hof") || msgLower.contains("hall of fame") || msgLower.contains("infinity")
-        let isMessageQuest = msgLower.contains("quest") || msgLower.contains("objective") || msgLower.contains("chest")
+        let msgWords = Set(msgLower.components(separatedBy: .whitespacesAndNewlines.union(.punctuationCharacters)))
+        let hasTimeFormatRoot = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
+        let isMessageTime = hasTimeFormatRoot || ((msgLower.contains("time") || msgLower.contains("challenge") || !msgWords.isDisjoint(with: ["sec", "secs", "min", "mins"])) && rootMilestone == nil)
+        let isMessageHoF = !msgWords.isDisjoint(with: ["hof", "infinity", "infinit"]) || msgLower.contains("hall of fame")
+        let isMessageQuest = !msgWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
         
         // Strict topic inheritance from the original feed item
         if isMessageHoF {
@@ -3020,40 +3022,40 @@ public struct MockSocialService: SocialService, Sendable {
                     let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
                     let higherM = Self.allMilestones[higherIdx]
                     replies.append("You're a beginner at \(m.name)? I effortlessly reached \(higherM).")
-                    replies.append("You think \(m.name) makes you a beginner? I'm already coasting at \(higherM).")
-                    replies.append("Calling yourself a beginner at \(m.name) is an understatement. I effortlessly hit \(higherM).")
-                    replies.append("You're stuck as a beginner at \(m.name)? I effortlessly bypassed \(higherM).")
+                    replies.append("You think \(m.name) makes you an amateur? I'm already coasting at \(higherM).")
+                    replies.append("Calling yourself terrible at \(m.name) is an understatement. I effortlessly hit \(higherM).")
+                    replies.append("You're stuck as a novice at \(m.name)? I effortlessly bypassed \(higherM).")
                     replies.append("You gave up at \(m.name)? I'm laughing from \(higherM).")
                     replies.append("Struggling with \(m.name)? I effortlessly clear \(higherM).")
                     replies.append("Pain? \(m.name) is a joke. Try catching my \(higherM).")
                 } else if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
                     let higherNum = num + Int.random(in: 30...max(50, num)) // Huge jump
                     replies.append("You're a beginner at \(num)? I effortlessly reached \(higherNum).")
-                    replies.append("You're a beginner at \(num)? Try hitting \(higherNum) effortlessly like me.")
-                    replies.append("Calling yourself a beginner at \(num)? I effortlessly crush \(higherNum).")
-                    replies.append("You're stuck as a beginner at \(num)? I effortlessly bypassed \(higherNum).")
+                    replies.append("You think \(num) makes you a novice? Try hitting \(higherNum) effortlessly like me.")
+                    replies.append("Calling yourself an amateur at \(num)? I effortlessly crush \(higherNum).")
+                    replies.append("You're stuck as a noob at \(num)? I effortlessly bypassed \(higherNum).")
                     replies.append("You think \(num) is hard? I hit \(higherNum) without trying.")
                     replies.append("You're a beginner at \(num)? My floor is \(higherNum).")
                     replies.append("Don't bother continuing. I'm permanently ahead at \(higherNum).")
                 } else if mentionedTime, let timeTuple = Self.extractTime(from: strippedLower) {
                     let totalSecs = timeTuple.0 * 60 + timeTuple.1
                     var myTotal = totalSecs / 3 // Ridiculously fast
-                    if myTotal <= 0 { myTotal = 1 }
+                    if myTotal <= 1 { myTotal = 2 }
                     let myTime = "\(myTotal / 60):\(String(format: "%02d", myTotal % 60))"
                     let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
                     replies.append("You're a beginner at \(posterTime)? I effortlessly reached \(myTime).")
-                    replies.append("You think a \(posterTime) pace makes you a beginner? I'm already effortlessly coasting at \(myTime).")
-                    replies.append("Calling yourself a beginner at \(posterTime) is an understatement. I effortlessly hit \(myTime).")
-                    replies.append("You're stuck as a beginner at \(posterTime)? I effortlessly bypassed \(myTime).")
+                    replies.append("You think a \(posterTime) pace makes you an amateur? I'm already effortlessly coasting at \(myTime).")
+                    replies.append("Calling yourself terrible at \(posterTime) is an understatement. I effortlessly hit \(myTime).")
+                    replies.append("You're stuck as a novice at \(posterTime)? I effortlessly bypassed \(myTime).")
                     replies.append("You gave up at \(posterTime)? My record is \(myTime).")
                     replies.append("Pain? I breeze through in \(myTime).")
                     replies.append("You're struggling? I clock \(myTime) in my sleep.")
                 } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum = num + Int.random(in: 50...100)
                     replies.append("You're a beginner at \(num) days? I effortlessly reached \(higherNum).")
-                    replies.append("You think \(num) days makes you a beginner? I'm already effortlessly coasting at \(higherNum).")
-                    replies.append("Calling yourself a beginner at \(num) is an understatement. I effortlessly hit \(higherNum).")
-                    replies.append("You're stuck as a beginner at \(num) days? I effortlessly bypassed \(higherNum).")
+                    replies.append("You think \(num) days makes you an amateur? I'm already effortlessly coasting at \(higherNum).")
+                    replies.append("Calling yourself terrible at \(num) is an understatement. I effortlessly hit \(higherNum).")
+                    replies.append("You're stuck as a novice at \(num) days? I effortlessly bypassed \(higherNum).")
                     replies.append("You lost your streak? I'm untouched at \(higherNum).")
                     replies.append("Struggling? My \(higherNum) streak is permanent.")
                 } else if mentionedQuest {
@@ -3062,9 +3064,9 @@ public struct MockSocialService: SocialService, Sendable {
                 } else if mentionedHoF, let infCount = Self.extractNumber(from: strippedLower, near: ["infinity", "infinit", "hof", "count"]) {
                     let myCount = infCount + Int.random(in: 50...100)
                     replies.append("You're a beginner at \(infCount)? I effortlessly reached \(myCount).")
-                    replies.append("You think \(infCount) makes you a beginner? I'm already effortlessly coasting at \(myCount).")
-                    replies.append("Calling yourself a beginner at \(infCount)? I effortlessly hit \(myCount).")
-                    replies.append("You're stuck as a beginner at \(infCount)? I effortlessly bypassed \(myCount).")
+                    replies.append("You think \(infCount) makes you an amateur? I'm already effortlessly coasting at \(myCount).")
+                    replies.append("Calling yourself terrible at \(infCount)? I effortlessly hit \(myCount).")
+                    replies.append("You're stuck as a novice at \(infCount)? I effortlessly bypassed \(myCount).")
                     replies.append("You're stuck at \(infCount)? I am permanently climbing past \(myCount).")
                 } else {
                     replies.append("You're a beginner? I am effortlessly untouchable.")
@@ -3076,7 +3078,10 @@ public struct MockSocialService: SocialService, Sendable {
                 return reply
             }
 
-            if Double.random(in: 0...1) < 0.47 {
+            let commentIsCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
+            let canBeBehind = commentText != message && commentIsCompetitive
+
+            if canBeBehind && Double.random(in: 0...1) < 0.47 {
                 let behindOpeners = [
                     "I might be lower right now, but", "You're ahead for now, but", "Enjoy the lead while it lasts,",
                     "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
@@ -3106,17 +3111,39 @@ public struct MockSocialService: SocialService, Sendable {
             }
             var replies: [String] = []
             let wantsBetter = strippedLower.contains("do better")
+            let rootIsJealous = jealousKeywords.contains(where: { message.lowercased().contains($0) })
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
                 let isLowerBrag = commentMilestone != nil && rootMilestone != nil && commentMilestone!.index < rootMilestone!.index
+                
                 if isLowerBrag, let cM = commentMilestone, let rM = rootMilestone {
                     replies.append(contentsOf: [
                         "You're bragging about \(cM.name)? I'm already at \(rM.name). You're still too low to get ahead.",
                         "\(cM.name) is nothing. I posted about \(rM.name). You're still too low to get ahead.",
                         "You thought \(cM.name) would impress me? I'm at \(rM.name). You're still too low to get ahead.",
                         "Is this a joke? \(cM.name) is beneath my \(rM.name). You're still too low to get ahead.",
-                        "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead."
+                        "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead.",
+                        "You're acting like \(cM.name) is a big deal? I effortlessly passed \(rM.name).",
+                        "Cute that you're stuck at \(cM.name). I'm laughing from \(rM.name).",
+                        "I left \(cM.name) in the dust a long time ago. \(rM.name) is my new floor."
+                    ])
+                } else if rootIsJealous, let cM = commentMilestone {
+                    let mIdx = cM.index
+                    let jump = Int.random(in: 11...50)
+                    let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
+                    let higherM = Self.allMilestones[higherIdx]
+                    replies.append(contentsOf: [
+                        "Did you really think I was struggling? I easily passed your \(cM.name). I'm at \(higherM).",
+                        "I let you think you were winning. Your \(cM.name) is nothing. I'm at \(higherM).",
+                        "You fell for it. I easily beat your \(cM.name). My real record is \(higherM).",
+                        "I was just warming up. Your \(cM.name) is a joke compared to my \(higherM).",
+                        "Struggling? Never. I blew past your \(cM.name) and hit \(higherM).",
+                        "You're a beginner at \(cM.name)? I effortlessly reached \(higherM).",
+                        "Stuck at \(cM.name) like a novice? I'm already dominating \(higherM).",
+                        "If you think \(cM.name) is hard, wait until you see my \(higherM).",
+                        "You're still an amateur at \(cM.name). I cleared \(higherM) without trying.",
+                        "I played along to make you feel better. I'm actually at \(higherM)."
                     ])
                 } else {
                     let mIdx = m.index
@@ -3161,13 +3188,31 @@ public struct MockSocialService: SocialService, Sendable {
 
             if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
                 let isLowerScoreBrag = commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                
                 if isLowerScoreBrag, let cN = commentNumber, let rN = rootNumber {
                     replies.append(contentsOf: [
                         "You're bragging about \(cN)? I'm already at \(rN). You're still too low to get ahead.",
                         "\(cN) is nothing. I posted about \(rN). You're still too low to get ahead.",
                         "You thought \(cN) would impress me? I'm at \(rN). You're still too low to get ahead.",
                         "Is this a joke? \(cN) is beneath my \(rN). You're still too low to get ahead.",
-                        "I'm at \(rN) and you're bragging about \(cN)? You're still too low to get ahead."
+                        "I'm at \(rN) and you're bragging about \(cN)? You're still too low to get ahead.",
+                        "You're acting like \(cN) is a big deal? I effortlessly passed \(rN).",
+                        "Cute that you're stuck at \(cN). I'm laughing from \(rN).",
+                        "I left \(cN) in the dust a long time ago. \(rN) is my new floor."
+                    ])
+                } else if rootIsJealous, let cN = commentNumber {
+                    let higherNum = cN + Int.random(in: 10...max(20, cN))
+                    replies.append(contentsOf: [
+                        "Did you really think I was struggling? I easily passed your \(cN). I'm at \(higherNum).",
+                        "I let you think you were winning. Your \(cN) is nothing. I'm at \(higherNum).",
+                        "You fell for it. I easily beat your \(cN). My real record is \(higherNum).",
+                        "I was just warming up. Your \(cN) is a joke compared to my \(higherNum).",
+                        "Struggling? Never. I blew past your \(cN) and hit \(higherNum).",
+                        "You're a beginner at \(cN)? I effortlessly reached \(higherNum).",
+                        "Stuck at \(cN) like a novice? I'm already dominating \(higherNum).",
+                        "If you think \(cN) is hard, wait until you see my \(higherNum).",
+                        "You're still an amateur at \(cN). I cleared \(higherNum) without trying.",
+                        "I played along to make you feel better. I'm actually at \(higherNum)."
                     ])
                 } else {
                     let higherNum = num + Int.random(in: 10...max(20, num))
@@ -3202,13 +3247,31 @@ public struct MockSocialService: SocialService, Sendable {
             if mentionedStreak {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
                     let isLowerStreakBrag = commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                    
                     if isLowerStreakBrag, let cN = commentNumber, let rN = rootNumber {
                         replies.append(contentsOf: [
                             "You're bragging about \(cN) days? I'm already at \(rN). You're still too low to get ahead.",
                             "\(cN) days is nothing. I posted about \(rN). You're still too low to get ahead.",
                             "You thought \(cN) days would impress me? I'm at \(rN). You're still too low to get ahead.",
                             "Is this a joke? \(cN) days is beneath my \(rN). You're still too low to get ahead.",
-                            "I'm at \(rN) days and you're bragging about \(cN)? You're still too low to get ahead."
+                            "I'm at \(rN) days and you're bragging about \(cN)? You're still too low to get ahead.",
+                            "You're acting like \(cN) days is a big deal? I effortlessly passed \(rN).",
+                            "Cute that you're stuck at \(cN) days. I'm laughing from \(rN).",
+                            "I left \(cN) days in the dust a long time ago. \(rN) is my new floor."
+                        ])
+                    } else if rootIsJealous, let cN = commentNumber {
+                        let higherNum = cN + Int.random(in: 5...max(15, cN / 5))
+                        replies.append(contentsOf: [
+                            "Did you really think I was struggling? I easily passed your \(cN) days. I'm at \(higherNum) days.",
+                            "I let you think you were winning. Your \(cN) days is nothing. I'm at \(higherNum) days.",
+                            "You fell for it. I easily beat your \(cN) days. My real record is \(higherNum) days.",
+                            "I was just warming up. Your \(cN) days is a joke compared to my \(higherNum) days.",
+                            "Struggling? Never. I blew past your \(cN) days and hit \(higherNum) days.",
+                            "You're a beginner at \(cN) days? I effortlessly reached \(higherNum).",
+                            "Stuck at \(cN) days like a novice? I'm already dominating \(higherNum).",
+                            "If you think \(cN) days is hard, wait until you see my \(higherNum).",
+                            "You're still an amateur at \(cN) days. I cleared \(higherNum) without trying.",
+                            "I played along to make you feel better. I'm actually at \(higherNum) days."
                         ])
                     } else {
                         let higherNum = num + Int.random(in: 5...max(15, num / 5))
@@ -3283,11 +3346,24 @@ public struct MockSocialService: SocialService, Sendable {
                         "Are you serious? \(cTimeStr) is slower than my \(rTimeStr). You're still too slow to get ahead.",
                         "I'm at \(rTimeStr) and you're bragging about \(cTimeStr)? You're still too slow to get ahead."
                     ])
+                } else if rootIsJealous, let cT = commentTime {
+                    let cSecs = cT.0 * 60 + cT.1
+                    let cTimeStr = "\(cT.0):\(String(format: "%02d", cT.1))"
+                    var mySecs = cSecs - Int.random(in: 5...30)
+                    if mySecs <= 1 { mySecs = 2 }
+                    let myTimeStr = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
+                    replies.append(contentsOf: [
+                        "Did you really think I was struggling? I easily passed your \(cTimeStr). I'm at \(myTimeStr).",
+                        "I let you think you were winning. Your \(cTimeStr) is nothing. I'm at \(myTimeStr).",
+                        "You fell for it. I easily beat your \(cTimeStr). My real record is \(myTimeStr).",
+                        "I was just warming up. Your \(cTimeStr) is a joke compared to my \(myTimeStr).",
+                        "Struggling? Never. I blew past your \(cTimeStr) and clocked \(myTimeStr)."
+                    ])
                 } else if let (mins, secs) = commentTime ?? rootTime {
                     let totalSecs = mins * 60 + secs
                     let higherNum: Int
                     if totalSecs <= 10 {
-                        higherNum = max(0, totalSecs - Int.random(in: 1...3))
+                        higherNum = max(2, totalSecs - Int.random(in: 1...3))
                     } else {
                         higherNum = max(10, totalSecs - Int.random(in: 10...30))
                     }
@@ -3429,7 +3505,7 @@ public struct MockSocialService: SocialService, Sendable {
                 ])
             }
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.47 * 0.86 {
+            if canBeBehind && Double.random(in: 0...1) < 0.47 * 0.86 {
                 let behindOpeners = [
                     "I might be lower right now, but", "You're ahead for now, but", "Enjoy the lead while it lasts,",
                     "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
