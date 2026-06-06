@@ -153,6 +153,9 @@ public final class GameStore {
     private let journeyAbbreviationClaimsKey = "journeyAbbreviationClaims"
     public private(set) var claimedJourneyAbbreviationRewards: Set<String> = []
     private var pendingJourneyRewardTierID: String? = nil
+    // Track gems spent on the last power-up action for undo refund
+    // Stores (gemCost, powerUpKey) — nil if the last action wasn't a gem-purchased power-up
+    private var lastPowerUpGemSpend: (cost: Int, key: String)? = nil
     // Power-up inventory tracking
     public private(set) var powerUpInventory: [String: Int] = [
         "hammer": 3,
@@ -1126,15 +1129,30 @@ public final class GameStore {
         }
     }
     
+    /// Ensure highestTileStep and highestTile never decrease.
+    /// Called after copying engine state to prevent cleanup/elimination
+    /// from regressing the all-time highest achievement.
+    private func preserveHighWatermark(previous: (step: Int, tile: Int)) {
+        if state.highestTileStep < previous.step {
+            state.highestTileStep = previous.step
+        }
+        if state.highestTile < previous.tile {
+            state.highestTile = previous.tile
+        }
+    }
+
     private func performRefill(columns: Set<Int>? = nil) {
+        let watermark = (step: state.highestTileStep, tile: state.highestTile)
         let previousBoard = state.board
         if let cols = columns, !cols.isEmpty {
             let newState = engine.refillColumns(cols)
             state = newState
+            preserveHighWatermark(previous: watermark)
             markRefills(previousBoard: previousBoard, newBoard: newState.board, scopedColumns: cols)
         } else {
             let newState = engine.refillBoard()
             state = newState
+            preserveHighWatermark(previous: watermark)
             scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: [])
         }
         // Force cleanup of any tiles below the elimination threshold
@@ -1145,6 +1163,7 @@ public final class GameStore {
         if !sandboxed && pendingEliminationTiles.isEmpty {
             let cleanedState = engine.cleanupTilesBelowThreshold()
             state = cleanedState
+            preserveHighWatermark(previous: watermark)
         }
     }
 
@@ -1185,6 +1204,7 @@ public final class GameStore {
     }
 
     private func performGravityDrop(columns: Set<Int>? = nil) {
+        let watermark = (step: state.highestTileStep, tile: state.highestTile)
         if let cols = columns, !cols.isEmpty {
             let newState = engine.collapseColumns(cols)
             state = newState
@@ -1192,11 +1212,16 @@ public final class GameStore {
             let newState = engine.applyGravityAfterChain()
             state = newState
         }
+        preserveHighWatermark(previous: watermark)
         // Note: validMovesCount is updated in performRefill after gravity completes
     }
     
     @discardableResult
     private func performCommit(positions: [Position]) -> (Bool, Set<Int>) {
+        // Clear power-up gem tracking — a regular move means the previous
+        // power-up can no longer be undone for a gem refund.
+        lastPowerUpGemSpend = nil
+
         let previousHighest = state.highestTile
         let previousHighestStep = state.highestTileStep
         let lastPos = positions.last
@@ -1426,8 +1451,19 @@ public final class GameStore {
             let savedGems = UserDefaults.standard.integer(forKey: "coins")
             gemsToUse = savedGems > 0 ? savedGems : state.gems
         }
+        // Preserve highestTileStep/highestTile as permanent high watermarks.
+        // These represent all-time achievements and must never decrease,
+        // even if the tile is removed from the board by cleanup or elimination.
+        let previousHighestStep = state.highestTileStep
+        let previousHighestTile = state.highestTile
         state = newState
         state.gems = gemsToUse
+        if state.highestTileStep < previousHighestStep {
+            state.highestTileStep = previousHighestStep
+        }
+        if state.highestTile < previousHighestTile {
+            state.highestTile = previousHighestTile
+        }
         // Note: caller is responsible for calling updateValidMovesCount() when done
         scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: refillProtectedPositions)
     }
@@ -2777,8 +2813,11 @@ public final class GameStore {
         // Use inventory first, then coins
         if powerUpInventory["hammer", default: 0] > 0 {
             powerUpInventory["hammer", default: 0] -= 1
+            lastPowerUpGemSpend = nil
         } else {
-            guard spendCoins(powerUpPrice("hammer")) else { return false }
+            let price = powerUpPrice("hammer")
+            guard spendCoins(price) else { return false }
+            lastPowerUpGemSpend = (cost: price, key: "hammer")
         }
         
         runHammerPipeline(at: position)
@@ -2799,8 +2838,11 @@ public final class GameStore {
         // Use inventory first, then coins
         if powerUpInventory["swap", default: 0] > 0 {
             powerUpInventory["swap", default: 0] -= 1
+            lastPowerUpGemSpend = nil
         } else {
-            guard spendCoins(powerUpPrice("swap")) else { return false }
+            let price = powerUpPrice("swap")
+            guard spendCoins(price) else { return false }
+            lastPowerUpGemSpend = (cost: price, key: "swap")
         }
         
         let previousBoard = state.board
@@ -2826,8 +2868,11 @@ public final class GameStore {
         // Use inventory first, then coins
         if powerUpInventory["shuffle", default: 0] > 0 {
             powerUpInventory["shuffle", default: 0] -= 1
+            lastPowerUpGemSpend = nil
         } else {
-            guard spendCoins(powerUpPrice("shuffle")) else { return false }
+            let price = powerUpPrice("shuffle")
+            guard spendCoins(price) else { return false }
+            lastPowerUpGemSpend = (cost: price, key: "shuffle")
         }
         
         let previousBoard = state.board
@@ -2852,13 +2897,26 @@ public final class GameStore {
         // Undo doesn't use inventory in this implementation
         let previousBoard = state.board
         // Preserve the current gems value (coins) before undo
-        let currentGems = state.gems
+        var currentGems = state.gems
+
+        // Refund gems if the last action was a gem-purchased power-up
+        if let gemSpend = lastPowerUpGemSpend {
+            currentGems += gemSpend.cost
+            print("💰 UNDO REFUND: Refunding \(gemSpend.cost) gems for \(gemSpend.key). New balance: \(currentGems)")
+            lastPowerUpGemSpend = nil
+        }
+
         var newState = engine.undo()
-        // Restore the current gems value to prevent reverting purchases
+        // Restore the gems value (with refund applied) to prevent reverting unrelated purchases
         newState.gems = currentGems
         applyStateUpdate(newState, previousBoard: previousBoard)
         // Sync the engine's gems state to match the preserved value
         syncEngineGems()
+        // Persist the refunded gem balance
+        if !sandboxed {
+            UserDefaults.standard.set(state.gems, forKey: "coins")
+            UserDefaults.standard.synchronize()
+        }
         powerUpHistory.append(.undo)
         trackPowerUpAnalytics(action: .undo)
         achievementEvaluator?.onUndoUsed()
@@ -2900,8 +2958,11 @@ public final class GameStore {
         // Deduct power-up cost
         if powerUpInventory["magnet", default: 0] > 0 {
             powerUpInventory["magnet", default: 0] -= 1
+            lastPowerUpGemSpend = nil
         } else {
-            guard spendCoins(powerUpPrice("magnet")) else { return 0 }
+            let price = powerUpPrice("magnet")
+            guard spendCoins(price) else { return 0 }
+            lastPowerUpGemSpend = (cost: price, key: "magnet")
         }
         
         // Capture previous highest for milestone detection

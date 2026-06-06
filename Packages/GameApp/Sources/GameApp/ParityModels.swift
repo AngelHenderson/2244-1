@@ -2322,7 +2322,7 @@ public struct MockSocialService: SocialService, Sendable {
                 // Randomly prepend a competitive opener ~95% of the time
                 if Double.random(in: 0...1) < 0.95 {
                     let compOpeners = [
-                        "Too easy.", "Barely had to try.", "Light work.",
+                        "I flew right past this.", "Barely had to try.", "Light work.",
                         "This is entirely effortless.", "Do better.", "Effortless.",
                         "Didn't even break a sweat.", "That's cute.", "Amateur.",
                         "What a joke.", "Not even trying.", "A child could do that.",

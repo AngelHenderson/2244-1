@@ -1842,15 +1842,21 @@ public final class GameEngine {
         if state.highestTileStep >= 62 {
             let thresholdStep = getEliminationThresholdStep()
             guard thresholdStep > 0 else { return state }
+            let highestStep = state.highestTileStep
 
             var didRemove = false
             for row in 0..<config.boardHeight {
                 for col in 0..<config.boardWidth {
                     let pos = Position(row: row, col: col)
-                    // Remove tiles at or below threshold (they shouldn't exist anymore)
-                    if let tile = state.board[pos], let step = tile.stepIndex, step <= thresholdStep {
-                        state.board[pos] = nil
-                        didRemove = true
+                    if let tile = state.board[pos], let step = tile.stepIndex {
+                        // SAFETY: Never remove tiles within 2 steps of the highest.
+                        // These tiles are always valid and should survive cleanup.
+                        guard step < highestStep - 1 else { continue }
+
+                        if step <= thresholdStep {
+                            state.board[pos] = nil
+                            didRemove = true
+                        }
                     }
                 }
             }
