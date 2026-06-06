@@ -411,17 +411,6 @@ struct UnlockedNotificationView: View {
             break
         }
 
-        // Check for step-based milestones
-        switch displayStep {
-        case 8:  return "Good Job! First milestone unlocked!"
-        case 9:  return "Magnificent! You're in the thousands!"
-        case 10: return "Amazing! You unlocked 2048!"
-        case 49: return "50th milestone unlocked! Keep going!"
-        case 99: return "100th Milestone Unlocked! Keep going!"
-        case 199: return "200th milestone unlocked! Keep Going!"
-        default: break
-        }
-
         // Use the pre-selected unique phrase from the milestone sequence
         return celebrationPhrase
     }

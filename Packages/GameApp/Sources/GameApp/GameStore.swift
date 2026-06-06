@@ -1140,7 +1140,9 @@ public final class GameStore {
         // Force cleanup of any tiles below the elimination threshold
         // Handles edge cases: saved state with stale tiles, cancelled tasks that skipped cleanup
         // Skip in sandboxed/challenge mode where elimination is disabled
-        if !sandboxed {
+        // Skip when elimination is deferred (pendingEliminationTiles is non-empty) —
+        // the deferred elimination will handle cleanup after the notification is dismissed.
+        if !sandboxed && pendingEliminationTiles.isEmpty {
             let cleanedState = engine.cleanupTilesBelowThreshold()
             state = cleanedState
         }
