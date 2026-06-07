@@ -101,6 +101,8 @@ public final class GameStore {
     
     private var notificationQueue: [MergeNotification] = []
     public private(set) var currentNotification: MergeNotification? = nil
+    /// True when any milestone notifications are active or pending in the queue
+    public var hasActiveNotifications: Bool { currentNotification != nil || !notificationQueue.isEmpty }
     public private(set) var lastMagnetEvent: MagnetEvent? = nil
     public private(set) var mergeAnimationState: MergeAnimationState? = nil
     public private(set) var isInputLocked: Bool = false
