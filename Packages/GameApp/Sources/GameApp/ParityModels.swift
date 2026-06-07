@@ -822,8 +822,6 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static func avatarForPlayer(index: Int, countrySeed: Int = 0) -> String {
-        let noAvatarRandom = seededRandom(seed: index * 251 + countrySeed * 43, index: index + countrySeed)
-        if noAvatarRandom < 0.15 { return "person.crop.circle.fill" } // placeholder
         let seed = index * 131 + countrySeed * 17
         let random = seededRandom(seed: seed, index: index)
         let avatarIndex = Int(random * Double(allAvatars.count))
@@ -831,12 +829,6 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     static func avatarForPlayer(index: Int, countrySeed: Int, day: Int) -> String {
-        let noAvatarRandom = seededRandom(seed: index * 251 + countrySeed * 43, index: index + countrySeed)
-        if noAvatarRandom < 0.15 {
-            let delayDays = 0.125 + noAvatarRandom / 0.15 * 1.875
-            let playerJoinDay = Int(seededRandom(seed: index * 373 + countrySeed * 67, index: index) * Double(max(1, day)))
-            if Double(day - playerJoinDay) < delayDays { return "person.crop.circle.fill" }
-        }
         var totalChanges: Double = 0
         for d in 0...day { totalChanges += countryPlayersChangingNameOrAvatar(on: d, countrySeed: countrySeed) }
         let changeThreshold = seededRandom(seed: index * 199 + countrySeed * 31, index: index)
@@ -2021,10 +2013,10 @@ public struct MockSocialService: SocialService, Sendable {
         ]
         
         // Symbols categorized by tone
-        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)"]
-        let questionSymbols = ["?!", "...", "??", "!!?"]
-        let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "..."]
-        let competitiveSymbols = [" >:)", " !!", " !!!"]
+        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", " 🔥", " 👏", " 🎉", " 💪", " 💯", " 🐐", " 😎", " 🙌", " 🚀", " 🤯", " ✨"]
+        let questionSymbols = ["?!", "...", "??", "!!?", " 🤔", " 🧐", " 🤨", " ❓"]
+        let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", " 😭", " 😢", " 😔", " 😩", " 😫", " 💀", " ☠️", " 💔", " 😒", " 🙄", " 🤕"]
+        let competitiveSymbols = [" >:)", " !!", " !!!", " 😈", " 🥱", " 🤡", " 💀", " 👑", " 💅", " 🥶", " 🤫", " 📉", " 🗑️", " 💤"]
         let keyboardSymbols = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
         
         // Dynamically inject topic-specific subjects based on the feed item's message
@@ -2320,8 +2312,15 @@ public struct MockSocialService: SocialService, Sendable {
                 if Double.random(in: 0...1) < 0.86 {
                     // 86% of behind have more competitive responses
                     // Generate a competitive brag, but we are behind?
-                    // Actually, let's just make the reaction a competitive one instead of a jealous one.
-                    let compReaction = Self.drawFromBag(key: "competitive_\(bagSuffix)", pool: competitiveReactions)
+                    let behindCompReactions = [
+                        "I am grinding right now to pass you.",
+                        "Don't get too comfortable up there.",
+                        "I'm already closing the gap.",
+                        "My next run is going to crush that.",
+                        "I'm coming for the crown.",
+                        "Just give me a little more time."
+                    ]
+                    let compReaction = Self.drawFromBag(key: "behind_comp_\(bagSuffix)", pool: behindCompReactions)
                     reaction = "\(bOpener) \(compReaction) \(bCloser)"
                 } else {
                     let jealReaction = Self.drawFromBag(key: "behind_\(bagSuffix)", pool: behindReactions)
@@ -2451,7 +2450,7 @@ public struct MockSocialService: SocialService, Sendable {
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowered, range: NSRange(lowered.startIndex..., in: lowered)) != nil
         }) ?? "11n"
         let posterIdx = Self.allMilestones.firstIndex(of: posterM) ?? 15
-        let jump = Int.random(in: 5...60)
+        let jump = Int.random(in: 1...5)
         let higherIdx = min(posterIdx + jump, Self.allMilestones.count - 1)
         let higherM = Self.allMilestones[higherIdx]
         let higherName = Self.leaderboardPlayerAtMilestone(higherM)
@@ -2595,8 +2594,8 @@ public struct MockSocialService: SocialService, Sendable {
                originalIdx + 1 < Self.allMilestones.count {
                 // Pick a random milestone 5-60 steps ahead, avoiding already-used ones
                 let remaining = Self.allMilestones.count - 1 - originalIdx
-                let maxJump = min(60, remaining)
-                let minJump = min(5, maxJump)
+                let maxJump = min(5, remaining)
+                let minJump = min(1, maxJump)
                 var localHigherM: String
                 var jump: Int
                 var attempts = 0
@@ -2613,9 +2612,9 @@ public struct MockSocialService: SocialService, Sendable {
                     "I effortlessly reached \(localHigherM).",
                     "\(localHigherM) is my floor.",
                 ]
-                // "way behind" only with a truly massive gap (150-500 steps ahead)
-                if remaining >= 150 {
-                    let wayBehindJump = Int.random(in: 150...min(500, remaining))
+                // "way behind" only with a moderate gap (10-20 steps ahead)
+                if remaining >= 10 {
+                    let wayBehindJump = Int.random(in: 10...min(20, remaining))
                     let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
                     templates.append("You are infinitely behind. I'm already at \(wayBehindM).")
                 }
@@ -2903,9 +2902,15 @@ public struct MockSocialService: SocialService, Sendable {
                 let compBehindClosers = [
                     "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
                 ]
-                reply = "\(behindOpeners.randomElement()!) \(reply) \(compBehindClosers.randomElement()!)"
+                let behindCompReactions = [
+                    "Add me so you can watch me catch up.",
+                    "Add me! I'm grinding right now to pass you.",
+                    "Sure, add me. Don't get too comfortable up there.",
+                    "Add me! I'm already closing the gap."
+                ]
+                reply = "\(behindOpeners.randomElement()!) \(behindCompReactions.randomElement()!) \(compBehindClosers.randomElement()!)"
             }
-            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >", " 😈", " 🥶", " 👑"].randomElement()! }
             return reply
         }
 
@@ -3018,7 +3023,7 @@ public struct MockSocialService: SocialService, Sendable {
                 var replies: [String] = []
                 
                 if let m = mentionedMilestone {
-                    let jump = Int.random(in: 20...50) // Huge jump
+                    let jump = Int.random(in: 2...6) // Small jump
                     let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
                     let higherM = Self.allMilestones[higherIdx]
                     replies.append("You're a beginner at \(m.name)? I effortlessly reached \(higherM).")
@@ -3074,7 +3079,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append("Your struggles mean nothing. I am infinitely ahead.")
                 }
                 var reply = replies.randomElement()!
-                if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!"].randomElement()! }
+                if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " 😈"].randomElement()! }
                 return reply
             }
 
@@ -3130,7 +3135,7 @@ public struct MockSocialService: SocialService, Sendable {
                     ])
                 } else if rootIsJealous, let cM = commentMilestone {
                     let mIdx = cM.index
-                    let jump = Int.random(in: 11...50)
+                    let jump = Int.random(in: 2...5)
                     let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
                     let higherM = Self.allMilestones[higherIdx]
                     replies.append(contentsOf: [
@@ -3150,9 +3155,9 @@ public struct MockSocialService: SocialService, Sendable {
                     let mName = m.name
                 let jump: Int
                 if Double.random(in: 0...1) < 0.80 {
-                    jump = Int.random(in: 1...10)
+                    jump = Int.random(in: 1...2)
                 } else {
-                    jump = Int.random(in: 11...50)
+                    jump = Int.random(in: 3...5)
                 }
                 let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
                 let higherM = Self.allMilestones[higherIdx]
@@ -3514,9 +3519,17 @@ public struct MockSocialService: SocialService, Sendable {
                 let compBehindClosers = [
                     "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
                 ]
-                reply = "\(behindOpeners.randomElement()!) \(reply) \(compBehindClosers.randomElement()!)"
+                let behindCompReactions = [
+                    "I am grinding right now to pass you.",
+                    "Don't get too comfortable up there.",
+                    "I'm already closing the gap.",
+                    "My next run is going to crush that.",
+                    "I'm coming for the crown.",
+                    "Just give me a little more time."
+                ]
+                reply = "\(behindOpeners.randomElement()!) \(behindCompReactions.randomElement()!) \(compBehindClosers.randomElement()!)"
             }
-            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >", " 😈", " 🥶", " 👑"].randomElement()! }
             return reply
         }
 
@@ -3604,7 +3617,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Aww thanks! This community is the best.",
             ])
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply += ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply += ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", " 🔥", " 👏", " 🎉", " 💪", " 💯", " 🐐", " 😎", " 🙌", " 🚀", " 🤯", " ✨"].randomElement()! }
             return reply
         }
 
