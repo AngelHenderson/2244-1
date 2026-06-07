@@ -252,7 +252,23 @@ public struct HybridGameScreen: View {
                 handleLastAddedTileChange(newValue)
             }
             .onChange(of: gameStore.pendingDoubleBase) { _, newValue in
-                isShowingDoublePrompt = (newValue != nil)
+                if newValue != nil {
+                    // Defer double prompt until all milestone notifications are dismissed.
+                    // Showing the alert while an overlay notification is active covers the
+                    // notification, causing it to be invisible to the user.
+                    if !gameStore.hasActiveNotifications {
+                        isShowingDoublePrompt = true
+                    }
+                    // else: will be triggered by onChange(of: hasActiveNotifications) below
+                } else {
+                    isShowingDoublePrompt = false
+                }
+            }
+            .onChange(of: gameStore.hasActiveNotifications) { _, isActive in
+                // When all notifications clear and a double offer is pending, show the prompt
+                if !isActive, gameStore.pendingDoubleBase != nil, !isShowingDoublePrompt {
+                    isShowingDoublePrompt = true
+                }
             }
             .onChange(of: gameStore.coins) { _, newValue in
                 tempHomeState.gems = newValue
