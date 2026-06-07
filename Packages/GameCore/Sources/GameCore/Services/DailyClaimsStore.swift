@@ -33,7 +33,6 @@ public final class DailyClaimsStore {
     private static let lastClaimKey = "lastClaimDate"
     private static let claimedDaysKey = "claimedDays"
     private static let unlockedStreaksKey = "unlockedStreaks"
-    private static let availableClaimsKey = "availableClaims"
     
     private var claimedDays: Set<Int> = []
     private var unlockedStreaks: Set<Int> = []
@@ -67,7 +66,7 @@ public final class DailyClaimsStore {
                         return DailyStreak(
                             id: achievement.id,
                             day: day,
-                            rewards: DailyRewardSchedule.rewards(for: day),
+                            rewards: achievement.rewards ?? AchievementDef.Rewards(),
                             isUnlocked: unlockedStreaks.contains(day)
                         )
                     }
@@ -88,7 +87,6 @@ public final class DailyClaimsStore {
         
         claimedDays = Set(storage.array(forKey: Self.claimedDaysKey) as? [Int] ?? [])
         unlockedStreaks = Set(storage.array(forKey: Self.unlockedStreaksKey) as? [Int] ?? [])
-        availableClaims = storage.integer(forKey: Self.availableClaimsKey)
     }
     
     private func saveProgress() {
@@ -103,13 +101,10 @@ public final class DailyClaimsStore {
         
         // Save unlocked streaks
         storage.set(Array(unlockedStreaks).sorted(), forKey: Self.unlockedStreaksKey)
-        
-        // Save available claims count (for catch-up persistence)
-        storage.set(availableClaims, forKey: Self.availableClaimsKey)
     }
     
     @MainActor
-    public func updateAvailability(banStartDate: Date? = nil, banEndDate: Date? = nil) {
+    public func updateAvailability() {
         let calendar = Calendar.current
         let now = Date()
 
@@ -122,56 +117,19 @@ public final class DailyClaimsStore {
             let daysSinceLastClaim = calendar.dateComponents([.day], from: lastClaimDay, to: today).day ?? 0
 
             if daysSinceLastClaim == 0 {
-                // Already claimed today — but preserve any remaining catch-up claims
-                // When a user missed multiple days and claims one, lastClaimDate becomes today.
-                // On re-entry, daysSinceLastClaim == 0 but catch-up claims may remain.
-                if availableClaims > 0 {
-                    canClaimToday = true
-                } else {
-                    canClaimToday = false
-                    availableClaims = 0
-                }
+                // Already claimed today
+                canClaimToday = false
+                availableClaims = 0
             } else if daysSinceLastClaim == 1 {
                 // Consecutive day - continue streak
                 canClaimToday = true
                 availableClaims = 1
             } else {
-                // Missed days - check how many fell during a ban
-                // Days during ban are forfeited, not available for catch-up
-                var bannedDays = 0
-                if let banStart = banStartDate {
-                    let banStartDay = calendar.startOfDay(for: banStart)
-                    // banEnd is either the end date or now (still banned)
-                    let banEndDay = calendar.startOfDay(for: banEndDate ?? now)
-
-                    // Count forfeited days: days between lastClaim and today that were during ban
-                    for offset in 1..<daysSinceLastClaim {
-                        if let checkDay = calendar.date(byAdding: .day, value: offset, to: lastClaimDay) {
-                            let checkStart = calendar.startOfDay(for: checkDay)
-                            if checkStart >= banStartDay && checkStart <= banEndDay {
-                                bannedDays += 1
-                            }
-                        }
-                    }
-                }
-
-                // Streak resets but user can only claim non-banned days
+                // Missed days - allow catching up on all missed days
+                // Streak resets but user can claim all missed rewards
                 currentStreak = 0
-                let claimable = max(0, daysSinceLastClaim - bannedDays)
-
-                // Advance currentClaimDay past forfeited days
-                if bannedDays > 0 {
-                    currentClaimDay += bannedDays
-                    // Mark forfeited days as claimed so they don't appear as available
-                    for offset in 1...bannedDays {
-                        let forfeitDay = currentClaimDay - bannedDays + offset
-                        claimedDays.insert(forfeitDay)
-                    }
-                    saveProgress()
-                }
-
-                canClaimToday = claimable > 0
-                availableClaims = claimable
+                canClaimToday = true
+                availableClaims = daysSinceLastClaim  // One claim per missed calendar day
             }
         } else {
             // First time claiming
@@ -189,32 +147,8 @@ public final class DailyClaimsStore {
         dailyClaims = dailyClaims.map { claim in
             var updated = claim
             updated.isClaimed = claimedDays.contains(claim.day)
-            if Self.isYearlyAwardDay(claim.day) {
-                // Yearly award days are only available when all prior days in that year are claimed
-                updated.isAvailable = Self.isYearlyAwardUnlocked(day: claim.day, claimedDays: claimedDays) && !claim.isClaimed
-            } else {
-                updated.isAvailable = canClaimToday && claim.day >= nextDay && claim.day <= maxAvailableDay
-            }
+            updated.isAvailable = canClaimToday && claim.day >= nextDay && claim.day <= maxAvailableDay
             return updated
-        }
-        // Retroactively unlock milestones if the user's currentClaimDay has surpassed them
-        var retroRewards = AchievementDef.Rewards()
-        var unlockedAny = false
-        for i in 0..<dailyStreaks.count {
-            if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentClaimDay {
-                dailyStreaks[i].isUnlocked = true
-                unlockedStreaks.insert(dailyStreaks[i].day)
-                let bonus = BonusRewardGenerator.generateBonus(forStreakDay: dailyStreaks[i].day)
-                retroRewards = retroRewards.merged(with: bonus)
-                unlockedAny = true
-            }
-        }
-        if unlockedAny {
-            saveProgress()
-            if !retroRewards.entries.isEmpty {
-                // Pass the rewards via the closure if it exists, or let the caller fetch them
-                onReward?(retroRewards)
-            }
         }
     }
     
@@ -222,14 +156,7 @@ public final class DailyClaimsStore {
     public func claimDailyReward() {
         guard canClaimToday, availableClaims > 0 else { return }
 
-        var nextClaimDay = currentClaimDay + 1
-
-        // Skip yearly award days in the normal sequential flow
-        // (they are claimed separately via claimYearlyReward)
-        if Self.isYearlyAwardDay(nextClaimDay) {
-            nextClaimDay += 1
-        }
-
+        let nextClaimDay = currentClaimDay + 1
         guard let claimIndex = dailyClaims.firstIndex(where: { $0.day == nextClaimDay }) else { return }
 
         // Get rewards before updating state
@@ -258,11 +185,7 @@ public final class DailyClaimsStore {
         dailyClaims = dailyClaims.map { claim in
             var updated = claim
             updated.isClaimed = claimedDays.contains(claim.day)
-            if Self.isYearlyAwardDay(claim.day) {
-                updated.isAvailable = Self.isYearlyAwardUnlocked(day: claim.day, claimedDays: claimedDays) && !claim.isClaimed
-            } else {
-                updated.isAvailable = availableClaims > 0 && claim.day >= nextAvailableDay && claim.day <= maxAvailableDay
-            }
+            updated.isAvailable = availableClaims > 0 && claim.day >= nextAvailableDay && claim.day <= maxAvailableDay
             return updated
         }
 
@@ -270,9 +193,8 @@ public final class DailyClaimsStore {
         onReward?(rewards)
 
         // Check for newly unlocked streaks and give weighted random bonus rewards
-        // Milestones unlock based on total claim progress (currentClaimDay), not consecutive streak
         for i in 0..<dailyStreaks.count {
-            if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentClaimDay {
+            if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= currentStreak {
                 dailyStreaks[i].isUnlocked = true
                 unlockedStreaks.insert(dailyStreaks[i].day)
                 // Generate weighted random bonus (50% gems, 15% megaMerge, etc.)
@@ -286,79 +208,12 @@ public final class DailyClaimsStore {
     }
     
     public func getNextClaimableDay() -> Int? {
-        guard canClaimToday, availableClaims > 0 else { return nil }
-        let next = currentClaimDay + 1
-        // Skip yearly award days in the normal flow
-        return Self.isYearlyAwardDay(next) ? next + 1 : next
-    }
-
-    /// Claims a yearly award day (365, 730, 1095, etc.) once all prior days in that year are complete.
-    @MainActor
-    public func claimYearlyReward(day: Int) {
-        guard Self.isYearlyAwardDay(day),
-              !claimedDays.contains(day),
-              Self.isYearlyAwardUnlocked(day: day, claimedDays: claimedDays)
-        else { return }
-
-        guard let claimIndex = dailyClaims.firstIndex(where: { $0.day == day }) else { return }
-        let rewards = dailyClaims[claimIndex].rewards
-
-        // Mark as claimed
-        claimedDays.insert(day)
-
-        // Completing all days in a year unlocks streak milestones up to that point.
-        // Even if the streak was broken along the way, having claimed every single day
-        // is an equivalent achievement.
-        if currentStreak < day {
-            currentStreak = day
-        }
-
-        // Unlock all streak milestones up to this yearly day
-        for i in 0..<dailyStreaks.count {
-            if !dailyStreaks[i].isUnlocked && dailyStreaks[i].day <= day {
-                dailyStreaks[i].isUnlocked = true
-                unlockedStreaks.insert(dailyStreaks[i].day)
-                let bonus = BonusRewardGenerator.generateBonus(forStreakDay: dailyStreaks[i].day)
-                onReward?(bonus)
-            }
-        }
-
-        saveProgress()
-
-        // Rebuild states
-        let nextAvailableDay = currentClaimDay + 1
-        let maxAvailableDay = currentClaimDay + availableClaims
-        dailyClaims = dailyClaims.map { claim in
-            var updated = claim
-            updated.isClaimed = claimedDays.contains(claim.day)
-            if Self.isYearlyAwardDay(claim.day) {
-                updated.isAvailable = Self.isYearlyAwardUnlocked(day: claim.day, claimedDays: claimedDays) && !claim.isClaimed
-            } else {
-                updated.isAvailable = canClaimToday && claim.day >= nextAvailableDay && claim.day <= maxAvailableDay
-            }
-            return updated
-        }
-
-        onReward?(rewards)
-    }
-
-    /// Returns true for yearly milestone days: 365, 730, 1095, …
-    public static func isYearlyAwardDay(_ day: Int) -> Bool {
-        day > 0 && day % 365 == 0
-    }
-
-    /// A yearly award day is unlocked when all 364 preceding days in that year are claimed.
-    private static func isYearlyAwardUnlocked(day: Int, claimedDays: Set<Int>) -> Bool {
-        guard isYearlyAwardDay(day) else { return false }
-        let yearStart = day - 364  // e.g. 1 for day 365, 366 for day 730
-        let yearEnd = day - 1      // e.g. 364 for day 365, 729 for day 730
-        for d in yearStart...yearEnd {
-            if !claimedDays.contains(d) { return false }
-        }
-        return true
+        return (canClaimToday && availableClaims > 0) ? currentClaimDay + 1 : nil
     }
     
     public func getTimeUntilNextClaim() -> TimeInterval? {
+        guard !canClaimToday || availableClaims == 0 else { return nil }
+
         let calendar = Calendar.current
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
@@ -374,9 +229,6 @@ public final class DailyClaimsStore {
         let startDay = currentClaimDay + 1
         let endDay = currentClaimDay + availableClaims
 
-        // Make sure claim entries exist for the full catch-up range
-        ensureClaims(upTo: endDay)
-
         var total = AchievementDef.Rewards()
         for day in startDay...endDay {
             if let claim = dailyClaims.first(where: { $0.day == day }) {
@@ -389,15 +241,8 @@ public final class DailyClaimsStore {
     /// Claims all available catch-up rewards in sequence, calling onReward for each.
     @MainActor
     public func claimAllDailyRewards() {
-        // Make sure claim entries exist for the full catch-up range
-        let endDay = currentClaimDay + availableClaims
-        ensureClaims(upTo: endDay)
-
         while availableClaims > 0 && canClaimToday {
-            let before = currentClaimDay
             claimDailyReward()
-            // Safety: break if claim didn't advance (missing entry)
-            if currentClaimDay == before { break }
         }
     }
     
@@ -482,11 +327,11 @@ public final class DailyClaimsStore {
     }
     
     private func pendingStreakRewards(afterClaimingDay day: Int) -> [AchievementDef.Rewards] {
-        let resultingDay = currentClaimDay + 1 // claim day increments when day is claimed
+        let resultingStreak = currentStreak + 1 // streak increments when day is claimed
         // Return random bonus rewards for each pending streak unlock
         // Each bonus type has 12.5% probability (equal distribution)
         return dailyStreaks
-            .filter { !$0.isUnlocked && $0.day <= resultingDay }
+            .filter { !$0.isUnlocked && $0.day <= resultingStreak }
             .map { streak in
                 BonusRewardGenerator.generateRandomBonus(forStreakDay: streak.day)
             }
@@ -494,16 +339,16 @@ public final class DailyClaimsStore {
 
     /// Returns the count of pending streak bonuses without generating rewards
     public func pendingStreakBonusCount(afterClaimingDay day: Int) -> Int {
-        let resultingDay = currentClaimDay + 1
+        let resultingStreak = currentStreak + 1
         return dailyStreaks
-            .filter { !$0.isUnlocked && $0.day <= resultingDay }
+            .filter { !$0.isUnlocked && $0.day <= resultingStreak }
             .count
     }
 
     /// Returns a preview of the next streak bonus (type, display amount, and rewards)
     public func nextStreakBonusPreview() -> (type: BonusRewardGenerator.BonusType, amount: Int, rewards: AchievementDef.Rewards)? {
-        let resultingDay = currentClaimDay + 1
-        guard let nextStreak = dailyStreaks.first(where: { !$0.isUnlocked && $0.day <= resultingDay }) else {
+        let resultingStreak = currentStreak + 1
+        guard let nextStreak = dailyStreaks.first(where: { !$0.isUnlocked && $0.day <= resultingStreak }) else {
             return nil
         }
         let type = BonusRewardGenerator.bonusType(forStreakDay: nextStreak.day)
@@ -787,166 +632,19 @@ private enum DailyRewardSchedule {
         AchievementDef.Rewards(spins: 1),
         AchievementDef.Rewards(boost4x: 1),
         AchievementDef.Rewards(boost2x: 1),
-        AchievementDef.Rewards(gems: 649, magnets: 1),
-        // Week 35
-        AchievementDef.Rewards(gems: 655),
-        AchievementDef.Rewards(swaps: 1),
-        AchievementDef.Rewards(spins: 1),
-        AchievementDef.Rewards(spins: 4),
-        AchievementDef.Rewards(gems: 670),
-        AchievementDef.Rewards(gems: 1221),
-        AchievementDef.Rewards(magnets: 1, swaps: 1, boost3x: 1),
-        // Week 36
-        AchievementDef.Rewards(gems: 565, swaps: 1, boost4x: 1),
-        AchievementDef.Rewards(hammers: 1, magnets: 1, swaps: 1),
-        AchievementDef.Rewards(swaps: 1),
-        AchievementDef.Rewards(gems: 388),
-        AchievementDef.Rewards(gems: 1725),
-        AchievementDef.Rewards(spins: 1, hammers: 4, boost2x: 1),
-        AchievementDef.Rewards(gems: 779, spins: 1, boost3x: 1),
-        // Week 37
-        AchievementDef.Rewards(spins: 1),
-        AchievementDef.Rewards(magnets: 1),
-        AchievementDef.Rewards(gems: 1234),
-        AchievementDef.Rewards(gems: 1877),
-        AchievementDef.Rewards(boost4x: 1),
-        AchievementDef.Rewards(boost3x: 1),
-        AchievementDef.Rewards(gems: 1746),
-        // Week 38
-        AchievementDef.Rewards(spins: 1),
-        AchievementDef.Rewards(swaps: 1),
-        AchievementDef.Rewards(hammers: 1),
-        AchievementDef.Rewards(swaps: 1),
-        AchievementDef.Rewards(magnets: 1),
-        AchievementDef.Rewards(boost3x: 1),
-        AchievementDef.Rewards(gems: 2475),
-        // Week 39
-        AchievementDef.Rewards(gems: 2546),
-        AchievementDef.Rewards(spins: 2),
-        AchievementDef.Rewards(spins: 4),
-        AchievementDef.Rewards(magnets: 3),
-        AchievementDef.Rewards(gems: 2735, swaps: 1),
-        AchievementDef.Rewards(gems: 1983),
-        AchievementDef.Rewards(gems: 3000),
-        // Week 40
-        AchievementDef.Rewards(gems: 3544),
-        AchievementDef.Rewards(swaps: 2),
-        AchievementDef.Rewards(spins: 3),
-        AchievementDef.Rewards(spins: 1, boost4x: 1),
-        AchievementDef.Rewards(boost2x: 1),
-        AchievementDef.Rewards(gems: 2123),
-        AchievementDef.Rewards(gems: 2849),
-        // Week 41
-        AchievementDef.Rewards(spins: 1, hammers: 3),
-        AchievementDef.Rewards(gems: 1374, spins: 1, boost2x: 1),
-        AchievementDef.Rewards(hammers: 1, magnets: 1, swaps: 1),
-        AchievementDef.Rewards(gems: 3445),
-        AchievementDef.Rewards(gems: 2974),
-        AchievementDef.Rewards(gems: 2346),
-        AchievementDef.Rewards(gems: 3567),
-        // Week 42
-        AchievementDef.Rewards(gems: 3564),
-        AchievementDef.Rewards(hammers: 1),
-        AchievementDef.Rewards(spins: 1, swaps: 2),
-        AchievementDef.Rewards(spins: 1, boost2x: 1),
-        AchievementDef.Rewards(spins: 1, hammers: 1, swaps: 1, boost3x: 1),
-        AchievementDef.Rewards(gems: 3756),
-        AchievementDef.Rewards(gems: 4000),
-        // Week 43
-        AchievementDef.Rewards(gems: 2534),
-        AchievementDef.Rewards(gems: 2366),
-        AchievementDef.Rewards(spins: 1),
-        AchievementDef.Rewards(spins: 1),
-        AchievementDef.Rewards(spins: 2),
-        AchievementDef.Rewards(magnets: 1),
-        AchievementDef.Rewards(hammers: 1),
-        // Week 44
-        AchievementDef.Rewards(spins: 1),
-        AchievementDef.Rewards(swaps: 1),
-        AchievementDef.Rewards(gems: 2645),
-        AchievementDef.Rewards(gems: 3423),
-        AchievementDef.Rewards(spins: 1),
-        AchievementDef.Rewards(magnets: 1),
-        AchievementDef.Rewards(swaps: 3),
-        // Week 45
-        AchievementDef.Rewards(gems: 3645),
-        AchievementDef.Rewards(gems: 4377),
-        AchievementDef.Rewards(spins: 1),
-        AchievementDef.Rewards(spins: 2),
-        AchievementDef.Rewards(swaps: 1),
-        AchievementDef.Rewards(hammers: 1),
-        AchievementDef.Rewards(gems: 4435),
-        // Week 46
-        AchievementDef.Rewards(gems: 4657),
-        AchievementDef.Rewards(gems: 4736),
-        AchievementDef.Rewards(spins: 1, hammers: 1, swaps: 1, boost3x: 1),
-        AchievementDef.Rewards(gems: 5684, magnets: 1, swaps: 1),
-        AchievementDef.Rewards(gems: 3977, spins: 1, hammers: 2, magnets: 1, swaps: 2),
-        AchievementDef.Rewards(swaps: 1, boost4x: 1),
-        AchievementDef.Rewards(gems: 4357, spins: 3),
-        // Week 47
-        AchievementDef.Rewards(gems: 4567),
-        AchievementDef.Rewards(gems: 6543),
-        AchievementDef.Rewards(spins: 2),
-        AchievementDef.Rewards(swaps: 2),
-        AchievementDef.Rewards(hammers: 1),
-        AchievementDef.Rewards(spins: 1, magnets: 1),
-        AchievementDef.Rewards(gems: 6243, spins: 1, hammers: 1, swaps: 1, boost2x: 1),
-        // Week 48
-        AchievementDef.Rewards(hammers: 1, magnets: 2, swaps: 3),
-        AchievementDef.Rewards(gems: 6532, hammers: 1),
-        AchievementDef.Rewards(gems: 6239, swaps: 1),
-        AchievementDef.Rewards(spins: 5),
-        AchievementDef.Rewards(hammers: 1, swaps: 1),
-        AchievementDef.Rewards(boost2x: 1),
-        AchievementDef.Rewards(gems: 7000),
-        // Week 49
-        AchievementDef.Rewards(spins: 3),
-        AchievementDef.Rewards(magnets: 2),
-        AchievementDef.Rewards(hammers: 3),
-        AchievementDef.Rewards(swaps: 1, boost4x: 1),
-        AchievementDef.Rewards(magnets: 2),
-        AchievementDef.Rewards(gems: 7455),
-        AchievementDef.Rewards(gems: 8266),
-        // Week 50
-        AchievementDef.Rewards(gems: 8364),
-        AchievementDef.Rewards(hammers: 1, magnets: 1, swaps: 1, boost3x: 1),
-        AchievementDef.Rewards(boost2x: 1, boost4x: 1),
-        AchievementDef.Rewards(gems: 4898, spins: 13, boost3x: 1),
-        AchievementDef.Rewards(gems: 7467, spins: 1, magnets: 4, swaps: 3),
-        AchievementDef.Rewards(gems: 9277, hammers: 2),
-        AchievementDef.Rewards(spins: 8, boost4x: 1),
-        // Week 51
-        AchievementDef.Rewards(spins: 3, hammers: 3, magnets: 3, boost2x: 1),
-        AchievementDef.Rewards(swaps: 3),
-        AchievementDef.Rewards(gems: 7469),
-        AchievementDef.Rewards(gems: 8188),
-        AchievementDef.Rewards(gems: 8277),
-        AchievementDef.Rewards(hammers: 1, boost4x: 1),
-        AchievementDef.Rewards(spins: 15),
-        // Week 52
-        AchievementDef.Rewards(spins: 14, boost2x: 1),
-        AchievementDef.Rewards(gems: 9177, spins: 2),
-        AchievementDef.Rewards(gems: 8277),
-        AchievementDef.Rewards(spins: 1, hammers: 1, magnets: 1, swaps: 1, boost3x: 1),
-        AchievementDef.Rewards(gems: 7999, hammers: 2),
-        AchievementDef.Rewards(gems: 9454, boost2x: 1),
-        AchievementDef.Rewards(gems: 9786, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1),
-        // Day 365 — Yearly Award
-        AchievementDef.Rewards(gems: 10000)
+        AchievementDef.Rewards(gems: 649, magnets: 1)
     ]
     
-    public static func rewards(for day: Int) -> AchievementDef.Rewards {
+    static func rewards(for day: Int) -> AchievementDef.Rewards {
         guard day > 0 else { return AchievementDef.Rewards() }
 
         // Pattern repeats every 365 days (yearly)
         let dayInYear = ((day - 1) % 365) + 1
         let index = (dayInYear - 1) % cycle.count
 
-        // Year 1 (days 1-365): no scaling. Scaling starts at day 366.
-        // Year 2: 1.5x, Year 3: 2.0x, Year 4: 2.5x, etc.
+        // Calculate year for gem multiplier
+        // Year 1: 1.0x, Year 2: 1.5x, Year 3: 2.0x, Year 4: 2.5x, etc.
         let year = ((day - 1) / 365) + 1
-        guard year > 1 else { return cycle[index] }
         let gemMultiplier = 1.0 + (Double(year - 1) * 0.5)
 
         return cycle[index].scaled(forYear: year, gemMultiplier: gemMultiplier)
