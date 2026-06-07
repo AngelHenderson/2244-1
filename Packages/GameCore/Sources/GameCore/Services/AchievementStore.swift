@@ -3193,6 +3193,11 @@ public final class AchievementStore {
             return Self.combo1620Tiers[combo1620Tier...].filter { Double(snapshot.combo1620Total) >= Double($0.milestone) }.count
         case "combo_21_30":
             return Self.combo2130Tiers[combo2130Tier...].filter { Double(snapshot.combo2130Total) >= Double($0.milestone) }.count
+        case "leaderboard_rank_progression":
+            guard snapshot.best_leaderboard_rank > 0 else { return 0 }
+            let startIndex = max(0, highestClaimedLeaderboardTier + 1)
+            guard startIndex < Self.leaderboardRankTiers.count else { return 0 }
+            return Self.leaderboardRankTiers[startIndex...].filter { snapshot.best_leaderboard_rank <= $0.milestone }.count
         default:
             return 1
         }
