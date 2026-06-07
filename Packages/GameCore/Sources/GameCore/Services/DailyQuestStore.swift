@@ -60,7 +60,7 @@ public final class DailyQuestStore {
                 target: 2000,
                 current: 0,
                 rewards: AchievementDef.Rewards(
-                    gems: 500, spins: 1, hammers: 1, swaps: 1, boost3x: 1
+                    gems: 1500, spins: 1, hammers: 1, swaps: 1, boost3x: 1
                 ),
                 claimed: false
             ),
@@ -115,7 +115,7 @@ public final class DailyQuestStore {
                 target: 5,
                 current: 0,
                 rewards: AchievementDef.Rewards(
-                    gems: 5000, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1
+                    gems: 7000, spins: 1, hammers: 1, magnets: 1, swaps: 1, boost2x: 1, boost3x: 1, boost4x: 1
                 ),
                 claimed: false
             )
