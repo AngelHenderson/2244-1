@@ -2013,10 +2013,10 @@ public struct MockSocialService: SocialService, Sendable {
         ]
         
         // Symbols categorized by tone
-        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", " 🔥", " 👏", " 🎉", " 💪", " 💯", " 🐐", " 😎", " 🙌", " 🚀", " 🤯", " ✨"]
-        let questionSymbols = ["?!", "...", "??", "!!?", " 🤔", " 🧐", " 🤨", " ❓"]
-        let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", " 😭", " 😢", " 😔", " 😩", " 😫", " 💀", " ☠️", " 💔", " 😒", " 🙄", " 🤕"]
-        let competitiveSymbols = [" >:)", " !!", " !!!", " 😈", " 🥱", " 🤡", " 💀", " 👑", " 💅", " 🥶", " 🤫", " 📉", " 🗑️", " 💤"]
+        let positiveSymbols = ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)"]
+        let questionSymbols = ["?!", "...", "??", "!!?"]
+        let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "..."]
+        let competitiveSymbols = [" >:)", " !!", " !!!", " <", " >"]
         let keyboardSymbols = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
         
         // Dynamically inject topic-specific subjects based on the feed item's message
@@ -2910,7 +2910,7 @@ public struct MockSocialService: SocialService, Sendable {
                 ]
                 reply = "\(behindOpeners.randomElement()!) \(behindCompReactions.randomElement()!) \(compBehindClosers.randomElement()!)"
             }
-            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >", " 😈", " 🥶", " 👑"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >"].randomElement()! }
             return reply
         }
 
@@ -3079,7 +3079,7 @@ public struct MockSocialService: SocialService, Sendable {
                     replies.append("Your struggles mean nothing. I am infinitely ahead.")
                 }
                 var reply = replies.randomElement()!
-                if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " 😈"].randomElement()! }
+                if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >"].randomElement()! }
                 return reply
             }
 
@@ -3529,7 +3529,7 @@ public struct MockSocialService: SocialService, Sendable {
                 ]
                 reply = "\(behindOpeners.randomElement()!) \(behindCompReactions.randomElement()!) \(compBehindClosers.randomElement()!)"
             }
-            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >", " 😈", " 🥶", " 👑"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " <", " >"].randomElement()! }
             return reply
         }
 
@@ -3617,7 +3617,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Aww thanks! This community is the best.",
             ])
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply += ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)", " 🔥", " 👏", " 🎉", " 💪", " 💯", " 🐐", " 😎", " 🙌", " 🚀", " 🤯", " ✨"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply += ["!!", " :)", " :D", " xD", " ~", " :P", " <3", " =)", " ^_^", " ;-)", " :-)"].randomElement()! }
             return reply
         }
 
