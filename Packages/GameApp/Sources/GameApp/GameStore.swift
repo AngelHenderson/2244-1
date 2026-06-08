@@ -2402,31 +2402,26 @@ public final class GameStore {
                 return
             }
 
-            // Skip pattern for high-value milestones:
-            // Must match engine's formula in applyAllMilestonesBetweenSteps:
-            // position = step - 62; skip if position % 3 == 2
-            let isSkipMilestone = (newStepVal - 62) % 3 == 2
-
-            // Pre-select unique phrases for this milestone sequence
-            let notificationCount = isSkipMilestone ? 1 : 3
-            let phrases = Self.pickUniquePhrases(notificationCount)
+            // Always show all 3 notifications for high-value milestones.
+            // Even at "skip" milestones, cleanupTilesBelowThreshold eliminates
+            // tiles based on highestStep - 12, so the user sees tiles disappearing
+            // and expects to be notified.
+            let phrases = Self.pickUniquePhrases(3)
 
             // Step-based notification for high-value tiles
             var pending: [MergeNotification] = []
             pending.append(.unlocked(newTileValue, celebrationPhrase: phrases[0]))
 
-            if !isSkipMilestone {
-                // Added = eliminated << 7 = milestone >> 7 (step - 7)
-                // Use Int.max as placeholder - the UI formats based on step
-                pending.append(.added(Int.max, celebrationPhrase: phrases[1]))
+            // Added = milestone >> 7 (step - 7)
+            // Use Int.max as placeholder - the UI formats based on step
+            pending.append(.added(Int.max, celebrationPhrase: phrases[1]))
 
-                // Eliminated = milestone >> 12 (step - 12)
-                // Use Int.max as placeholder - the UI formats based on step
-                pending.append(.excluded(Int.max, celebrationPhrase: phrases[2]))
-            }
+            // Eliminated = milestone >> 12 (step - 12)
+            // Use Int.max as placeholder - the UI formats based on step
+            pending.append(.excluded(Int.max, celebrationPhrase: phrases[2]))
 
             enqueueNotifications(pending)
-            print("🎯 HIGH-VALUE MILESTONE: Unlocked step \(newStepVal), previous step \(prevStep), isSkip=\(isSkipMilestone), queued \(pending.count) notifications, currentNotification=\(String(describing: currentNotification))")
+            print("🎯 HIGH-VALUE MILESTONE: Unlocked step \(newStepVal), previous step \(prevStep), queued \(pending.count) notifications, currentNotification=\(String(describing: currentNotification))")
             return
         }
 
