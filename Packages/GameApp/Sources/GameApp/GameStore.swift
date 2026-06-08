@@ -1131,30 +1131,17 @@ public final class GameStore {
         }
     }
     
-    /// Ensure highestTileStep and highestTile never decrease.
-    /// Called after copying engine state to prevent cleanup/elimination
-    /// from regressing the all-time highest achievement.
-    private func preserveHighWatermark(previous: (step: Int, tile: Int)) {
-        if state.highestTileStep < previous.step {
-            state.highestTileStep = previous.step
-        }
-        if state.highestTile < previous.tile {
-            state.highestTile = previous.tile
-        }
-    }
+
 
     private func performRefill(columns: Set<Int>? = nil) {
-        let watermark = (step: state.highestTileStep, tile: state.highestTile)
         let previousBoard = state.board
         if let cols = columns, !cols.isEmpty {
             let newState = engine.refillColumns(cols)
             state = newState
-            preserveHighWatermark(previous: watermark)
             markRefills(previousBoard: previousBoard, newBoard: newState.board, scopedColumns: cols)
         } else {
             let newState = engine.refillBoard()
             state = newState
-            preserveHighWatermark(previous: watermark)
             scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: [])
         }
         // Force cleanup of any tiles below the elimination threshold
@@ -1165,7 +1152,6 @@ public final class GameStore {
         if !sandboxed && pendingEliminationTiles.isEmpty {
             let cleanedState = engine.cleanupTilesBelowThreshold()
             state = cleanedState
-            preserveHighWatermark(previous: watermark)
         }
     }
 
@@ -1206,7 +1192,6 @@ public final class GameStore {
     }
 
     private func performGravityDrop(columns: Set<Int>? = nil) {
-        let watermark = (step: state.highestTileStep, tile: state.highestTile)
         if let cols = columns, !cols.isEmpty {
             let newState = engine.collapseColumns(cols)
             state = newState
@@ -1214,7 +1199,6 @@ public final class GameStore {
             let newState = engine.applyGravityAfterChain()
             state = newState
         }
-        preserveHighWatermark(previous: watermark)
         // Note: validMovesCount is updated in performRefill after gravity completes
     }
     
@@ -1453,19 +1437,8 @@ public final class GameStore {
             let savedGems = UserDefaults.standard.integer(forKey: "coins")
             gemsToUse = savedGems > 0 ? savedGems : state.gems
         }
-        // Preserve highestTileStep/highestTile as permanent high watermarks.
-        // These represent all-time achievements and must never decrease,
-        // even if the tile is removed from the board by cleanup or elimination.
-        let previousHighestStep = state.highestTileStep
-        let previousHighestTile = state.highestTile
         state = newState
         state.gems = gemsToUse
-        if state.highestTileStep < previousHighestStep {
-            state.highestTileStep = previousHighestStep
-        }
-        if state.highestTile < previousHighestTile {
-            state.highestTile = previousHighestTile
-        }
         // Note: caller is responsible for calling updateValidMovesCount() when done
         scheduleRefillReveal(previousBoard: previousBoard, newBoard: newState.board, protectedPositions: refillProtectedPositions)
     }

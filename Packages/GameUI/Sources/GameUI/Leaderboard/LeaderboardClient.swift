@@ -2064,11 +2064,24 @@ public enum MockLeaderboardData {
         return allMilestones[newIndex]
     }
 
+    // Cache for countryData (invalidated daily)
+    nonisolated(unsafe) private static var countryDataCacheDay: Int = -1
+    nonisolated(unsafe) private static var countryDataCache: [String: (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int)] = [:]
+
     static func countryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int) {
+        if day != countryDataCacheDay {
+            countryDataCache.removeAll(keepingCapacity: true)
+            countryDataCacheDay = day
+        }
+        if let cached = countryDataCache[countryCode] {
+            return cached
+        }
         let milestones = top150Milestones(for: countryCode)
         let brackets = extendedBrackets(for: countryCode)
         let count = totalCountryPlayers(for: countryCode, on: day)
-        return (milestones, brackets, count)
+        let result = (milestones, brackets, count)
+        countryDataCache[countryCode] = result
+        return result
     }
 
     /// Returns the array of names for a country code
@@ -2137,7 +2150,12 @@ public enum MockLeaderboardData {
 
 
 
+    nonisolated(unsafe) private static var _cachedScalableCountryCodes: [String]?
+
     public static var allScalableCountryCodes: [String] {
+        if let cached = _cachedScalableCountryCodes {
+            return cached
+        }
         let codes: [String]
         if #available(iOS 16.0, *) {
             codes = Locale.Region.isoRegions.compactMap { $0.identifier }
@@ -2151,12 +2169,14 @@ public enum MockLeaderboardData {
             "021", "029", "030", "034", "035", "039", "053", "054", "057", "061",
             "142", "143", "145", "150", "151", "154", "155", "202", "419"
         ]
-        return codes.filter { code in
+        let result = codes.filter { code in
             if excludedCodes.contains(code) { return false }
             if code.count == 3 && code.allSatisfy({ $0.isNumber }) { return false }
             if code.count != 2 { return false }
             return true
         }
+        _cachedScalableCountryCodes = result
+        return result
     }
 
     /// Returns all countries that have leaderboard data, sorted by player count (popularity) descending,
