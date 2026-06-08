@@ -50,9 +50,9 @@ public final class SocialFeedPublisher {
             "After so many attempts… \(tileName) is MINE!",
         ]
         let stats = [
-            "puzzlepiece.extension|New tile · Endless",
+            "puzzlepiece.fill|New tile · Endless",
             "medal|Milestone · \(tileName)",
-            "chart.line.uptrend.xyaxis|Personal best · Endless",
+            "chart.bar.fill|Personal best · Endless",
             "flame|Breakthrough · \(tileName)",
         ]
         Task {
@@ -78,7 +78,7 @@ public final class SocialFeedPublisher {
         ]
         let stats = [
             "timer|Timed challenge · \(timeString)",
-            "flag.checkered|Daily challenge · Done",
+            "flag.fill|Daily challenge · Done",
             "bolt|Speed clear · \(timeString)",
             "target|Challenge · \(timeString) finish",
         ]

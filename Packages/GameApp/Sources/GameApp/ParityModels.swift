@@ -1658,7 +1658,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(subjects.randomElement()!) \(details.randomElement()!)\(closers.randomElement()!)"
             
-            let statEmojis = ["timer", "flag.checkered", "bolt", "target", "clock", "wind", "flame"]
+            let statEmojis = ["timer", "flag.fill", "bolt", "target", "clock", "wind", "flame"]
             let statLabels = [
                 "Timed challenge · \(timeStr)", "Daily challenge · Done",
                 "Speed clear · \(timeStr)", "Challenge · \(timeStr) finish",
@@ -1781,7 +1781,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(subject.randomElement()!)\(details.randomElement()!)"
             
-            let statEmojis = ["infinity", "medal", "star", "infinity.circle", "sparkles", "suit.diamond.fill", "crown"]
+            let statEmojis = ["infinity", "medal", "star", "infinity.circle", "sparkles", "suit.diamond.fill", "rosette"]
             let statLabels: [String]
             if infinityCount > 10 {
                 statLabels = [
@@ -1830,7 +1830,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(closers.randomElement()!)"
             
-            let statEmojis = ["paintpalette", "sparkles", "paintbrush", "star.circle", "theatermasks", "cloud.rainbow.half", "bell"]
+            let statEmojis = ["paintpalette", "sparkles", "paintbrush", "star.circle", "theatermasks", "cloud.sun.fill", "bell"]
             let statLabels = [
                 "Theme unlocked · \(theme)", "New theme · \(theme)",
                 "Customization · \(theme)", "\(theme) · Unlocked",
@@ -3019,7 +3019,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
 
             var reply = answers.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply += ["?!", "...", "??", "!!?"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply += ["?!", ". . .", "??", "!!?"].randomElement()! }
             return reply
         }
 
@@ -3092,31 +3092,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let commentIsCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
             let canBeBehind = commentText != message && commentIsCompetitive
 
-            if canBeBehind {
-                if Double.random(in: 0...1) < 0.86 {
-                    // Fall through to normal competitive logic, wrapped at the end
-                } else {
-                    let jealBehindOpeners = [
-                        "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
-                        "How are you doing this?", "I'm struggling over here.", "I feel so slow."
-                    ]
-                    let jealBehindClosers = [
-                        "My score is pathetic.", "I'll never reach that level.", "I need to practice more.",
-                        "You're in a league of your own.", "I'm basically a beginner.", "Leave some records for the rest of us.",
-                        "I have a long way to go."
-                    ]
-                    var jealBehindReplies = [
-                        "I'm struggling to keep up", "How did you get so far ahead?",
-                        "I need to rethink my strategy", "I'm falling behind",
-                        "This is harder than I thought", "My runs are nowhere near that",
-                        "I'm losing my touch", "I keep messing up early",
-                        "I can't seem to break through", "I'm still way back here"
-                    ]
-                    var reply = jealBehindReplies.randomElement()!
-                    reply = "\(jealBehindOpeners.randomElement()!)  \(reply).  \(jealBehindClosers.randomElement()!)"
-                    return reply
-                }
-            }
+
             var replies: [String] = []
             let wantsBetter = strippedLower.contains("do better")
             let rootIsJealous = jealousKeywords.contains(where: { message.lowercased().contains($0) })
@@ -3577,7 +3553,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "It's over for you. You'll never catch up."
             ])
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply += [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", " rn", " fr", " tbh", " ngl", " smh"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply += [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", ". . .", " rn", " fr", " tbh", " ngl", " smh"].randomElement()! }
             return reply
         }
 
