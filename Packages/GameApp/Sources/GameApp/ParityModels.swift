@@ -2273,7 +2273,18 @@ public struct MockSocialService: SocialService, Sendable {
         
         // Build a static bag key so the rotation of templates, openers, and closers
         // persists globally across all feed items, guaranteeing no early repeats.
-        let bagSuffix = ""
+        var contextKey = "base"
+        if message.contains("Hall of Fame") { contextKey += "_hof" }
+        else if message.contains("streak") { contextKey += "_streak" }
+        else if message.contains("timed challenge") { contextKey += "_time" }
+        else if message.contains("theme") { contextKey += "_theme" }
+        else if message.contains("Chest") { contextKey += "_chest" }
+        
+        if let foundMilestone = sortedMilestones.first(where: { message.contains(" \($0) ") }) {
+            contextKey += "_m\(foundMilestone)"
+        }
+        
+        let bagSuffix = contextKey
         
         // Weighted category roll: 50% competitive, 25% positive, 15% question, 5% jealous, 5% behind
         var comment = ""
@@ -2295,7 +2306,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if Double.random(in: 0...1) < 0.86 {
                     // 86% of behind have more competitive responses
                     let compBehindOpeners = [
-                        "I might be lower right now, but", "You're ahead for now, but", "Enjoy the lead while it lasts,"
+                        "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                     ]
                     let compBehindClosers = [
                         "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
@@ -2305,13 +2316,13 @@ public struct MockSocialService: SocialService, Sendable {
                         "Don't get too comfortable up there.",
                         "I'm already closing the gap.",
                         "My next run is going to crush that.",
-                        "I'm coming for the crown.",
+                        "I'm coming for the top spot.",
                         "Just give me a little more time."
                     ]
                     let bOpener = Self.drawFromBag(key: "comp_behind_opener_\(bagSuffix)", pool: compBehindOpeners)
                     let bCloser = Self.drawFromBag(key: "comp_behind_closer_\(bagSuffix)", pool: compBehindClosers)
                     let compReaction = Self.drawFromBag(key: "behind_comp_\(bagSuffix)", pool: behindCompReactions)
-                    reaction = "\(bOpener) \(compReaction). \(bCloser)"
+                    reaction = "\(bOpener)  \(compReaction)  \(bCloser)"
                 } else {
                     let jealBehindOpeners = [
                         "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
@@ -2325,7 +2336,7 @@ public struct MockSocialService: SocialService, Sendable {
                     let bOpener = Self.drawFromBag(key: "jeal_behind_opener_\(bagSuffix)", pool: jealBehindOpeners)
                     let bCloser = Self.drawFromBag(key: "jeal_behind_closer_\(bagSuffix)", pool: jealBehindClosers)
                     let jealReaction = Self.drawFromBag(key: "behind_\(bagSuffix)", pool: behindReactions)
-                    reaction = "\(bOpener) \(jealReaction). \(bCloser)"
+                    reaction = "\(bOpener)  \(jealReaction).  \(bCloser)"
                 }
                 
                 comment = reaction
@@ -2852,6 +2863,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             mentionedHoF = false
             mentionedTime = false
             mentionedQuest = false
+            mentionedStreak = false
         }
 
 
@@ -2891,7 +2903,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             var reply = replies.randomElement()!
             if Double.random(in: 0...1) < 0.47 * 0.86 {
                 let compBehindOpeners = [
-                    "I might be lower right now, but", "You're ahead for now, but", "Enjoy the lead while it lasts,"
+                    "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                 ]
                 let compBehindClosers = [
                     "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
@@ -2902,7 +2914,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Sure, add me. Don't get too comfortable up there.",
                     "Add me! I'm already closing the gap."
                 ]
-                reply = "\(compBehindOpeners.randomElement()!) \(behindCompReactions.randomElement()!). \(compBehindClosers.randomElement()!)"
+                reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
             }
             if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " >", " XD", " RN", " rn", " fr", " tbh", " ngl"].randomElement()! }
             return reply
@@ -3080,31 +3092,28 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let commentIsCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
             let canBeBehind = commentText != message && commentIsCompetitive
 
-            if false {
-                let behindOpeners = [
-                    "I might be lower right now, but", "You're ahead for now, but", "Enjoy the lead while it lasts,",
-                    "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
-                    "How are you doing this?", "I'm struggling over here.", "I feel so slow."
-                ]
-                let behindClosers = [
-                    "I'm coming for that spot.", "Watch your back.", "I will overtake you soon.",
-                    "My score is pathetic.", "I'll never reach that level.", "I need to practice more.",
-                    "You're in a league of your own.", "I'm basically a beginner.", "Leave some records for the rest of us.",
-                    "I have a long way to go."
-                ]
-                
+            if canBeBehind {
                 if Double.random(in: 0...1) < 0.86 {
                     // Fall through to normal competitive logic, wrapped at the end
                 } else {
-                    var behindReplies = [
+                    let jealBehindOpeners = [
+                        "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
+                        "How are you doing this?", "I'm struggling over here.", "I feel so slow."
+                    ]
+                    let jealBehindClosers = [
+                        "My score is pathetic.", "I'll never reach that level.", "I need to practice more.",
+                        "You're in a league of your own.", "I'm basically a beginner.", "Leave some records for the rest of us.",
+                        "I have a long way to go."
+                    ]
+                    var jealBehindReplies = [
                         "I'm struggling to keep up", "How did you get so far ahead?",
                         "I need to rethink my strategy", "I'm falling behind",
                         "This is harder than I thought", "My runs are nowhere near that",
                         "I'm losing my touch", "I keep messing up early",
                         "I can't seem to break through", "I'm still way back here"
                     ]
-                    var reply = behindReplies.randomElement()!
-                    reply = "\(behindOpeners.randomElement()!) \(reply). \(behindClosers.randomElement()!)"
+                    var reply = jealBehindReplies.randomElement()!
+                    reply = "\(jealBehindOpeners.randomElement()!)  \(reply).  \(jealBehindClosers.randomElement()!)"
                     return reply
                 }
             }
@@ -3504,11 +3513,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ])
             }
             var reply = replies.randomElement()!
-            if false {
-                let behindOpeners = [
-                    "I might be lower right now, but", "You're ahead for now, but", "Enjoy the lead while it lasts,",
-                    "I'm so far behind.", "I can't keep up.", "This is getting ridiculous.",
-                    "How are you doing this?", "I'm struggling over here.", "I feel so slow."
+            if canBeBehind && Double.random(in: 0...1) < 0.47 * 0.86 {
+                let compBehindOpeners = [
+                    "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                 ]
                 let compBehindClosers = [
                     "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
@@ -3518,10 +3525,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Don't get too comfortable up there.",
                     "I'm already closing the gap.",
                     "My next run is going to crush that.",
-                    "I'm coming for the crown.",
+                    "I'm coming for the top spot.",
                     "Just give me a little more time."
                 ]
-                reply = "\(behindOpeners.randomElement()!) \(behindCompReactions.randomElement()!). \(compBehindClosers.randomElement()!)"
+                reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
             }
             if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " >", " XD", " RN", " rn", " fr", " tbh", " ngl"].randomElement()! }
             return reply
