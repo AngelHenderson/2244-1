@@ -2104,7 +2104,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Unbreakable streak energy!",
             ])
             jealousReactions.append(contentsOf: [
-                "I lost my streak yesterday", "How do you remember every day?",
+                "I just lost my streak", "How do you remember every day?",
                 "I can never keep a streak going", "My longest streak was like 5 days",
                 "I keep forgetting to log in", "Streaks stress me out",
                 "I lost a 30-day streak last week", "My streak always dies on weekends",
@@ -3164,7 +3164,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "You're celebrating \(mName)? I just cleared \(higherM).",
                     "I left \(mName) in the dust. \(higherM) is the new standard.",
                     "Try hitting \(higherM) before bragging about \(mName).",
-                    "I hit \(higherM) yesterday. \(mName) is old news.",
+                    "I already hit \(higherM). \(mName) is old news.",
                 ])
                 }
                 }
