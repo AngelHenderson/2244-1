@@ -472,7 +472,7 @@ private struct AddEventSheet: View {
                 } header: {
                     Text("Message")
                 } footer: {
-                    Text("Share a milestone, achievement, or anything with the community.")
+                    Text("Share a milestone, streak, timed challenge time, or HoF infinity count with the community.")
                 }
 
                 Section("Status Tag (optional)") {
