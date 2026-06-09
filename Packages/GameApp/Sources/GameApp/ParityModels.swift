@@ -1638,7 +1638,7 @@ public struct MockSocialService: SocialService, Sendable {
             ]
             let subjects = [
                 "today's timed challenge", "the daily timed challenge",
-                "the timed challenge", "this morning's timed run",
+                "the timed challenge", "today's timed run",
                 "today's speed challenge", "the daily speed run",
                 "the clock challenge", "today's timed board",
                 "the timed gauntlet", "this session's challenge",
