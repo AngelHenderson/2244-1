@@ -1637,10 +1637,10 @@ public struct MockSocialService: SocialService, Sendable {
                 "Conquered", "Smashed", "Survived", "Dominated", "Nailed",
             ]
             let subjects = [
-                "today's timed challenge", "the daily timed challenge",
-                "the timed challenge", "today's timed run",
-                "today's speed challenge", "the daily speed run",
-                "the clock challenge", "today's timed board",
+                "the timed challenge", "the daily timed challenge",
+                "a timed challenge", "the timed run",
+                "the speed challenge", "the daily speed run",
+                "the clock challenge", "the timed board",
                 "the timed gauntlet", "this session's challenge",
             ]
             let details = [
@@ -1662,7 +1662,7 @@ public struct MockSocialService: SocialService, Sendable {
             let statLabels = [
                 "Timed challenge · \(timeStr)", "Daily challenge · Done",
                 "Speed clear · \(timeStr)", "Challenge · \(timeStr) finish",
-                "Today's challenge · Complete", "Timed run · \(timeStr)",
+                "Challenge · Complete", "Timed run · \(timeStr)",
                 "Challenge clear · \(timeStr)", "Speed run · Done",
                 "Daily timed · \(timeStr)", "Clock beaten · \(timeStr)",
             ]
@@ -1851,9 +1851,9 @@ public struct MockSocialService: SocialService, Sendable {
                 "Smashed through", "Swept",
             ]
             let subjects = [
-                "the Daily Quest", "today's quests", "all daily quests",
-                "today's Daily Quest", "every quest objective",
-                "the daily objectives", "today's quest log",
+                "the Daily Quest", "the daily quests", "all daily quests",
+                "the Daily Quest log", "every quest objective",
+                "the daily objectives", "the quest log",
                 "the full quest line", "all three quests",
                 "the daily mission set",
             ]
@@ -1865,7 +1865,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "! \(questTier) chest earned in \(timeStr).",
                 " in \(timeStr) — \(questTier) reward chest grabbed.",
                 "! +\(gemsEarned) gems in \(timeStr).",
-                " in \(timeStr). \(questTier) tier. Easy gems today.",
+                " in \(timeStr). \(questTier) tier. Easy gems.",
                 " in \(timeStr)! \(questTier) chest.",
                 " in \(timeStr) — all objectives done!",
                 ". \(questTier) chest opened in \(timeStr).",
@@ -2988,7 +2988,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if mentionedQuest {
                 answers.append(contentsOf: [
                     "I always start with the hardest quest first.",
-                    "Today's quests were actually pretty easy.",
+                    "The quests were actually pretty easy.",
                     "The chest rewards are so worth the effort.",
                     "I try to knock them out in my first session.",
                 ])
