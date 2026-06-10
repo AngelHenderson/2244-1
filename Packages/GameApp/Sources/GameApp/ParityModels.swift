@@ -1998,7 +1998,7 @@ public struct MockSocialService: SocialService, Sendable {
         var competitiveReactions = [
             "Your score is entirely irrelevant to my record.",
             "You will never exist on my level.", "Enjoy chasing my lead.",
-            "My next run will just establish a higher ceiling.", "I'm permanently untouchable.",
+            "My next run will just establish a higher ceiling.", "I'm comfortably ahead.",
             "You are nothing compared to my dominance.", "I dominate everything effortlessly.",
             "That record is cute. I'm already leagues ahead.", "You will never touch my stats.",
             "I'll be staying far ahead permanently.", "I am laughing from the top.",
@@ -2075,11 +2075,11 @@ public struct MockSocialService: SocialService, Sendable {
             ])
             competitiveReactions.append(contentsOf: [
                 "Your infinity count is entirely irrelevant to my dominance.",
-                "I've been ruling the Hall of Fame since eternity.",
-                "Your HoF entry is nothing compared to my infinite status.",
-                "I will permanently have more infinities.",
+                "I will always have more infinities.",
+                "It's over.",
+                "My infinity count will remain unmatched.",
                 "I effortlessly dominate the Hall of Fame.",
-                "My infinity count will remain untouchable forever.",
+                "My infinity count is growing.",
             ])
 
             questions.append(contentsOf: [
@@ -2113,11 +2113,11 @@ public struct MockSocialService: SocialService, Sendable {
             
             competitiveReactions.append(contentsOf: [
                 "Your streak is entirely irrelevant to my infinite grind.",
-                "My dedication is absolute and permanently untouchable.",
+                "My dedication is absolute and unmatched.",
                 "Your streak is cute compared to my infinite consistency.",
-                "I will infinitely hold the higher streak.",
+                "I will hold the higher streak.",
                 "I dominate the daily grind without effort.",
-                "My streak will remain untouched for eternity.",
+                "My streak is going strong.",
             ])
 
             questions.append(contentsOf: [
@@ -2146,11 +2146,11 @@ public struct MockSocialService: SocialService, Sendable {
 
             competitiveReactions.append(contentsOf: [
                 "Your time is entirely irrelevant to my speed.",
-                "My clears have been untouchable since eternity.",
-                "Your speed is nothing compared to my infinite pace.",
-                "I will permanently hold the faster clear.",
+                "My clears have been unmatched for a while.",
+                "It's over.",
+                "I will hold the faster clear.",
                 "I absolutely dominate the speed leaderboards.",
-                "My time will remain untouched forever.",
+                "My time is solid.",
             ])
 
             questions.append(contentsOf: [
@@ -2210,11 +2210,11 @@ public struct MockSocialService: SocialService, Sendable {
 
             competitiveReactions.append(contentsOf: [
                 "Your quest rewards are entirely irrelevant to my loot.",
-                "I've been claiming Diamond chests since eternity.",
-                "Your tier is nothing compared to my infinite vault.",
-                "I will permanently claim better rewards.",
+                "I will claim better rewards.",
+                "It's over.",
+                "My quest efficiency will remain unmatched.",
                 "I dominate quests without a single thought.",
-                "My quest efficiency will remain untouchable forever.",
+                "My quest efficiency is high.",
             ])
 
             questions.append(contentsOf: [
@@ -2253,11 +2253,13 @@ public struct MockSocialService: SocialService, Sendable {
                 ])
                 competitiveReactions.append(contentsOf: [
                     "Your \(m) is entirely irrelevant to my infinity.",
-                    "\(m) is permanently and absolutely behind me.",
-                    "Your \(m) is nothing compared to my eternal record.",
-                    "I left \(m) in the dust.",
+                    "\(m) is safely behind me.",
+                    "The gap between us just gets larger.",
+                    "It's over.",
+                    "\(m) feels like ages ago.",
+                    "My lead beyond \(m) is secure.",
                     "I dominate \(m) without even looking.",
-                    "My lead beyond \(m) will remain untouchable forever.",
+                    "My lead beyond \(m) is strong.",
                 ])
 
                 questions.append(contentsOf: [
@@ -2369,12 +2371,11 @@ public struct MockSocialService: SocialService, Sendable {
                 // Randomly append a competitive closer ~80% of the time
                 if Double.random(in: 0...1) < 0.80 {
                     let compClosers = [
-                        "My lead cannot be broken.", "You'll never catch me.", "I'll always be levels above.",
-                        "Don't bother trying.", "I'm permanently untouchable.", "I reign supreme.",
-                        "Your progress means nothing here.", "You are completely irrelevant.", "No one is touching my record.",
-                        "I'll always be leagues ahead.", "Your grind is meaningless.", "My dominance here is absolute.",
-                        "I set the standard.", "You're entirely left behind.", "We are not the same.",
-                        "Stay down there.", "This record belongs to me.", "Enjoy staring at my back forever.", "You will never catch up.", "I am permanently out of your reach."
+                        "Don't bother trying.", "I'm comfortably ahead.", "I reign supreme.",
+                        "No one comes close.", "Give up while you can.", "Too slow.",
+                        "It's not a competition.", "My scores speak for themselves.",
+                        "You can't compete.", "I've already won.",
+                        "Stay down there.", "This record belongs to me.", "Enjoy staring at my back.", "You will never catch up.", "I am safely out of your reach."
                     ]
                     
                     var closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
@@ -2490,7 +2491,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 }
                 usedStats.insert("streak_\(myDays)")
                 var templates = [
-                    "I'm permanently untouched at \(myDays) days.",
+                    "I'm comfortably sitting at \(myDays) days.",
                     "Your \(streakDays) days are irrelevant. I'm at \(myDays) days.",
                     "I dominate eternity. I'm already at \(myDays) days.",
                     "\(streakDays) days is cute. I'm at \(myDays) days.",
@@ -2538,7 +2539,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 var templates = [
                     "Your \(posterTime) is irrelevant. I clear it in \(myTime).",
-                    "My clears have been untouchable since \(myTime).",
+                    "My clears have been unmatched since \(myTime).",
                     "You're stuck at \(posterTime). I'm sitting at \(myTime).",
                     "I am infinitely faster. My record is \(myTime).",
                     "I effortlessly clock \(myTime).",
@@ -2567,7 +2568,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 var templates = [
                     "Your \(infCount) is nothing compared to my \(myCount).",
                     "I effortlessly dominate with \(myCount).",
-                    "I am permanently ahead with \(myCount).",
+                    "I am safely ahead with \(myCount).",
                 ]
                 if myCount >= infCount * 2 {
                     templates.append("Your \(infCount) is entirely irrelevant against my \(myCount).")
@@ -2589,7 +2590,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Your \(posterTier) is entirely irrelevant to my \(myTier).",
                     "I effortlessly pull \(myTier) chests.",
                     "\(posterTier) is cute. I only open \(myTier).",
-                    "I am permanently locked to \(myTier).",
+                    "I am comfortably farming \(myTier).",
                     "I left \(posterTier) behind for \(myTier).",
                     "You'll never touch my \(myTier) rewards.",
                 ]
@@ -3096,8 +3097,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("Only someone completely clueless would get stuck at \(infCount)? I effortlessly bypassed \(myCount).")
                     replies.append("You're stuck at \(infCount)? I am permanently climbing past \(myCount).")
                 } else {
-                    replies.append("You're complaining? I am effortlessly untouchable.")
-                    replies.append("You gave up? I am permanently untouchable.")
+                    replies.append("You're complaining? I am effortlessly ahead.")
+                    replies.append("You gave up? I am safely ahead.")
                     replies.append("Your complaints mean nothing. I am already ahead.")
                 }
                 var reply = replies.randomElement()!
@@ -3172,7 +3173,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else {
                     replies.append(contentsOf: [
                     "I am ahead of your \(mName). I'm at \(higherM).",
-                    "\(mName) is permanently behind me. I am untouchable at \(higherM).",
+                    "\(mName) is safely behind me. I am sitting at \(higherM).",
                     "Your \(mName) is nothing compared to my \(higherM) record.",
                     "I easily passed \(mName). I dominate \(higherM).",
                     "My \(higherM) run was completely effortless. \(mName) is cute.",
@@ -3439,7 +3440,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "You're bragging about \(numStr)? \(higherNum) in the HoF completely buries you.",
                             "I dominate the HoF with \(higherNum) entries. \(numStr) isn't enough.",
                             "You're bragging about \(numStr)? \(higherNum) in the HoF completely buries you.",
-                            "My Hall of Fame status is untouchable. \(higherNum) > \(numStr).",
+                            "My Hall of Fame status speaks for itself. \(higherNum) > \(numStr).",
                         ])
                     }
                 } else {
@@ -3453,7 +3454,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "You're bragging about \(assumedNum)? \(higherNum) in the HoF completely buries you.",
                         "I dominate the HoF with \(higherNum) entries. \(assumedNum) isn't enough.",
                         "You're bragging about \(assumedNum)? \(higherNum) in the HoF completely buries you.",
-                        "My Hall of Fame status is untouchable. \(higherNum) > \(assumedNum).",
+                        "My Hall of Fame status speaks for itself. \(higherNum) > \(assumedNum).",
                     ])
                 }
             }
@@ -3496,7 +3497,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Talk to me when you reach \(genericHigherM).",
                     "None of you are anywhere near my \(genericHigherM) record.",
                     "I'm ignoring this and focusing on my \(genericHigherM) grind.",
-                    "I am untouchable, I'm already pushing \(genericHigherM).",
+                    "I am safely ahead, I'm already pushing \(genericHigherM).",
                     "Your efforts are pointless. \(genericHigherM) completely buries you.",
                     "I am already ahead of you. I'm pushing \(genericHigherM).",
                     "My record is flawless. Try reaching \(genericHigherM).",
