@@ -133,6 +133,11 @@ struct ParityModelsTests {
                 
                 let hasTooEasy = lowercasedText.contains("too easy")
                 #expect(!hasTooEasy, "Found 'too easy' phrase in bot comment: \(comment.text)")
+                
+                if lowercasedText.contains("do better") {
+                    let isAllowed = lowercasedText.contains("i always do better") || lowercasedText.contains("i did do better")
+                    #expect(isAllowed, "Found unexpected 'do better' phrase in bot comment: \(comment.text)")
+                }
             }
         }
         

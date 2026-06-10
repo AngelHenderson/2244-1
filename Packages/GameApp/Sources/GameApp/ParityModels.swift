@@ -2359,7 +2359,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if Double.random(in: 0...1) < 0.95 {
                     let compOpeners = [
                         "I flew right past this.", "Barely had to try.", "Light work.",
-                        "This is entirely effortless.", "Do better.", "Effortless.",
+                        "This is entirely effortless.", "Pretty basic.", "Effortless.",
                         "Didn't even break a sweat.", "That's cute.", "Amateur.",
                         "What a joke.", "Not even trying.", "A child could do that.",
                         "Is that all?", "I was asleep for this.", "Barely a speed bump.",
