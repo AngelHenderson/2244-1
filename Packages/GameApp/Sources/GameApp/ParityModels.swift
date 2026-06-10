@@ -2437,13 +2437,25 @@ public struct MockSocialService: SocialService, Sendable {
             case "competitive": symbol = Self.drawFromBag(key: "sym_comp_\(bagSuffix)", pool: competitiveSymbols)
             default: symbol = ""
             }
-            comment += symbol
+            comment = injectSymbol(comment, symbol: symbol)
         } else if Double.random(in: 0...1) < 0.1 {
             // 2.5% chance for a random raw keyboard symbol (like a typo)
             comment += keyboardSymbols.randomElement()!
         }
         
         return (comment.trimmingCharacters(in: .whitespaces), nameOverride, tone!)
+    }
+
+    private static func injectSymbol(_ text: String, symbol: String) -> String {
+        let letterSymbols = ["rn", "RN", "fr", "tbh", "ngl", "smh"]
+        let trimmed = symbol.trimmingCharacters(in: .whitespaces)
+        if letterSymbols.contains(trimmed) {
+            if text.hasSuffix(".") || text.hasSuffix("!") || text.hasSuffix("?") {
+                let punc = text.suffix(1)
+                return String(text.dropLast()) + symbol + String(punc)
+            }
+        }
+        return text + symbol
     }
 
     // MARK: - Truthful competitive comments
@@ -2916,7 +2928,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ]
                 reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
             }
-            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " >", " XD", " RN", " rn", " fr", " tbh", " ngl"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply = injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " RN", " rn", " fr", " tbh", " ngl"].randomElement()!) }
             return reply
         }
 
@@ -3019,7 +3031,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
 
             var reply = answers.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply += ["?!", ". . .", "??", "!!?"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply = injectSymbol(reply, symbol: ["?!", ". . .", "??", "!!?"].randomElement()!) }
             return reply
         }
 
@@ -3085,7 +3097,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("Your complaints mean nothing. I am infinitely ahead.")
                 }
                 var reply = replies.randomElement()!
-                if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " >", " XD", " RN", " rn", " fr", " tbh", " ngl"].randomElement()! }
+                if Double.random(in: 0...1) < 0.75 { reply = injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " RN", " rn", " fr", " tbh", " ngl"].randomElement()!) }
                 return reply
             }
 
@@ -3506,7 +3518,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ]
                 reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
             }
-            if Double.random(in: 0...1) < 0.75 { reply += [" >:)", " !!", " !!!", " >", " XD", " RN", " rn", " fr", " tbh", " ngl"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply = injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " RN", " rn", " fr", " tbh", " ngl"].randomElement()!) }
             return reply
         }
 
@@ -3553,7 +3565,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "It's over for you. You'll never catch up."
             ])
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply += [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", ". . .", " rn", " fr", " tbh", " ngl", " smh"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply = injectSymbol(reply, symbol: [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", ". . .", " rn", " fr", " tbh", " ngl", " smh"].randomElement()!) }
             return reply
         }
 
@@ -3594,7 +3606,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "Aww thanks! This community is the best.",
             ])
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply += ["!!", " :)", " :D", " XD", " xD", " ~", " :P", " <3", " =)", " ^_^", " rn", " RN", " fr", " tbh"].randomElement()! }
+            if Double.random(in: 0...1) < 0.75 { reply = injectSymbol(reply, symbol: ["!!", " :)", " :D", " XD", " xD", " ~", " :P", " <3", " =)", " ^_^", " rn", " RN", " fr", " tbh"].randomElement()!) }
             return reply
         }
 
