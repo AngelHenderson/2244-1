@@ -138,6 +138,8 @@ struct ParityModelsTests {
                     let isAllowed = lowercasedText.contains("i always do better") || lowercasedText.contains("i did do better")
                     #expect(isAllowed, "Found unexpected 'do better' phrase in bot comment: \(comment.text)")
                 }
+                
+                #expect(!comment.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "Bot comment by \(comment.authorName) was blank/empty")
             }
         }
         

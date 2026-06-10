@@ -2298,7 +2298,10 @@ public struct MockSocialService: SocialService, Sendable {
         // Weighted category roll: 50% competitive, 25% positive, 15% question, 5% jealous, 5% behind
         var comment = ""
         var tone = forcedTone
-                if tone == nil {
+        if tone == "sad" {
+            tone = "jealous"
+        }
+        if tone == nil {
             let roll = Double.random(in: 0..<1)
             if roll < 0.50 { tone = "competitive" }
             else if roll < 0.75 { tone = "positive" }
@@ -2307,8 +2310,9 @@ public struct MockSocialService: SocialService, Sendable {
             else { tone = "jealous" }
         }
         
-        if tone == "competitive" {
-            if Double.random(in: 0...1) < 0.47 {
+        if tone == "competitive" || tone == "behind_competitive" {
+            let forceBehind = (tone == "behind_competitive")
+            if forceBehind || Double.random(in: 0...1) < 0.47 {
                 // ── Behind (47% of competitive) — with behind opener and closer ──
                 var reaction = ""
                 
