@@ -90,6 +90,40 @@ struct ParityModelsTests {
         #expect(results.contains { $0.displayName.contains("Neon") })
     }
 
+    @Test("Bot competitive comments and replies do not contain finite-match word 'competition'")
+    func botCompetitiveCommentsDoNotContainCompetition() async throws {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "socialFeed.cache.v40")
+        defaults.removeObject(forKey: "socialFeed.cacheDate.v37")
+        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        
+        let service = MockSocialService()
+        // Post a few events to generate a large volume of bot comments/replies
+        for milestone in [4, 8, 16, 32, 64] {
+            try await service.postEvent(message: "Unlocked milestone \(milestone).", statText: "Milestone \(milestone)")
+        }
+        
+        // Retrieve the cached items directly from UserDefaults to get all comments (even future ones)
+        guard let data = defaults.data(forKey: "socialFeed.userPosts.v2"),
+              let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
+            Issue.record("Failed to decode user posts")
+            return
+        }
+        
+        #expect(!items.isEmpty)
+        
+        var totalCommentsChecked = 0
+        for item in items {
+            for comment in item.comments {
+                totalCommentsChecked += 1
+                let lowercasedText = comment.text.lowercased()
+                #expect(!lowercasedText.contains("competition"), "Found 'competition' in bot comment: \(comment.text)")
+            }
+        }
+        
+        #expect(totalCommentsChecked > 0, "No comments were generated to check")
+    }
+
     @Test("Firebase-backed account service uses local fallback when Firebase is unavailable")
     func firebaseBackedAccountServiceFallsBackWithoutFirebaseConfiguration() async throws {
         guard !FirebaseService.shared.isConfigured else { return }

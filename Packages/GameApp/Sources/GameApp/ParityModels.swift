@@ -2373,7 +2373,7 @@ public struct MockSocialService: SocialService, Sendable {
                     let compClosers = [
                         "Don't bother trying.", "I'm comfortably ahead.", "I reign supreme.",
                         "No one comes close.", "Give up while you can.", "Too slow.",
-                        "It's not a competition.", "My scores speak for themselves.",
+                        "You're not even a threat.", "My scores speak for themselves.",
                         "You can't compete.", "I've already won.",
                         "Stay down there.", "This record belongs to me.", "Enjoy staring at my back.", "You will never catch up.", "I am safely out of your reach."
                     ]
@@ -3167,7 +3167,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Better is my baseline. I'm at \(higherM).",
                         "I already left you behind. \(higherM) is next.",
                         "Watch me. I'm clearing \(higherM) effortlessly.",
-                        "You are no competition. I'm sitting comfortably at \(higherM).",
+                        "You are no threat. I'm sitting comfortably at \(higherM).",
                         "I never stop climbing. \(higherM) is already done.",
                     ])
                 } else {
@@ -3227,7 +3227,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "Better is my baseline. \(higherNum) leaves you in the dust.",
                             "I already left you behind. \(higherNum) is my new floor.",
                             "Watch me. I'm scoring \(higherNum) effortlessly.",
-                            "You are no competition. I'm sitting comfortably at \(higherNum).",
+                            "You are no threat. I'm sitting comfortably at \(higherNum).",
                             "I never stop climbing. \(higherNum) is already done.",
                         ])
                     } else {
@@ -3286,7 +3286,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "Better is my baseline. \(higherNum) days leaves you in the dust.",
                                 "I already left you behind. \(higherNum) days is my new floor.",
                                 "Watch me. I'm streak-running \(higherNum) days effortlessly.",
-                                "You are no competition. I'm sitting comfortably at \(higherNum) days.",
+                                "You are no threat. I'm sitting comfortably at \(higherNum) days.",
                                 "I never stop climbing. \(higherNum) days is already done.",
                             ])
                         } else {
@@ -3382,7 +3382,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "Better is my baseline. I just cleared it in \(higherTime).",
                             "I already left you behind. \(higherTime) is my new floor.",
                             "Watch me. I'm clocking \(higherTime) effortlessly.",
-                            "You are no competition. I'm sitting comfortably at \(higherTime).",
+                            "You are no threat. I'm sitting comfortably at \(higherTime).",
                             "I never stop climbing. \(higherTime) is already done.",
                         ])
                     } else {
