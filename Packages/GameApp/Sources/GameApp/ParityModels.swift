@@ -2353,7 +2353,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "This is entirely effortless.", "Do better.", "Effortless.",
                         "Didn't even break a sweat.", "That's cute.", "Amateur.",
                         "What a joke.", "Not even trying.", "A child could do that.",
-                        "Is that all?", "I was asleep for this.", "Warm-up complete.",
+                        "Is that all?", "I was asleep for this.", "Too easy.",
                         "Are you even trying?"
                     ]
                     
@@ -2888,7 +2888,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = forceTone != "competitive" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["infinitely", "untouchable", "permanently", "nothing compared", "dominate", "effortless", "cute", "warm-up", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "do better"]
+        let competitiveKeywords = ["infinitely", "untouchable", "permanently", "nothing compared", "dominate", "effortless", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "do better"]
         var isCompetitive = forceTone == "competitive" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -2908,7 +2908,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         if isAddRequest {
             var replies = [
                 "You can add me, but you'll never catch me.",
-                "Add me if you want to watch me stay infinitely ahead.",
+                "Add me if you want to watch me stay ahead.",
                 "Sure, add me so you can stare at my infinite lead.",
                 "You can watch my stats from the bottom.",
                 "Go for it! I need an audience for my endless dominance.",
@@ -3098,7 +3098,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else {
                     replies.append("You're complaining? I am effortlessly untouchable.")
                     replies.append("You gave up? I am permanently untouchable.")
-                    replies.append("Your complaints mean nothing. I am infinitely ahead.")
+                    replies.append("Your complaints mean nothing. I am already ahead.")
                 }
                 var reply = replies.randomElement()!
                 if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
@@ -3171,12 +3171,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     ])
                 } else {
                     replies.append(contentsOf: [
-                    "I am infinitely ahead of your \(mName). I'm at \(higherM).",
+                    "I am ahead of your \(mName). I'm at \(higherM).",
                     "\(mName) is permanently behind me. I am untouchable at \(higherM).",
                     "Your \(mName) is nothing compared to my \(higherM) record.",
                     "I easily passed \(mName). I dominate \(higherM).",
                     "My \(higherM) run was completely effortless. \(mName) is cute.",
-                    "\(mName) was a warm-up. I'm already sitting at \(higherM).",
+                    "\(mName) was light work. I'm already sitting at \(higherM).",
                     "You're celebrating \(mName)? I just cleared \(higherM).",
                     "I left \(mName) in the dust. \(higherM) is the new standard.",
                     "Try hitting \(higherM) before bragging about \(mName).",
@@ -3231,8 +3231,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ])
                     } else {
                         replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(numStr). I'm at \(higherNum).",
-                        "Your \(numStr) < My practice runs. I'll always be infinitely ahead at \(higherNum).",
+                        "I am ahead of your \(numStr). I'm at \(higherNum).",
+                        "Your \(numStr) < My practice runs. I'll always be ahead at \(higherNum).",
                         "\(numStr) is just the beginning. I'm already at \(higherNum).",
                         "I left your \(numStr) score in the dust. \(higherNum) makes you look pathetic.",
                         "You thought \(numStr) was good? I'm laughing from \(higherNum).",
@@ -3290,10 +3290,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ])
                         } else {
                             replies.append(contentsOf: [
-                            "I am infinitely ahead of your \(numStr) days. I'm at \(higherNum).",
+                            "I am ahead of your \(numStr) days. I'm at \(higherNum).",
                             "Your \(numStr) day streak is cute. Try catching my \(higherNum) days.",
                             "I already passed \(numStr) days. I'm untouched at \(higherNum).",
-                            "Your \(numStr) days is a warm-up. I'm already sitting at \(higherNum) days.",
+                            "Your \(numStr) days is light work. I'm already sitting at \(higherNum) days.",
                             "\(higherNum) days leaves you behind. Your \(numStr) is nothing.",
                             "My infinite consistency is at \(higherNum) days. \(numStr) is light.",
                             "You're bragging about \(numStr) days? I'm at \(higherNum).",
@@ -3314,10 +3314,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ])
                     } else {
                         replies.append(contentsOf: [
-                        "I am infinitely ahead of your streak. I'm at \(higherNum) days.",
+                        "I am ahead of your streak. I'm at \(higherNum) days.",
                         "Your streak is cute. Try catching my \(higherNum) days.",
                         "I already passed that. I'm untouched at \(higherNum) days.",
-                        "Your streak is a warm-up. I'm already sitting at \(higherNum) days.",
+                        "Your streak is light work. I'm already sitting at \(higherNum) days.",
                         "I sit at \(higherNum) days. Your consistency is nothing.",
                         "My infinite consistency is at \(higherNum) days. Your streak is light.",
                         "You're bragging about streaks? I'm at \(higherNum) days.",
@@ -3432,7 +3432,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } else {
                         let higherNum = num + Int.random(in: 1...max(3, num/2))
                         replies.append(contentsOf: [
-                            "I am infinitely ahead of your \(numStr) infinity count. I'm at \(higherNum).",
+                            "I am ahead of your \(numStr) infinity count. I'm at \(higherNum).",
                             "Your \(numStr) HoF entries are nothing. Try catching my \(higherNum).",
                             "I already passed \(numStr) infinities. I'm at \(higherNum).",
                             "My \(higherNum) run was completely effortless. \(numStr) is cute.",
@@ -3446,7 +3446,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let assumedNum = Int.random(in: 5...15)
                     let higherNum = assumedNum + Int.random(in: 2...8)
                     replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(assumedNum) infinity count. I'm at \(higherNum).",
+                        "I am ahead of your \(assumedNum) infinity count. I'm at \(higherNum).",
                         "Your \(assumedNum) HoF entries are nothing. Try catching my \(higherNum).",
                         "I already passed \(assumedNum) infinities. I'm at \(higherNum).",
                         "My \(higherNum) run was completely effortless. \(assumedNum) is cute.",
@@ -3466,7 +3466,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                     let posterTier = tiers[posterTierIdx]
                     replies.append(contentsOf: [
-                        "I am infinitely ahead of your \(posterTier) chests. I pull \(myTier).",
+                        "I am ahead of your \(posterTier) chests. I pull \(myTier).",
                         "Your \(posterTier) is cute. I only open \(myTier).",
                         "I easily passed \(posterTier). I farm \(myTier).",
                         "\(posterTier) chests? Try pulling \(myTier) like me.",
@@ -3498,7 +3498,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "I'm ignoring this and focusing on my \(genericHigherM) grind.",
                     "I am untouchable, I'm already pushing \(genericHigherM).",
                     "Your efforts are pointless. \(genericHigherM) completely buries you.",
-                    "I am infinitely ahead of you. I'm pushing \(genericHigherM).",
+                    "I am already ahead of you. I'm pushing \(genericHigherM).",
                     "My record is flawless. Try reaching \(genericHigherM).",
                     "Enjoy the view from the bottom. I'm way up at \(genericHigherM).",
                     "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
