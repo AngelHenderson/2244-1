@@ -2013,10 +2013,10 @@ public struct MockSocialService: SocialService, Sendable {
         ]
         
         // Symbols categorized by tone
-        let positiveSymbols = ["!!", " :)", " :D", " XD", " xD", " ~", " :P", " <3", " =)", " ^_^", " rn", " RN", " fr", " tbh"]
+        let positiveSymbols = ["!!", " :)", " :D", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD", " xD", " ~", " :P", " <3", " =)", " ^_^", " rn", " RN", " fr", " tbh"]
         let questionSymbols = ["?!", "...", "??", "!!?"]
         let sadOrJealousSymbols = [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", "...", " rn", " fr", " tbh", " ngl", " smh"]
-        let competitiveSymbols = [" >:)", " !!", " !!!", " >", " XD"]
+        let competitiveSymbols = [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"]
         let keyboardSymbols = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/"]
         
         // Dynamically inject topic-specific subjects based on the feed item's message
@@ -2447,7 +2447,11 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static func injectSymbol(_ text: String, symbol: String) -> String {
-        let letterSymbols = ["rn", "RN", "fr", "tbh", "ngl", "smh"]
+        let letterSymbols = [
+            "rn", "RN", "fr", "tbh", "ngl", "smh",
+            "XD", "XDD", "XDDD", "XDDDD", "XDDDDD", "XDDDDDD", "XDDDDDDD",
+            "xD", "xDD", "xDDD"
+        ]
         let trimmed = symbol.trimmingCharacters(in: .whitespaces)
         if letterSymbols.contains(trimmed) {
             if text.hasSuffix(".") || text.hasSuffix("!") || text.hasSuffix("?") {
@@ -2928,7 +2932,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ]
                 reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
             }
-            if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD"].randomElement()!) }
+            if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
             return reply
         }
 
@@ -3097,7 +3101,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("Your complaints mean nothing. I am infinitely ahead.")
                 }
                 var reply = replies.randomElement()!
-                if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD"].randomElement()!) }
+                if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
                 return reply
             }
 
@@ -3518,7 +3522,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ]
                 reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
             }
-            if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD"].randomElement()!) }
+            if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
             return reply
         }
 
@@ -3606,7 +3610,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "Aww thanks! This community is the best.",
             ])
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: ["!!", " :)", " :D", " XD", " xD", " ~", " :P", " <3", " =)", " ^_^", " rn", " RN", " fr", " tbh"].randomElement()!) }
+            if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: ["!!", " :)", " :D", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD", " xD", " ~", " :P", " <3", " =)", " ^_^", " rn", " RN", " fr", " tbh"].randomElement()!) }
             return reply
         }
 
