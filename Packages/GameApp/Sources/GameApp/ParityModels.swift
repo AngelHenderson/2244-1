@@ -2001,7 +2001,7 @@ public struct MockSocialService: SocialService, Sendable {
             "My next run will just establish a higher ceiling.", "I'm comfortably ahead.",
             "You are nothing compared to my dominance.", "I dominate everything effortlessly.",
             "That record is cute. I'm already leagues ahead.", "You will never touch my stats.",
-            "I'll be staying far ahead permanently.", "I am laughing from the top.",
+            "I'll be staying far ahead.", "I am laughing from the top.",
             "I am maintaining absolute dominance.", "I am completely unreachable.",
         ]
         var questions = [
@@ -2889,7 +2889,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = forceTone != "competitive" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["infinitely", "untouchable", "permanently", "nothing compared", "dominate", "effortless", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "do better"]
+        let competitiveKeywords = ["nothing compared", "dominate", "effortless", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "do better"]
         var isCompetitive = forceTone == "competitive" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -2914,7 +2914,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "You can watch my stats from the bottom.",
                 "Go for it! I need an audience for my endless dominance.",
                 "Yes! Add me and witness infinity.",
-                "For sure — watch me extend my lead permanently.",
+                "For sure — watch me extend my lead.",
                 "Definitely! But don't expect to ever reach my tier.",
             ]
             var reply = replies.randomElement()!
@@ -3064,7 +3064,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("I wouldn't even admit to being stuck at \(num). I effortlessly bypassed \(higherNum).")
                     replies.append("You actually think \(num) is a challenge? That's laughable. I hit \(higherNum) without trying.")
                     replies.append("You're complaining about \(num)? My floor is \(higherNum).")
-                    replies.append("Don't bother continuing. I'm permanently ahead at \(higherNum).")
+                    replies.append("Don't bother continuing. I'm safely ahead at \(higherNum).")
                 } else if mentionedTime, let timeTuple = Self.extractTime(from: strippedLower) {
                     let totalSecs = timeTuple.0 * 60 + timeTuple.1
                     var myTotal = totalSecs / 3 // Ridiculously fast
@@ -3095,7 +3095,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("You think \(infCount) is a challenge? Pathetic. I'm already effortlessly coasting at \(myCount).")
                     replies.append("You being stuck at \(infCount) is hilarious. I effortlessly hit \(myCount).")
                     replies.append("Only someone completely clueless would get stuck at \(infCount)? I effortlessly bypassed \(myCount).")
-                    replies.append("You're stuck at \(infCount)? I am permanently climbing past \(myCount).")
+                    replies.append("You're stuck at \(infCount)? I am always climbing past \(myCount).")
                 } else {
                     replies.append("You're complaining? I am effortlessly ahead.")
                     replies.append("You gave up? I am safely ahead.")
@@ -3163,7 +3163,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "You wanted better? I'm sitting at \(higherM).",
                         "I did do better. Try catching \(higherM).",
                         "Done. I'm untouched at \(higherM).",
-                        "I'm permanently climbing. \(higherM) completely buries you.",
+                        "I'm always climbing. \(higherM) completely buries you.",
                         "Better is my baseline. I'm at \(higherM).",
                         "I already left you behind. \(higherM) is next.",
                         "Watch me. I'm clearing \(higherM) effortlessly.",
@@ -3223,7 +3223,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "You wanted better? I'm already at \(higherNum).",
                             "I did do better. Try catching \(higherNum).",
                             "Done. I'm untouched at \(higherNum).",
-                            "I'm permanently climbing. \(higherNum) completely buries you.",
+                            "I'm always climbing. \(higherNum) completely buries you.",
                             "Better is my baseline. \(higherNum) leaves you in the dust.",
                             "I already left you behind. \(higherNum) is my new floor.",
                             "Watch me. I'm scoring \(higherNum) effortlessly.",
@@ -3282,7 +3282,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "You wanted better? I'm already at \(higherNum) days.",
                                 "I did do better. Try catching \(higherNum) days.",
                                 "Done. I'm untouched at \(higherNum) days.",
-                                "I'm permanently climbing. \(higherNum) days completely buries you.",
+                                "I'm always climbing. \(higherNum) days completely buries you.",
                                 "Better is my baseline. \(higherNum) days leaves you in the dust.",
                                 "I already left you behind. \(higherNum) days is my new floor.",
                                 "Watch me. I'm streak-running \(higherNum) days effortlessly.",
@@ -3311,7 +3311,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "You wanted better? I'm already at \(higherNum) days.",
                             "I did do better. Try catching \(higherNum) days.",
                             "Done. I'm untouched at \(higherNum) days.",
-                            "I'm permanently getting better. \(higherNum) days completely buries you.",
+                            "I'm always getting better. \(higherNum) days completely buries you.",
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -3378,7 +3378,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "You wanted better? I'm already down to \(higherTime).",
                             "I did do better. Try catching \(higherTime).",
                             "Done. I'm untouched at \(higherTime).",
-                            "I'm permanently getting faster. \(higherTime) makes you look slow.",
+                            "I'm always getting faster. \(higherTime) makes you look slow.",
                             "Better is my baseline. I just cleared it in \(higherTime).",
                             "I already left you behind. \(higherTime) is my new floor.",
                             "Watch me. I'm clocking \(higherTime) effortlessly.",
@@ -3536,7 +3536,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "You'll never break through \(m.name). Just accept it.",
                     "\(m.name) is a wall you won't climb. I cleared it effortlessly.",
                     "Stuck before \(m.name)? You will always be behind.",
-                    "I left \(m.name) in the dust. You're permanently stuck.",
+                    "I left \(m.name) in the dust. You're completely stuck.",
                 ])
             }
 
@@ -3559,14 +3559,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             replies.append(contentsOf: [
                 "You'll never get there. Just give up.",
                 "I was never in your spot. You will always be behind.",
-                "Patience won't help you. You're permanently outclassed.",
+                "Patience won't help you. You're completely outclassed.",
                 "Everyone progresses, except you. You're stuck at the bottom.",
                 "Trust me, you'll never break through.",
                 "I don't believe in you. You're completely irrelevant.",
                 "The wall you hit is permanent. Stay down there.",
                 "The struggle is yours alone. I'm untouched.",
                 "You are infinitely behind, and always will be.",
-                "You're permanently stuck in the lower tiers.",
+                "You're completely stuck in the lower tiers.",
                 "It's over for you. You'll never catch up."
             ])
             var reply = replies.randomElement()!
