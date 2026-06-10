@@ -124,6 +124,12 @@ struct ParityModelsTests {
                 
                 let hasCompeteWord = lowercasedText.range(of: "\\bcompete\\b", options: .regularExpression) != nil
                 #expect(!hasCompeteWord, "Found finite-match word 'compete' in bot comment: \(comment.text)")
+                
+                let hasWinWord = lowercasedText.range(of: "\\bwin\\b", options: .regularExpression) != nil
+                #expect(!hasWinWord, "Found finite-match word 'win' in bot comment: \(comment.text)")
+                
+                let hasGiveUp = lowercasedText.contains("give up")
+                #expect(!hasGiveUp, "Found 'give up' phrase in bot comment: \(comment.text)")
             }
         }
         

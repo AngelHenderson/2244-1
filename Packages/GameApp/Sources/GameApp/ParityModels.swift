@@ -2379,7 +2379,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if Double.random(in: 0...1) < 0.80 {
                     let compClosers = [
                         "Don't bother trying.", "I'm comfortably ahead.", "I reign supreme.",
-                        "No one comes close.", "Give up while you can.", "Too slow.",
+                        "No one comes close.", "Try to keep up.", "Too slow.",
                         "You're not even a threat.", "My scores speak for themselves.",
                         "You're not on my level.", "I'm extending my lead.",
                         "Stay down there.", "This record belongs to me.", "Enjoy staring at my back.", "You will never catch up.", "I am safely out of your reach."
@@ -3559,12 +3559,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             if mentionedTheme {
                 replies.append("You'll never get that theme. Your gem count is pathetic.")
-                replies.append("Keep dreaming. That theme belongs to players who actually win.")
+                replies.append("Keep dreaming. That theme belongs to top-tier players.")
             }
 
             // Generic dismissal
             replies.append(contentsOf: [
-                "You'll never get there. Just give up.",
+                "You'll never get there at this rate.",
                 "I was never in your spot. You will always be behind.",
                 "Patience won't help you. You're completely outclassed.",
                 "Everyone progresses, except you. You're stuck at the bottom.",
@@ -3698,13 +3698,13 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         "AmsterdamAce262368", "BrussellsBoss822873", "ViennaViking160358", "ZurichZealot419278", "GenevaGhost254315",
         // Hall of Fame gamertags (exact match to LeaderboardClient.hallOfFameNames)
         "InfinityMaster462572", "EndlessVoyager", "BeyondLimits422678", "EternalChamp", "UltimatePlayer",
-        "LegendaryGamer", "InfiniteWinner", "CosmicConqueror", "SupremeVictor", "DivinePlayer",
+        "LegendaryGamer", "InfiniteLegend", "CosmicConqueror", "SupremeVictor", "DivinePlayer",
         "MythicalHero", "TranscendentOne", "OmnipotentGamer", "CelestialKing", "ImmortalPlayer",
-        "UnstoppableForce", "PerfectScore571450", "FlawlessVictory", "AbsoluteChamp", "MaxLevelPro",
+        "UnstoppableForce", "PerfectScore571450", "FlawlessRun", "AbsoluteChamp", "MaxLevelPro",
         "GodTierPlayer", "EliteInfinity", "MasterOfAll", "ChampOfChamps", "NumberOneForever",
-        "SkillMaxed367578", "TopDogForever", "KingOfKings", "QueenSupreme", "UltimateVictory",
+        "SkillMaxed367578", "TopDogForever", "KingOfKings", "QueenSupreme", "UltimateRun",
         "BeyondPerfect", "EndgameBoss", "FinalFormPro", "MaxPowerUser", "InfiniteGlory",
-        "EternalVictory", "LimitBreaker661070", "BoundlessSkill", "NeverEndingWin", "ForeverFirst",
+        "EternalRun", "LimitBreaker661070", "BoundlessSkill", "NeverEndingRun", "ForeverFirst",
         "AlphaOmega531681", "ZenithReached", "ApexPredator099366", "PinnaclePlayer", "SummitSeeker",
         "VanguardVictor", "ParagonPrime", "SupremeSeeker", "TitanTamer", "OlympianOne",
         "PhoenixRisen", "DragonSlayer864745", "ThunderGod795666", "StormBringer", "LightningLord",
