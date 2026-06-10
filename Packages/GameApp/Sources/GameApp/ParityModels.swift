@@ -1896,9 +1896,13 @@ public struct MockSocialService: SocialService, Sendable {
     nonisolated(unsafe) private static var shuffleBags: [String: [String]] = [:]
     nonisolated(unsafe) private static var shuffleIndices: [String: Int] = [:]
     nonisolated(unsafe) private static var shuffleIndexBags: [String: [Int]] = [:]
+    private static let shuffleLock = NSLock()
 
     private static func drawIndexFromBag(key: String, count: Int) -> Int {
         if count == 0 { return 0 }
+        
+        shuffleLock.lock()
+        defer { shuffleLock.unlock() }
         
         var currentBag = shuffleIndexBags[key] ?? []
         
@@ -1943,6 +1947,9 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static func drawFromBag(key: String, pool: [String]) -> String {
+        shuffleLock.lock()
+        defer { shuffleLock.unlock() }
+        
         // First call or bag exhausted — reshuffle
         if shuffleBags[key] == nil || (shuffleIndices[key] ?? 0) >= (shuffleBags[key]?.count ?? 0) {
             shuffleBags[key] = pool.shuffled()
@@ -2374,7 +2381,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "Don't bother trying.", "I'm comfortably ahead.", "I reign supreme.",
                         "No one comes close.", "Give up while you can.", "Too slow.",
                         "You're not even a threat.", "My scores speak for themselves.",
-                        "You can't compete.", "I've already won.",
+                        "You're not on my level.", "I own this spot.",
                         "Stay down there.", "This record belongs to me.", "Enjoy staring at my back.", "You will never catch up.", "I am safely out of your reach."
                     ]
                     
