@@ -130,6 +130,9 @@ struct ParityModelsTests {
                 
                 let hasGiveUp = lowercasedText.contains("give up")
                 #expect(!hasGiveUp, "Found 'give up' phrase in bot comment: \(comment.text)")
+                
+                let hasTooEasy = lowercasedText.contains("too easy")
+                #expect(!hasTooEasy, "Found 'too easy' phrase in bot comment: \(comment.text)")
             }
         }
         
