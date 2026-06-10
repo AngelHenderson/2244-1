@@ -245,6 +245,21 @@ public struct HybridGameScreen: View {
             } message: {
                 Text("This will restart all of your progress.")
             }
+            .alert(
+                "Can't Afford \(gameStore.insufficientGemsAlert?.powerUpName ?? "Power-Up")",
+                isPresented: Binding(
+                    get: { gameStore.insufficientGemsAlert != nil },
+                    set: { if !$0 { gameStore.insufficientGemsAlert = nil } }
+                )
+            ) {
+                Button("OK", role: .cancel) {
+                    gameStore.insufficientGemsAlert = nil
+                }
+            } message: {
+                if let alert = gameStore.insufficientGemsAlert {
+                    Text("You need \(alert.cost) gems, but you only have \(alert.balance). You need \(alert.deficit) more gems.")
+                }
+            }
 
         
         let changeHandlers = alertView

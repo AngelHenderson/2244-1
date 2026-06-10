@@ -2381,7 +2381,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "Don't bother trying.", "I'm comfortably ahead.", "I reign supreme.",
                         "No one comes close.", "Give up while you can.", "Too slow.",
                         "You're not even a threat.", "My scores speak for themselves.",
-                        "You're not on my level.", "I own this spot.",
+                        "You're not on my level.", "I'm extending my lead.",
                         "Stay down there.", "This record belongs to me.", "Enjoy staring at my back.", "You will never catch up.", "I am safely out of your reach."
                     ]
                     

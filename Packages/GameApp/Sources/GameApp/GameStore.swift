@@ -158,6 +158,16 @@ public final class GameStore {
     // Track gems spent on the last power-up action for undo refund
     // Stores (gemCost, powerUpKey) — nil if the last action wasn't a gem-purchased power-up
     private var lastPowerUpGemSpend: (cost: Int, key: String)? = nil
+
+    /// Alert data for when the player can't afford a power-up
+    public struct InsufficientGemsAlert: Equatable, Sendable {
+        public let powerUpName: String
+        public let cost: Int
+        public let balance: Int
+        public var deficit: Int { cost - balance }
+    }
+    /// Set when a power-up purchase fails due to insufficient gems. Clear after presenting.
+    public var insufficientGemsAlert: InsufficientGemsAlert? = nil
     // Power-up inventory tracking
     public private(set) var powerUpInventory: [String: Int] = [
         "hammer": 3,
@@ -2778,7 +2788,14 @@ public final class GameStore {
         guard !isInputLocked else { return false }
         guard state.board[position] != nil else { return false }
         guard hammerAnimationState == nil else { return false }
-        guard isPowerUpAvailable("hammer") else { return false }
+        guard isPowerUpAvailable("hammer") else {
+            // Only show alert if they have no inventory — they tried to buy but can't afford
+            if powerUpInventory["hammer", default: 0] == 0 {
+                let price = powerUpPrice("hammer")
+                insufficientGemsAlert = InsufficientGemsAlert(powerUpName: "Hammer", cost: price, balance: state.gems)
+            }
+            return false
+        }
         
         // Use inventory first, then coins
         if powerUpInventory["hammer", default: 0] > 0 {
@@ -2803,7 +2820,13 @@ public final class GameStore {
     
     @discardableResult
     public func useSwap(_ a: Position, _ b: Position) -> Bool {
-        guard isPowerUpAvailable("swap") else { return false }
+        guard isPowerUpAvailable("swap") else {
+            if powerUpInventory["swap", default: 0] == 0 {
+                let price = powerUpPrice("swap")
+                insufficientGemsAlert = InsufficientGemsAlert(powerUpName: "Swap", cost: price, balance: state.gems)
+            }
+            return false
+        }
         
         // Use inventory first, then coins
         if powerUpInventory["swap", default: 0] > 0 {
@@ -2903,7 +2926,13 @@ public final class GameStore {
     @discardableResult
     public func useMagnet(value: Int, to position: Position) -> Int {
         guard !isInputLocked else { return 0 }
-        guard isPowerUpAvailable("magnet") else { return 0 }
+        guard isPowerUpAvailable("magnet") else {
+            if powerUpInventory["magnet", default: 0] == 0 {
+                let price = powerUpPrice("magnet")
+                insufficientGemsAlert = InsufficientGemsAlert(powerUpName: "Magnet", cost: price, balance: state.gems)
+            }
+            return 0
+        }
         guard let tile = state.board[position],
               tile.value == value,
               let targetStep = tile.stepIndex else { return 0 }
