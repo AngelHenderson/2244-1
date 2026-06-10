@@ -2362,7 +2362,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "This is entirely effortless.", "Do better.", "Effortless.",
                         "Didn't even break a sweat.", "That's cute.", "Amateur.",
                         "What a joke.", "Not even trying.", "A child could do that.",
-                        "Is that all?", "I was asleep for this.", "Too easy.",
+                        "Is that all?", "I was asleep for this.", "Barely a speed bump.",
                         "Are you even trying?"
                     ]
                     
