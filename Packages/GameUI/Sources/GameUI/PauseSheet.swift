@@ -11,6 +11,8 @@ struct PauseSheet: View {
     let onRestart: () -> Void
     let onHome: (() -> Void)?
 
+    @State private var isShowingRestartConfirmation = false
+
     init(onResume: @escaping () -> Void, onRestart: @escaping () -> Void, onHome: (() -> Void)? = nil) {
         self.onResume = onResume
         self.onRestart = onRestart
@@ -25,7 +27,9 @@ struct PauseSheet: View {
                     if let onHome {
                         Button("Home", action: onHome)
                     }
-                    Button("Restart", role: .destructive, action: onRestart)
+                    Button("Restart", role: .destructive) {
+                        isShowingRestartConfirmation = true
+                    }
                 }
                 Section("Accessibility") {
                     Toggle("Color blind mode", isOn: bindingColorBlind)
@@ -54,6 +58,12 @@ struct PauseSheet: View {
             }
             .navigationTitle("Paused")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+            .alert("Are you sure you want to restart?", isPresented: $isShowingRestartConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Restart", role: .destructive, action: onRestart)
+            } message: {
+                Text("This will erase all of your progress and start a new game.")
+            }
         }
         .trackScreen(.pause)
     }
