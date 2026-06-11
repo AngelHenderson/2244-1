@@ -362,7 +362,6 @@ public struct HomeView: View {
                     systemImage: nil,
                     customImage: "mysterybox",
                     title: "SHOP",
-                    badge: state.hasShopBadge,
                     action: { presentedSheet = .shop }
                 )
             )
