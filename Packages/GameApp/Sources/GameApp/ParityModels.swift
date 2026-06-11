@@ -3655,7 +3655,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let fallbacks = [
             "Facts. That's exactly how I see it too.",
             "Couldn't have said it better myself.",
-            "Haha right? This place is something else.",
+            "Haha right? This feed is something else.",
             "For real though! ",
             "Completely agree with this.",
             "Yo same energy over here ",

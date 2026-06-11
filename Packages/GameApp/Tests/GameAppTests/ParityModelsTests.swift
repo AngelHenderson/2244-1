@@ -140,6 +140,9 @@ struct ParityModelsTests {
                 }
                 
                 #expect(!comment.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "Bot comment by \(comment.authorName) was blank/empty")
+                
+                let hasThisPlace = lowercasedText.contains("this place")
+                #expect(!hasThisPlace, "Found generic 'this place' phrase in bot comment: \(comment.text)")
             }
         }
         
