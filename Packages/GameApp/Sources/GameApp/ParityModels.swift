@@ -2391,13 +2391,15 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     var closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
                     var attempts = 0
-                    while attempts < 5 && (comment.lowercased().contains("irrelevant") && closer.lowercased().contains("irrelevant") ||
+                    let isTimeTopic = message.lowercased().contains("time") || message.lowercased().contains("speed") || message.lowercased().contains("timed challenge")
+                    while attempts < 10 && (comment.lowercased().contains("irrelevant") && closer.lowercased().contains("irrelevant") ||
                                            comment.lowercased().contains("catch") && closer.lowercased().contains("catch") ||
                                            comment.lowercased().contains("permanent") && closer.lowercased().contains("permanent") ||
                                            comment.lowercased().contains("untouchable") && closer.lowercased().contains("untouchable") ||
                                            comment.lowercased().contains("dominate") && closer.lowercased().contains("dominate") ||
                                            comment.lowercased().contains("behind") && closer.lowercased().contains("behind") ||
-                                           comment.lowercased().contains("record") && closer.lowercased().contains("record")) {
+                                           comment.lowercased().contains("record") && closer.lowercased().contains("record") ||
+                                           (closer.lowercased().contains("slow") && !isTimeTopic)) {
                         closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
                         attempts += 1
                     }

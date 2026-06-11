@@ -114,10 +114,16 @@ struct ParityModelsTests {
         
         var totalCommentsChecked = 0
         for item in items {
+            let isTimeTopic = item.message.lowercased().contains("time") || item.message.lowercased().contains("speed") || item.message.lowercased().contains("timed challenge")
             for comment in item.comments {
                 totalCommentsChecked += 1
                 let lowercasedText = comment.text.lowercased()
                 #expect(!lowercasedText.contains("competition"), "Found 'competition' in bot comment: \(comment.text)")
+                
+                if !isTimeTopic {
+                    let hasTooSlow = lowercasedText.contains("too slow")
+                    #expect(!hasTooSlow, "Found 'too slow' in non-time bot comment: \(comment.text)")
+                }
                 
                 let hasWonWord = lowercasedText.range(of: "\\bwon\\b", options: .regularExpression) != nil
                 #expect(!hasWonWord, "Found finite-match word 'won' in bot comment: \(comment.text)")
