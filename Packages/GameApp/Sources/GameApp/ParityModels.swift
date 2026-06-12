@@ -2319,8 +2319,8 @@ public struct MockSocialService: SocialService, Sendable {
         
         if tone == "competitive" || tone == "behind_competitive" {
             let forceBehind = (tone == "behind_competitive")
-            if forceBehind || Double.random(in: 0...1) < 0.47 {
-                // ── Behind (47% of competitive) — with behind opener and closer ──
+            if forceBehind || Double.random(in: 0...1) < 0.45 {
+                // ── Behind (45% of competitive) — with behind opener and closer ──
                 let compBehindOpeners = [
                     "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                 ]
@@ -2343,7 +2343,7 @@ public struct MockSocialService: SocialService, Sendable {
                 comment = reaction
                 tone = "behind_competitive"
             } else {
-                // ── Competitive (53% of competitive) — generate factually accurate one-upmanship ──
+                // ── Competitive (55% of competitive) — generate factually accurate one-upmanship ──
                 let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
                 comment = result.0
                 nameOverride = result.1
@@ -2921,7 +2921,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "Definitely! But don't expect to ever reach my tier.",
             ]
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.47 * 0.86 {
+            if Double.random(in: 0...1) < 0.45 * 0.86 {
                 let compBehindOpeners = [
                     "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                 ]
@@ -3509,7 +3509,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ])
             }
             var reply = replies.randomElement()!
-            if canBeBehind && Double.random(in: 0...1) < 0.47 * 0.86 {
+            if canBeBehind && Double.random(in: 0...1) < 0.45 * 0.86 {
                 let compBehindOpeners = [
                     "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                 ]
