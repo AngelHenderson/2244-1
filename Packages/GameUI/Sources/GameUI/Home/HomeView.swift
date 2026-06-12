@@ -361,8 +361,8 @@ public struct HomeView: View {
         items.append(
             HomeRailItem(
                 id: "free-spin",
-                systemImage: "arrow.triangle.2.circlepath",
-                customImage: nil,
+                systemImage: nil,
+                customImage: "spinthewheel",
                 title: "SPIN",
                 badgeCount: spinState.bonusSpins > 0 ? spinState.bonusSpins : nil,
                 banned: state.isBanned,
