@@ -358,20 +358,20 @@ public final class PlayerReadinessStore {
             features.formUnion([.daily, .dailyQuests, .dailyStreaks])
         }
 
-        if snapshot.hasEarnedFirstReward || highestTileStep > 0 {
+        if snapshot.hasEarnedFirstReward {
             features.formUnion([.shop, .freeSpin, .music, .theme, .profile, .adBonus, .subscription, .yearReview])
         }
 
-        if snapshot.totalMerges >= 10 || highestTileStep > 0
+        if snapshot.totalMerges >= 10 || highestTileStep >= 10
             || snapshot.completedRuns > 0 || snapshot.hasEarnedFirstReward {
             features.formUnion([.achievements, .leaderboard, .boosts, .feed, .friends, .proCoach])
         }
 
-        if highestTileStep > 0 || highestTile >= 65_536 {
+        if highestTileStep >= 15 || highestTile >= 65_536 {
             features.insert(.create)
         }
 
-        if highestTileStep > 0 || highestTile >= 67_108_864 {
+        if highestTileStep >= 25 || highestTile >= 67_108_864 {
             features.insert(.challenge)
         }
 

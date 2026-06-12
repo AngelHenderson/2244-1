@@ -307,7 +307,8 @@ public struct RootGameView: View {
         // Only actions that RootGameView actually owns are wired here.
         // Profile / achievements / leaderboard / settings / theme / sale-offer are
         // presented from HomeView's own sheet state, so their HomeActions fields
-        // stay at their default no-op valu         HomeActions(
+        // stay at their default no-op values.
+        HomeActions(
             play: {
                 // Only reset if the game is over, otherwise resume current session
                 if gameStore.state.isGameOver {
