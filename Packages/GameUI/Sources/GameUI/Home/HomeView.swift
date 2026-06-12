@@ -439,7 +439,6 @@ public struct HomeView: View {
                     systemImage: nil,
                     customImage: "ads",
                     title: "BONUS",
-                    badge: true,
                     banned: state.isBanned,
                     specialLabel: "+\(state.adReward)",
                     specialLabelInside: true,
