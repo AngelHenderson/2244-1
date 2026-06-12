@@ -123,6 +123,9 @@ struct ParityModelsTests {
                 if !isTimeTopic {
                     let hasTooSlow = lowercasedText.contains("too slow")
                     #expect(!hasTooSlow, "Found 'too slow' in non-time bot comment: \(comment.text)")
+                } else {
+                    let hasInfinitelyFaster = lowercasedText.contains("infinitely faster")
+                    #expect(!hasInfinitelyFaster, "Found 'infinitely faster' in time bot comment: \(comment.text)")
                 }
                 
                 let hasWonWord = lowercasedText.range(of: "\\bwon\\b", options: .regularExpression) != nil
@@ -149,6 +152,9 @@ struct ParityModelsTests {
                 
                 let hasThisPlace = lowercasedText.contains("this place")
                 #expect(!hasThisPlace, "Found generic 'this place' phrase in bot comment: \(comment.text)")
+                
+                let hasEffortless = lowercasedText.contains("effortless")
+                #expect(!hasEffortless, "Found 'effortless' or 'effortlessly' in bot comment: \(comment.text)")
                 
                 let compBehindPhrases = [
                     "grinding right now", "closing the gap", "lead while it lasts",
