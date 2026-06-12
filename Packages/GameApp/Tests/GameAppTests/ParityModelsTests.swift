@@ -149,6 +149,21 @@ struct ParityModelsTests {
                 
                 let hasThisPlace = lowercasedText.contains("this place")
                 #expect(!hasThisPlace, "Found generic 'this place' phrase in bot comment: \(comment.text)")
+                
+                let compBehindPhrases = [
+                    "grinding right now", "closing the gap", "lead while it lasts",
+                    "coming for the top", "overtake you", "lower right now"
+                ]
+                let isCompBehind = compBehindPhrases.contains { lowercasedText.contains($0) }
+                if isCompBehind {
+                    let submissiveBehindPhrases = [
+                        "can't keep up", "so far behind", "struggling over here",
+                        "score is pathetic", "basically a beginner", "never reach that level"
+                    ]
+                    for subPhrase in submissiveBehindPhrases {
+                        #expect(!lowercasedText.contains(subPhrase), "Found submissive phrase '\(subPhrase)' in competitive behind comment: \(comment.text)")
+                    }
+                }
             }
         }
         
