@@ -358,7 +358,18 @@ public struct HomeView: View {
             )
         }
 
-
+        items.append(
+            HomeRailItem(
+                id: "free-spin",
+                systemImage: "arrow.triangle.2.circlepath",
+                customImage: nil,
+                title: "SPIN",
+                badgeCount: spinState.bonusSpins > 0 ? spinState.bonusSpins : nil,
+                banned: state.isBanned,
+                onBannedTap: { state.showBanAlert = true },
+                action: { actions.openFreeSpin() }
+            )
+        )
 
         if playerReadiness.isVisible(.shop) {
             items.append(
@@ -406,6 +417,18 @@ public struct HomeView: View {
                     customImage: nil,
                     title: "PRACTICE",
                     action: { presentedSheet = .practice }
+                )
+            )
+        }
+
+        if playerReadiness.isVisible(.feed) {
+            items.append(
+                HomeRailItem(
+                    id: "feed",
+                    systemImage: "bubble.left.and.bubble.right.fill",
+                    customImage: nil,
+                    title: "FEED",
+                    action: { presentedSheet = .feed }
                 )
             )
         }
@@ -501,11 +524,32 @@ public struct HomeView: View {
             )
         }
 
+        if playerReadiness.isVisible(.friends) {
+            items.append(
+                HomeRailItem(
+                    id: "friends",
+                    systemImage: "person.2.circle.fill",
+                    customImage: nil,
+                    title: "FRIENDS",
+                    action: { presentedSheet = .friends }
+                )
+            )
+        }
+
         return items
     }
 
     private var dockItems: [HomeDockItem] {
         var items: [HomeDockItem] = []
+
+        items.append(
+            HomeDockItem(
+                id: "profile",
+                system: "person.circle.fill",
+                title: "Profile",
+                action: { presentedSheet = .profile }
+            )
+        )
 
         if playerReadiness.isVisible(.achievements) {
             items.append(
@@ -530,51 +574,6 @@ public struct HomeView: View {
                     system: "trophy.circle.fill",
                     title: "Leaderboard",
                     action: { presentedSheet = .leaderboard }
-                )
-            )
-        }
-
-        items.append(
-            HomeDockItem(
-                id: "free-spin",
-                system: "arrow.triangle.2.circlepath",
-                title: "Spin",
-                badgeCount: spinState.bonusSpins,
-                banned: state.isBanned,
-                action: {
-                    if state.isBanned { state.showBanAlert = true }
-                    else { actions.openFreeSpin() }
-                }
-            )
-        )
-
-        items.append(
-            HomeDockItem(
-                id: "profile",
-                system: "person.circle.fill",
-                title: "Profile",
-                action: { presentedSheet = .profile }
-            )
-        )
-
-        if playerReadiness.isVisible(.feed) {
-            items.append(
-                HomeDockItem(
-                    id: "feed",
-                    system: "bubble.left.and.bubble.right.fill",
-                    title: "Feed",
-                    action: { presentedSheet = .feed }
-                )
-            )
-        }
-
-        if playerReadiness.isVisible(.friends) {
-            items.append(
-                HomeDockItem(
-                    id: "friends",
-                    system: "person.2.circle.fill",
-                    title: "Friends",
-                    action: { presentedSheet = .friends }
                 )
             )
         }
