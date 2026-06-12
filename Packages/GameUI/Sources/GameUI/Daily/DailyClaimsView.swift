@@ -494,29 +494,7 @@ public struct DailyClaimsView: View {
         }
     }
 
-    private func claimAllRewards() {
-        guard let totalRewards = store.totalCatchUpRewards() else { return }
-        let claimCount = store.availableClaims
 
-        claimedBonusCount = 0
-        claimedBaseRewards = totalRewards
-        claimedRewards = totalRewards
-        showClaimAnimation = true
-
-        // Claim all at once — each call inside handles reward distribution & streaks
-        store.claimAllDailyRewards()
-        for _ in 0..<claimCount {
-            gameStore.achievementEvaluator?.onDailyClaimed()
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            withAnimation {
-                showClaimAnimation = false
-                claimedRewards = nil
-                claimedBonusCount = 0
-            }
-        }
-    }
 
     /// Number of years available to view (unlocks in pairs)
     private var availableYears: Int {

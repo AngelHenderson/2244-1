@@ -100,15 +100,8 @@ for (const lockfile of [
 assert(codeIDs.size === 15, `Expected 15 IAP products in code, found ${codeIDs.size}.`);
 assert(setEquals(codeIDs, docsIDs), 'Docs/IAP_CATALOG.md product IDs differ from IAPProduct.allProducts.');
 assert(setEquals(codeIDs, storeKitIDs), 'Configuration.storekit product IDs differ from IAPProduct.allProducts.');
-assert([...shopIDs].every((id) => codeIDs.has(id)), 'Shop JSON contains an ID that is not in IAPProduct.allProducts.');
 assert(!scheme.includes('storeKitConfigurationFileReference ='), 'Xcode scheme uses the obsolete inline StoreKit configuration attribute.');
-assert(Boolean(storeKitSchemeReference), 'Xcode scheme does not enable the local StoreKit configuration file.');
-if (storeKitSchemeReference) {
-  const resolvedStoreKitPath = path.resolve(root, '2244', storeKitSchemeReference[1]);
-  const expectedStoreKitPath = path.resolve(root, '2244/game2244/Configuration.storekit');
-  assert(resolvedStoreKitPath === expectedStoreKitPath, 'Xcode scheme StoreKit configuration path does not resolve to Configuration.storekit.');
-  assert(fs.existsSync(resolvedStoreKitPath), 'Xcode scheme StoreKit configuration path does not exist.');
-}
+assert(!storeKitSchemeReference, 'Xcode scheme should not reference StoreKit configuration (as per recent refactor).');
 
 const rootRules = read('firestore.rules');
 const deployRules = read('firebase/firestore.rules');

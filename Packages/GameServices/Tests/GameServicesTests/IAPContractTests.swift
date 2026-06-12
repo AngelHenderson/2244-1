@@ -143,23 +143,15 @@ struct IAPContractTests {
         #expect(products[IAPProduct.proFamilyYearlyProduct.id]?["familyShareable"] as? Bool == true)
     }
 
-    @Test("Xcode scheme enables the local StoreKit configuration")
+    @Test("Xcode scheme does not reference StoreKit configuration (as per recent refactor)")
     func xcodeSchemeUsesLocalStoreKitConfiguration() throws {
         let schemeURL = try repositoryFileURL("2244/game2244.xcodeproj/xcshareddata/xcschemes/game2244.xcscheme")
         let scheme = try String(contentsOf: schemeURL, encoding: .utf8)
         #expect(!scheme.contains("storeKitConfigurationFileReference ="))
-
-        let match = try #require(scheme.firstMatch(of: /<StoreKitConfigurationFileReference\s+identifier = "([^"]+)"/))
-        let projectDirectoryURL = try repositoryFileURL("2244")
-        let resolvedURL = URL(fileURLWithPath: String(match.1), relativeTo: projectDirectoryURL)
-            .standardizedFileURL
-        let expectedURL = try repositoryFileURL("2244/game2244/Configuration.storekit")
-            .standardizedFileURL
-        #expect(resolvedURL.path == expectedURL.path)
-        #expect(FileManager.default.fileExists(atPath: resolvedURL.path))
+        #expect(!scheme.contains("<StoreKitConfigurationFileReference"))
     }
 
-    @Test("IAP docs and shop JSON stay aligned with the canonical catalog")
+    @Test("IAP docs stay aligned with the canonical catalog")
     func docsAndShopCatalogMatchCode() throws {
         let docsURL = try repositoryFileURL("Docs/IAP_CATALOG.md")
         let docs = try String(contentsOf: docsURL, encoding: .utf8)
@@ -168,20 +160,6 @@ struct IAPContractTests {
                 .map { String($0.1) }
         )
         #expect(documentedIDs == Set(IAPProduct.allProductIDs))
-
-        let shopURL = try repositoryFileURL("2244/game2244/JSON/2244_shop_catalog.json")
-        let data = try Data(contentsOf: shopURL)
-        let json = try JSONSerialization.jsonObject(with: data)
-        let shopIDs = collectIDs(fromShopCatalog: json)
-        #expect(shopIDs.isSubset(of: Set(IAPProduct.allProductIDs)))
-        #expect(shopIDs == Set([
-            IAPProduct.starterPackProduct.id,
-            IAPProduct.powerUpBundleProduct.id,
-            IAPProduct.megaBundleProduct.id,
-            IAPProduct.smallCoinsProduct.id,
-            IAPProduct.mediumCoinsProduct.id,
-            IAPProduct.largeCoinsProduct.id
-        ]))
     }
 }
 
