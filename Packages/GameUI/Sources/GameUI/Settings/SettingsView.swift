@@ -11,6 +11,7 @@ public struct SettingsView: View {
     @Environment(\.purchaseService) private var purchaseService
     @Environment(\.adService) private var adService
     @Environment(\.analytics) private var analytics
+    @Environment(\.homeActions) private var actions
     
     @State private var sfxVolume: Double = 1.0
     @State private var musicVolume: Double = 1.0
@@ -66,7 +67,14 @@ public struct SettingsView: View {
                         Label("Courses & Modes", systemImage: "square.grid.2x2")
                     }
                     NavigationLink {
-                        PracticeHubView()
+                        PracticeHubView(
+                            onPlayPractice: { config in
+                                dismiss()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                    actions.playCustomChallenge(config)
+                                }
+                            }
+                        )
                     } label: {
                         Label("Practice Hub", systemImage: "target")
                     }

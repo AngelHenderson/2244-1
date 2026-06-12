@@ -133,6 +133,11 @@ public struct HomeView: View {
                 DailyStreaksView()
             case .practice:
                 PracticeHubView(
+                    onPlayPractice: { config in
+                        closeSheetAndRun {
+                            actions.playCustomChallenge(config)
+                        }
+                    },
                     onOpenDailyChallenge: { closeSheetAndRun { actions.openChallenge() } },
                     onOpenCreate: { closeSheetAndRun { actions.openCreate() } },
                     onOpenProCoach: { presentedSheet = .proCoach }

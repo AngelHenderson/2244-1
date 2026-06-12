@@ -1,7 +1,9 @@
 import SwiftUI
+import GameCore
 
 public struct HomeActions: Sendable {
     public var play: @Sendable @MainActor () -> Void = {}
+    public var playCustomChallenge: @Sendable @MainActor (CustomChallengeConfig) -> Void = { _ in }
     public var openShop: @Sendable @MainActor () -> Void = {}
     public var buyGems: @Sendable @MainActor () -> Void = {}
     public var watchAd: @Sendable @MainActor () async -> Int = { 0 }
@@ -32,6 +34,7 @@ public struct HomeActions: Sendable {
     
     public init(
         play: @escaping @Sendable @MainActor () -> Void = {},
+        playCustomChallenge: @escaping @Sendable @MainActor (CustomChallengeConfig) -> Void = { _ in },
         openShop: @escaping @Sendable @MainActor () -> Void = {},
         buyGems: @escaping @Sendable @MainActor () -> Void = {},
         watchAd: @escaping @Sendable @MainActor () async -> Int = { 0 },
@@ -61,6 +64,7 @@ public struct HomeActions: Sendable {
         openProCoach: @escaping @Sendable @MainActor () -> Void = {}
     ) {
         self.play = play
+        self.playCustomChallenge = playCustomChallenge
         self.openShop = openShop
         self.buyGems = buyGems
         self.watchAd = watchAd

@@ -104,7 +104,9 @@ public struct RootGameView: View {
                         // Reset captured multiplier after use
                         capturedChallengeCreationMultiplier = 1
                         // Remember if this was a designer-created challenge before clearing config
-                        let wasDesignerChallenge = config.challengeId == nil
+                        let wasDesignerChallenge = config.challengeId == nil && !config.isPractice
+                        // Remember if this was a practice-hub challenge
+                        let wasPracticeChallenge = config.isPractice
                         // Remember if this was a pre-made challenge (from challenge list)
                         let wasFromChallengeList = config.challengeId != nil
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -120,6 +122,12 @@ public struct RootGameView: View {
                         // Re-open the challenge designer so the user can tweak and play again
                         if wasDesignerChallenge {
                             showChallengeDesigner = true
+                        }
+                        // Re-open the practice hub if it was a practice challenge
+                        if wasPracticeChallenge {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                deepLinkRouter.open(.practice)
+                            }
                         }
                     }
                 )
@@ -299,8 +307,7 @@ public struct RootGameView: View {
         // Only actions that RootGameView actually owns are wired here.
         // Profile / achievements / leaderboard / settings / theme / sale-offer are
         // presented from HomeView's own sheet state, so their HomeActions fields
-        // stay at their default no-op values.
-        HomeActions(
+        // stay at their default no-op valu         HomeActions(
             play: {
                 // Only reset if the game is over, otherwise resume current session
                 if gameStore.state.isGameOver {
@@ -308,6 +315,12 @@ public struct RootGameView: View {
                 }
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isPlaying = true
+                }
+            },
+            playCustomChallenge: { config in
+                customChallengeConfig = config
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isPlayingCustomChallenge = true
                 }
             },
             openShop: {

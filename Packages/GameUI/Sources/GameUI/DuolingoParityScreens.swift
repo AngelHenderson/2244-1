@@ -225,15 +225,18 @@ public struct PracticeHubView: View {
     @State private var moveStore = MoveReviewStore()
     @State private var selectedEntry: MoveReviewEntry?
     @State private var showGuidebook = false
+    private let onPlayPractice: @MainActor (CustomChallengeConfig) -> Void
     private let onOpenDailyChallenge: @MainActor () -> Void
     private let onOpenCreate: @MainActor () -> Void
     private let onOpenProCoach: @MainActor () -> Void
 
     public init(
+        onPlayPractice: @escaping @MainActor (CustomChallengeConfig) -> Void = { _ in },
         onOpenDailyChallenge: @escaping @MainActor () -> Void = {},
         onOpenCreate: @escaping @MainActor () -> Void = {},
         onOpenProCoach: @escaping @MainActor () -> Void = {}
     ) {
+        self.onPlayPractice = onPlayPractice
         self.onOpenDailyChallenge = onOpenDailyChallenge
         self.onOpenCreate = onOpenCreate
         self.onOpenProCoach = onOpenProCoach
@@ -243,11 +246,16 @@ public struct PracticeHubView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    heroCard(
-                        title: "Today's review",
-                        subtitle: "Practice around your current highest tile: \(TileStepLabelFormatter.labelForStep(gameStore.state.highestTileStep)).",
-                        systemImage: "calendar.badge.clock"
-                    )
+                    Button {
+                        open(.todayReview)
+                    } label: {
+                        heroCard(
+                            title: "Today's review",
+                            subtitle: "Practice around your current highest tile: \(TileStepLabelFormatter.labelForStep(gameStore.state.highestTileStep)).",
+                            systemImage: "calendar.badge.clock"
+                        )
+                    }
+                    .buttonStyle(.plain)
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                         ForEach(PracticeMode.allCases) { mode in
@@ -301,13 +309,94 @@ public struct PracticeHubView: View {
             showGuidebook = true
         case .proCoach:
             onOpenProCoach()
-        default:
+        case .todayReview:
             moveStore.record(MoveReviewEntry(
                 boardSummary: mode.title,
                 moveSummary: "Practice session started",
                 explanation: "This drill uses deterministic 2244 rules to review board shape, chain length, and recovery options.",
                 outcome: "Ready for a full run"
             ))
+            let step = max(2, gameStore.state.highestTileStep)
+            let config = CustomChallengeConfig(
+                target: .tileStep(step),
+                timeLimitSeconds: 300,
+                minTileLevel: 0,
+                levels: 7,
+                tileAssignments: [:],
+                predictedRewardGems: 50,
+                isPractice: true
+            )
+            onPlayPractice(config)
+        case .recentMistakes:
+            moveStore.record(MoveReviewEntry(
+                boardSummary: mode.title,
+                moveSummary: "Practice session started",
+                explanation: "This drill uses deterministic 2244 rules to review board shape, chain length, and recovery options.",
+                outcome: "Ready for a full run"
+            ))
+            let config = CustomChallengeConfig(
+                target: .chain(length: 5),
+                timeLimitSeconds: 180,
+                minTileLevel: 0,
+                levels: 7,
+                tileAssignments: [:],
+                predictedRewardGems: 40,
+                isPractice: true
+            )
+            onPlayPractice(config)
+        case .tileDrills:
+            moveStore.record(MoveReviewEntry(
+                boardSummary: mode.title,
+                moveSummary: "Practice session started",
+                explanation: "This drill uses deterministic 2244 rules to review board shape, chain length, and recovery options.",
+                outcome: "Ready for a full run"
+            ))
+            let step = max(2, gameStore.state.highestTileStep + 1)
+            let config = CustomChallengeConfig(
+                target: .tileStep(step),
+                timeLimitSeconds: 240,
+                minTileLevel: 0,
+                levels: 7,
+                tileAssignments: [:],
+                predictedRewardGems: 60,
+                isPractice: true
+            )
+            onPlayPractice(config)
+        case .rapidReview:
+            moveStore.record(MoveReviewEntry(
+                boardSummary: mode.title,
+                moveSummary: "Practice session started",
+                explanation: "This drill uses deterministic 2244 rules to review board shape, chain length, and recovery options.",
+                outcome: "Ready for a full run"
+            ))
+            let config = CustomChallengeConfig(
+                target: .score(10_000),
+                timeLimitSeconds: 45,
+                minTileLevel: 0,
+                levels: 7,
+                tileAssignments: [:],
+                predictedRewardGems: 30,
+                isPractice: true
+            )
+            onPlayPractice(config)
+        case .timedSprint:
+            moveStore.record(MoveReviewEntry(
+                boardSummary: mode.title,
+                moveSummary: "Practice session started",
+                explanation: "This drill uses deterministic 2244 rules to review board shape, chain length, and recovery options.",
+                outcome: "Ready for a full run"
+            ))
+            let step = max(3, gameStore.state.highestTileStep + 2)
+            let config = CustomChallengeConfig(
+                target: .tileStep(step),
+                timeLimitSeconds: 60,
+                minTileLevel: 0,
+                levels: 7,
+                tileAssignments: [:],
+                predictedRewardGems: 75,
+                isPractice: true
+            )
+            onPlayPractice(config)
         }
     }
 }

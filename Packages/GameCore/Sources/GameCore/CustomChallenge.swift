@@ -36,6 +36,8 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
     // Challenge ID for milestone tracking (nil for custom/designer challenges)
     public var challengeId: UUID?
 
+    public var isPractice: Bool
+
     public init(
         target: ChallengeTarget,
         timeLimitSeconds: Int,
@@ -45,7 +47,8 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
         predictedRewardGems: Int,
         minSpawnStep: Int? = nil,
         maxSpawnStep: Int? = nil,
-        challengeId: UUID? = nil
+        challengeId: UUID? = nil,
+        isPractice: Bool = false
     ) {
         self.target = target
         self.timeLimitSeconds = timeLimitSeconds
@@ -56,6 +59,7 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
         self.minSpawnStep = minSpawnStep
         self.maxSpawnStep = maxSpawnStep
         self.challengeId = challengeId
+        self.isPractice = isPractice
     }
 }
 
