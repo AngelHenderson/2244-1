@@ -421,18 +421,6 @@ public struct HomeView: View {
             )
         }
 
-        if playerReadiness.isVisible(.feed) {
-            items.append(
-                HomeRailItem(
-                    id: "feed",
-                    systemImage: "bubble.left.and.bubble.right.fill",
-                    customImage: nil,
-                    title: "FEED",
-                    action: { presentedSheet = .feed }
-                )
-            )
-        }
-
         return items
     }
 
@@ -524,23 +512,22 @@ public struct HomeView: View {
             )
         }
 
-        if playerReadiness.isVisible(.friends) {
-            items.append(
-                HomeRailItem(
-                    id: "friends",
-                    systemImage: "person.2.circle.fill",
-                    customImage: nil,
-                    title: "FRIENDS",
-                    action: { presentedSheet = .friends }
-                )
-            )
-        }
-
         return items
     }
 
     private var dockItems: [HomeDockItem] {
         var items: [HomeDockItem] = []
+
+        if playerReadiness.isVisible(.feed) {
+            items.append(
+                HomeDockItem(
+                    id: "feed",
+                    system: "bubble.left.and.bubble.right.fill",
+                    title: "Feed",
+                    action: { presentedSheet = .feed }
+                )
+            )
+        }
 
         items.append(
             HomeDockItem(
@@ -586,6 +573,17 @@ public struct HomeView: View {
                 action: { presentedSheet = .settings }
             )
         )
+
+        if playerReadiness.isVisible(.friends) {
+            items.append(
+                HomeDockItem(
+                    id: "friends",
+                    system: "person.2.circle.fill",
+                    title: "Friends",
+                    action: { presentedSheet = .friends }
+                )
+            )
+        }
 
         return items
     }
