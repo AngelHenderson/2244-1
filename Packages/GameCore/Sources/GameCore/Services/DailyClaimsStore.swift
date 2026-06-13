@@ -487,12 +487,21 @@ public final class DailyClaimsStore {
         let endDay = currentClaimDay + availableClaims
         ensureClaims(upTo: endDay)
 
+        print("🔍 [DailyClaims] claimAllDailyRewards: starting with availableClaims=\(availableClaims), canClaimToday=\(canClaimToday), currentClaimDay=\(currentClaimDay), endDay=\(endDay)")
+
+        var iteration = 0
         while availableClaims > 0 && canClaimToday {
             let before = currentClaimDay
             claimDailyReward()
+            iteration += 1
+            print("🔍 [DailyClaims] claimAllDailyRewards: iteration=\(iteration), before=\(before), after=\(currentClaimDay), availableClaims=\(availableClaims), canClaimToday=\(canClaimToday)")
             // Safety: break if claim didn't advance (missing entry)
-            if currentClaimDay == before { break }
+            if currentClaimDay == before {
+                print("🔍 [DailyClaims] claimAllDailyRewards: BREAK — claim didn't advance! nextDay would be \(currentClaimDay + 1), dailyClaims.count=\(dailyClaims.count)")
+                break
+            }
         }
+        print("🔍 [DailyClaims] claimAllDailyRewards: DONE after \(iteration) iterations, currentClaimDay=\(currentClaimDay)")
     }
     
     public func combinedRewardForNextClaim() -> AchievementDef.Rewards? {
