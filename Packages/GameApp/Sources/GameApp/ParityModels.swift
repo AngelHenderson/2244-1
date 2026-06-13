@@ -83,7 +83,6 @@ public struct ReminderPreferences: Codable, Equatable, Sendable {
 
 public enum PracticeMode: String, Codable, CaseIterable, Identifiable, Sendable {
     case todayReview
-    case recentMistakes
     case tileDrills
     case rapidReview
     case timedSprint
@@ -97,7 +96,6 @@ public enum PracticeMode: String, Codable, CaseIterable, Identifiable, Sendable 
     public var title: String {
         switch self {
         case .todayReview: "Today's Review"
-        case .recentMistakes: "Recent Mistakes"
         case .tileDrills: "Tile Drills"
         case .rapidReview: "Rapid Review"
         case .timedSprint: "Timed Sprint"
@@ -111,7 +109,6 @@ public enum PracticeMode: String, Codable, CaseIterable, Identifiable, Sendable 
     public var subtitle: String {
         switch self {
         case .todayReview: "Warm up with your current board goals."
-        case .recentMistakes: "Replay moves that ended a chain too early."
         case .tileDrills: "Practice target tiles without risking a run."
         case .rapidReview: "Short timed prompts for quick pattern reading."
         case .timedSprint: "Build the biggest tile before time expires."
@@ -125,7 +122,6 @@ public enum PracticeMode: String, Codable, CaseIterable, Identifiable, Sendable 
     public var systemImage: String {
         switch self {
         case .todayReview: "calendar.badge.clock"
-        case .recentMistakes: "arrow.uturn.backward.circle.fill"
         case .tileDrills: "square.grid.3x3.fill"
         case .rapidReview: "bolt.circle.fill"
         case .timedSprint: "timer.circle.fill"

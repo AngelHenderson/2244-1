@@ -327,23 +327,7 @@ public struct PracticeHubView: View {
                 isPractice: true
             )
             onPlayPractice(config)
-        case .recentMistakes:
-            moveStore.record(MoveReviewEntry(
-                boardSummary: mode.title,
-                moveSummary: "Practice session started",
-                explanation: "This drill uses deterministic 2244 rules to review board shape, chain length, and recovery options.",
-                outcome: "Ready for a full run"
-            ))
-            let config = CustomChallengeConfig(
-                target: .chain(length: 5),
-                timeLimitSeconds: 180,
-                minTileLevel: 0,
-                levels: 7,
-                tileAssignments: [:],
-                predictedRewardGems: 40,
-                isPractice: true
-            )
-            onPlayPractice(config)
+
         case .tileDrills:
             moveStore.record(MoveReviewEntry(
                 boardSummary: mode.title,
