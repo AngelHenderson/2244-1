@@ -161,22 +161,41 @@ struct ParityModelsTests {
                 let hasEffortless = lowercasedText.contains("effortless")
                 #expect(!hasEffortless, "Found 'effortless' or 'effortlessly' in bot comment: \(comment.text)")
                 
-                let compBehindPhrases = [
+                let competitivePhrases = [
                     "grinding right now", "closing the gap", "lead while it lasts",
-                    "coming for the top", "overtake you", "lower right now"
+                    "coming for the top", "overtake you", "lower right now",
+                    "irrelevant to my", "never exist on my level", "coasting at",
+                    "joke", "safely ahead", "bypassed", "floor", "untouched",
+                    "breeze through", "clocked", "leagues faster", "dominating",
+                    "laughing from", "easily hit", "easily clear", "easily passed",
+                    "easily reached", "easily beat", "easily bypassed", "easily crush",
+                    "chasing my lead", "higher ceiling", "dominance", "unreachable",
+                    "comfortably ahead", "only at", "is a joke", "try catching",
+                    "try hitting", "don't bother comparing", "my floor", "casually coasting",
+                    "record is", "my record", "permanent", "diamond tier", "diamond chests",
+                    "already far ahead", "nothing compared", "always do better", "did do better",
+                    "baseline", "left you behind", "no threat", "never stop climbing",
+                    "practice runs", "without even looking", "time is cute", "shaved time",
+                    "speedrun", "practice run", "in my sleep", "unmatched", "infinity count",
+                    "hof entries", "speaks for itself", "farm ", "extended infinitely",
+                    "pulls are cute", "dropped below", "talk to me", "anywhere near",
+                    "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
+                    "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                    "watch your back", "watch me stay ahead", "watch my stats",
+                    "endless dominance", "witness infinity", "extend my lead"
                 ]
-                let isCompBehind = compBehindPhrases.contains { lowercasedText.contains($0) }
-                if isCompBehind {
-                    let submissiveBehindPhrases = [
-                        "can't keep up", "so far behind", "struggling over here",
-                        "score is pathetic", "basically a beginner", "never reach that level"
+                let isCompetitiveComment = competitivePhrases.contains { lowercasedText.contains($0) }
+                if isCompetitiveComment {
+                    let forbiddenStruggleWords = [
+                        "stuck", "struggling", "complaining", "clueless",
+                        "pathetic", "struggle", "gave up", "giving up", "choke"
                     ]
-                    for subPhrase in submissiveBehindPhrases {
-                        #expect(!lowercasedText.contains(subPhrase), "Found submissive phrase '\(subPhrase)' in competitive behind comment: \(comment.text)")
+                    for word in forbiddenStruggleWords {
+                        #expect(!lowercasedText.contains(word), "Found forbidden struggle word '\(word)' in competitive comment: \(comment.text)")
                     }
                     let jealousSymbols = [":(", ":((", ">:(", ":/", ";-(", "-_-", ">_<"]
                     for sym in jealousSymbols {
-                        #expect(!lowercasedText.contains(sym), "Found jealous symbol '\(sym)' in competitive behind comment: \(comment.text)")
+                        #expect(!lowercasedText.contains(sym), "Found jealous symbol '\(sym)' in competitive comment: \(comment.text)")
                     }
                 }
             }

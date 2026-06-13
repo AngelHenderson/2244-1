@@ -2551,7 +2551,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 var templates = [
                     "Your \(posterTime) is irrelevant. I clear it in \(myTime).",
                     "My clears have been unmatched since \(myTime).",
-                    "You're stuck at \(posterTime). I'm sitting at \(myTime).",
+                    "Only \(posterTime)? I'm sitting at \(myTime).",
                     "I am leagues faster. My record is \(myTime).",
                     "I easily clock \(myTime).",
                     "You'll never reach my \(myTime).",
@@ -2609,7 +2609,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 let tierGap = tiers.firstIndex(of: myTier)! - posterTierIdx
                 if tierGap >= 2 {
                     templates.append("Your \(posterTier) is meaningless against my \(myTier).")
-                    templates.append("You're stuck at \(posterTier) while I dominate with \(myTier).")
+                    templates.append("You're only at \(posterTier) while I dominate with \(myTier).")
                 }
                 let idx = Self.drawIndexFromBag(key: "\(bagKey)_quest", count: templates.count)
                 return (templates[idx], higherName)
@@ -3060,57 +3060,52 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let jump = Int.random(in: 2...6) // Small jump
                     let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
                     let higherM = Self.allMilestones[higherIdx]
-                    replies.append("You can't get past \(m.name)? I easily reached \(higherM).")
-                    replies.append("You think \(m.name) is a challenge? Pathetic. I'm already coasting at \(higherM).")
-                    replies.append("You being stuck at \(m.name) is hilarious. I easily hit \(higherM).")
-                    replies.append("Only someone completely clueless would get stuck at \(m.name)? I easily bypassed \(higherM).")
-                    replies.append("You gave up at \(m.name)? I'm laughing from \(higherM).")
-                    replies.append("Struggling with \(m.name)? I easily clear \(higherM).")
-                    replies.append("Complaining? \(m.name) is a joke. Try catching my \(higherM).")
+                    replies.append("Only at \(m.name)? I easily reached \(higherM).")
+                    replies.append("You think \(m.name) is a big milestone? I'm already coasting at \(higherM).")
+                    replies.append("Your \(m.name) is a joke. Try catching my \(higherM).")
+                    replies.append("I easily bypassed \(m.name) and hit \(higherM).")
+                    replies.append("I'm laughing from \(higherM) while you're still at \(m.name).")
+                    replies.append("Celebrating \(m.name)? I easily clear \(higherM).")
                 } else if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
                     let higherNum = num + Int.random(in: 30...max(50, num)) // Huge jump
-                    replies.append("You're complaining about \(num)? I easily reached \(higherNum).")
-                    replies.append("You actually think \(num) is a challenge? That's laughable. You're completely delusional. Try hitting \(higherNum) easily like me.")
-                    replies.append("You being stuck at \(num) is hilarious. I easily crush \(higherNum).")
-                    replies.append("I wouldn't even admit to being stuck at \(num). I easily bypassed \(higherNum).")
-                    replies.append("You actually think \(num) is a challenge? That's laughable. I hit \(higherNum) without trying.")
-                    replies.append("You're complaining about \(num)? My floor is \(higherNum).")
-                    replies.append("Don't bother continuing. I'm safely ahead at \(higherNum).")
+                    replies.append("Only \(num)? I easily reached \(higherNum).")
+                    replies.append("You actually think \(num) is a high score? Try hitting \(higherNum) easily like me.")
+                    replies.append("Your \(num) is a joke. I easily crush \(higherNum).")
+                    replies.append("I easily bypassed \(num) and hit \(higherNum) without trying.")
+                    replies.append("Only at \(num)? My floor is \(higherNum).")
+                    replies.append("Don't bother comparing. I'm safely ahead at \(higherNum).")
                 } else if mentionedTime, let timeTuple = Self.extractTime(from: strippedLower) {
                     let totalSecs = timeTuple.0 * 60 + timeTuple.1
                     var myTotal = totalSecs / 3 // Ridiculously fast
                     if myTotal <= 1 { myTotal = 2 }
                     let myTime = "\(myTotal / 60):\(String(format: "%02d", myTotal % 60))"
                     let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
-                    replies.append("You're complaining about \(posterTime)? I easily reached \(myTime).")
-                    replies.append("You think \(posterTime) is a challenge? Pathetic. I'm already casually coasting at \(myTime).")
-                    replies.append("You taking \(posterTime) is hilarious. I easily hit \(myTime).")
-                    replies.append("Only someone completely clueless would be that slow at \(posterTime)? I easily bypassed \(myTime).")
-                    replies.append("You gave up at \(posterTime)? My record is \(myTime).")
-                    replies.append("Complaining? I breeze through in \(myTime).")
-                    replies.append("You're struggling? I clock \(myTime) in my sleep.")
+                    replies.append("Celebrating \(posterTime)? I easily reached \(myTime).")
+                    replies.append("You think \(posterTime) is fast? I'm already casually coasting at \(myTime).")
+                    replies.append("Your \(posterTime) is a joke. I easily hit \(myTime).")
+                    replies.append("Only at \(posterTime)? I easily bypassed that to clock \(myTime).")
+                    replies.append("My record is \(myTime) compared to your \(posterTime).")
+                    replies.append("I breeze through in \(myTime) in my sleep.")
                 } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum = num + Int.random(in: 5...15)
-                    replies.append("You're complaining about \(num) days? I easily reached \(higherNum).")
-                    replies.append("You think \(num) days is a challenge? Pathetic. I'm already casually coasting at \(higherNum).")
-                    replies.append("You losing at \(num) days is hilarious. I easily hit \(higherNum).")
-                    replies.append("Only someone completely clueless would fail at \(num) days? I easily bypassed \(higherNum).")
-                    replies.append("You lost your streak? I'm untouched at \(higherNum).")
-                    replies.append("Struggling? My \(higherNum) streak is permanent.")
+                    replies.append("Only \(num) days? I easily reached \(higherNum).")
+                    replies.append("You think \(num) days is a high streak? I'm already casually coasting at \(higherNum).")
+                    replies.append("Your \(num) days is a joke. I easily hit \(higherNum).")
+                    replies.append("I easily bypassed \(num) days. I'm untouched at \(higherNum).")
+                    replies.append("My \(higherNum) streak is permanent.")
                 } else if mentionedQuest {
-                    replies.append("You're complaining about quests? I easily reach Diamond tier.")
-                    replies.append("You're struggling with quests? I farm Diamond chests easily.")
+                    replies.append("Quests? I easily reach Diamond tier.")
+                    replies.append("I farm Diamond chests easily.")
                 } else if mentionedHoF, let infCount = Self.extractNumber(from: strippedLower, near: ["infinity", "infinit", "hof", "count"]) {
                     let myCount = infCount + Int.random(in: 5...15)
-                    replies.append("You're complaining about \(infCount)? I easily reached \(myCount).")
-                    replies.append("You think \(infCount) is a challenge? Pathetic. I'm already casually coasting at \(myCount).")
-                    replies.append("You being stuck at \(infCount) is hilarious. I easily hit \(myCount).")
-                    replies.append("Only someone completely clueless would get stuck at \(infCount)? I easily bypassed \(myCount).")
-                    replies.append("You're stuck at \(infCount)? I am always climbing past \(myCount).")
+                    replies.append("Only \(infCount) infinities? I easily reached \(myCount).")
+                    replies.append("You think \(infCount) is a high count? I'm already casually coasting at \(myCount).")
+                    replies.append("Your \(infCount) is a joke. I easily hit \(myCount).")
+                    replies.append("I easily bypassed \(infCount) and am always climbing past \(myCount).")
                 } else {
-                    replies.append("You're complaining? I am comfortably ahead.")
-                    replies.append("You gave up? I am safely ahead.")
-                    replies.append("Your complaints mean nothing. I am already ahead.")
+                    replies.append("I am comfortably ahead.")
+                    replies.append("I am safely ahead.")
+                    replies.append("I am already far ahead.")
                 }
                 var reply = replies.randomElement()!
                 if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
@@ -3137,7 +3132,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Is this a joke? \(cM.name) is beneath my \(rM.name). You're still too low to get ahead.",
                         "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead.",
                         "You're acting like \(cM.name) is a big deal? I easily passed \(rM.name).",
-                        "Cute that you're stuck at \(cM.name). I'm laughing from \(rM.name).",
+                        "Only at \(cM.name)? I'm laughing from \(rM.name).",
                         "I left \(cM.name) in the dust a long time ago. \(rM.name) is my new floor."
                     ])
                 } else if rootIsJealous, let cM = commentMilestone {
@@ -3146,15 +3141,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
                     let higherM = Self.allMilestones[higherIdx]
                     replies.append(contentsOf: [
-                        "Did you really think I was struggling? I easily passed your \(cM.name). I'm at \(higherM).",
+                        "I easily passed your \(cM.name). I'm at \(higherM).",
                         "I let you think you had the lead. Your \(cM.name) is nothing. I'm at \(higherM).",
                         "You fell for it. I easily beat your \(cM.name). My real record is \(higherM).",
                         "I was just warming up. Your \(cM.name) is a joke compared to my \(higherM).",
-                        "Struggling? Never. I blew past your \(cM.name) and hit \(higherM).",
-                        "You can't get past \(cM.name)? I easily reached \(higherM).",
-                        "Stuck at \(cM.name)? I'm already dominating \(higherM).",
-                        "You seriously think \(cM.name) is hard? You're pathetic. Try catching my \(higherM).",
-                        "You can't even beat \(cM.name). I cleared \(higherM) without trying.",
+                        "I blew past your \(cM.name) and hit \(higherM) without even trying.",
+                        "Only at \(cM.name)? I easily reached \(higherM).",
+                        "Your \(cM.name) is a joke compared to my \(higherM).",
+                        "I cleared \(higherM) without trying.",
                         "I was just toying with you. I'm actually at \(higherM)."
                     ])
                 } else {
@@ -3209,28 +3203,27 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Is this a joke? \(cN) is beneath my \(rN). You're still too low to get ahead.",
                         "I'm at \(rN) and you're bragging about \(cN)? You're still too low to get ahead.",
                         "You're acting like \(cN) is a big deal? I easily passed \(rN).",
-                        "Cute that you're stuck at \(cN). I'm laughing from \(rN).",
+                        "Only at \(cN)? I'm laughing from \(rN).",
                         "I left \(cN) in the dust a long time ago. \(rN) is my new floor."
                     ])
                 } else if rootIsJealous, let cN = commentNumber {
                     let higherNum = cN + Int.random(in: 10...max(20, cN))
                     replies.append(contentsOf: [
-                        "Did you really think I was struggling? I easily passed your \(cN). I'm at \(higherNum).",
+                        "I easily passed your \(cN). I'm at \(higherNum).",
                         "I let you think you had the lead. Your \(cN) is nothing. I'm at \(higherNum).",
                         "You fell for it. I easily beat your \(cN). My real record is \(higherNum).",
                         "I was just warming up. Your \(cN) is a joke compared to my \(higherNum).",
-                        "Struggling? Never. I blew past your \(cN) and hit \(higherNum).",
-                        "You can't get past \(cN)? I easily reached \(higherNum).",
-                        "Stuck at \(cN)? I'm already dominating \(higherNum).",
-                        "You seriously think \(cN) is hard? You're pathetic. Try catching my \(higherNum).",
-                        "You can't even beat \(cN). I cleared \(higherNum) without trying.",
+                        "I blew past your \(cN) and hit \(higherNum) without even trying.",
+                        "Only at \(cN)? I easily reached \(higherNum).",
+                        "Your \(cN) is a joke compared to my \(higherNum).",
+                        "I cleared \(higherNum) without trying.",
                         "I was just toying with you. I'm actually at \(higherNum)."
                     ])
                 } else {
                     let higherNum = num + Int.random(in: 10...max(20, num))
                     if wantsBetter {
                         replies.append(contentsOf: [
-                            "Your progression is pathetic. \(higherNum) proves it.",
+                            "Your progression is nothing compared to mine. \(higherNum) proves it.",
                             "You wanted better? I'm already at \(higherNum).",
                             "I did do better. Try catching \(higherNum).",
                             "Done. I'm untouched at \(higherNum).",
@@ -3246,7 +3239,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I am ahead of your \(numStr). I'm at \(higherNum).",
                         "Your \(numStr) < My practice runs. I'll always be ahead at \(higherNum).",
                         "\(numStr) is just the beginning. I'm already at \(higherNum).",
-                        "I left your \(numStr) score in the dust. \(higherNum) makes you look pathetic.",
+                        "I left your \(numStr) score in the dust. I'm already at \(higherNum).",
                         "You thought \(numStr) was good? I'm laughing from \(higherNum).",
                         "\(numStr) points is light work. Try \(higherNum).",
                         "I passed \(numStr) without even looking. I'm at \(higherNum).",
@@ -3268,28 +3261,27 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "Is this a joke? \(cN) days is beneath my \(rN). You're still too low to get ahead.",
                             "I'm at \(rN) days and you're bragging about \(cN)? You're still too low to get ahead.",
                             "You're acting like \(cN) days is a big deal? I easily passed \(rN).",
-                            "Cute that you're stuck at \(cN) days. I'm laughing from \(rN).",
+                            "Only at \(cN) days? I'm laughing from \(rN).",
                             "I left \(cN) days in the dust a long time ago. \(rN) is my new floor."
                         ])
                     } else if rootIsJealous, let cN = commentNumber {
                         let higherNum = cN + Int.random(in: 5...max(15, cN / 5))
                         replies.append(contentsOf: [
-                            "Did you really think I was struggling? I easily passed your \(cN) days. I'm at \(higherNum) days.",
+                            "I easily passed your \(cN) days. I'm at \(higherNum) days.",
                             "I let you think you had the lead. Your \(cN) days is nothing. I'm at \(higherNum) days.",
                             "You fell for it. I easily beat your \(cN) days. My real record is \(higherNum) days.",
                             "I was just warming up. Your \(cN) days is a joke compared to my \(higherNum) days.",
-                            "Struggling? Never. I blew past your \(cN) days and hit \(higherNum) days.",
-                            "You can't get past \(cN) days? I easily reached \(higherNum).",
-                            "Stuck at \(cN) days? I'm already dominating \(higherNum).",
-                            "You seriously think \(cN) days is hard? You're pathetic. Try catching my \(higherNum).",
-                            "You can't even beat \(cN) days. I cleared \(higherNum) without trying.",
+                            "I blew past your \(cN) days and hit \(higherNum) days without even trying.",
+                            "Only at \(cN) days? I easily reached \(higherNum).",
+                            "Your \(cN) days is a joke compared to my \(higherNum).",
+                            "I cleared \(higherNum) without trying.",
                             "I was just toying with you. I'm actually at \(higherNum) days."
                         ])
                     } else {
                         let higherNum = num + Int.random(in: 5...max(15, num / 5))
                         if wantsBetter {
                             replies.append(contentsOf: [
-                                "Your progression is pathetic. \(higherNum) days proves it.",
+                                "Your progression is nothing compared to mine. \(higherNum) days proves it.",
                                 "You wanted better? I'm already at \(higherNum) days.",
                                 "I did do better. Try catching \(higherNum) days.",
                                 "Done. I'm untouched at \(higherNum) days.",
@@ -3318,7 +3310,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let higherNum = assumedNum + Int.random(in: 10...30)
                     if wantsBetter {
                         replies.append(contentsOf: [
-                            "Your progression is pathetic. \(higherNum) days proves it.",
+                            "Your progression is nothing compared to mine. \(higherNum) days proves it.",
                             "You wanted better? I'm already at \(higherNum) days.",
                             "I did do better. Try catching \(higherNum) days.",
                             "Done. I'm untouched at \(higherNum) days.",
@@ -3365,11 +3357,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     if mySecs <= 1 { mySecs = 2 }
                     let myTimeStr = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
                     replies.append(contentsOf: [
-                        "Did you really think I was struggling? I easily passed your \(cTimeStr). I'm at \(myTimeStr).",
+                        "I easily passed your \(cTimeStr). I'm at \(myTimeStr).",
                         "I let you think you had the lead. Your \(cTimeStr) is nothing. I'm at \(myTimeStr).",
                         "You fell for it. I easily beat your \(cTimeStr). My real record is \(myTimeStr).",
                         "I was just warming up. Your \(cTimeStr) is a joke compared to my \(myTimeStr).",
-                        "Struggling? Never. I blew past your \(cTimeStr) and clocked \(myTimeStr)."
+                        "I blew past your \(cTimeStr) and clocked \(myTimeStr) without even trying."
                     ])
                 } else if let (mins, secs) = commentTime ?? rootTime {
                     let totalSecs = mins * 60 + secs
