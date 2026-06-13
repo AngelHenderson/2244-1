@@ -1227,10 +1227,12 @@ struct GameplayNavigationStatus: View {
                         .monospacedDigit()
                 }
             }
-            .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+            .font(.avenirNext(size: GameFonts.calloutSize, weight: .bold))
             .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .frame(height: 34)
+            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 2)
+            .frame(minHeight: 38)
             .glassEffectCompat(cornerRadius: 10)
             .accessibilityLabel("Time \(playtimeText(at: context.date)), score \(scoreText)")
         }
