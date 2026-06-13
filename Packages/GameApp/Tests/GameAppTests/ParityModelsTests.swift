@@ -174,6 +174,10 @@ struct ParityModelsTests {
                     for subPhrase in submissiveBehindPhrases {
                         #expect(!lowercasedText.contains(subPhrase), "Found submissive phrase '\(subPhrase)' in competitive behind comment: \(comment.text)")
                     }
+                    let jealousSymbols = [":(", ":((", ">:(", ":/", ";-(", "-_-", ">_<"]
+                    for sym in jealousSymbols {
+                        #expect(!lowercasedText.contains(sym), "Found jealous symbol '\(sym)' in competitive behind comment: \(comment.text)")
+                    }
                 }
             }
         }

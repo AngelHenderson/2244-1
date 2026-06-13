@@ -2445,8 +2445,8 @@ public struct MockSocialService: SocialService, Sendable {
             switch tone {
             case "positive": symbol = Self.drawFromBag(key: "sym_pos_\(bagSuffix)", pool: positiveSymbols)
             case "question": symbol = Self.drawFromBag(key: "sym_q_\(bagSuffix)", pool: questionSymbols)
-            case "jealous", "behind", "behind_competitive": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
-            case "competitive": symbol = Self.drawFromBag(key: "sym_comp_\(bagSuffix)", pool: competitiveSymbols)
+            case "jealous", "behind": symbol = Self.drawFromBag(key: "sym_sad_\(bagSuffix)", pool: sadOrJealousSymbols)
+            case "competitive", "behind_competitive": symbol = Self.drawFromBag(key: "sym_comp_\(bagSuffix)", pool: competitiveSymbols)
             default: symbol = ""
             }
             comment = Self.injectSymbol(comment, symbol: symbol)
