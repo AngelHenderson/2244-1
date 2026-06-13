@@ -1908,7 +1908,7 @@ public enum MockLeaderboardData {
     /// Calculate country-specific rank for a given milestone
     static func calculateCountryRank(milestone: String, countryCode: String) -> Int {
         var userMilestoneIdx = milestoneIndex(for: milestone)
-        if userMilestoneIdx == 0 {
+        if userMilestoneIdx == 0 && milestone != "0" {
             var foundIdx = 0
             for (idx, m) in allMilestones.enumerated() {
                 if compareMilestones(milestone, m) >= 0 {
@@ -1920,17 +1920,19 @@ public enum MockLeaderboardData {
         let day = daysSinceReference
 
         // Get country-specific data and seed
-        let (milestones, extendedBrackets, totalPlayers) = countryData(for: countryCode, day: day)
+        let data = countryData(for: countryCode, day: day)
         let countrySeed = MockLeaderboardData.countrySeed(for: countryCode)
 
         return countBetterInCountry(
             userMilestoneIdx: userMilestoneIdx,
-            milestones: milestones,
-            extendedBrackets: extendedBrackets,
-            totalPlayers: totalPlayers,
+            milestones: data.milestones,
+            extendedBrackets: data.extendedBrackets,
+            totalPlayers: data.totalPlayers,
             countryCode: countryCode,
             countrySeed: countrySeed,
-            day: day
+            day: day,
+            progressedTop150Idx: data.progressedTop150Idx,
+            infinityPlayerCount: data.infinityPlayerCount
         ) + 1
     }
 
@@ -1969,7 +1971,7 @@ public enum MockLeaderboardData {
     /// Returns nil if rank is out of bounds
     static func milestoneAtCountryRank(rank: Int, countryCode: String) -> String? {
         let day = daysSinceReference
-        let (milestones, _, _) = countryData(for: countryCode, day: day)
+        let (milestones, _, _, _, _) = countryData(for: countryCode, day: day)
         let countrySeed = countrySeed(for: countryCode)
 
         // Rank is 1-indexed, array is 0-indexed
@@ -2012,7 +2014,7 @@ public enum MockLeaderboardData {
     /// Returns the milestone tier that contains this rank
     static func milestoneForExtendedRank(rank: Int, countryCode: String) -> String? {
         let day = daysSinceReference
-        let (_, extendedBrackets, _) = countryData(for: countryCode, day: day)
+        let (_, extendedBrackets, _, _, _) = countryData(for: countryCode, day: day)
         let countrySeed = MockLeaderboardData.countrySeed(for: countryCode)
 
         guard rank > 150 else {
@@ -2066,9 +2068,9 @@ public enum MockLeaderboardData {
 
     // Cache for countryData (invalidated daily)
     nonisolated(unsafe) private static var countryDataCacheDay: Int = -1
-    nonisolated(unsafe) private static var countryDataCache: [String: (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int)] = [:]
+    nonisolated(unsafe) private static var countryDataCache: [String: (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int, progressedTop150Idx: [Int], infinityPlayerCount: Int)] = [:]
 
-    static func countryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int) {
+    static func countryData(for countryCode: String, day: Int) -> (milestones: [String], extendedBrackets: [(milestone: String, startRank: Int)], totalPlayers: Int, progressedTop150Idx: [Int], infinityPlayerCount: Int) {
         if day != countryDataCacheDay {
             countryDataCache.removeAll(keepingCapacity: true)
             countryDataCacheDay = day
@@ -2079,7 +2081,20 @@ public enum MockLeaderboardData {
         let milestones = top150Milestones(for: countryCode)
         let brackets = extendedBrackets(for: countryCode)
         let count = totalCountryPlayers(for: countryCode, on: day)
-        let result = (milestones, brackets, count)
+        
+        let seed = countrySeed(for: countryCode)
+        var infinityCount = 0
+        var progressedIdx: [Int] = []
+        for (i, baseMilestone) in milestones.enumerated() {
+            let m = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + seed, day: day)
+            if m.hasSuffix("∞") {
+                infinityCount += 1
+            } else {
+                progressedIdx.append(milestoneIndex(for: m))
+            }
+        }
+        
+        let result = (milestones, brackets, count, progressedIdx, infinityCount)
         countryDataCache[countryCode] = result
         return result
     }
@@ -2207,7 +2222,9 @@ public enum MockLeaderboardData {
         totalPlayers: Int,
         countryCode: String,
         countrySeed: Int? = nil,
-        day: Int? = nil
+        day: Int? = nil,
+        progressedTop150Idx: [Int] = [],
+        infinityPlayerCount: Int = 0
     ) -> Int {
         // Check if user would be in top range (better than first extended bracket)
         // OR if we have progression data (countrySeed + day), count from milestones
@@ -2227,16 +2244,7 @@ public enum MockLeaderboardData {
                 // Count from milestones array with progression
                 var count = 0
                 var lowestProgressedIdx = Int.max  // Track lowest non-infinity progressed milestone
-                for (i, baseMilestone) in milestones.enumerated() {
-                    let m: String
-                    if let seed = countrySeed, let d = day {
-                        m = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + seed, day: d)
-                    } else {
-                        m = baseMilestone
-                    }
-                    // Skip infinity players (they're filtered from country leaderboards)
-                    if m.hasSuffix("∞") { continue }
-                    let mIdx = milestoneIndex(for: m)
+                for mIdx in progressedTop150Idx {
                     lowestProgressedIdx = min(lowestProgressedIdx, mIdx)
                     if mIdx > userMilestoneIdx {
                         count += 1
@@ -2253,22 +2261,22 @@ public enum MockLeaderboardData {
         }
 
         // User is in extended brackets range, find matching bracket
-        // Count infinity players in the milestones array (they're filtered from country leaderboards)
-        var infinityPlayerCount = 0
-        if let seed = countrySeed, let d = day {
-            for (i, baseMilestone) in milestones.enumerated() {
-                let m = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: i + seed, day: d)
-                if m.hasSuffix("∞") { infinityPlayerCount += 1 }
-            }
-        }
         for bracket in extendedBrackets {
-            let progressedBracketMilestone: String
+            let bracketIdx: Int
             if bracket.startRank <= 150 {
-                progressedBracketMilestone = milestoneAtCountryRank(rank: bracket.startRank, countryCode: countryCode) ?? bracket.milestone
+                let index = bracket.startRank - 1
+                if index >= 0 && index < progressedTop150Idx.count {
+                    bracketIdx = progressedTop150Idx[index]
+                } else {
+                    bracketIdx = milestoneIndex(for: bracket.milestone)
+                }
             } else {
-                progressedBracketMilestone = milestoneForExtendedRank(rank: bracket.startRank, countryCode: countryCode) ?? bracket.milestone
+                let baseMilestone = bracket.milestone
+                let baseIndex = milestoneIndex(for: baseMilestone)
+                let progressIndex = baseIndex + 1
+                let progressedBracketMilestone = milestoneWithProgression(baseMilestone: baseMilestone, playerIndex: progressIndex, day: day ?? 0)
+                bracketIdx = milestoneIndex(for: progressedBracketMilestone)
             }
-            let bracketIdx = milestoneIndex(for: progressedBracketMilestone)
             
             if userMilestoneIdx >= bracketIdx {
                 // startRank - 1 = number of players better than this bracket
@@ -2325,7 +2333,10 @@ public enum MockLeaderboardData {
                 extendedBrackets: data.extendedBrackets,
                 totalPlayers: data.totalPlayers,
                 countryCode: code,
-                countrySeed: seed
+                countrySeed: seed,
+                day: day,
+                progressedTop150Idx: data.progressedTop150Idx,
+                infinityPlayerCount: data.infinityPlayerCount
             )
         }
 
