@@ -126,6 +126,7 @@ public struct ChallengeGameWrapper: View {
         }
         // Power-up sync: mirror inventory changes back to main store
         .onChange(of: challengeGameStore.powerUpInventory) { oldInventory, newInventory in
+            guard !config.isPractice else { return }
             for (type, newCount) in newInventory {
                 let oldCount = oldInventory[type, default: 0]
                 if newCount < oldCount {
@@ -141,7 +142,9 @@ public struct ChallengeGameWrapper: View {
         .onChange(of: challengeGameStore.lastChainLength) { _, chainLength in
             if chainLength > 0 {
                 longestChainLength = max(longestChainLength, chainLength)
-                mainGameStore.achievementEvaluator?.onTilesMerged(count: chainLength)
+                if !config.isPractice {
+                    mainGameStore.achievementEvaluator?.onTilesMerged(count: chainLength)
+                }
                 if checkWinCondition() {
                     endChallenge(won: true)
                 }
@@ -150,7 +153,9 @@ public struct ChallengeGameWrapper: View {
         // Track moves for achievements
         .onChange(of: challengeGameStore.state.moves) { oldMoves, newMoves in
             if newMoves > oldMoves {
-                mainGameStore.achievementEvaluator?.onMoveSurvived()
+                if !config.isPractice {
+                    mainGameStore.achievementEvaluator?.onMoveSurvived()
+                }
             }
         }
         .alert("Can't Afford Recovery Item", isPresented: $isShowingInsufficientGemsAlert) {
@@ -555,7 +560,9 @@ public struct ChallengeGameWrapper: View {
             let mins = elapsed / 60
             let secs = elapsed % 60
             let timeStr = "\(mins):\(String(format: "%02d", secs))"
-            socialFeedPublisher.postTimedChallengeComplete(timeString: timeStr)
+            if !config.isPractice {
+                socialFeedPublisher.postTimedChallengeComplete(timeString: timeStr)
+            }
 
             if let challengeId = config.challengeId,
                let reward = challengeStore.reward(for: challengeId) {

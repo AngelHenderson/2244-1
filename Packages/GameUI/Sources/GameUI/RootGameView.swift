@@ -92,14 +92,16 @@ public struct RootGameView: View {
                         
                         // Track challenge completion for achievement progress
                         // (both custom-created and pre-made challenge mode challenges count)
-                        gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
-                        // Track challenge completion for daily quests (with boost multiplier)
-                        if config.challengeId != nil {
-                            // Pre-made challenge completed
-                            dailyQuestStore.recordChallengeCompleted(count: capturedChallengeCreationMultiplier)
-                        } else {
-                            // Custom challenge created and completed
-                            dailyQuestStore.recordChallengeCreated(count: capturedChallengeCreationMultiplier)
+                        if !config.isPractice {
+                            gameStore.registerChallengeCreationCompleted(withCapturedMultiplier: capturedChallengeCreationMultiplier)
+                            // Track challenge completion for daily quests (with boost multiplier)
+                            if config.challengeId != nil {
+                                // Pre-made challenge completed
+                                dailyQuestStore.recordChallengeCompleted(count: capturedChallengeCreationMultiplier)
+                            } else {
+                                // Custom challenge created and completed
+                                dailyQuestStore.recordChallengeCreated(count: capturedChallengeCreationMultiplier)
+                            }
                         }
                         // Reset captured multiplier after use
                         capturedChallengeCreationMultiplier = 1
