@@ -1118,7 +1118,7 @@ public struct MockSocialService: SocialService, Sendable {
                     }
                     let currentSpeaker = currentDepth % 2 == 0 ? npc2! : npc1
                     
-                    let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
+                    let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up")
                     
                     // Threaded competitive replies happen fast (4 comments / 5 mins, so ~75s per brag)
                     let replyOffset = Double.random(in: 60...90)
@@ -1417,7 +1417,7 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         let currentSpeaker = currentDepth % 2 == 0 ? npc2! : npc1
                         
-                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "competitive")
+                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up")
                         
                         // Threaded competitive replies happen fast (4 comments / 5 mins, so ~75s per brag)
                         let replyOffset = Double.random(in: 60...90)
@@ -1495,29 +1495,12 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public func searchFriends(query: String) async throws -> [AccountProfile] {
-        // Build a pool of names exclusively from leaderboard data
         let codeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-        
-        // Full pool: all gamertags + some real name combos
-        var fullPool: [String] = Array(Self.leaderboardGamertags)
-        for firstName in Self.leaderboardRealNames {
-            let lastName = Self.leaderboardLastNames[
-                abs(firstName.hashValue) % Self.leaderboardLastNames.count
-            ]
-            fullPool.append("\(firstName) \(lastName)")
-        }
+        let currentDay = Self.daysSinceReference
 
-        let filtered: [String]
-        if query.isEmpty {
-            // Browse mode: show a random sample
-            filtered = Array(fullPool.shuffled().prefix(20))
-        } else {
-            // Search mode: search the full pool
-            filtered = fullPool.filter { $0.localizedCaseInsensitiveContains(query) }
-        }
-
-        return filtered.map { name in
-            // Deterministic code based on name so the same player always has the same code
+        // Helper to build a profile from a generated name and index
+        func makeProfile(name: String, playerIndex: Int) -> AccountProfile {
+            // Deterministic friend code from name
             var hash = name.hashValue
             let left = String((0..<3).map { _ -> Character in
                 let idx = abs(hash) % codeChars.count
@@ -1530,9 +1513,8 @@ public struct MockSocialService: SocialService, Sendable {
                 hash = hash &* 31 &+ 13
                 return codeChars[codeChars.index(codeChars.startIndex, offsetBy: idx)]
             })
-            // Deterministic avatar from the real avatar pool
-            let avatarIdx = abs(name.hashValue &* 127) % Self.allAvatars.count
-            let avatar = Self.allAvatars[avatarIdx]
+            // Avatar from the leaderboard avatar generator
+            let avatar = Self.avatarForPlayer(index: playerIndex, countrySeed: 0, day: currentDay)
             return AccountProfile(
                 uid: name.replacingOccurrences(of: " ", with: ".").lowercased(),
                 displayName: name,
@@ -1542,6 +1524,36 @@ public struct MockSocialService: SocialService, Sendable {
                 isAnonymous: false,
                 isEmailVerified: true
             )
+        }
+
+        if query.isEmpty {
+            // Browse mode: generate 20 unique dynamic players
+            var seen = Set<String>()
+            var profiles: [AccountProfile] = []
+            while profiles.count < 20 {
+                let name = generateDynamicName()
+                guard !seen.contains(name) else { continue }
+                seen.insert(name)
+                let playerIndex = Int.random(in: 1...100000)
+                profiles.append(makeProfile(name: name, playerIndex: playerIndex))
+            }
+            return profiles
+        } else {
+            // Search mode: generate a larger pool and filter by query
+            var seen = Set<String>()
+            var candidates: [AccountProfile] = []
+            var attempts = 0
+            while candidates.count < 50 && attempts < 500 {
+                attempts += 1
+                let name = generateDynamicName()
+                guard !seen.contains(name) else { continue }
+                seen.insert(name)
+                if name.localizedCaseInsensitiveContains(query) {
+                    let playerIndex = Int.random(in: 1...100000)
+                    candidates.append(makeProfile(name: name, playerIndex: playerIndex))
+                }
+            }
+            return candidates
         }
     }
 
@@ -2890,22 +2902,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // ── Detect the tone/intent of the comment being replied to ──
 
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
-        let isQuestion = forceTone != "competitive" && questionKeywords.contains(where: { strippedLower.contains($0) })
+        let isQuestion = forceTone != "competitive" && forceTone != "one_up" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
         let competitiveKeywords = ["nothing compared", "dominate", "effortless", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster"]
-        var isCompetitive = forceTone == "competitive" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
+        var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
         }
 
         let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
-        let isJealous = forceTone != "competitive" && jealousKeywords.contains(where: { strippedLower.contains($0) })
+        let isJealous = forceTone != "competitive" && forceTone != "one_up" && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
         let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate"]
-        let isPositive = forceTone != "competitive" && positiveKeywords.contains(where: { strippedLower.contains($0) })
+        let isPositive = forceTone != "competitive" && forceTone != "one_up" && positiveKeywords.contains(where: { strippedLower.contains($0) })
 
         let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
-        let isAddRequest = forceTone != "competitive" && addFriendKeywords.contains(where: { strippedLower.contains($0) })
+        let isAddRequest = forceTone != "competitive" && forceTone != "one_up" && addFriendKeywords.contains(where: { strippedLower.contains($0) })
 
         // ── Generate contextual replies that reference the actual comment ──
 
@@ -3110,7 +3122,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
 
             let commentIsCompetitive = competitiveKeywords.contains(where: { strippedLower.contains($0) })
-            let canBeBehind = commentText != message && commentIsCompetitive
+            let canBeBehind = commentText != message && commentIsCompetitive && forceTone != "one_up"
 
 
             var replies: [String] = []
@@ -3712,42 +3724,92 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
     // Real names from the leaderboard (exact match to LeaderboardClient.realNames)
     private static let leaderboardRealNames = [
+        // Common English names
         "James", "Michael", "Robert", "David", "William", "John", "Richard", "Thomas", "Chris", "Daniel",
         "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George",
         "Emma", "Olivia", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Abigail",
         "Emily", "Elizabeth", "Sofia", "Avery", "Ella", "Scarlett", "Grace", "Chloe", "Victoria", "Riley",
+        // Hispanic names
         "Carlos", "Miguel", "Luis", "Jose", "Juan", "Diego", "Alejandro", "Javier", "Fernando", "Rafael",
         "Maria", "Carmen", "Rosa", "Ana", "Lucia", "Elena", "Isabel", "Sofia", "Valentina", "Camila",
+        // German names
         "Hans", "Klaus", "Wolfgang", "Heinrich", "Friedrich", "Dieter", "Helmut", "Werner", "Gerhard", "Manfred",
+        "Ingrid", "Helga", "Ursula", "Gisela", "Renate", "Monika", "Petra", "Sabine", "Karin", "Brigitte",
+        // French names
         "Pierre", "Jean", "Jacques", "François", "Michel", "Philippe", "Alain", "Bernard", "Christophe", "Thierry",
+        "Marie", "Jeanne", "Françoise", "Monique", "Catherine", "Nathalie", "Isabelle", "Sylvie", "Martine", "Christine",
+        // Italian names
         "Marco", "Giuseppe", "Giovanni", "Francesco", "Antonio", "Alessandro", "Andrea", "Luca", "Matteo", "Lorenzo",
+        "Giulia", "Francesca", "Chiara", "Sara", "Anna", "Alessia", "Valentina", "Elisa", "Martina", "Giorgia",
+        // Japanese names (romanized)
         "Hiroshi", "Takeshi", "Kenji", "Yuki", "Haruto", "Sota", "Ren", "Kaito", "Asahi", "Minato",
+        "Yui", "Hana", "Aoi", "Sakura", "Himari", "Mei", "Rin", "Mio", "Ichika", "Akari",
+        // Korean names (romanized)
         "Minho", "Jiwon", "Seojun", "Dohyun", "Hajun", "Junwoo", "Siwoo", "Yejun", "Jiho", "Junseo",
+        "Jiyeon", "Soyeon", "Yuna", "Minji", "Subin", "Hayeon", "Chaewon", "Seoyeon", "Yerin", "Dahyun",
+        // Chinese names (romanized)
         "Wei", "Fang", "Lei", "Jun", "Ming", "Tao", "Hao", "Chen", "Lin", "Jian",
+        "Mei", "Ling", "Xiu", "Hong", "Yan", "Hui", "Juan", "Ping", "Li", "Na",
+        // Indian names
         "Raj", "Amit", "Vikram", "Rahul", "Arjun", "Aditya", "Rohan", "Karan", "Nikhil", "Sanjay",
-        "Pedro", "Lucas", "Gabriel", "Matheus", "Guilherme", "Bruno", "Felipe", "Gustavo", "Leonardo",
+        "Priya", "Ananya", "Kavya", "Ishita", "Riya", "Neha", "Pooja", "Shreya", "Anika", "Diya",
+        // Brazilian/Portuguese names
+        "Pedro", "Lucas", "Gabriel", "Matheus", "Guilherme", "Rafael", "Bruno", "Felipe", "Gustavo", "Leonardo",
+        "Julia", "Beatriz", "Larissa", "Leticia", "Amanda", "Mariana", "Carolina", "Fernanda", "Bruna", "Gabriela",
+        // Russian names (romanized)
         "Ivan", "Dmitri", "Alexei", "Sergei", "Nikolai", "Viktor", "Andrei", "Pavel", "Mikhail", "Oleg",
+        "Natasha", "Olga", "Anastasia", "Tatiana", "Ekaterina", "Irina", "Svetlana", "Marina", "Yelena", "Larisa",
+        // Arabic names (romanized)
         "Ahmed", "Mohamed", "Ali", "Omar", "Hassan", "Yusuf", "Ibrahim", "Khalid", "Tariq", "Nasser",
+        "Fatima", "Aisha", "Layla", "Mariam", "Noor", "Hana", "Sara", "Zara", "Amira", "Dalia",
+        // Scandinavian names
         "Erik", "Lars", "Anders", "Magnus", "Olaf", "Bjorn", "Sven", "Gunnar", "Harald", "Leif",
+        "Astrid", "Ingrid", "Freya", "Sigrid", "Helga", "Liv", "Solveig", "Greta", "Karin", "Maja"
     ]
 
     // Last names from the leaderboard (exact match to LeaderboardClient.lastNames)
     private static let leaderboardLastNames = [
+        // Common English last names (indices 0-39)
         "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Anderson",
         "Taylor", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Thompson", "White", "Harris", "Clark",
         "Lewis", "Robinson", "Walker", "Hall", "Young", "King", "Wright", "Hill", "Scott", "Green",
+        "Adams", "Baker", "Nelson", "Carter", "Mitchell", "Roberts", "Turner", "Phillips", "Campbell", "Parker",
+        // Hispanic last names (indices 40-59)
         "Garcia", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Perez", "Sanchez", "Ramirez", "Torres",
+        "Flores", "Rivera", "Gomez", "Diaz", "Reyes", "Morales", "Cruz", "Ortiz", "Gutierrez", "Chavez",
+        // German last names (indices 60-79)
         "Mueller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann",
+        "Koch", "Bauer", "Richter", "Klein", "Wolf", "Schroeder", "Neumann", "Schwarz", "Braun", "Zimmermann",
+        // French last names (indices 80-99)
         "Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Moreau",
+        "Simon", "Laurent", "Lefebvre", "Michel", "Garcia", "David", "Bertrand", "Roux", "Vincent", "Fournier",
+        // Italian last names (indices 100-119)
         "Rossi", "Russo", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino", "Greco",
+        "Bruno", "Gallo", "Conti", "DeLuca", "Mancini", "Costa", "Giordano", "Rizzo", "Lombardi", "Moretti",
+        // Japanese last names (indices 120-139)
         "Sato", "Suzuki", "Takahashi", "Tanaka", "Watanabe", "Ito", "Yamamoto", "Nakamura", "Kobayashi", "Kato",
+        "Yoshida", "Yamada", "Sasaki", "Yamaguchi", "Matsumoto", "Inoue", "Kimura", "Hayashi", "Shimizu", "Yamazaki",
+        // Korean last names (indices 140-159)
         "Kim", "Lee", "Park", "Choi", "Jung", "Kang", "Cho", "Yoon", "Jang", "Lim",
+        "Han", "Shin", "Seo", "Kwon", "Hwang", "Ahn", "Song", "Yoo", "Hong", "Moon",
+        // Chinese last names (indices 160-179)
         "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Wu", "Zhou",
+        "Xu", "Sun", "Ma", "Zhu", "Hu", "Guo", "He", "Lin", "Luo", "Gao",
+        // Indian last names (indices 180-199)
         "Sharma", "Patel", "Singh", "Kumar", "Gupta", "Verma", "Reddy", "Joshi", "Rao", "Mehta",
+        "Shah", "Iyer", "Nair", "Chopra", "Kapoor", "Malhotra", "Menon", "Pillai", "Das", "Bhat",
+        // Brazilian/Portuguese last names (indices 200-219)
         "Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes",
+        "Costa", "Ribeiro", "Martins", "Carvalho", "Almeida", "Lopes", "Soares", "Fernandes", "Vieira", "Barbosa",
+        // Russian last names (indices 220-239)
         "Ivanov", "Smirnov", "Kuznetsov", "Popov", "Vasiliev", "Petrov", "Sokolov", "Mikhailov", "Fedorov", "Morozov",
-        "Al-Rashid", "Al-Farsi", "Al-Hassan", "Al-Mansour", "Al-Nasser", "Al-Hamad", "Al-Salem", "Al-Khalid",
+        "Volkov", "Alexeev", "Lebedev", "Semenov", "Egorov", "Pavlov", "Kozlov", "Stepanov", "Nikolaev", "Orlov",
+        // Arabic last names (indices 240-259)
+        "Al-Rashid", "Al-Farsi", "Al-Hassan", "Al-Mansour", "Al-Nasser", "Al-Hamad", "Al-Salem", "Al-Khalid", "Al-Zahra", "Al-Fahad",
+        "El-Amin", "El-Said", "El-Masri", "El-Sharif", "El-Hadi", "El-Bakri", "El-Rahman", "El-Karim", "El-Aziz", "El-Hakim",
+        // Scandinavian last names (indices 260-279)
         "Andersen", "Hansen", "Johansen", "Larsen", "Olsen", "Pedersen", "Nilsen", "Kristiansen", "Jensen", "Karlsen",
+        "Eriksen", "Haugen", "Bakken", "Berg", "Dahl", "Holm", "Lund", "Strand", "Moen", "Haug"
     ]
 
     private func generateDynamicName() -> String {
@@ -3763,27 +3825,92 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let typeRoll = Self.seededNameRandom(seed: index &* 401 &+ countrySeed &* 83, index: index)
 
         if typeRoll < realNameThreshold {
-            // Real first name — pick deterministically from the pool
-            let nameIndex = (index &+ countrySeed) % Self.leaderboardRealNames.count
-            let firstName = Self.leaderboardRealNames[nameIndex]
+            // Real first name — pick deterministically using LeaderboardClient distribution
+            let nameTypeRandom = Self.seededNameRandom(seed: index &* 601 &+ countrySeed &* 127, index: index)
+            let nameIndex: Int
+
+            let commonEnglishStart = 0
+            let commonEnglishCount = 40
+            let hispanicStart = 40
+            let hispanicCount = 20
+            let germanStart = 60
+            let germanCount = 20
+            let frenchStart = 80
+            let frenchCount = 20
+            let italianStart = 100
+            let italianCount = 20
+            let japaneseStart = 120
+            let japaneseCount = 20
+            let chineseStart = 160
+            let chineseCount = 20
+            let portugueseStart = 200
+            let portugueseCount = 20
+            let indianStart = 180
+            let indianCount = 20
+            let russianStart = 220
+            let russianCount = 20
+            let arabicStart = 240
+            let arabicCount = 20
+            let koreanStart = 140
+            let koreanCount = 20
+            let scandinavianStart = 260
+            let scandinavianCount = 20
+
+            if nameTypeRandom < 0.40 {
+                nameIndex = commonEnglishStart + ((index &+ countrySeed) % commonEnglishCount)
+            } else if nameTypeRandom < 0.545 {
+                nameIndex = hispanicStart + ((index &+ countrySeed) % hispanicCount)
+            } else if nameTypeRandom < 0.595 {
+                nameIndex = germanStart + ((index &+ countrySeed) % germanCount)
+            } else if nameTypeRandom < 0.63 {
+                nameIndex = frenchStart + ((index &+ countrySeed) % frenchCount)
+            } else if nameTypeRandom < 0.73 {
+                nameIndex = italianStart + ((index &+ countrySeed) % italianCount)
+            } else if nameTypeRandom < 0.745 {
+                nameIndex = japaneseStart + ((index &+ countrySeed) % japaneseCount)
+            } else if nameTypeRandom < 0.7525 {
+                nameIndex = chineseStart + ((index &+ countrySeed) % chineseCount)
+            } else if nameTypeRandom < 0.9025 {
+                nameIndex = portugueseStart + ((index &+ countrySeed) % portugueseCount)
+            } else if nameTypeRandom < 0.915 {
+                nameIndex = indianStart + ((index &+ countrySeed) % indianCount)
+            } else if nameTypeRandom < 0.925 {
+                nameIndex = russianStart + ((index &+ countrySeed) % russianCount)
+            } else if nameTypeRandom < 0.975 {
+                nameIndex = arabicStart + ((index &+ countrySeed) % arabicCount)
+            } else if nameTypeRandom < 0.98 {
+                nameIndex = koreanStart + ((index &+ countrySeed) % koreanCount)
+            } else {
+                nameIndex = scandinavianStart + ((index &+ countrySeed) % scandinavianCount)
+            }
+
+            let firstName = Self.leaderboardRealNames[nameIndex % Self.leaderboardRealNames.count]
 
             // Region-matched last name (same pool offsets as leaderboard)
             let regionStart: Int
-            if nameIndex < 40 { regionStart = 0 }         // English
-            else if nameIndex < 60 { regionStart = 40 }   // Hispanic
-            else if nameIndex < 80 { regionStart = 60 }   // German
-            else if nameIndex < 100 { regionStart = 80 }  // French
-            else if nameIndex < 120 { regionStart = 100 } // Italian
-            else { regionStart = 0 }                       // Fallback
+            if nameIndex < 40 { regionStart = 0 }
+            else if nameIndex < 60 { regionStart = 40 }
+            else if nameIndex < 80 { regionStart = 60 }
+            else if nameIndex < 100 { regionStart = 80 }
+            else if nameIndex < 120 { regionStart = 100 }
+            else if nameIndex < 140 { regionStart = 120 }
+            else if nameIndex < 160 { regionStart = 140 }
+            else if nameIndex < 180 { regionStart = 160 }
+            else if nameIndex < 200 { regionStart = 180 }
+            else if nameIndex < 220 { regionStart = 200 }
+            else if nameIndex < 240 { regionStart = 220 }
+            else if nameIndex < 260 { regionStart = 240 }
+            else { regionStart = 260 }
 
             // Last name arrays share similar region grouping
             let lastIndex = (index &+ countrySeed &+ day) % Self.leaderboardLastNames.count
             // Use a region-aware pick when possible
-            let regionSize = 10
+            let regionSize = 20
             let lastNameIndex: Int
-            if regionStart / 10 < Self.leaderboardLastNames.count / regionSize {
-                let base = (regionStart / 2) % Self.leaderboardLastNames.count
-                lastNameIndex = base + ((index &+ countrySeed) % min(regionSize, Self.leaderboardLastNames.count - base))
+            if regionStart < Self.leaderboardLastNames.count {
+                let base = regionStart
+                let limit = base == 0 ? 40 : regionSize // English (base 0) has 40 names
+                lastNameIndex = base + ((index &+ countrySeed) % min(limit, Self.leaderboardLastNames.count - base))
             } else {
                 lastNameIndex = lastIndex
             }
