@@ -2268,7 +2268,7 @@ public struct MockSocialService: SocialService, Sendable {
                 ])
                 competitiveReactions.append(contentsOf: [
                     "Your \(m) is entirely irrelevant to my infinity.",
-                    "\(m) is safely behind me.",
+                    "I'm way past \(m).",
                     "The gap between us just gets larger.",
                     "It's over.",
                     "\(m) feels like ages ago.",
@@ -2869,23 +2869,33 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let isMessageTime = hasTimeFormatRoot || ((msgLower.contains("timed") || msgLower.contains("challenge") || !msgWords.isDisjoint(with: ["sec", "secs", "min", "mins"])) && rootMilestone == nil)
         let isMessageHoF = !msgWords.isDisjoint(with: ["hof", "infinity", "infinit"]) || msgLower.contains("hall of fame")
         let isMessageQuest = !msgWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
+        let isMessageStreak = !msgWords.isDisjoint(with: ["streak", "day", "days", "consecutive"]) || msgLower.contains("streak")
         
         // Strict topic inheritance from the original feed item
         if isMessageHoF {
             mentionedTime = false
             mentionedQuest = false
             mentionedMilestone = nil
+            mentionedStreak = false
             // mentionedHoF remains true
         } else if isMessageTime {
             mentionedHoF = false
             mentionedQuest = false
             mentionedMilestone = nil
+            mentionedStreak = false
             // mentionedTime remains true
         } else if isMessageQuest {
             mentionedHoF = false
             mentionedTime = false
             mentionedMilestone = nil
+            mentionedStreak = false
             // mentionedQuest remains true
+        } else if isMessageStreak {
+            mentionedHoF = false
+            mentionedTime = false
+            mentionedQuest = false
+            mentionedMilestone = nil
+            // mentionedStreak remains true
         } else {
             // Milestone base item
             mentionedHoF = false
@@ -2900,7 +2910,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = forceTone != "competitive" && forceTone != "one_up" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["nothing compared", "dominate", "effortless", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster"]
+        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster"]
         var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -2909,7 +2919,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
         let isJealous = forceTone != "competitive" && forceTone != "one_up" && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
-        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate"]
+        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate", "effortless", "this is entirely effortless"]
         let isPositive = forceTone != "competitive" && forceTone != "one_up" && positiveKeywords.contains(where: { strippedLower.contains($0) })
 
         let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
@@ -3178,7 +3188,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else {
                     replies.append(contentsOf: [
                     "I am ahead of your \(mName). I'm at \(higherM).",
-                    "\(mName) is safely behind me. I am sitting at \(higherM).",
+                    "I'm way past \(mName). I am sitting at \(higherM).",
                     "Your \(mName) is nothing compared to my \(higherM) record.",
                     "I easily passed \(mName). I dominate \(higherM).",
                     "My \(higherM) run was completely easy. \(mName) is cute.",
