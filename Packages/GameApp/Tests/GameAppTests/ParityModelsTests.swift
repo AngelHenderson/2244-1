@@ -122,7 +122,13 @@ struct ParityModelsTests {
             let isTimeTopic = item.message.lowercased().contains("time") || item.message.lowercased().contains("speed") || item.message.lowercased().contains("timed challenge")
             for comment in item.comments {
                 totalCommentsChecked += 1
-                let lowercasedText = comment.text.lowercased()
+                var lowercasedText = comment.text.lowercased()
+                if lowercasedText.hasPrefix("@") {
+                    let parts = lowercasedText.split(separator: " ", maxSplits: 1)
+                    if parts.count > 1 {
+                        lowercasedText = String(parts[1])
+                    }
+                }
                 #expect(!lowercasedText.contains("competition"), "Found 'competition' in bot comment: \(comment.text)")
                 
                 if !isTimeTopic {
@@ -133,7 +139,7 @@ struct ParityModelsTests {
                     #expect(!hasInfinitelyFaster, "Found 'infinitely faster' in time bot comment: \(comment.text)")
                 }
                 
-                let hasWonWord = lowercasedText.range(of: "\\bwon\\b", options: .regularExpression) != nil
+                let hasWonWord = lowercasedText.range(of: "\\bwon\\b(?!')", options: .regularExpression) != nil
                 #expect(!hasWonWord, "Found finite-match word 'won' in bot comment: \(comment.text)")
                 
                 let hasCompeteWord = lowercasedText.range(of: "\\bcompete\\b", options: .regularExpression) != nil

@@ -934,7 +934,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let responderName: String
             let responderIndex = Int.random(in: 1...100000)
-            let responderAvatar = Self.avatarForPlayer(index: responderIndex, countrySeed: 0, day: Self.daysSinceReference)
+            let responderAvatar: String
             if text.hasPrefix("@") {
                 let parts = text.split(separator: " ")
                 if let first = parts.first {
@@ -942,8 +942,10 @@ public struct MockSocialService: SocialService, Sendable {
                 } else {
                     responderName = generateDynamicName()
                 }
+                responderAvatar = targetComment?.avatarID ?? Self.avatarForPlayer(index: responderIndex, countrySeed: 0, day: Self.daysSinceReference)
             } else {
                 responderName = item.authorName
+                responderAvatar = item.avatarID
             }
             
             func extractMaxNumber(from text: String) -> Int {
@@ -996,7 +998,7 @@ public struct MockSocialService: SocialService, Sendable {
                 if let ans = answer {
                     responseText = "@\(playerName) " + ans
                 } else {
-                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: baseText, forceTone: "competitive")
+                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: baseText, forceTone: "one_up")
                 }
                 let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
                 item.comments.append(responseComment)
