@@ -26,6 +26,9 @@ struct GameUIScreenPreviewHost<Content: View>: View {
     private let content: () -> Content
 
     init(@ViewBuilder content: @escaping () -> Content) {
+        MockSocialService.gamertagProvider = {
+            MockLeaderboardData.globalNames + MockLeaderboardData.hallOfFameNames
+        }
         let defaults = Self.makeDefaults()
         let homeState = Self.makeHomeState()
         let gameStore = Self.makeGameStore()

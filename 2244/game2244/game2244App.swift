@@ -20,6 +20,9 @@ struct game2244App: App {
 
     init() {
         configureNavigationBarAppearance()
+        MockSocialService.gamertagProvider = {
+            MockLeaderboardData.globalNames + MockLeaderboardData.hallOfFameNames
+        }
     }
 
     private func configureNavigationBarAppearance() {
