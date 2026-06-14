@@ -6,6 +6,10 @@ import Foundation
 @MainActor
 @Suite("ShopStore IAP grants route through RewardLedger")
 struct ShopStoreLedgerTests {
+    init() {
+        UserDefaults.standard.removeObject(forKey: "shopGrantedTransactionIDs")
+    }
+
     private final class InMemoryStorage: RewardLedgerStorage, @unchecked Sendable {
         var entries: [RewardLedgerEntry] = []
         func load() -> [RewardLedgerEntry] { entries }

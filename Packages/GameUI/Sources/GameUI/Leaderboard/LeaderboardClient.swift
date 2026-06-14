@@ -726,7 +726,7 @@ public enum MockLeaderboardData {
         "Eriksen", "Haugen", "Bakken", "Berg", "Dahl", "Holm", "Lund", "Strand", "Moen", "Haug"
     ]
 
-    static let hallOfFameNames = [
+    public static let hallOfFameNames = [
         // Ranks 1-30
         "InfinityMaster462572", "EndlessVoyager", "BeyondLimits422678", "EternalChamp", "UltimatePlayer",
         "LegendaryGamer", "InfiniteWinner", "CosmicConqueror", "SupremeVictor", "DivinePlayer",

@@ -772,6 +772,8 @@ public struct UnavailableSocialService: SocialService, Sendable {
 }
 
 public struct MockSocialService: SocialService, Sendable {
+    nonisolated(unsafe) public static var gamertagProvider: (@Sendable () -> [String])? = nil
+
     public init() {}
 
     static let allAvatars: [String] = [
@@ -3578,7 +3580,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "Everyone progresses, except you. You're stuck at the bottom.",
                 "Trust me, you'll never break through.",
                 "I don't believe in you. You're completely irrelevant.",
-                "The wall you hit is permanent. Stay down there.",
+                "The wall you hit is final. Stay down there.",
                 "The struggle is yours alone. I'm untouched.",
                 "You are infinitely behind, and always will be.",
                 "You're completely stuck in the lower tiers.",
@@ -3672,55 +3674,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         return fallbacks.randomElement()!
     }
 
-    // Gamertags from the global leaderboard (exact match to LeaderboardClient.globalNames)
-    private static let leaderboardGamertags = [
-        "DefenselessMetal113090", "LopingLemming366775", "DensePage606454", "BrittleBelly378166", "PerfectPirate002198",
-        "CaramelStamp540035", "Player006362", "CulturalDerision125825", "KnownOwner816617", "SwiftCoder159607",
-        "PixelMaster748740", "NeonRacer607539", "CloudJumper689506", "StarGazer002024", "ThunderBolt507614",
-        "CryptoKing712740", "MidnightOwl188137", "SolarFlare036196", "OceanWave878869", "MountainPeak660972",
-        "DesertStorm875175", "JungleCat510460", "ArcticFox939275", "TropicalBird570541", "CosmicDust555331",
-        "QuantumLeap035256", "NebulaStar541366", "GalaxyRider213281", "AsteroidHunter307929", "CometChaser943999",
-        "MeteorShower490180", "SaturnRing106251", "JupiterMoon945882", "MarsRover652511", "VenusFlyer746976",
-        "MercuryDash434165", "PlutoExplorer378313", "NeptuneWave575300", "UranusOrbit060276", "EarthGuard724482",
-        "SunBlaze762087", "MoonWalker401411", "StarDancer746126", "SpacePilot446429", "RocketMan803508",
-        "LaserBeam193628", "PhotonBlast369925", "NeutronStar967846", "ProtonPower572084", "ElectronFlow288169",
-        "AtomSmasher302943", "MoleculeMix835494", "CellDivider926550", "DNAHelix431818", "RNAStrand123317",
-        "ProteinFold990603", "EnzymeCat244951", "VitaminBoost636173", "MineralRock121189", "CrystalClear873097",
-        "DiamondEdge628696", "RubyGlow895754", "SapphireShine479114", "EmeraldDream535535", "AmethystMist642606",
-        "TopazSun210254", "OpalMoon281552", "PearlOcean894781", "JadeForest723448", "OnyxShadow478670",
-        "GarnetFire754374", "TurquoiseSky641687", "CoralReef948207", "IvoryTower682707", "BronzeAge633030",
-        "SilverLining743365", "GoldRush682418", "PlatinumPro917381", "TitaniumStrong231738", "CopperGlow256951",
-        "IronWill317193", "SteelNerve121543", "AluminumLight184188", "ZincShield809081", "NickelSpin810647",
-        "CobaltBlue134447", "ChromeFinish771732", "TungstenTough258394", "MolybdenumMax376493", "VanadiumVibe172034",
-        "ManganeseMight774509", "PalladiumPure453084", "RhodiumRare101269", "IridiumIntense672277", "OsmiumOdd233561",
-        "RheniumRich695253", "TantalumTwist258498", "HafniumHigh509980", "ZirconiumZest230030", "NiobiumNova237940",
-        "TokyoTiger778294", "LondonLion245602", "ParisPanther498589", "BerlinBear008218", "SydneySerpent634772",
-        "TorontoTornado515976", "MadridMaverick983643", "RomeRaider184724", "SaoPauloStar483164", "MumbaiMaster482711",
-        "ShanghaiShark890139", "MoscowMight810148", "DubaiDragon354547", "SingaporeSurge500873", "HongKongHero351162",
-        "SeoulSniper578452", "BangkokBolt182848", "JakartaJet643384", "CairoChamp081350", "LagoosLegend866099",
-        "NairobiNinja892405", "CapeTownCrush621130", "BuenosAiresBoss725008", "MexicoCityMaster392481", "LimaaLion485983",
-        "SantiagoStorm444097", "BogotaBeast471443", "CaracasChamp147285", "HavannaHawk401550", "KingstonKing737312",
-        "MontrealMaverick378582", "VancouverVictor981419", "MelbourneMight815557", "AucklandAce491276", "WellingtonWolf315877",
-        "OsakaOracle255633", "KyotoKnight377863", "NagoyaNinja611040", "FukuokaaFury815070", "SapporoStrike777002",
-        "MunichMaster942913", "HamburgHero964803", "FrankfurtFlash676648", "CologneCrusher742603", "DusseldorfDragon908503",
-        "AmsterdamAce262368", "BrussellsBoss822873", "ViennaViking160358", "ZurichZealot419278", "GenevaGhost254315",
-        // Hall of Fame gamertags (exact match to LeaderboardClient.hallOfFameNames)
-        "InfinityMaster462572", "EndlessVoyager", "BeyondLimits422678", "EternalChamp", "UltimatePlayer",
-        "LegendaryGamer", "InfiniteLegend", "CosmicConqueror", "SupremeVictor", "DivinePlayer",
-        "MythicalHero", "TranscendentOne", "OmnipotentGamer", "CelestialKing", "ImmortalPlayer",
-        "UnstoppableForce", "PerfectScore571450", "FlawlessRun", "AbsoluteChamp", "MaxLevelPro",
-        "GodTierPlayer", "EliteInfinity", "MasterOfAll", "ChampOfChamps", "NumberOneForever",
-        "SkillMaxed367578", "TopDogForever", "KingOfKings", "QueenSupreme", "UltimateRun",
-        "BeyondPerfect", "EndgameBoss", "FinalFormPro", "MaxPowerUser", "InfiniteGlory",
-        "EternalRun", "LimitBreaker661070", "BoundlessSkill", "NeverEndingRun", "ForeverFirst",
-        "AlphaOmega531681", "ZenithReached", "ApexPredator099366", "PinnaclePlayer", "SummitSeeker",
-        "VanguardVictor", "ParagonPrime", "SupremeSeeker", "TitanTamer", "OlympianOne",
-        "PhoenixRisen", "DragonSlayer864745", "ThunderGod795666", "StormBringer", "LightningLord",
-        "ShadowMaster", "VoidWalker214877", "CosmicRuler", "GalacticKing", "UniversalChamp",
-        "StarForger112263", "NebulaNinja", "QuantumKing911350", "DimensionLord", "RealityBender",
-        "SpeedStar545327", "FastFury575123", "QuickQueen", "RapidRuler", "SwiftStar",
-        "WolfWarrior218074", "FoxFury352370", "BearBoss", "TigerTitan", "LionLord",
-    ]
+    private static var leaderboardGamertags: [String] {
+        gamertagProvider?() ?? [
+            "DefenselessMetal", "LopingLemming", "DensePage", "BrittleBelly", "PerfectPirate"
+        ]
+    }
 
     // Real names from the leaderboard (exact match to LeaderboardClient.realNames)
     private static let leaderboardRealNames = [
