@@ -230,7 +230,7 @@ struct CompareView: View {
                 name: player.name,
                 code: player.code,
                 countryFlag: player.countryFlag,
-                milestone: player.milestone,
+                milestone: player.isGameOver ? "2" : player.milestone,
                 isMe: false,
                 isBanned: player.isBanned,
                 banEndDate: player.banEndDate,
@@ -667,7 +667,7 @@ private struct ComparisonEntryStatusView: View {
                     .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
                     .foregroundColor(.red)
             } else {
-                Text(entry.isGameOver ? "Game Over" : entry.milestone)
+                Text(entry.milestone)
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
                     .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
             }
