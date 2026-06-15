@@ -3613,20 +3613,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
 
             // Generic positive
-            replies.append(contentsOf: [
-                "Thanks! ",
-                "Appreciate it! ",
-                "Right back at you!",
-                "Thanks, means a lot!",
-                "Haha thanks! Keep grinding too!",
-                "Thank you! We're all in this together ",
-                " appreciate the love!",
-                "Thanks! Your turn next!",
-                "Cheers! Good luck on your runs!",
-                "Ty! See you on the leaderboard!",
-                "So kind! Thank you ",
-                "Aww thanks! This community is the best.",
-            ])
+            if replies.isEmpty {
+                replies.append(contentsOf: [
+                    "Thanks! ",
+                    "Appreciate it! ",
+                    "Right back at you!",
+                    "Thanks, means a lot!",
+                    "Haha thanks! Keep grinding too!",
+                    "Thank you! We're all in this together ",
+                    " appreciate the love!",
+                    "Thanks! Your turn next!",
+                    "Cheers! Good luck on your runs!",
+                    "Ty! See you on the leaderboard!",
+                    "So kind! Thank you ",
+                    "Aww thanks! This community is the best.",
+                ])
+            }
             var reply = replies.randomElement()!
             if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: ["!!", " :)", " :D", " ~", " :P", " <3", " =)", " ^_^", " rn", " RN", " fr", " tbh"].randomElement()!) }
             return reply
