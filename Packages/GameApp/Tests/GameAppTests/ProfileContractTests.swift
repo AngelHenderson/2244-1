@@ -52,6 +52,10 @@ struct ProfileContractTests {
 
     @Test("Profile supports persistence to UserDefaults")
     func persistsToUserDefaults() async {
+        let suite = "ProfileContractTests.Suite"
+        let defaults = UserDefaults(suiteName: suite) ?? .standard
+        defaults.removePersistentDomain(forName: suite)
+
         var profile = Profile()
         profile.coins = 500
         profile.save()
@@ -72,6 +76,11 @@ enum PowerUpType: String, CaseIterable, Codable {
 
 struct Profile: Codable {
     private static let persistenceKey = "ProfileContractTests.Profile"
+    private static let suiteName = "ProfileContractTests.Suite"
+
+    private static var testDefaults: UserDefaults {
+        UserDefaults(suiteName: suiteName) ?? .standard
+    }
 
     var name: String = "Player"
     var isDefault: Bool = true
@@ -97,11 +106,11 @@ struct Profile: Codable {
 
     func save() {
         let data = try? JSONEncoder().encode(self)
-        UserDefaults.standard.set(data, forKey: Self.persistenceKey)
+        Self.testDefaults.set(data, forKey: Self.persistenceKey)
     }
 
     static func load() -> Profile {
-        guard let data = UserDefaults.standard.data(forKey: persistenceKey),
+        guard let data = Self.testDefaults.data(forKey: persistenceKey),
               let profile = try? JSONDecoder().decode(Profile.self, from: data) else {
             return Profile()
         }

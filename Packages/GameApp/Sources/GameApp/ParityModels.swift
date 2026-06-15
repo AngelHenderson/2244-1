@@ -2364,9 +2364,9 @@ public struct MockSocialService: SocialService, Sendable {
                     let compOpeners = [
                         "I flew right past this.", "Barely had to try.", "Light work.",
                         "This is entirely average.", "Pretty basic.", "Unimpressive.",
-                        "Didn't even break a sweat.", "That's cute.", "Amateur.",
+                        "Not impressed.", "That's cute.", "Amateur.",
                         "What a joke.", "Not even trying.", "A child could do that.",
-                        "Is that all?", "I was asleep for this.", "Barely a speed bump.",
+                        "Is that all?", "I was asleep for this.", "Barely a hurdle.",
                         "Are you even trying?"
                     ]
                     
@@ -2632,44 +2632,60 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
         // ── Milestone posts: find the tile, reference a higher one ──
         if let foundIdx = sortedMilestones.firstIndex(where: { m in
-            let pattern = "\\b\\(NSRegularExpression.escapedPattern(for: m))\\b"
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: m))\\b"
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(
                 in: message,
                 range: NSRange(message.startIndex..., in: message)
             ) != nil
         }) {
             let m = sortedMilestones[foundIdx]
-            if let originalIdx = Self.allMilestones.firstIndex(of: m),
-               originalIdx + 1 < Self.allMilestones.count {
-                // Pick a random milestone 5-60 steps ahead, avoiding already-used ones
-                let remaining = Self.allMilestones.count - 1 - originalIdx
-                let maxJump = min(5, remaining)
-                let minJump = min(1, maxJump)
-                var localHigherM: String
-                var jump: Int
-                var attempts = 0
-                repeat {
-                    jump = Int.random(in: minJump...maxJump)
-                    localHigherM = Self.allMilestones[originalIdx + jump]
-                    attempts += 1
-                } while usedStats.contains(localHigherM) && attempts < 8
-                usedStats.insert(localHigherM)
+            if let originalIdx = Self.allMilestones.firstIndex(of: m) {
+                let isLowMilestone = Double.random(in: 0...1) < 0.45
+                if isLowMilestone && originalIdx > 0 {
+                    let jump = Int.random(in: 1...5)
+                    let lowerIdx = max(0, originalIdx - jump)
+                    let localLowerM = Self.allMilestones[lowerIdx]
+                    let templates = [
+                        "I easily beat \(localLowerM).",
+                        "I left \(localLowerM) in the dust.",
+                        "Only at \(localLowerM)? Cute.",
+                        "Only at \(localLowerM)? What a joke.",
+                        "My floor is way past \(localLowerM)."
+                    ]
+                    let realName = Self.leaderboardPlayerAtMilestone(localLowerM)
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
+                    return (templates[idx], realName)
+                } else if originalIdx + 1 < Self.allMilestones.count {
+                    // Pick a random milestone 5-60 steps ahead, avoiding already-used ones
+                    let remaining = Self.allMilestones.count - 1 - originalIdx
+                    let maxJump = min(5, remaining)
+                    let minJump = min(1, maxJump)
+                    var localHigherM: String
+                    var jump: Int
+                    var attempts = 0
+                    repeat {
+                        jump = Int.random(in: minJump...maxJump)
+                        localHigherM = Self.allMilestones[originalIdx + jump]
+                        attempts += 1
+                    } while usedStats.contains(localHigherM) && attempts < 8
+                    usedStats.insert(localHigherM)
 
-                var templates = [
-                    "Your milestone is entirely irrelevant. I'm at \(localHigherM).",
-                    "I left your tier in the dust. I'm at \(localHigherM).",
-                    "I easily reached \(localHigherM).",
-                    "\(localHigherM) is my floor.",
-                ]
-                // "way behind" only with a moderate gap (10-20 steps ahead)
-                if remaining >= 10 {
-                    let wayBehindJump = Int.random(in: 10...min(20, remaining))
-                    let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
-                    templates.append("You are infinitely behind. I'm already at \(wayBehindM).")
+                    var templates = [
+                        "Your milestone is entirely irrelevant. I'm at \(localHigherM).",
+                        "I left your tier in the dust. I'm at \(localHigherM).",
+                        "I easily reached \(localHigherM).",
+                        "\(localHigherM) is my floor."
+                    ]
+                    // "way behind" only with a moderate gap (10-20 steps ahead)
+                    if remaining >= 10 {
+                        let wayBehindJump = Int.random(in: 10...min(20, remaining))
+                        let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
+                        templates.append("You are infinitely behind. I'm already at \(wayBehindM).")
+                    }
+                    let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
+                    return (templates[idx], realName)
                 }
-                let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
-                let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
-                return (templates[idx], realName)
             }
         }
 
@@ -3161,7 +3177,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
-                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && rootMilestone != nil && commentMilestone!.index < rootMilestone!.index
+                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && rootMilestone != nil && commentMilestone!.index < rootMilestone!.index && Double.random(in: 0...1) < 0.95
                 
                 if isLowerBrag, let cM = commentMilestone, let rM = rootMilestone {
                     replies.append(contentsOf: [
@@ -3193,41 +3209,63 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else {
                     let mIdx = m.index
                     let mName = m.name
-                let jump: Int
-                if Double.random(in: 0...1) < 0.80 {
-                    jump = Int.random(in: 1...2)
-                } else {
-                    jump = Int.random(in: 3...5)
-                }
-                let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
-                let higherM = Self.allMilestones[higherIdx]
-                if wantsBetter {
-                    replies.append(contentsOf: [
-                        "I always do better. I'm already pushing \(higherM).",
-                        "You wanted better? I'm sitting at \(higherM).",
-                        "I did do better. Try catching \(higherM).",
-                        "Done. I'm untouched at \(higherM).",
-                        "I'm always climbing. \(higherM) completely buries you.",
-                        "Better is my baseline. I'm at \(higherM).",
-                        "I already left you behind. \(higherM) is next.",
-                        "Watch me. I'm clearing \(higherM) easily.",
-                        "You are no threat. I'm sitting comfortably at \(higherM).",
-                        "I never stop climbing. \(higherM) is already done.",
-                    ])
-                } else {
-                    replies.append(contentsOf: [
-                    "I am ahead of your \(mName). I'm at \(higherM).",
-                    "I'm way past \(mName). I am sitting at \(higherM).",
-                    "Your \(mName) is nothing compared to my \(higherM) record.",
-                    "I easily passed \(mName). I dominate \(higherM).",
-                    "My \(higherM) run was completely easy. \(mName) is cute.",
-                    "\(mName) was light work. I'm already sitting at \(higherM).",
-                    "You're celebrating \(mName)? I just cleared \(higherM).",
-                    "I left \(mName) in the dust. \(higherM) is the new standard.",
-                    "Try hitting \(higherM) before bragging about \(mName).",
-                    "I already hit \(higherM). \(mName) is old news.",
-                ])
-                }
+                    let isLowMilestone = Double.random(in: 0...1) < 0.45
+                    if isLowMilestone && mIdx > 0 {
+                        let jump = Int.random(in: 1...5)
+                        let lowerIdx = max(0, mIdx - jump)
+                        let lowerM = Self.allMilestones[lowerIdx]
+                        if wantsBetter {
+                            replies.append(contentsOf: [
+                                "I easily beat \(lowerM).",
+                                "I left \(lowerM) in the dust.",
+                                "My floor is way past \(lowerM)."
+                            ])
+                        } else {
+                            replies.append(contentsOf: [
+                                "I easily beat \(lowerM).",
+                                "I left \(lowerM) in the dust.",
+                                "Only at \(lowerM)? Cute.",
+                                "Only at \(lowerM)? What a joke.",
+                                "My floor is way past \(lowerM)."
+                            ])
+                        }
+                    } else {
+                        let jump: Int
+                        if Double.random(in: 0...1) < 0.80 {
+                            jump = Int.random(in: 1...2)
+                        } else {
+                            jump = Int.random(in: 3...5)
+                        }
+                        let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
+                        let higherM = Self.allMilestones[higherIdx]
+                        if wantsBetter {
+                            replies.append(contentsOf: [
+                                "I always do better. I'm already pushing \(higherM).",
+                                "You wanted better? I'm sitting at \(higherM).",
+                                "I did do better. Try catching \(higherM).",
+                                "Done. I'm untouched at \(higherM).",
+                                "I'm always climbing. \(higherM) completely buries you.",
+                                "Better is my baseline. I'm at \(higherM).",
+                                "I already left you behind. \(higherM) is next.",
+                                "Watch me. I'm clearing \(higherM) easily.",
+                                "You are no threat. I'm sitting comfortably at \(higherM).",
+                                "I never stop climbing. \(higherM) is already done."
+                            ])
+                        } else {
+                            replies.append(contentsOf: [
+                                "I am ahead of your \(mName). I'm at \(higherM).",
+                                "I'm way past \(mName). I am sitting at \(higherM).",
+                                "Your \(mName) is nothing compared to my \(higherM) record.",
+                                "I easily passed \(mName). I dominate \(higherM).",
+                                "My \(higherM) run was completely easy. \(mName) is cute.",
+                                "\(mName) was light work. I'm already sitting at \(higherM).",
+                                "You're celebrating \(mName)? I just cleared \(higherM).",
+                                "I left \(mName) in the dust. \(higherM) is the new standard.",
+                                "Try hitting \(higherM) before bragging about \(mName).",
+                                "I already hit \(higherM). \(mName) is old news."
+                            ])
+                        }
+                    }
                 }
             }
 
@@ -3375,7 +3413,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     if commentText != message, commentIsCompetitive, let cT = commentTime, let rT = rootTime {
                         let cSecs = cT.0 * 60 + cT.1
                         let rSecs = rT.0 * 60 + rT.1
-                        return cSecs > rSecs
+                        if cSecs > rSecs {
+                            return Double.random(in: 0...1) < 0.95
+                        }
                     }
                     return false
                 }()

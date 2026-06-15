@@ -238,6 +238,17 @@ struct ParityModelsTests {
         }
     }
 
+    private func isTooLowMilestoneReply(_ reply: String) -> Bool {
+        let lowered = reply.lowercased()
+        if lowered.contains("too low to get ahead") || lowered.contains("acting like") || lowered.contains("a long time ago") {
+            return true
+        }
+        if lowered.contains("laughing from") && (lowered.contains("only at") || lowered.contains("still at")) {
+            return true
+        }
+        return false
+    }
+
     @Test("Too low/slow phrasing is only used when replying to competitive/one-upmanship comments")
     func tooLowSlowRequiresCompetitiveComment() async throws {
         let service = MockSocialService()
@@ -254,11 +265,12 @@ struct ParityModelsTests {
         // 2. Milestone topic:
         // Reply to a non-competitive comment:
         let milestoneReplyNonComp = service.generateContextualReply(to: "I reached 256.", message: "Unlocked milestone 512.", forceTone: "one_up")
-        #expect(!milestoneReplyNonComp.lowercased().contains("too low") && !milestoneReplyNonComp.lowercased().contains("dust"), "Should not use too low brag if comment is not competitive: \(milestoneReplyNonComp)")
+        let isTooLowNonComp = isTooLowMilestoneReply(milestoneReplyNonComp)
+        #expect(!isTooLowNonComp, "Should not use too low brag if comment is not competitive: \(milestoneReplyNonComp)")
 
         // Reply to a competitive comment:
         let milestoneReplyComp = service.generateContextualReply(to: "My 256 is better, you cute.", message: "Unlocked milestone 512.", forceTone: "one_up")
-        let isMilestoneBrag = ["too low", "dust", "joke", "nothing", "laughing", "bragging", "beneath", "acting", "only at"].contains { milestoneReplyComp.lowercased().contains($0) }
+        let isMilestoneBrag = isTooLowMilestoneReply(milestoneReplyComp)
         #expect(isMilestoneBrag, "Should use too low/lower brag if comment is competitive: \(milestoneReplyComp)")
 
         // 3. Comment directly to the poster (commentText == message):
@@ -269,7 +281,8 @@ struct ParityModelsTests {
 
         let postMilestoneText = "My 256 is better, you cute."
         let commentToPosterMilestone = service.generateContextualReply(to: postMilestoneText, message: postMilestoneText, forceTone: "one_up")
-        #expect(!commentToPosterMilestone.lowercased().contains("too low") && !commentToPosterMilestone.lowercased().contains("dust"), "Should not use too low brag when commenting directly to the poster: \(commentToPosterMilestone)")
+        let isTooLowToPoster = isTooLowMilestoneReply(commentToPosterMilestone)
+        #expect(!isTooLowToPoster, "Should not use too low brag when commenting directly to the poster: \(commentToPosterMilestone)")
     }
 
     @Test("Competitive replies pause and tie when replying to 0:02")
@@ -317,6 +330,42 @@ struct ParityModelsTests {
         #expect(profile.email == "player@example.com")
         #expect(profile.displayName == "Test Player")
         #expect(persistedState == .signedIn(profile))
+    }
+
+    @Test("NPCs have a ~45% chance to reply with a low milestone")
+    func testLowMilestoneChance() async throws {
+        let service = MockSocialService()
+        var lowMilestoneCount = 0
+        let totalRuns = 200
+
+        for _ in 0..<totalRuns {
+            let reply = service.generateContextualReply(to: "Unlocked milestone 65K.", message: "Unlocked milestone 65K.", forceTone: "one_up")
+            let isLowM = ["2048", "4096", "8192", "16K", "32K"].contains { reply.contains($0) }
+            if isLowM {
+                lowMilestoneCount += 1
+            }
+        }
+        
+        let ratio = Double(lowMilestoneCount) / Double(totalRuns)
+        #expect(ratio >= 0.30 && ratio <= 0.60, "Low milestone reply ratio is \(ratio), expected around 0.45")
+    }
+
+    @Test("Replying to a lower milestone has a ~95% chance to trigger too low reply")
+    func testTooLowReplyChance() async throws {
+        let service = MockSocialService()
+        var tooLowCount = 0
+        let totalRuns = 200
+
+        for _ in 0..<totalRuns {
+            let reply = service.generateContextualReply(to: "I easily beat 32K.", message: "Unlocked milestone 65K.", forceTone: "one_up")
+            let isTooLow = isTooLowMilestoneReply(reply)
+            if isTooLow {
+                tooLowCount += 1
+            }
+        }
+        
+        let ratio = Double(tooLowCount) / Double(totalRuns)
+        #expect(ratio >= 0.88 && ratio <= 0.99, "Too low reply ratio is \(ratio), expected around 0.95")
     }
 }
 
