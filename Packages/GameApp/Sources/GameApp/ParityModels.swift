@@ -3621,7 +3621,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Thanks, means a lot!",
                     "Haha thanks! Keep grinding too!",
                     "Thank you! We're all in this together ",
-                    " appreciate the love!",
+                    "Appreciate the love!",
                     "Thanks! Your turn next!",
                     "Cheers! Good luck on your runs!",
                     "Ty! See you on the leaderboard!",
@@ -3661,17 +3661,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         let fallbacks = [
-            "Facts. That's exactly how I see it too.",
-            "Couldn't have said it better myself.",
-            "Haha right? This feed is something else.",
-            "For real though! ",
-            "Completely agree with this.",
-            "Yo same energy over here ",
-            "That's what I'm saying!",
-            "Big facts! ",
-            "We need more of this in the feed honestly.",
-            "Love seeing this kind of energy.",
-            "This right here. ",
+            "I'm just focused on my own runs.",
+            "Interesting setup.",
+            "Each run is different.",
+            "That's one way to play.",
+            "I just keep playing.",
+            "Every board is different.",
+            "Just another day on the grid.",
+            "Consistency is all that matters.",
+            "Focusing on the next tile.",
+            "We'll see how it goes."
         ]
         return fallbacks.randomElement()!
     }
