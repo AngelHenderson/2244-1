@@ -2527,6 +2527,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         if hasTimeFormat || lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
+                if totalSecs <= 2 {
+                    let templates = [
+                        "0:02 is the absolute limit. We are both at the peak.",
+                        "No one can go faster than 0:02. We share the record.",
+                        "I also clocked 0:02. That's the theoretical limit.",
+                        "0:02? Solid. I'm right there at the limit too."
+                    ]
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
+                    return (templates[idx], higherName)
+                }
                 // Brag about having a FASTER clear time (lower = better)
                 let isMassiveGap = Bool.random()
                 
@@ -3090,16 +3100,25 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("Don't bother comparing. I'm safely ahead at \(higherNum).")
                 } else if mentionedTime, let timeTuple = Self.extractTime(from: strippedLower) {
                     let totalSecs = timeTuple.0 * 60 + timeTuple.1
-                    var myTotal = totalSecs / 3 // Ridiculously fast
-                    if myTotal <= 1 { myTotal = 2 }
-                    let myTime = "\(myTotal / 60):\(String(format: "%02d", myTotal % 60))"
-                    let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
-                    replies.append("Celebrating \(posterTime)? I easily reached \(myTime).")
-                    replies.append("You think \(posterTime) is fast? I'm already casually coasting at \(myTime).")
-                    replies.append("Your \(posterTime) is a joke. I easily hit \(myTime).")
-                    replies.append("Only at \(posterTime)? I easily bypassed that to clock \(myTime).")
-                    replies.append("My record is \(myTime) compared to your \(posterTime).")
-                    replies.append("I breeze through in \(myTime) in my sleep.")
+                    if totalSecs <= 2 {
+                        replies.append(contentsOf: [
+                            "0:02 is the absolute limit. We are both at the peak.",
+                            "No one can go faster than 0:02. We share the record.",
+                            "I also clocked 0:02. That's the theoretical limit.",
+                            "0:02? Solid. I'm right there at the limit too."
+                        ])
+                    } else {
+                        var myTotal = totalSecs / 3 // Ridiculously fast
+                        if myTotal <= 1 { myTotal = 2 }
+                        let myTime = "\(myTotal / 60):\(String(format: "%02d", myTotal % 60))"
+                        let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
+                        replies.append("Celebrating \(posterTime)? I easily reached \(myTime).")
+                        replies.append("You think \(posterTime) is fast? I'm already casually coasting at \(myTime).")
+                        replies.append("Your \(posterTime) is a joke. I easily hit \(myTime).")
+                        replies.append("Only at \(posterTime)? I easily bypassed that to clock \(myTime).")
+                        replies.append("My record is \(myTime) compared to your \(posterTime).")
+                        replies.append("I breeze through in \(myTime) in my sleep.")
+                    }
                 } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum = num + Int.random(in: 5...15)
                     replies.append("Only \(num) days? I easily reached \(higherNum).")
@@ -3121,6 +3140,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("I am safely ahead.")
                     replies.append("I am already far ahead.")
                 }
+                if commentText == message {
+                    replies = replies.filter { r in
+                        let l = r.lowercased()
+                        return !l.contains("too low") && !l.contains("too slow") && !l.contains("dust") && !l.contains("fast enough")
+                    }
+                }
                 var reply = replies.randomElement()!
                 if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
                 return reply
@@ -3136,7 +3161,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
-                let isLowerBrag = commentMilestone != nil && rootMilestone != nil && commentMilestone!.index < rootMilestone!.index
+                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && rootMilestone != nil && commentMilestone!.index < rootMilestone!.index
                 
                 if isLowerBrag, let cM = commentMilestone, let rM = rootMilestone {
                     replies.append(contentsOf: [
@@ -3207,7 +3232,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
 
             if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
-                let isLowerScoreBrag = commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                let isLowerScoreBrag = commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
                 
                 if isLowerScoreBrag, let cN = commentNumber, let rN = rootNumber {
                     replies.append(contentsOf: [
@@ -3265,7 +3290,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             if mentionedStreak {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
-                    let isLowerStreakBrag = commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                    let isLowerStreakBrag = commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
                     
                     if isLowerStreakBrag, let cN = commentNumber, let rN = rootNumber {
                         replies.append(contentsOf: [
@@ -3347,7 +3372,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             if mentionedTime {
                 let isSlowerTimeBrag = {
-                    if let cT = commentTime, let rT = rootTime {
+                    if commentText != message, commentIsCompetitive, let cT = commentTime, let rT = rootTime {
                         let cSecs = cT.0 * 60 + cT.1
                         let rSecs = rT.0 * 60 + rT.1
                         return cSecs > rSecs
@@ -3380,58 +3405,76 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else if rootIsJealous, let cT = commentTime {
                     let cSecs = cT.0 * 60 + cT.1
                     let cTimeStr = "\(cT.0):\(String(format: "%02d", cT.1))"
-                    var mySecs = cSecs - Int.random(in: 5...30)
-                    if mySecs <= 1 { mySecs = 2 }
-                    let myTimeStr = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
-                    replies.append(contentsOf: [
-                        "I easily passed your \(cTimeStr). I'm at \(myTimeStr).",
-                        "I let you think you had the lead. Your \(cTimeStr) is nothing. I'm at \(myTimeStr).",
-                        "You fell for it. I easily beat your \(cTimeStr). My real record is \(myTimeStr).",
-                        "I was just warming up. Your \(cTimeStr) is a joke compared to my \(myTimeStr).",
-                        "I blew past your \(cTimeStr) and clocked \(myTimeStr) without even trying."
-                    ])
-                } else if let (mins, secs) = commentTime ?? rootTime {
-                    let totalSecs = mins * 60 + secs
-                    let higherNum: Int
-                    if totalSecs <= 10 {
-                        higherNum = max(2, totalSecs - Int.random(in: 1...3))
-                    } else {
-                        higherNum = max(10, totalSecs - Int.random(in: 10...30))
-                    }
-                    let myMins = higherNum / 60
-                    let mySecs = higherNum % 60
-                    let higherTime = "\(myMins):\(String(format: "%02d", mySecs))"
-                    let posterTime = "\(mins):\(String(format: "%02d", secs))"
-                    if wantsBetter {
+                    if cSecs <= 2 {
                         replies.append(contentsOf: [
-                            "I always do better. \(higherTime) makes you look slow.",
-                            "You wanted better? I'm already down to \(higherTime).",
-                            "I did do better. Try catching \(higherTime).",
-                            "Done. I'm untouched at \(higherTime).",
-                            "I'm always getting faster. \(higherTime) makes you look slow.",
-                            "Better is my baseline. I just cleared it in \(higherTime).",
-                            "I already left you behind. \(higherTime) is my new floor.",
-                            "Watch me. I'm clocking \(higherTime) easily.",
-                            "You are no threat. I'm sitting comfortably at \(higherTime).",
-                            "I never stop climbing. \(higherTime) is already done.",
+                            "0:02 is the absolute limit. We are both at the peak.",
+                            "No one can go faster than 0:02. We share the record.",
+                            "I also clocked 0:02. That's the theoretical limit.",
+                            "0:02? Solid. I'm right there at the limit too."
                         ])
                     } else {
-                        let diff = totalSecs - higherNum
-                        var templates = [
-                            "I am leagues faster than your \(posterTime). I'm at \(higherTime).",
-                            "Your \(posterTime) time is cute. I clear it in \(higherTime).",
-                            "I easily passed your time. My record is \(higherTime).",
-                            "I shaved time off your \(posterTime). My best is \(higherTime).",
-                            "You call \(posterTime) fast? Try reaching my \(higherTime).",
-                            "I speedrun easily. \(higherTime) destroys your \(posterTime).",
-                            "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
-                        ]
-                        if diff >= 10 {
-                            templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
+                        var mySecs = cSecs - Int.random(in: 5...30)
+                        if mySecs <= 1 { mySecs = 2 }
+                        let myTimeStr = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
+                        replies.append(contentsOf: [
+                            "I easily passed your \(cTimeStr). I'm at \(myTimeStr).",
+                            "I let you think you had the lead. Your \(cTimeStr) is nothing. I'm at \(myTimeStr).",
+                            "You fell for it. I easily beat your \(cTimeStr). My real record is \(myTimeStr).",
+                            "I was just warming up. Your \(cTimeStr) is a joke compared to my \(myTimeStr).",
+                            "I blew past your \(cTimeStr) and clocked \(myTimeStr) without even trying."
+                        ])
+                    }
+                } else if let (mins, secs) = commentTime ?? rootTime {
+                    let totalSecs = mins * 60 + secs
+                    if totalSecs <= 2 {
+                        replies.append(contentsOf: [
+                            "0:02 is the absolute limit. We are both at the peak.",
+                            "No one can go faster than 0:02. We share the record.",
+                            "I also clocked 0:02. That's the theoretical limit.",
+                            "0:02? Solid. I'm right there at the limit too."
+                        ])
+                    } else {
+                        let higherNum: Int
+                        if totalSecs <= 10 {
+                            higherNum = max(2, totalSecs - Int.random(in: 1...3))
                         } else {
-                            templates.append("\(posterTime) is close, but I just clocked \(higherTime).")
+                            higherNum = max(10, totalSecs - Int.random(in: 10...30))
                         }
-                        replies.append(contentsOf: templates)
+                        let myMins = higherNum / 60
+                        let mySecs = higherNum % 60
+                        let higherTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                        let posterTime = "\(mins):\(String(format: "%02d", secs))"
+                        if wantsBetter {
+                            replies.append(contentsOf: [
+                                "I always do better. \(higherTime) makes you look slow.",
+                                "You wanted better? I'm already down to \(higherTime).",
+                                "I did do better. Try catching \(higherTime).",
+                                "Done. I'm untouched at \(higherTime).",
+                                "I'm always getting faster. \(higherTime) makes you look slow.",
+                                "Better is my baseline. I just cleared it in \(higherTime).",
+                                "I already left you behind. \(higherTime) is my new floor.",
+                                "Watch me. I'm clocking \(higherTime) easily.",
+                                "You are no threat. I'm sitting comfortably at \(higherTime).",
+                                "I never stop climbing. \(higherTime) is already done.",
+                            ])
+                        } else {
+                            let diff = totalSecs - higherNum
+                            var templates = [
+                                "I am leagues faster than your \(posterTime). I'm at \(higherTime).",
+                                "Your \(posterTime) time is cute. I clear it in \(higherTime).",
+                                "I easily passed your time. My record is \(higherTime).",
+                                "I shaved time off your \(posterTime). My best is \(higherTime).",
+                                "You call \(posterTime) fast? Try reaching my \(higherTime).",
+                                "I speedrun easily. \(higherTime) destroys your \(posterTime).",
+                                "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
+                            ]
+                            if diff >= 10 && commentIsCompetitive && commentText != message {
+                                templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
+                            } else {
+                                templates.append("\(posterTime) is close, but I just clocked \(higherTime).")
+                            }
+                            replies.append(contentsOf: templates)
+                        }
                     }
                 } else {
                     let assumedTotal = Int.random(in: 60...120)
@@ -3452,7 +3495,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I speedrun easily. \(higherTime) destroys your \(posterTime).",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
                     ]
-                    if diff >= 10 {
+                    if diff >= 10 && commentIsCompetitive && commentText != message {
                         templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
                     } else {
                         templates.append("\(posterTime) is close, but I just clocked \(higherTime).")
@@ -3463,7 +3506,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             if mentionedHoF {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
-                    let isLowerHoFBrag = commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                    let isLowerHoFBrag = commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
                     if isLowerHoFBrag, let cN = commentNumber, let rN = rootNumber {
                         replies.append(contentsOf: [
                             "You're bragging about \(cN) infinities? I'm already at \(rN). You're still too low to get ahead.",
@@ -3528,6 +3571,13 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 }
             }
 
+            if commentText == message {
+                replies = replies.filter { r in
+                    let l = r.lowercased()
+                    return !l.contains("too low") && !l.contains("too slow") && !l.contains("dust") && !l.contains("fast enough")
+                }
+            }
+
             // Generic competitive
             if replies.isEmpty {
                 let fallbackIdx = mentionedMilestone?.index ?? 15
@@ -3546,6 +3596,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Enjoy the view from the bottom. I'm way up at \(genericHigherM).",
                     "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
                 ])
+                if commentText == message {
+                    replies = replies.filter { r in
+                        let l = r.lowercased()
+                        return !l.contains("too low") && !l.contains("too slow") && !l.contains("dust") && !l.contains("fast enough")
+                    }
+                }
             }
             var reply = replies.randomElement()!
             if canBeBehind && Double.random(in: 0...1) < 0.45 * 0.86 {

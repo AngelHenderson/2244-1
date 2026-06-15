@@ -215,14 +215,14 @@ struct ParityModelsTests {
 
         // Test Case 1: Gap of 1 second (under 10s) -> "too slow" should NOT be used in slower time brag replies.
         for _ in 0..<50 {
-            let reply = service.generateContextualReply(to: "0:07", message: "0:06", forceTone: "one_up")
+            let reply = service.generateContextualReply(to: "beat you 0:07", message: "0:06", forceTone: "one_up")
             #expect(!reply.lowercased().contains("too slow"), "Should not contain 'too slow' when gap is 1s: \(reply)")
         }
 
         // Test Case 2: Gap of 19 seconds (10s+) -> "too slow" is allowed and should be generated at least sometimes.
         var sawTooSlow = false
         for _ in 0..<50 {
-            let reply = service.generateContextualReply(to: "0:25", message: "0:06", forceTone: "one_up")
+            let reply = service.generateContextualReply(to: "beat you 0:25", message: "0:06", forceTone: "one_up")
             if reply.lowercased().contains("too slow") {
                 sawTooSlow = true
                 break
@@ -231,10 +231,63 @@ struct ParityModelsTests {
         #expect(sawTooSlow, "Should generate 'too slow' when gap is 19s")
 
         // Test Case 3: Small gap when commenting on single time post -> "too slow" should NOT be used.
-        // If we reply to "0:07", since the time is <= 10s, the generated higherNum will be at least 4s, meaning gap <= 3s.
+        // If we reply to "beat you 0:07", since the time is <= 10s, the generated higherNum will be at least 4s, meaning gap <= 3s.
         for _ in 0..<50 {
-            let reply = service.generateContextualReply(to: "0:07", message: "no time here", forceTone: "one_up")
+            let reply = service.generateContextualReply(to: "beat you 0:07", message: "no time here", forceTone: "one_up")
             #expect(!reply.lowercased().contains("too slow"), "Should not contain 'too slow' when commenting on a 7s post: \(reply)")
+        }
+    }
+
+    @Test("Too low/slow phrasing is only used when replying to competitive/one-upmanship comments")
+    func tooLowSlowRequiresCompetitiveComment() async throws {
+        let service = MockSocialService()
+
+        // 1. Time topic:
+        // Reply to a non-competitive comment (no competitive keywords):
+        let timeReplyNonComp = service.generateContextualReply(to: "I only managed 0:07.", message: "0:06", forceTone: "one_up")
+        #expect(!timeReplyNonComp.lowercased().contains("too slow") && !timeReplyNonComp.lowercased().contains("fast enough"), "Should not use too slow/slow brag if comment is not competitive: \(timeReplyNonComp)")
+
+        // Reply to a competitive comment (contains "beat you"):
+        let timeReplyComp = service.generateContextualReply(to: "I beat you, clocked 0:07.", message: "0:06", forceTone: "one_up")
+        #expect(timeReplyComp.lowercased().contains("not fast enough") || timeReplyComp.lowercased().contains("too slow"), "Should use slow brag if comment is competitive: \(timeReplyComp)")
+
+        // 2. Milestone topic:
+        // Reply to a non-competitive comment:
+        let milestoneReplyNonComp = service.generateContextualReply(to: "I reached 256.", message: "Unlocked milestone 512.", forceTone: "one_up")
+        #expect(!milestoneReplyNonComp.lowercased().contains("too low") && !milestoneReplyNonComp.lowercased().contains("dust"), "Should not use too low brag if comment is not competitive: \(milestoneReplyNonComp)")
+
+        // Reply to a competitive comment:
+        let milestoneReplyComp = service.generateContextualReply(to: "My 256 is better, you cute.", message: "Unlocked milestone 512.", forceTone: "one_up")
+        let isMilestoneBrag = ["too low", "dust", "joke", "nothing", "laughing", "bragging", "beneath", "acting", "only at"].contains { milestoneReplyComp.lowercased().contains($0) }
+        #expect(isMilestoneBrag, "Should use too low/lower brag if comment is competitive: \(milestoneReplyComp)")
+
+        // 3. Comment directly to the poster (commentText == message):
+        // Even if it has competitive keywords, we shouldn't use "too low/slow" brags.
+        let postTimeText = "I beat you, clocked 0:07."
+        let commentToPosterTime = service.generateContextualReply(to: postTimeText, message: postTimeText, forceTone: "one_up")
+        #expect(!commentToPosterTime.lowercased().contains("too slow") && !commentToPosterTime.lowercased().contains("fast enough"), "Should not use too slow brag when commenting directly to the poster: \(commentToPosterTime)")
+
+        let postMilestoneText = "My 256 is better, you cute."
+        let commentToPosterMilestone = service.generateContextualReply(to: postMilestoneText, message: postMilestoneText, forceTone: "one_up")
+        #expect(!commentToPosterMilestone.lowercased().contains("too low") && !commentToPosterMilestone.lowercased().contains("dust"), "Should not use too low brag when commenting directly to the poster: \(commentToPosterMilestone)")
+    }
+
+    @Test("Competitive replies pause and tie when replying to 0:02")
+    func competitiveRepliesPauseAtTwoSeconds() async throws {
+        let service = MockSocialService()
+
+        for _ in 0..<50 {
+            // Reply to "0:02" comment (should use peak limit responses instead of trying to go faster)
+            let reply = service.generateContextualReply(to: "I clocked 0:02.", message: "I clocked 0:06.", forceTone: "one_up")
+            
+            // Check that it doesn't contain "shaved time off your 0:02. My best is 0:02" or other faster brags
+            #expect(!reply.contains("shaved time off"), "Should not try to shave time off 0:02: \(reply)")
+            #expect(!reply.contains("leagues faster"), "Should not claim to be leagues faster than 0:02: \(reply)")
+            #expect(!reply.contains("clear it in"), "Should not claim to clear 0:02 in faster time: \(reply)")
+            
+            // Check that it contains the limit/peak message substrings
+            let isLimitReply = ["limit", "peak", "share the record", "theoretical limit"].contains { reply.lowercased().contains($0) }
+            #expect(isLimitReply, "Should recognize 0:02 is the limit: \(reply)")
         }
     }
 
