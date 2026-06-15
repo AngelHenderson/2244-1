@@ -217,6 +217,7 @@ struct CompareView: View {
             code: friendCode,
             countryFlag: myProfile.countryFlag,
             milestone: myProfile.milestone,
+            bestMilestone: nil,
             isMe: true,
             isBanned: false,
             banEndDate: nil,
@@ -231,6 +232,7 @@ struct CompareView: View {
                 code: player.code,
                 countryFlag: player.countryFlag,
                 milestone: player.isGameOver ? "2" : player.milestone,
+                bestMilestone: player.isGameOver ? player.milestone : nil,
                 isMe: false,
                 isBanned: player.isBanned,
                 banEndDate: player.banEndDate,
@@ -266,6 +268,7 @@ struct CompareView: View {
             code: friendCode,
             countryFlag: myProfile.countryFlag,
             milestone: myHofDisplay,
+            bestMilestone: nil,
             isMe: true,
             isBanned: false,
             banEndDate: nil,
@@ -286,6 +289,7 @@ struct CompareView: View {
                 code: player.code,
                 countryFlag: player.countryFlag,
                 milestone: hofDisplay,
+                bestMilestone: nil,
                 isMe: false,
                 isBanned: player.isBanned,
                 banEndDate: player.banEndDate,
@@ -641,6 +645,7 @@ struct ComparisonEntry: Identifiable {
     let code: String
     let countryFlag: String
     let milestone: String
+    let bestMilestone: String?
     let isMe: Bool
     let isBanned: Bool
     let banEndDate: Date?
@@ -666,10 +671,22 @@ private struct ComparisonEntryStatusView: View {
                 Text(formatBanTimeLeft(entry.banEndDate, now: context.date))
                     .font(.avenirNext(size: GameFonts.footnoteSize, weight: .bold))
                     .foregroundColor(.red)
+            } else if entry.isGameOver, let best = entry.bestMilestone {
+                HStack(spacing: 4) {
+                    Text(entry.milestone)
+                        .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
+                        .foregroundColor(.orange)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.secondary)
+                    Text(best)
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
             } else {
                 Text(entry.milestone)
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .bold))
-                    .foregroundColor(entry.isGameOver ? .orange : (entry.isMe ? .accentColor : .primary))
+                    .foregroundColor(entry.isMe ? .accentColor : .primary)
             }
         }
     }
