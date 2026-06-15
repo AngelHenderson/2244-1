@@ -412,7 +412,7 @@ public struct ModeLibraryView: View {
         NavigationStack {
             List {
                 Section("Play") {
-                    ModeActionRow(title: "Classic", subtitle: "Resume your main gameplay.", systemImage: "play.circle.fill", action: onPlay)
+                    ModeActionRow(title: "Classic", subtitle: "Resume your main game.", systemImage: "play.circle.fill", action: onPlay)
                     ModeActionRow(title: "Daily Rewards", subtitle: "Claim today's reward and catch up missed days.", systemImage: "calendar.circle.fill", action: onDaily)
                     ModeActionRow(title: "Challenge Mode", subtitle: "Play curated boards with specific targets.", systemImage: "flag.checkered.circle.fill", action: onChallenge)
                     ModeActionRow(title: "Create a Game", subtitle: "Design a custom challenge and test it.", systemImage: "slider.horizontal.3", action: onCreate)
