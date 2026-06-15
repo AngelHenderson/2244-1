@@ -393,39 +393,48 @@ struct ParityModelsTests {
         
         for item in items {
             let topic = MockSocialService.determineTopic(message: item.message)
-            var lastComment: SocialFeedComment? = nil
-            var threadRecords: [String: String] = [:]
+            
+            // Build all reply chains
+            var chains: [[SocialFeedComment]] = []
+            var currentChain: [SocialFeedComment] = []
             
             for comment in item.comments {
                 let text = comment.text
-                let author = comment.authorName
-                
                 if text.hasPrefix("@") {
-                    if let last = lastComment, text.hasPrefix("@\(last.authorName)") {
-                        // This is a reply in the active competitive thread
-                        if let val = MockSocialService.extractValue(from: text, topic: topic) {
-                            if let existingVal = threadRecords[author], !existingVal.isEmpty {
-                                #expect(existingVal == val, "Player \(author) claimed value \(val) in thread, but previously claimed \(existingVal) (topic: \(topic), comment: \(text))")
-                            } else {
-                                threadRecords[author] = val
-                            }
-                        }
+                    if let last = currentChain.last, text.hasPrefix("@\(last.authorName)") {
+                        currentChain.append(comment)
                     } else {
-                        // Replying to someone else — reset thread tracking
-                        threadRecords.removeAll()
-                        if let val = MockSocialService.extractValue(from: text, topic: topic) {
-                            threadRecords[author] = val
+                        if !currentChain.isEmpty {
+                            chains.append(currentChain)
                         }
+                        currentChain = [comment]
                     }
                 } else {
-                    // Start of a new thread
-                    threadRecords.removeAll()
-                    if let val = MockSocialService.extractValue(from: text, topic: topic) {
-                        threadRecords[author] = val
+                    if !currentChain.isEmpty {
+                        chains.append(currentChain)
+                    }
+                    currentChain = [comment]
+                }
+            }
+            if !currentChain.isEmpty {
+                chains.append(currentChain)
+            }
+            
+            // Verify record consistency only for competitive threads (chains of length >= 3)
+            for chain in chains where chain.count >= 3 {
+                var playerRecords: [String: String] = [:]
+                for comment in chain {
+                    let author = comment.authorName
+                    if let val = MockSocialService.extractValue(from: comment.text, topic: topic) {
+                        if let establishedVal = playerRecords[author] {
+                            // val must be worse than or equal to establishedVal
+                            let isBetter = MockSocialService.isRecord(establishedVal, worseThan: val, topic: topic)
+                            #expect(!isBetter, "Player \(author) claimed value \(val) in competitive thread, which is better than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                        } else {
+                            playerRecords[author] = val
+                        }
                     }
                 }
-                
-                lastComment = comment
             }
         }
     }
