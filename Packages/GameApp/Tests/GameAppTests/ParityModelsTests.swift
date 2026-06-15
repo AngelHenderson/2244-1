@@ -176,8 +176,8 @@ struct ParityModelsTests {
                     "laughing from", "easily hit", "easily clear", "easily passed",
                     "easily reached", "easily beat", "easily bypassed", "easily crush",
                     "chasing my lead", "higher ceiling", "dominance", "unreachable",
-                    "comfortably ahead", "only at", "is a joke", "try catching",
-                    "try hitting", "don't bother comparing", "my floor", "casually coasting",
+                    "comfortably ahead", "only at", "is a joke", "you'll never catch",
+                    "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
                     "record is", "my record", "permanent", "diamond tier", "diamond chests",
                     "already far ahead", "nothing compared", "always do better", "did do better",
                     "baseline", "left you behind", "no threat", "never stop climbing",
@@ -366,6 +366,68 @@ struct ParityModelsTests {
         
         let ratio = Double(tooLowCount) / Double(totalRuns)
         #expect(ratio >= 0.88 && ratio <= 0.99, "Too low reply ratio is \(ratio), expected around 0.95")
+    }
+
+    @Test("Player record is consistent across a competitive comment thread")
+    func testPlayerRecordConsistency() async throws {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "socialFeed.cache.v40")
+        defaults.removeObject(forKey: "socialFeed.cacheDate.v37")
+        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        
+        let service = MockSocialService()
+        // Generate threads with different topics
+        let milestones = ["65K", "100 days streak", "timed challenge in 0:45", "15 infinities count"]
+        
+        for message in milestones {
+            try await service.postEvent(message: "I am playing! \(message)", statText: "stat")
+        }
+        
+        guard let data = defaults.data(forKey: "socialFeed.userPosts.v2"),
+              let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
+            Issue.record("Failed to decode user posts")
+            return
+        }
+        
+        #expect(!items.isEmpty)
+        
+        for item in items {
+            let topic = MockSocialService.determineTopic(message: item.message)
+            var lastComment: SocialFeedComment? = nil
+            var threadRecords: [String: String] = [:]
+            
+            for comment in item.comments {
+                let text = comment.text
+                let author = comment.authorName
+                
+                if text.hasPrefix("@") {
+                    if let last = lastComment, text.hasPrefix("@\(last.authorName)") {
+                        // This is a reply in the active competitive thread
+                        if let val = MockSocialService.extractValue(from: text, topic: topic) {
+                            if let existingVal = threadRecords[author], !existingVal.isEmpty {
+                                #expect(existingVal == val, "Player \(author) claimed value \(val) in thread, but previously claimed \(existingVal) (topic: \(topic), comment: \(text))")
+                            } else {
+                                threadRecords[author] = val
+                            }
+                        }
+                    } else {
+                        // Replying to someone else — reset thread tracking
+                        threadRecords.removeAll()
+                        if let val = MockSocialService.extractValue(from: text, topic: topic) {
+                            threadRecords[author] = val
+                        }
+                    }
+                } else {
+                    // Start of a new thread
+                    threadRecords.removeAll()
+                    if let val = MockSocialService.extractValue(from: text, topic: topic) {
+                        threadRecords[author] = val
+                    }
+                }
+                
+                lastComment = comment
+            }
+        }
     }
 }
 
