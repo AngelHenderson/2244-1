@@ -401,8 +401,17 @@ struct ParityModelsTests {
             for comment in item.comments {
                 let text = comment.text
                 if text.hasPrefix("@") {
-                    if let last = currentChain.last, text.hasPrefix("@\(last.authorName)") {
-                        currentChain.append(comment)
+                    let parts = text.split(separator: " ")
+                    if let first = parts.first {
+                        let targetName = String(first.dropFirst())
+                        if let last = currentChain.last, targetName == last.authorName {
+                            currentChain.append(comment)
+                        } else {
+                            if !currentChain.isEmpty {
+                                chains.append(currentChain)
+                            }
+                            currentChain = [comment]
+                        }
                     } else {
                         if !currentChain.isEmpty {
                             chains.append(currentChain)

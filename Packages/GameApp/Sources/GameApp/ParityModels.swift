@@ -923,7 +923,12 @@ public struct MockSocialService: SocialService, Sendable {
         // Filter out matches that are part of the leading @mention username
         let firstSpaceRange = nsText.range(of: " ")
         let firstSpaceIdx = firstSpaceRange.location != NSNotFound ? firstSpaceRange.location : 0
-        let filteredMatches = uniqueMatches.filter { $0.range.location >= firstSpaceIdx }
+        let filteredMatches: [(val: String, range: NSRange)]
+        if text.hasPrefix("@") {
+            filteredMatches = uniqueMatches.filter { $0.range.location >= firstSpaceIdx }
+        } else {
+            filteredMatches = uniqueMatches
+        }
         
         guard !filteredMatches.isEmpty else { return nil }
         
@@ -2316,7 +2321,7 @@ public struct MockSocialService: SocialService, Sendable {
             "Huge!", "Well deserved!", "Too good!", "Teach me!", "What a play!",
             "Respect!", "Built different.", "Massive W!", "That's elite!",
         ]
-                var behindReactions = [
+            let behindReactions = [
             "I'm struggling to keep up", "How did you get so far ahead?",
             "I need to rethink my strategy", "I'm falling behind",
             "This is harder than I thought", "My runs are nowhere near that",
@@ -3156,7 +3161,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let commentMilestone = foundMilestones.max(by: { $0.index < $1.index })
         
         let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
-        let lowerMessage = message.lowercased()
         let rootMilestone = sortedMilestones.first(where: { entry in
             let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: entry.element))\\b(?!:)"
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil
@@ -3190,7 +3194,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             return nil
         }()
         
-        var mentionedNumber = (commentNumber ?? rootNumber).map { String($0) }
+        let mentionedNumber = (commentNumber ?? rootNumber).map { String($0) }
         
         let commentTime = Self.extractTime(from: strippedLower)
         let rootTime = Self.extractTime(from: message.lowercased())
@@ -3204,10 +3208,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: combinedLower, range: NSRange(combinedLower.startIndex..., in: combinedLower)) != nil
         var mentionedTime = hasTimeFormat || !combinedWords.isDisjoint(with: ["time", "fast", "speed", "quick", "sec", "min", "mins", "clock", "timed", "seconds", "minutes"])
         var mentionedStreak = !combinedWords.isDisjoint(with: ["streak", "day", "days", "consecutive"])
-        var mentionedTheme = !combinedWords.isDisjoint(with: ["theme", "style", "aesthetic"])
+        let mentionedTheme = !combinedWords.isDisjoint(with: ["theme", "style", "aesthetic"])
         var mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("infinity count") || !combinedWords.isDisjoint(with: ["hof", "infinity", "infinit"])
-        var mentionedPerk = !combinedWords.isDisjoint(with: ["hammer", "swap", "magnet", "perk", "perks"])
-        var mentionedGems = !combinedWords.isDisjoint(with: ["gem", "gems"])
+        let mentionedPerk = !combinedWords.isDisjoint(with: ["hammer", "swap", "magnet", "perk", "perks"])
+        let mentionedGems = !combinedWords.isDisjoint(with: ["gem", "gems"])
         var mentionedQuest = !combinedWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
 
                 // ── Mutually Exclusive Topic Priority & Thread Locking ──
@@ -3275,7 +3279,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // ── Generate contextual replies that reference the actual comment ──
 
         if isAddRequest {
-            var replies = [
+            let replies = [
                 "You can add me, but you'll never catch me.",
                 "Add me if you want to watch me stay ahead.",
                 "Sure, add me so you can stare at my infinite lead.",
@@ -3409,28 +3413,61 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         if isCompetitive {
-            let parentIsJealous = jealousKeywords.contains(where: { strippedLower.contains($0) })
-            if parentIsJealous {
+            let outOfReachPhrases = ["get to", "reach", "trying to", "stuck on", "can't even", "can never", "impossible", "struggling", "wish i could", "aiming for", "hard to", "hoping to"]
+            let isTargetOutOfReach = outOfReachPhrases.contains { strippedLower.contains($0) }
+            let parentIsJealous = jealousKeywords.contains(where: { strippedLower.contains($0) }) || isTargetOutOfReach
+            
+            if parentIsJealous && forceTone != "behind" {
                 var replies: [String] = []
                 
                 if let m = mentionedMilestone {
-                    let jump = Int.random(in: 2...6) // Small jump
-                    let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
-                    let higherM = Self.allMilestones[higherIdx]
-                    replies.append("Only at \(m.name)? I easily reached \(higherM).")
-                    replies.append("You think \(m.name) is a big milestone? I'm already coasting at \(higherM).")
-                    replies.append("Your \(m.name) is a joke. You'll never catch my \(higherM).")
-                    replies.append("I easily bypassed \(m.name) and hit \(higherM).")
-                    replies.append("I'm laughing from \(higherM) while you're still at \(m.name).")
-                    replies.append("Celebrating \(m.name)? I easily clear \(higherM).")
+                    let higherM: String
+                    if let speakerValue = speakerValue {
+                        higherM = speakerValue
+                    } else {
+                        let jump = Int.random(in: 2...6)
+                        let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
+                        higherM = Self.allMilestones[higherIdx]
+                    }
+                    if isTargetOutOfReach {
+                        replies.append(contentsOf: [
+                            "If you can't even get to \(m.name), you'll never catch my \(higherM).",
+                            "\(m.name) is out of reach for you? Try aiming lower. I'm at \(higherM).",
+                            "You'll never get to \(m.name) anyway, let alone my \(higherM).",
+                            "If \(m.name) is impossible for you, don't even look at my \(higherM).",
+                            "Of course you can't get to \(m.name). That's child's play compared to my \(higherM).",
+                            "You can't even reach \(m.name)? Figures. My record is \(higherM).",
+                            "Keep struggling with \(m.name). I'm sitting comfortably at \(higherM)."
+                        ])
+                    } else {
+                        replies.append("Only at \(m.name)? I easily reached \(higherM).")
+                        replies.append("You think \(m.name) is a big milestone? I'm already coasting at \(higherM).")
+                        replies.append("Your \(m.name) is a joke. You'll never catch my \(higherM).")
+                        replies.append("I easily bypassed \(m.name) and hit \(higherM).")
+                        replies.append("I'm laughing from \(higherM) while you're still at \(m.name).")
+                        replies.append("Celebrating \(m.name)? I easily clear \(higherM).")
+                    }
                 } else if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
-                    let higherNum = num + Int.random(in: 30...max(50, num)) // Huge jump
-                    replies.append("Only \(num)? I easily reached \(higherNum).")
-                    replies.append("You actually think \(num) is a high score? I hit \(higherNum) without even looking.")
-                    replies.append("Your \(num) is a joke. I easily crush \(higherNum).")
-                    replies.append("I easily bypassed \(num) and hit \(higherNum) without trying.")
-                    replies.append("Only at \(num)? My floor is \(higherNum).")
-                    replies.append("Don't bother comparing. I'm safely ahead at \(higherNum).")
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = num + Int.random(in: 30...max(50, num)) // Huge jump
+                    }
+                    if isTargetOutOfReach {
+                        replies.append(contentsOf: [
+                            "If you can't even get to \(num), you'll never catch my \(higherNum).",
+                            "\(num) is out of reach for you? I'm at \(higherNum).",
+                            "You'll never get to \(num) anyway, let alone my \(higherNum)."
+                        ])
+                    } else {
+                        replies.append("Only \(num)? I easily reached \(higherNum).")
+                        replies.append("You actually think \(num) is a high score? I hit \(higherNum) without even looking.")
+                        replies.append("Your \(num) is a joke. I easily crush \(higherNum).")
+                        replies.append("I easily bypassed \(num) and hit \(higherNum) without trying.")
+                        replies.append("Only at \(num)? My floor is \(higherNum).")
+                        replies.append("Don't bother comparing. I'm safely ahead at \(higherNum).")
+                    }
                 } else if mentionedTime, let timeTuple = Self.extractTime(from: strippedLower) {
                     let totalSecs = timeTuple.0 * 60 + timeTuple.1
                     if totalSecs <= 2 {
@@ -3441,33 +3478,72 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "0:02? Solid. I'm right there at the limit too."
                         ])
                     } else {
-                        var myTotal = totalSecs / 3 // Ridiculously fast
-                        if myTotal <= 1 { myTotal = 2 }
-                        let myTime = "\(myTotal / 60):\(String(format: "%02d", myTotal % 60))"
+                        let myTimeStr: String
+                        if let speakerValue = speakerValue {
+                            myTimeStr = speakerValue
+                        } else {
+                            var mySecs = totalSecs / 3 // Ridiculously fast
+                            if mySecs <= 1 { mySecs = 2 }
+                            myTimeStr = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
+                        }
                         let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
-                        replies.append("Celebrating \(posterTime)? I easily reached \(myTime).")
-                        replies.append("You think \(posterTime) is fast? I'm already casually coasting at \(myTime).")
-                        replies.append("Your \(posterTime) is a joke. I easily hit \(myTime).")
-                        replies.append("Only at \(posterTime)? I easily bypassed that to clock \(myTime).")
-                        replies.append("My record is \(myTime) compared to your \(posterTime).")
-                        replies.append("I breeze through in \(myTime) in my sleep.")
+                        if isTargetOutOfReach {
+                            replies.append(contentsOf: [
+                                "If you can't even get to \(posterTime), you'll never catch my \(myTimeStr).",
+                                "\(posterTime) is out of reach for you? I'm at \(myTimeStr).",
+                                "You'll never get to \(posterTime) anyway, let alone my \(myTimeStr)."
+                            ])
+                        } else {
+                            replies.append("Celebrating \(posterTime)? I easily reached \(myTimeStr).")
+                            replies.append("You think \(posterTime) is fast? I'm already casually coasting at \(myTimeStr).")
+                            replies.append("Your \(posterTime) is a joke. I easily hit \(myTimeStr).")
+                            replies.append("Only at \(posterTime)? I easily bypassed that to clock \(myTimeStr).")
+                            replies.append("My record is \(myTimeStr) compared to your \(posterTime).")
+                            replies.append("I breeze through in \(myTimeStr) in my sleep.")
+                        }
                     }
                 } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
-                    let higherNum = num + Int.random(in: 5...15)
-                    replies.append("Only \(num) days? I easily reached \(higherNum).")
-                    replies.append("You think \(num) days is a high streak? I'm already casually coasting at \(higherNum).")
-                    replies.append("Your \(num) days is a joke. I easily hit \(higherNum).")
-                    replies.append("I easily bypassed \(num) days. I'm untouched at \(higherNum).")
-                    replies.append("My \(higherNum) streak is permanent.")
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = num + Int.random(in: 5...15)
+                    }
+                    if isTargetOutOfReach {
+                        replies.append(contentsOf: [
+                            "If you can't even get to \(num) days, you'll never catch my \(higherNum) days.",
+                            "\(num) days is out of reach for you? I'm at \(higherNum) days.",
+                            "You'll never get to \(num) days anyway, let alone my \(higherNum) days."
+                        ])
+                    } else {
+                        replies.append("Only \(num) days? I easily reached \(higherNum).")
+                        replies.append("You think \(num) days is a high streak? I'm already casually coasting at \(higherNum).")
+                        replies.append("Your \(num) days is a joke. I easily hit \(higherNum).")
+                        replies.append("I easily bypassed \(num) days. I'm untouched at \(higherNum).")
+                        replies.append("My \(higherNum) streak is permanent.")
+                    }
                 } else if mentionedQuest {
                     replies.append("Quests? I easily reach Diamond tier.")
                     replies.append("I farm Diamond chests easily.")
                 } else if mentionedHoF, let infCount = Self.extractNumber(from: strippedLower, near: ["infinity", "infinit", "hof", "count"]) {
-                    let myCount = infCount + Int.random(in: 5...15)
-                    replies.append("Only \(infCount) infinities? I easily reached \(myCount).")
-                    replies.append("You think \(infCount) is a high count? I'm already casually coasting at \(myCount).")
-                    replies.append("Your \(infCount) is a joke. I easily hit \(myCount).")
-                    replies.append("I easily bypassed \(infCount) and am always climbing past \(myCount).")
+                    let myCount: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        myCount = valInt
+                    } else {
+                        myCount = infCount + Int.random(in: 5...15)
+                    }
+                    if isTargetOutOfReach {
+                        replies.append(contentsOf: [
+                            "If you can't even get to \(infCount) infinities, you'll never catch my \(myCount).",
+                            "\(infCount) is out of reach for you? I'm at \(myCount).",
+                            "You'll never get to \(infCount) anyway, let alone my \(myCount)."
+                        ])
+                    } else {
+                        replies.append("Only \(infCount) infinities? I easily reached \(myCount).")
+                        replies.append("You think \(infCount) is a high count? I'm already casually coasting at \(myCount).")
+                        replies.append("Your \(infCount) is a joke. I easily hit \(myCount).")
+                        replies.append("I easily bypassed \(infCount) and am always climbing past \(myCount).")
+                    }
                 } else {
                     replies.append("I am comfortably ahead.")
                     replies.append("I am safely ahead.")
